@@ -2,1057 +2,31 @@
  "batch": {
   "spans": [
    {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "LReSvGZSOt8=",
-    "operation_name": "HTTP GET",
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "bgnovO/WuCg=",
+    "operation_name": "FindDriverIDs",
     "references": [
      {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "LsLNr4q8rx0="
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
      }
     ],
     "flags": 1,
-    "start_time": "2019-12-17T13:22:31.109109Z",
-    "duration": 63390000,
+    "start_time": "2019-12-20T07:41:44.954062Z",
+    "duration": 19711000,
     "tags": [
+     {
+      "key": "param.location",
+      "v_str": "728,326"
+     },
      {
       "key": "span.kind",
       "v_str": "client"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "http://0.0.0.0:8083/route?dropoff=115%2C277\u0026pickup=617%2C235"
-     },
-     {
-      "key": "http.url",
-      "v_str": "0.0.0.0:8083"
-     },
-     {
-      "key": "net/http.reused",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "net/http.was_idle",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
      }
     ],
     "logs": [
      {
-      "timestamp": "2019-12-17T13:22:31.109127Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GetConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.109131Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.109145Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteHeaders"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.109146Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteRequest"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.172282Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotFirstResponseByte"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.172424Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "PutIdleConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.172499Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "ClosedBody"
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "LsLNr4q8rx0=",
-    "operation_name": "HTTP GET: /route",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "ZbQRXH6+YBQ="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.109102Z",
-    "duration": 63412000,
-    "tags": null,
-    "logs": null
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "K7OTLUqV9aI=",
-    "operation_name": "HTTP GET",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "XN13htA1/OA="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.14472Z",
-    "duration": 51120000,
-    "tags": [
-     {
-      "key": "span.kind",
-      "v_str": "client"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "http://0.0.0.0:8083/route?dropoff=115%2C277\u0026pickup=27%2C793"
-     },
-     {
-      "key": "http.url",
-      "v_str": "0.0.0.0:8083"
-     },
-     {
-      "key": "net/http.reused",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "net/http.was_idle",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
-     }
-    ],
-    "logs": [
-     {
-      "timestamp": "2019-12-17T13:22:31.144744Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GetConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.144748Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.144762Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteHeaders"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.144763Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteRequest"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.195769Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotFirstResponseByte"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.195816Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "PutIdleConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.195841Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "ClosedBody"
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "XN13htA1/OA=",
-    "operation_name": "HTTP GET: /route",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "ZbQRXH6+YBQ="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.144713Z",
-    "duration": 51135000,
-    "tags": null,
-    "logs": null
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "YR5usQdh254=",
-    "operation_name": "HTTP GET",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "IDX2aZ9+9L4="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.135848Z",
-    "duration": 69938000,
-    "tags": [
-     {
-      "key": "span.kind",
-      "v_str": "client"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "http://0.0.0.0:8083/route?dropoff=115%2C277\u0026pickup=392%2C747"
-     },
-     {
-      "key": "http.url",
-      "v_str": "0.0.0.0:8083"
-     },
-     {
-      "key": "net/http.reused",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "net/http.was_idle",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
-     }
-    ],
-    "logs": [
-     {
-      "timestamp": "2019-12-17T13:22:31.135868Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GetConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.135873Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.135892Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteHeaders"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.135893Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteRequest"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.205705Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotFirstResponseByte"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.205766Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "PutIdleConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.205788Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "ClosedBody"
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "IDX2aZ9+9L4=",
-    "operation_name": "HTTP GET: /route",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "ZbQRXH6+YBQ="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.13584Z",
-    "duration": 69952000,
-    "tags": null,
-    "logs": null
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "T16nglk3+lI=",
-    "operation_name": "HTTP GET",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "IO70vBe57A0="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.172725Z",
-    "duration": 39074000,
-    "tags": [
-     {
-      "key": "span.kind",
-      "v_str": "client"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "http://0.0.0.0:8083/route?dropoff=115%2C277\u0026pickup=412%2C695"
-     },
-     {
-      "key": "http.url",
-      "v_str": "0.0.0.0:8083"
-     },
-     {
-      "key": "net/http.reused",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "net/http.was_idle",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
-     }
-    ],
-    "logs": [
-     {
-      "timestamp": "2019-12-17T13:22:31.172754Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GetConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.172763Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.172789Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteHeaders"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.172791Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteRequest"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.211652Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotFirstResponseByte"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.211768Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "PutIdleConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.211799Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "ClosedBody"
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "IO70vBe57A0=",
-    "operation_name": "HTTP GET: /route",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "ZbQRXH6+YBQ="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.172703Z",
-    "duration": 39099000,
-    "tags": null,
-    "logs": null
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "fD/ah5kqvhs=",
-    "operation_name": "HTTP GET",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "L5IZJEWiRp4="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.205873Z",
-    "duration": 50256000,
-    "tags": [
-     {
-      "key": "span.kind",
-      "v_str": "client"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "http://0.0.0.0:8083/route?dropoff=115%2C277\u0026pickup=894%2C634"
-     },
-     {
-      "key": "http.url",
-      "v_str": "0.0.0.0:8083"
-     },
-     {
-      "key": "net/http.reused",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "net/http.was_idle",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
-     }
-    ],
-    "logs": [
-     {
-      "timestamp": "2019-12-17T13:22:31.205893Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GetConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.205898Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.20592Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteHeaders"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.205921Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteRequest"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.256027Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotFirstResponseByte"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.256095Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "PutIdleConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.256129Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "ClosedBody"
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "L5IZJEWiRp4=",
-    "operation_name": "HTTP GET: /route",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "ZbQRXH6+YBQ="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.205862Z",
-    "duration": 50276000,
-    "tags": null,
-    "logs": null
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "aw4HK17HoBs=",
-    "operation_name": "HTTP GET",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "KP3+VyslvvI="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.195974Z",
-    "duration": 74141000,
-    "tags": [
-     {
-      "key": "span.kind",
-      "v_str": "client"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "http://0.0.0.0:8083/route?dropoff=115%2C277\u0026pickup=586%2C926"
-     },
-     {
-      "key": "http.url",
-      "v_str": "0.0.0.0:8083"
-     },
-     {
-      "key": "net/http.reused",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "net/http.was_idle",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
-     }
-    ],
-    "logs": [
-     {
-      "timestamp": "2019-12-17T13:22:31.196015Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GetConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.196022Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.196886Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteHeaders"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.19689Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteRequest"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.270031Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotFirstResponseByte"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.270092Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "PutIdleConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.270117Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "ClosedBody"
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "KP3+VyslvvI=",
-    "operation_name": "HTTP GET: /route",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "ZbQRXH6+YBQ="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.195963Z",
-    "duration": 74158000,
-    "tags": null,
-    "logs": null
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "ejz7Mu4BUR4=",
-    "operation_name": "HTTP GET",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "OVoNxjJ2iiE="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.211941Z",
-    "duration": 69933000,
-    "tags": [
-     {
-      "key": "span.kind",
-      "v_str": "client"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "http://0.0.0.0:8083/route?dropoff=115%2C277\u0026pickup=725%2C767"
-     },
-     {
-      "key": "http.url",
-      "v_str": "0.0.0.0:8083"
-     },
-     {
-      "key": "net/http.reused",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "net/http.was_idle",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
-     }
-    ],
-    "logs": [
-     {
-      "timestamp": "2019-12-17T13:22:31.211971Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GetConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.21198Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.212009Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteHeaders"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.212011Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "WroteRequest"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.281671Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "GotFirstResponseByte"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.281762Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "PutIdleConn"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.281876Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "ClosedBody"
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "OVoNxjJ2iiE=",
-    "operation_name": "HTTP GET: /route",
-    "references": [
-     {
-      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-      "span_id": "ZbQRXH6+YBQ="
-     }
-    ],
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:31.211902Z",
-    "duration": 69982000,
-    "tags": null,
-    "logs": null
-   },
-   {
-    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
-    "span_id": "ZbQRXH6+YBQ=",
-    "operation_name": "HTTP GET /dispatch",
-    "references": null,
-    "flags": 1,
-    "start_time": "2019-12-17T13:22:30.559111Z",
-    "duration": 722924000,
-    "tags": [
-     {
-      "key": "sampler.type",
-      "v_str": "const"
-     },
-     {
-      "key": "sampler.param",
-      "v_type": 1,
-      "v_bool": true
-     },
-     {
-      "key": "span.kind",
-      "v_str": "server"
-     },
-     {
-      "key": "http.method",
-      "v_str": "GET"
-     },
-     {
-      "key": "http.url",
-      "v_str": "/dispatch?customer=123\u0026nonse=0.870635048595924"
-     },
-     {
-      "key": "component",
-      "v_str": "net/http"
-     },
-     {
-      "key": "http.status_code",
-      "v_type": 2,
-      "v_int64": 200
-     }
-    ],
-    "logs": [
-     {
-      "timestamp": "2019-12-17T13:22:30.559294Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "HTTP request received"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "method",
-        "v_str": "GET"
-       },
-       {
-        "key": "url",
-        "v_str": "/dispatch?customer=123\u0026nonse=0.870635048595924"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:30.559315Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Getting customer"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "customer_id",
-        "v_str": "123"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:30.833961Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Found customer"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:30.834049Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "baggage"
-       },
-       {
-        "key": "key",
-        "v_str": "customer"
-       },
-       {
-        "key": "value",
-        "v_str": "Rachel's Floral Designs"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:30.834055Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding nearest drivers"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "location",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.071946Z",
+      "timestamp": "2019-12-20T07:41:44.973728Z",
       "fields": [
        {
         "key": "event",
@@ -1063,256 +37,418 @@
         "v_str": "info"
        }
       ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "MzKVv7Q46gM=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:44.973809Z",
+    "duration": 33732000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T762465C"
      },
      {
-      "timestamp": "2019-12-17T13:22:31.072122Z",
+      "key": "span.kind",
+      "v_str": "client"
+     },
+     {
+      "key": "error",
+      "v_type": 1,
+      "v_bool": true
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-20T07:41:45.006847Z",
       "fields": [
        {
         "key": "event",
-        "v_str": "Finding route"
+        "v_str": "redis timeout"
        },
        {
         "key": "level",
-        "v_str": "info"
+        "v_str": "error"
        },
        {
-        "key": "pickup",
-        "v_str": "805,389"
+        "key": "driver_id",
+        "v_str": "T762465C"
        },
        {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.07245Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "231,668"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.072475Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "842,487"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.109046Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "617,235"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.135754Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "392,747"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.144654Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "27,793"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.172534Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "412,695"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.195859Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "586,926"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.2058Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "894,634"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.211813Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Finding route"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "pickup",
-        "v_str": "725,767"
-       },
-       {
-        "key": "dropoff",
-        "v_str": "115,277"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.281915Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Found routes"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       }
-      ]
-     },
-     {
-      "timestamp": "2019-12-17T13:22:31.282009Z",
-      "fields": [
-       {
-        "key": "event",
-        "v_str": "Dispatch successful"
-       },
-       {
-        "key": "level",
-        "v_str": "info"
-       },
-       {
-        "key": "driver",
-        "v_str": "T785801C"
-       },
-       {
-        "key": "eta",
-        "v_str": "2m0s"
+        "key": "error",
+        "v_str": "redis timeout"
        }
       ]
      }
     ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "Ynw3qX5HXC8=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.007578Z",
+    "duration": 9240000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T762465C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "e9dmPTnFqEc=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.016845Z",
+    "duration": 12561000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T712515C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "a0BR3SpeI2Y=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.029415Z",
+    "duration": 10630000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T752110C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "bfl6hrmzRRs=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.040082Z",
+    "duration": 13946000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T757670C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "YUgR1sSYv7A=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.054046Z",
+    "duration": 35375000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T781861C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     },
+     {
+      "key": "error",
+      "v_type": 1,
+      "v_bool": true
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-20T07:41:45.089372Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "redis timeout"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "driver_id",
+        "v_str": "T781861C"
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "IxYEVZ2oTWE=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.089459Z",
+    "duration": 11802000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T781861C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "Yffs8k0Tw2o=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.101278Z",
+    "duration": 12236000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T705860C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "LvM1utJKzMI=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.113531Z",
+    "duration": 11986000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T708771C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "OOxkXnIBIk0=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.125567Z",
+    "duration": 7311000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T710624C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "AkLuN3TZ6rE=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.132896Z",
+    "duration": 39602000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T752547C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     },
+     {
+      "key": "error",
+      "v_type": 1,
+      "v_bool": true
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-20T07:41:45.172347Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "redis timeout"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "driver_id",
+        "v_str": "T752547C"
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "amPR6Bz8fZU=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.172618Z",
+    "duration": 14029000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T752547C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "K0wo8CsnLxc=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.18667Z",
+    "duration": 10431000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T757338C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
    }
   ],
   "process": {
-   "service_name": "frontend",
+   "service_name": "redis",
    "tags": [
     {
      "key": "jaeger.version",
@@ -1324,11 +460,11 @@
     },
     {
      "key": "ip",
-     "v_str": "127.0.0.1"
+     "v_str": "10.0.0.13"
     },
     {
      "key": "client-uuid",
-     "v_str": "78dd6e017f54a2c1"
+     "v_str": "2e3f8db3eb77fae0"
     }
    ]
   }
