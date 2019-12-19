@@ -2234,30 +2234,44 @@
 			"revisionTime": "2019-12-04T15:10:13Z"
 		},
 		{
-			"checksumSHA1": "J868MJ0VKbQZigstZT/i/PH8zrE=",
+			"checksumSHA1": "lD2sda8Zs3N17TQNnn5yMistY0Q=",
 			"path": "github.com/jaegertracing/jaeger/model",
-			"revision": "e4b97b38c4785d9a593483241f0a1d3abe007e1c",
-			"revisionTime": "2019-11-30T19:27:31Z"
+			"revision": "1c315785dddc80a39637c2b08b0a9bbe9ab1536c",
+			"revisionTime": "2019-12-17T11:29:57Z",
+			"version": "v1.16.0",
+			"versionExact": "v1.16.0"
 		},
 		{
 			"checksumSHA1": "jVQeChfPIzcnAv/TO2ZcIsxwFDU=",
 			"path": "github.com/jaegertracing/jaeger/model/converter/thrift/jaeger",
-			"revision": "e4b97b38c4785d9a593483241f0a1d3abe007e1c",
-			"revisionTime": "2019-11-30T19:27:31Z"
+			"revision": "1c315785dddc80a39637c2b08b0a9bbe9ab1536c",
+			"revisionTime": "2019-12-17T11:29:57Z",
+			"version": "v1.16.0",
+			"versionExact": "v1.16.0"
 		},
 		{
-			"checksumSHA1": "lHuUnLE5USvuwdMJcbXlSWbWB4M=",
+			"checksumSHA1": "AtckiRr6VaRoISvPbzVz5JzyOkI=",
 			"path": "github.com/jaegertracing/jaeger/proto-gen/api_v2",
-			"revision": "8c89e641eacafc5315de3c6486d398d6ce0d441c",
-			"revisionTime": "2019-11-07T23:45:29Z",
-			"version": "v1.15",
-			"versionExact": "v1.15.1"
+			"revision": "1c315785dddc80a39637c2b08b0a9bbe9ab1536c",
+			"revisionTime": "2019-12-17T11:29:57Z",
+			"version": "v1.16.0",
+			"versionExact": "v1.16.0"
 		},
 		{
 			"checksumSHA1": "AtRTOBopYXf/LJolCbPPa4hmUiM=",
 			"path": "github.com/jaegertracing/jaeger/thrift-gen/jaeger",
-			"revision": "e4b97b38c4785d9a593483241f0a1d3abe007e1c",
-			"revisionTime": "2019-11-30T19:27:31Z"
+			"revision": "1c315785dddc80a39637c2b08b0a9bbe9ab1536c",
+			"revisionTime": "2019-12-17T11:29:57Z",
+			"version": "v1.16.0",
+			"versionExact": "v1.16.0"
+		},
+		{
+			"checksumSHA1": "MGHjV0xTRHqHac1GtcxUppuPFLE=",
+			"path": "github.com/jaegertracing/jaeger/thrift-gen/sampling",
+			"revision": "1c315785dddc80a39637c2b08b0a9bbe9ab1536c",
+			"revisionTime": "2019-12-17T11:29:57Z",
+			"version": "v1.16.0",
+			"versionExact": "v1.16.0"
 		},
 		{
 			"checksumSHA1": "fPE6hs5I61ZEXc54kkSoFaafqOk=",

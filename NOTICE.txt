@@ -2004,7 +2004,8 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/jaegertracing/jaeger
-Revision: e4b97b38c4785d9a593483241f0a1d3abe007e1c
+Version: v1.16.0
+Revision: 1c315785dddc80a39637c2b08b0a9bbe9ab1536c
 License type (autodetected): Apache-2.0
 ./vendor/github.com/jaegertracing/jaeger/LICENSE:
 --------------------------------------------------------------------
