@@ -15,6 +15,6 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 - Try to extract IP address from headers before using socket remote_address for `client.ip` and `source.ip` {pull}2935[2935].
 - Only use extracted hostname when valid IP for enriching events {pull}2935[2935].
 - Added experimental support for continuous profiling of the server {pull}2839[2839]
-- Upgrade Go to 1.13.4 {pull}2984[2984].
 - Build UBI based images also {pull}2994[2994].
 - Adds support for API Key authorization for incoming requests {pull}3004[3004]
+- Upgrade Go to 1.13.5 {pull}3069[3069].
