@@ -1,0 +1,341 @@
+{
+ "batch": {
+  "spans": [
+   {
+    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
+    "span_id": "d0VPBCGdquw=",
+    "operation_name": "RecordHTTP",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
+      "span_id": "ZbQRXH6+YBQ="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-17T13:22:30.561315Z",
+    "duration": 270206000,
+    "tags": [
+     {
+      "key": "span.kind",
+      "v_str": "server"
+     },
+     {
+      "key": "http.method",
+      "v_str": "GET"
+     },
+     {
+      "key": "http.status_code",
+      "v_type": 2,
+      "v_int64": 201
+     },
+     {
+      "key": "http.url",
+      "v_str": "http://jaeger-test.com"
+     },
+     {
+      "key": "message_bus.destination",
+      "v_str": "messagebus.listener01"
+     },
+     {
+      "key": "component",
+      "v_str": "http_request"
+     },
+     {
+      "key": "peer.hostname",
+      "v_str": "17.21.15.81"
+     },
+     {
+      "key": "peer.port",
+      "v_type": 2,
+      "v_int64": 3306
+     },
+     {
+      "key": "peer.service",
+      "v_str": "mysql"
+     },
+     {
+      "key": "peer.address",
+      "v_str": "mysql://test:3306"
+     },
+     {
+      "key": "peer.ipv4",
+      "v_str": "17.21.15.81"
+     },
+     {
+      "key": "peer.ipv6",
+      "v_str": "[2001:db8:0:1]:80"
+     },
+     {
+      "key": "peer.additional",
+      "v_str": "foo"
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-17T13:22:30.561341Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "HTTP request received"
+       },
+       {
+        "key": "level",
+        "v_str": "info"
+       },
+       {
+        "key": "method",
+        "v_str": "GET"
+       },
+       {
+        "key": "url",
+        "v_str": "/customer?customer=123"
+       }
+      ]
+     },
+     {
+      "timestamp": "2019-12-17T13:22:30.56137Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "Loading customer"
+       },
+       {
+        "key": "level",
+        "v_str": "info"
+       },
+       {
+        "key": "customer_id",
+        "v_str": "123"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
+    "span_id": "ZbQRXH6+YBQ=",
+    "operation_name": "HTTP GET /customer",
+    "references": null,
+    "flags": 1,
+    "start_time": "2019-12-17T13:22:30.561044Z",
+    "duration": 271692000,
+    "tags": [
+     {
+      "key": "sampler.type",
+      "v_str": "const"
+     },
+     {
+      "key": "sampler.param",
+      "v_type": 1,
+      "v_bool": true
+     },
+     {
+      "key": "span.kind",
+      "v_str": "server"
+     },
+     {
+      "key": "http.method",
+      "v_str": "GET"
+     },
+     {
+      "key": "http.url",
+      "v_str": "/customer?customer=123"
+     },
+     {
+      "key": "component",
+      "v_str": "net/http"
+     },
+     {
+      "key": "http.status_code",
+      "v_type": 2,
+      "v_int64": 200
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAABltBFcfr5gFA==",
+    "span_id": "ZbQRXH6+YBQ=",
+    "operation_name": "Driver::findNearest",
+    "references": null,
+    "flags": 1,
+    "start_time": "2019-12-17T13:22:30.83546Z",
+    "duration": 236082000,
+    "tags": [
+     {
+      "key": "sampler.type",
+      "v_str": "const"
+     },
+     {
+      "key": "sampler.param",
+      "v_type": 1,
+      "v_bool": true
+     },
+     {
+      "key": "span.kind",
+      "v_str": "server"
+     },
+     {
+      "key": "as",
+      "v_str": "thrift"
+     },
+     {
+      "key": "peer.service",
+      "v_str": "driver-client"
+     },
+     {
+      "key": "peer.ipv4",
+      "v_type": 2,
+      "v_int64": 2130706433
+     },
+     {
+      "key": "peer.port",
+      "v_type": 2,
+      "v_int64": 57470
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-17T13:22:30.835905Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "baggage"
+       },
+       {
+        "key": "key",
+        "v_str": "customer"
+       },
+       {
+        "key": "value",
+        "v_str": "Rachel's Floral Designs"
+       }
+      ]
+     },
+     {
+      "timestamp": "2019-12-17T13:22:30.835927Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "Searching for nearby drivers"
+       },
+       {
+        "key": "level",
+        "v_str": "info"
+       },
+       {
+        "key": "location",
+        "v_str": "115,277"
+       }
+      ]
+     },
+     {
+      "timestamp": "2019-12-17T13:22:30.879671Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "Retrying GetDriver after error"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "retry_no",
+        "v_type": 2,
+        "v_int64": 1
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     },
+     {
+      "timestamp": "2019-12-17T13:22:30.960317Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "Retrying GetDriver after error"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "retry_no",
+        "v_type": 2,
+        "v_int64": 1
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     },
+     {
+      "timestamp": "2019-12-17T13:22:31.047416Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "Retrying GetDriver after error"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "retry_no",
+        "v_type": 2,
+        "v_int64": 1
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     },
+     {
+      "timestamp": "2019-12-17T13:22:31.071452Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "Search successful"
+       },
+       {
+        "key": "level",
+        "v_str": "info"
+       },
+       {
+        "key": "num_drivers",
+        "v_type": 2,
+        "v_int64": 10
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "process": {
+   "service_name": "customer",
+   "tags": [
+    {
+     "key": "jaeger.version",
+     "v_str": "Go-2.20.1"
+    },
+    {
+     "key": "hostname",
+     "v_str": "host01"
+    },
+    {
+     "key": "ip",
+     "v_str": "127.0.0.1"
+    },
+    {
+     "key": "client-uuid",
+     "v_str": "78dd6e017f54a2c1"
+    }
+   ]
+  }
+ }
+}
