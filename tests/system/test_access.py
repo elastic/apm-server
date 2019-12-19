@@ -259,8 +259,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
     def config(self):
         cfg = super(TestAccessWithAuthorization, self).config()
         cfg.update({"secret_token": "1234", "api_key_enabled": True, "enable_rum": True,
-                    "kibana_enabled": "true", "kibana_host": self.get_kibana_url(),
-                    "instrumentation_enabled": "true"})
+                    "kibana_enabled": "true", "kibana_host": self.get_kibana_url()})
         return cfg
 
     def test_root(self):
@@ -369,9 +368,7 @@ class TestSelfInstrumentationWithAPIKeys(BaseAPIKeySetup):
 
     def config(self):
         cfg = super(TestSelfInstrumentationWithAPIKeys, self).config()
-        cfg.update({"api_key_enabled": True, "enable_rum": True,
-                    "kibana_enabled": "true", "kibana_host": self.get_kibana_url(),
-                    "instrumentation_enabled": "true"})
+        cfg.update({"api_key_enabled": True, "instrumentation_enabled": "true"})
         return cfg
 
     def test_self_instrumentation(self):
