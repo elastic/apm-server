@@ -165,10 +165,10 @@ func (bt *beater) Run(b *beat.Beat) error {
 	if tracerServer != nil {
 		go func() {
 			defer tracerServer.stop()
-			defer tracer.Close()
 			<-bt.stopping
 		}()
 	}
+	defer tracer.Close()
 
 	pub, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
 		Info: b.Info, ShutdownTimeout: bt.config.ShutdownTimeout, Pipeline: bt.config.Pipeline,
