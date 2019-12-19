@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package api
+package request
 
 import (
 	"net/http"
@@ -24,21 +24,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/beater/request"
 )
 
 func TestContextPool(t *testing.T) {
-	// This test ensures that request.Context instances are reused from a pool, while
-	// the Request stored inside a context is always set fresh
+	// This test ensures that Context instances are reused from a pool, while the
+	// Request stored inside a context is always set fresh.
 	// The test is important to avoid mixing up separate requests in a reused context.
 
-	p := newContextPool()
+	p := NewContextPool()
 
 	// mockhHandler adds the context and its request to dedicated slices
 	var contexts, requests []interface{}
 	var mu sync.Mutex
-	mockHandler := func(c *request.Context) {
+	mockHandler := func(c *Context) {
 		mu.Lock()
 		defer mu.Unlock()
 		contexts = append(contexts, c)
@@ -55,7 +53,7 @@ func TestContextPool(t *testing.T) {
 			for j := 0; j < runs; j++ {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
-				p.handler(mockHandler).ServeHTTP(w, r)
+				p.HTTPHandler(mockHandler).ServeHTTP(w, r)
 			}
 		}()
 	}

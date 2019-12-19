@@ -15,33 +15,34 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package api
+package request
 
 import (
 	"net/http"
 	"sync"
-
-	"github.com/elastic/apm-server/beater/request"
 )
 
-type contextPool struct {
+// ContextPool provides a pool of Context objects, and a
+// means of acquiring http.Handlers from Handlers.
+type ContextPool struct {
 	p sync.Pool
 }
 
-func newContextPool() *contextPool {
-	pool := contextPool{}
+// NewContextPool returns a new ContextPool.
+func NewContextPool() *ContextPool {
+	pool := ContextPool{}
 	pool.p.New = func() interface{} {
-		return &request.Context{}
+		return &Context{}
 	}
 	return &pool
 }
 
-func (pool *contextPool) handler(h request.Handler) http.Handler {
+// HTTPHandler returns an http.Handler that calls h with a new context.
+func (pool *ContextPool) HTTPHandler(h Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := pool.p.Get().(*request.Context)
+		c := pool.p.Get().(*Context)
 		defer pool.p.Put(c)
 		c.Reset(w, r)
-
 		h(c)
 	})
 }
