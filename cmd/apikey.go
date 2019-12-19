@@ -40,7 +40,7 @@ import (
 // creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
 // we need to ensure forward-compatibility, for which future privileges must be created here and
 // during server startup because we don't know if customers will run this command
-func createApiKeyWithPrivileges(client es.Client, apikeyName, expiry string, privileges []es.Privilege, asJson bool) error {
+func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, privileges []es.Privilege, asJSON bool) error {
 	var privilegesRequest = make(es.CreatePrivilegesRequest)
 	event := auth.PrivilegeEventWrite
 	agentConfig := auth.PrivilegeAgentConfigRead
@@ -56,10 +56,10 @@ func createApiKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	if err != nil {
 		return printErr(err,
 			`Error creating privileges for APM Server, do you have the "manage_cluster" security privilege?`,
-			asJson)
+			asJSON)
 	}
 
-	printText, printJson := printers(asJson)
+	printText, printJSON := printers(asJSON)
 	for privilege, result := range privilegesCreated[auth.Application] {
 		if result.Created {
 			printText("Security privilege \"%v\" created", privilege)
@@ -88,7 +88,7 @@ func createApiKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	if err != nil {
 		return printErr(err, fmt.Sprintf(
 			`Error creating the API Key %s, do you have the "manage_cluster" security privilege?`, apikeyName),
-			asJson)
+			asJSON)
 	}
 	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.Id + ":" + apikey.Key))
 	apikey.Credentials = &credentials
@@ -101,7 +101,7 @@ func createApiKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	printText(`Credentials .... %s (use it as "Authorization: ApiKey <credentials>" header to communicate with APM Server, won't be shown again)`,
 		credentials)
 
-	return printJson(struct {
+	return printJSON(struct {
 		es.CreateApiKeyResponse
 		Privileges es.CreatePrivilegesResponse `json:"created_privileges,omitempty"`
 	}{
@@ -110,13 +110,13 @@ func createApiKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	})
 }
 
-func getApiKey(client es.Client, id, name *string, validOnly, asJson bool) error {
+func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error {
 	if isSet(id) {
 		name = nil
 	} else if !(isSet(id) || isSet(name)) {
 		return printErr(errors.New("could not query Elasticsearch"),
 			`either "id" or "name" are required`,
-			asJson)
+			asJSON)
 	}
 	request := es.GetApiKeyRequest{
 		ApiKeyQuery: es.ApiKeyQuery{
@@ -129,11 +129,11 @@ func getApiKey(client es.Client, id, name *string, validOnly, asJson bool) error
 	if err != nil {
 		return printErr(err,
 			`Error retrieving API Key(s) for APM Server, do you have the "manage_cluster" security privilege?`,
-			asJson)
+			asJSON)
 	}
 
 	transform := es.GetApiKeyResponse{ApiKeys: make([]es.ApiKeyResponse, 0)}
-	printText, printJson := printers(asJson)
+	printText, printJSON := printers(asJSON)
 	for _, apikey := range apikeys.ApiKeys {
 		expiry := humanTime(apikey.ExpirationMs)
 		if validOnly && (apikey.Invalidated || expiry == "expired") {
@@ -150,16 +150,16 @@ func getApiKey(client es.Client, id, name *string, validOnly, asJson bool) error
 		transform.ApiKeys = append(transform.ApiKeys, apikey)
 	}
 	printText("%d API Keys found", len(transform.ApiKeys))
-	return printJson(transform)
+	return printJSON(transform)
 }
 
-func invalidateApiKey(client es.Client, id, name *string, deletePrivileges, asJson bool) error {
+func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJSON bool) error {
 	if isSet(id) {
 		name = nil
 	} else if !(isSet(id) || isSet(name)) {
 		return printErr(errors.New("could not query Elasticsearch"),
 			`either "id" or "name" are required`,
-			asJson)
+			asJSON)
 	}
 	invalidateKeysRequest := es.InvalidateApiKeyRequest{
 		ApiKeyQuery: es.ApiKeyQuery{
@@ -172,9 +172,9 @@ func invalidateApiKey(client es.Client, id, name *string, deletePrivileges, asJs
 	if err != nil {
 		return printErr(err,
 			`Error invalidating API Key(s), do you have the "manage_cluster" security privilege?`,
-			asJson)
+			asJSON)
 	}
-	printText, printJson := printers(asJson)
+	printText, printJSON := printers(asJSON)
 	out := struct {
 		es.InvalidateApiKeyResponse
 		Privileges []es.DeletePrivilegeResponse `json:"deleted_privileges,omitempty"`
@@ -206,13 +206,13 @@ func invalidateApiKey(client es.Client, id, name *string, deletePrivileges, asJs
 		}
 		out.Privileges = append(out.Privileges, deletion)
 	}
-	return printJson(out)
+	return printJSON(out)
 }
 
-func verifyApiKey(config *config.Config, privileges []es.Privilege, credentials string, asJson bool) error {
+func verifyAPIKey(config *config.Config, privileges []es.Privilege, credentials string, asJSON bool) error {
 	perms := make(es.Perms)
 
-	printText, printJson := printers(asJson)
+	printText, printJSON := printers(asJSON)
 	var err error
 
 	for _, privilege := range privileges {
@@ -236,9 +236,9 @@ func verifyApiKey(config *config.Config, privileges []es.Privilege, credentials 
 	}
 
 	if err != nil {
-		return printErr(err, "could not verify credentials, please check your Elasticsearch connection", asJson)
+		return printErr(err, "could not verify credentials, please check your Elasticsearch connection", asJSON)
 	}
-	return printJson(perms)
+	return printJSON(perms)
 }
 
 func humanBool(b bool) string {
@@ -305,8 +305,8 @@ func printers(b bool) (func(string, ...interface{}), func(interface{}) error) {
 }
 
 // prints an Elasticsearch error to stderr, with some additional contextual information as a hint
-func printErr(err error, help string, asJson bool) error {
-	if asJson {
+func printErr(err error, help string, asJSON bool) error {
+	if asJSON {
 		var data []byte
 		var m map[string]interface{}
 		e := json.Unmarshal([]byte(err.Error()), &m)

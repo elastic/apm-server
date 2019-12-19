@@ -29,12 +29,13 @@ import (
 const cleanupInterval = 60 * time.Second
 
 var (
-	// Constant mapped to the "application" field for the Elasticsearch security API
-	// This identifies privileges and keys created for APM
+	// Application is a constant mapped to the "application" field for the Elasticsearch security API
+	// identifying privileges and keys created for APM
 	Application = es.AppName("apm")
-	// Only valid for first authorization of a request.
+	// ResourceInternal is a sentinel valid only for first authorization of a request.
 	// The API Key needs to grant privileges to additional resources for successful processing of requests.
 	ResourceInternal = es.Resource("-")
+	// ResourceAny matches all resources
 	ResourceAny      = es.Resource("*")
 )
 

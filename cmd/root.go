@@ -185,7 +185,7 @@ Requires the "manage_security" cluster privilege in Elasticsearch.`,
 		// but printing the error must be done inside
 		RunE: func(cmd *cobra.Command, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
-			return createApiKeyWithPrivileges(client, keyName, expiration, privileges, json)
+			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
 		},
 		// these are needed to not break JSON formatting
 		// this has the caveat that if an invalid argument is passed, the command won't return anything
@@ -222,7 +222,7 @@ If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.
 Requires the "manage_security" cluster privilege in Elasticsearch.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return invalidateApiKey(client, &id, &name, purge, json)
+			return invalidateAPIKey(client, &id, &name, purge, json)
 		},
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -250,7 +250,7 @@ If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.
 Requires the "manage_security" cluster privilege in Elasticsearch.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return getApiKey(client, &id, &name, validOnly, json)
+			return getAPIKey(client, &id, &name, validOnly, json)
 		},
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -278,7 +278,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		Long:  long,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
-			return verifyApiKey(config, privileges, credentials, json)
+			return verifyAPIKey(config, privileges, credentials, json)
 		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
