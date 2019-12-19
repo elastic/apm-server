@@ -20,13 +20,14 @@ package jaeger
 import (
 	"net"
 
-	"github.com/elastic/beats/libbeat/logp"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/api/jaeger"
 	"github.com/elastic/apm-server/beater/config"

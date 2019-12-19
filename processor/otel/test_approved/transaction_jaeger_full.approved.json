@@ -1,0 +1,57 @@
+{
+    "Client": null,
+    "Custom": null,
+    "Duration": 79000,
+    "Experimental": null,
+    "Http": {
+        "Request": {
+            "Body": null,
+            "Cookies": null,
+            "Env": null,
+            "Headers": null,
+            "Method": "get",
+            "Socket": null
+        },
+        "Response": {
+            "Finished": null,
+            "Headers": null,
+            "HeadersSent": null,
+            "StatusCode": 400
+        },
+        "Version": "1.1"
+    },
+    "Id": "41414646",
+    "Labels": {
+        "bool_a": true,
+        "component": "foo",
+        "double_a": 14.65,
+        "error": true,
+        "int_a": 148,
+        "string_a_b": "some note"
+    },
+    "Marks": null,
+    "Name": "HTTP GET",
+    "Page": null,
+    "ParentId": null,
+    "Result": "HTTP 4xx",
+    "Sampled": null,
+    "Service": null,
+    "SpanCount": {
+        "Dropped": null,
+        "Started": null
+    },
+    "Timestamp": "2019-12-16T12:46:58.000768068Z",
+    "TraceId": "46467830",
+    "Type": "http_request",
+    "Url": {
+        "Domain": "foo.bar.com",
+        "Fragment": null,
+        "Full": "http://foo.bar.com?a=12",
+        "Original": "http://foo.bar.com?a=12",
+        "Path": null,
+        "Port": null,
+        "Query": "a=12",
+        "Scheme": "http"
+    },
+    "User": null
+}

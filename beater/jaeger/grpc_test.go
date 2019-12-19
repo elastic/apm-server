@@ -24,8 +24,6 @@ import (
 	"time"
 
 	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/libbeat/logp"
 	jaegermodel "github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
@@ -36,6 +34,9 @@ import (
 	"go.elastic.co/apm"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"

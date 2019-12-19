@@ -23,8 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/model/metadata"
-
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -32,6 +30,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -80,15 +79,16 @@ type Event struct {
 	Subtype *string
 	Action  *string
 
-	DB                 *db
-	HTTP               *http
-	Destination        *destination
-	DestinationService *destinationService
+	DB                 *DB
+	HTTP               *HTTP
+	Destination        *Destination
+	DestinationService *DestinationService
 
 	Experimental interface{}
 }
 
-type db struct {
+// DB contains information related to a database query of a span event
+type DB struct {
 	Instance  *string
 	Statement *string
 	Type      *string
@@ -96,7 +96,27 @@ type db struct {
 	Link      *string
 }
 
-func decodeDB(input interface{}, err error) (*db, error) {
+// HTTP contains information about the outgoing http request information of a span event
+type HTTP struct {
+	URL        *string
+	StatusCode *int
+	Method     *string
+}
+
+// Destination contains contextual data about the destination of a span, such as address and port
+type Destination struct {
+	Address *string
+	Port    *int
+}
+
+// DestinationService contains information about the destination service of a span event
+type DestinationService struct {
+	Type     *string
+	Name     *string
+	Resource *string
+}
+
+func decodeDB(input interface{}, err error) (*DB, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -109,7 +129,7 @@ func decodeDB(input interface{}, err error) (*db, error) {
 	if decoder.Err != nil || dbInput == nil {
 		return nil, decoder.Err
 	}
-	db := db{
+	db := DB{
 		decoder.StringPtr(dbInput, "instance"),
 		decoder.StringPtr(dbInput, "statement"),
 		decoder.StringPtr(dbInput, "type"),
@@ -119,7 +139,7 @@ func decodeDB(input interface{}, err error) (*db, error) {
 	return &db, decoder.Err
 }
 
-func (db *db) fields() common.MapStr {
+func (db *DB) fields() common.MapStr {
 	if db == nil {
 		return nil
 	}
@@ -134,13 +154,7 @@ func (db *db) fields() common.MapStr {
 	return fields
 }
 
-type http struct {
-	Url        *string
-	StatusCode *int
-	Method     *string
-}
-
-func decodeHTTP(input interface{}, err error) (*http, error) {
+func decodeHTTP(input interface{}, err error) (*HTTP, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -157,21 +171,20 @@ func decodeHTTP(input interface{}, err error) (*http, error) {
 	if method != nil {
 		*method = strings.ToLower(*method)
 	}
-	http := http{
+	return &HTTP{
 		decoder.StringPtr(httpInput, "url"),
 		decoder.IntPtr(httpInput, "status_code"),
 		method,
-	}
-	return &http, decoder.Err
+	}, decoder.Err
 }
 
-func (http *http) fields() common.MapStr {
+func (http *HTTP) fields() common.MapStr {
 	if http == nil {
 		return nil
 	}
 	var fields = common.MapStr{}
-	if http.Url != nil {
-		utility.Set(fields, "url", common.MapStr{"original": http.Url})
+	if http.URL != nil {
+		utility.Set(fields, "url", common.MapStr{"original": http.URL})
 	}
 	if http.StatusCode != nil {
 		utility.Set(fields, "response", common.MapStr{"status_code": http.StatusCode})
@@ -180,12 +193,7 @@ func (http *http) fields() common.MapStr {
 	return fields
 }
 
-type destination struct {
-	Address *string
-	Port    *int
-}
-
-func decodeDestination(input interface{}, err error) (*destination, *destinationService, error) {
+func decodeDestination(input interface{}, err error) (*Destination, *DestinationService, error) {
 	if input == nil || err != nil {
 		return nil, nil, err
 	}
@@ -202,22 +210,22 @@ func decodeDestination(input interface{}, err error) (*destination, *destination
 	if decoder.Err != nil {
 		return nil, nil, decoder.Err
 	}
-	var service *destinationService
+	var service *DestinationService
 	if serviceInput != nil {
-		service = &destinationService{
+		service = &DestinationService{
 			Type:     decoder.StringPtr(serviceInput, "type"),
 			Name:     decoder.StringPtr(serviceInput, "name"),
 			Resource: decoder.StringPtr(serviceInput, "resource"),
 		}
 	}
-	dest := destination{
+	dest := Destination{
 		Address: decoder.StringPtr(destinationInput, "address"),
 		Port:    decoder.IntPtr(destinationInput, "port"),
 	}
 	return &dest, service, decoder.Err
 }
 
-func (d *destination) fields() common.MapStr {
+func (d *Destination) fields() common.MapStr {
 	if d == nil {
 		return nil
 	}
@@ -233,7 +241,7 @@ func (d *destination) fields() common.MapStr {
 	return fields
 }
 
-func (d *destinationService) fields() common.MapStr {
+func (d *DestinationService) fields() common.MapStr {
 	if d == nil {
 		return nil
 	}
@@ -242,12 +250,6 @@ func (d *destinationService) fields() common.MapStr {
 	utility.Set(fields, "name", d.Name)
 	utility.Set(fields, "resource", d.Resource)
 	return fields
-}
-
-type destinationService struct {
-	Type     *string
-	Name     *string
-	Resource *string
 }
 
 // DecodeEvent decodes a span event.

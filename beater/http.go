@@ -22,11 +22,12 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/libbeat/logp"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
+
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"

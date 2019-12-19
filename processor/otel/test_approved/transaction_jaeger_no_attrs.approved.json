@@ -1,0 +1,27 @@
+{
+    "Client": null,
+    "Custom": null,
+    "Duration": 79000,
+    "Experimental": null,
+    "Http": null,
+    "Id": "",
+    "Labels": {
+        "error": true
+    },
+    "Marks": null,
+    "Name": "",
+    "Page": null,
+    "ParentId": null,
+    "Result": "Error",
+    "Sampled": null,
+    "Service": null,
+    "SpanCount": {
+        "Dropped": null,
+        "Started": null
+    },
+    "Timestamp": "2019-12-16T12:46:58.000768068Z",
+    "TraceId": "",
+    "Type": "custom",
+    "Url": null,
+    "User": null
+}

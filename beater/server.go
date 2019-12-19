@@ -24,11 +24,12 @@ import (
 	"net/http"
 	"time"
 
+	"go.elastic.co/apm"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
-	"go.elastic.co/apm"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/jaeger"

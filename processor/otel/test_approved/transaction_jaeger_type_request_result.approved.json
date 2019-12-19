@@ -1,0 +1,43 @@
+{
+    "Client": null,
+    "Custom": null,
+    "Duration": 0,
+    "Experimental": null,
+    "Http": {
+        "Request": null,
+        "Response": {
+            "Finished": null,
+            "Headers": null,
+            "HeadersSent": null,
+            "StatusCode": 200
+        },
+        "Version": null
+    },
+    "Id": "",
+    "Labels": null,
+    "Marks": null,
+    "Name": "",
+    "Page": null,
+    "ParentId": "61626364",
+    "Result": "HTTP 2xx",
+    "Sampled": null,
+    "Service": null,
+    "SpanCount": {
+        "Dropped": null,
+        "Started": null
+    },
+    "Timestamp": "2019-12-16T12:46:58.000768068Z",
+    "TraceId": "",
+    "Type": "request",
+    "Url": {
+        "Domain": "host-abc",
+        "Fragment": null,
+        "Full": "localhost:8080",
+        "Original": "localhost:8080",
+        "Path": null,
+        "Port": null,
+        "Query": null,
+        "Scheme": "localhost"
+    },
+    "User": null
+}

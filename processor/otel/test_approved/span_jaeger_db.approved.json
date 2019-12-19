@@ -1,0 +1,30 @@
+{
+    "Action": null,
+    "DB": {
+        "Instance": "db01",
+        "Link": null,
+        "Statement": "GET * from users",
+        "Type": "mysql",
+        "UserName": "admin"
+    },
+    "Destination": null,
+    "DestinationService": null,
+    "Duration": 0,
+    "Experimental": null,
+    "HTTP": null,
+    "Id": "",
+    "Labels": {
+        "component": "foo"
+    },
+    "Name": "",
+    "ParentId": "61626364",
+    "Service": null,
+    "Stacktrace": null,
+    "Start": null,
+    "Subtype": "mysql",
+    "Sync": null,
+    "Timestamp": "2019-12-16T12:46:58.000768068Z",
+    "TraceId": "",
+    "TransactionId": null,
+    "Type": "db"
+}
