@@ -4,7 +4,7 @@
             "@timestamp": "2019-12-17T13:22:30.561315Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
-                "name": "Jaeger",
+                "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
             "host": {
@@ -40,7 +40,7 @@
             },
             "service": {
                 "language": {
-                    "name": "unknown"
+                    "name": "Go"
                 },
                 "name": "customer",
                 "node": {
@@ -74,7 +74,7 @@
             "@timestamp": "2019-12-17T13:22:30.561044Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
-                "name": "Jaeger",
+                "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
             "host": {
@@ -101,7 +101,7 @@
             },
             "service": {
                 "language": {
-                    "name": "unknown"
+                    "name": "Go"
                 },
                 "name": "customer",
                 "node": {
@@ -137,7 +137,7 @@
             "@timestamp": "2019-12-17T13:22:30.83546Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
-                "name": "Jaeger",
+                "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
             "host": {
@@ -159,7 +159,7 @@
             },
             "service": {
                 "language": {
-                    "name": "unknown"
+                    "name": "Go"
                 },
                 "name": "customer",
                 "node": {

@@ -153,7 +153,11 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 	switch td.SourceFormat {
 	case sourceFormatJaeger:
 		// version is of format `Jaeger-<agentlanguage>-<version>`, e.g. `Jaeger-Go-2.20.0`
-		versionParts := strings.SplitN(td.Node.GetLibraryInfo().GetExporterVersion(), "-", 3)
+		nVersionParts := 3
+		versionParts := strings.SplitN(td.Node.GetLibraryInfo().GetExporterVersion(), "-", nVersionParts)
+		if md.Service.Language.Name == nil && len(versionParts) == nVersionParts {
+			md.Service.Language.Name = &versionParts[1]
+		}
 		if v := versionParts[len(versionParts)-1]; v != "" {
 			md.Service.Agent.Version = &v
 		} else {
@@ -460,11 +464,11 @@ func parseURL(original, hostname string) *model.Url {
 
 var languageName = map[commonpb.LibraryInfo_Language]string{
 	1:  "C++",
-	2:  "C#",
+	2:  "CSharp",
 	3:  "Erlang",
 	4:  "Go",
 	5:  "Java",
-	6:  "Node.js",
+	6:  "Node",
 	7:  "PHP",
 	8:  "Python",
 	9:  "Ruby",
