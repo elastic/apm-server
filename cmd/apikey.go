@@ -89,7 +89,7 @@ Requires the "manage_security" cluster privilege in Elasticsearch.`,
 			}
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
-				privileges = []es.Privilege{auth.ActionAny}
+				privileges = []es.PrivilegeAction{auth.ActionAny}
 			}
 			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
 		},
@@ -271,8 +271,8 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 	return client, apm.Config, err
 }
 
-func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.Privilege {
-	privileges := make([]es.Privilege, 0)
+func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAction {
+	privileges := make([]es.PrivilegeAction, 0)
 	if ingest {
 		privileges = append(privileges, auth.PrivilegeEventWrite.Action)
 	}
@@ -288,15 +288,15 @@ func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.Privilege {
 // creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
 // we need to ensure forward-compatibility, for which future privileges must be created here and
 // during server startup because we don't know if customers will run this command
-func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, privileges []es.Privilege, asJSON bool) error {
+func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
 	var privilegesRequest = make(es.CreatePrivilegesRequest)
 	event := auth.PrivilegeEventWrite
 	agentConfig := auth.PrivilegeAgentConfigRead
 	sourcemap := auth.PrivilegeSourcemapWrite
 	privilegesRequest[auth.Application] = map[es.PrivilegeName]es.Actions{
-		agentConfig.Name: {Actions: []es.Privilege{agentConfig.Action}},
-		event.Name:       {Actions: []es.Privilege{event.Action}},
-		sourcemap.Name:   {Actions: []es.Privilege{sourcemap.Action}},
+		agentConfig.Name: {Actions: []es.PrivilegeAction{agentConfig.Action}},
+		event.Name:       {Actions: []es.PrivilegeAction{event.Action}},
+		sourcemap.Name:   {Actions: []es.PrivilegeAction{sourcemap.Action}},
 	}
 
 	privilegesCreated, err := es.CreatePrivileges(client, privilegesRequest)
@@ -459,7 +459,7 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 	return printJSON(out)
 }
 
-func verifyAPIKey(config *config.Config, privileges []es.Privilege, credentials string, asJSON bool) error {
+func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) error {
 	perms := make(es.Permissions)
 
 	printText, printJSON := printers(asJSON)
@@ -498,7 +498,7 @@ func humanBool(b bool) string {
 	return "No"
 }
 
-func humanPrivilege(privilege es.Privilege) string {
+func humanPrivilege(privilege es.PrivilegeAction) string {
 	switch privilege {
 	case auth.ActionAny:
 		return fmt.Sprintf("all privileges (\"%v\")", privilege)

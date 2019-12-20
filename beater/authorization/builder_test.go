@@ -72,8 +72,8 @@ func TestBuilder(t *testing.T) {
 			assert.Equal(t, builder.bearer, h.bearer)
 			assert.Equal(t, builder.fallback, h.fallback)
 			if tc.withApikey {
-				assert.Equal(t, []elasticsearch.Privilege{}, builder.apikey.anyOfPrivileges)
-				assert.Equal(t, []elasticsearch.Privilege{PrivilegeSourcemapWrite.Action}, h.apikey.anyOfPrivileges)
+				assert.Equal(t, []elasticsearch.PrivilegeAction{}, builder.apikey.anyOfPrivileges)
+				assert.Equal(t, []elasticsearch.PrivilegeAction{PrivilegeSourcemapWrite.Action}, h.apikey.anyOfPrivileges)
 				assert.Equal(t, builder.apikey.esClient, h.apikey.esClient)
 				assert.Equal(t, builder.apikey.cache, h.apikey.cache)
 			}

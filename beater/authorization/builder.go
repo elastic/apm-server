@@ -62,7 +62,7 @@ func NewBuilder(cfg config.Config) (*Builder, error) {
 
 		size := cfg.APIKeyConfig.LimitMin * cacheTimeoutMinute
 		cache := newPrivilegesCache(cacheTimeoutMinute*time.Minute, size)
-		b.apikey = newApikeyBuilder(client, cache, []elasticsearch.Privilege{})
+		b.apikey = newApikeyBuilder(client, cache, []elasticsearch.PrivilegeAction{})
 		b.fallback = DenyAuth{}
 	}
 	if cfg.SecretToken != "" {
@@ -74,12 +74,12 @@ func NewBuilder(cfg config.Config) (*Builder, error) {
 }
 
 // ForPrivilege creates an authorization Handler checking for this privilege
-func (b *Builder) ForPrivilege(privilege elasticsearch.Privilege) *Handler {
+func (b *Builder) ForPrivilege(privilege elasticsearch.PrivilegeAction) *Handler {
 	return b.ForAnyOfPrivileges(privilege)
 }
 
 // ForAnyOfPrivileges creates an authorization Handler checking for any of the provided privileges
-func (b *Builder) ForAnyOfPrivileges(privileges ...elasticsearch.Privilege) *Handler {
+func (b *Builder) ForAnyOfPrivileges(privileges ...elasticsearch.PrivilegeAction) *Handler {
 	handler := Handler{bearer: b.bearer, fallback: b.fallback}
 	if b.apikey != nil {
 		handler.apikey = newApikeyBuilder(b.apikey.esClient, b.apikey.cache, privileges)

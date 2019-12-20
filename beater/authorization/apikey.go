@@ -41,7 +41,7 @@ var (
 type apikeyBuilder struct {
 	esClient        es.Client
 	cache           *privilegesCache
-	anyOfPrivileges []es.Privilege
+	anyOfPrivileges []es.PrivilegeAction
 }
 
 type apikeyAuth struct {
@@ -50,7 +50,7 @@ type apikeyAuth struct {
 	key string
 }
 
-func newApikeyBuilder(client es.Client, cache *privilegesCache, anyOfPrivileges []es.Privilege) *apikeyBuilder {
+func newApikeyBuilder(client es.Client, cache *privilegesCache, anyOfPrivileges []es.PrivilegeAction) *apikeyBuilder {
 	return &apikeyBuilder{client, cache, anyOfPrivileges}
 }
 

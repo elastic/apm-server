@@ -146,9 +146,9 @@ type Applications struct {
 }
 
 type Application struct {
-	Name       AppName     `json:"application"`
-	Privileges []Privilege `json:"privileges"`
-	Resources  []Resource  `json:"resources"`
+	Name       AppName           `json:"application"`
+	Privileges []PrivilegeAction `json:"privileges"`
+	Resources  []Resource        `json:"resources"`
 }
 
 type ApiKeyResponse struct {
@@ -172,16 +172,16 @@ type ApiKey struct {
 	Credentials *string `json:"credentials,omitempty"`
 }
 
-type PrivilegeResponse map[Privilege]PutResponse
+type PrivilegeResponse map[PrivilegeAction]PutResponse
 
 type PrivilegeGroup map[PrivilegeName]Actions
 
-type Permissions map[Privilege]bool
+type Permissions map[PrivilegeAction]bool
 
 type PrivilegesPerResource map[Resource]Permissions
 
 type Actions struct {
-	Actions []Privilege `json:"actions"`
+	Actions []PrivilegeAction `json:"actions"`
 }
 
 type PutResponse struct {
@@ -202,18 +202,16 @@ type Resource string
 // in apm-server, each name is associated with one action, but that needs not to be the case (see PrivilegeGroup)
 type NamedPrivilege struct {
 	Name   PrivilegeName
-	Action Privilege
+	Action PrivilegeAction
 }
 
-// sometimes referred in Elasticsearch documentation as "action"
-// we keep the name "privilege" because is more informative
-type Privilege string
+type PrivilegeAction string
 
 type PrivilegeName string
 
 func NewPrivilege(name, action string) NamedPrivilege {
 	return NamedPrivilege{
 		Name:   PrivilegeName(name),
-		Action: Privilege(action),
+		Action: PrivilegeAction(action),
 	}
 }

@@ -163,7 +163,7 @@ type apikeyTestcase struct {
 	transport       *estest.Transport
 	client          elasticsearch.Client
 	cache           *privilegesCache
-	anyOfPrivileges []elasticsearch.Privilege
+	anyOfPrivileges []elasticsearch.PrivilegeAction
 
 	builder *apikeyBuilder
 }
@@ -186,7 +186,7 @@ func (tc *apikeyTestcase) setup(t *testing.T) {
 		tc.cache = newPrivilegesCache(time.Minute, 5)
 	}
 	if tc.anyOfPrivileges == nil {
-		tc.anyOfPrivileges = []elasticsearch.Privilege{PrivilegeEventWrite.Action, PrivilegeSourcemapWrite.Action}
+		tc.anyOfPrivileges = []elasticsearch.PrivilegeAction{PrivilegeEventWrite.Action, PrivilegeSourcemapWrite.Action}
 	}
 	tc.builder = newApikeyBuilder(tc.client, tc.cache, tc.anyOfPrivileges)
 }

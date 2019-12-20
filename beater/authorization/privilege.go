@@ -31,9 +31,9 @@ var (
 	PrivilegeSourcemapWrite  = es.NewPrivilege("sourcemap", "sourcemap:write")
 	PrivilegesAll            = []es.NamedPrivilege{PrivilegeAgentConfigRead, PrivilegeEventWrite, PrivilegeSourcemapWrite}
 	// ActionAny can't be used for querying, use ActionsAll instead
-	ActionAny  = es.Privilege("*")
-	ActionsAll = func() []es.Privilege {
-		actions := make([]es.Privilege, 0)
+	ActionAny  = es.PrivilegeAction("*")
+	ActionsAll = func() []es.PrivilegeAction {
+		actions := make([]es.PrivilegeAction, 0)
 		for _, privilege := range PrivilegesAll {
 			actions = append(actions, privilege.Action)
 		}
