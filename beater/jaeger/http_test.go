@@ -28,12 +28,13 @@ import (
 	"testing"
 
 	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/elastic/apm-server/beater/beatertest"
-	"github.com/elastic/apm-server/beater/request"
 	jaegerthrift "github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/request"
 )
 
 type httpMuxTest struct {

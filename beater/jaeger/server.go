@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/elastic/beats/libbeat/logp"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmgrpc"
@@ -30,6 +29,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
 	processor "github.com/elastic/apm-server/processor/otel"

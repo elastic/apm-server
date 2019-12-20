@@ -25,11 +25,12 @@ import (
 	"net/http"
 
 	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/jaegertracing/jaeger/model"
 	converter "github.com/jaegertracing/jaeger/model/converter/thrift/jaeger"
 	"github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 	"github.com/open-telemetry/opentelemetry-collector/consumer"
+
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
