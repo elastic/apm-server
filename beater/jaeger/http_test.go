@@ -94,7 +94,7 @@ func testHTTPMux(t *testing.T, test httpMuxTest) {
 	}))
 	require.NoError(t, err)
 
-	body := encodeThriftBatch(test.spans...)
+	body := encodeThriftSpans(test.spans...)
 	req := httptest.NewRequest("POST", "/api/traces", body)
 	req.Header.Set("Content-Type", "application/x-thrift")
 
@@ -129,7 +129,7 @@ func TestHTTPMux_InvalidContentType(t *testing.T) {
 
 func TestHTTPMux_ValidContentTypes(t *testing.T) {
 	for _, contentType := range []string{"application/x-thrift", "application/vnd.apache.thrift.binary"} {
-		body := encodeThriftBatch(&jaegerthrift.Span{})
+		body := encodeThriftSpans(&jaegerthrift.Span{})
 		c, recorder := newRequestContext("POST", "/api/traces", body)
 		c.Request.Header.Set("Content-Type", contentType)
 		newHTTPHandler(nopConsumer())(c)
@@ -149,7 +149,7 @@ func TestHTTPMux_ConsumerError(t *testing.T) {
 	var consumer traceConsumerFunc = func(ctx context.Context, td consumerdata.TraceData) error {
 		return errors.New("bauch tut weh")
 	}
-	c, recorder := newRequestContext("POST", "/api/traces", encodeThriftBatch(&jaegerthrift.Span{}))
+	c, recorder := newRequestContext("POST", "/api/traces", encodeThriftSpans(&jaegerthrift.Span{}))
 	newHTTPHandler(consumer)(c)
 	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
 	assert.Regexp(t, `{"error":"internal error: bauch tut weh"}`+"\n", recorder.Body.String())
@@ -164,8 +164,12 @@ func newRequestContext(method, path string, body io.Reader) (*request.Context, *
 	return c, rr
 }
 
-func encodeThriftBatch(spans ...*jaegerthrift.Span) io.Reader {
-	batch := jaegerthrift.Batch{Process: &jaegerthrift.Process{ServiceName: "whatever"}, Spans: spans}
+func encodeThriftSpans(spans ...*jaegerthrift.Span) io.Reader {
+	batch := &jaegerthrift.Batch{Process: &jaegerthrift.Process{ServiceName: "whatever"}, Spans: spans}
+	return encodeThriftBatch(batch)
+}
+
+func encodeThriftBatch(batch *jaegerthrift.Batch) io.Reader {
 	transport := thrift.NewTMemoryBuffer()
 	if err := batch.Write(thrift.NewTBinaryProtocolTransport(transport)); err != nil {
 		panic(err)

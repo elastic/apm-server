@@ -20,15 +20,19 @@ package jaeger
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"testing"
 
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/logp"
 	jaegermodel "github.com/jaegertracing/jaeger/model"
+	jaegerthriftconv "github.com/jaegertracing/jaeger/model/converter/thrift/jaeger"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	jaegerthrift "github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 	"github.com/stretchr/testify/assert"
@@ -39,8 +43,43 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/tests/approvals"
 )
+
+func TestApprovals(t *testing.T) {
+	cfg := config.DefaultConfig("8.0.0")
+	cfg.JaegerConfig.GRPC.Enabled = true
+	cfg.JaegerConfig.GRPC.Host = "localhost:0"
+	cfg.JaegerConfig.HTTP.Enabled = true
+	cfg.JaegerConfig.HTTP.Host = "localhost:0"
+
+	for _, name := range []string{
+		"batch_1", "batch_2",
+	} {
+		t.Run(name, func(t *testing.T) {
+			tc := testcase{cfg: cfg, grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()}}
+			tc.setup(t)
+			defer tc.teardown(t)
+
+			f := filepath.Join("testdata", name)
+			data, err := ioutil.ReadFile(f + ".json")
+			require.NoError(t, err)
+			var request api_v2.PostSpansRequest
+			require.NoError(t, json.Unmarshal(data, &request))
+
+			require.NoError(t, tc.sendBatchGRPC(request.Batch))
+			require.NoError(t, approvals.ApproveEvents(tc.events, f, ""))
+
+			tc.events = nil
+			thriftBatch := &jaegerthrift.Batch{
+				Process: thriftProcessFromModel(request.Batch.Process),
+				Spans:   jaegerthriftconv.FromDomain(request.Batch.Spans),
+			}
+			require.NoError(t, tc.sendBatchHTTP(thriftBatch))
+			require.NoError(t, approvals.ApproveEvents(tc.events, f, ""))
+		})
+	}
+}
 
 func TestServerIntegration(t *testing.T) {
 	for name, tc := range map[string]testcase{
@@ -51,6 +90,7 @@ func TestServerIntegration(t *testing.T) {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				return cfg
 			}(),
 			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
@@ -59,6 +99,7 @@ func TestServerIntegration(t *testing.T) {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.JaegerConfig.HTTP.Enabled = true
+				cfg.JaegerConfig.HTTP.Host = "localhost:0"
 				return cfg
 			}(),
 		},
@@ -66,7 +107,9 @@ func TestServerIntegration(t *testing.T) {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				cfg.JaegerConfig.HTTP.Enabled = true
+				cfg.JaegerConfig.HTTP.Host = "localhost:0"
 				return cfg
 			}(),
 			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
@@ -179,31 +222,31 @@ func TestServerIntegration(t *testing.T) {
 				return
 			}
 
-			var transformed int
+			var nevents int
 			if tc.grpcClient != nil {
 				err := tc.sendSpanGRPC()
 				if tc.grpcSendShouldFail {
 					require.Error(t, err)
 				} else {
 					require.NoError(t, err)
-					assert.Equal(t, transformed+1, len(tc.transformed))
-					transformed++
+					assert.Equal(t, nevents+1, len(tc.events))
+					nevents++
 					tc.tracer.Flush(nil)
 					transactions := tc.tracer.Payloads().Transactions
-					require.Len(t, transactions, transformed)
-					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[transformed-1].Name)
+					require.Len(t, transactions, nevents)
+					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[nevents-1].Name)
 				}
 			}
 			if tc.httpURL != nil {
 				err := tc.sendSpanHTTP()
 				require.NoError(t, err)
 
-				assert.Equal(t, transformed+1, len(tc.transformed))
-				transformed++
+				assert.Equal(t, nevents+1, len(tc.events))
+				nevents++
 				tc.tracer.Flush(nil)
 				transactions := tc.tracer.Payloads().Transactions
-				require.Len(t, transactions, transformed)
-				assert.Equal(t, "POST /api/traces", transactions[transformed-1].Name)
+				require.Len(t, transactions, nevents)
+				assert.Equal(t, "POST /api/traces", transactions[nevents-1].Name)
 			}
 		})
 	}
@@ -215,17 +258,19 @@ type testcase struct {
 	grpcDialShouldFail bool
 	grpcSendShouldFail bool
 
-	transformed []transform.Transformable
-	server      *Server
-	serverDone  <-chan error
-	grpcClient  *grpc.ClientConn
-	httpURL     *url.URL
-	tracer      *apmtest.RecordingTracer
+	events     []beat.Event
+	server     *Server
+	serverDone <-chan error
+	grpcClient *grpc.ClientConn
+	httpURL    *url.URL
+	tracer     *apmtest.RecordingTracer
 }
 
 func (tc *testcase) setup(t *testing.T) {
-	reporter := func(ctx context.Context, pub publish.PendingReq) error {
-		tc.transformed = append(tc.transformed, pub.Transformables...)
+	reporter := func(ctx context.Context, req publish.PendingReq) error {
+		for _, transformable := range req.Transformables {
+			tc.events = append(tc.events, transformable.Transform(req.Tcontext)...)
+		}
 		return nil
 	}
 
@@ -291,20 +336,29 @@ func (tc *testcase) teardown(t *testing.T) {
 }
 
 func (tc *testcase) sendSpanGRPC() error {
-	batch := jaegermodel.Batch{
+	return tc.sendBatchGRPC(jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{
 			TraceID: jaegermodel.NewTraceID(123, 456),
 			SpanID:  jaegermodel.NewSpanID(789),
 		}},
-	}
-	client := api_v2.NewCollectorServiceClient(tc.grpcClient)
+	})
+}
 
+func (tc *testcase) sendBatchGRPC(batch jaegermodel.Batch) error {
+	client := api_v2.NewCollectorServiceClient(tc.grpcClient)
 	_, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: batch})
 	return err
 }
 
 func (tc *testcase) sendSpanHTTP() error {
-	body := encodeThriftBatch(&jaegerthrift.Span{TraceIdHigh: 123, TraceIdLow: 456, SpanId: 789})
+	return tc.sendBatchHTTP(&jaegerthrift.Batch{
+		Process: &jaegerthrift.Process{ServiceName: "whatever"},
+		Spans:   []*jaegerthrift.Span{{TraceIdHigh: 123, TraceIdLow: 456, SpanId: 789}},
+	})
+}
+
+func (tc *testcase) sendBatchHTTP(batch *jaegerthrift.Batch) error {
+	body := encodeThriftBatch(batch)
 	resp, err := http.Post(tc.httpURL.String(), "application/x-thrift", body)
 	if err != nil {
 		return err
@@ -314,4 +368,27 @@ func (tc *testcase) sendSpanHTTP() error {
 		return fmt.Errorf("expected status %d, got %d", http.StatusAccepted, resp.StatusCode)
 	}
 	return nil
+}
+
+func thriftProcessFromModel(in *jaegermodel.Process) *jaegerthrift.Process {
+	out := &jaegerthrift.Process{ServiceName: in.ServiceName}
+	out.Tags = make([]*jaegerthrift.Tag, len(in.Tags))
+	for i, kv := range in.Tags {
+		kv := kv // copy for pointer refs
+		tag := &jaegerthrift.Tag{Key: kv.Key, VType: jaegerthrift.TagType(kv.VType)}
+		switch kv.VType {
+		case jaegermodel.ValueType_STRING:
+			tag.VStr = &kv.VStr
+		case jaegermodel.ValueType_BOOL:
+			tag.VBool = &kv.VBool
+		case jaegermodel.ValueType_INT64:
+			tag.VLong = &kv.VInt64
+		case jaegermodel.ValueType_FLOAT64:
+			tag.VDouble = &kv.VFloat64
+		case jaegermodel.ValueType_BINARY:
+			tag.VBinary = kv.VBinary
+		}
+		out.Tags[i] = tag
+	}
+	return out
 }
