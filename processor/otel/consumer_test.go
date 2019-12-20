@@ -331,15 +331,31 @@ func testTimeEvents() *tracepb.Span_TimeEvents {
 		{Time: testTimeStamp(testStartTime(), 43),
 			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
 				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-					"event":  testAttributeStringValue("nullPointer exception"),
-					"level":  testAttributeStringValue("error"),
-					"isbool": testAttributeBoolValue(true),
+					"event":   testAttributeStringValue("no user.ID given"),
+					"message": testAttributeStringValue("nullPointer exception"),
+					"level":   testAttributeStringValue("error"),
+					"isbool":  testAttributeBoolValue(true),
 				}}}}},
 		{Time: testTimeStamp(testStartTime(), 66),
 			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
 				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-					"level": testAttributeStringValue("error"),
 					"error": testAttributeStringValue("no connection established"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 66),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"error.object": testAttributeStringValue("no connection established"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 66),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"error.kind": testAttributeStringValue("DBClosedException"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 66),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event":   testAttributeStringValue("error"),
+					"message": testAttributeStringValue("no connection established"),
 				}}}}},
 		// no errors
 		{Time: testTimeStamp(testStartTime(), 15),
@@ -353,7 +369,6 @@ func testTimeEvents() *tracepb.Span_TimeEvents {
 				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
 					"event": testAttributeStringValue("retrying connection"),
 					"level": testAttributeStringValue("info"),
-					"error": testAttributeStringValue("no connection established"),
 				}}}}},
 		// errors not convertable to elastic errors
 		{Time: testTimeStamp(testStartTime(), 67),

@@ -421,34 +421,56 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 func parseErrors(source string, otelSpan *tracepb.Span) []*model_error.Event {
 	var errors []*model_error.Event
 	for _, log := range otelSpan.GetTimeEvents().GetTimeEvent() {
-		var isError bool
-		var logMessage, exMessage string
+		var isError, hasMinimalInfo bool
+		var err model_error.Event
+		var logMessage, exMessage, exType string
 		for k, v := range log.GetAnnotation().GetAttributes().GetAttributeMap() {
 			if source == sourceFormatJaeger {
 				switch v := v.Value.(type) {
 				case *tracepb.AttributeValue_StringValue:
 					vStr := v.StringValue.Value
 					switch k {
+					case "error", "error.object":
+						exMessage = vStr
+						hasMinimalInfo = true
+						isError = true
 					case "event":
+						if vStr == "error" { // according to opentracing spec
+							isError = true
+						} else if logMessage == "" {
+							// jaeger seems to send the message in the 'event' field
+							// in case 'event' and 'message' are sent, 'message' is used
+							logMessage = vStr
+							hasMinimalInfo = true
+						}
+					case "message":
 						logMessage = vStr
+						hasMinimalInfo = true
+					case "error.kind":
+						exType = vStr
+						hasMinimalInfo = true
+						isError = true
 					case "level":
 						isError = vStr == "error"
-					case "error":
-						exMessage = vStr
 					}
 				}
 			}
 		}
-		if !isError || (logMessage == "" && exMessage == "") {
+		if !isError || !hasMinimalInfo {
 			continue
 		}
 
-		var err model_error.Event
 		if logMessage != "" {
 			err.Log = &model_error.Log{Message: logMessage}
 		}
-		if exMessage != "" {
-			err.Exception = &model_error.Exception{Message: &exMessage}
+		if exMessage != "" || exType != "" {
+			err.Exception = &model_error.Exception{}
+			if exMessage != "" {
+				err.Exception.Message = &exMessage
+			}
+			if exType != "" {
+				err.Exception.Type = &exType
+			}
 		}
 		err.Timestamp = parseTimestamp(log.GetTime())
 		errors = append(errors, &err)
