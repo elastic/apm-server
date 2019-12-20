@@ -24,12 +24,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
 	"time"
 
 	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -41,7 +39,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/pipelistener"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -50,11 +47,12 @@ func init() {
 }
 
 type beater struct {
-	config  *config.Config
-	mutex   sync.Mutex // guards server and stopped
-	server  *http.Server
-	stopped bool
-	logger  *logp.Logger
+	config   *config.Config
+	mutex    sync.Mutex // guards server and stopped
+	server   *http.Server
+	stopping chan struct{}
+	stopped  bool
+	logger   *logp.Logger
 }
 
 var (
@@ -101,9 +99,10 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	}
 
 	bt := &beater{
-		config:  beaterConfig,
-		stopped: false,
-		logger:  logger,
+		config:   beaterConfig,
+		stopping: make(chan struct{}),
+		stopped:  false,
+		logger:   logger,
 	}
 
 	// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
@@ -159,12 +158,15 @@ func (bt *beater) listen() (net.Listener, error) {
 }
 
 func (bt *beater) Run(b *beat.Beat) error {
-	tracer, traceListener, err := initTracer(b.Info, bt.config, bt.logger)
+	tracer, tracerServer, err := initTracer(b.Info, bt.config, bt.logger)
 	if err != nil {
 		return err
 	}
-	if traceListener != nil {
-		defer traceListener.Close()
+	if tracerServer != nil {
+		go func() {
+			defer tracerServer.stop()
+			<-bt.stopping
+		}()
 	}
 	defer tracer.Close()
 
@@ -204,9 +206,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 		go notifyListening(bt.config, pub.Client().Publish)
 	}
 
-	if traceListener != nil {
+	if tracerServer != nil {
 		g.Go(func() error {
-			return bt.server.Serve(traceListener)
+			return tracerServer.serve(pub.Send)
 		})
 	}
 
@@ -240,87 +242,6 @@ func (bt *beater) isServerAvailable(timeout time.Duration) bool {
 	return err == nil
 }
 
-// initTracer configures and returns an apm.Tracer for tracing
-// the APM server's own execution.
-func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, net.Listener, error) {
-	if !cfg.SelfInstrumentation.IsEnabled() {
-		os.Setenv("ELASTIC_APM_ACTIVE", "false")
-		logger.Infof("self instrumentation is disabled")
-	} else {
-		os.Setenv("ELASTIC_APM_ACTIVE", "true")
-		logger.Infof("self instrumentation is enabled")
-	}
-	if !cfg.SelfInstrumentation.IsEnabled() {
-		tracer, err := apm.NewTracer(info.Beat, info.Version)
-		return tracer, nil, err
-	}
-
-	if cfg.SelfInstrumentation.Profiling.CPU.IsEnabled() {
-		interval := cfg.SelfInstrumentation.Profiling.CPU.Interval
-		duration := cfg.SelfInstrumentation.Profiling.CPU.Duration
-		logger.Infof("CPU profiling: every %s for %s", interval, duration)
-		os.Setenv("ELASTIC_APM_CPU_PROFILE_INTERVAL", fmt.Sprintf("%dms", int(interval.Seconds()*1000)))
-		os.Setenv("ELASTIC_APM_CPU_PROFILE_DURATION", fmt.Sprintf("%dms", int(duration.Seconds()*1000)))
-	}
-	if cfg.SelfInstrumentation.Profiling.Heap.IsEnabled() {
-		interval := cfg.SelfInstrumentation.Profiling.Heap.Interval
-		logger.Infof("Heap profiling: every %s", interval)
-		os.Setenv("ELASTIC_APM_HEAP_PROFILE_INTERVAL", fmt.Sprintf("%dms", int(interval.Seconds()*1000)))
-	}
-
-	var tracerTransport transport.Transport
-	var lis net.Listener
-	if cfg.SelfInstrumentation.Hosts != nil {
-		// tracing destined for external host
-		t, err := transport.NewHTTPTransport()
-		if err != nil {
-			return nil, nil, err
-		}
-		t.SetServerURL(cfg.SelfInstrumentation.Hosts...)
-		t.SetSecretToken(cfg.SelfInstrumentation.SecretToken)
-		tracerTransport = t
-		logger.Infof("self instrumentation directed to %s", cfg.SelfInstrumentation.Hosts)
-	} else {
-		// Create an in-process net.Listener for the tracer. This enables us to:
-		// - avoid the network stack
-		// - avoid/ignore TLS for self-tracing
-		// - skip tracing when the requests come from the in-process transport
-		//   (i.e. to avoid recursive/repeated tracing.)
-		pipeListener := pipelistener.New()
-		selfTransport, err := transport.NewHTTPTransport()
-		if err != nil {
-			lis.Close()
-			return nil, nil, err
-		}
-		selfTransport.SetServerURL(&url.URL{Scheme: "http", Host: "localhost"})
-		selfTransport.SetSecretToken(cfg.SecretToken)
-		selfTransport.Client.Transport = &http.Transport{
-			DialContext:     pipeListener.DialContext,
-			MaxIdleConns:    100,
-			IdleConnTimeout: 90 * time.Second,
-		}
-		tracerTransport = selfTransport
-		lis = pipeListener
-	}
-
-	var environment string
-	if cfg.SelfInstrumentation.Environment != nil {
-		environment = *cfg.SelfInstrumentation.Environment
-	}
-	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
-		ServiceName:        info.Beat,
-		ServiceVersion:     info.Version,
-		ServiceEnvironment: environment,
-		Transport:          tracerTransport,
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	tracer.SetLogger(logp.NewLogger(logs.Tracing))
-
-	return tracer, lis, nil
-}
-
 func isElasticsearchOutput(b *beat.Beat) bool {
 	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
 }
@@ -346,12 +267,16 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 
 // Graceful shutdown
 func (bt *beater) Stop() {
+	bt.mutex.Lock()
+	defer bt.mutex.Unlock()
+	if bt.stopped {
+		return
+	}
 	bt.logger.Infof("stopping apm-server... waiting maximum of %v seconds for queues to drain",
 		bt.config.ShutdownTimeout.Seconds())
-	bt.mutex.Lock()
 	if bt.server != nil {
 		stop(bt.logger, bt.server)
 	}
+	close(bt.stopping)
 	bt.stopped = true
-	bt.mutex.Unlock()
 }
