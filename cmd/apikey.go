@@ -28,6 +28,15 @@ import (
 	"strings"
 	"time"
 
+	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/beats/libbeat/logp"
+
+	"github.com/spf13/cobra"
+
+	"github.com/elastic/beats/libbeat/cfgfile"
+	"github.com/elastic/beats/libbeat/cmd/instance"
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -36,6 +45,239 @@ import (
 	auth "github.com/elastic/apm-server/beater/authorization"
 	es "github.com/elastic/apm-server/elasticsearch"
 )
+
+func genApikeyCmd(settings instance.Settings) *cobra.Command {
+
+	short := "Manage API Keys for communication between APM agents and server"
+	apikeyCmd := cobra.Command{
+		Use:   "apikey",
+		Short: short,
+		Long: short + `. 
+Most operations require the "manage_security" cluster privilege. Ensure to configure "apm-server.api_key.*" or 
+"output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application; 
+you can freely query them. If you modify or delete apm privileges, APM Server might reject all requests.
+If an invalid argument is passed, nothing will be printed.
+Check the Elastic Security API documentation for details.`,
+	}
+
+	apikeyCmd.AddCommand(
+		createApikeyCmd(settings),
+		invalidateApikeyCmd(settings),
+		getApikeysCmd(settings),
+		verifyApikeyCmd(settings),
+	)
+	return &apikeyCmd
+}
+
+func createApikeyCmd(settings instance.Settings) *cobra.Command {
+	var keyName, expiration string
+	var ingest, sourcemap, agentConfig, json bool
+	short := "Create an API Key with the specified privilege(s)"
+	create := &cobra.Command{
+		Use:   "create",
+		Short: short,
+		Long: short + `.
+If no privilege(s) are specified, the API Key will be valid for all.
+Requires the "manage_security" cluster privilege in Elasticsearch.`,
+		// always need to return error for possible scripts checking the exit code,
+		// but printing the error must be done inside
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, _, err := bootstrap(settings)
+			if err != nil {
+				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
+				return err
+			}
+			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
+			if len(privileges) == 0 {
+				privileges = []es.Privilege{auth.ActionAny}
+			}
+			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
+		},
+		// these are needed to not break JSON formatting
+		// this has the caveat that if an invalid argument is passed, the command won't return anything
+		SilenceUsage:  true,
+		SilenceErrors: true,
+	}
+	create.Flags().StringVar(&keyName, "name", "apm-key", "API Key name")
+	create.Flags().StringVar(&expiration, "expiration", "",
+		`expiration for the key, eg. "1d" (default never)`)
+	create.Flags().BoolVar(&ingest, "ingest", false,
+		fmt.Sprintf("give the %v privilege to this key, required for ingesting events", auth.PrivilegeEventWrite))
+	create.Flags().BoolVar(&sourcemap, "sourcemap", false,
+		fmt.Sprintf("give the %v privilege to this key, required for uploading sourcemaps",
+			auth.PrivilegeSourcemapWrite))
+	create.Flags().BoolVar(&agentConfig, "agent-config", false,
+		fmt.Sprintf("give the %v privilege to this key, required for agents to read configuration remotely",
+			auth.PrivilegeAgentConfigRead))
+	create.Flags().BoolVar(&json, "json", false,
+		"prints the output of this command as JSON")
+	// this actually means "preserve sorting given in code" and not reorder them alphabetically
+	create.Flags().SortFlags = false
+	return create
+}
+
+func invalidateApikeyCmd(settings instance.Settings) *cobra.Command {
+	var id, name string
+	var purge, json bool
+	short := "Invalidate API Key(s) by Id or Name"
+	invalidate := &cobra.Command{
+		Use:   "invalidate",
+		Short: short,
+		Long: short + `.
+If both "id" and "name" are supplied, only "id" will be used.
+If neither of them are, an error will be returned.
+Requires the "manage_security" cluster privilege in Elasticsearch.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, _, err := bootstrap(settings)
+			if err != nil {
+				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
+				return err
+			}
+			return invalidateAPIKey(client, &id, &name, purge, json)
+		},
+		SilenceErrors: true,
+		SilenceUsage:  true,
+	}
+	invalidate.Flags().StringVar(&id, "id", "", "id of the API Key to delete")
+	invalidate.Flags().StringVar(&name, "name", "",
+		"name of the API Key(s) to delete (several might match)")
+	invalidate.Flags().BoolVar(&purge, "purge", false,
+		"also remove all privileges created and used by APM Server")
+	invalidate.Flags().BoolVar(&json, "json", false,
+		"prints the output of this command as JSON")
+	invalidate.Flags().SortFlags = false
+	return invalidate
+}
+
+func getApikeysCmd(settings instance.Settings) *cobra.Command {
+	var id, name string
+	var validOnly, json bool
+	short := "Query API Key(s) by Id or Name"
+	info := &cobra.Command{
+		Use:   "info",
+		Short: short,
+		Long: short + `.
+If both "id" and "name" are supplied, only "id" will be used.
+If neither of them are, an error will be returned.
+Requires the "manage_security" cluster privilege in Elasticsearch.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, _, err := bootstrap(settings)
+			if err != nil {
+				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
+				return err
+			}
+			return getAPIKey(client, &id, &name, validOnly, json)
+		},
+		SilenceErrors: true,
+		SilenceUsage:  true,
+	}
+	info.Flags().StringVar(&id, "id", "", "id of the API Key to query")
+	info.Flags().StringVar(&name, "name", "",
+		"name of the API Key(s) to query (several might match)")
+	info.Flags().BoolVar(&validOnly, "valid-only", false,
+		"only return valid API Keys (not expired or invalidated)")
+	info.Flags().BoolVar(&json, "json", false,
+		"prints the output of this command as JSON")
+	info.Flags().SortFlags = false
+	return info
+}
+
+func verifyApikeyCmd(settings instance.Settings) *cobra.Command {
+	var credentials string
+	var ingest, sourcemap, agentConfig, json bool
+	short := `Check if a "credentials" string has the given privilege(s)`
+	long := short + `.
+If no privilege(s) are specified, the credentials will be queried for all.`
+	verify := &cobra.Command{
+		Use:   "verify",
+		Short: short,
+		Long:  long,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			_, config, err := bootstrap(settings)
+			if err != nil {
+				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
+				return err
+			}
+			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
+			if len(privileges) == 0 {
+				// can't use "*" for querying
+				privileges = auth.ActionsAll()
+			}
+			return verifyAPIKey(config, privileges, credentials, json)
+		},
+		SilenceUsage:  true,
+		SilenceErrors: true,
+	}
+	verify.Flags().StringVar(&credentials, "credentials", "", `credentials for which check privileges`)
+	verify.Flags().BoolVar(&ingest, "ingest", false,
+		fmt.Sprintf("ask for the %v privilege, required for ingesting events", auth.PrivilegeEventWrite))
+	verify.Flags().BoolVar(&sourcemap, "sourcemap", false,
+		fmt.Sprintf("ask for the %v privilege, required for uploading sourcemaps",
+			auth.PrivilegeSourcemapWrite))
+	verify.Flags().BoolVar(&agentConfig, "agent-config", false,
+		fmt.Sprintf("ask for the %v privilege, required for agents to read configuration remotely",
+			auth.PrivilegeAgentConfigRead))
+	verify.Flags().BoolVar(&json, "json", false,
+		"prints the output of this command as JSON")
+	verify.Flags().SortFlags = false
+
+	return verify
+}
+
+// TODO is there just any other way to do this?
+// without the wrapper, YAML settings in "apm-server" are not picked up by ucfg
+type ApmConfig struct {
+	Config *config.Config `config:"apm-server"`
+}
+
+// apm-server.api_key.enabled is implicitly true
+func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
+
+	settings.ConfigOverrides = append(settings.ConfigOverrides, cfgfile.ConditionalOverride{
+		Check: func(_ *common.Config) bool {
+			return true
+		},
+		Config: common.MustNewConfigFrom(map[string]interface{}{
+			"apm-server": map[string]interface{}{
+				"api_key": map[string]interface{}{
+					"enabled": true,
+				},
+			},
+		}),
+	})
+
+	beat, err := instance.NewInitializedBeat(settings)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	apm := ApmConfig{config.DefaultConfig(settings.Version)}
+	err = beat.RawConfig.Unpack(&apm)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var client es.Client
+	err = apm.Config.APIKeyConfig.Setup(logp.NewLogger(logs.Config), beat.Config.Output.Config())
+	if err == nil {
+		client, err = es.NewClient(apm.Config.APIKeyConfig.ESConfig)
+	}
+	return client, apm.Config, err
+}
+
+func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.Privilege {
+	privileges := make([]es.Privilege, 0)
+	if ingest {
+		privileges = append(privileges, auth.PrivilegeEventWrite.Action)
+	}
+	if sourcemap {
+		privileges = append(privileges, auth.PrivilegeSourcemapWrite.Action)
+	}
+	if agentConfig {
+		privileges = append(privileges, auth.PrivilegeAgentConfigRead.Action)
+	}
+	return privileges
+}
 
 // creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
 // we need to ensure forward-compatibility, for which future privileges must be created here and
@@ -113,7 +355,9 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error {
 	if isSet(id) {
 		name = nil
-	} else if !(isSet(id) || isSet(name)) {
+	} else if isSet(name) {
+		id = nil
+	} else {
 		return printErr(errors.New("could not query Elasticsearch"),
 			`either "id" or "name" are required`,
 			asJSON)
@@ -145,7 +389,9 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 		printText("Id ............. %s", apikey.Id)
 		printText("Creation ....... %s", creation)
 		printText("Invalidated .... %t", apikey.Invalidated)
-		printText("Expiration ..... %s", expiry)
+		if !apikey.Invalidated {
+			printText("Expiration ..... %s", expiry)
+		}
 		printText("")
 		transform.ApiKeys = append(transform.ApiKeys, apikey)
 	}
@@ -156,7 +402,9 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJSON bool) error {
 	if isSet(id) {
 		name = nil
-	} else if !(isSet(id) || isSet(name)) {
+	} else if isSet(name) {
+		id = nil
+	} else {
 		return printErr(errors.New("could not query Elasticsearch"),
 			`either "id" or "name" are required`,
 			asJSON)
@@ -210,7 +458,7 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 }
 
 func verifyAPIKey(config *config.Config, privileges []es.Privilege, credentials string, asJSON bool) error {
-	perms := make(es.Perms)
+	perms := make(es.Permissions)
 
 	printText, printJSON := printers(asJSON)
 	var err error

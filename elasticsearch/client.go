@@ -31,9 +31,9 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/version"
 
-	v7 "github.com/elastic/go-elasticsearch/v7"
+	esv7 "github.com/elastic/go-elasticsearch/v7"
 
-	v8 "github.com/elastic/go-elasticsearch/v8"
+	esv8 "github.com/elastic/go-elasticsearch/v8"
 )
 
 // Client is an interface designed to abstract away version differences between elasticsearch clients
@@ -47,17 +47,17 @@ type Client interface {
 }
 
 type clientV8 struct {
-	c *v8.Client
+	v8 *esv8.Client
 }
 
 // Search satisfies the Client interface for version 8
-func (v8 clientV8) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
-	response, err := v8.c.Search(
-		v8.c.Search.WithContext(context.Background()),
-		v8.c.Search.WithIndex(index),
-		v8.c.Search.WithBody(body),
-		v8.c.Search.WithTrackTotalHits(true),
-		v8.c.Search.WithPretty(),
+func (c clientV8) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
+	response, err := c.v8.Search(
+		c.v8.Search.WithContext(context.Background()),
+		c.v8.Search.WithIndex(index),
+		c.v8.Search.WithBody(body),
+		c.v8.Search.WithTrackTotalHits(true),
+		c.v8.Search.WithPretty(),
 	)
 	if err != nil {
 		return 0, nil, err
@@ -65,26 +65,26 @@ func (v8 clientV8) Search(index string, body io.Reader) (int, io.ReadCloser, err
 	return response.StatusCode, response.Body, nil
 }
 
-func (v8 clientV8) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
+func (c clientV8) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
 	req, err := makeRequest(method, path, body, headers...)
 	if err != nil {
 		return JSONResponse{nil, err}
 	}
-	return parseResponse(v8.c.Perform(req))
+	return parseResponse(c.v8.Perform(req))
 }
 
 type clientV7 struct {
-	c *v7.Client
+	v7 *esv7.Client
 }
 
 // Search satisfies the Client interface for version 7
-func (v7 clientV7) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
-	response, err := v7.c.Search(
-		v7.c.Search.WithContext(context.Background()),
-		v7.c.Search.WithIndex(index),
-		v7.c.Search.WithBody(body),
-		v7.c.Search.WithTrackTotalHits(true),
-		v7.c.Search.WithPretty(),
+func (c clientV7) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
+	response, err := c.v7.Search(
+		c.v7.Search.WithContext(context.Background()),
+		c.v7.Search.WithIndex(index),
+		c.v7.Search.WithBody(body),
+		c.v7.Search.WithTrackTotalHits(true),
+		c.v7.Search.WithPretty(),
 	)
 	if err != nil {
 		return 0, nil, err
@@ -92,12 +92,12 @@ func (v7 clientV7) Search(index string, body io.Reader) (int, io.ReadCloser, err
 	return response.StatusCode, response.Body, nil
 }
 
-func (v7 clientV7) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
+func (c clientV7) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
 	req, err := makeRequest(method, path, body, headers...)
 	if err != nil {
 		return JSONResponse{nil, err}
 	}
-	return parseResponse(v7.c.Perform(req))
+	return parseResponse(c.v7.Perform(req))
 }
 
 // NewClient parses the given config and returns  a version-aware client as an interface
@@ -123,8 +123,8 @@ func NewVersionedClient(apikey, user, pwd string, addresses []string, transport 
 	return clientV7{c}, err
 }
 
-func newV7Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*v7.Client, error) {
-	return v7.NewClient(v7.Config{
+func newV7Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*esv7.Client, error) {
+	return esv7.NewClient(esv7.Config{
 		APIKey:    apikey,
 		Username:  user,
 		Password:  pwd,
@@ -133,8 +133,8 @@ func newV7Client(apikey, user, pwd string, addresses []string, transport http.Ro
 	})
 }
 
-func newV8Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*v8.Client, error) {
-	return v8.NewClient(v8.Config{
+func newV8Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*esv8.Client, error) {
+	return esv8.NewClient(esv8.Config{
 		APIKey:    apikey,
 		Username:  user,
 		Password:  pwd,
@@ -152,11 +152,8 @@ func (r JSONResponse) DecodeTo(i interface{}) error {
 	if r.err != nil {
 		return r.err
 	}
-	bs, err := ioutil.ReadAll(r.content)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(bs, i)
+	defer r.content.Close()
+	err := json.NewDecoder(r.content).Decode(&i)
 	return err
 }
 
@@ -174,12 +171,9 @@ func makeRequest(method, path string, body interface{}, headers ...string) (*htt
 	}
 	u, _ := url.Parse(path)
 	req := &http.Request{
-		Method:     method,
-		URL:        u,
-		Proto:      "HTTP/1.1",
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-		Header:     header,
+		Method: method,
+		URL:    u,
+		Header: header,
 	}
 	bs, err := json.Marshal(body)
 	if err != nil {

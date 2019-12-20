@@ -106,12 +106,14 @@ func (a *apikeyAuth) fromCache(resource es.Resource) (allowed bool, found bool) 
 	return
 }
 
-func (a *apikeyAuth) queryES(resource es.Resource) (es.Perms, error) {
+func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
 	request := es.HasPrivilegesRequest{
 		Applications: []es.Application{
 			{
-				Name:       Application,
-				Privileges: a.anyOfPrivileges,
+				Name: Application,
+				// it is important to query all privilege actions because they are cached by api key+resources
+				// querying a.anyOfPrivileges would result in an incomplete cache entry
+				Privileges: ActionsAll(),
 				Resources:  []es.Resource{resource},
 			},
 		},
@@ -125,7 +127,7 @@ func (a *apikeyAuth) queryES(resource es.Resource) (es.Perms, error) {
 			return privileges, nil
 		}
 	}
-	return es.Perms{}, nil
+	return es.Permissions{}, nil
 }
 
 func id(apiKey string, resource es.Resource) string {

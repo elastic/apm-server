@@ -24,7 +24,7 @@ import (
 	"strconv"
 )
 
-// requires manage_security cluster privilege
+// CreateAPIKey requires manage_security cluster privilege
 func CreateAPIKey(client Client, apikeyReq CreateApiKeyRequest) (CreateApiKeyResponse, error) {
 	response := client.JSONRequest(http.MethodPut, "/_security/api_key", apikeyReq)
 
@@ -33,7 +33,7 @@ func CreateAPIKey(client Client, apikeyReq CreateApiKeyRequest) (CreateApiKeyRes
 	return apikey, err
 }
 
-// requires manage_security cluster privilege
+// GetAPIKeys requires manage_security cluster privilege
 func GetAPIKeys(client Client, apikeyReq GetApiKeyRequest) (GetApiKeyResponse, error) {
 	u := url.URL{Path: "/_security/api_key"}
 	params := url.Values{}
@@ -52,7 +52,7 @@ func GetAPIKeys(client Client, apikeyReq GetApiKeyRequest) (GetApiKeyResponse, e
 	return apikey, err
 }
 
-// requires manage_security cluster privilege
+// CreatePrivileges requires manage_security cluster privilege
 func CreatePrivileges(client Client, privilegesReq CreatePrivilegesRequest) (CreatePrivilegesResponse, error) {
 	response := client.JSONRequest(http.MethodPut, "/_security/privilege", privilegesReq)
 
@@ -61,7 +61,7 @@ func CreatePrivileges(client Client, privilegesReq CreatePrivilegesRequest) (Cre
 	return privileges, err
 }
 
-// requires manage_security cluster privilege
+// InvalidateAPIKey requires manage_security cluster privilege
 func InvalidateAPIKey(client Client, apikeyReq InvalidateApiKeyRequest) (InvalidateApiKeyResponse, error) {
 	response := client.JSONRequest(http.MethodDelete, "/_security/api_key", apikeyReq)
 
@@ -70,8 +70,8 @@ func InvalidateAPIKey(client Client, apikeyReq InvalidateApiKeyRequest) (Invalid
 	return confirmation, err
 }
 
+// DeletePrivileges requires manage_security cluster privilege
 func DeletePrivileges(client Client, privilegesReq DeletePrivilegeRequest) (DeletePrivilegeResponse, error) {
-	// requires manage_security cluster privilege
 	path := fmt.Sprintf("/_security/privilege/%v/%v", privilegesReq.Application, privilegesReq.Privilege)
 	response := client.JSONRequest(http.MethodDelete, path, nil)
 
@@ -137,7 +137,6 @@ type DeletePrivilegeRequest struct {
 	Privilege   PrivilegeName `json:"privilege"`
 }
 
-//noinspection GoRedundantParens
 type DeletePrivilegeResponse map[AppName](map[PrivilegeName]DeleteResponse)
 
 type RoleDescriptor map[AppName]Applications
@@ -177,9 +176,9 @@ type PrivilegeResponse map[Privilege]PutResponse
 
 type PrivilegeGroup map[PrivilegeName]Actions
 
-type Perms map[Privilege]bool
+type Permissions map[Privilege]bool
 
-type PrivilegesPerResource map[Resource]Perms
+type PrivilegesPerResource map[Resource]Permissions
 
 type Actions struct {
 	Actions []Privilege `json:"actions"`

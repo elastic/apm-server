@@ -30,8 +30,15 @@ var (
 	PrivilegeEventWrite      = es.NewPrivilege("event", "event:write")
 	PrivilegeSourcemapWrite  = es.NewPrivilege("sourcemap", "sourcemap:write")
 	PrivilegesAll            = []es.NamedPrivilege{PrivilegeAgentConfigRead, PrivilegeEventWrite, PrivilegeSourcemapWrite}
-	// ActionAny can't be used for querying
-	ActionAny = es.Privilege("*")
+	// ActionAny can't be used for querying, use ActionsAll instead
+	ActionAny  = es.Privilege("*")
+	ActionsAll = func() []es.Privilege {
+		actions := make([]es.Privilege, 0)
+		for _, privilege := range PrivilegesAll {
+			actions = append(actions, privilege.Action)
+		}
+		return actions
+	}
 )
 
 type privilegesCache struct {
@@ -47,13 +54,13 @@ func (c *privilegesCache) isFull() bool {
 	return c.cache.ItemCount() >= c.size
 }
 
-func (c *privilegesCache) get(id string) es.Perms {
+func (c *privilegesCache) get(id string) es.Permissions {
 	if val, exists := c.cache.Get(id); exists {
-		return val.(es.Perms)
+		return val.(es.Permissions)
 	}
 	return nil
 }
 
-func (c *privilegesCache) add(id string, privileges es.Perms) {
+func (c *privilegesCache) add(id string, privileges es.Permissions) {
 	c.cache.SetDefault(id, privileges)
 }

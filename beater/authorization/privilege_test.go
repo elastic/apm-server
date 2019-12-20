@@ -31,16 +31,16 @@ func TestPrivilegesCache(t *testing.T) {
 	cache := newPrivilegesCache(time.Millisecond, n)
 	assert.False(t, cache.isFull())
 	for i := 0; i < n-1; i++ {
-		cache.add(string(i), elasticsearch.Perms{})
+		cache.add(string(i), elasticsearch.Permissions{})
 		assert.False(t, cache.isFull())
 	}
-	cache.add("oneMore", elasticsearch.Perms{})
+	cache.add("oneMore", elasticsearch.Permissions{})
 	assert.True(t, cache.isFull())
 	assert.NotNil(t, cache.get("oneMore"))
 	time.Sleep(time.Millisecond)
 	assert.Nil(t, cache.get("oneMore"))
 
-	p := elasticsearch.Perms{"a": true, "b": false}
+	p := elasticsearch.Permissions{"a": true, "b": false}
 	cache.add("id1", p)
 	assert.Equal(t, p, cache.get("id1"))
 	assert.Nil(t, cache.get("oneMore"))

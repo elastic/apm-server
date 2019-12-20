@@ -156,7 +156,7 @@ apm-server:
       #username: "elastic"
       #password: "changeme"
 
-    # Optional HTTP Path.
+      # Optional HTTP Path.
       #path: ""
 
       # Proxy server url.

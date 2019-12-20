@@ -117,7 +117,7 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
-	if err := c.APIKeyConfig.setup(logger, outputESCfg); err != nil {
+	if err := c.APIKeyConfig.Setup(logger, outputESCfg); err != nil {
 		return nil, err
 	}
 
