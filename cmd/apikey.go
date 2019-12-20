@@ -198,6 +198,12 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
 				return err
 			}
+			if credentials == "" {
+				err := errors.New("credentials argument is required")
+				// we can't use Cobra to mark the flag as required because it won't print the error as JSON
+				printErr(err, "", json)
+				return err
+			}
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				// can't use "*" for querying
@@ -208,7 +214,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	verify.Flags().StringVar(&credentials, "credentials", "", `credentials for which check privileges`)
+	verify.Flags().StringVar(&credentials, "credentials", "", `credentials for which check privileges (required)`)
 	verify.Flags().BoolVar(&ingest, "ingest", false,
 		fmt.Sprintf("ask for the %v privilege, required for ingesting events", auth.PrivilegeEventWrite))
 	verify.Flags().BoolVar(&sourcemap, "sourcemap", false,
@@ -358,9 +364,7 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 	} else if isSet(name) {
 		id = nil
 	} else {
-		return printErr(errors.New("could not query Elasticsearch"),
-			`either "id" or "name" are required`,
-			asJSON)
+		return printErr(errors.New(`either "id" or "name" are required`), "", asJSON)
 	}
 	request := es.GetApiKeyRequest{
 		ApiKeyQuery: es.ApiKeyQuery{
@@ -405,9 +409,7 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 	} else if isSet(name) {
 		id = nil
 	} else {
-		return printErr(errors.New("could not query Elasticsearch"),
-			`either "id" or "name" are required`,
-			asJSON)
+		return printErr(errors.New(`either "id" or "name" are required`), "", asJSON)
 	}
 	invalidateKeysRequest := es.InvalidateApiKeyRequest{
 		ApiKeyQuery: es.ApiKeyQuery{
@@ -566,7 +568,7 @@ func printErr(err error, help string, asJSON bool) error {
 			// err.Error() is a bare string, likely coming from apm-server
 			data, _ = json.MarshalIndent(struct {
 				Error string `json:"error"`
-				Help  string `json:"help"`
+				Help  string `json:"help,omitempty"`
 			}{
 				Error: err.Error(),
 				Help:  help,
