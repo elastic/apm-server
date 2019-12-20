@@ -15,24 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package apmtest
 
-import (
-	"testing"
+// TestLogger is an implementation of apm.Logger,
+// logging to a testing.T.
+type TestLogger struct {
+	l LogfLogger
+}
 
-	"github.com/stretchr/testify/assert"
-)
+// NewTestLogger returns a new TestLogger that logs messages to l.
+func NewTestLogger(l LogfLogger) TestLogger {
+	return TestLogger{l: l}
+}
 
-func TestJaeger_default(t *testing.T) {
-	expected := JaegerConfig{
-		GRPC: JaegerGRPCConfig{
-			Enabled: false,
-			Host:    "localhost:14250",
-		},
-		HTTP: JaegerHTTPConfig{
-			Enabled: false,
-			Host:    "localhost:14268",
-		},
-	}
-	assert.Equal(t, expected, defaultJaeger())
+// Debugf logs debug messages.
+func (t TestLogger) Debugf(format string, args ...interface{}) {
+	t.l.Logf("[DEBUG] "+format, args...)
+}
+
+// Errorf logs error messages.
+func (t TestLogger) Errorf(format string, args ...interface{}) {
+	t.l.Logf("[ERROR] "+format, args...)
+}
+
+// LogfLogger is an interface with the a Logf method,
+// implemented by *testing.T and *testing.B.
+type LogfLogger interface {
+	Logf(string, ...interface{})
 }

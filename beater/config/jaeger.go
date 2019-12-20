@@ -25,38 +25,51 @@ import (
 
 const (
 	defaultJaegerGRPCHost = "localhost:14250"
+	defaultJaegerHTTPHost = "localhost:14268"
 )
 
-// JaegerConfig holds configuration for jaeger collector
+// JaegerConfig holds configuration for Jaeger span collection.
 type JaegerConfig struct {
-	Enabled bool       `config:"enabled"`
-	GRPC    GRPCConfig `config:"grpc"`
+	GRPC JaegerGRPCConfig `config:"grpc"`
+	HTTP JaegerHTTPConfig `config:"http"`
 }
 
-// GRPCConfig bundles information around a grpc server
-type GRPCConfig struct {
-	Host string      `config:"host"`
-	TLS  *tls.Config `config:"-"`
+// JaegerGRPCConfig holds configuration for the Jaeger gRPC server.
+type JaegerGRPCConfig struct {
+	Enabled bool        `config:"enabled"`
+	Host    string      `config:"host"`
+	TLS     *tls.Config `config:"-"`
+}
+
+// JaegerHTTPConfig holds configuration for the Jaeger HTTP server.
+type JaegerHTTPConfig struct {
+	Enabled bool   `config:"enabled"`
+	Host    string `config:"host"`
 }
 
 func (c *JaegerConfig) setup(cfg *Config) error {
-	if !c.Enabled || cfg.TLS == nil || !cfg.TLS.IsEnabled() {
+	if cfg.TLS == nil || !cfg.TLS.IsEnabled() {
 		return nil
 	}
-
-	tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
-	if err != nil {
-		return err
+	if c.GRPC.Enabled {
+		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
+		if err != nil {
+			return err
+		}
+		c.GRPC.TLS = tlsServerConfig.BuildModuleConfig(c.GRPC.Host)
 	}
-	c.GRPC.TLS = tlsServerConfig.BuildModuleConfig(c.GRPC.Host)
 	return nil
 }
 
 func defaultJaeger() JaegerConfig {
 	return JaegerConfig{
-		Enabled: false,
-		GRPC: GRPCConfig{
-			Host: defaultJaegerGRPCHost,
+		GRPC: JaegerGRPCConfig{
+			Enabled: false,
+			Host:    defaultJaegerGRPCHost,
+		},
+		HTTP: JaegerHTTPConfig{
+			Enabled: false,
+			Host:    defaultJaegerHTTPHost,
 		},
 	}
 }

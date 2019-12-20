@@ -15,24 +15,34 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package request
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"net/http"
+	"sync"
 )
 
-func TestJaeger_default(t *testing.T) {
-	expected := JaegerConfig{
-		GRPC: JaegerGRPCConfig{
-			Enabled: false,
-			Host:    "localhost:14250",
-		},
-		HTTP: JaegerHTTPConfig{
-			Enabled: false,
-			Host:    "localhost:14268",
-		},
+// ContextPool provides a pool of Context objects, and a
+// means of acquiring http.Handlers from Handlers.
+type ContextPool struct {
+	p sync.Pool
+}
+
+// NewContextPool returns a new ContextPool.
+func NewContextPool() *ContextPool {
+	pool := ContextPool{}
+	pool.p.New = func() interface{} {
+		return &Context{}
 	}
-	assert.Equal(t, expected, defaultJaeger())
+	return &pool
+}
+
+// HTTPHandler returns an http.Handler that calls h with a new context.
+func (pool *ContextPool) HTTPHandler(h Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c := pool.p.Get().(*Context)
+		defer pool.p.Put(c)
+		c.Reset(w, r)
+		h(c)
+	})
 }

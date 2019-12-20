@@ -15,24 +15,38 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package apmtest
 
 import (
-	"testing"
+	"log"
 
-	"github.com/stretchr/testify/assert"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/transport/transporttest"
 )
 
-func TestJaeger_default(t *testing.T) {
-	expected := JaegerConfig{
-		GRPC: JaegerGRPCConfig{
-			Enabled: false,
-			Host:    "localhost:14250",
-		},
-		HTTP: JaegerHTTPConfig{
-			Enabled: false,
-			Host:    "localhost:14268",
-		},
+// DiscardTracer is an apm.Tracer that discards all events.
+//
+// This tracer may be used by multiple tests, and so should
+// not be modified or closed.
+//
+// Importing apmttest will close apm.DefaultTracer, and update
+// it to this value.
+var DiscardTracer *apm.Tracer
+
+// NewDiscardTracer returns a new apm.Tracer that discards all events.
+func NewDiscardTracer() *apm.Tracer {
+	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
+		Transport: transporttest.Discard,
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
-	assert.Equal(t, expected, defaultJaeger())
+	return tracer
+}
+
+func init() {
+	apm.DefaultTracer.Close()
+	tracer := NewDiscardTracer()
+	DiscardTracer = tracer
+	apm.DefaultTracer = DiscardTracer
 }

@@ -15,24 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package apmtest
 
 import (
-	"testing"
+	"context"
 
-	"github.com/stretchr/testify/assert"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/model"
 )
 
-func TestJaeger_default(t *testing.T) {
-	expected := JaegerConfig{
-		GRPC: JaegerGRPCConfig{
-			Enabled: false,
-			Host:    "localhost:14250",
-		},
-		HTTP: JaegerHTTPConfig{
-			Enabled: false,
-			Host:    "localhost:14268",
-		},
-	}
-	assert.Equal(t, expected, defaultJaeger())
+// WithTransaction is equivalent to calling WithTransactionOptions with a zero TransactionOptions.
+func WithTransaction(f func(ctx context.Context)) (model.Transaction, []model.Span, []model.Error) {
+	return WithTransactionOptions(apm.TransactionOptions{}, f)
+}
+
+// WithTransactionOptions calls f with a new context containing a transaction
+// and transaction options, flushes the transaction to a test server, and returns
+// the decoded transaction and any associated spans and errors.
+func WithTransactionOptions(opts apm.TransactionOptions, f func(ctx context.Context)) (model.Transaction, []model.Span, []model.Error) {
+	tracer := NewRecordingTracer()
+	defer tracer.Close()
+	return tracer.WithTransactionOptions(opts, f)
 }

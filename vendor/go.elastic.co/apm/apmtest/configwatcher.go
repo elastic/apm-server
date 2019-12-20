@@ -15,24 +15,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package apmtest
 
 import (
-	"testing"
+	"context"
 
-	"github.com/stretchr/testify/assert"
+	"go.elastic.co/apm/apmconfig"
 )
 
-func TestJaeger_default(t *testing.T) {
-	expected := JaegerConfig{
-		GRPC: JaegerGRPCConfig{
-			Enabled: false,
-			Host:    "localhost:14250",
-		},
-		HTTP: JaegerHTTPConfig{
-			Enabled: false,
-			Host:    "localhost:14268",
-		},
-	}
-	assert.Equal(t, expected, defaultJaeger())
+// WatchConfigFunc is a function type that implements apmconfig.Watcher.
+type WatchConfigFunc func(context.Context, apmconfig.WatchParams) <-chan apmconfig.Change
+
+// WatchConfig returns f(ctx, params).
+func (f WatchConfigFunc) WatchConfig(ctx context.Context, params apmconfig.WatchParams) <-chan apmconfig.Change {
+	return f(ctx, params)
 }

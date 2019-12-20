@@ -19,160 +19,108 @@ package jaeger
 
 import (
 	"context"
-	"path"
+	"errors"
 	"testing"
-	"time"
 
 	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
-	jaegermodel "github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
-	oteljaeger "github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
-	"github.com/pkg/errors"
+	"github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/libbeat/logp"
-
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/request"
 )
 
-func TestGRPCServerIntegration(t *testing.T) {
-	enabledTrue, enabledFalse := true, false
-	for name, tc := range map[string]testcaseJaeger{
-		"default config": {cfg: config.DefaultConfig("9.9.9")},
-		"with jaeger": {
-			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
-				cfg.JaegerConfig.Enabled = true
-				return cfg
-			}()},
-		"with jaeger TLS disabled": {
-			cfg: &config.Config{
-				TLS: &tlscommon.ServerConfig{
-					Enabled: &enabledFalse,
-					Certificate: tlscommon.CertificateConfig{
-						Certificate: path.Join("..", "testdata", "tls", "certificate.pem"),
-						Key:         path.Join("..", "testdata", "tls", "key.pem")},
-				},
-				JaegerConfig: config.JaegerConfig{
-					Enabled: true,
-					GRPC: config.GRPCConfig{
-						Host: "localhost:4444",
-					}},
-			}},
-		"with jaeger with TLS": {
-			cfg: &config.Config{
-				TLS: &tlscommon.ServerConfig{
-					Enabled: &enabledTrue,
-					Certificate: tlscommon.CertificateConfig{
-						Certificate: path.Join("..", "testdata", "tls", "certificate.pem"),
-						Key:         path.Join("..", "testdata", "tls", "key.pem")},
-				},
-				JaegerConfig: config.JaegerConfig{
-					Enabled: true,
-					GRPC: config.GRPCConfig{
-						Host: "localhost:4444",
-					}},
-			}},
+func TestGRPCCollector_PostSpans(t *testing.T) {
+	for name, tc := range map[string]testGRPCCollector{
+		"empty request": {
+			request: &api_v2.PostSpansRequest{},
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:       1,
+				request.IDResponseCount:      1,
+				request.IDResponseValidCount: 1,
+			},
+		},
+		"successful request": {
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:       1,
+				request.IDResponseCount:      1,
+				request.IDResponseValidCount: 1,
+				request.IDEventReceivedCount: 2,
+			},
+		},
+		"failing request": {
+			consumerErr: errors.New("consumer failed"),
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:        1,
+				request.IDResponseCount:       1,
+				request.IDResponseErrorsCount: 1,
+				request.IDEventReceivedCount:  2,
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			tc.setup(t)
 
-			if !tc.cfg.JaegerConfig.Enabled {
-				assert.Nil(t, tc.server)
-			} else {
-				require.NotNil(t, tc.server)
-				require.NotNil(t, tc.client)
-
-				// start
-				go func() {
-					err := tc.server.Start()
-					require.NoError(t, err)
-				}()
-
-				err := tc.sendSpans(time.Second)
-				require.NoError(t, err)
-				assert.Equal(t, 1, len(tc.transformed))
-
-				// stop grpc server
-				tc.server.Stop()
-				_, err = tc.client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *tc.batch})
+			resp, err := tc.collector.PostSpans(context.Background(), tc.request)
+			if tc.consumerErr != nil {
+				require.Nil(t, resp)
 				require.Error(t, err)
+				assert.Equal(t, tc.consumerErr, err)
+			} else {
+				require.NotNil(t, resp)
+				require.NoError(t, err)
 			}
+			assertMonitoring(t, tc.monitoringInt, gRPCMonitoringMap)
 		})
 	}
-
 }
 
-type testcaseJaeger struct {
-	cfg         *config.Config
-	reporter    func(ctx context.Context, pub publish.PendingReq) error
-	transformed []transform.Transformable
-	server      *GRPCServer
-	client      api_v2.CollectorServiceClient
-	batch       *jaegermodel.Batch
+type testGRPCCollector struct {
+	request     *api_v2.PostSpansRequest
+	consumerErr error
+	collector   grpcCollector
+
+	monitoringInt map[request.ResultID]int64
 }
 
-func (tc *testcaseJaeger) setup(t *testing.T) {
-	if tc.cfg == nil {
-		tc.cfg = config.DefaultConfig("9.9.9")
-	}
-
-	// build grpc receiver
-	tc.reporter = func(ctx context.Context, pub publish.PendingReq) error {
-		tc.transformed = append(tc.transformed, pub.Transformables...)
-		return nil
-	}
-	var err error
-	tc.server, err = NewGRPCServer(logp.NewLogger("jaeger"), tc.cfg, apm.DefaultTracer, tc.reporter)
-	require.NoError(t, err)
-
-	if !tc.cfg.JaegerConfig.Enabled {
-		return
-	}
-
-	// build grpc client and batch for request
-	var client *grpc.ClientConn
-	if tc.cfg.JaegerConfig.GRPC.TLS != nil {
-		client, err = grpc.Dial(tc.cfg.JaegerConfig.GRPC.Host,
-			grpc.WithTransportCredentials(credentials.NewTLS(tc.cfg.JaegerConfig.GRPC.TLS)))
+func (tc *testGRPCCollector) setup(t *testing.T) {
+	beatertest.ClearRegistry(gRPCMonitoringMap)
+	if tc.request == nil {
+		td := consumerdata.TraceData{Spans: []*v1.Span{
+			{TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+				SpanId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}},
+			{TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+				SpanId: []byte{0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}}}
+		batch, err := jaeger.OCProtoToJaegerProto(td)
 		require.NoError(t, err)
-
-	} else {
-		client, err = grpc.Dial(tc.cfg.JaegerConfig.GRPC.Host, grpc.WithInsecure())
-		require.NoError(t, err)
+		require.NotNil(t, batch)
+		tc.request = &api_v2.PostSpansRequest{Batch: *batch}
 	}
-	tc.client = api_v2.NewCollectorServiceClient(client)
 
-	// send data via grpc client
-	td := consumerdata.TraceData{Spans: []*v1.Span{{
-		TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-		SpanId:  []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}}}
-	tc.batch, err = oteljaeger.OCProtoToJaegerProto(td)
-	require.NoError(t, err)
-	require.NotNil(t, tc.batch)
+	tc.collector = grpcCollector{traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
+		return tc.consumerErr
+	})}
 }
 
-func (tc *testcaseJaeger) sendSpans(timeout time.Duration) error {
-	start := time.Now()
-	var err error
-	for {
-		_, err = tc.client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *tc.batch})
-		if err == nil {
-			break
+func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual monitoringMap) {
+	for _, k := range monitoringKeys {
+		if val, ok := expected[k]; ok {
+			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
+		} else {
+			assert.Zerof(t, actual[k].Get(), "%s mismatch", k)
 		}
-		if time.Since(start) > timeout {
-			err = errors.New("timeout")
-			break
-		}
-		time.Sleep(time.Second / 50)
 	}
-	return err
+}
+
+type traceConsumerFunc func(ctx context.Context, td consumerdata.TraceData) error
+
+func (f traceConsumerFunc) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
+	return f(ctx, td)
+}
+
+func nopConsumer() traceConsumerFunc {
+	return func(context.Context, consumerdata.TraceData) error { return nil }
 }
