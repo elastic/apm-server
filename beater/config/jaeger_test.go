@@ -25,9 +25,13 @@ import (
 
 func TestJaeger_default(t *testing.T) {
 	expected := JaegerConfig{
-		Enabled: false,
-		GRPC: GRPCConfig{
-			Host: "localhost:14250",
+		GRPC: JaegerGRPCConfig{
+			Enabled: false,
+			Host:    "localhost:14250",
+		},
+		HTTP: JaegerHTTPConfig{
+			Enabled: false,
+			Host:    "localhost:14268",
 		},
 	}
 	assert.Equal(t, expected, defaultJaeger())

@@ -24,10 +24,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/version"
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/jaeger"
@@ -38,8 +39,8 @@ type server struct {
 	logger *logp.Logger
 	cfg    *config.Config
 
-	httpServer       *httpServer
-	jaegerGRPCServer *jaeger.GRPCServer
+	httpServer   *httpServer
+	jaegerServer *jaeger.Server
 }
 
 func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
@@ -47,21 +48,19 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	if err != nil {
 		return server{}, err
 	}
-	jaegerGRPCServer, err := jaeger.NewGRPCServer(logger, cfg, tracer, reporter)
+	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, reporter)
 	if err != nil {
 		return server{}, err
 	}
-	return server{logger, cfg, httpServer, jaegerGRPCServer}, nil
+	return server{logger, cfg, httpServer, jaegerServer}, nil
 }
 
 func (s server) run(listener net.Listener, tracerServer *tracerServer, pub *publish.Publisher) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
 
-	if s.jaegerGRPCServer != nil {
-		g.Go(func() error {
-			return s.jaegerGRPCServer.Start()
-		})
+	if s.jaegerServer != nil {
+		g.Go(s.jaegerServer.Serve)
 	}
 	if s.httpServer != nil {
 		g.Go(func() error {
@@ -89,8 +88,8 @@ func (s server) run(listener net.Listener, tracerServer *tracerServer, pub *publ
 }
 
 func (s server) stop(logger *logp.Logger) {
-	if s.jaegerGRPCServer != nil {
-		s.jaegerGRPCServer.Stop()
+	if s.jaegerServer != nil {
+		s.jaegerServer.Stop()
 	}
 	if s.httpServer != nil {
 		s.httpServer.stop()

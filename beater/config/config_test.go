@@ -96,13 +96,15 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				"kibana":                        map[string]interface{}{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
+				"jaeger.grpc.enabled":           true,
+				"jaeger.grpc.host":              "localhost:12345",
+				"jaeger.http.enabled":           true,
+				"jaeger.http.host":              "localhost:6789",
 				"api_key": map[string]interface{}{
 					"enabled":             true,
 					"limit":               200,
 					"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 				},
-				"jaeger.enabled":   true,
-				"jaeger.grpc.host": "localhost:12345",
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -158,9 +160,9 @@ func Test_UnpackConfig(t *testing.T) {
 					LimitMin: 200,
 					ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}}},
 				JaegerConfig: JaegerConfig{
-					Enabled: true,
-					GRPC: GRPCConfig{
-						Host: "localhost:12345",
+					GRPC: JaegerGRPCConfig{
+						Enabled: true,
+						Host:    "localhost:12345",
 						TLS: func() *tls.Config {
 							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
 								Enabled: &truthy,
@@ -172,6 +174,10 @@ func Test_UnpackConfig(t *testing.T) {
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:12345")
 						}(),
+					},
+					HTTP: JaegerHTTPConfig{
+						Enabled: true,
+						Host:    "localhost:6789",
 					},
 				},
 			},
@@ -203,8 +209,9 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"api_key.enabled": true,
-				"jaeger.enabled":  true,
+				"jaeger.enabled":      true,
+				"jaeger.grpc.enabled": true,
+				"api_key.enabled":     true,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -254,9 +261,9 @@ func Test_UnpackConfig(t *testing.T) {
 				Pipeline:     defaultAPMPipeline,
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 				JaegerConfig: JaegerConfig{
-					Enabled: true,
-					GRPC: GRPCConfig{
-						Host: "localhost:14250",
+					GRPC: JaegerGRPCConfig{
+						Enabled: true,
+						Host:    "localhost:14250",
 						TLS: func() *tls.Config {
 							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
 								Enabled:     &truthy,
@@ -265,6 +272,10 @@ func Test_UnpackConfig(t *testing.T) {
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:14250")
 						}(),
+					},
+					HTTP: JaegerHTTPConfig{
+						Enabled: false,
+						Host:    "localhost:14268",
 					},
 				},
 			},

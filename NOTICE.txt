@@ -2028,7 +2028,8 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/jaegertracing/jaeger
-Revision: e4b97b38c4785d9a593483241f0a1d3abe007e1c
+Version: v1.16.0
+Revision: 1c315785dddc80a39637c2b08b0a9bbe9ab1536c
 License type (autodetected): Apache-2.0
 ./vendor/github.com/jaegertracing/jaeger/LICENSE:
 --------------------------------------------------------------------
@@ -2611,7 +2612,7 @@ Apache License 2.0
 --------------------------------------------------------------------
 Dependency: github.com/open-telemetry/opentelemetry-collector
 Version: master
-Revision: e94dd19191e0ba67d5d17c4504de5e97f512eb75
+Revision: c300f13417023e53ddb643b312e6559899b54ac7
 License type (autodetected): Apache-2.0
 ./vendor/github.com/open-telemetry/opentelemetry-collector/LICENSE:
 --------------------------------------------------------------------

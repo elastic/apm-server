@@ -18,79 +18,38 @@
 package jaeger
 
 import (
-	"net"
+	"context"
 
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
-	"github.com/pkg/errors"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmgrpc"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
+	"github.com/open-telemetry/opentelemetry-collector/consumer"
 
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/beater/api/jaeger"
-	"github.com/elastic/apm-server/beater/config"
-	processor "github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/beater/request"
 )
 
-const (
-	networkTCP = "tcp"
+var (
+	gRPCRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc", monitoring.PublishExpvar)
+	gRPCMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCRegistry, monitoringKeys)
 )
 
-// GRPCServer allows to start and stop a Jaeger gRPC Server with a Jaeger Collector
-type GRPCServer struct {
-	logger     *logp.Logger
-	grpcServer *grpc.Server
-	host       string
-	collector  jaeger.GRPCCollector
+// grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
+type grpcCollector struct {
+	consumer consumer.TraceConsumer
 }
 
-// NewGRPCServer creates instance of Jaeger GRPCServer
-func NewGRPCServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*GRPCServer, error) {
-	if !cfg.JaegerConfig.Enabled {
-		return nil, nil
-	}
-
-	grpcOptions := []grpc.ServerOption{grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
-		apmgrpc.WithRecovery(),
-		apmgrpc.WithTracer(tracer)))}
-	if cfg.JaegerConfig.GRPC.TLS != nil {
-		creds := credentials.NewTLS(cfg.JaegerConfig.GRPC.TLS)
-		grpcOptions = append(grpcOptions, grpc.Creds(creds))
-	}
-	grpcServer := grpc.NewServer(grpcOptions...)
-	consumer := &processor.Consumer{
-		Reporter:        reporter,
-		TransformConfig: transform.Config{},
-	}
-
-	return &GRPCServer{
-		logger:     logger,
-		collector:  jaeger.NewGRPCCollector(consumer),
-		grpcServer: grpcServer,
-		host:       cfg.JaegerConfig.GRPC.Host,
-	}, nil
-}
-
-// Start gRPC server to listen for incoming Jaeger trace requests.
-//TODO(simi) to add support for sampling: api_v2.RegisterSamplingManagerServer
-func (jc *GRPCServer) Start() error {
-	jc.logger.Infof("Starting Jaeger collector listening on: %s", jc.host)
-
-	api_v2.RegisterCollectorServiceServer(jc.grpcServer, jc.collector)
-
-	listener, err := net.Listen(networkTCP, jc.host)
+// PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry
+// TraceData and passes them on to the internal Consumer taking care of converting into Elastic APM format.
+// The implementation of the protobuf contract is based on the open-telemetry implementation at
+// https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
+func (c grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
+	gRPCMonitoringMap.inc(request.IDRequestCount)
+	err := consumeBatch(ctx, r.Batch, c.consumer, gRPCMonitoringMap)
+	gRPCMonitoringMap.inc(request.IDResponseCount)
 	if err != nil {
-		return errors.Wrapf(err, "error starting Jaeger collector listening on: %s", jc.host)
+		gRPCMonitoringMap.inc(request.IDResponseErrorsCount)
+		return nil, err
 	}
-	return jc.grpcServer.Serve(listener)
-}
-
-// Stop gRPC server gracefully.
-func (jc *GRPCServer) Stop() {
-	jc.logger.Infof("Stopping Jaeger collector listening on: %s", jc.host)
-	jc.grpcServer.GracefulStop()
+	gRPCMonitoringMap.inc(request.IDResponseValidCount)
+	return &api_v2.PostSpansResponse{}, nil
 }
