@@ -36,14 +36,14 @@ type JaegerConfig struct {
 
 // JaegerGRPCConfig holds configuration for the Jaeger gRPC server.
 type JaegerGRPCConfig struct {
-	Enabled bool        `confg:"enabled"`
+	Enabled bool        `config:"enabled"`
 	Host    string      `config:"host"`
 	TLS     *tls.Config `config:"-"`
 }
 
 // JaegerHTTPConfig holds configuration for the Jaeger HTTP server.
 type JaegerHTTPConfig struct {
-	Enabled bool   `confg:"enabled"`
+	Enabled bool   `config:"enabled"`
 	Host    string `config:"host"`
 }
 
