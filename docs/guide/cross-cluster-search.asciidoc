@@ -11,31 +11,31 @@ and allowing for better performance while managing multiple observability use ca
 [[set-up-ccs]]
 === Set up cross-cluster search
 
-1. Set up remote clusters.
+*Step 1. Set up remote clusters.*
+
+If you're using the Hosted Elasticsearch Service, see {cloud}/ec-enable-ccs.html[Enable cross-cluster search].
 
 You can add remote clusters directly in Kibana, under *Management* > *Elasticsearch* > *Remote clusters*.
-All you need is a name for the remote cluster and seed node(s).
+All you need is a name for the remote cluster and the seed node(s).
+Remember the names of your remote clusters, you'll need them in step two.
 See {kib-ref}/working-remote-clusters.html#managing-remote-clusters[managing remote clusters] for detailed information on the setup process.
-
-If you're using the Elasticsearch Service, see {cloud}/ec-enable-ccs.html[Enable cross-cluster search].
 
 Alternatively, you can {ref}/modules-remote-clusters.html#configuring-remote-clusters[configure remote clusters]
 in Elasticsearch's `elasticsearch.yml` file.
 
-2. Edit the default APM index pattern.
+*Step 2. Edit the default APM app index pattern.*
 
-Editing the APM index pattern will allow you to search across the clusters of your choosing.
+The APM app index pattern determines from which clusters and indices to display data.
+Index patterns follow this convention: `<cluster-names>:<pattern>`.
+The default value is `apm-*`, which displays data from any index beginning with `apm-`.
 
-{kib-ref}/apm-settings-kb.html[APM settings in Kibana]
+To display data from the local cluster, and all remote clusters,
+you'll need to update the index pattern to: `*:apm-*,apm-*`.
+You can also specify certain clusters to display data from, for example, `*obs-1:apm-*,obs-2:apm-*`.
 
-Before users can use ccs in apm ui indices they have to setup the remote cluster via this page
-<KIB_URL>/app/kibana#/management/elasticsearch/remote_clusters/add
+There are two ways to edit the default index pattern:
 
-Kib: 
-
-
-
-
-ESS: 
-
-ES: 
+* In the APM app -- Navigate to *APM* > *Settings* > *Indices*, and change all `apm_oss.*Pattern` values to
+include `*:apm-*,apm-*`.
+* In `kibana.yml` -- All of the {kib-ref}/apm-settings-kb.html[`apm_oss.*Pattern`] configuration values must
+include `*:apm-*,apm-*`.
