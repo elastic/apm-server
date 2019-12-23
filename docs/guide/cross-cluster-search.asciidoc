@@ -1,29 +1,41 @@
 [[apm-cross-cluster-search]]
 == Cross-cluster search
 
+Elastic APM utilizes Elasticsearch's cross-cluster search functionality.
 Cross-cluster search lets you run a single search request against one or more
-{ref}/modules-remote-clusters.html[remote clusters].
-This means you can have deployments per data type, making sizing and scaling more predictable,
-and allowing for better performance while managing multiple observability use cases.
-
-Elastic APM utilizes Elasticsearch's cross-cluster search functionality,
+{ref}/modules-remote-clusters.html[remote clusters] --
 making it easy to search APM data across multiple sources.
+This means you can also have deployments per data type, making sizing and scaling more predictable,
+and allowing for better performance while managing multiple observability use cases.
 
 [[set-up-ccs]]
 === Set up cross-cluster search
 
-1. Set up remote clusters
+1. Set up remote clusters.
 
-There a number of ways to accomplish this, but the easiest is directly in Kibana.
+You can add remote clusters directly in Kibana, under *Management* > *Elasticsearch* > *Remote clusters*.
+All you need is a name for the remote cluster and seed node(s).
+See {kib-ref}/working-remote-clusters.html#managing-remote-clusters[managing remote clusters] for detailed information on the setup process.
 
-You can also {ref}/modules-remote-clusters.html#configuring-remote-clusters[configure remote clusters]
+If you're using the Elasticsearch Service, see {cloud}/ec-enable-ccs.html[Enable cross-cluster search].
+
+Alternatively, you can {ref}/modules-remote-clusters.html#configuring-remote-clusters[configure remote clusters]
 in Elasticsearch's `elasticsearch.yml` file.
+
+2. Edit the default APM index pattern.
+
+Editing the APM index pattern will allow you to search across the clusters of your choosing.
+
+{kib-ref}/apm-settings-kb.html[APM settings in Kibana]
 
 Before users can use ccs in apm ui indices they have to setup the remote cluster via this page
 <KIB_URL>/app/kibana#/management/elasticsearch/remote_clusters/add
 
-Kib: /apm-settings-kb.html[APM settings in Kibana]
+Kib: 
 
-ESS: /ec-enable-ccs.html[Enable cross-cluster search]
+
+
+
+ESS: 
 
 ES: 
