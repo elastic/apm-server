@@ -1,7 +1,8 @@
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
-:libbeat-dir: {docdir}/copied-from-beats
+:libbeat-dir: {docdir}/copied-from-beats/docs
+:libbeat-outputs-dir: {docdir}/copied-from-beats/outputs
 :version: {apm_server_version}
 :beatname_lc: apm-server
 :beatname_uc: APM Server
@@ -52,10 +53,10 @@ include::./setting-up-and-running.asciidoc[]
 
 include::./upgrading.asciidoc[]
 
-:beat-specific-output-config: ./../configuring-output-after.asciidoc
+:beat-specific-output-config: ./../../configuring-output-after.asciidoc
 include::./configuring.asciidoc[]
 
-:beat-specific-security: ../security.asciidoc
+:beat-specific-security: ../../security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[]
 
 include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[]

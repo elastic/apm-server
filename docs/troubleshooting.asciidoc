@@ -29,9 +29,9 @@ include::common-problems.asciidoc[]
 [[enable-apm-server-debugging]]
 == Debug
 
-include::copied-from-beats/debugging.asciidoc[]
+include::copied-from-beats/docs/debugging.asciidoc[]
 
 [[getting-help]]
 == Get help
 
-include::copied-from-beats/getting-help.asciidoc[]
+include::copied-from-beats/docs/getting-help.asciidoc[]

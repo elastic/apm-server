@@ -37,6 +37,7 @@ sudo systemctl enable {beatname_lc}
 sudo systemctl disable {beatname_lc}
 ------------------------------------------------
 
+
 ==== {beatname_uc} status and logs
 
 To get the service status, use `systemctl`:
@@ -107,5 +108,5 @@ include drop-in unit files. If you need to add a drop-in manually, use
 +systemctl edit {beatname_lc}.service+.
 
 ifdef::apm-server[]
-include::./../config-ownership.asciidoc[]
+include::./../../config-ownership.asciidoc[]
 endif::apm-server[]
