@@ -12,8 +12,7 @@ This output plugin is compatible with
 the https://www.elastic.co/guide/en/logstash/current/plugins-inputs-redis.html[Redis input plugin] for Logstash.
 
 To use this output, edit the {beatname_uc} configuration file to disable the {es}
-output by commenting it out, and enable the Redis output by uncommenting the
-Redis section.
+output by commenting it out, and enable the Redis output by adding `output.redis`.
 
 Example configuration:
 
