@@ -45,6 +45,7 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("context"),
 		tests.Group("span.db"),
 		tests.Group("span.http"),
+		"messaging.body", "messaging.headers",
 	)
 }
 
@@ -92,6 +93,8 @@ func spanJsonSchemaNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"span.transaction_id",
 		"span.context.experimental",
+		"span.context.message.body",
+		"span.context.message.headers",
 	)
 }
 
@@ -107,6 +110,12 @@ func spanRequiredKeys() *tests.Set {
 		"span.start",
 		"span.timestamp",
 		"span.stacktrace.filename",
+		"span.context", //only for conditional requirement of `span.context.message`
+		"span.context.message",
+		"span.context.message.topic",
+		"span.context.message.topic.name",
+		"span.context.message.queue",
+		"span.context.message.queue.name",
 	)
 }
 
@@ -126,6 +135,12 @@ func spanCondRequiredKeys() map[string]tests.Condition {
 		"span.context.destination.service.resource": {Existence: map[string]interface{}{
 			"span.context.destination.service.type": "db",
 			"span.context.destination.service.name": "postgresql",
+		}},
+		"span.context.message.topic.name": {Existence: map[string]interface{}{
+			"span.type": "messaging",
+		}},
+		"span.context.message.queue.name": {Existence: map[string]interface{}{
+			"span.type": "messaging",
 		}},
 	}
 }
@@ -190,6 +205,8 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "span.", Mapping: ""},
 			{Template: "destination.address", Mapping: "context.destination.address"},
 			{Template: "destination.port", Mapping: "context.destination.port"},
+			{Template: "messaging.queue.name", Mapping: "context.message.queue.name"},
+			{Template: "messaging.topic.name", Mapping: "context.message.topic.name"},
 		},
 	)
 }

@@ -74,7 +74,7 @@
                                             "maxLength": 1024
                                         }
                                     },
-				    "required": ["type", "name", "resource"]
+                                    "required": ["type", "name", "resource"]
                                 }
                             }
                         },
@@ -170,6 +170,9 @@
                                     "maxLength": 1024
                                 }
                             }
+                        },
+                        "message": {
+                            "$ref": "message.json"
                         }
                     }
                 },

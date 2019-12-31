@@ -27,6 +27,7 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 
@@ -61,6 +62,10 @@ func TestDecodeSpan(t *testing.T) {
 				"resource": destServiceResource,
 			},
 		},
+		"message": map[string]interface{}{
+			"queue": map[string]interface{}{"name": "foo"},
+			"topic": map[string]interface{}{"name": "bar"},
+			"age":   map[string]interface{}{"ms": json.Number("1577958057123")}},
 	}
 	subtype := "postgresql"
 	action, action2 := "query", "query.custom"
@@ -109,6 +114,13 @@ func TestDecodeSpan(t *testing.T) {
 			},
 			err: utility.ErrFetch.Error(),
 		},
+		"invalid messaging event": {
+			input: map[string]interface{}{
+				"name": name, "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
+				"type": "messaging"},
+			err: "messaging information required",
+		},
 		"invalid stacktrace": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
@@ -118,7 +130,7 @@ func TestDecodeSpan(t *testing.T) {
 		},
 		"minimal payload": {
 			input: map[string]interface{}{
-				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
 			},
 			e: &Event{
@@ -126,7 +138,6 @@ func TestDecodeSpan(t *testing.T) {
 				Type:      "db",
 				Subtype:   &subtype,
 				Action:    &action2,
-				Start:     &start,
 				Duration:  duration,
 				Timestamp: spanTime,
 				ParentId:  parentId,
@@ -227,17 +238,18 @@ func TestDecodeSpan(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
+				Messaging: &m.Messaging{QueueName: "foo", TopicName: "bar", AgeMicroSec: tests.IntPtr(1577958057123)},
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			span, err := DecodeEvent(test.input, test.cfg, test.inpErr)
 			if test.err == "" {
+				require.Nil(t, err)
 				assert.Equal(t, test.e, span)
-				return
-			}
-			if assert.Error(t, err) {
-				assert.Equal(t, test.err, err.Error())
+			} else {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), test.err)
 			}
 		})
 	}
@@ -301,6 +313,7 @@ func TestSpanTransform(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
+				Messaging: &m.Messaging{TopicName: "routeUser", QueueName: "users"},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -345,6 +358,7 @@ func TestSpanTransform(t *testing.T) {
 				"trace":       common.MapStr{"id": traceId},
 				"parent":      common.MapStr{"id": parentId},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
+				"messaging":   common.MapStr{"queue.name": "users", "topic.name": "routeUser"},
 			},
 			Msg: "Full Span",
 		},

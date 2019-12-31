@@ -18,13 +18,11 @@
 package span
 
 import (
-	"errors"
 	"net"
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/model/metadata"
-
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -32,6 +30,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -39,7 +38,8 @@ import (
 )
 
 const (
-	spanDocType = "span"
+	spanDocType   = "span"
+	messagingType = "messaging"
 )
 
 var (
@@ -68,6 +68,7 @@ type Event struct {
 
 	Timestamp time.Time
 
+	Messaging  *m.Messaging
 	Name       string
 	Start      *float64
 	Duration   float64
@@ -312,11 +313,18 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			event.Service = service
 		}
 
+		if event.Messaging, err = m.DecodeMessaging(ctx, decoder.Err); err != nil {
+			return nil, err
+		}
+
 		if cfg.Experimental {
 			if obj, set := ctx["experimental"]; set {
 				event.Experimental = obj
 			}
 		}
+	}
+	if event.Type == messagingType && event.Messaging == nil {
+		return nil, errors.Errorf("messaging information required for span.type==%s", messagingType)
 	}
 
 	var stacktr *m.Stacktrace
@@ -369,6 +377,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "transaction", e.TransactionId)
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())
+	utility.Set(fields, "messaging", e.Messaging.Fields())
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {

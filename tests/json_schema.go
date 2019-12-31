@@ -149,7 +149,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		//test sending nil value for key
 		ps.changePayload(t, key, nil, Condition{}, upsertFn,
 			func(k string) (bool, []string) {
-				return !required.ContainsStrPattern(k), []string{keyLast}
+				return !required.ContainsStrPattern(k), []string{keyLast, "messaging information required"}
 			},
 		)
 
@@ -160,6 +160,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 				errMsgs := []string{
 					fmt.Sprintf("missing properties: \"%s\"", keyLast),
 					"did not recognize object type",
+					"messaging information required",
 				}
 
 				if required.ContainsStrPattern(k) {

@@ -18,9 +18,9 @@
 package transaction
 
 import (
-	"errors"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -39,6 +39,7 @@ const (
 	processorName      = "transaction"
 	transactionDocType = "transaction"
 	emptyString        = ""
+	messagingType      = "messaging"
 )
 
 var (
@@ -67,6 +68,7 @@ type Event struct {
 	Result    *string
 	Duration  float64
 	Marks     common.MapStr
+	Messaging *m.Messaging
 	Sampled   *bool
 	SpanCount SpanCount
 	User      *metadata.User
@@ -114,6 +116,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Http:         ctx.Http,
 		Url:          ctx.Url,
 		Custom:       ctx.Custom,
+		Messaging:    ctx.Messaging,
 		User:         ctx.User,
 		Service:      ctx.Service,
 		Client:       ctx.Client,
@@ -127,9 +130,12 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		ParentId: decoder.StringPtr(raw, "parent_id"),
 		TraceId:  decoder.String(raw, "trace_id"),
 	}
-
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+
+	if e.Type == messagingType && e.Messaging == nil {
+		return nil, errors.Errorf("messaging information required for transaction.type==%s", messagingType)
 	}
 
 	return &e, nil
@@ -198,6 +204,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
 	utility.Set(fields, "experimental", e.Experimental)
+	utility.Set(fields, "messaging", e.Messaging.Fields())
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

@@ -41,6 +41,7 @@ type Context struct {
 	User         *metadata.User
 	Service      *metadata.Service
 	Client       *Client
+	Messaging    *Messaging
 	Experimental interface{}
 }
 
@@ -135,6 +136,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	user, err := metadata.DecodeUser(userInp, err)
 	user = addUserAgent(user, http)
 	client, err := decodeClient(user, http, err)
+	messaging, err := DecodeMessaging(ctxInp, err)
 
 	ctx := Context{
 		Http:         http,
@@ -145,6 +147,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 		User:         user,
 		Service:      service,
 		Client:       client,
+		Messaging:    messaging,
 		Experimental: experimental,
 	}
 

@@ -791,6 +791,37 @@ type: keyword
 --
 
 
+*`messaging.queue.name`*::
++
+--
+Name of the message queue where the message is published or received.
+
+
+type: keyword
+
+--
+
+*`messaging.topic.name`*::
++
+--
+Topic name used for routing the message.
+
+
+type: keyword
+
+--
+
+*`messaging.age.ms`*::
++
+--
+Age of a message in milliseconds.
+
+
+type: long
+
+--
+
+
 *`client.ip`*::
 +
 --

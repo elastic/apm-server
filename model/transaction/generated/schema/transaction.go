@@ -376,6 +376,62 @@ const ModelSchema = `{
             }
         }
     }
+        },
+        "message": {
+                "$id": "doc/spec/message.json",
+    "title": "Message",
+    "description": "Details related to message receiving and publishing if the captured event integrates with a messaging system",
+    "type": ["object", "null"],
+    "properties": {
+        "queue": {
+            "type": ["object"],
+            "properties": {
+                "name": {
+                    "description": "Name of the message queue where the message is received.",
+                    "type": ["string"],
+                    "maxLength": 1024
+                }
+            },
+            "required": ["name"]
+        },
+        "topic": {
+            "type": ["object"],
+            "properties": {
+                "name": {
+                    "description": "Topic name used for routing the message.",
+                    "type": ["string"],
+                    "maxLength": 1024
+                }
+            },
+            "required": ["name"]
+        },
+        "age": {
+            "type": ["object", "null"],
+            "properties": {
+                "ms": {
+                    "description": "The age of the message in milliseconds. If the instrumented messaging framework provides a timestamp for the message, agents may use it. Otherwise, the sending agent can add a timestamp in milliseconds since epoch UTC to the message's metadata to be retrieved by the receiving agent. If a timestamp is not available, agents should omit this field.",
+                    "type": ["integer", "null"]
+                }
+            }
+        },
+        "body": {
+            "description": "messsage body, similar to an http request body",
+            "type": ["string", "null"]
+        },
+        "headers": {
+            "description": "messsage headers, similar to http request headers",
+            "type": ["object", "null"],
+            "patternProperties": {
+                "[.*]*$": {
+                    "type": ["string", "array", "null"],
+                    "items": {
+                        "type": ["string"]
+                    }
+                }
+            }
+        }
+    },
+    "required": ["queue", "topic"]
         }
     }
                 },

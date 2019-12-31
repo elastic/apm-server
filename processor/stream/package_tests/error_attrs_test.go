@@ -66,6 +66,8 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("transaction.self_time"),
 		tests.Group("transaction.breakdown"),
 		tests.Group("transaction.duration"),
+		tests.Group("messaging"),
+		tests.Group("error.context.message"),
 		"experimental",
 	)
 }
@@ -154,6 +156,7 @@ func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 			"error.context.user.email",
 			"error.context.experimental",
 			"error.exception.parent", // it will never be present in the top (first) exception
+			tests.Group("error.context.message"),
 		))
 }
 
@@ -170,6 +173,7 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 			{Template: "transaction.id", Mapping: "transaction_id"},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
+			{Template: "messaging.", Mapping: "context.message."},
 		},
 	)
 }

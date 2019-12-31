@@ -19,6 +19,7 @@ package utility
 
 import (
 	"encoding/json"
+	"net/http"
 	"reflect"
 	"strings"
 	"time"
@@ -131,6 +132,12 @@ func update(m common.MapStr, key string, val interface{}, remove bool) {
 		m[key] = val
 	case int, int8, int16, int32, int64, uint, uint8, uint32, uint64:
 		m[key] = val
+	case http.Header:
+		if value != nil {
+			m[key] = value
+		} else if remove {
+			delete(m, key)
+		}
 	default:
 		v := reflect.ValueOf(val)
 		switch v.Type().Kind() {

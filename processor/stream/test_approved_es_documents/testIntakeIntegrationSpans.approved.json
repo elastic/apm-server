@@ -286,6 +286,49 @@
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
             }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "messaging": {
+                "age.ms": 1577958057123,
+                "queue.name": "new_users",
+                "topic.name": "create_users"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans"
+            },
+            "span": {
+                "duration": {
+                    "us": 141581
+                },
+                "id": "00xxx12312312312",
+                "name": "Rabbitmq receive",
+                "type": "messaging"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "fdedef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
         }
     ]
 }

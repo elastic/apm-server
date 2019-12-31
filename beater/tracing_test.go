@@ -39,6 +39,7 @@ var testTransactionIds = tests.NewSet(
 	"945254c567a5417e",
 	"4340a8e0df1906ecbfa9",
 	"cdef4340a8e0df19",
+	"00xxxxFFaaaa1234",
 )
 
 func TestServerTracingEnabled(t *testing.T) {

@@ -46,6 +46,7 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("context"),
 		tests.Group("transaction.page"),
 		tests.Group("http.request.cookies"),
+		"messaging.body", "messaging.headers",
 	)
 }
 
@@ -82,6 +83,7 @@ func transactionPayloadAttrsNotInJsonSchema() *tests.Set {
 		tests.Group("transaction.marks"),
 		tests.Group("transaction.context.request.headers."),
 		tests.Group("transaction.context.response.headers."),
+		tests.Group("transaction.context.message.headers."),
 	)
 }
 
@@ -96,7 +98,26 @@ func transactionRequiredKeys() *tests.Set {
 		"transaction.type",
 		"transaction.context.request.method",
 		"transaction.context.request.url",
+		"transaction.context", //only for conditional requirement of `transaction.context.message`
+		"transaction.context.message",
+		"transaction.context.message.topic",
+		"transaction.context.message.topic.name",
+		"transaction.context.message.queue",
+		"transaction.context.message.queue.name",
+		"transaction.context.message.topic.name",
+		"transaction.context.message.queue.name",
 	)
+}
+
+func transactionCondRequiredKeys() map[string]tests.Condition {
+	return map[string]tests.Condition{
+		"transaction.context.message.topic.name": {Existence: map[string]interface{}{
+			"transaction.type": "messaging",
+		}},
+		"transaction.context.message.queue.name": {Existence: map[string]interface{}{
+			"transaction.type": "messaging",
+		}},
+	}
 }
 
 func transactionKeywordExceptionKeys() *tests.Set {
@@ -134,7 +155,7 @@ func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {
-	transactionProcSetup().AttrsPresence(t, transactionRequiredKeys(), nil)
+	transactionProcSetup().AttrsPresence(t, transactionRequiredKeys(), transactionCondRequiredKeys())
 }
 
 func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
@@ -145,6 +166,7 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 			{Template: "transaction."},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
+			{Template: "messaging.", Mapping: "context.message."},
 		},
 	)
 }
