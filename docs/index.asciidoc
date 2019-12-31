@@ -53,10 +53,10 @@ include::./setting-up-and-running.asciidoc[]
 
 include::./upgrading.asciidoc[]
 
-:beat-specific-output-config: ./../../configuring-output-after.asciidoc
+:beat-specific-output-config: {docdir}/configuring-output-after.asciidoc
 include::./configuring.asciidoc[]
 
-:beat-specific-security: ../../security.asciidoc
+:beat-specific-security: {docdir}/security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[]
 
 include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[]
