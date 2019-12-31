@@ -266,7 +266,12 @@ func (e *Event) updateCulprit(tctx *transform.Context) {
 	if fr == nil {
 		return
 	}
-	culprit := fmt.Sprintf("%v", fr.Filename)
+	var culprit string
+	if fr.Filename != nil {
+		culprit = fmt.Sprintf("%v", *fr.Filename)
+	} else if fr.Classname != nil {
+		culprit = fmt.Sprintf("%v", *fr.Classname)
+	}
 	if fr.Function != nil {
 		culprit += fmt.Sprintf(" in %v", *fr.Function)
 	}
@@ -349,9 +354,11 @@ func (k *groupingKey) add(s *string) bool {
 	return true
 }
 
-func (k *groupingKey) addEither(s1 *string, s2 string) {
-	if ok := k.add(s1); !ok {
-		k.add(&s2)
+func (k *groupingKey) addEither(str ...*string) {
+	for _, s := range str {
+		if ok := k.add(s); ok {
+			break
+		}
 	}
 }
 
@@ -381,7 +388,7 @@ func (e *Event) calcGroupingKey(chain []Exception) string {
 		if fr.ExcludeFromGrouping {
 			continue
 		}
-		k.addEither(fr.Module, fr.Filename)
+		k.addEither(fr.Module, fr.Filename, fr.Classname)
 		k.add(fr.Function)
 	}
 	if k.empty {
