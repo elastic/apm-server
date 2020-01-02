@@ -56,7 +56,7 @@ Here's a basic APM Server SSL config with secure communication enabled:
 ----
 apm-server.ssl.enabled: true
 apm-server.ssl.key: "/etc/pki/key.pem"
-apm-server.ssl.certificate: "/etc/pki/client.pem"
+apm-server.ssl.certificate: "/etc/pki/apm-server.pem"
 ----
 
 A full list of configuration options is available in <<agent-server-ssl>>.
