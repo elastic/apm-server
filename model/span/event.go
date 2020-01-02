@@ -313,18 +313,22 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			event.Service = service
 		}
 
-		if event.Messaging, err = m.DecodeMessaging(ctx, decoder.Err); err != nil {
-			return nil, err
-		}
-
 		if cfg.Experimental {
 			if obj, set := ctx["experimental"]; set {
 				event.Experimental = obj
 			}
 		}
 	}
-	if event.Type == messagingType && event.Messaging == nil {
-		return nil, errors.Errorf("messaging information required for span.type==%s", messagingType)
+	if event.Type == messagingType {
+		message, err := m.DecodeMessage(ctx, decoder.Err)
+		if err != nil {
+			return nil, err
+		}
+		if message == nil {
+			return nil, errors.Errorf("messaging information required for span.type==%s", messagingType)
+		}
+		message.Operation = event.Action
+		event.Messaging = &m.Messaging{Type: event.Subtype, Message: message}
 	}
 
 	var stacktr *m.Stacktrace

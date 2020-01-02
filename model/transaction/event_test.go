@@ -164,10 +164,11 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				Messaging: &model.Messaging{
-					QueueName: "order", TopicName: "routeA", Body: tests.StringPtr("confirmed"),
-					Headers:     http.Header{"Internal": []string{"false"}},
-					AgeMicroSec: tests.IntPtr(1577958057123),
-				},
+					Message: &model.Message{
+						QueueName: "order", TopicName: "routeA", Body: tests.StringPtr("confirmed"),
+						Headers:     http.Header{"Internal": []string{"false"}},
+						AgeMicroSec: tests.IntPtr(1577958057123),
+					}},
 			},
 		},
 		"valid event": {
@@ -407,7 +408,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Url:       &model.Url{Original: &url},
 		Custom:    &model.Custom{"foo": "bar"},
 		Client:    &model.Client{IP: net.ParseIP("198.12.13.1")},
-		Messaging: &model.Messaging{TopicName: "routeUser", QueueName: "users"},
+		Messaging: &model.Messaging{Message: &model.Message{TopicName: "routeUser", QueueName: "users"}},
 	}
 	txWithContextEs := common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
@@ -445,7 +446,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"http": common.MapStr{
 			"request":  common.MapStr{"method": "post"},
 			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}}},
-		"messaging": common.MapStr{"queue.name": "users", "topic.name": "routeUser"},
+		"messaging": common.MapStr{"message": common.MapStr{"queue.name": "users", "topic.name": "routeUser"}},
 	}
 
 	txValidWithSpan := Event{Timestamp: timestamp}

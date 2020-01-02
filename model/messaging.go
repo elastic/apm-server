@@ -26,15 +26,24 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
+// Messaging holds information about the messaging system type and the message
 type Messaging struct {
+	Type    *string
+	Message *Message
+}
+
+// Message holds information about a recorded message, such as the message body and meta information
+type Message struct {
 	QueueName   string
 	TopicName   string
 	Body        *string
 	Headers     http.Header
 	AgeMicroSec *int
+	Operation   *string
 }
 
-func DecodeMessaging(input interface{}, err error) (*Messaging, error) {
+// DecodeMessage parses a Message from given input
+func DecodeMessage(input interface{}, err error) (*Message, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -48,7 +57,7 @@ func DecodeMessaging(input interface{}, err error) (*Messaging, error) {
 	if decoder.Err != nil || messageInp == nil {
 		return nil, decoder.Err
 	}
-	m := Messaging{
+	m := Message{
 		QueueName:   decoder.String(messageInp, "name", "queue"),
 		TopicName:   decoder.String(messageInp, "name", "topic"),
 		Body:        decoder.StringPtr(messageInp, "body"),
@@ -61,7 +70,17 @@ func DecodeMessaging(input interface{}, err error) (*Messaging, error) {
 	return &m, nil
 }
 
+// Fields returns a MapStr holding the transformed messaging information
 func (m *Messaging) Fields() common.MapStr {
+	if m == nil {
+		return nil
+	}
+	fields := common.MapStr{"message": m.Message.fields()}
+	utility.Set(fields, "type", m.Type)
+	return fields
+}
+
+func (m *Message) fields() common.MapStr {
 	if m == nil {
 		return nil
 	}
@@ -69,5 +88,6 @@ func (m *Messaging) Fields() common.MapStr {
 	utility.Set(fields, "body", m.Body)
 	utility.Set(fields, "headers", m.Headers)
 	utility.Set(fields, "age.ms", m.AgeMicroSec)
+	utility.Set(fields, "operation", m.Operation)
 	return fields
 }

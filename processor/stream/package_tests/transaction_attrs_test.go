@@ -46,7 +46,7 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("context"),
 		tests.Group("transaction.page"),
 		tests.Group("http.request.cookies"),
-		"messaging.body", "messaging.headers",
+		"messaging.message.body", "messaging.message.headers",
 	)
 }
 
@@ -69,6 +69,7 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("transaction.breakdown"),
 		tests.Group("transaction.duration.sum"),
 		"experimental",
+		"messaging.message.operation", "messaging.type",
 	)
 }
 
@@ -129,6 +130,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		tests.Group("url"),
 		tests.Group("http"),
 		tests.Group("destination"),
+		"messaging.message.operation", "messaging.type",
 
 		// metadata fields
 		tests.Group("agent"),
@@ -166,7 +168,7 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 			{Template: "transaction."},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
-			{Template: "messaging.", Mapping: "context.message."},
+			{Template: "messaging.message.", Mapping: "context.message."},
 		},
 	)
 }

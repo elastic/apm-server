@@ -415,19 +415,21 @@
                 "tag2": 2
             },
             "messaging": {
-                "age.ms": 1577958057123,
-                "body": "user created",
-                "headers": {
-                    "Involved_services": [
-                        "user",
-                        "auth"
-                    ],
-                    "User_id": [
-                        "1ax3"
-                    ]
-                },
-                "queue.name": "new_users",
-                "topic.name": "create_users"
+                "message": {
+                    "age.ms": 1577958057123,
+                    "body": "user created",
+                    "headers": {
+                        "Involved_services": [
+                            "user",
+                            "auth"
+                        ],
+                        "User_id": [
+                            "1ax3"
+                        ]
+                    },
+                    "queue.name": "new_users",
+                    "topic.name": "create_users"
+                }
             },
             "parent": {
                 "id": "abcdefabcdef01234567"

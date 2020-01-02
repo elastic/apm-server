@@ -791,7 +791,18 @@ type: keyword
 --
 
 
-*`messaging.queue.name`*::
+*`messaging.type`*::
++
+--
+Type of the messaging system for which the event was recorded
+
+
+type: keyword
+
+--
+
+
+*`messaging.message.queue.name`*::
 +
 --
 Name of the message queue where the message is published or received.
@@ -801,7 +812,7 @@ type: keyword
 
 --
 
-*`messaging.topic.name`*::
+*`messaging.message.topic.name`*::
 +
 --
 Topic name used for routing the message.
@@ -811,13 +822,23 @@ type: keyword
 
 --
 
-*`messaging.age.ms`*::
+*`messaging.message.age.ms`*::
 +
 --
 Age of a message in milliseconds.
 
 
 type: long
+
+--
+
+*`messaging.message.operation`*::
++
+--
+Message operation, e.g. 'send' or 'receive'.
+
+
+type: keyword
 
 --
 

@@ -116,7 +116,6 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Http:         ctx.Http,
 		Url:          ctx.Url,
 		Custom:       ctx.Custom,
-		Messaging:    ctx.Messaging,
 		User:         ctx.User,
 		Service:      ctx.Service,
 		Client:       ctx.Client,
@@ -134,8 +133,11 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		return nil, decoder.Err
 	}
 
-	if e.Type == messagingType && e.Messaging == nil {
-		return nil, errors.Errorf("messaging information required for transaction.type==%s", messagingType)
+	if e.Type == messagingType {
+		if ctx.Message == nil {
+			return nil, errors.Errorf("messaging information required for transaction.type==%s", messagingType)
+		}
+		e.Messaging = &m.Messaging{Message: ctx.Message}
 	}
 
 	return &e, nil

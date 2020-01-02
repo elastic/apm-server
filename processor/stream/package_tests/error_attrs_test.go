@@ -140,6 +140,7 @@ func errorKeywordExceptionKeys() *tests.Set {
 		tests.Group("service"),
 		tests.Group("user"),
 		tests.Group("span"),
+		tests.Group("messaging."),
 	)
 }
 
@@ -173,7 +174,7 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 			{Template: "transaction.id", Mapping: "transaction_id"},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
-			{Template: "messaging.", Mapping: "context.message."},
+			{Template: "messaging.message", Mapping: "context.message."},
 		},
 	)
 }

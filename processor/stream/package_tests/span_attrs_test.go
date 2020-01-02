@@ -158,6 +158,7 @@ func spanKeywordExceptionKeys() *tests.Set {
 		"processor.event", "processor.name",
 		"context.tags", "transaction.type", "transaction.name",
 		tests.Group("observer"),
+		"messaging.message.operation", "messaging.type",
 
 		// metadata fields
 		tests.Group("agent"),
@@ -205,8 +206,8 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "span.", Mapping: ""},
 			{Template: "destination.address", Mapping: "context.destination.address"},
 			{Template: "destination.port", Mapping: "context.destination.port"},
-			{Template: "messaging.queue.name", Mapping: "context.message.queue.name"},
-			{Template: "messaging.topic.name", Mapping: "context.message.topic.name"},
+			{Template: "messaging.message.queue.name", Mapping: "context.message.queue.name"},
+			{Template: "messaging.message.topic.name", Mapping: "context.message.topic.name"},
 		},
 	)
 }

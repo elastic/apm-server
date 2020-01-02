@@ -297,9 +297,13 @@
                 "tag1": "label1"
             },
             "messaging": {
-                "age.ms": 1577958057123,
-                "queue.name": "new_users",
-                "topic.name": "create_users"
+                "message": {
+                    "age.ms": 1577958057123,
+                    "operation": "receive",
+                    "queue.name": "new_users",
+                    "topic.name": "create_users"
+                },
+                "type": "JMS"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -313,11 +317,13 @@
                 "name": "backendspans"
             },
             "span": {
+                "action": "receive",
                 "duration": {
                     "us": 141581
                 },
                 "id": "00xxx12312312312",
                 "name": "Rabbitmq receive",
+                "subtype": "JMS",
                 "type": "messaging"
             },
             "timestamp": {

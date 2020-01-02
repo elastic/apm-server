@@ -31,12 +31,12 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
-func TestDecodeMessaging(t *testing.T) {
+func TestDecodeMessage(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
 		inp     interface{}
 		inpErr  error
-		message *Messaging
+		message *Message
 		outpErr error
 	}{
 		{name: "empty"},
@@ -55,7 +55,7 @@ func TestDecodeMessaging(t *testing.T) {
 				"message": map[string]interface{}{
 					"queue": map[string]interface{}{"name": "order"},
 					"topic": map[string]interface{}{"name": "routeA"}}},
-			message: &Messaging{QueueName: "order", TopicName: "routeA"},
+			message: &Message{QueueName: "order", TopicName: "routeA"},
 		},
 		{name: "full",
 			inp: map[string]interface{}{
@@ -65,7 +65,7 @@ func TestDecodeMessaging(t *testing.T) {
 					"body":    "user A ordered book B",
 					"headers": map[string]interface{}{"internal": "false", "services": []string{"user", "order"}},
 					"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}},
-			message: &Messaging{
+			message: &Message{
 				QueueName: "order", TopicName: "routeA", Body: tests.StringPtr("user A ordered book B"),
 				Headers:     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
 				AgeMicroSec: tests.IntPtr(1577958057123),
@@ -73,7 +73,7 @@ func TestDecodeMessaging(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			decoded, err := DecodeMessaging(tc.inp, tc.inpErr)
+			decoded, err := DecodeMessage(tc.inp, tc.inpErr)
 			if tc.inpErr != nil {
 				require.Equal(t, tc.inpErr, err)
 			} else if tc.outpErr != nil {
@@ -90,15 +90,28 @@ func TestMessaging_Fields(t *testing.T) {
 	var m *Messaging
 	require.Nil(t, m.Fields())
 
-	m = &Messaging{TopicName: "foo", QueueName: "orders"}
-	outp := common.MapStr{"topic.name": "foo", "queue.name": "orders"}
+	m = &Messaging{Message: &Message{TopicName: "foo", QueueName: "orders"}}
+	outp := common.MapStr{"message": common.MapStr{"topic.name": "foo", "queue.name": "orders"}}
 	require.Equal(t, outp, m.Fields())
 
-	m.Body = tests.StringPtr("order confirmed")
-	m.Headers = http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}}
-	m.AgeMicroSec = tests.IntPtr(1577958057123)
-	outp["body"] = "order confirmed"
-	outp["headers"] = http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}}
-	outp["age.ms"] = 1577958057123
+	m = &Messaging{
+		Type: tests.StringPtr("rabbitmq"),
+		Message: &Message{
+			TopicName:   "foo",
+			QueueName:   "orders",
+			Body:        tests.StringPtr("order confirmed"),
+			Headers:     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+			Operation:   tests.StringPtr("received"),
+			AgeMicroSec: tests.IntPtr(1577958057123),
+		}}
+	outp = common.MapStr{
+		"type": "rabbitmq",
+		"message": common.MapStr{
+			"topic.name": "foo",
+			"queue.name": "orders",
+			"body":       "order confirmed",
+			"headers":    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+			"age.ms":     1577958057123,
+			"operation":  "received"}}
 	assert.Equal(t, outp, m.Fields())
 }

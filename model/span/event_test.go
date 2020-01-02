@@ -210,13 +210,13 @@ func TestDecodeSpan(t *testing.T) {
 		},
 		"full valid payload": {
 			input: map[string]interface{}{
-				"name": name, "type": "external.request", "subtype": subtype, "action": action, "start": start,
+				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			e: &Event{
 				Name:      name,
-				Type:      "external.request",
+				Type:      "messaging",
 				Subtype:   &subtype,
 				Action:    &action,
 				Start:     &start,
@@ -238,7 +238,10 @@ func TestDecodeSpan(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Messaging: &m.Messaging{QueueName: "foo", TopicName: "bar", AgeMicroSec: tests.IntPtr(1577958057123)},
+				Messaging: &m.Messaging{
+					Type: &subtype,
+					Message: &m.Message{QueueName: "foo", TopicName: "bar",
+						AgeMicroSec: tests.IntPtr(1577958057123), Operation: &action}},
 			},
 		},
 	} {
@@ -261,8 +264,8 @@ func TestSpanTransform(t *testing.T) {
 	serviceName, serviceVersion, env := "myService", "1.2", "staging"
 	service := metadata.Service{Name: &serviceName, Version: &serviceVersion, Environment: &env}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
-	subtype := "myspansubtype"
-	action := "myspanquery"
+	subtype := "amqp"
+	action := "publish"
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
 		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
@@ -298,7 +301,7 @@ func TestSpanTransform(t *testing.T) {
 				TraceId:     traceId,
 				ParentId:    parentId,
 				Name:        "myspan",
-				Type:        "myspantype",
+				Type:        "messaging",
 				Subtype:     &subtype,
 				Action:      &action,
 				Start:       &start,
@@ -313,7 +316,8 @@ func TestSpanTransform(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Messaging: &m.Messaging{TopicName: "routeUser", QueueName: "users"},
+				Messaging: &m.Messaging{Type: &subtype,
+					Message: &m.Message{TopicName: "routeUser", QueueName: "users", Operation: &action}},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -321,7 +325,7 @@ func TestSpanTransform(t *testing.T) {
 					"duration": common.MapStr{"us": 1200},
 					"name":     "myspan",
 					"start":    common.MapStr{"us": 650},
-					"type":     "myspantype",
+					"type":     "messaging",
 					"subtype":  subtype,
 					"action":   action,
 					"stacktrace": []common.MapStr{{
@@ -358,7 +362,8 @@ func TestSpanTransform(t *testing.T) {
 				"trace":       common.MapStr{"id": traceId},
 				"parent":      common.MapStr{"id": parentId},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
-				"messaging":   common.MapStr{"queue.name": "users", "topic.name": "routeUser"},
+				"messaging": common.MapStr{"type": "amqp",
+					"message": common.MapStr{"queue.name": "users", "topic.name": "routeUser", "operation": "publish"}},
 			},
 			Msg: "Full Span",
 		},
