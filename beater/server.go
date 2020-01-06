@@ -63,16 +63,8 @@ func newServer(cfg *config.Config, tracer *apm.Tracer, report publish.Reporter) 
 }
 
 func doNotTrace(req *http.Request) bool {
-	if req.RemoteAddr == "pipe" {
-		// Don't trace requests coming from self,
-		// or we will go into a continuous cycle.
-		return true
-	}
-	if req.URL.Path == api.RootPath {
-		// Don't trace root url (healthcheck) requests.
-		return true
-	}
-	return false
+	// Don't trace root url (healthcheck) requests.
+	return req.URL.Path == api.RootPath
 }
 
 func run(logger *logp.Logger, server *http.Server, lis net.Listener, cfg *config.Config) error {
