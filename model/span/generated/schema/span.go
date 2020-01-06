@@ -120,7 +120,7 @@ const ModelSchema = `{
                                             "maxLength": 1024
                                         }
                                     },
-				    "required": ["type", "name", "resource"]
+                                    "required": ["type", "name", "resource"]
                                 }
                             }
                         },
@@ -148,6 +148,10 @@ const ModelSchema = `{
                                 "user": {
                                     "type": ["string", "null"],
                                     "description": "Username for accessing database"
+                                },
+                                "rows_affected": {
+                                    "type": ["integer", "null"],
+                                    "description": "Number of rows affected by the SQL statement (if applicable)"
                                 }
                             }
                         },
