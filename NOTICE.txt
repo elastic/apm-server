@@ -108,7 +108,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/containerd/containerd
-Revision: 93391048bd2cc8dc4921071407bb88e7a8fdf30b
+Revision: 36cf5b690dcc00ff0f34ff7799209050c3d0c59a
 License type (autodetected): Apache-2.0
 ./vendor/github.com/containerd/containerd/LICENSE:
 --------------------------------------------------------------------
@@ -247,7 +247,7 @@ Copyright 2012-2017 Docker, Inc.
 
 This product includes software developed at Docker, Inc. (https://www.docker.com).
 
-This product contains software (https://github.com/kr/pty) developed
+This product contains software (https://github.com/creack/pty) developed
 by Keith Rarick, licensed under the MIT License.
 
 The following is courtesy of our legal counsel:
@@ -446,7 +446,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 90ede956599fdb291489b4de886249dcd2782b5a
+Revision: 43891d9df6604fb88ab1e69e33166f1634646446
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -539,6 +539,12 @@ License type (autodetected): Apache-2.0
 --------------------------------------------------------------------
 Apache License 2.0
 
+-------NOTICE.txt-----
+Elastic go-sysinfo
+Copyright 2017-2019 Elasticsearch B.V.
+
+This product includes software developed at
+Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-txfile
@@ -2494,16 +2500,16 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/go-digest
-Revision: eaa60544f31ccf3b0653b1a118b76d33418ff41b
+Revision: ac19fd6e7483ff933754af248d80be865e543d22
 License type (autodetected): Apache-2.0
-./vendor/github.com/opencontainers/go-digest/LICENSE.code:
+./vendor/github.com/opencontainers/go-digest/LICENSE:
 --------------------------------------------------------------------
 Apache License 2.0
 
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/image-spec
-Revision: 4038d4391fe912af1031db5a1f511cf07c07cbc8
+Revision: 775207bd45b6cb8153ce218cc59351799217451f
 License type (autodetected): Apache-2.0
 ./vendor/github.com/opencontainers/image-spec/LICENSE:
 --------------------------------------------------------------------
@@ -2685,7 +2691,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/prometheus/procfs
-Revision: 54d17b57dd7d4a3aa092476596b3f8a933bde349
+Revision: 42f6e295b56f795825f88add3c95f83aedb744a4
 License type (autodetected): Apache-2.0
 ./vendor/github.com/prometheus/procfs/LICENSE:
 --------------------------------------------------------------------
@@ -3300,7 +3306,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 5119cf507ed5294cc409c092980c7497ee5d6fd2
+Revision: 60c769a6c58655dab1b9adac0d58967dd517cfba
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/crypto/LICENSE:
 --------------------------------------------------------------------
@@ -3368,7 +3374,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: d28f0bde5980168871434b95cfc858db9f2a7a99
+Revision: 13f9640d40b9cc418fb53703dfbd177679788ceb
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/net/LICENSE:
 --------------------------------------------------------------------
@@ -3470,7 +3476,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 37707fdb30a5b38865cfb95e5aab41707daec7fd
+Revision: fde4db37ae7ad8191b03d30d27f258b5291ae4e3
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/sys/LICENSE:
 --------------------------------------------------------------------
@@ -3504,7 +3510,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/text
-Revision: 4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1
+Revision: 342b2e1fbaa52c93f31447ad2c6abc048c63e475
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/text/LICENSE:
 --------------------------------------------------------------------
@@ -3538,7 +3544,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/time
-Revision: 26559e0f760e39c24d730d3224364aef164ee23f
+Revision: 555d28b269f0569763d25dbe1a237ae74c6bcc82
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/time/LICENSE:
 --------------------------------------------------------------------
@@ -3573,7 +3579,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------
 Dependency: golang.org/x/tools
 Version: release-branch.go1.12
-Revision: release-branch.go1.10
+Revision: 65e3620a7ae7ac25e8494a60f0e5ef4e4fba03b3
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/tools/LICENSE:
 --------------------------------------------------------------------
@@ -3616,7 +3622,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/genproto
-Revision: a7e196e89fd3a3c4d103ca540bd5dac3a736e375
+Revision: fa694d86fc64c7654a660f8908de4e879866748d
 License type (autodetected): Apache-2.0
 ./vendor/google.golang.org/genproto/LICENSE:
 --------------------------------------------------------------------
@@ -3625,7 +3631,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/grpc
-Revision: 501c41df7f472c740d0674ff27122f3f48c80ce7
+Revision: 1a3960e4bd028ac0cec0a2afd27d7d8e67c11514
 License type (autodetected): Apache-2.0
 ./vendor/google.golang.org/grpc/LICENSE:
 --------------------------------------------------------------------
