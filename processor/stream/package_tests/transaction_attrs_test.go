@@ -46,7 +46,7 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("context"),
 		tests.Group("transaction.page"),
 		tests.Group("http.request.cookies"),
-		"messaging.message.body", "messaging.message.headers",
+		"transaction.message.body", "transaction.message.headers",
 	)
 }
 
@@ -69,7 +69,6 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("transaction.breakdown"),
 		tests.Group("transaction.duration.sum"),
 		"experimental",
-		"messaging.message.operation", "messaging.type",
 	)
 }
 
@@ -99,26 +98,7 @@ func transactionRequiredKeys() *tests.Set {
 		"transaction.type",
 		"transaction.context.request.method",
 		"transaction.context.request.url",
-		"transaction.context", //only for conditional requirement of `transaction.context.message`
-		"transaction.context.message",
-		"transaction.context.message.topic",
-		"transaction.context.message.topic.name",
-		"transaction.context.message.queue",
-		"transaction.context.message.queue.name",
-		"transaction.context.message.topic.name",
-		"transaction.context.message.queue.name",
 	)
-}
-
-func transactionCondRequiredKeys() map[string]tests.Condition {
-	return map[string]tests.Condition{
-		"transaction.context.message.topic.name": {Existence: map[string]interface{}{
-			"transaction.type": "messaging",
-		}},
-		"transaction.context.message.queue.name": {Existence: map[string]interface{}{
-			"transaction.type": "messaging",
-		}},
-	}
 }
 
 func transactionKeywordExceptionKeys() *tests.Set {
@@ -130,7 +110,6 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		tests.Group("url"),
 		tests.Group("http"),
 		tests.Group("destination"),
-		"messaging.message.operation", "messaging.type",
 
 		// metadata fields
 		tests.Group("agent"),
@@ -157,7 +136,7 @@ func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {
-	transactionProcSetup().AttrsPresence(t, transactionRequiredKeys(), transactionCondRequiredKeys())
+	transactionProcSetup().AttrsPresence(t, transactionRequiredKeys(), nil)
 }
 
 func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
@@ -165,10 +144,10 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 		t,
 		transactionKeywordExceptionKeys(),
 		[]tests.FieldTemplateMapping{
-			{Template: "transaction."},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
-			{Template: "messaging.message.", Mapping: "context.message."},
+			{Template: "transaction.message.", Mapping: "context.message."},
+			{Template: "transaction."},
 		},
 	)
 }

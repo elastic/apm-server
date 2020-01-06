@@ -791,58 +791,6 @@ type: keyword
 --
 
 
-*`messaging.type`*::
-+
---
-Type of the messaging system for which the event was recorded
-
-
-type: keyword
-
---
-
-
-*`messaging.message.queue.name`*::
-+
---
-Name of the message queue where the message is published or received.
-
-
-type: keyword
-
---
-
-*`messaging.message.topic.name`*::
-+
---
-Topic name used for routing the message.
-
-
-type: keyword
-
---
-
-*`messaging.message.age.ms`*::
-+
---
-Age of a message in milliseconds.
-
-
-type: long
-
---
-
-*`messaging.message.operation`*::
-+
---
-Message operation, e.g. 'send' or 'receive'.
-
-
-type: keyword
-
---
-
-
 *`client.ip`*::
 +
 --
@@ -1531,6 +1479,27 @@ type: keyword
 
 --
 
+
+*`span.message.queue.name`*::
++
+--
+Name of the message queue or topic where the message is published or received.
+
+
+type: keyword
+
+--
+
+*`span.message.age.ms`*::
++
+--
+Age of a message in milliseconds.
+
+
+type: long
+
+--
+
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 
@@ -1586,6 +1555,27 @@ type: object
 +
 --
 The total amount of dropped spans for this transaction.
+
+type: long
+
+--
+
+
+*`transaction.message.queue.name`*::
++
+--
+Name of the message queue or topic where the message is received.
+
+
+type: keyword
+
+--
+
+*`transaction.message.age.ms`*::
++
+--
+Age of a message in milliseconds.
+
 
 type: long
 

@@ -44,29 +44,16 @@ func TestDecodeMessage(t *testing.T) {
 			inpErr: errors.New("error foo")},
 		{name: "invalid",
 			inp: "foo", outpErr: errors.New("invalid type for message")},
-		{name: "no queue.name",
-			inp:     map[string]interface{}{"message": map[string]interface{}{"topic.name": "foo"}},
-			outpErr: errors.New("error fetching field")},
-		{name: "no topic.name",
-			inp:     map[string]interface{}{"message": map[string]interface{}{"queue.name": "foo"}},
-			outpErr: errors.New("error fetching field")},
-		{name: "minimal",
-			inp: map[string]interface{}{
-				"message": map[string]interface{}{
-					"queue": map[string]interface{}{"name": "order"},
-					"topic": map[string]interface{}{"name": "routeA"}}},
-			message: &Message{QueueName: "order", TopicName: "routeA"},
-		},
-		{name: "full",
+		{name: "valid",
 			inp: map[string]interface{}{
 				"message": map[string]interface{}{
 					"queue":   map[string]interface{}{"name": "order"},
-					"topic":   map[string]interface{}{"name": "routeA"},
 					"body":    "user A ordered book B",
 					"headers": map[string]interface{}{"internal": "false", "services": []string{"user", "order"}},
 					"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}},
 			message: &Message{
-				QueueName: "order", TopicName: "routeA", Body: tests.StringPtr("user A ordered book B"),
+				QueueName:   tests.StringPtr("order"),
+				Body:        tests.StringPtr("user A ordered book B"),
 				Headers:     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
 				AgeMicroSec: tests.IntPtr(1577958057123),
 			},
@@ -87,31 +74,24 @@ func TestDecodeMessage(t *testing.T) {
 }
 
 func TestMessaging_Fields(t *testing.T) {
-	var m *Messaging
+	var m *Message
 	require.Nil(t, m.Fields())
 
-	m = &Messaging{Message: &Message{TopicName: "foo", QueueName: "orders"}}
-	outp := common.MapStr{"message": common.MapStr{"topic.name": "foo", "queue.name": "orders"}}
-	require.Equal(t, outp, m.Fields())
+	m = &Message{}
+	require.Equal(t, common.MapStr{}, m.Fields())
 
-	m = &Messaging{
-		Type: tests.StringPtr("rabbitmq"),
-		Message: &Message{
-			TopicName:   "foo",
-			QueueName:   "orders",
-			Body:        tests.StringPtr("order confirmed"),
-			Headers:     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-			Operation:   tests.StringPtr("received"),
-			AgeMicroSec: tests.IntPtr(1577958057123),
-		}}
-	outp = common.MapStr{
-		"type": "rabbitmq",
-		"message": common.MapStr{
-			"topic.name": "foo",
-			"queue.name": "orders",
-			"body":       "order confirmed",
-			"headers":    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-			"age.ms":     1577958057123,
-			"operation":  "received"}}
+	m = &Message{
+		QueueName:   tests.StringPtr("orders"),
+		Body:        tests.StringPtr("order confirmed"),
+		Headers:     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+		Operation:   tests.StringPtr("received"),
+		AgeMicroSec: tests.IntPtr(1577958057123),
+	}
+	outp := common.MapStr{
+		"queue.name": "orders",
+		"body":       "order confirmed",
+		"headers":    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+		"age.ms":     1577958057123,
+		"operation":  "received"}
 	assert.Equal(t, outp, m.Fields())
 }

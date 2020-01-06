@@ -38,8 +38,7 @@ import (
 )
 
 const (
-	spanDocType   = "span"
-	messagingType = "messaging"
+	spanDocType = "span"
 )
 
 var (
@@ -68,7 +67,7 @@ type Event struct {
 
 	Timestamp time.Time
 
-	Messaging  *m.Messaging
+	Message    *m.Message
 	Name       string
 	Start      *float64
 	Duration   float64
@@ -313,22 +312,15 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			event.Service = service
 		}
 
+		if event.Message, err = m.DecodeMessage(ctx, decoder.Err); err != nil {
+			return nil, err
+		}
+
 		if cfg.Experimental {
 			if obj, set := ctx["experimental"]; set {
 				event.Experimental = obj
 			}
 		}
-	}
-	if event.Type == messagingType {
-		message, err := m.DecodeMessage(ctx, decoder.Err)
-		if err != nil {
-			return nil, err
-		}
-		if message == nil {
-			return nil, errors.Errorf("messaging information required for span.type==%s", messagingType)
-		}
-		message.Operation = event.Action
-		event.Messaging = &m.Messaging{Type: event.Subtype, Message: message}
 	}
 
 	var stacktr *m.Stacktrace
@@ -381,7 +373,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "transaction", e.TransactionId)
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())
-	utility.Set(fields, "messaging", e.Messaging.Fields())
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {
@@ -407,29 +398,31 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	if e == nil {
 		return nil
 	}
-	tr := common.MapStr{}
+	fields := common.MapStr{}
 	if e.Id != "" {
-		utility.Set(tr, "id", e.Id)
+		utility.Set(fields, "id", e.Id)
 	}
-	utility.Set(tr, "subtype", e.Subtype)
-	utility.Set(tr, "action", e.Action)
+	utility.Set(fields, "subtype", e.Subtype)
+	utility.Set(fields, "action", e.Action)
 
 	// common
-	utility.Set(tr, "name", e.Name)
-	utility.Set(tr, "type", e.Type)
-	utility.Set(tr, "sync", e.Sync)
+	utility.Set(fields, "name", e.Name)
+	utility.Set(fields, "type", e.Type)
+	utility.Set(fields, "sync", e.Sync)
 
 	if e.Start != nil {
-		utility.Set(tr, "start", utility.MillisAsMicros(*e.Start))
+		utility.Set(fields, "start", utility.MillisAsMicros(*e.Start))
 	}
 
-	utility.Set(tr, "duration", utility.MillisAsMicros(e.Duration))
+	utility.Set(fields, "duration", utility.MillisAsMicros(e.Duration))
 
-	utility.Set(tr, "db", e.DB.fields())
-	utility.Set(tr, "http", e.HTTP.fields())
-	utility.DeepUpdate(tr, "destination.service", e.DestinationService.fields())
+	utility.Set(fields, "db", e.DB.fields())
+	utility.Set(fields, "http", e.HTTP.fields())
+	utility.DeepUpdate(fields, "destination.service", e.DestinationService.fields())
+
+	utility.Set(fields, "message", e.Message.Fields())
 
 	st := e.Stacktrace.Transform(tctx)
-	utility.Set(tr, "stacktrace", st)
-	return tr
+	utility.Set(fields, "stacktrace", st)
+	return fields
 }

@@ -234,26 +234,14 @@ const ModelSchema = `{
     "type": ["object", "null"],
     "properties": {
         "queue": {
-            "type": ["object"],
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "description": "Name of the message queue where the message is received.",
-                    "type": ["string"],
+                    "type": ["string","null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name"]
-        },
-        "topic": {
-            "type": ["object"],
-            "properties": {
-                "name": {
-                    "description": "Topic name used for routing the message.",
-                    "type": ["string"],
-                    "maxLength": 1024
-                }
-            },
-            "required": ["name"]
+            }
         },
         "age": {
             "type": ["object", "null"],
@@ -280,8 +268,7 @@ const ModelSchema = `{
                 }
             }
         }
-    },
-    "required": ["queue", "topic"]
+    }
                         }
                     }
                 },

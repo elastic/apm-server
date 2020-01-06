@@ -520,42 +520,6 @@
           Email of the logged in user.
         overwrite: true
 
-    - name: messaging
-      type: group
-      dynamic: false
-      fields:
-
-      - name: type
-        type: keyword
-        description: >
-          Type of the messaging system for which the event was recorded
-
-      - name: message
-        type: group
-        dynamic: false
-        fields:
-
-        - name: queue.name
-          type: keyword
-          description: >
-            Name of the message queue where the message is published or received.
-
-        - name: topic.name
-          type: keyword
-          description: >
-            Topic name used for routing the message.
-
-        - name: age.ms
-          type: long
-          description: >
-            Age of a message in milliseconds.
-
-        - name: operation
-          type: keyword
-          description: >
-            Message operation, e.g. 'send' or 'receive'.
-
-
     - name: client
       dynamic: false
       type: group

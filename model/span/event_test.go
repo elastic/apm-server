@@ -64,7 +64,6 @@ func TestDecodeSpan(t *testing.T) {
 		},
 		"message": map[string]interface{}{
 			"queue": map[string]interface{}{"name": "foo"},
-			"topic": map[string]interface{}{"name": "bar"},
 			"age":   map[string]interface{}{"ms": json.Number("1577958057123")}},
 	}
 	subtype := "postgresql"
@@ -113,13 +112,6 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: utility.ErrFetch.Error(),
-		},
-		"invalid messaging event": {
-			input: map[string]interface{}{
-				"name": name, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
-				"type": "messaging"},
-			err: "messaging information required",
 		},
 		"invalid stacktrace": {
 			input: map[string]interface{}{
@@ -238,10 +230,9 @@ func TestDecodeSpan(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Messaging: &m.Messaging{
-					Type: &subtype,
-					Message: &m.Message{QueueName: "foo", TopicName: "bar",
-						AgeMicroSec: tests.IntPtr(1577958057123), Operation: &action}},
+				Message: &m.Message{
+					QueueName:   tests.StringPtr("foo"),
+					AgeMicroSec: tests.IntPtr(1577958057123)},
 			},
 		},
 	} {
@@ -316,8 +307,7 @@ func TestSpanTransform(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Messaging: &m.Messaging{Type: &subtype,
-					Message: &m.Message{TopicName: "routeUser", QueueName: "users", Operation: &action}},
+				Message: &m.Message{QueueName: tests.StringPtr("users"), Operation: &action},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -354,6 +344,7 @@ func TestSpanTransform(t *testing.T) {
 							"resource": destServiceResource,
 						},
 					},
+					"message": common.MapStr{"queue.name": "users", "operation": "publish"},
 				},
 				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
@@ -362,8 +353,6 @@ func TestSpanTransform(t *testing.T) {
 				"trace":       common.MapStr{"id": traceId},
 				"parent":      common.MapStr{"id": parentId},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
-				"messaging": common.MapStr{"type": "amqp",
-					"message": common.MapStr{"queue.name": "users", "topic.name": "routeUser", "operation": "publish"}},
 			},
 			Msg: "Full Span",
 		},

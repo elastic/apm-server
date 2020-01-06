@@ -45,7 +45,7 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("context"),
 		tests.Group("span.db"),
 		tests.Group("span.http"),
-		"messaging.body", "messaging.headers",
+		"span.message.body", "span.message.headers",
 	)
 }
 
@@ -110,12 +110,6 @@ func spanRequiredKeys() *tests.Set {
 		"span.start",
 		"span.timestamp",
 		"span.stacktrace.filename",
-		"span.context", //only for conditional requirement of `span.context.message`
-		"span.context.message",
-		"span.context.message.topic",
-		"span.context.message.topic.name",
-		"span.context.message.queue",
-		"span.context.message.queue.name",
 	)
 }
 
@@ -136,12 +130,6 @@ func spanCondRequiredKeys() map[string]tests.Condition {
 			"span.context.destination.service.type": "db",
 			"span.context.destination.service.name": "postgresql",
 		}},
-		"span.context.message.topic.name": {Existence: map[string]interface{}{
-			"span.type": "messaging",
-		}},
-		"span.context.message.queue.name": {Existence: map[string]interface{}{
-			"span.type": "messaging",
-		}},
 	}
 }
 
@@ -158,7 +146,6 @@ func spanKeywordExceptionKeys() *tests.Set {
 		"processor.event", "processor.name",
 		"context.tags", "transaction.type", "transaction.name",
 		tests.Group("observer"),
-		"messaging.message.operation", "messaging.type",
 
 		// metadata fields
 		tests.Group("agent"),
@@ -203,11 +190,11 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "span.id", Mapping: "id"},
 			{Template: "span.db.link", Mapping: "context.db.link"},
 			{Template: "span.destination.service", Mapping: "context.destination.service"},
+			{Template: "span.message.", Mapping: "context.message."},
 			{Template: "span.", Mapping: ""},
 			{Template: "destination.address", Mapping: "context.destination.address"},
 			{Template: "destination.port", Mapping: "context.destination.port"},
-			{Template: "messaging.message.queue.name", Mapping: "context.message.queue.name"},
-			{Template: "messaging.message.topic.name", Mapping: "context.message.topic.name"},
+			{Template: "span.message.queue.name", Mapping: "context.message.queue.name"},
 		},
 	)
 }

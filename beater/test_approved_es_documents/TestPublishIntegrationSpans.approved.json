@@ -390,15 +390,6 @@
             "labels": {
                 "tag1": "label1"
             },
-            "messaging": {
-                "message": {
-                    "age.ms": 1577958057123,
-                    "operation": "receive",
-                    "queue.name": "new_users",
-                    "topic.name": "create_users"
-                },
-                "type": "JMS"
-            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -424,6 +415,10 @@
                     "us": 141581
                 },
                 "id": "00xxx12312312312",
+                "message": {
+                    "age.ms": 1577958057123,
+                    "queue.name": "new_users"
+                },
                 "name": "Rabbitmq receive",
                 "subtype": "JMS",
                 "type": "messaging"

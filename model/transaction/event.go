@@ -39,7 +39,6 @@ const (
 	processorName      = "transaction"
 	transactionDocType = "transaction"
 	emptyString        = ""
-	messagingType      = "messaging"
 )
 
 var (
@@ -68,7 +67,7 @@ type Event struct {
 	Result    *string
 	Duration  float64
 	Marks     common.MapStr
-	Messaging *m.Messaging
+	Message   *m.Message
 	Sampled   *bool
 	SpanCount SpanCount
 	User      *metadata.User
@@ -120,8 +119,9 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Service:      ctx.Service,
 		Client:       ctx.Client,
 		Experimental: ctx.Experimental,
-		Marks:        decoder.MapStr(raw, "marks"),
+		Message:      ctx.Message,
 		Sampled:      decoder.BoolPtr(raw, "sampled"),
+		Marks:        decoder.MapStr(raw, "marks"),
 		Timestamp:    decoder.TimeEpochMicro(raw, "timestamp"),
 		SpanCount: SpanCount{
 			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
@@ -131,13 +131,6 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
-	}
-
-	if e.Type == messagingType {
-		if ctx.Message == nil {
-			return nil, errors.Errorf("messaging information required for transaction.type==%s", messagingType)
-		}
-		e.Messaging = &m.Messaging{Message: ctx.Message}
 	}
 
 	return &e, nil
@@ -152,6 +145,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Set(tx, "marks", e.Marks)
 	utility.Set(tx, "page", e.Page.Fields())
 	utility.Set(tx, "custom", e.Custom.Fields())
+	utility.Set(tx, "message", e.Message.Fields())
 
 	if e.Sampled == nil {
 		utility.Set(tx, "sampled", true)
@@ -206,8 +200,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
 	utility.Set(fields, "experimental", e.Experimental)
-	utility.Set(fields, "messaging", e.Messaging.Fields())
-
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
 	return events

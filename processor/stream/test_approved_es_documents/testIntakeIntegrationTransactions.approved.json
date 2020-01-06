@@ -414,23 +414,6 @@
                 "tag1": "one",
                 "tag2": 2
             },
-            "messaging": {
-                "message": {
-                    "age.ms": 1577958057123,
-                    "body": "user created",
-                    "headers": {
-                        "Involved_services": [
-                            "user",
-                            "auth"
-                        ],
-                        "User_id": [
-                            "1ax3"
-                        ]
-                    },
-                    "queue.name": "new_users",
-                    "topic.name": "create_users"
-                }
-            },
             "parent": {
                 "id": "abcdefabcdef01234567"
             },
@@ -478,6 +461,20 @@
                     "us": 3000
                 },
                 "id": "00xxxxFFaaaa1234",
+                "message": {
+                    "age.ms": 1577958057123,
+                    "body": "user created",
+                    "headers": {
+                        "Involved_services": [
+                            "user",
+                            "auth"
+                        ],
+                        "User_id": [
+                            "1ax3"
+                        ]
+                    },
+                    "queue.name": "new_users"
+                },
                 "name": "amqp receive",
                 "sampled": true,
                 "span_count": {
