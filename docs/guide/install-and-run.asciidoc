@@ -6,8 +6,6 @@ https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud. The {es} Service is available on AWS, GCP, and Azure,
 and automatically configures APM Server to work with {es} and {kib}.
 
-Alternatively, you can <<before-installation,install the stack yourself>>.
-
 [float]
 === Hosted Elasticsearch Service
 
@@ -33,6 +31,13 @@ We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
 * <<install-kibana>>
 * <<apm-server>>
 * <<agents>>
+
+[float]
+[[quick-start]]
+=== Quick start with Docker
+
+If you're interested in Elastic APM and want a quick and easy development environment to try things out,
+see <<quick-start-overview>>.
 
 [[install-elasticsearch]]
 === Step 1: Install Elasticsearch
@@ -199,3 +204,265 @@ More information is available in {apm-server-ref-v}/configuring-howto-apm-server
 Don't forget to also read about
 {apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
 {apm-server-ref-v}/monitoring.html[monitoring APM Server].
+
+[[quick-start-overview]]
+=== Quick start development environment
+
+If you're just looking for a quick way to try out Elastic APM, you can easily get started with Docker.
+Just follow the steps below.
+
+[float]
+[[docker-compose-yml]]
+==== Create a docker-compose.yml file
+
+The https://www.docker.elastic.co/[Elastic Docker registry] contains Docker images for all of the products
+in the {stack}.
+You can use Docker compose to easily get the default distributions of {es}, {kib},
+and APM Server up and running in Docker.
+
+Create a `docker-compose.yml` file and copy and paste in the following:
+
+["source","yaml",subs="attributes"]
+--------------------------------------------
+{
+  "networks": {
+    "default": {
+      "name": "apm-integration-testing"
+    }
+  },
+  "services": {
+    "apm-server": {
+      "cap_add": [
+        "CHOWN",
+        "DAC_OVERRIDE",
+        "SETGID",
+        "SETUID"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": [
+        "apm-server",
+        "-e",
+        "--httpprof",
+        ":6060",
+        "-E",
+        "apm-server.rum.enabled=true",
+        "-E",
+        "apm-server.rum.event_rate.limit=1000",
+        "-E",
+        "apm-server.host=0.0.0.0:8200",
+        "-E",
+        "apm-server.read_timeout=1m",
+        "-E",
+        "apm-server.shutdown_timeout=2m",
+        "-E",
+        "apm-server.write_timeout=1m",
+        "-E",
+        "logging.json=true",
+        "-E",
+        "logging.metrics.enabled=false",
+        "-E",
+        "setup.kibana.host=kibana:5601",
+        "-E",
+        "setup.template.settings.index.number_of_replicas=0",
+        "-E",
+        "setup.template.settings.index.number_of_shards=1",
+        "-E",
+        "setup.template.settings.index.refresh_interval=1ms",
+        "-E",
+        "monitoring.elasticsearch=true",
+        "-E",
+        "monitoring.enabled=true",
+        "-E",
+        "apm-server.instrumentation.enabled=true",
+        "-E",
+        "apm-server.kibana.enabled=true",
+        "-E",
+        "apm-server.kibana.host=kibana:5601",
+        "-E",
+        "apm-server.agent.config.cache.expiration=30s",
+        "-E",
+        "output.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+        "-E",
+        "output.elasticsearch.enabled=true",
+        "-E",
+        "output.elasticsearch.pipelines=[{pipeline: 'apm'}]",
+        "-E",
+        "apm-server.register.ingest.pipeline.enabled=true"
+      ],
+      "container_name": "localtesting_${STACK_VERSION:-{VERSION}}_apm-server",
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        },
+        "kibana": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "interval": "10s",
+        "retries": 12,
+        "test": [
+          "CMD",
+          "curl",
+          "--write-out",
+          "'HTTP %{http_code}'",
+          "--fail",
+          "--silent",
+          "--output",
+          "/dev/null",
+          "http://localhost:8200/"
+        ]
+      },
+      "image": "docker.elastic.co/apm/apm-server:${STACK_VERSION:-{VERSION}}",
+      "labels": [
+        "co.elastic.apm.stack-version=${STACK_VERSION:-{VERSION}}"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "5",
+          "max-size": "2m"
+        }
+      },
+      "ports": [
+        "127.0.0.1:8200:8200",
+        "127.0.0.1:6060:6060"
+      ]
+    },
+    "elasticsearch": {
+      "container_name": "localtesting_${STACK_VERSION:-{VERSION}}_elasticsearch",
+      "environment": [
+        "bootstrap.memory_lock=true",
+        "cluster.name=docker-cluster",
+        "cluster.routing.allocation.disk.threshold_enabled=false",
+        "discovery.type=single-node",
+        "path.repo=/usr/share/elasticsearch/data/backups",
+        "ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g",
+        "path.data=/usr/share/elasticsearch/data/${STACK_VERSION:-{VERSION}}",
+        "xpack.security.enabled=false",
+        "xpack.license.self_generated.type=trial",
+        "xpack.monitoring.collection.enabled=true"
+      ],
+      "healthcheck": {
+        "interval": "20",
+        "retries": 10,
+        "test": [
+          "CMD-SHELL",
+          "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"
+        ]
+      },
+      "image": "docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-{VERSION}}",
+      "labels": [
+        "co.elastic.apm.stack-version=${STACK_VERSION:-{VERSION}}"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "5",
+          "max-size": "2m"
+        }
+      },
+      "ports": [
+        "127.0.0.1:9200:9200"
+      ],
+      "ulimits": {
+        "memlock": {
+          "hard": -1,
+          "soft": -1
+        }
+      },
+      "volumes": [
+        "esdata:/usr/share/elasticsearch/data"
+      ]
+    },
+    "kibana": {
+      "container_name": "localtesting_${STACK_VERSION:-{VERSION}}_kibana",
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "environment": {
+        "ELASTICSEARCH_URL": "elasticsearch:9200",
+        "SERVER_NAME": "kibana.example.org",
+        "XPACK_MONITORING_ENABLED": "true",
+        "XPACK_XPACK_MAIN_TELEMETRY_ENABLED": "false"
+      },
+      "healthcheck": {
+        "interval": "10s",
+        "retries": 20,
+        "test": [
+          "CMD",
+          "curl",
+          "--write-out",
+          "'HTTP %{http_code}'",
+          "--fail",
+          "--silent",
+          "--output",
+          "/dev/null",
+          "http://kibana:5601/api/status"
+        ]
+      },
+      "image": "docker.elastic.co/kibana/kibana:${STACK_VERSION:-{VERSION}}",
+      "labels": [
+        "co.elastic.apm.stack-version=${STACK_VERSION:-{VERSION}}"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "5",
+          "max-size": "2m"
+        }
+      },
+      "ports": [
+        "127.0.0.1:5601:5601"
+      ]
+    }
+  },
+  "version": "2.1",
+  "volumes": {
+    "esdata": {
+      "driver": "local"
+    },
+    "pgdata": {
+      "driver": "local"
+    }
+  }
+}
+--------------------------------------------
+
+[float]
+[[run-compose]]
+==== Compose
+
+Run `docker-compose up`.
+Compose will download the official docker containers and start {es}, {kib}, and APM Server.
+
+[float]
+[[docker-install-agents]]
+==== Install Agents
+
+When Compose finishes, navigate to http://localhost:5601/app/kibana#/home/tutorial/apm.
+Complete steps 4-6 to configure your application to collect and report APM data.
+
+Once your application is configured, visit http://localhost:5601/app/apm to see the results!
+
+[float]
+[[stop-compose]]
+==== Stop containers
+
+Press `ctrl+c` to stop all of the started containers.
+
+[float]
+[[docker-production]]
+==== Use Docker in production
+
+The example provided above is only suitable for a development environment.
+
+If you're interested in learning more about all of the APM features available,
+or running the Elastic stack on Docker in a production environment, see the following documentation:
+
+* {apm-server-ref-v}/running-on-docker.html[Running APM Server on Docker]
+* {stack-gs}/get-started-docker.html[Running the Elastic Stack on Docker]
