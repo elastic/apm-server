@@ -268,9 +268,9 @@ func (e *Event) updateCulprit(tctx *transform.Context) {
 	}
 	var culprit string
 	if fr.Filename != nil {
-		culprit = fmt.Sprintf("%v", *fr.Filename)
+		culprit = *fr.Filename
 	} else if fr.Classname != nil {
-		culprit = fmt.Sprintf("%v", *fr.Classname)
+		culprit = *fr.Classname
 	}
 	if fr.Function != nil {
 		culprit += fmt.Sprintf(" in %v", *fr.Function)
