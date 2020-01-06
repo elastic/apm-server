@@ -128,7 +128,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|Python
 2+|The Python agent automatically instruments Django and Flask out of the box.
 |{apm-py-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-py-ref-v}/set-up.html.html[Set up the Python Agent]
+|{apm-py-ref-v}/set-up.html[Set up the Python Agent]
 
 .2+|Ruby
 2+|The Ruby agent automatically instruments Rails out of the box.
