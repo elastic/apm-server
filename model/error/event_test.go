@@ -809,7 +809,7 @@ func TestCulprit(t *testing.T) {
 		},
 	}
 	for idx, test := range tests {
-		t.Run(string(idx), func(t *testing.T) {
+		t.Run(fmt.Sprint(idx), func(t *testing.T) {
 
 			tctx := &transform.Context{
 				Config: test.config,
