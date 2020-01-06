@@ -208,12 +208,18 @@ Don't forget to also read about
 [[quick-start-overview]]
 === Quick start development environment
 
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
 If you're just looking for a quick way to try out Elastic APM, you can easily get started with Docker.
 Just follow the steps below.
 
-[float]
-[[docker-compose-yml]]
-==== Create a docker-compose.yml file
+**Create a docker-compose.yml file**
 
 The https://www.docker.elastic.co/[Elastic Docker registry] contains Docker images for all of the products
 in the {stack}.
@@ -433,34 +439,28 @@ Create a `docker-compose.yml` file and copy and paste in the following:
 }
 --------------------------------------------
 
-[float]
-[[docker-run-compose]]
-==== Compose
+**Compose**
 
 Run `docker-compose up`.
 Compose will download the official docker containers and start {es}, {kib}, and APM Server.
 
-[float]
-[[docker-install-agents]]
-==== Install Agents
+**Install Agents**
 
 When Compose finishes, navigate to http://localhost:5601/app/kibana#/home/tutorial/apm.
 Complete steps 4-6 to configure your application to collect and report APM data.
 
-[float]
-[[docker-visualize]]
-==== Visualize
+**Visualize**
 
 Use the APM app at http://localhost:5601/app/apm to visualize your application performance data!
 
 When you're done, `ctrl+c` will stop all of the containers.
 
-[float]
-[[docker-advanced]]
-==== Advanced Docker usage
+**Advanced Docker usage**
 
 If you're interested in learning more about all of the APM features available,
 or running the Elastic stack on Docker in a production environment, see the following documentation:
 
 * {apm-server-ref-v}/running-on-docker.html[Running APM Server on Docker]
 * {stack-gs}/get-started-docker.html[Running the Elastic Stack on Docker]
+
+endif::[]
