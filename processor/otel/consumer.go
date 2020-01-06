@@ -32,7 +32,9 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
 
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	model_error "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/metadata"
@@ -84,6 +86,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 		hostname = *md.System.DetectedHostname
 	}
 
+	logger := logp.NewLogger(logs.Otel)
 	transformables := make([]transform.Transformable, 0, len(td.Spans))
 	for _, otelSpan := range td.Spans {
 		if otelSpan == nil {
@@ -115,7 +118,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 			}
 			parseTransaction(otelSpan, hostname, &transaction)
 			transformables = append(transformables, &transaction)
-			for _, err := range parseErrors(td.SourceFormat, otelSpan) {
+			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addTransactionCtxToErr(transaction, err)
 				transformables = append(transformables, err)
 			}
@@ -131,7 +134,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 			}
 			parseSpan(otelSpan, &span)
 			transformables = append(transformables, &span)
-			for _, err := range parseErrors(td.SourceFormat, otelSpan) {
+			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addSpanCtxToErr(span, hostname, err)
 				transformables = append(transformables, err)
 			}
@@ -418,7 +421,7 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 	event.Labels = labels
 }
 
-func parseErrors(source string, otelSpan *tracepb.Span) []*model_error.Event {
+func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model_error.Event {
 	var errors []*model_error.Event
 	for _, log := range otelSpan.GetTimeEvents().GetTimeEvent() {
 		var isError, hasMinimalInfo bool
@@ -456,7 +459,13 @@ func parseErrors(source string, otelSpan *tracepb.Span) []*model_error.Event {
 				}
 			}
 		}
-		if !isError || !hasMinimalInfo {
+		if !isError {
+			continue
+		}
+		if !hasMinimalInfo {
+			if logger.IsDebug() {
+				logger.Debugf("Cannot convert %s event into elastic apm error: %v", source, log)
+			}
 			continue
 		}
 
