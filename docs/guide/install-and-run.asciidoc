@@ -116,7 +116,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 |{apm-java-ref-v}/setup.html[Set up the Java Agent]
 
 .2+|.NET
-2+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
+2+|The .NET agent automatically instruments ASP.NET Core applications, and .NET Framework applications.
 |{apm-dotnet-ref-v}/supported-technologies.html[Supported technologies]
 |{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
 
@@ -456,10 +456,8 @@ Once your application is configured, visit http://localhost:5601/app/apm to see 
 Press `ctrl+c` to stop all of the started containers.
 
 [float]
-[[docker-production]]
-==== Use Docker in production
-
-The example provided above is only suitable for a development environment.
+[[docker-advanced]]
+==== Advanced Docker usage
 
 If you're interested in learning more about all of the APM features available,
 or running the Elastic stack on Docker in a production environment, see the following documentation:
