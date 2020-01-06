@@ -261,7 +261,11 @@ const ModelSchema = `{
         },
         "filename": {
             "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
-            "type": "string"
+            "type": ["string", "null"]
+        },
+        "classname": {
+            "description": "The classname of the code involved in the stack frame",
+            "type": ["string", "null"]
         },
         "function": {
             "description": "The function involved in the stack frame",
@@ -301,7 +305,10 @@ const ModelSchema = `{
             "properties": {}
         }
     },
-    "required": ["filename"]
+    "anyOf": [
+        { "required": ["filename"], "properties": {"filename": { "type": "string" }} },
+        { "required": ["classname"], "properties": {"classname": { "type": "string" }} }
+    ]
                     },
                     "minItems": 0
                 },

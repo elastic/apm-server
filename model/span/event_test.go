@@ -27,6 +27,7 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 
@@ -212,7 +213,7 @@ func TestDecodeSpan(t *testing.T) {
 				Duration:  duration,
 				Timestamp: spanTime,
 				Stacktrace: m.Stacktrace{
-					&m.StacktraceFrame{Filename: "file"},
+					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
 				},
 				Labels:        common.MapStr{"a": "tag", "tag.key": 17},
 				Id:            id,
@@ -314,7 +315,6 @@ func TestSpanTransform(t *testing.T) {
 					"stacktrace": []common.MapStr{{
 						"exclude_from_grouping": false,
 						"abs_path":              path,
-						"filename":              "",
 						"sourcemap": common.MapStr{
 							"error":   "Colno mandatory for sourcemapping.",
 							"updated": false,
