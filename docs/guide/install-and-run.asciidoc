@@ -108,7 +108,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|Go
 2+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
 |{apm-go-ref-v}/supported-tech.html[Supported technologies]
-|{apm-go-ref-v}/getting-started.html[Getting started with the Go Agent]
+|{apm-go-ref-v}/getting-started.html[Set up the Go Agent]
 
 .2+|Java
 2+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
@@ -128,7 +128,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|Python
 2+|The Python agent automatically instruments Django and Flask out of the box.
 |{apm-py-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-py-ref-v}/getting-started.html[Getting Started with the Python Agent]
+|{apm-py-ref-v}/set-up.html.html[Set up the Python Agent]
 
 .2+|Ruby
 2+|The Ruby agent automatically instruments Rails out of the box.
@@ -138,7 +138,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|RUM
 2+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
 |{apm-rum-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-rum-ref-v}/getting-started.html[Getting started with the RUM Agent]
+|{apm-rum-ref-v}/getting-started.html[Set up the RUM Agent]
 
 |=======================================================================
 
