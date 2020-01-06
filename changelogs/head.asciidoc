@@ -8,6 +8,11 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 - Respect `apm-server.ilm.setup.overwrite` flag when running `setup --index-management` {pull}2984[2984].
 
 [float]
+==== Intake API Changes
+- Add support for `span.context.db.rows_affected` {pull}3095[3095].
+- Add support for `classname` as stacktrace frame attribute {pull}3096[3096].
+
+[float]
 ==== Added
 - Adds support for global labels in spans {pull}2806[2806].
 - Updated `go.elastic.co/apm` to v1.6.0, enabling central config {pull}2913[2913]
@@ -18,3 +23,4 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 - Build UBI based images also {pull}2994[2994].
 - Adds support for API Key authorization for incoming requests {pull}3004[3004]
 - Upgrade Go to 1.13.5 {pull}3069[3069].
+

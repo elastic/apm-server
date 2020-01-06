@@ -1442,6 +1442,16 @@ type: keyword
 
 --
 
+*`span.db.rows_affected`*::
++
+--
+Number of rows affected by the database statement.
+
+
+type: long
+
+--
+
 
 [float]
 === service

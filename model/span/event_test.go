@@ -45,14 +45,16 @@ func TestDecodeSpan(t *testing.T) {
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
-	instance, statement, dbType, user, link := "db01", "select *", "sql", "joe", "other.db.com"
+	instance, statement, dbType, user, link, rowsAffected := "db01", "select *", "sql", "joe", "other.db.com", 34
 	address, port := "localhost", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 	context := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag.key": 17},
 		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
-		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user, "link": link},
+		"db": map[string]interface{}{
+			"instance": instance, "statement": statement, "type": dbType,
+			"user": user, "link": link, "rows_affected": json.Number("34")},
 		"destination": map[string]interface{}{
 			"address": address,
 			"port":    float64(port),
@@ -215,7 +217,7 @@ func TestDecodeSpan(t *testing.T) {
 				Duration:  duration,
 				Timestamp: spanTime,
 				Stacktrace: m.Stacktrace{
-					&m.StacktraceFrame{Filename: "file"},
+					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
 				},
 				Labels:        common.MapStr{"a": "tag", "tag.key": 17},
 				Id:            id,
@@ -223,8 +225,15 @@ func TestDecodeSpan(t *testing.T) {
 				ParentId:      parentId,
 				TransactionId: &transactionId,
 				HTTP:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				DB:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user, Link: &link},
-				Destination:   &destination{Address: &address, Port: &port},
+				DB: &db{
+					Instance:     &instance,
+					Statement:    &statement,
+					Type:         &dbType,
+					UserName:     &user,
+					Link:         &link,
+					RowsAffected: &rowsAffected,
+				},
+				Destination: &destination{Address: &address, Port: &port},
 				DestinationService: &destinationService{
 					Type:     &destServiceType,
 					Name:     &destServiceName,
@@ -261,7 +270,7 @@ func TestSpanTransform(t *testing.T) {
 		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
-	instance, statement, dbType, user := "db01", "select *", "sql", "jane"
+	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
 	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
 	address, port := "127.0.0.1", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
@@ -288,19 +297,24 @@ func TestSpanTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:          hexId,
-				TraceId:     traceId,
-				ParentId:    parentId,
-				Name:        "myspan",
-				Type:        "messaging",
-				Subtype:     &subtype,
-				Action:      &action,
-				Start:       &start,
-				Duration:    1.20,
-				Stacktrace:  m.Stacktrace{{AbsPath: &path}},
-				Labels:      common.MapStr{"label.a": 12},
-				HTTP:        &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				DB:          &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
+				Id:         hexId,
+				TraceId:    traceId,
+				ParentId:   parentId,
+				Name:       "myspan",
+				Type:       "myspantype",
+				Subtype:    &subtype,
+				Action:     &action,
+				Start:      &start,
+				Duration:   1.20,
+				Stacktrace: m.Stacktrace{{AbsPath: &path}},
+				Labels:     common.MapStr{"label.a": 12},
+				HTTP:       &http{Method: &method, StatusCode: &statusCode, Url: &url},
+				DB: &db{
+					Instance:     &instance,
+					Statement:    &statement,
+					Type:         &dbType,
+					UserName:     &user,
+					RowsAffected: &rowsAffected},
 				Destination: &destination{Address: &address, Port: &port},
 				DestinationService: &destinationService{
 					Type:     &destServiceType,
@@ -315,22 +329,22 @@ func TestSpanTransform(t *testing.T) {
 					"duration": common.MapStr{"us": 1200},
 					"name":     "myspan",
 					"start":    common.MapStr{"us": 650},
-					"type":     "messaging",
+					"type":     "myspantype",
 					"subtype":  subtype,
 					"action":   action,
 					"stacktrace": []common.MapStr{{
 						"exclude_from_grouping": false,
 						"abs_path":              path,
-						"filename":              "",
 						"sourcemap": common.MapStr{
 							"error":   "Colno mandatory for sourcemapping.",
 							"updated": false,
 						}}},
 					"db": common.MapStr{
-						"instance":  instance,
-						"statement": statement,
-						"type":      dbType,
-						"user":      common.MapStr{"name": user},
+						"instance":      instance,
+						"statement":     statement,
+						"type":          dbType,
+						"user":          common.MapStr{"name": user},
+						"rows_affected": rowsAffected,
 					},
 					"http": common.MapStr{
 						"url":      common.MapStr{"original": url},
