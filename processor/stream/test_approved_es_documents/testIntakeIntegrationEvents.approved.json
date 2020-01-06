@@ -99,6 +99,7 @@
                     "stacktrace": [
                         {
                             "abs_path": "/tmp/Socket.java",
+                            "classname": "Request::Socket",
                             "context": {
                                 "post": [
                                     "line4",
