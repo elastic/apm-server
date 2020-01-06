@@ -434,7 +434,7 @@ Create a `docker-compose.yml` file and copy and paste in the following:
 --------------------------------------------
 
 [float]
-[[run-compose]]
+[[docker-run-compose]]
 ==== Compose
 
 Run `docker-compose up`.
@@ -447,13 +447,13 @@ Compose will download the official docker containers and start {es}, {kib}, and 
 When Compose finishes, navigate to http://localhost:5601/app/kibana#/home/tutorial/apm.
 Complete steps 4-6 to configure your application to collect and report APM data.
 
-Once your application is configured, visit http://localhost:5601/app/apm to see the results!
-
 [float]
-[[stop-compose]]
-==== Stop containers
+[[docker-visualize]]
+==== Visualize
 
-Press `ctrl+c` to stop all of the started containers.
+Use the APM app at http://localhost:5601/app/apm to visualize your application performance data!
+
+When you're done, `ctrl+c` will stop all of the containers.
 
 [float]
 [[docker-advanced]]
