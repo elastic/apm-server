@@ -45,7 +45,12 @@
                         "module": "__builtins__",
                         "stacktrace": [
                             {
+                                "classname": "BaseClass",
+                                "exclude_from_grouping": false
+                            },
+                            {
                                 "abs_path": "/real/file/name.py",
+                                "classname": "RName",
                                 "context": {
                                     "post": [
                                         "line4",
@@ -120,7 +125,7 @@
                         "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "54c66a6c750b186b2f99d54084934292",
+                "grouping_key": "d72b25a26fde3f3aaad1c86950acd070",
                 "id": "0123456789012345",
                 "log": {
                     "level": "warning",
@@ -129,7 +134,12 @@
                     "param_message": "My service could not talk to the database named %s",
                     "stacktrace": [
                         {
+                            "classname": "User::Common",
+                            "exclude_from_grouping": false
+                        },
+                        {
                             "abs_path": "/real/file/name.py",
+                            "classname": "Webpack::File::Name",
                             "context": {
                                 "post": [
                                     "line4",
@@ -329,6 +339,107 @@
             },
             "user_agent": {
                 "original": "Mozilla Chrome Edge"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "pipeline": "apm",
+                "type": "_doc",
+                "version": "8.0.0"
+            },
+            "@timestamp": "2018-08-09T14:59:05.999Z",
+            "agent": {
+                "ephemeral_id": "abcdef123",
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "container": {
+                "id": "container-id"
+            },
+            "ecs": {
+                "version": "1.2.0"
+            },
+            "error": {
+                "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
+                "id": "xFoaabb123FFFFFF",
+                "log": {
+                    "message": "no user found",
+                    "stacktrace": [
+                        {
+                            "classname": "User::Special",
+                            "exclude_from_grouping": false
+                        }
+                    ]
+                }
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "node-name",
+                "ip": "127.0.0.1",
+                "name": "prod.example",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "8.0.0",
+                "version_major": 8
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-abc"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "timestamp": {
+                "us": 1533826745999000
+            },
+            "user": {
+                "email": "bar@example.com",
+                "id": "123",
+                "name": "bar"
             }
         },
         {

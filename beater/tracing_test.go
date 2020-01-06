@@ -170,6 +170,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 	cfg := common.MustNewConfigFrom(m{
 		"instrumentation": m{"enabled": enabled},
 		"host":            "localhost:0",
+		"secret_token":    "foo",
 	})
 	beater, teardown, err := setupServer(t, cfg, nil, events)
 	require.NoError(t, err)
@@ -182,6 +183,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 	baseUrl, client := beater.client(false)
 	req := makeTransactionRequest(t, baseUrl)
 	req.Header.Add("Content-Type", "application/x-ndjson")
+	req.Header.Add("Authorization", "Bearer foo")
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
 	resp.Body.Close()

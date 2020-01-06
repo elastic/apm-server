@@ -3,6 +3,7 @@
     "DB": {
         "Instance": "db01",
         "Link": null,
+        "RowsAffected": null,
         "Statement": "GET * from users",
         "Type": "mysql",
         "UserName": "admin"
