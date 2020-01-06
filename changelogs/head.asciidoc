@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 
 [float]
 ==== Intake API Changes
+- Add support for `span.context.db.rows_affected` {pull}3095[3095].
 - Add support for `classname` as stacktrace frame attribute {pull}3096[3096].
 
 [float]
@@ -22,3 +23,4 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 - Build UBI based images also {pull}2994[2994].
 - Adds support for API Key authorization for incoming requests {pull}3004[3004]
 - Upgrade Go to 1.13.5 {pull}3069[3069].
+
