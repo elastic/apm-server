@@ -32,11 +32,14 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
 
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
+	model_error "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/metadata"
 	model_span "github.com/elastic/apm-server/model/span"
-	"github.com/elastic/apm-server/model/transaction"
+	model_transaction "github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -83,28 +86,29 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 		hostname = *md.System.DetectedHostname
 	}
 
+	logger := logp.NewLogger(logs.Otel)
 	transformables := make([]transform.Transformable, 0, len(td.Spans))
-	for _, span := range td.Spans {
-		if span == nil {
+	for _, otelSpan := range td.Spans {
+		if otelSpan == nil {
 			continue
 		}
 
 		var parentID *string
-		root := len(span.ParentSpanId) == 0
+		root := len(otelSpan.ParentSpanId) == 0
 		if !root {
-			str := fmt.Sprintf("%x", span.ParentSpanId)
+			str := fmt.Sprintf("%x", otelSpan.ParentSpanId)
 			parentID = &str
 		}
-		traceID := fmt.Sprintf("%x", span.TraceId)
-		spanID := fmt.Sprintf("%x", span.SpanId)
-		startTime := parseTimestamp(span.StartTime)
+		traceID := fmt.Sprintf("%x", otelSpan.TraceId)
+		spanID := fmt.Sprintf("%x", otelSpan.SpanId)
+		startTime := parseTimestamp(otelSpan.StartTime)
 		var duration float64
-		if span.EndTime != nil && !startTime.IsZero() {
-			duration = parseTimestamp(span.EndTime).Sub(startTime).Seconds() * 1000
+		if otelSpan.EndTime != nil && !startTime.IsZero() {
+			duration = parseTimestamp(otelSpan.EndTime).Sub(startTime).Seconds() * 1000
 		}
-		name := span.GetName().GetValue()
-		if root || span.Kind == tracepb.Span_SERVER {
-			event := transaction.Event{
+		name := otelSpan.GetName().GetValue()
+		if root || otelSpan.Kind == tracepb.Span_SERVER {
+			transaction := model_transaction.Event{
 				Id:        spanID,
 				ParentId:  parentID,
 				TraceId:   traceID,
@@ -112,10 +116,15 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 				Duration:  duration,
 				Name:      &name,
 			}
-			parseTransaction(span, hostname, &event)
-			transformables = append(transformables, &event)
+			parseTransaction(otelSpan, hostname, &transaction)
+			transformables = append(transformables, &transaction)
+			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
+				addTransactionCtxToErr(transaction, err)
+				transformables = append(transformables, err)
+			}
+
 		} else {
-			event := model_span.Event{
+			span := model_span.Event{
 				Id:        spanID,
 				ParentId:  *parentID,
 				TraceId:   traceID,
@@ -123,8 +132,12 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 				Duration:  duration,
 				Name:      name,
 			}
-			parseSpan(span, &event)
-			transformables = append(transformables, &event)
+			parseSpan(otelSpan, &span)
+			transformables = append(transformables, &span)
+			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
+				addSpanCtxToErr(span, hostname, err)
+				transformables = append(transformables, err)
+			}
 		}
 	}
 	return md, transformables
@@ -208,7 +221,7 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 	}
 }
 
-func parseTransaction(span *tracepb.Span, hostname string, event *transaction.Event) {
+func parseTransaction(span *tracepb.Span, hostname string, event *model_transaction.Event) {
 	labels := make(common.MapStr)
 	var http model.Http
 	var component string
@@ -406,6 +419,99 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 		return
 	}
 	event.Labels = labels
+}
+
+func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model_error.Event {
+	var errors []*model_error.Event
+	for _, log := range otelSpan.GetTimeEvents().GetTimeEvent() {
+		var isError, hasMinimalInfo bool
+		var err model_error.Event
+		var logMessage, exMessage, exType string
+		for k, v := range log.GetAnnotation().GetAttributes().GetAttributeMap() {
+			if source == sourceFormatJaeger {
+				switch v := v.Value.(type) {
+				case *tracepb.AttributeValue_StringValue:
+					vStr := v.StringValue.Value
+					switch k {
+					case "error", "error.object":
+						exMessage = vStr
+						hasMinimalInfo = true
+						isError = true
+					case "event":
+						if vStr == "error" { // according to opentracing spec
+							isError = true
+						} else if logMessage == "" {
+							// jaeger seems to send the message in the 'event' field
+							// in case 'event' and 'message' are sent, 'message' is used
+							logMessage = vStr
+							hasMinimalInfo = true
+						}
+					case "message":
+						logMessage = vStr
+						hasMinimalInfo = true
+					case "error.kind":
+						exType = vStr
+						hasMinimalInfo = true
+						isError = true
+					case "level":
+						isError = vStr == "error"
+					}
+				}
+			}
+		}
+		if !isError {
+			continue
+		}
+		if !hasMinimalInfo {
+			if logger.IsDebug() {
+				logger.Debugf("Cannot convert %s event into elastic apm error: %v", source, log)
+			}
+			continue
+		}
+
+		if logMessage != "" {
+			err.Log = &model_error.Log{Message: logMessage}
+		}
+		if exMessage != "" || exType != "" {
+			err.Exception = &model_error.Exception{}
+			if exMessage != "" {
+				err.Exception.Message = &exMessage
+			}
+			if exType != "" {
+				err.Exception.Type = &exType
+			}
+		}
+		err.Timestamp = parseTimestamp(log.GetTime())
+		errors = append(errors, &err)
+	}
+	return errors
+}
+
+func addTransactionCtxToErr(transaction model_transaction.Event, err *model_error.Event) {
+	err.TransactionId = &transaction.Id
+	err.TraceId = &transaction.TraceId
+	err.ParentId = &transaction.Id
+	err.Http = transaction.Http
+	err.Url = transaction.Url
+	err.TransactionType = &transaction.Type
+}
+
+func addSpanCtxToErr(span model_span.Event, hostname string, err *model_error.Event) {
+	err.TransactionId = span.TransactionId
+	err.TraceId = &span.TraceId
+	err.ParentId = &span.Id
+	if span.HTTP != nil {
+		err.Http = &model.Http{}
+		if span.HTTP.StatusCode != nil {
+			err.Http.Response = &model.Resp{StatusCode: span.HTTP.StatusCode}
+		}
+		if span.HTTP.Method != nil {
+			err.Http.Request = &model.Req{Method: *span.HTTP.Method}
+		}
+		if span.HTTP.URL != nil {
+			err.Url = parseURL(*span.HTTP.URL, hostname)
+		}
+	}
 }
 
 func replaceDots(s string) string {
