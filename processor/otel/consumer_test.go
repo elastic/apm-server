@@ -20,6 +20,7 @@ package otel
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -34,6 +35,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/beat"
 
+	model_error "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
@@ -158,6 +160,7 @@ func TestConsumer_Transaction(t *testing.T) {
 						"component":        testAttributeStringValue("foo"),
 						"string.a.b":       testAttributeStringValue("some note"),
 					}},
+					TimeEvents: testTimeEvents(),
 				}}}},
 		{name: "jaeger_type_request",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
@@ -210,12 +213,19 @@ func TestConsumer_Transaction(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
-				require.Equal(t, 1, len(req.Transformables))
-				event := req.Transformables[0].(*transaction.Event)
-				tr, err := json.Marshal(event)
-				require.NoError(t, err)
-				approvals.AssertApproveResult(t, file("transaction_"+tc.name), tr)
-
+				require.True(t, len(req.Transformables) >= 1)
+				for i, transformable := range req.Transformables {
+					switch data := transformable.(type) {
+					case *transaction.Event:
+						tr, err := json.Marshal(data)
+						require.NoError(t, err)
+						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_%s_%d", tc.name, i)), tr)
+					case *model_error.Event:
+						e, err := json.Marshal(data)
+						require.NoError(t, err)
+						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_error_%s_%d", tc.name, i)), e)
+					}
+				}
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -251,6 +261,7 @@ func TestConsumer_Span(t *testing.T) {
 						"peer.address":     testAttributeStringValue("mysql://db:3306"),
 						"peer.service":     testAttributeStringValue("sql"),
 					}},
+					TimeEvents: testTimeEvents(),
 				}}}},
 		{name: "jaeger_http_status_code",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
@@ -287,16 +298,84 @@ func TestConsumer_Span(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
-				require.Equal(t, 1, len(req.Transformables))
-				event := req.Transformables[0].(*span.Event)
-				span, err := json.Marshal(event)
-				require.NoError(t, err)
-				approvals.AssertApproveResult(t, file("span_"+tc.name), span)
+				require.True(t, len(req.Transformables) >= 1)
+				for i, transformable := range req.Transformables {
+					switch data := transformable.(type) {
+					case *span.Event:
+						span, err := json.Marshal(data)
+						require.NoError(t, err)
+						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_%s_%d", tc.name, i)), span)
+					case *model_error.Event:
+						e, err := json.Marshal(data)
+						require.NoError(t, err)
+						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_error_%s_%d", tc.name, i)), e)
+					}
+				}
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
 		})
 	}
+}
+
+func testTimeEvents() *tracepb.Span_TimeEvents {
+	return &tracepb.Span_TimeEvents{TimeEvent: []*tracepb.Span_TimeEvent{
+		// errors that can be converted to elastic errors
+		{Time: testTimeStamp(testStartTime(), 23),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event": testAttributeStringValue("retrying connection"),
+					"level": testAttributeStringValue("error"),
+					"error": testAttributeStringValue("no connection established"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 43),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event":   testAttributeStringValue("no user.ID given"),
+					"message": testAttributeStringValue("nullPointer exception"),
+					"level":   testAttributeStringValue("error"),
+					"isbool":  testAttributeBoolValue(true),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 66),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"error": testAttributeStringValue("no connection established"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 66),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"error.object": testAttributeStringValue("no connection established"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 66),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"error.kind": testAttributeStringValue("DBClosedException"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 66),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event":   testAttributeStringValue("error"),
+					"message": testAttributeStringValue("no connection established"),
+				}}}}},
+		// no errors
+		{Time: testTimeStamp(testStartTime(), 15),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event":   testAttributeStringValue("baggage"),
+					"isValid": testAttributeBoolValue(false),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 65),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event": testAttributeStringValue("retrying connection"),
+					"level": testAttributeStringValue("info"),
+				}}}}},
+		// errors not convertable to elastic errors
+		{Time: testTimeStamp(testStartTime(), 67),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"level": testAttributeStringValue("error"),
+				}}}}}}}
 }
 
 func file(f string) string {
@@ -309,6 +388,12 @@ func testStartTime() *timestamp.Timestamp {
 
 func testEndTime() *timestamp.Timestamp {
 	return &timestamp.Timestamp{Seconds: 1576500497, Nanos: 768068}
+}
+
+func testTimeStamp(t *timestamp.Timestamp, addNanos int32) *timestamp.Timestamp {
+	newT := *t
+	newT.Nanos += addNanos
+	return &newT
 }
 
 func testIntToWrappersUint32(n int) *wrappers.UInt32Value {

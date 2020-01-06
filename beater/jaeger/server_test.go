@@ -55,7 +55,7 @@ func TestApprovals(t *testing.T) {
 	cfg.JaegerConfig.HTTP.Host = "localhost:0"
 
 	for _, name := range []string{
-		"batch_1", "batch_2",
+		"batch_0", "batch_1",
 	} {
 		t.Run(name, func(t *testing.T) {
 			tc := testcase{cfg: cfg, grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()}}
