@@ -27,7 +27,6 @@ import (
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
 
@@ -56,7 +55,7 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	return server{logger, cfg, httpServer, jaegerServer}, nil
 }
 
-func (s server) run(listener, traceListener net.Listener, publish func(beat.Event)) error {
+func (s server) run(listener net.Listener, tracerServer *tracerServer, pub *publish.Publisher) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
 
@@ -68,13 +67,13 @@ func (s server) run(listener, traceListener net.Listener, publish func(beat.Even
 			return s.httpServer.start(listener)
 		})
 
-		if s.isAvailable() {
-			go notifyListening(s.cfg, publish)
+		if s.isAvailable(s.cfg.ShutdownTimeout) {
+			go notifyListening(s.cfg, pub.Client().Publish)
 		}
 
-		if traceListener != nil {
+		if tracerServer != nil {
 			g.Go(func() error {
-				return s.httpServer.Serve(traceListener)
+				return tracerServer.serve(pub.Send)
 			})
 		}
 
@@ -97,12 +96,11 @@ func (s server) stop(logger *logp.Logger) {
 	}
 }
 
-func (s server) isAvailable() bool {
+func (s server) isAvailable(timeout time.Duration) bool {
 	// following an example from https://golang.org/pkg/net/
 	// dial into tcp connection to ensure listener is ready, send get request and read response,
 	// in case tls is enabled, the server will respond with 400,
 	// as this only checks the server is up and reachable errors can be ignored
-	timeout := s.cfg.ShutdownTimeout
 	conn, err := net.DialTimeout("tcp", s.cfg.Host, timeout)
 	if err != nil {
 		return false

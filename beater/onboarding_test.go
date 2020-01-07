@@ -46,7 +46,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 	logger := logp.NewLogger("onboarding_test")
 	server, err := newServer(logger, cfg, apm.DefaultTracer, beatertest.NilReporter)
 	require.NoError(t, err)
-	go server.run(lis, nil, publisher)
+	go server.run(lis, nil, nil)
 
 	notifyListening(cfg, publisher)
 

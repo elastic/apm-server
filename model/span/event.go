@@ -89,11 +89,12 @@ type Event struct {
 
 // DB contains information related to a database query of a span event
 type DB struct {
-	Instance  *string
-	Statement *string
-	Type      *string
-	UserName  *string
-	Link      *string
+	Instance     *string
+	Statement    *string
+	Type         *string
+	UserName     *string
+	Link         *string
+	RowsAffected *int
 }
 
 // HTTP contains information about the outgoing http request information of a span event
@@ -135,6 +136,7 @@ func decodeDB(input interface{}, err error) (*DB, error) {
 		decoder.StringPtr(dbInput, "type"),
 		decoder.StringPtr(dbInput, "user"),
 		decoder.StringPtr(dbInput, "link"),
+		decoder.IntPtr(dbInput, "rows_affected"),
 	}
 	return &db, decoder.Err
 }
@@ -147,6 +149,7 @@ func (db *DB) fields() common.MapStr {
 	utility.Set(fields, "instance", db.Instance)
 	utility.Set(fields, "statement", db.Statement)
 	utility.Set(fields, "type", db.Type)
+	utility.Set(fields, "rows_affected", db.RowsAffected)
 	if db.UserName != nil {
 		utility.Set(fields, "user", common.MapStr{"name": db.UserName})
 	}

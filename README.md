@@ -17,7 +17,7 @@ To get started with APM please see our [Getting Started Guide](https://www.elast
 
 ### Requirements
 
-* [Golang](https://golang.org/dl/) 1.13.4
+* [Golang](https://golang.org/dl/) 1.13.5
 
 ### Install
 
@@ -46,7 +46,8 @@ You also need to create all files needed by the APM Server by running the additi
 ```
 make update
 ```
-Note that this requires to have `virtualenv` installed.
+Note that this requires to have `virtualenv` installed. Make sure that `virtualenv` creates Python2
+environment, otherwise specify `PYTHON_EXE` variable pointed at Python2 executable.
 
 ### Run
 
