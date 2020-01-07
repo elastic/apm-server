@@ -312,6 +312,7 @@
                 "name": "SELECT FROM product_types",
                 "stacktrace": [
                     {
+                        "classname": "Core.js",
                         "exclude_from_grouping": false,
                         "filename": "net.js",
                         "line": {

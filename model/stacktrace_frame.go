@@ -43,7 +43,8 @@ var (
 
 type StacktraceFrame struct {
 	AbsPath      *string
-	Filename     string
+	Filename     *string
+	Classname    *string
 	Lineno       *int
 	Colno        *int
 	ContextLine  *string
@@ -67,7 +68,8 @@ type Sourcemap struct {
 
 type Original struct {
 	AbsPath      *string
-	Filename     string
+	Filename     *string
+	Classname    *string
 	Lineno       *int
 	Colno        *int
 	Function     *string
@@ -87,7 +89,8 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 	decoder := utility.ManualDecoder{}
 	frame := StacktraceFrame{
 		AbsPath:      decoder.StringPtr(raw, "abs_path"),
-		Filename:     decoder.String(raw, "filename"),
+		Filename:     decoder.StringPtr(raw, "filename"),
+		Classname:    decoder.StringPtr(raw, "classname"),
 		Lineno:       decoder.IntPtr(raw, "lineno"),
 		Colno:        decoder.IntPtr(raw, "colno"),
 		ContextLine:  decoder.StringPtr(raw, "context_line"),
@@ -104,6 +107,7 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 func (s *StacktraceFrame) Transform(tctx *transform.Context) common.MapStr {
 	m := common.MapStr{}
 	utility.Set(m, "filename", s.Filename)
+	utility.Set(m, "classname", s.Classname)
 	utility.Set(m, "abs_path", s.AbsPath)
 	utility.Set(m, "module", s.Module)
 	utility.Set(m, "function", s.Function)
@@ -138,6 +142,7 @@ func (s *StacktraceFrame) Transform(tctx *transform.Context) common.MapStr {
 	utility.Set(orig, "library_frame", s.Original.LibraryFrame)
 	if s.Sourcemap.Updated != nil && *(s.Sourcemap.Updated) {
 		utility.Set(orig, "filename", s.Original.Filename)
+		utility.Set(orig, "classname", s.Original.Classname)
 		utility.Set(orig, "abs_path", s.Original.AbsPath)
 		utility.Set(orig, "function", s.Original.Function)
 		utility.Set(orig, "colno", s.Original.Colno)
@@ -157,12 +162,12 @@ func (s *StacktraceFrame) IsSourcemapApplied() bool {
 }
 
 func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
-	s.ExcludeFromGrouping = pattern.MatchString(s.Filename)
+	s.ExcludeFromGrouping = s.Filename != nil && pattern.MatchString(*s.Filename)
 }
 
 func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.Original.LibraryFrame = s.LibraryFrame
-	libraryFrame := pattern.MatchString(s.Filename) ||
+	libraryFrame := (s.Filename != nil && pattern.MatchString(*s.Filename)) ||
 		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
 	s.LibraryFrame = &libraryFrame
 }
@@ -199,7 +204,7 @@ func (s *StacktraceFrame) applySourcemap(store *sourcemap.Store, service *metada
 	}
 
 	if file != "" {
-		s.Filename = file
+		s.Filename = &file
 	}
 
 	s.Colno = &col
@@ -241,6 +246,7 @@ func (s *StacktraceFrame) setOriginalSourcemapData() {
 	s.Original.Function = s.Function
 	s.Original.Lineno = s.Lineno
 	s.Original.Filename = s.Filename
+	s.Original.Classname = s.Classname
 
 	s.Original.sourcemapCopied = true
 }
