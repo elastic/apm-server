@@ -52,10 +52,10 @@ func TestDecodeMessage(t *testing.T) {
 					"headers": map[string]interface{}{"internal": "false", "services": []string{"user", "order"}},
 					"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}},
 			message: &Message{
-				QueueName:   tests.StringPtr("order"),
-				Body:        tests.StringPtr("user A ordered book B"),
-				Headers:     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-				AgeMicroSec: tests.IntPtr(1577958057123),
+				QueueName: tests.StringPtr("order"),
+				Body:      tests.StringPtr("user A ordered book B"),
+				Headers:   http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+				AgeMillis: tests.IntPtr(1577958057123),
 			},
 		},
 	} {
@@ -81,17 +81,15 @@ func TestMessaging_Fields(t *testing.T) {
 	require.Equal(t, common.MapStr{}, m.Fields())
 
 	m = &Message{
-		QueueName:   tests.StringPtr("orders"),
-		Body:        tests.StringPtr("order confirmed"),
-		Headers:     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		Operation:   tests.StringPtr("received"),
-		AgeMicroSec: tests.IntPtr(1577958057123),
+		QueueName: tests.StringPtr("orders"),
+		Body:      tests.StringPtr("order confirmed"),
+		Headers:   http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+		AgeMillis: tests.IntPtr(1577958057123),
 	}
 	outp := common.MapStr{
-		"queue.name": "orders",
-		"body":       "order confirmed",
-		"headers":    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		"age.ms":     1577958057123,
-		"operation":  "received"}
+		"queue":   common.MapStr{"name": "orders"},
+		"body":    "order confirmed",
+		"headers": http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+		"age":     common.MapStr{"ms": 1577958057123}}
 	assert.Equal(t, outp, m.Fields())
 }

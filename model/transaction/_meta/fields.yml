@@ -47,12 +47,20 @@
           dynamic: false
           fields:
 
-            - name: queue.name
-              type: keyword
-              description: >
-                Name of the message queue or topic where the message is received.
+            - name: queue
+              type: group
+              fields:
 
-            - name: age.ms
-              type: long
-              description: >
-                Age of a message in milliseconds.
+                - name: name
+                  type: keyword
+                  description: >
+                    Name of the message queue or topic where the message is published or received.
+
+            - name: age
+              type: group
+              fields:
+
+                - name: ms
+                  type: long
+                  description: >
+                    Age of a message in milliseconds.

@@ -381,7 +381,7 @@ const ModelSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "ms": {
-                    "description": "The age of the message in milliseconds. If the instrumented messaging framework provides a timestamp for the message, agents may use it. Otherwise, the sending agent can add a timestamp in milliseconds since epoch UTC to the message's metadata to be retrieved by the receiving agent. If a timestamp is not available, agents should omit this field.",
+                    "description": "The age of the message in milliseconds. If the instrumented messaging framework provides a timestamp for the message, agents may use it. Otherwise, the sending agent can add a timestamp in milliseconds since the Unix epoch to the message's metadata to be retrieved by the receiving agent. If a timestamp is not available, agents should omit this field.",
                     "type": ["integer", "null"]
                 }
             }

@@ -54,10 +54,9 @@
         "success": false
     },
     "Message": {
-        "AgeMicroSec": null,
+        "AgeMillis": null,
         "Body": null,
         "Headers": null,
-        "Operation": null,
         "QueueName": "order"
     },
     "Page": {

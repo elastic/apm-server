@@ -1490,6 +1490,7 @@ type: keyword
 --
 
 
+
 *`span.message.queue.name`*::
 +
 --
@@ -1499,6 +1500,7 @@ Name of the message queue or topic where the message is published or received.
 type: keyword
 
 --
+
 
 *`span.message.age.ms`*::
 +
@@ -1571,15 +1573,17 @@ type: long
 --
 
 
+
 *`transaction.message.queue.name`*::
 +
 --
-Name of the message queue or topic where the message is received.
+Name of the message queue or topic where the message is published or received.
 
 
 type: keyword
 
 --
+
 
 *`transaction.message.age.ms`*::
 +

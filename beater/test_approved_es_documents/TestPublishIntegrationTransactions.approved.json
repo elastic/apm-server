@@ -530,7 +530,9 @@
                 },
                 "id": "00xxxxFFaaaa1234",
                 "message": {
-                    "age.ms": 1577958057123,
+                    "age": {
+                        "ms": 1577958057123
+                    },
                     "body": "user created",
                     "headers": {
                         "Involved_services": [
@@ -541,7 +543,9 @@
                             "1ax3"
                         ]
                     },
-                    "queue.name": "new_users"
+                    "queue": {
+                        "name": "new_users"
+                    }
                 },
                 "name": "amqp receive",
                 "sampled": true,

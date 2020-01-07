@@ -28,11 +28,10 @@ import (
 
 // Message holds information about a recorded message, such as the message body and meta information
 type Message struct {
-	Body        *string
-	Headers     http.Header
+	Body      *string
+	Headers   http.Header
 	AgeMillis *int
-	Operation   *string
-	QueueName   *string
+	QueueName *string
 }
 
 // DecodeMessage parses a Message from given input
@@ -51,10 +50,10 @@ func DecodeMessage(input interface{}, err error) (*Message, error) {
 		return nil, decoder.Err
 	}
 	m := Message{
-		QueueName:   decoder.StringPtr(messageInp, "name", "queue"),
-		Body:        decoder.StringPtr(messageInp, "body"),
-		Headers:     decoder.Headers(messageInp),
-		AgeMicroSec: decoder.IntPtr(messageInp, "ms", "age"),
+		QueueName: decoder.StringPtr(messageInp, "name", "queue"),
+		Body:      decoder.StringPtr(messageInp, "body"),
+		Headers:   decoder.Headers(messageInp),
+		AgeMillis: decoder.IntPtr(messageInp, "ms", "age"),
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
@@ -68,10 +67,13 @@ func (m *Message) Fields() common.MapStr {
 		return nil
 	}
 	fields := common.MapStr{}
-	utility.Set(fields, "queue.name", m.QueueName)
+	if m.QueueName != nil {
+		utility.Set(fields, "queue", common.MapStr{"name": m.QueueName})
+	}
+	if m.AgeMillis != nil {
+		utility.Set(fields, "age", common.MapStr{"ms": m.AgeMillis})
+	}
 	utility.Set(fields, "body", m.Body)
 	utility.Set(fields, "headers", m.Headers)
-	utility.Set(fields, "age.ms", m.AgeMicroSec)
-	utility.Set(fields, "operation", m.Operation)
 	return fields
 }

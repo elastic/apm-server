@@ -154,10 +154,10 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				Message: &model.Message{
-					QueueName:   tests.StringPtr("order"),
-					Body:        tests.StringPtr("confirmed"),
-					Headers:     http.Header{"Internal": []string{"false"}},
-					AgeMicroSec: tests.IntPtr(1577958057123),
+					QueueName: tests.StringPtr("order"),
+					Body:      tests.StringPtr("confirmed"),
+					Headers:   http.Header{"Internal": []string{"false"}},
+					AgeMillis: tests.IntPtr(1577958057123),
 				},
 			},
 		},
@@ -430,7 +430,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"custom": common.MapStr{
 				"foo": "bar",
 			},
-			"message": common.MapStr{"queue.name": "routeUser"},
+			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
 		},
 		"labels": common.MapStr{"a": "b"},
 		"url":    common.MapStr{"original": url},

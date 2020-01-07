@@ -316,8 +316,12 @@
                 },
                 "id": "00xxx12312312312",
                 "message": {
-                    "age.ms": 1577958057123,
-                    "queue.name": "new_users"
+                    "age": {
+                        "ms": 1577958057123
+                    },
+                    "queue": {
+                        "name": "new_users"
+                    }
                 },
                 "name": "Rabbitmq receive",
                 "subtype": "JMS",
