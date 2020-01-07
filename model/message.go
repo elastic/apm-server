@@ -30,7 +30,7 @@ import (
 type Message struct {
 	Body        *string
 	Headers     http.Header
-	AgeMicroSec *int
+	AgeMillis *int
 	Operation   *string
 	QueueName   *string
 }
