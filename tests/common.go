@@ -37,6 +37,11 @@ func StringPtr(s string) *string {
 	return &s
 }
 
+// IntPtr is a test helper function that returns the address of the given integer
+func IntPtr(i int) *int {
+	return &i
+}
+
 func strConcat(pre string, post string, delimiter string) string {
 	if pre == "" {
 		return post

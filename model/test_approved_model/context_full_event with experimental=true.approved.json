@@ -53,6 +53,12 @@
         "status": 200,
         "success": false
     },
+    "Message": {
+        "AgeMillis": null,
+        "Body": null,
+        "Headers": null,
+        "QueueName": "order"
+    },
     "Page": {
         "Referer": "http://refer.example.com",
         "Url": "https://example.com"

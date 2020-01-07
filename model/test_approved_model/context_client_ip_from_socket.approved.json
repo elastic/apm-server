@@ -9,7 +9,7 @@
             "Body": null,
             "Cookies": null,
             "Env": null,
-            "Headers": {},
+            "Headers": null,
             "Method": "post",
             "Socket": {
                 "Encrypted": false,
@@ -20,6 +20,7 @@
         "Version": null
     },
     "Labels": null,
+    "Message": null,
     "Page": null,
     "Service": null,
     "Url": {

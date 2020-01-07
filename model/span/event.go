@@ -18,13 +18,11 @@
 package span
 
 import (
-	"errors"
 	"net"
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/model/metadata"
-
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -32,6 +30,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -68,6 +67,7 @@ type Event struct {
 
 	Timestamp time.Time
 
+	Message    *m.Message
 	Name       string
 	Start      *float64
 	Duration   float64
@@ -315,6 +315,10 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			event.Service = service
 		}
 
+		if event.Message, err = m.DecodeMessage(ctx, decoder.Err); err != nil {
+			return nil, err
+		}
+
 		if cfg.Experimental {
 			if obj, set := ctx["experimental"]; set {
 				event.Experimental = obj
@@ -397,29 +401,31 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	if e == nil {
 		return nil
 	}
-	tr := common.MapStr{}
+	fields := common.MapStr{}
 	if e.Id != "" {
-		utility.Set(tr, "id", e.Id)
+		utility.Set(fields, "id", e.Id)
 	}
-	utility.Set(tr, "subtype", e.Subtype)
-	utility.Set(tr, "action", e.Action)
+	utility.Set(fields, "subtype", e.Subtype)
+	utility.Set(fields, "action", e.Action)
 
 	// common
-	utility.Set(tr, "name", e.Name)
-	utility.Set(tr, "type", e.Type)
-	utility.Set(tr, "sync", e.Sync)
+	utility.Set(fields, "name", e.Name)
+	utility.Set(fields, "type", e.Type)
+	utility.Set(fields, "sync", e.Sync)
 
 	if e.Start != nil {
-		utility.Set(tr, "start", utility.MillisAsMicros(*e.Start))
+		utility.Set(fields, "start", utility.MillisAsMicros(*e.Start))
 	}
 
-	utility.Set(tr, "duration", utility.MillisAsMicros(e.Duration))
+	utility.Set(fields, "duration", utility.MillisAsMicros(e.Duration))
 
-	utility.Set(tr, "db", e.DB.fields())
-	utility.Set(tr, "http", e.HTTP.fields())
-	utility.DeepUpdate(tr, "destination.service", e.DestinationService.fields())
+	utility.Set(fields, "db", e.DB.fields())
+	utility.Set(fields, "http", e.HTTP.fields())
+	utility.DeepUpdate(fields, "destination.service", e.DestinationService.fields())
+
+	utility.Set(fields, "message", e.Message.Fields())
 
 	st := e.Stacktrace.Transform(tctx)
-	utility.Set(tr, "stacktrace", st)
-	return tr
+	utility.Set(fields, "stacktrace", st)
+	return fields
 }
