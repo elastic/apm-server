@@ -11,6 +11,7 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 ==== Intake API Changes
 - Add support for `span.context.db.rows_affected` {pull}3095[3095].
 - Add support for `classname` as stacktrace frame attribute {pull}3096[3096].
+- Add support for `message.*` information for spans and transactions {pull}3104[3104].
 
 [float]
 ==== Added
