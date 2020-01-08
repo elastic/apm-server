@@ -102,6 +102,20 @@ class Test(ElasticTest):
 
         self.check_backend_error_sourcemap(self.index_error, count=4)
 
+    def test_jaeger_http(self):
+        """
+        This test sends a Jaeger span in Thrift encoding over HTTP, and verifies that it is indexed.
+        """
+        jaeger_span_thrift = self.get_testdata_path('jaeger', 'span.thrift')
+        self.load_docs_with_template(jaeger_span_thrift, self.jaeger_http_url, 'transaction', 1,
+                                     extra_headers={"content-type": "application/vnd.apache.thrift.binary"})
+        self.assert_no_logged_warnings()
+
+        # compare existing ES documents for errors with new ones
+        rs = self.es.search(index=self.index_transaction)
+        assert rs['hits']['total']['value'] == 1, "found {} documents".format(rs['count'])
+        self.approve_docs('jaeger_span', rs['hits']['hits'], 'transaction')
+
     def approve_docs(self, base_path, received, doc_type):
         base_path = self._beat_path_join(os.path.dirname(__file__), base_path)
         approved_path = base_path + '.approved.json'

@@ -112,10 +112,10 @@ class BaseTest(TestCase):
         )
 
     def get_payload_path(self, name):
-        return self._beat_path_join(
-            'testdata',
-            'intake-v2',
-            name)
+        return self.get_testdata_path('intake-v2', name)
+
+    def get_testdata_path(self, *names):
+        return self._beat_path_join('testdata', *names)
 
     def get_payload(self, name):
         with open(self.get_payload_path(name)) as f:
@@ -164,9 +164,14 @@ class ServerSetUpBaseTest(BaseTest):
     sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
+    jaeger_http_host = "localhost:14268"
+    jaeger_http_url = "http://{}/{}".format(jaeger_http_host, 'api/traces')
+
     def config(self):
         return {"ssl_enabled": "false",
                 "queue_flush": 0,
+                "jaeger_http_enabled": "true",
+                "jaeger_http_host": self.jaeger_http_host,
                 "path": os.path.abspath(self.working_dir) + "/log/*"}
 
     def setUp(self):
@@ -308,15 +313,17 @@ class ElasticTest(ServerBaseTest):
         super(ElasticTest, self).setUp()
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
-                                query_index=None, max_timeout=10):
+                                query_index=None, max_timeout=10, extra_headers=None):
 
         if query_index is None:
             query_index = self.index_name_pattern
 
+        headers = {'content-type': 'application/x-ndjson'}
+        if extra_headers:
+            headers.update(extra_headers)
+
         with open(data_path) as f:
-            r = requests.post(url,
-                              data=f,
-                              headers={'content-type': 'application/x-ndjson'})
+            r = requests.post(url, data=f, headers=headers)
         assert r.status_code == 202, r.status_code
 
         # Wait to give documents some time to be sent to the index
