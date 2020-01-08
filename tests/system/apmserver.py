@@ -165,14 +165,9 @@ class ServerSetUpBaseTest(BaseTest):
     sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
-    jaeger_http_host = "localhost:14268"
-    jaeger_http_url = "http://{}/{}".format(jaeger_http_host, 'api/traces')
-
     def config(self):
         return {"ssl_enabled": "false",
                 "queue_flush": 0,
-                "jaeger_http_enabled": "true",
-                "jaeger_http_host": self.jaeger_http_host,
                 "path": os.path.abspath(self.working_dir) + "/log/*"}
 
     def setUp(self):
