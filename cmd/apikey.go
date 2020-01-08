@@ -20,6 +20,7 @@ package cmd
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -36,8 +37,6 @@ import (
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/cmd/instance"
 	"github.com/elastic/beats/libbeat/common"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -56,7 +55,6 @@ func genApikeyCmd(settings instance.Settings) *cobra.Command {
 Most operations require the "manage_security" cluster privilege. Ensure to configure "apm-server.api_key.*" or 
 "output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application; 
 you can freely query them. If you modify or delete apm privileges, APM Server might reject all requests.
-If an invalid argument is passed, nothing will be printed.
 Check the Elastic Security API documentation for details.`,
 	}
 
@@ -77,26 +75,21 @@ func createApikeyCmd(settings instance.Settings) *cobra.Command {
 		Use:   "create",
 		Short: short,
 		Long: short + `.
-If no privilege(s) are specified, the API Key will be valid for all.
-Requires the "manage_security" cluster privilege in Elasticsearch.`,
+If no privilege(s) are specified, the API Key will be valid for all.`,
 		// always need to return error for possible scripts checking the exit code,
 		// but printing the error must be done inside
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, _, err := bootstrap(settings)
 			if err != nil {
-				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
 				return err
 			}
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				privileges = []es.PrivilegeAction{auth.ActionAny}
 			}
-			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
+			createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
+			return nil
 		},
-		// these are needed to not break JSON formatting
-		// this has the caveat that if an invalid argument is passed, the command won't return anything
-		SilenceUsage:  true,
-		SilenceErrors: true,
 	}
 	create.Flags().StringVar(&keyName, "name", "apm-key", "API Key name")
 	create.Flags().StringVar(&expiration, "expiration", "",
@@ -125,18 +118,18 @@ func invalidateApikeyCmd(settings instance.Settings) *cobra.Command {
 		Short: short,
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
-If neither of them are, an error will be returned.
-Requires the "manage_security" cluster privilege in Elasticsearch.`,
+If neither of them are, an error will be returned.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if id == "" && name == "" {
+				return errors.New(`either "id" or "name" are required`)
+			}
 			client, _, err := bootstrap(settings)
 			if err != nil {
-				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
 				return err
 			}
-			return invalidateAPIKey(client, &id, &name, purge, json)
+			invalidateAPIKey(client, &id, &name, purge, json)
+			return nil
 		},
-		SilenceErrors: true,
-		SilenceUsage:  true,
 	}
 	invalidate.Flags().StringVar(&id, "id", "", "id of the API Key to delete")
 	invalidate.Flags().StringVar(&name, "name", "",
@@ -158,18 +151,18 @@ func getApikeysCmd(settings instance.Settings) *cobra.Command {
 		Short: short,
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
-If neither of them are, an error will be returned.
-Requires the "manage_security" cluster privilege in Elasticsearch.`,
+If neither of them are, an error will be returned.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if id == "" && name == "" {
+				return errors.New(`either "id" or "name" are required`)
+			}
 			client, _, err := bootstrap(settings)
 			if err != nil {
-				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
 				return err
 			}
-			return getAPIKey(client, &id, &name, validOnly, json)
+			getAPIKey(client, &id, &name, validOnly, json)
+			return nil
 		},
-		SilenceErrors: true,
-		SilenceUsage:  true,
 	}
 	info.Flags().StringVar(&id, "id", "", "id of the API Key to query")
 	info.Flags().StringVar(&name, "name", "",
@@ -195,13 +188,6 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, config, err := bootstrap(settings)
 			if err != nil {
-				printErr(err, "is apm-server configured properly and Elasticsearch reachable?", json)
-				return err
-			}
-			if credentials == "" {
-				err := errors.New("credentials argument is required")
-				// we can't use Cobra to mark the flag as required because it won't print the error as JSON
-				printErr(err, "", json)
 				return err
 			}
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
@@ -209,10 +195,9 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 				// can't use "*" for querying
 				privileges = auth.ActionsAll()
 			}
-			return verifyAPIKey(config, privileges, credentials, json)
+			verifyAPIKey(config, privileges, credentials, json)
+			return nil
 		},
-		SilenceUsage:  true,
-		SilenceErrors: true,
 	}
 	verify.Flags().StringVar(&credentials, "credentials", "", `credentials for which check privileges (required)`)
 	verify.Flags().BoolVar(&ingest, "ingest", false,
@@ -225,6 +210,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 			auth.PrivilegeAgentConfigRead))
 	verify.Flags().BoolVar(&json, "json", false,
 		"prints the output of this command as JSON")
+	verify.MarkFlagRequired("credentials")
 	verify.Flags().SortFlags = false
 
 	return verify
@@ -288,7 +274,7 @@ func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAct
 // creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
 // we need to ensure forward-compatibility, for which future privileges must be created here and
 // during server startup because we don't know if customers will run this command
-func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
+func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) {
 	var privilegesRequest = make(es.CreatePrivilegesRequest)
 	event := auth.PrivilegeEventWrite
 	agentConfig := auth.PrivilegeAgentConfigRead
@@ -302,9 +288,10 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	privilegesCreated, err := es.CreatePrivileges(client, privilegesRequest)
 
 	if err != nil {
-		return printErr(err,
+		printErr(err,
 			`Error creating privileges for APM Server, do you have the "manage_cluster" security privilege?`,
 			asJSON)
+		return
 	}
 
 	printText, printJSON := printers(asJSON)
@@ -334,9 +321,10 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 
 	apikey, err := es.CreateAPIKey(client, apikeyRequest)
 	if err != nil {
-		return printErr(err, fmt.Sprintf(
+		printErr(err, fmt.Sprintf(
 			`Error creating the API Key %s, do you have the "manage_cluster" security privilege?`, apikeyName),
 			asJSON)
+		return
 	}
 	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.Id + ":" + apikey.Key))
 	apikey.Credentials = &credentials
@@ -349,7 +337,7 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	printText(`Credentials .... %s (use it as "Authorization: ApiKey <credentials>" header to communicate with APM Server, won't be shown again)`,
 		credentials)
 
-	return printJSON(struct {
+	printJSON(struct {
 		es.CreateApiKeyResponse
 		Privileges es.CreatePrivilegesResponse `json:"created_privileges,omitempty"`
 	}{
@@ -358,13 +346,11 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	})
 }
 
-func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error {
+func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
 	if isSet(id) {
 		name = nil
 	} else if isSet(name) {
 		id = nil
-	} else {
-		return printErr(errors.New(`either "id" or "name" are required`), "", asJSON)
 	}
 	request := es.GetApiKeyRequest{
 		ApiKeyQuery: es.ApiKeyQuery{
@@ -375,9 +361,10 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 
 	apikeys, err := es.GetAPIKeys(client, request)
 	if err != nil {
-		return printErr(err,
+		printErr(err,
 			`Error retrieving API Key(s) for APM Server, do you have the "manage_cluster" security privilege?`,
 			asJSON)
+		return
 	}
 
 	transform := es.GetApiKeyResponse{ApiKeys: make([]es.ApiKeyResponse, 0)}
@@ -400,16 +387,14 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 		transform.ApiKeys = append(transform.ApiKeys, apikey)
 	}
 	printText("%d API Keys found", len(transform.ApiKeys))
-	return printJSON(transform)
+	printJSON(transform)
 }
 
-func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJSON bool) error {
+func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJSON bool) {
 	if isSet(id) {
 		name = nil
 	} else if isSet(name) {
 		id = nil
-	} else {
-		return printErr(errors.New(`either "id" or "name" are required`), "", asJSON)
 	}
 	invalidateKeysRequest := es.InvalidateApiKeyRequest{
 		ApiKeyQuery: es.ApiKeyQuery{
@@ -420,9 +405,10 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 
 	invalidation, err := es.InvalidateAPIKey(client, invalidateKeysRequest)
 	if err != nil {
-		return printErr(err,
+		printErr(err,
 			`Error invalidating API Key(s), do you have the "manage_cluster" security privilege?`,
 			asJSON)
+		return
 	}
 	printText, printJSON := printers(asJSON)
 	out := struct {
@@ -456,10 +442,10 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 		}
 		out.Privileges = append(out.Privileges, deletion)
 	}
-	return printJSON(out)
+	printJSON(out)
 }
 
-func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) error {
+func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) {
 	perms := make(es.Permissions)
 
 	printText, printJSON := printers(asJSON)
@@ -486,9 +472,10 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 	}
 
 	if err != nil {
-		return printErr(err, "could not verify credentials, please check your Elasticsearch connection", asJSON)
+		printErr(err, "could not verify credentials, please check your Elasticsearch connection", asJSON)
+	} else {
+		printJSON(perms)
 	}
-	return printJSON(perms)
 }
 
 func humanBool(b bool) string {
@@ -536,7 +523,7 @@ func humanTime(millis *int64) string {
 
 // returns 2 printers, one for text and one for JSON
 // one of them will be a noop based on the boolean argument
-func printers(b bool) (func(string, ...interface{}), func(interface{}) error) {
+func printers(b bool) (func(string, ...interface{}), func(interface{})) {
 	var w1 io.Writer = os.Stdout
 	var w2 = ioutil.Discard
 	if b {
@@ -546,16 +533,17 @@ func printers(b bool) (func(string, ...interface{}), func(interface{}) error) {
 	return func(f string, i ...interface{}) {
 			fmt.Fprintf(w1, f, i...)
 			fmt.Fprintln(w1)
-		}, func(i interface{}) error {
+		}, func(i interface{}) {
 			data, err := json.MarshalIndent(i, "", "\t")
+			if err != nil {
+				fmt.Fprintln(w2, err)
+			}
 			fmt.Fprintln(w2, string(data))
-			// conform the interface
-			return errors.Wrap(err, fmt.Sprintf("%v+", i))
 		}
 }
 
 // prints an Elasticsearch error to stderr, with some additional contextual information as a hint
-func printErr(err error, help string, asJSON bool) error {
+func printErr(err error, help string, asJSON bool) {
 	if asJSON {
 		var data []byte
 		var m map[string]interface{}
@@ -579,7 +567,6 @@ func printErr(err error, help string, asJSON bool) error {
 		fmt.Fprintln(os.Stderr, help)
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
-	return errors.Wrap(err, help)
 }
 
 func isSet(s *string) bool {
