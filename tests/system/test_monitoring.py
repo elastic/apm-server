@@ -1,6 +1,7 @@
 from apmserver import integration_test
 from apmserver import ElasticTest
 
+import os
 import urlparse
 
 from elasticsearch import Elasticsearch
