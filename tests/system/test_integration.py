@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import json
 import os
+import subprocess
 import sys
 import time
 
@@ -114,7 +115,27 @@ class Test(ElasticTest):
         # compare existing ES documents for errors with new ones
         rs = self.es.search(index=self.index_transaction)
         assert rs['hits']['total']['value'] == 1, "found {} documents".format(rs['count'])
-        self.approve_docs('jaeger_span', rs['hits']['hits'], 'transaction')
+        self.approve_docs('jaeger_thrift_span', rs['hits']['hits'], 'transaction')
+
+    def test_jaeger_grpc(self):
+        """
+        This test sends a Jaeger batch over gRPC, and verifies that the spans are indexed.
+        """
+        jaeger_request_data = self.get_testdata_path('..', 'beater', 'jaeger', 'testdata', 'batch_0.json')
+
+        client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
+        subprocess.check_call(['go', 'run', client,
+            '-addr', self.jaeger_grpc_host,
+            '-insecure',
+            jaeger_request_data,
+        ])
+        self.assert_no_logged_warnings()
+        self.wait_for_events('transaction', 1)
+
+        # compare existing ES documents for errors with new ones
+        rs = self.es.search(index=self.index_transaction)
+        assert rs['hits']['total']['value'] == 1, "found {} documents".format(rs['count'])
+        self.approve_docs('jaeger_batch_0', rs['hits']['hits'], 'transaction')
 
     def approve_docs(self, base_path, received, doc_type):
         base_path = self._beat_path_join(os.path.dirname(__file__), base_path)

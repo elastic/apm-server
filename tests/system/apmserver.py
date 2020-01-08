@@ -164,12 +164,15 @@ class ServerSetUpBaseTest(BaseTest):
     sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
+    jaeger_grpc_host = "localhost:14250"
     jaeger_http_host = "localhost:14268"
     jaeger_http_url = "http://{}/{}".format(jaeger_http_host, 'api/traces')
 
     def config(self):
         return {"ssl_enabled": "false",
                 "queue_flush": 0,
+                "jaeger_grpc_enabled": "true",
+                "jaeger_grpc_host": self.jaeger_grpc_host,
                 "jaeger_http_enabled": "true",
                 "jaeger_http_host": self.jaeger_http_host,
                 "path": os.path.abspath(self.working_dir) + "/log/*"}
@@ -329,14 +332,20 @@ class ElasticTest(ServerBaseTest):
         # Wait to give documents some time to be sent to the index
         # This is not required but speeds up the tests
         time.sleep(2)
-        self.es.indices.refresh(index=query_index)
+        self.wait_for_events(endpoint, expected_events_count, index=query_index)
+
+    def wait_for_events(self, processor_name, expected_count, index=None, max_timeout=10):
+        if index is None:
+            index = self.index_name_pattern
+
+        self.es.indices.refresh(index=index)
 
         self.wait_until(
-            lambda: (self.es.count(index=query_index, body={
-                "query": {"term": {"processor.name": endpoint}}}
-            )['count'] == expected_events_count),
+            lambda: (self.es.count(index=index, body={
+                "query": {"term": {"processor.name": processor_name}}}
+            )['count'] == expected_count),
             max_timeout=max_timeout,
-            name="{} documents to reach {}".format(endpoint, expected_events_count),
+            name="{} documents to reach {}".format(processor_name, expected_count),
         )
 
     def check_backend_error_sourcemap(self, index, count=1):
@@ -424,13 +433,7 @@ class ClientSideBaseTest(ServerBaseTest):
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
     def wait_for_sourcemaps(self, expected_ct=1):
-        idx = self.index_smap
-        self.wait_until(
-            lambda: (self.es.count(index=idx, body={
-                "query": {"term": {"processor.name": 'sourcemap'}}}
-            )['count'] == expected_ct),
-            name="{} sourcemaps to ingest".format(expected_ct),
-        )
+        self.wait_for_events('sourcemap', expected_ct, index=self.index_smap)
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
         rs = self.es.search(index=self.index_error, params={"rest_total_hits_as_int": "true"})

@@ -1,0 +1,63 @@
+[
+    {
+        "transaction": {
+            "sampled": true,
+            "name": "Driver::findNearest",
+            "result": "Success",
+            "duration": {
+                "us": 243417
+            },
+            "type": "custom",
+            "id": "7be2fd98d0973be3"
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "observer": {
+            "ephemeral_id": "70e2f245-9936-4ffc-b23a-147e39f95605",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "a27a1bdf-fa86-4f3d-a818-c66fe8fd1667"
+        },
+        "timestamp": {
+            "us": 1576827704953864
+        },
+        "@timestamp": "2019-12-20T07:41:44.953Z",
+        "labels": {
+            "peer_port": 50535,
+            "as": "thrift",
+            "sampler_param": true,
+            "peer_ipv4": 2130706433,
+            "sampler_type": "const",
+            "peer_service": "driver-client"
+        },
+        "agent": {
+            "ephemeral_id": "624386e9c81d2980",
+            "name": "Jaeger/Go",
+            "version": "2.20.1"
+        },
+        "host": {
+            "ip": "10.0.0.13",
+            "hostname": "host01",
+            "name": "host01"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "ecs": {
+            "version": "1.2.0"
+        },
+        "processor": {
+            "name": "transaction",
+            "event": "transaction"
+        }
+    }
+]
