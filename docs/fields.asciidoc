@@ -1489,6 +1489,29 @@ type: keyword
 
 --
 
+
+
+*`span.message.queue.name`*::
++
+--
+Name of the message queue or topic where the message is published or received.
+
+
+type: keyword
+
+--
+
+
+*`span.message.age.ms`*::
++
+--
+Age of a message in milliseconds.
+
+
+type: long
+
+--
+
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 
@@ -1544,6 +1567,29 @@ type: object
 +
 --
 The total amount of dropped spans for this transaction.
+
+type: long
+
+--
+
+
+
+*`transaction.message.queue.name`*::
++
+--
+Name of the message queue or topic where the message is published or received.
+
+
+type: keyword
+
+--
+
+
+*`transaction.message.age.ms`*::
++
+--
+Age of a message in milliseconds.
+
 
 type: long
 

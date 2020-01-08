@@ -46,6 +46,7 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("context"),
 		tests.Group("transaction.page"),
 		tests.Group("http.request.cookies"),
+		"transaction.message.body", "transaction.message.headers",
 	)
 }
 
@@ -82,6 +83,7 @@ func transactionPayloadAttrsNotInJsonSchema() *tests.Set {
 		tests.Group("transaction.marks"),
 		tests.Group("transaction.context.request.headers."),
 		tests.Group("transaction.context.response.headers."),
+		tests.Group("transaction.context.message.headers."),
 	)
 }
 
@@ -142,9 +144,10 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 		t,
 		transactionKeywordExceptionKeys(),
 		[]tests.FieldTemplateMapping{
-			{Template: "transaction."},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
+			{Template: "transaction.message.", Mapping: "context.message."},
+			{Template: "transaction."},
 		},
 	)
 }

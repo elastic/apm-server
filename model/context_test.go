@@ -198,6 +198,9 @@ func TestDecodeContext(t *testing.T) {
 							"ephemeral_id": "abcdef123",
 						}},
 					"page": map[string]interface{}{"url": "https://example.com", "referer": "http://refer.example.com"},
+					"message": map[string]interface{}{
+						"queue": map[string]interface{}{"name": "order"},
+						"topic": map[string]interface{}{"name": "routeA"}},
 				}},
 			cfg: Config{Experimental: true},
 		},
