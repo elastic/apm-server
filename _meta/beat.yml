@@ -397,8 +397,10 @@ apm-server:
 
 
 
-  #---------------------------- APM Server - Open Telemetry Collector integration ----------------------------
+  #---------------------------- APM Server - Experimental Jaeger integration ----------------------------
 
+  # When enabling Jaeger integration, APM Server acts as Jaeger collector. It supports jaeger.thrift over HTTP
+  # and gRPC. This is an experimental feature, use with care.
   #jaeger:
     #grpc:
       # Set to true to enable the Jaeger gRPC collector service.
