@@ -1,6 +1,6 @@
 apm_server:apm_server_user
 apm_system:apm_server_user
-apm_user:apm_user,apm_user_ro
+apm_user:apm_server_user,apm_user_ro
 beats:beats_user
 beats_system:beats_user,filebeat_user,heartbeat_user,metricbeat_user
 filebeat:filebeat_user
