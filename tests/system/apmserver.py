@@ -12,6 +12,7 @@ import sys
 import time
 
 from elasticsearch import Elasticsearch
+from nose.tools import nottest
 import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
@@ -114,6 +115,7 @@ class BaseTest(TestCase):
     def get_payload_path(self, name):
         return self.get_testdata_path('intake-v2', name)
 
+    @nottest
     def get_testdata_path(self, *names):
         return self._beat_path_join('testdata', *names)
 
