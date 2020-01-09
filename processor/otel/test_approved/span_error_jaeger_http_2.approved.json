@@ -1,0 +1,52 @@
+{
+    "Client": null,
+    "Culprit": null,
+    "Custom": null,
+    "Exception": null,
+    "Experimental": null,
+    "Http": {
+        "Request": {
+            "Body": null,
+            "Cookies": null,
+            "Env": null,
+            "Headers": null,
+            "Method": "get",
+            "Socket": null
+        },
+        "Response": {
+            "Finished": null,
+            "Headers": null,
+            "HeadersSent": null,
+            "StatusCode": 200
+        },
+        "Version": null
+    },
+    "Id": null,
+    "Labels": null,
+    "Log": {
+        "Level": null,
+        "LoggerName": null,
+        "Message": "nullPointer exception",
+        "ParamMessage": null,
+        "Stacktrace": null
+    },
+    "Page": null,
+    "ParentId": "41414646",
+    "Service": null,
+    "Timestamp": "2019-12-16T12:46:58.000768111Z",
+    "TraceId": "46467830",
+    "TransactionId": null,
+    "TransactionSampled": null,
+    "TransactionType": null,
+    "Url": {
+        "Domain": "foo.bar.com",
+        "Fragment": null,
+        "Full": "http://foo.bar.com?a=12",
+        "Original": "http://foo.bar.com?a=12",
+        "Path": null,
+        "Port": null,
+        "Query": "a=12",
+        "Scheme": "http"
+    },
+    "User": null
+}

@@ -1,0 +1,23 @@
+{
+    "Action": null,
+    "DB": null,
+    "Destination": null,
+    "DestinationService": null,
+    "Duration": 0,
+    "Experimental": null,
+    "HTTP": null,
+    "Id": "",
+    "Labels": null,
+    "Message": null,
+    "Name": "",
+    "ParentId": "61626364",
+    "Service": null,
+    "Stacktrace": null,
+    "Start": null,
+    "Subtype": null,
+    "Sync": null,
+    "Timestamp": "2019-12-16T12:46:58.000768068Z",
+    "TraceId": "",
+    "TransactionId": null,
+    "Type": "custom"
+}
