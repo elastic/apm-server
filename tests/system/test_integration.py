@@ -1,8 +1,4 @@
 from datetime import datetime, timedelta
-import json
-import os
-import subprocess
-import sys
 import time
 
 import requests
@@ -80,12 +76,12 @@ class Test(ElasticTest):
         # compare existing ES documents for transactions with new ones
         rs = self.es.search(index=self.index_transaction)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('transaction', rs['hits']['hits'], 'transaction')
+        self.approve_docs('transaction', rs['hits']['hits'])
 
         # compare existing ES documents for spans with new ones
         rs = self.es.search(index=self.index_span)
         assert rs['hits']['total']['value'] == 5, "found {} documents".format(rs['count'])
-        self.approve_docs('spans', rs['hits']['hits'], 'span')
+        self.approve_docs('spans', rs['hits']['hits'])
 
     def test_load_docs_with_template_and_add_error(self):
         """
@@ -98,29 +94,9 @@ class Test(ElasticTest):
         # compare existing ES documents for errors with new ones
         rs = self.es.search(index=self.index_error)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('error', rs['hits']['hits'], 'error')
+        self.approve_docs('error', rs['hits']['hits'])
 
         self.check_backend_error_sourcemap(self.index_error, count=4)
-
-    def test_jaeger_grpc(self):
-        """
-        This test sends a Jaeger batch over gRPC, and verifies that the spans are indexed.
-        """
-        jaeger_request_data = self.get_testdata_path('..', 'beater', 'jaeger', 'testdata', 'batch_0.json')
-
-        client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
-        subprocess.check_call(['go', 'run', client,
-            '-addr', self.jaeger_grpc_host,
-            '-insecure',
-            jaeger_request_data,
-        ])
-        self.assert_no_logged_warnings()
-        self.wait_for_events('transaction', 1)
-
-        # compare existing ES documents for errors with new ones
-        rs = self.es.search(index=self.index_transaction)
-        assert rs['hits']['total']['value'] == 1, "found {} documents".format(rs['count'])
-        self.approve_docs('jaeger_batch_0', rs['hits']['hits'], 'transaction')
 
 
 @integration_test

@@ -59,5 +59,188 @@
             "name": "transaction",
             "event": "transaction"
         }
+    },
+    {
+        "parent": {
+            "id": "7be2fd98d0973be3"
+        },
+        "transaction": {
+            "type": "custom",
+            "id": "7be2fd98d0973be3"
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "observer": {
+            "ephemeral_id": "17cdbd41-10e5-463b-8238-88d55539d283",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "0ccc2e07-dbca-4f92-b08c-ba9ca93daf1a"
+        },
+        "timestamp": {
+            "us": 1576827705007552
+        },
+        "@timestamp": "2019-12-20T07:41:45.007Z",
+        "agent": {
+            "ephemeral_id": "624386e9c81d2980",
+            "name": "Jaeger/Go",
+            "version": "2.20.1"
+        },
+        "host": {
+            "ip": "10.0.0.13",
+            "hostname": "host01",
+            "name": "host01"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "ecs": {
+            "version": "1.2.0"
+        },
+        "error": {
+            "exception": [
+                {
+                    "message": "redis timeout"
+                }
+            ],
+            "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+            "log": {
+                "message": "Retrying GetDriver after error"
+            }
+        },
+        "processor": {
+            "name": "error",
+            "event": "error"
+        }
+    },
+    {
+        "parent": {
+            "id": "7be2fd98d0973be3"
+        },
+        "transaction": {
+            "type": "custom",
+            "id": "7be2fd98d0973be3"
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "observer": {
+            "ephemeral_id": "17cdbd41-10e5-463b-8238-88d55539d283",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "0ccc2e07-dbca-4f92-b08c-ba9ca93daf1a"
+        },
+        "timestamp": {
+            "us": 1576827705089431
+        },
+        "@timestamp": "2019-12-20T07:41:45.089Z",
+        "agent": {
+            "ephemeral_id": "624386e9c81d2980",
+            "name": "Jaeger/Go",
+            "version": "2.20.1"
+        },
+        "host": {
+            "ip": "10.0.0.13",
+            "hostname": "host01",
+            "name": "host01"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "ecs": {
+            "version": "1.2.0"
+        },
+        "error": {
+            "exception": [
+                {
+                    "message": "redis timeout"
+                }
+            ],
+            "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+            "log": {
+                "message": "Retrying GetDriver after error"
+            }
+        },
+        "processor": {
+            "name": "error",
+            "event": "error"
+        }
+    },
+    {
+        "parent": {
+            "id": "7be2fd98d0973be3"
+        },
+        "transaction": {
+            "type": "custom",
+            "id": "7be2fd98d0973be3"
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "observer": {
+            "ephemeral_id": "17cdbd41-10e5-463b-8238-88d55539d283",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "0ccc2e07-dbca-4f92-b08c-ba9ca93daf1a"
+        },
+        "timestamp": {
+            "us": 1576827705172530
+        },
+        "@timestamp": "2019-12-20T07:41:45.172Z",
+        "agent": {
+            "ephemeral_id": "624386e9c81d2980",
+            "name": "Jaeger/Go",
+            "version": "2.20.1"
+        },
+        "host": {
+            "ip": "10.0.0.13",
+            "hostname": "host01",
+            "name": "host01"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "ecs": {
+            "version": "1.2.0"
+        },
+        "error": {
+            "exception": [
+                {
+                    "message": "redis timeout"
+                }
+            ],
+            "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+            "log": {
+                "message": "Retrying GetDriver after error"
+            }
+        },
+        "processor": {
+            "name": "error",
+            "event": "error"
+        }
     }
 ]

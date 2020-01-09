@@ -336,18 +336,28 @@ class ElasticTest(ServerBaseTest):
         self.wait_for_events(endpoint, expected_events_count, index=query_index)
 
     def wait_for_events(self, processor_name, expected_count, index=None, max_timeout=10):
+        """
+        wait_for_events waits for an expected number of event docs with the given
+        'processor.name' value, and returns the hits when found.
+        """
         if index is None:
             index = self.index_name_pattern
 
         self.es.indices.refresh(index=index)
 
+        query = {"term": {"processor.name": processor_name}}
+        result = {} # TODO(axw) use "nonlocal" when we migrate to Python 3
+        def get_docs():
+            hits = self.es.search(index=index, body={"query": query})['hits']
+            result['docs'] = hits['hits']
+            return hits['total']['value'] == expected_count
+
         self.wait_until(
-            lambda: (self.es.count(index=index, body={
-                "query": {"term": {"processor.name": processor_name}}}
-            )['count'] == expected_count),
+            get_docs,
             max_timeout=max_timeout,
             name="{} documents to reach {}".format(processor_name, expected_count),
         )
+        return result['docs']
 
     def check_backend_error_sourcemap(self, index, count=1):
         rs = self.es.search(index=index, params={"rest_total_hits_as_int": "true"})
@@ -380,7 +390,7 @@ class ElasticTest(ServerBaseTest):
             if jline.get("logger") == "request" and u.path == url:
                 yield jline
 
-    def approve_docs(self, base_path, received, doc_type):
+    def approve_docs(self, base_path, received):
         """
         approve_docs compares the received documents to those contained
         in the file at ${base_path}.approved.json. If that file does not
@@ -400,8 +410,22 @@ class ElasticTest(ServerBaseTest):
         except IOError:
             approved = []
 
+        # get_doc_id returns a value suitable for sorting and identifying
+        # documents: either a unique ID, or a timestamp. This is necessary
+        # since not all event types require a unique ID (namely, errors do
+        # not.)
+        #
+        # We return (0, doc['error']['id']) when the event type is 'error'
+        # if that field exists, otherwise returns (1, doc['@timestamp']).
+        # The first tuple element exists to sort IDs before timestamps.
+        def get_doc_id(doc):
+            doc_type = doc['processor']['event']
+            if 'id' in doc[doc_type]:
+                return (0, doc[doc_type]['id'])
+            return (1, doc['@timestamp'])
+
         received = [doc['_source'] for doc in received]
-        received.sort(key=lambda source: source[doc_type]['id'])
+        received.sort(key=get_doc_id)
 
         try:
             for rec in received:
@@ -411,20 +435,20 @@ class ElasticTest(ServerBaseTest):
                 #
                 # We don't compare the observer values between received/approved,
                 # as they are dependent on the environment.
-                rec_id = rec[doc_type]['id']
+                rec_id = get_doc_id(rec)
                 rec_observer = rec['observer']
                 self.assertEqual(sets.Set(rec_observer.keys()), sets.Set(
                     ["hostname", "version", "id", "ephemeral_id", "type", "version_major"]))
                 assert rec_observer["version"].startswith(str(rec_observer["version_major"]) + ".")
                 for appr in approved:
-                    if appr[doc_type]['id'] == rec_id:
+                    if get_doc_id(appr) == rec_id:
                         rec['observer'] = appr['observer']
                         break
             assert len(received) == len(approved)
             for i, rec in enumerate(received):
                 appr = approved[i]
-                rec_id = rec[doc_type]['id']
-                assert rec_id == appr[doc_type]['id'], "New entry with id {}".format(rec_id)
+                rec_id = get_doc_id(rec)
+                assert rec_id == get_doc_id(appr), "New entry with id {}".format(rec_id)
                 for k, v in rec.items():
                     self.assertEqual(v, appr[k])
         except Exception as exc:
