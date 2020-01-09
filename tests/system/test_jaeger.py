@@ -50,8 +50,7 @@ class Test(ElasticTest):
         """
         This test sends a Jaeger batch over gRPC, and verifies that the spans are indexed.
         """
-        # TODO(axw) move Jaeger testdata
-        jaeger_request_data = self.get_testdata_path('..', 'beater', 'jaeger', 'testdata', 'batch_0.json')
+        jaeger_request_data = self.get_testdata_path('jaeger', 'batch_0.json')
 
         client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
         subprocess.check_call(['go', 'run', client,
