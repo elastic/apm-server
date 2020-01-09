@@ -1,6 +1,6 @@
+import os
 import re
-
-import requests
+import subprocess
 
 from apmserver import integration_test
 from apmserver import ElasticTest
@@ -8,22 +8,26 @@ from apmserver import ElasticTest
 
 @integration_test
 class Test(ElasticTest):
-    jaeger_http_host = "localhost:14268"
-
     def setUp(self):
         super(Test, self).setUp()
         self.wait_until(lambda: self.log_contains("Listening for Jaeger HTTP"), name="Jaeger HTTP listener started")
+        self.wait_until(lambda: self.log_contains("Listening for Jaeger gRPC"), name="Jaeger gRPC listener started")
 
-        # Extract the Jaeger HTTP server address.
-        match = re.search("Listening for Jaeger HTTP requests on: (.*)$", self.get_log(), re.MULTILINE)
-        listen_addr = match.group(1)
-        self.jaeger_http_url = "http://{}/{}".format(listen_addr, 'api/traces')
+        # Extract the Jaeger server addresses.
+        log = self.get_log()
+        match = re.search("Listening for Jaeger HTTP requests on: (.*)$", log, re.MULTILINE)
+        self.jaeger_http_url = "http://{}/{}".format(match.group(1), 'api/traces')
+        match = re.search("Listening for Jaeger gRPC requests on: (.*)$", log, re.MULTILINE)
+        self.jaeger_grpc_addr = match.group(1)
 
     def config(self):
         cfg = super(Test, self).config()
         cfg.update({
+            "jaeger_grpc_enabled": "true",
             "jaeger_http_enabled": "true",
-            "jaeger_http_host": "localhost:0", # Listen on a dynamic port
+            # Listen on dynamic ports
+            "jaeger_grpc_host": "localhost:0",
+            "jaeger_http_host": "localhost:0",
         })
         return cfg
 
@@ -34,8 +38,25 @@ class Test(ElasticTest):
         jaeger_span_thrift = self.get_testdata_path('jaeger', 'span.thrift')
         self.load_docs_with_template(jaeger_span_thrift, self.jaeger_http_url, 'transaction', 1,
                                      extra_headers={"content-type": "application/vnd.apache.thrift.binary"})
-        self.assert_no_logged_warnings()
 
-        rs = self.es.search(index=self.index_transaction)
-        assert rs['hits']['total']['value'] == 1, "found {} documents".format(rs['count'])
-        self.approve_docs('jaeger_span', rs['hits']['hits'], 'transaction')
+        self.assert_no_logged_warnings()
+        transaction_docs = self.wait_for_events('transaction', 1)
+        self.approve_docs('jaeger_span', transaction_docs)
+
+    def test_jaeger_grpc(self):
+        """
+        This test sends a Jaeger batch over gRPC, and verifies that the spans are indexed.
+        """
+        jaeger_request_data = self.get_testdata_path('jaeger', 'batch_0.json')
+
+        client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
+        subprocess.check_call(['go', 'run', client,
+            '-addr', self.jaeger_grpc_addr,
+            '-insecure',
+            jaeger_request_data,
+        ])
+
+        self.assert_no_logged_warnings()
+        transaction_docs = self.wait_for_events('transaction', 1)
+        error_docs = self.wait_for_events('error', 3)
+        self.approve_docs('jaeger_batch_0', transaction_docs + error_docs)

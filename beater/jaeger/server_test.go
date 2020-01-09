@@ -62,14 +62,14 @@ func TestApprovals(t *testing.T) {
 			tc.setup(t)
 			defer tc.teardown(t)
 
-			f := filepath.Join("testdata", name)
+			f := filepath.Join("..", "..", "testdata", "jaeger", name)
 			data, err := ioutil.ReadFile(f + ".json")
 			require.NoError(t, err)
 			var request api_v2.PostSpansRequest
 			require.NoError(t, json.Unmarshal(data, &request))
 
 			require.NoError(t, tc.sendBatchGRPC(request.Batch))
-			require.NoError(t, approvals.ApproveEvents(tc.events, f, ""))
+			require.NoError(t, approvals.ApproveEvents(tc.events, f))
 
 			tc.events = nil
 			thriftBatch := &jaegerthrift.Batch{
@@ -77,7 +77,7 @@ func TestApprovals(t *testing.T) {
 				Spans:   jaegerthriftconv.FromDomain(request.Batch.Spans),
 			}
 			require.NoError(t, tc.sendBatchHTTP(thriftBatch))
-			require.NoError(t, approvals.ApproveEvents(tc.events, f, ""))
+			require.NoError(t, approvals.ApproveEvents(tc.events, f))
 		})
 	}
 }
