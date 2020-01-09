@@ -2,16 +2,16 @@ from datetime import datetime, timedelta
 import json
 import os
 import re
+import sets
 import shutil
+import sys
 import threading
+import time
 import unittest
-from time import gmtime, strftime
 from urlparse import urlparse
 
-import sys
-import time
-
 from elasticsearch import Elasticsearch
+from nose.tools import nottest
 import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
@@ -45,7 +45,7 @@ class BaseTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.apm_version = "8.0.0"
-        cls.day = strftime("%Y.%m.%d", gmtime())
+        cls.day = time.strftime("%Y.%m.%d", time.gmtime())
         cls.beat_name = "apm-server"
         cls.beat_path = os.path.abspath(os.path.join(
             os.path.dirname(__file__), "..", ".."))
@@ -112,10 +112,11 @@ class BaseTest(TestCase):
         )
 
     def get_payload_path(self, name):
-        return self._beat_path_join(
-            'testdata',
-            'intake-v2',
-            name)
+        return self.get_testdata_path('intake-v2', name)
+
+    @nottest
+    def get_testdata_path(self, *names):
+        return self._beat_path_join('testdata', *names)
 
     def get_payload(self, name):
         with open(self.get_payload_path(name)) as f:
@@ -164,9 +165,17 @@ class ServerSetUpBaseTest(BaseTest):
     sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
+    jaeger_grpc_host = "localhost:14250"
+    jaeger_http_host = "localhost:14268"
+    jaeger_http_url = "http://{}/{}".format(jaeger_http_host, 'api/traces')
+
     def config(self):
         return {"ssl_enabled": "false",
                 "queue_flush": 0,
+                "jaeger_grpc_enabled": "true",
+                "jaeger_grpc_host": self.jaeger_grpc_host,
+                "jaeger_http_enabled": "true",
+                "jaeger_http_host": self.jaeger_http_host,
                 "path": os.path.abspath(self.working_dir) + "/log/*"}
 
     def setUp(self):
@@ -308,29 +317,47 @@ class ElasticTest(ServerBaseTest):
         super(ElasticTest, self).setUp()
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
-                                query_index=None, max_timeout=10):
+                                query_index=None, max_timeout=10, extra_headers=None):
 
         if query_index is None:
             query_index = self.index_name_pattern
 
+        headers = {'content-type': 'application/x-ndjson'}
+        if extra_headers:
+            headers.update(extra_headers)
+
         with open(data_path) as f:
-            r = requests.post(url,
-                              data=f,
-                              headers={'content-type': 'application/x-ndjson'})
+            r = requests.post(url, data=f, headers=headers)
         assert r.status_code == 202, r.status_code
 
         # Wait to give documents some time to be sent to the index
         # This is not required but speeds up the tests
         time.sleep(2)
-        self.es.indices.refresh(index=query_index)
+        self.wait_for_events(endpoint, expected_events_count, index=query_index)
+
+    def wait_for_events(self, processor_name, expected_count, index=None, max_timeout=10):
+        """
+        wait_for_events waits for an expected number of event docs with the given
+        'processor.name' value, and returns the hits when found.
+        """
+        if index is None:
+            index = self.index_name_pattern
+
+        self.es.indices.refresh(index=index)
+
+        query = {"term": {"processor.name": processor_name}}
+        result = {} # TODO(axw) use "nonlocal" when we migrate to Python 3
+        def get_docs():
+            hits = self.es.search(index=index, body={"query": query})['hits']
+            result['docs'] = hits['hits']
+            return hits['total']['value'] == expected_count
 
         self.wait_until(
-            lambda: (self.es.count(index=query_index, body={
-                "query": {"term": {"processor.name": endpoint}}}
-            )['count'] == expected_events_count),
+            get_docs,
             max_timeout=max_timeout,
-            name="{} documents to reach {}".format(endpoint, expected_events_count),
+            name="{} documents to reach {}".format(processor_name, expected_count),
         )
+        return result['docs']
 
     def check_backend_error_sourcemap(self, index, count=1):
         rs = self.es.search(index=index, params={"rest_total_hits_as_int": "true"})
@@ -363,6 +390,80 @@ class ElasticTest(ServerBaseTest):
             if jline.get("logger") == "request" and u.path == url:
                 yield jline
 
+    def approve_docs(self, base_path, received):
+        """
+        approve_docs compares the received documents to those contained
+        in the file at ${base_path}.approved.json. If that file does not
+        exist, then it is considered equivalent to a lack of documents.
+
+        Only the document _source is compared, and we ignore differences
+        in some context-sensitive fields such as the "observer", which
+        may vary between test runs.
+        """
+        base_path = self._beat_path_join(os.path.dirname(__file__), base_path)
+        approved_path = base_path + '.approved.json'
+        received_path = base_path + '.received.json'
+
+        try:
+            with open(approved_path) as f:
+                approved = json.load(f)
+        except IOError:
+            approved = []
+
+        # get_doc_id returns a value suitable for sorting and identifying
+        # documents: either a unique ID, or a timestamp. This is necessary
+        # since not all event types require a unique ID (namely, errors do
+        # not.)
+        #
+        # We return (0, doc['error']['id']) when the event type is 'error'
+        # if that field exists, otherwise returns (1, doc['@timestamp']).
+        # The first tuple element exists to sort IDs before timestamps.
+        def get_doc_id(doc):
+            doc_type = doc['processor']['event']
+            if 'id' in doc[doc_type]:
+                return (0, doc[doc_type]['id'])
+            return (1, doc['@timestamp'])
+
+        received = [doc['_source'] for doc in received]
+        received.sort(key=get_doc_id)
+
+        try:
+            for rec in received:
+                # Overwrite received observer values with the approved ones,
+                # in order to avoid noise in the 'approvals' diff if there are
+                # any other changes.
+                #
+                # We don't compare the observer values between received/approved,
+                # as they are dependent on the environment.
+                rec_id = get_doc_id(rec)
+                rec_observer = rec['observer']
+                self.assertEqual(sets.Set(rec_observer.keys()), sets.Set(
+                    ["hostname", "version", "id", "ephemeral_id", "type", "version_major"]))
+                assert rec_observer["version"].startswith(str(rec_observer["version_major"]) + ".")
+                for appr in approved:
+                    if get_doc_id(appr) == rec_id:
+                        rec['observer'] = appr['observer']
+                        break
+            assert len(received) == len(approved)
+            for i, rec in enumerate(received):
+                appr = approved[i]
+                rec_id = get_doc_id(rec)
+                assert rec_id == get_doc_id(appr), "New entry with id {}".format(rec_id)
+                for k, v in rec.items():
+                    self.assertEqual(v, appr[k])
+        except Exception as exc:
+            with open(received_path, 'w') as f:
+                json.dump(received, f, indent=4, separators=(',', ': '))
+
+            # Create a dynamic Exception subclass so we can fake its name to look like the original exception.
+            class ApprovalException(Exception):
+                def __init__(self, cause):
+                    super(ApprovalException, self).__init__(cause.message)
+
+                def __str__(self):
+                    return self.message + "\n\nReceived data differs from approved data. Run 'make update' and then 'approvals' to verify the diff."
+            ApprovalException.__name__ = type(exc).__name__
+            raise ApprovalException, exc, sys.exc_info()[2]
 
 class ClientSideBaseTest(ServerBaseTest):
     sourcemap_url = 'http://localhost:8200/assets/v1/sourcemaps'
@@ -417,13 +518,7 @@ class ClientSideBaseTest(ServerBaseTest):
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
     def wait_for_sourcemaps(self, expected_ct=1):
-        idx = self.index_smap
-        self.wait_until(
-            lambda: (self.es.count(index=idx, body={
-                "query": {"term": {"processor.name": 'sourcemap'}}}
-            )['count'] == expected_ct),
-            name="{} sourcemaps to ingest".format(expected_ct),
-        )
+        self.wait_for_events('sourcemap', expected_ct, index=self.index_smap)
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
         rs = self.es.search(index=self.index_error, params={"rest_total_hits_as_int": "true"})

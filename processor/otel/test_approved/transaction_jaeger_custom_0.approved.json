@@ -1,0 +1,28 @@
+{
+    "Client": null,
+    "Custom": null,
+    "Duration": 0,
+    "Experimental": null,
+    "Http": null,
+    "Id": "",
+    "Labels": {
+        "a_b": "foo"
+    },
+    "Marks": null,
+    "Message": null,
+    "Name": "",
+    "Page": null,
+    "ParentId": null,
+    "Result": "Success",
+    "Sampled": null,
+    "Service": null,
+    "SpanCount": {
+        "Dropped": null,
+        "Started": null
+    },
+    "Timestamp": "0001-01-01T00:00:00Z",
+    "TraceId": "",
+    "Type": "custom",
+    "Url": null,
+    "User": null
+}

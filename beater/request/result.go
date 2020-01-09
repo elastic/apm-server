@@ -38,6 +38,10 @@ const (
 	IDResponseErrorsCount ResultID = "response.errors.count"
 	// IDResponseValidCount identifies all successful responses
 	IDResponseValidCount ResultID = "response.valid.count"
+	// IDEventReceivedCount identifies amount of received events
+	IDEventReceivedCount ResultID = "event.received.count"
+	// IDEventDroppedCount identifies amount of dropped events
+	IDEventDroppedCount ResultID = "event.dropped.count"
 
 	// IDResponseValidNotModified identifies all successful responses without a modified body
 	IDResponseValidNotModified ResultID = "response.valid.notmodified"
@@ -116,23 +120,24 @@ type Result struct {
 	Stacktrace string
 }
 
-// MonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry.
-func MonitoringMapForRegistry(r *monitoring.Registry) map[ResultID]*monitoring.Int {
+// DefaultMonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry.
+func DefaultMonitoringMapForRegistry(r *monitoring.Registry) map[ResultID]*monitoring.Int {
+	ids := []ResultID{IDUnset, IDRequestCount, IDResponseCount, IDResponseErrorsCount, IDResponseValidCount}
+	for id := range MapResultIDToStatus {
+		ids = append(ids, id)
+	}
+	return MonitoringMapForRegistry(r, ids)
+}
+
+// MonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry and keys
+func MonitoringMapForRegistry(r *monitoring.Registry, ids []ResultID) map[ResultID]*monitoring.Int {
 	m := map[ResultID]*monitoring.Int{}
 	counter := func(s ResultID) *monitoring.Int {
 		return monitoring.NewInt(r, string(s))
 	}
-
-	// add all ids with response states
-	for id := range MapResultIDToStatus {
+	for _, id := range ids {
 		m[id] = counter(id)
 	}
-
-	// add generic ids
-	for _, id := range []ResultID{IDUnset, IDRequestCount, IDResponseCount, IDResponseErrorsCount, IDResponseValidCount} {
-		m[id] = counter(id)
-	}
-
 	return m
 }
 

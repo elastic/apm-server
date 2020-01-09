@@ -18,17 +18,12 @@
 package beater
 
 import (
-	"bufio"
 	"errors"
-	"fmt"
 	"net"
-	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"go.elastic.co/apm"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
@@ -48,11 +43,11 @@ func init() {
 
 type beater struct {
 	config   *config.Config
+	logger   *logp.Logger
 	mutex    sync.Mutex // guards server and stopped
-	server   *http.Server
+	server   server
 	stopping chan struct{}
 	stopped  bool
-	logger   *logp.Logger
 }
 
 var (
@@ -191,56 +186,15 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	bt.server, err = newServer(bt.config, tracer, pub.Send)
+	bt.server, err = newServer(bt.logger, bt.config, tracer, pub.Send)
 	if err != nil {
 		bt.logger.Error("failed to create new server:", err)
 		return nil
 	}
 	bt.mutex.Unlock()
 
-	var g errgroup.Group
-	g.Go(func() error {
-		return run(bt.logger, bt.server, lis, bt.config)
-	})
-
-	if bt.isServerAvailable(bt.config.ShutdownTimeout) {
-		go notifyListening(bt.config, pub.Client().Publish)
-	}
-
-	if tracerServer != nil {
-		g.Go(func() error {
-			return tracerServer.serve(pub.Send)
-		})
-	}
-
-	if err := g.Wait(); err != http.ErrServerClosed {
-		return err
-	}
-	bt.logger.Infof("Server stopped")
-	return nil
-}
-
-func (bt *beater) isServerAvailable(timeout time.Duration) bool {
-	// following an example from https://golang.org/pkg/net/
-	// dial into tcp connection to ensure listener is ready, send get request and read response,
-	// in case tls is enabled, the server will respond with 400,
-	// as this only checks the server is up and reachable errors can be ignored
-	conn, err := net.DialTimeout("tcp", bt.config.Host, timeout)
-	if err != nil {
-		return false
-	}
-	err = conn.SetReadDeadline(time.Now().Add(timeout))
-	if err != nil {
-		return false
-	}
-	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
-	_, err = bufio.NewReader(conn).ReadByte()
-	if err != nil {
-		return false
-	}
-
-	err = conn.Close()
-	return err == nil
+	//blocking until shutdown
+	return bt.server.run(lis, tracerServer, pub)
 }
 
 func isElasticsearchOutput(b *beat.Beat) bool {
@@ -275,9 +229,7 @@ func (bt *beater) Stop() {
 	}
 	bt.logger.Infof("stopping apm-server... waiting maximum of %v seconds for queues to drain",
 		bt.config.ShutdownTimeout.Seconds())
-	if bt.server != nil {
-		stop(bt.logger, bt.server)
-	}
+	bt.server.stop(bt.logger)
 	close(bt.stopping)
 	bt.stopped = true
 }

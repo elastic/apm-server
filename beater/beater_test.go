@@ -60,7 +60,7 @@ func (bt *beater) client(insecure bool) (string, *http.Client) {
 
 	bt.mutex.Lock() // for reading bt.server
 	defer bt.mutex.Unlock()
-	if parsed, err := url.Parse(bt.server.Addr); err == nil && parsed.Scheme == "unix" {
+	if parsed, err := url.Parse(bt.server.httpServer.Addr); err == nil && parsed.Scheme == "unix" {
 		transport.DialContext = func(_ context.Context, _, _ string) (net.Conn, error) {
 			return net.Dial("unix", parsed.Path)
 		}
@@ -81,7 +81,7 @@ func (bt *beater) wait() error {
 	go func() {
 		for {
 			bt.mutex.Lock()
-			if bt.server != nil {
+			if bt.server.httpServer != nil {
 				bt.mutex.Unlock()
 				break
 			}
