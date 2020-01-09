@@ -25,6 +25,8 @@ include::./opentracing.asciidoc[]
 
 include::./obs-integrations.asciidoc[]
 
+include::./cross-cluster-search.asciidoc[]
+
 include::./agent-server-compatibility.asciidoc[]
 
 include::./troubleshooting.asciidoc[]

@@ -255,7 +255,7 @@ func (d *ManualDecoder) TimeEpochMicro(base map[string]interface{}, key string, 
 
 func (d *ManualDecoder) Headers(base map[string]interface{}) http.Header {
 	h := d.MapStr(base, "headers")
-	if d.Err != nil {
+	if d.Err != nil || len(h) == 0 {
 		return nil
 	}
 	httpHeader := http.Header{}

@@ -97,6 +97,8 @@ func errorRequiredKeys() *tests.Set {
 		"error.log.message",
 		"error.exception.stacktrace.filename",
 		"error.log.stacktrace.filename",
+		"error.exception.stacktrace.classname",
+		"error.log.stacktrace.classname",
 		"error.context.request.method",
 		"error.context.request.url",
 
@@ -110,10 +112,14 @@ type obj = map[string]interface{}
 
 func errorCondRequiredKeys() map[string]tests.Condition {
 	return map[string]tests.Condition{
-		"error.exception":         {Absence: []string{"error.log"}},
-		"error.exception.message": {Absence: []string{"error.exception.type"}},
-		"error.exception.type":    {Absence: []string{"error.exception.message"}},
-		"error.log":               {Absence: []string{"error.exception"}},
+		"error.exception":                      {Absence: []string{"error.log"}},
+		"error.exception.message":              {Absence: []string{"error.exception.type"}},
+		"error.exception.type":                 {Absence: []string{"error.exception.message"}},
+		"error.exception.stacktrace.filename":  {Absence: []string{"error.exception.stacktrace.classname"}},
+		"error.exception.stacktrace.classname": {Absence: []string{"error.exception.stacktrace.filename"}},
+		"error.log":                            {Absence: []string{"error.exception"}},
+		"error.log.stacktrace.filename":        {Absence: []string{"error.log.stacktrace.classname"}},
+		"error.log.stacktrace.classname":       {Absence: []string{"error.log.stacktrace.filename"}},
 
 		"error.trace_id":  {Existence: obj{"error.parent_id": "abc123"}},
 		"error.parent_id": {Existence: obj{"error.trace_id": "abc123"}},
@@ -154,6 +160,7 @@ func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 			"error.context.user.email",
 			"error.context.experimental",
 			"error.exception.parent", // it will never be present in the top (first) exception
+			tests.Group("error.context.message"),
 		))
 }
 

@@ -313,6 +313,7 @@
                 "name": "SELECT FROM product_types",
                 "stacktrace": [
                     {
+                        "classname": "Core.js",
                         "exclude_from_grouping": false,
                         "filename": "net.js",
                         "line": {
@@ -371,6 +372,71 @@
             },
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "pipeline": "apm",
+                "type": "_doc",
+                "version": "8.0.0"
+            },
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.2.0"
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "8.0.0",
+                "version_major": 8
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans"
+            },
+            "span": {
+                "action": "receive",
+                "duration": {
+                    "us": 141581
+                },
+                "id": "00xxx12312312312",
+                "message": {
+                    "age": {
+                        "ms": 1577958057123
+                    },
+                    "queue": {
+                        "name": "new_users"
+                    }
+                },
+                "name": "Rabbitmq receive",
+                "subtype": "JMS",
+                "type": "messaging"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "fdedef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
             }
         }
     ]
