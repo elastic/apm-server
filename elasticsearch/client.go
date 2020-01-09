@@ -65,7 +65,7 @@ func (c clientV8) Search(index string, body io.Reader) (int, io.ReadCloser, erro
 }
 
 func (c clientV8) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
-	req, err := makeRequest(method, path, body, headers...)
+	req, err := makeJSONRequest(method, path, body, headers...)
 	if err != nil {
 		return JSONResponse{nil, err}
 	}
@@ -92,7 +92,7 @@ func (c clientV7) Search(index string, body io.Reader) (int, io.ReadCloser, erro
 }
 
 func (c clientV7) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
-	req, err := makeRequest(method, path, body, headers...)
+	req, err := makeJSONRequest(method, path, body, headers...)
 	if err != nil {
 		return JSONResponse{nil, err}
 	}
@@ -157,7 +157,7 @@ func (r JSONResponse) DecodeTo(i interface{}) error {
 }
 
 // each header has the format "key: value"
-func makeRequest(method, path string, body interface{}, headers ...string) (*http.Request, error) {
+func makeJSONRequest(method, path string, body interface{}, headers ...string) (*http.Request, error) {
 	header := http.Header{
 		"Content-Type": []string{"application/json"},
 		"Accept":       []string{"application/json"},

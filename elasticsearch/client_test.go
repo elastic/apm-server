@@ -18,6 +18,11 @@
 package elasticsearch
 
 import (
+	"bytes"
+	"errors"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -56,4 +61,59 @@ func TestClient(t *testing.T) {
 		}
 
 	})
+}
+
+func TestMakeJSONRequest(t *testing.T) {
+	var body interface{}
+	req, err := makeJSONRequest(http.MethodGet, "/path", body, "Authorization:foo", "Header-X:bar")
+	assert.Nil(t, err)
+	assert.Equal(t, http.MethodGet, req.Method)
+	assert.Equal(t, "/path", req.URL.Path)
+	assert.NotNil(t, req.Body)
+	assert.NotNil(t, req.Header)
+	assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
+	assert.Equal(t, "application/json", req.Header.Get("Accept"))
+	assert.Equal(t, "foo", req.Header.Get("Authorization"))
+	assert.Equal(t, "bar", req.Header.Get("Header-X"))
+}
+
+func TestParseResponse(t *testing.T) {
+	body := "body"
+	for _, testCase := range []struct {
+		code         int
+		expectedBody io.ReadCloser
+		expectedErr  error
+	}{
+		{404, nil, errors.New(body)},
+		{200, ioutil.NopCloser(strings.NewReader(body)), nil},
+	} {
+		jsonResponse := parseResponse(&http.Response{
+			StatusCode: testCase.code,
+			Body:       ioutil.NopCloser(strings.NewReader(body)),
+		}, nil)
+		assert.Equal(t, testCase.expectedBody, jsonResponse.content)
+		assert.Equal(t, testCase.expectedErr, jsonResponse.err)
+	}
+}
+
+func TestDecodeTo(t *testing.T) {
+	type target map[string]string
+	err := errors.New("error")
+
+	for _, testCase := range []struct {
+		content        []byte
+		err            error
+		expectedError  error
+		expectedEffect target
+	}{
+		{nil, err, err, target(nil)},
+		{[]byte(`{"foo":"bar"}`), nil, nil, target{"foo": "bar"}},
+	} {
+		var to target
+		assert.Equal(t, testCase.expectedError, JSONResponse{
+			content: ioutil.NopCloser(bytes.NewReader(testCase.content)),
+			err:     testCase.err,
+		}.DecodeTo(&to))
+		assert.Equal(t, testCase.expectedEffect, to)
+	}
 }
