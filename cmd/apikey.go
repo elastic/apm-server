@@ -29,9 +29,6 @@ import (
 	"strings"
 	"time"
 
-	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/beats/libbeat/logp"
-
 	"github.com/spf13/cobra"
 
 	"github.com/elastic/beats/libbeat/cfgfile"
@@ -216,12 +213,6 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 	return verify
 }
 
-// TODO is there just any other way to do this?
-// without the wrapper, YAML settings in "apm-server" are not picked up by ucfg
-type ApmConfig struct {
-	Config *config.Config `config:"apm-server"`
-}
-
 // apm-server.api_key.enabled is implicitly true
 func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 
@@ -243,18 +234,26 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 		return nil, nil, err
 	}
 
-	apm := ApmConfig{config.DefaultConfig(settings.Version)}
-	err = beat.RawConfig.Unpack(&apm)
+	cfg, err := beat.BeatConfig()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var esOutputCfg *common.Config
+	if beat.Config.Output.Name() == "elasticsearch" {
+		esOutputCfg = beat.Config.Output.Config()
+	}
+	beaterConfig, err := config.NewConfig(beat.Info.Version, cfg, esOutputCfg)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var client es.Client
-	err = apm.Config.APIKeyConfig.Setup(logp.NewLogger(logs.Config), beat.Config.Output.Config())
 	if err == nil {
-		client, err = es.NewClient(apm.Config.APIKeyConfig.ESConfig)
+		client, err = es.NewClient(beaterConfig.APIKeyConfig.ESConfig)
 	}
-	return client, apm.Config, err
+
+	return client, beaterConfig, err
 }
 
 func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAction {

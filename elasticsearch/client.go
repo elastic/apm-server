@@ -25,7 +25,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -169,20 +168,15 @@ func makeRequest(method, path string, body interface{}, headers ...string) (*htt
 			header[kv[0]] = strings.Split(kv[1], ",")
 		}
 	}
-	u, _ := url.Parse(path)
-	req := &http.Request{
-		Method: method,
-		URL:    u,
-		Header: header,
-	}
 	bs, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
-	if body != nil {
-		req.Body = ioutil.NopCloser(bytes.NewReader(bs))
-		req.ContentLength = int64(len(bs))
+	req, err := http.NewRequest(method, path, ioutil.NopCloser(bytes.NewReader(bs)))
+	if err != nil {
+		return nil, err
 	}
+	req.Header = header
 	return req, nil
 }
 
@@ -194,6 +188,7 @@ func parseResponse(resp *http.Response, err error) JSONResponse {
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(body)
+		body.Close()
 		return JSONResponse{nil, errors.New(buf.String())}
 	}
 	return JSONResponse{body, nil}
