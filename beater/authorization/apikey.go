@@ -123,8 +123,8 @@ func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
 		return nil, err
 	}
 	if resources, ok := info.Application[Application]; ok {
-		if privileges, ok := resources[resource]; ok {
-			return privileges, nil
+		if permissions, ok := resources[resource]; ok {
+			return permissions, nil
 		}
 	}
 	return es.Permissions{}, nil

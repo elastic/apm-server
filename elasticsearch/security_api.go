@@ -118,9 +118,9 @@ type HasPrivilegesRequest struct {
 	Applications []Application `json:"application"`
 }
 type HasPrivilegesResponse struct {
-	Username    string                            `json:"username"`
-	HasAll      bool                              `json:"has_all_requested"`
-	Application map[AppName]PrivilegesPerResource `json:"application"`
+	Username    string                             `json:"username"`
+	HasAll      bool                               `json:"has_all_requested"`
+	Application map[AppName]PermissionsPerResource `json:"application"`
 }
 
 type InvalidateApiKeyRequest struct {
@@ -178,7 +178,7 @@ type PrivilegeGroup map[PrivilegeName]Actions
 
 type Permissions map[PrivilegeAction]bool
 
-type PrivilegesPerResource map[Resource]Permissions
+type PermissionsPerResource map[Resource]Permissions
 
 type Actions struct {
 	Actions []PrivilegeAction `json:"actions"`
