@@ -4,6 +4,11 @@ apm-server:
   host: "localhost:8200"
   secret_token: {{ secret_token }}
 
+  {% if jaeger_http_enabled %}
+  jaeger.http.enabled: {{ jaeger_http_enabled }}
+  jaeger.http.host: {{ jaeger_http_host }}
+  {% endif %}
+
   {% if api_key_enabled %}
   api_key.enabled: {{ api_key_enabled }}
   api_key.limit: {{ api_key_limit | default(100) }}
