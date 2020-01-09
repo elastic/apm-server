@@ -21,8 +21,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
+	"strings"
 	"testing"
 
+	// Imported to ensure the type data is available for reflection.
+	_ "github.com/elastic/beats/libbeat/outputs/elasticsearch"
+
+	"github.com/modern-go/reflect2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -88,4 +94,55 @@ func TestAddresses(t *testing.T) {
 			"https://localhost:9200/abc", "https://192.0.0.2:8080/xyz"}
 		assert.ElementsMatch(t, expected, addresses)
 	})
+}
+
+// TestBeatsConfigSynced helps ensure that our elasticsearch.Config struct is
+// kept in sync with the config defined in libbeat/outputs/elasticsearch.
+func TestBeatsConfigSynced(t *testing.T) {
+	libbeatType, _ := reflect2.TypeByPackageName(
+		"github.com/elastic/apm-server/vendor/github.com/elastic/beats/libbeat/outputs/elasticsearch",
+		"elasticsearchConfig",
+	).(reflect2.StructType)
+	require.NotNil(t, libbeatType)
+
+	localType, _ := reflect2.TypeByPackageName(
+		"github.com/elastic/apm-server/elasticsearch",
+		"Config",
+	).(reflect2.StructType)
+	require.NotNil(t, localType)
+
+	type structField struct {
+		reflect2.StructField
+		structTag reflect.StructTag
+	}
+	getStructFields := func(typ reflect2.StructType) map[string]structField {
+		out := make(map[string]structField)
+		for i := typ.NumField() - 1; i >= 0; i-- {
+			field := structField{StructField: typ.Field(i)}
+			field.structTag = field.Tag()
+			configTag := strings.Split(field.structTag.Get("config"), ",")
+			configName := configTag[0]
+			if configName == "" {
+				configName = strings.ToLower(field.Name())
+			}
+			out[configName] = field
+		}
+		return out
+	}
+
+	libbeatStructFields := getStructFields(libbeatType)
+	localStructFields := getStructFields(localType)
+
+	// "hosts" is only expected in the local struct
+	delete(localStructFields, "hosts")
+
+	// We expect the libbeat struct to be a superset of all other
+	// fields defined in the local struct, with identical tags and
+	// types. Struct field names do not need to match.
+	for name, localStructField := range localStructFields {
+		require.Contains(t, libbeatStructFields, name)
+		libbeatStructField := libbeatStructFields[name]
+		assert.Equal(t, localStructField.structTag, libbeatStructField.structTag)
+		assert.Equal(t, localStructField.Type(), libbeatStructField.Type())
+	}
 }

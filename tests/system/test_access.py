@@ -359,6 +359,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
             resp = upload(token)
             assert resp.status_code == 202, "token: {}, status_code: {}".format(token, resp.status_code)
 
+
 @integration_test
 class TestSelfInstrumentationWithAPIKeys(BaseAPIKeySetup):
 
@@ -387,6 +388,7 @@ class TestSelfInstrumentationWithAPIKeys(BaseAPIKeySetup):
             }})
             return response['count'] != 0
         self.wait_until(have_apm_server_traces, max_timeout=20, name="waiting for apm-server traces")
+
 
 @integration_test
 class TestSecureServerBaseTest(ServerSetUpBaseTest):

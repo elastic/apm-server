@@ -160,6 +160,7 @@ func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 			"error.context.user.email",
 			"error.context.experimental",
 			"error.exception.parent", // it will never be present in the top (first) exception
+			tests.Group("error.context.message"),
 		))
 }
 

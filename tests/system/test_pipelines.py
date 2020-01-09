@@ -74,7 +74,7 @@ class PipelineRegisterTest(ElasticTest):
         self.wait_until_pipelines_registered()
         self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 3)
+                                     self.intake_url, 'transaction', 4)
 
         entries = self.es.search(index=self.index_transaction)['hits']['hits']
         ua_found = False
@@ -102,7 +102,7 @@ class PipelineDisabledTest(ElasticTest):
     def test_pipeline_not_applied(self):
         self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 3)
+                                     self.intake_url, 'transaction', 4)
         uaFound = False
         entries = self.es.search(index=self.index_transaction)['hits']['hits']
         for e in entries:
@@ -124,7 +124,7 @@ class PipelinesConfigurationNoneTest(ElasticTest):
     def test_pipeline_not_applied(self):
         self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 3)
+                                     self.intake_url, 'transaction', 4)
 
         entries = self.es.search(index=self.index_transaction)['hits']['hits']
         uaFound = False
@@ -151,7 +151,7 @@ class MissingPipelineTest(ElasticTest):
         self.wait_until_ilm_setup()
         # ensure events get stored properly nevertheless
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 3)
+                                     self.intake_url, 'transaction', 4)
 
 
 @integration_test

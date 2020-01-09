@@ -64,6 +64,9 @@ func TestDecodeSpan(t *testing.T) {
 				"resource": destServiceResource,
 			},
 		},
+		"message": map[string]interface{}{
+			"queue": map[string]interface{}{"name": "foo"},
+			"age":   map[string]interface{}{"ms": json.Number("1577958057123")}},
 	}
 	subtype := "postgresql"
 	action, action2 := "query", "query.custom"
@@ -121,7 +124,7 @@ func TestDecodeSpan(t *testing.T) {
 		},
 		"minimal payload": {
 			input: map[string]interface{}{
-				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
 			},
 			e: &Event{
@@ -129,7 +132,6 @@ func TestDecodeSpan(t *testing.T) {
 				Type:      "db",
 				Subtype:   &subtype,
 				Action:    &action2,
-				Start:     &start,
 				Duration:  duration,
 				Timestamp: spanTime,
 				ParentId:  parentId,
@@ -202,13 +204,13 @@ func TestDecodeSpan(t *testing.T) {
 		},
 		"full valid payload": {
 			input: map[string]interface{}{
-				"name": name, "type": "external.request", "subtype": subtype, "action": action, "start": start,
+				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			e: &Event{
 				Name:      name,
-				Type:      "external.request",
+				Type:      "messaging",
 				Subtype:   &subtype,
 				Action:    &action,
 				Start:     &start,
@@ -237,17 +239,20 @@ func TestDecodeSpan(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
+				Message: &m.Message{
+					QueueName: tests.StringPtr("foo"),
+					AgeMillis: tests.IntPtr(1577958057123)},
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			span, err := DecodeEvent(test.input, test.cfg, test.inpErr)
 			if test.err == "" {
+				require.Nil(t, err)
 				assert.Equal(t, test.e, span)
-				return
-			}
-			if assert.Error(t, err) {
-				assert.Equal(t, test.err, err.Error())
+			} else {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), test.err)
 			}
 		})
 	}
@@ -259,8 +264,8 @@ func TestSpanTransform(t *testing.T) {
 	serviceName, serviceVersion, env := "myService", "1.2", "staging"
 	service := metadata.Service{Name: &serviceName, Version: &serviceVersion, Environment: &env}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
-	subtype := "myspansubtype"
-	action := "myspanquery"
+	subtype := "amqp"
+	action := "publish"
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
 		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
@@ -316,6 +321,7 @@ func TestSpanTransform(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
+				Message: &m.Message{QueueName: tests.StringPtr("users")},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -352,6 +358,7 @@ func TestSpanTransform(t *testing.T) {
 							"resource": destServiceResource,
 						},
 					},
+					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
 				},
 				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},

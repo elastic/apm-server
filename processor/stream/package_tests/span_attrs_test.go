@@ -45,6 +45,7 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("context"),
 		tests.Group("span.db"),
 		tests.Group("span.http"),
+		"span.message.body", "span.message.headers",
 	)
 }
 
@@ -92,6 +93,8 @@ func spanJsonSchemaNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"span.transaction_id",
 		"span.context.experimental",
+		"span.context.message.body",
+		"span.context.message.headers",
 	)
 }
 
@@ -187,9 +190,11 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "span.id", Mapping: "id"},
 			{Template: "span.db.link", Mapping: "context.db.link"},
 			{Template: "span.destination.service", Mapping: "context.destination.service"},
+			{Template: "span.message.", Mapping: "context.message."},
 			{Template: "span.", Mapping: ""},
 			{Template: "destination.address", Mapping: "context.destination.address"},
 			{Template: "destination.port", Mapping: "context.destination.port"},
+			{Template: "span.message.queue.name", Mapping: "context.message.queue.name"},
 		},
 	)
 }

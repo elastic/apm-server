@@ -18,9 +18,9 @@
 package transaction
 
 import (
-	"errors"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -67,6 +67,7 @@ type Event struct {
 	Result    *string
 	Duration  float64
 	Marks     common.MapStr
+	Message   *m.Message
 	Sampled   *bool
 	SpanCount SpanCount
 	User      *metadata.User
@@ -118,8 +119,9 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Service:      ctx.Service,
 		Client:       ctx.Client,
 		Experimental: ctx.Experimental,
-		Marks:        decoder.MapStr(raw, "marks"),
+		Message:      ctx.Message,
 		Sampled:      decoder.BoolPtr(raw, "sampled"),
+		Marks:        decoder.MapStr(raw, "marks"),
 		Timestamp:    decoder.TimeEpochMicro(raw, "timestamp"),
 		SpanCount: SpanCount{
 			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
@@ -127,7 +129,6 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		ParentId: decoder.StringPtr(raw, "parent_id"),
 		TraceId:  decoder.String(raw, "trace_id"),
 	}
-
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
@@ -144,6 +145,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Set(tx, "marks", e.Marks)
 	utility.Set(tx, "page", e.Page.Fields())
 	utility.Set(tx, "custom", e.Custom.Fields())
+	utility.Set(tx, "message", e.Message.Fields())
 
 	if e.Sampled == nil {
 		utility.Set(tx, "sampled", true)

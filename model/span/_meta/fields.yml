@@ -92,3 +92,26 @@
                   type: keyword
                   description: >
                     Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')
+
+        - name: message
+          type: group
+          dynamic: false
+          fields:
+
+            - name: queue
+              type: group
+              fields:
+
+                - name: name
+                  type: keyword
+                  description: >
+                    Name of the message queue or topic where the message is published or received.
+
+            - name: age
+              type: group
+              fields:
+
+              - name: ms
+                type: long
+                description: >
+                  Age of a message in milliseconds.
