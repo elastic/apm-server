@@ -1,0 +1,59 @@
+[
+    {
+        "transaction": {
+            "sampled": true,
+            "name": "test_span",
+            "result": "Success",
+            "duration": {
+                "us": 2
+            },
+            "type": "custom",
+            "id": "5025e08c7fef6542"
+        },
+        "trace": {
+            "id": "00000000000000005025e08c7fef6542"
+        },
+        "observer": {
+            "ephemeral_id": "39dd6032-fa6c-4b9e-9fab-f35ea6ef8dfe",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "901ad5b3-b313-4c2d-a7a0-2d188005f25e"
+        },
+        "timestamp": {
+            "us": 1578451731616515
+        },
+        "@timestamp": "2020-01-08T02:48:51.616Z",
+        "labels": {
+            "sampler_type": "const",
+            "sampler_param": true
+        },
+        "agent": {
+            "ephemeral_id": "3a5c6b00dd41a605",
+            "name": "Jaeger/Go",
+            "version": "2.21.2-dev"
+        },
+        "host": {
+            "ip": "10.1.1.101",
+            "hostname": "alloy",
+            "name": "alloy"
+        },
+        "service": {
+            "node": {
+                "name": "alloy"
+            },
+            "name": "test_service",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "ecs": {
+            "version": "1.2.0"
+        },
+        "processor": {
+            "name": "transaction",
+            "event": "transaction"
+        }
+    }
+]
