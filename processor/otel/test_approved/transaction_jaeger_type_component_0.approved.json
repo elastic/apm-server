@@ -9,6 +9,7 @@
         "component": "amqp"
     },
     "Marks": null,
+    "Message": null,
     "Name": "",
     "Page": null,
     "ParentId": null,

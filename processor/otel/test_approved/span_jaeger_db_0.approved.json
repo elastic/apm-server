@@ -17,6 +17,7 @@
     "Labels": {
         "component": "foo"
     },
+    "Message": null,
     "Name": "",
     "ParentId": "61626364",
     "Service": null,
