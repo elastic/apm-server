@@ -1,6 +1,3 @@
-import json
-import os
-import sys
 import time
 
 from apmserver import integration_test
@@ -76,12 +73,12 @@ class Test(ElasticTest):
         # compare existing ES documents for transactions with new ones
         rs = self.es.search(index=self.index_transaction)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('transaction', rs['hits']['hits'], 'transaction')
+        self.approve_docs('transaction', rs['hits']['hits'])
 
         # compare existing ES documents for spans with new ones
         rs = self.es.search(index=self.index_span)
         assert rs['hits']['total']['value'] == 5, "found {} documents".format(rs['count'])
-        self.approve_docs('spans', rs['hits']['hits'], 'span')
+        self.approve_docs('spans', rs['hits']['hits'])
 
     def test_load_docs_with_template_and_add_error(self):
         """
@@ -94,7 +91,7 @@ class Test(ElasticTest):
         # compare existing ES documents for errors with new ones
         rs = self.es.search(index=self.index_error)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('error', rs['hits']['hits'], 'error')
+        self.approve_docs('error', rs['hits']['hits'])
 
         self.check_backend_error_sourcemap(self.index_error, count=4)
 

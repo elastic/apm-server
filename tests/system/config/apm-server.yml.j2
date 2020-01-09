@@ -8,6 +8,10 @@ apm-server:
   jaeger.http.enabled: {{ jaeger_http_enabled }}
   jaeger.http.host: {{ jaeger_http_host }}
   {% endif %}
+  {% if jaeger_grpc_enabled %}
+  jaeger.grpc.enabled: {{ jaeger_grpc_enabled }}
+  jaeger.grpc.host: {{ jaeger_grpc_host }}
+  {% endif %}
 
   {% if api_key_enabled %}
   api_key.enabled: {{ api_key_enabled }}
