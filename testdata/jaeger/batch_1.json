@@ -1,0 +1,472 @@
+{
+ "batch": {
+  "spans": [
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "bgnovO/WuCg=",
+    "operation_name": "FindDriverIDs",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:44.954062Z",
+    "duration": 19711000,
+    "tags": [
+     {
+      "key": "param.location",
+      "v_str": "728,326"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-20T07:41:44.973728Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "Found drivers"
+       },
+       {
+        "key": "level",
+        "v_str": "info"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "MzKVv7Q46gM=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:44.973809Z",
+    "duration": 33732000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T762465C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     },
+     {
+      "key": "error",
+      "v_type": 1,
+      "v_bool": true
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-20T07:41:45.006847Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "redis timeout"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "driver_id",
+        "v_str": "T762465C"
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "Ynw3qX5HXC8=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.007578Z",
+    "duration": 9240000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T762465C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "e9dmPTnFqEc=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.016845Z",
+    "duration": 12561000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T712515C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "a0BR3SpeI2Y=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.029415Z",
+    "duration": 10630000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T752110C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "bfl6hrmzRRs=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.040082Z",
+    "duration": 13946000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T757670C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "YUgR1sSYv7A=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.054046Z",
+    "duration": 35375000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T781861C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     },
+     {
+      "key": "error",
+      "v_type": 1,
+      "v_bool": true
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-20T07:41:45.089372Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "redis timeout"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "driver_id",
+        "v_str": "T781861C"
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "IxYEVZ2oTWE=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.089459Z",
+    "duration": 11802000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T781861C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "Yffs8k0Tw2o=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.101278Z",
+    "duration": 12236000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T705860C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "LvM1utJKzMI=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.113531Z",
+    "duration": 11986000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T708771C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "OOxkXnIBIk0=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.125567Z",
+    "duration": 7311000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T710624C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "AkLuN3TZ6rE=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.132896Z",
+    "duration": 39602000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T752547C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     },
+     {
+      "key": "error",
+      "v_type": 1,
+      "v_bool": true
+     }
+    ],
+    "logs": [
+     {
+      "timestamp": "2019-12-20T07:41:45.172347Z",
+      "fields": [
+       {
+        "key": "event",
+        "v_str": "redis timeout"
+       },
+       {
+        "key": "level",
+        "v_str": "error"
+       },
+       {
+        "key": "driver_id",
+        "v_str": "T752547C"
+       },
+       {
+        "key": "error",
+        "v_str": "redis timeout"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "amPR6Bz8fZU=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.172618Z",
+    "duration": 14029000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T752547C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   },
+   {
+    "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+    "span_id": "K0wo8CsnLxc=",
+    "operation_name": "GetDriver",
+    "references": [
+     {
+      "trace_id": "AAAAAAAAAAB74v2Y0Jc74w==",
+      "span_id": "e+L9mNCXO+M="
+     }
+    ],
+    "flags": 1,
+    "start_time": "2019-12-20T07:41:45.18667Z",
+    "duration": 10431000,
+    "tags": [
+     {
+      "key": "param.driverID",
+      "v_str": "T757338C"
+     },
+     {
+      "key": "span.kind",
+      "v_str": "client"
+     }
+    ],
+    "logs": null
+   }
+  ],
+  "process": {
+   "service_name": "redis",
+   "tags": [
+    {
+     "key": "jaeger.version",
+     "v_str": "Go-2.20.1"
+    },
+    {
+     "key": "hostname",
+     "v_str": "host01"
+    },
+    {
+     "key": "ip",
+     "v_str": "10.0.0.13"
+    },
+    {
+     "key": "client-uuid",
+     "v_str": "2e3f8db3eb77fae0"
+    }
+   ]
+  }
+ }
+}
