@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 
 	"github.com/pkg/errors"
-	)
+)
 
 // Transport can be used to pass to test Elasticsearch Client for more control over client behavior
 type Transport struct {
