@@ -287,9 +287,7 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	privilegesCreated, err := es.CreatePrivileges(client, privilegesRequest)
 
 	if err != nil {
-		printErr(err,
-			`Error creating privileges for APM Server, do you have the "manage_cluster" security privilege?`,
-			asJSON)
+		printErr(err, asJSON)
 		return
 	}
 
@@ -320,9 +318,7 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 
 	apikey, err := es.CreateAPIKey(client, apikeyRequest)
 	if err != nil {
-		printErr(err, fmt.Sprintf(
-			`Error creating the API Key %s, do you have the "manage_cluster" security privilege?`, apikeyName),
-			asJSON)
+		printErr(err, asJSON)
 		return
 	}
 	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.Id + ":" + apikey.Key))
@@ -360,9 +356,7 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
 
 	apikeys, err := es.GetAPIKeys(client, request)
 	if err != nil {
-		printErr(err,
-			`Error retrieving API Key(s) for APM Server, do you have the "manage_cluster" security privilege?`,
-			asJSON)
+		printErr(err, asJSON)
 		return
 	}
 
@@ -404,9 +398,7 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 
 	invalidation, err := es.InvalidateAPIKey(client, invalidateKeysRequest)
 	if err != nil {
-		printErr(err,
-			`Error invalidating API Key(s), do you have the "manage_cluster" security privilege?`,
-			asJSON)
+		printErr(err, asJSON)
 		return
 	}
 	printText, printJSON := printers(asJSON)
@@ -471,7 +463,7 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 	}
 
 	if err != nil {
-		printErr(err, "could not verify credentials, please check your Elasticsearch connection", asJSON)
+		printErr(err, asJSON)
 	} else {
 		printJSON(perms)
 	}
@@ -541,29 +533,25 @@ func printers(b bool) (func(string, ...interface{}), func(interface{})) {
 		}
 }
 
-// prints an Elasticsearch error to stderr, with some additional contextual information as a hint
-func printErr(err error, help string, asJSON bool) {
+// prints an Elasticsearch error to stderr
+func printErr(err error, asJSON bool) {
 	if asJSON {
 		var data []byte
 		var m map[string]interface{}
 		e := json.Unmarshal([]byte(err.Error()), &m)
 		if e == nil {
 			// err.Error() has JSON shape, likely coming from Elasticsearch
-			m["help"] = help
 			data, _ = json.MarshalIndent(m, "", "\t")
 		} else {
 			// err.Error() is a bare string, likely coming from apm-server
 			data, _ = json.MarshalIndent(struct {
 				Error string `json:"error"`
-				Help  string `json:"help,omitempty"`
 			}{
 				Error: err.Error(),
-				Help:  help,
 			}, "", "\t")
 		}
 		fmt.Fprintln(os.Stderr, string(data))
 	} else {
-		fmt.Fprintln(os.Stderr, help)
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
 }
