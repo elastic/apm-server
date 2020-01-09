@@ -12,7 +12,7 @@ GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goim
 GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
 GOLINT_TARGETS?=$(shell go list ./... | grep -v /vendor/)
 GOLINT_UPSTREAM?=origin/7.x
-GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | $(REVIEWDOG) -f=golint -diff="git diff $(GOLINT_UPSTREAM)")
+GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) -f=golint -diff="git diff $(GOLINT_UPSTREAM)")
 GOVENDOR_REPO?=github.com/elastic/apm-server/vendor/github.com/kardianos/govendor
 JUNIT_REPORT_REPO?=github.com/elastic/apm-server/vendor/github.com/jstemmer/go-junit-report
 REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
