@@ -81,7 +81,10 @@ func DeletePrivileges(client Client, privilegesReq DeletePrivilegeRequest) (Dele
 }
 
 func HasPrivileges(client Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
-	h := fmt.Sprintf("Authorization: ApiKey %s", credentials)
+	var h string
+	if credentials != "" {
+		h = fmt.Sprintf("Authorization: ApiKey %s", credentials)
+	}
 	response := client.JSONRequest(http.MethodGet, "/_security/user/_has_privileges", privileges, h)
 
 	var info HasPrivilegesResponse

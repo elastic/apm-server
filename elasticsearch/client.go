@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -168,11 +167,15 @@ func makeJSONRequest(method, path string, body interface{}, headers ...string) (
 			header[kv[0]] = strings.Split(kv[1], ",")
 		}
 	}
-	bs, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
+	var reader io.Reader
+	if body != nil {
+		bs, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+		reader = bytes.NewReader(bs)
 	}
-	req, err := http.NewRequest(method, path, ioutil.NopCloser(bytes.NewReader(bs)))
+	req, err := http.NewRequest(method, path, reader)
 	if err != nil {
 		return nil, err
 	}

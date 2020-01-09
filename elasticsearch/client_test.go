@@ -69,7 +69,7 @@ func TestMakeJSONRequest(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.MethodGet, req.Method)
 	assert.Equal(t, "/path", req.URL.Path)
-	assert.NotNil(t, req.Body)
+	assert.Nil(t, req.Body)
 	assert.NotNil(t, req.Header)
 	assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
 	assert.Equal(t, "application/json", req.Header.Get("Accept"))

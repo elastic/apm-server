@@ -4,7 +4,7 @@ apm_server:
     - names: ['apm-*']
       privileges: ['write','create_index','manage','manage_ilm']
 beats:
-  cluster: ['manage_index_templates','monitor','manage_ingest_pipelines','manage_ilm']
+  cluster: ['manage_index_templates','monitor','manage_ingest_pipelines','manage_ilm', 'manage_security','manage_api_key']
   indices:
     - names: ['filebeat-*','shrink-filebeat-*']
       privileges: ['all']

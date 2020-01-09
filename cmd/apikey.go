@@ -273,7 +273,7 @@ func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAct
 // creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
 // we need to ensure forward-compatibility, for which future privileges must be created here and
 // during server startup because we don't know if customers will run this command
-func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) {
+func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) {
 	var privilegesRequest = make(es.CreatePrivilegesRequest)
 	event := auth.PrivilegeEventWrite
 	agentConfig := auth.PrivilegeAgentConfigRead
@@ -291,6 +291,38 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 		return
 	}
 
+	// Elasticsearch will allow a user without the right apm privileges to create API keys, but the keys won't validate
+	// check first whether the user has the right privileges, and bail out early if not
+	// is not possible to always do it automatically, because file-based users and roles are not queryable
+	hasPrivileges, err := es.HasPrivileges(client, es.HasPrivilegesRequest{
+		Applications: []es.Application{
+			{
+				Name:       auth.Application,
+				Privileges: auth.ActionsAll(),
+				Resources:  []es.Resource{auth.ResourceInternal},
+			},
+		},
+	}, "")
+	if err != nil {
+		printErr(err, asJSON)
+		return
+	}
+	if !hasPrivileges.HasAll {
+		printErr(errors.New(fmt.Sprintf(`%s does not have privileges to create API keys.
+You might try with the superuser, or add the APM application privileges to the role of the authenticated user, eg.:
+PUT /_security/role/my_role {
+	...
+	"applications": [{
+	  "application": "apm",
+	  "privileges": ["sourcemap:write", "event:write", "config_agent:read"],
+	  "resources": ["*"]
+	}],
+	...
+}
+		`, hasPrivileges.Username)), asJSON)
+		return
+	}
+
 	printText, printJSON := printers(asJSON)
 	for privilege, result := range privilegesCreated[auth.Application] {
 		if result.Created {
@@ -299,7 +331,7 @@ func createAPIKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	}
 
 	apikeyRequest := es.CreateApiKeyRequest{
-		Name: apikeyName,
+		Name: keyName,
 		RoleDescriptors: es.RoleDescriptor{
 			auth.Application: es.Applications{
 				Applications: []es.Application{

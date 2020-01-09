@@ -1,6 +1,5 @@
 from apmserver import BaseTest, integration_test
 from elasticsearch import Elasticsearch
-import inspect
 import json
 import random
 
@@ -28,8 +27,7 @@ class APIKeyBaseTest(BaseTest):
         return json.loads(command_output)
 
     def subcommand(self, *args):
-        caller = inspect.getouterframes(inspect.currentframe())[1][3]
-        logfile = self.beat_name + "-" + caller + str(random.randint(0, 9999)) + "-" + args[0] + ".log"
+        logfile = self.beat_name + "-" + str(random.randint(0, 99999)) + "-" + args[0] + ".log"
         subcmd = ["apikey"]
         subcmd.extend(args)
         subcmd.append("--json")
@@ -59,66 +57,66 @@ class APIKeyTest(APIKeyBaseTest):
     def tearDown(self):
         super(APIKeyBaseTest, self).tearDown()
         invalidated = self.subcommand_output("invalidate", "--name", self.api_key_name)
-        assert invalidated["error_count"] == 0
+        assert invalidated.get("error_count") == 0
 
     def test_create(self):
         apikey = self.create()
 
-        assert apikey["name"] == self.api_key_name, apikey
+        assert apikey.get("name") == self.api_key_name, apikey
 
         for privilege in ["sourcemap", "agentConfig", "event"]:
             apikey["created_privileges"]["apm"][privilege]["created"] = True, apikey
 
         for attr in ["id", "api_key", "credentials"]:
-            assert apikey[attr] != "", apikey
+            assert apikey.get(attr) != "", apikey
 
     def test_create_with_settings_override(self):
         apikey = self.create(
             "-E", "output.elasticsearch.enabled=false",
             "-E", "apm-server.api_key.elasticsearch.hosts=[{}]".format(self.get_elasticsearch_url())
         )
-        assert apikey["credentials"] is not None, apikey
+        assert apikey.get("credentials") is not None, apikey
 
     def test_create_with_expiration(self):
         apikey = self.create("--expiration", "1d")
-        assert apikey["expiration"] is not None, apikey
+        assert apikey.get("expiration") is not None, apikey
 
     def test_invalidate_by_id(self):
         apikey = self.create()
         invalidated = self.subcommand_output("invalidate", "--id", apikey["id"])
-        assert invalidated["invalidated_api_keys"] == [apikey["id"]], invalidated
-        assert invalidated["error_count"] == 0, invalidated
+        assert invalidated.get("invalidated_api_keys") == [apikey["id"]], invalidated
+        assert invalidated.get("error_count") == 0, invalidated
 
     def test_invalidate_by_name(self):
         self.create()
         self.create()
         invalidated = self.subcommand_output("invalidate", "--name", self.api_key_name)
-        assert len(invalidated["invalidated_api_keys"]) == 2, invalidated
-        assert invalidated["error_count"] == 0, invalidated
+        assert len(invalidated.get("invalidated_api_keys")) == 2, invalidated
+        assert invalidated.get("error_count") == 0, invalidated
 
     def test_info_by_id(self):
         self.create()
         apikey = self.create()
         info = self.subcommand_output("info", "--id", apikey["id"])
-        assert len(info["api_keys"]) == 1, info
-        assert info["api_keys"][0]["username"] == "admin", info
-        assert info["api_keys"][0]["id"] == apikey["id"], info
-        assert info["api_keys"][0]["name"] == apikey["name"], info
-        assert info["api_keys"][0]["invalidated"] is False, info
+        assert len(info.get("api_keys")) == 1, info
+        assert info["api_keys"][0].get("username") == "admin", info
+        assert info["api_keys"][0].get("id") == apikey["id"], info
+        assert info["api_keys"][0].get("name") == apikey["name"], info
+        assert info["api_keys"][0].get("invalidated") is False, info
 
     def test_info_by_name(self):
         apikey = self.create()
         invalidated = self.subcommand_output("invalidate", "--id", apikey["id"])
-        assert invalidated["error_count"] == 0
+        assert invalidated.get("error_count") == 0
         self.create()
         self.create()
 
         info = self.subcommand_output("info", "--name", self.api_key_name)
         # can't test exact number because these tests have side effects
-        assert len(info["api_keys"]) > 2, info
+        assert len(info.get("api_keys")) > 2, info
 
         info = self.subcommand_output("info", "--name", self.api_key_name, "--valid-only")
-        assert len(info["api_keys"]) == 2, info
+        assert len(info.get("api_keys")) == 2, info
 
     def test_verify_all(self):
         apikey = self.create()
@@ -149,13 +147,32 @@ class APIKeyBadUserTest(APIKeyBaseTest):
 
     def config(self):
         return {
-            "elasticsearch_host": self.get_elasticsearch_url(user="apm_server_user", password="changeme"),
+            "elasticsearch_host": self.get_elasticsearch_url(user="heartbeat_user", password="changeme"),
             "file_enabled": "false",
             "kibana_enabled": "false",
         }
 
     def test_create_bad_user(self):
-        out = self.subcommand("create", "--name", self.api_key_name)
-        result = json.loads(out)
-        assert result["status"] == 401, result
-        assert result["error"] is not None
+        """heartbeat_user doesn't have required cluster privileges, so it can't create keys"""
+        result = self.subcommand_output("create", "--name", self.api_key_name)
+        assert result.get("status") == 403, result
+        assert result.get("error") is not None
+
+
+@integration_test
+class APIKeyBadUser2Test(APIKeyBaseTest):
+
+    def config(self):
+        return {
+            "elasticsearch_host": self.get_elasticsearch_url(user="beats_user", password="changeme"),
+            "file_enabled": "false",
+            "kibana_enabled": "false",
+        }
+
+    def test_create_bad_user(self):
+        """beats_user does have required cluster privileges, but not APM application privileges,
+        so it can't create keys
+        """
+        result = self.subcommand_output("create", "--name", self.api_key_name)
+        assert result.get("error") is not None, result
+        assert "beats_user does not have privileges to create API keys" in result.get("error"), result
