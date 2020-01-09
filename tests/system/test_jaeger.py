@@ -2,8 +2,6 @@ import os
 import re
 import subprocess
 
-import requests
-
 from apmserver import integration_test
 from apmserver import ElasticTest
 
@@ -40,11 +38,10 @@ class Test(ElasticTest):
         jaeger_span_thrift = self.get_testdata_path('jaeger', 'span.thrift')
         self.load_docs_with_template(jaeger_span_thrift, self.jaeger_http_url, 'transaction', 1,
                                      extra_headers={"content-type": "application/vnd.apache.thrift.binary"})
-        self.assert_no_logged_warnings()
 
-        rs = self.es.search(index=self.index_transaction)
-        assert rs['hits']['total']['value'] == 1, "found {} documents".format(rs['count'])
-        self.approve_docs('jaeger_span', rs['hits']['hits'])
+        self.assert_no_logged_warnings()
+        transaction_docs = self.wait_for_events('transaction', 1)
+        self.approve_docs('jaeger_span', transaction_docs)
 
     def test_jaeger_grpc(self):
         """
@@ -58,6 +55,7 @@ class Test(ElasticTest):
             '-insecure',
             jaeger_request_data,
         ])
+
         self.assert_no_logged_warnings()
         transaction_docs = self.wait_for_events('transaction', 1)
         error_docs = self.wait_for_events('error', 3)
