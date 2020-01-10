@@ -111,7 +111,7 @@ func init() {
 	}
 	// only add defined flags to setup command
 	setup := RootCmd.SetupCmd
-	setup.Short = "Setup Elasticsearch index management components and pipelines"
+	setup.Short = "setup Elasticsearch index management components and pipelines"
 	setup.Long = `This command does initial setup of the environment:
 
  * Index management including loading Elasticsearch templates, ILM policies and write aliases.
@@ -120,9 +120,9 @@ func init() {
 	setup.ResetFlags()
 	//lint:ignore SA1019 Setting up template must still be supported until next major version upgrade.
 	tmplKey := cmd.TemplateKey
-	setup.Flags().Bool(tmplKey, false, "Setup index template")
+	setup.Flags().Bool(tmplKey, false, "setup index template")
 	setup.Flags().MarkDeprecated(tmplKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
-	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
-	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
+	setup.Flags().Bool(cmd.IndexManagementKey, false, "setup Elasticsearch index management")
+	setup.Flags().Bool(cmd.PipelineKey, false, "setup ingest pipelines")
 
 }

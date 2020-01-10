@@ -41,7 +41,7 @@ func (c *APIKeyConfig) IsEnabled() bool {
 	return c != nil && c.Enabled
 }
 
-func (c *APIKeyConfig) Setup(log *logp.Logger, outputESCfg *common.Config) error {
+func (c *APIKeyConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 	if c == nil || !c.Enabled || c.ESConfig != nil {
 		return nil
 	}

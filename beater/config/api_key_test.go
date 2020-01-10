@@ -84,7 +84,7 @@ func TestAPIKeyConfig_ESConfig(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			err := tc.cfg.Setup(logp.NewLogger("api_key"), tc.esCfg)
+			err := tc.cfg.setup(logp.NewLogger("api_key"), tc.esCfg)
 			if tc.expectedErr == nil {
 				assert.NoError(t, err)
 			} else {

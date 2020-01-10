@@ -320,6 +320,9 @@ func raiseInvalidDuration(v value, err error) Error {
 
 func raiseValidation(ctx context, meta *Meta, field string, err error) Error {
 	path := ""
+	if path == "rum.source_mapping.elasticsearch.hosts" {
+		fmt.Sprintf("FUUUCK")
+	}
 	if field == "" {
 		path = ctx.path(".")
 	} else {
