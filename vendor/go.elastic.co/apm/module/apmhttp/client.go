@@ -75,8 +75,6 @@ type roundTripper struct {
 // RoundTrip delegates to r.r, emitting a span if req's context
 // contains a transaction.
 func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	// TODO(axw) propagate Tracestate, adding/shifting the elastic
-	// key to the left most position.
 	if r.requestIgnorer(req) {
 		return r.r.RoundTrip(req)
 	}
@@ -133,6 +131,9 @@ func (r *roundTripper) setHeaders(req *http.Request, traceContext apm.TraceConte
 		req.Header.Set(ElasticTraceparentHeader, headerValue)
 	}
 	req.Header.Set(W3CTraceparentHeader, headerValue)
+	if tracestate := traceContext.State.String(); tracestate != "" {
+		req.Header.Set(TracestateHeader, tracestate)
+	}
 }
 
 // CloseIdleConnections calls r.r.CloseIdleConnections if the method exists.

@@ -89,6 +89,9 @@ func outgoingContextWithTraceContext(
 	if propagateLegacyHeader {
 		md.Set(elasticTraceparentHeader, traceparentValue)
 	}
+	if tracestate := traceContext.State.String(); tracestate != "" {
+		md.Set(tracestateHeader, tracestate)
+	}
 	return metadata.NewOutgoingContext(ctx, md)
 }
 

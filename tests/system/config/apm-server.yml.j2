@@ -93,6 +93,15 @@ apm-server:
   {% if instrumentation_enabled %}
   instrumentation.enabled: {{ instrumentation_enabled }}
   {% endif %}
+  {% if instrumentation_host %}
+  instrumentation.hosts: [{{ instrumentation_host }}]
+  {% endif %}
+  {% if instrumentation_api_key %}
+  instrumentation.api_key: {{ instrumentation_api_key }}
+  {% endif %}
+  {% if instrumentation_secret_token %}
+  instrumentation.secret_token: {{ instrumentation_secret_token }}
+  {% endif %}
   {% if profiling_cpu_enabled %}
   instrumentation.profiling.cpu.enabled: {{ profiling_cpu_enabled }}
   {% endif %}

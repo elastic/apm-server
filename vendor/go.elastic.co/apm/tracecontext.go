@@ -18,13 +18,39 @@
 package apm
 
 import (
+	"bytes"
 	"encoding/hex"
-	"errors"
+	"fmt"
+	"regexp"
+	"unicode"
+
+	"github.com/pkg/errors"
 )
 
 var (
 	errZeroTraceID = errors.New("zero trace-id is invalid")
 	errZeroSpanID  = errors.New("zero span-id is invalid")
+)
+
+// tracestateKeyRegexp holds a regular expression used for validating
+// tracestate keys according to the standard rules:
+//
+//   key = lcalpha 0*255( lcalpha / DIGIT / "_" / "-"/ "*" / "/" )
+//   key = ( lcalpha / DIGIT ) 0*240( lcalpha / DIGIT / "_" / "-"/ "*" / "/" ) "@" lcalpha 0*13( lcalpha / DIGIT / "_" / "-"/ "*" / "/" )
+//   lcalpha = %x61-7A ; a-z
+//
+// nblkchr is used for defining valid runes for tracestate values.
+var (
+	tracestateKeyRegexp = regexp.MustCompile(`^[a-z](([a-z0-9_*/-]{0,255})|([a-z0-9_*/-]{0,240}@[a-z][a-z0-9_*/-]{0,13}))$`)
+
+	nblkchr = &unicode.RangeTable{
+		R16: []unicode.Range16{
+			{0x21, 0x2B, 1},
+			{0x2D, 0x3C, 1},
+			{0x3E, 0x7E, 1},
+		},
+		LatinOffset: 3,
+	}
 )
 
 const (
@@ -43,6 +69,9 @@ type TraceContext struct {
 
 	// Options holds the trace options propagated by the parent.
 	Options TraceOptions
+
+	// State holds the trace state.
+	State TraceState
 }
 
 // TraceID identifies a trace forest.
@@ -118,4 +147,117 @@ func (o TraceOptions) WithRecorded(recorded bool) TraceOptions {
 		return o | traceOptionsRecordedFlag
 	}
 	return o & (0xFF ^ traceOptionsRecordedFlag)
+}
+
+// TraceState holds vendor-specific state for a trace.
+type TraceState struct {
+	head *TraceStateEntry
+}
+
+// NewTraceState returns a TraceState based on entries.
+func NewTraceState(entries ...TraceStateEntry) TraceState {
+	out := TraceState{}
+	var last *TraceStateEntry
+	for _, e := range entries {
+		e := e // copy
+		if last == nil {
+			out.head = &e
+		} else {
+			last.next = &e
+		}
+		last = &e
+	}
+	return out
+}
+
+// String returns s as a comma-separated list of key-value pairs.
+func (s TraceState) String() string {
+	if s.head == nil {
+		return ""
+	}
+	var buf bytes.Buffer
+	s.head.writeBuf(&buf)
+	for e := s.head.next; e != nil; e = e.next {
+		buf.WriteByte(',')
+		e.writeBuf(&buf)
+	}
+	return buf.String()
+}
+
+// Validate validates the trace state.
+//
+// This will return non-nil if any entries are invalid,
+// if there are too many entries, or if an entry key is
+// repeated.
+func (s TraceState) Validate() error {
+	if s.head == nil {
+		return nil
+	}
+	recorded := make(map[string]int)
+	var i int
+	for e := s.head; e != nil; e = e.next {
+		if i == 32 {
+			return errors.New("tracestate contains more than the maximum allowed number of entries, 32")
+		}
+		if err := e.Validate(); err != nil {
+			return errors.Wrapf(err, "invalid tracestate entry at position %d", i)
+		}
+		if prev, ok := recorded[e.Key]; ok {
+			return fmt.Errorf("duplicate tracestate key %q at positions %d and %d", e.Key, prev, i)
+		}
+		recorded[e.Key] = i
+		i++
+	}
+	return nil
+}
+
+// TraceStateEntry holds a trace state entry: a key/value pair
+// representing state for a vendor.
+type TraceStateEntry struct {
+	next *TraceStateEntry
+
+	// Key holds a vendor (and optionally, tenant) ID.
+	Key string
+
+	// Value holds a string representing trace state.
+	Value string
+}
+
+func (e *TraceStateEntry) writeBuf(buf *bytes.Buffer) {
+	buf.WriteString(e.Key)
+	buf.WriteByte('=')
+	buf.WriteString(e.Value)
+}
+
+// Validate validates the trace state entry.
+//
+// This will return non-nil if either the key or value is invalid.
+func (e *TraceStateEntry) Validate() error {
+	if !tracestateKeyRegexp.MatchString(e.Key) {
+		return fmt.Errorf("invalid key %q", e.Key)
+	}
+	if err := e.validateValue(); err != nil {
+		return errors.Wrapf(err, "invalid value for key %q", e.Key)
+	}
+	return nil
+}
+
+func (e *TraceStateEntry) validateValue() error {
+	if e.Value == "" {
+		return errors.New("value is empty")
+	}
+	runes := []rune(e.Value)
+	n := len(runes)
+	if n > 256 {
+		return errors.Errorf("value contains %d characters, maximum allowed is 256", n)
+	}
+	if !unicode.In(runes[n-1], nblkchr) {
+		return errors.Errorf("value contains invalid character %q", runes[n-1])
+	}
+	for _, r := range runes[:n-1] {
+		if r != 0x20 && !unicode.In(r, nblkchr) {
+			return errors.Errorf("value contains invalid character %q", r)
+		}
+	}
+	return nil
 }
