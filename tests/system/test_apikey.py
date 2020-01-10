@@ -99,7 +99,7 @@ class APIKeyTest(APIKeyBaseTest):
         apikey = self.create()
         info = self.subcommand_output("info", "--id", apikey["id"])
         assert len(info.get("api_keys")) == 1, info
-        assert info["api_keys"][0].get("username") == "admin", info
+        assert info["api_keys"][0].get("username") == "apm_server_user", info
         assert info["api_keys"][0].get("id") == apikey["id"], info
         assert info["api_keys"][0].get("name") == apikey["name"], info
         assert info["api_keys"][0].get("invalidated") is False, info
