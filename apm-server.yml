@@ -506,6 +506,9 @@ output.elasticsearch:
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"
+
+  # Authentication credentials - either API key or username/password.
+  #api_key: "id:api_key"
   #username: "elastic"
   #password: "changeme"
 
