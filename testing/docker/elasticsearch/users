@@ -1,5 +1,5 @@
 admin:$2a$10$xiY0ZzOKmDDN1p3if4t4muUBwh2.bFHADoMRAWQgSClm4ZJ4132Y.
-apm_user:$2a$10$iTy29qZaCSVn4FXlIjertuO8YfYVLCbvoUAJ3idaXfLRclg9GXdGG
+apm_server_user:$2a$10$iTy29qZaCSVn4FXlIjertuO8YfYVLCbvoUAJ3idaXfLRclg9GXdGG
 apm_user_ro:$2a$10$hQfy2o2u33SapUClsx8NCuRMpQyHP9b2l4t3QqrBA.5xXN2S.nT4u
 beats_user:$2a$10$LRpKi4/Q3Qo4oIbiu26rH.FNIL4aOH4aj2Kwi58FkMo1z9FgJONn2
 filebeat_user:$2a$10$sFxIEX8tKyOYgsbJLbUhTup76ssvSD3L4T0H6Raaxg4ewuNr.lUFC
