@@ -308,7 +308,7 @@ func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privil
 		return
 	}
 	if !hasPrivileges.HasAll {
-		printErr(errors.New(fmt.Sprintf(`%s does not have privileges to create API keys.
+		printErr(fmt.Errorf(`%s does not have privileges to create API keys.
 You might try with the superuser, or add the APM application privileges to the role of the authenticated user, eg.:
 PUT /_security/role/my_role {
 	...
@@ -319,7 +319,7 @@ PUT /_security/role/my_role {
 	}],
 	...
 }
-		`, hasPrivileges.Username)), asJSON)
+		`, hasPrivileges.Username), asJSON)
 		return
 	}
 
@@ -330,7 +330,7 @@ PUT /_security/role/my_role {
 		}
 	}
 
-	apikeyRequest := es.CreateApiKeyRequest{
+	apikeyRequest := es.CreateAPIKeyRequest{
 		Name: keyName,
 		RoleDescriptors: es.RoleDescriptor{
 			auth.Application: es.Applications{
@@ -353,22 +353,22 @@ PUT /_security/role/my_role {
 		printErr(err, asJSON)
 		return
 	}
-	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.Id + ":" + apikey.Key))
+	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.ID + ":" + apikey.Key))
 	apikey.Credentials = &credentials
 	printText("API Key created:")
 	printText("")
 	printText("Name ........... %s", apikey.Name)
 	printText("Expiration ..... %s", humanTime(apikey.ExpirationMs))
-	printText("Id ............. %s", apikey.Id)
+	printText("Id ............. %s", apikey.ID)
 	printText("API Key ........ %s (won't be shown again)", apikey.Key)
-	printText(`Credentials .... %s (use it as "Authorization: ApiKey <credentials>" header to communicate with APM Server, won't be shown again)`,
+	printText(`Credentials .... %s (use it as "Authorization: APIKey <credentials>" header to communicate with APM Server, won't be shown again)`,
 		credentials)
 
 	printJSON(struct {
-		es.CreateApiKeyResponse
+		es.CreateAPIKeyResponse
 		Privileges es.CreatePrivilegesResponse `json:"created_privileges,omitempty"`
 	}{
-		CreateApiKeyResponse: apikey,
+		CreateAPIKeyResponse: apikey,
 		Privileges:           privilegesCreated,
 	})
 }
@@ -379,9 +379,9 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
 	} else if isSet(name) {
 		id = nil
 	}
-	request := es.GetApiKeyRequest{
-		ApiKeyQuery: es.ApiKeyQuery{
-			Id:   id,
+	request := es.GetAPIKeyRequest{
+		APIKeyQuery: es.APIKeyQuery{
+			ID:   id,
 			Name: name,
 		},
 	}
@@ -392,9 +392,9 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
 		return
 	}
 
-	transform := es.GetApiKeyResponse{ApiKeys: make([]es.ApiKeyResponse, 0)}
+	transform := es.GetAPIKeyResponse{APIKeys: make([]es.APIKeyResponse, 0)}
 	printText, printJSON := printers(asJSON)
-	for _, apikey := range apikeys.ApiKeys {
+	for _, apikey := range apikeys.APIKeys {
 		expiry := humanTime(apikey.ExpirationMs)
 		if validOnly && (apikey.Invalidated || expiry == "expired") {
 			continue
@@ -402,16 +402,16 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
 		creation := time.Unix(apikey.Creation/1000, 0).Format("2006-02-01 15:04")
 		printText("Username ....... %s", apikey.Username)
 		printText("Api Key Name ... %s", apikey.Name)
-		printText("Id ............. %s", apikey.Id)
+		printText("Id ............. %s", apikey.ID)
 		printText("Creation ....... %s", creation)
 		printText("Invalidated .... %t", apikey.Invalidated)
 		if !apikey.Invalidated {
 			printText("Expiration ..... %s", expiry)
 		}
 		printText("")
-		transform.ApiKeys = append(transform.ApiKeys, apikey)
+		transform.APIKeys = append(transform.APIKeys, apikey)
 	}
-	printText("%d API Keys found", len(transform.ApiKeys))
+	printText("%d API Keys found", len(transform.APIKeys))
 	printJSON(transform)
 }
 
@@ -421,9 +421,9 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 	} else if isSet(name) {
 		id = nil
 	}
-	invalidateKeysRequest := es.InvalidateApiKeyRequest{
-		ApiKeyQuery: es.ApiKeyQuery{
-			Id:   id,
+	invalidateKeysRequest := es.InvalidateAPIKeyRequest{
+		APIKeyQuery: es.APIKeyQuery{
+			ID:   id,
 			Name: name,
 		},
 	}
@@ -435,10 +435,10 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 	}
 	printText, printJSON := printers(asJSON)
 	out := struct {
-		es.InvalidateApiKeyResponse
+		es.InvalidateAPIKeyResponse
 		Privileges []es.DeletePrivilegeResponse `json:"deleted_privileges,omitempty"`
 	}{
-		InvalidateApiKeyResponse: invalidation,
+		InvalidateAPIKeyResponse: invalidation,
 		Privileges:               make([]es.DeletePrivilegeResponse, 0),
 	}
 	printText("Invalidated keys ... %s", strings.Join(invalidation.Invalidated, ", "))

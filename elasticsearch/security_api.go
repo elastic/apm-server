@@ -25,21 +25,21 @@ import (
 )
 
 // CreateAPIKey requires manage_security cluster privilege
-func CreateAPIKey(client Client, apikeyReq CreateApiKeyRequest) (CreateApiKeyResponse, error) {
+func CreateAPIKey(client Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
 	response := client.JSONRequest(http.MethodPut, "/_security/api_key", apikeyReq)
 
-	var apikey CreateApiKeyResponse
+	var apikey CreateAPIKeyResponse
 	err := response.DecodeTo(&apikey)
 	return apikey, err
 }
 
 // GetAPIKeys requires manage_security cluster privilege
-func GetAPIKeys(client Client, apikeyReq GetApiKeyRequest) (GetApiKeyResponse, error) {
+func GetAPIKeys(client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
 	u := url.URL{Path: "/_security/api_key"}
 	params := url.Values{}
 	params.Set("owner", strconv.FormatBool(apikeyReq.Owner))
-	if apikeyReq.Id != nil {
-		params.Set("id", *apikeyReq.Id)
+	if apikeyReq.ID != nil {
+		params.Set("id", *apikeyReq.ID)
 	} else if apikeyReq.Name != nil {
 		params.Set("name", *apikeyReq.Name)
 	}
@@ -47,7 +47,7 @@ func GetAPIKeys(client Client, apikeyReq GetApiKeyRequest) (GetApiKeyResponse, e
 
 	response := client.JSONRequest(http.MethodGet, u.String(), nil)
 
-	var apikey GetApiKeyResponse
+	var apikey GetAPIKeyResponse
 	err := response.DecodeTo(&apikey)
 	return apikey, err
 }
@@ -62,10 +62,10 @@ func CreatePrivileges(client Client, privilegesReq CreatePrivilegesRequest) (Cre
 }
 
 // InvalidateAPIKey requires manage_security cluster privilege
-func InvalidateAPIKey(client Client, apikeyReq InvalidateApiKeyRequest) (InvalidateApiKeyResponse, error) {
+func InvalidateAPIKey(client Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
 	response := client.JSONRequest(http.MethodDelete, "/_security/api_key", apikeyReq)
 
-	var confirmation InvalidateApiKeyResponse
+	var confirmation InvalidateAPIKeyResponse
 	err := response.DecodeTo(&confirmation)
 	return confirmation, err
 }
@@ -83,7 +83,7 @@ func DeletePrivileges(client Client, privilegesReq DeletePrivilegeRequest) (Dele
 func HasPrivileges(client Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
 	var h string
 	if credentials != "" {
-		h = fmt.Sprintf("Authorization: ApiKey %s", credentials)
+		h = fmt.Sprintf("Authorization: APIKey %s", credentials)
 	}
 	response := client.JSONRequest(http.MethodGet, "/_security/user/_has_privileges", privileges, h)
 
@@ -92,24 +92,24 @@ func HasPrivileges(client Client, privileges HasPrivilegesRequest, credentials s
 	return info, err
 }
 
-type CreateApiKeyRequest struct {
+type CreateAPIKeyRequest struct {
 	Name            string         `json:"name"`
 	Expiration      *string        `json:"expiration,omitempty"`
 	RoleDescriptors RoleDescriptor `json:"role_descriptors"`
 }
 
-type CreateApiKeyResponse struct {
-	ApiKey
+type CreateAPIKeyResponse struct {
+	APIKey
 	Key string `json:"api_key"`
 }
 
-type GetApiKeyRequest struct {
-	ApiKeyQuery
+type GetAPIKeyRequest struct {
+	APIKeyQuery
 	Owner bool `json:"owner"`
 }
 
-type GetApiKeyResponse struct {
-	ApiKeys []ApiKeyResponse `json:"api_keys"`
+type GetAPIKeyResponse struct {
+	APIKeys []APIKeyResponse `json:"api_keys"`
 }
 
 type CreatePrivilegesRequest map[AppName]PrivilegeGroup
@@ -126,11 +126,11 @@ type HasPrivilegesResponse struct {
 	Application map[AppName]PermissionsPerResource `json:"application"`
 }
 
-type InvalidateApiKeyRequest struct {
-	ApiKeyQuery
+type InvalidateAPIKeyRequest struct {
+	APIKeyQuery
 }
 
-type InvalidateApiKeyResponse struct {
+type InvalidateAPIKeyResponse struct {
 	Invalidated []string `json:"invalidated_api_keys"`
 	ErrorCount  int      `json:"error_count"`
 }
@@ -154,21 +154,21 @@ type Application struct {
 	Resources  []Resource        `json:"resources"`
 }
 
-type ApiKeyResponse struct {
-	ApiKey
+type APIKeyResponse struct {
+	APIKey
 	Creation    int64  `json:"creation"`
 	Invalidated bool   `json:"invalidated"`
 	Username    string `json:"username"`
 }
 
-type ApiKeyQuery struct {
+type APIKeyQuery struct {
 	// normally the Elasticsearch API will require either Id or Name, but not both
-	Id   *string `json:"id,omitempty"`
+	ID   *string `json:"id,omitempty"`
 	Name *string `json:"name,omitempty"`
 }
 
-type ApiKey struct {
-	Id           string `json:"id"`
+type APIKey struct {
+	ID           string `json:"id"`
 	Name         string `json:"name"`
 	ExpirationMs *int64 `json:"expiration,omitempty"`
 	// This attribute does not come from Elasticsearch, but is filled in by APM Server
@@ -199,10 +199,10 @@ type AppName string
 
 type Resource string
 
-// in Elasticsearch a "privilege" represents both an "action" that a user might/might not have authorization to
-// perform; and a tuple consisting of a name and an action
-// for differentiation, we call the tuple NamedPrivilege
-// in apm-server, each name is associated with one action, but that needs not to be the case (see PrivilegeGroup)
+// NamedPrivilege is a tuple consisting of a name and an action.
+// In Elasticsearch a "privilege" represents both an "action" that a user might/might not have authorization to
+// perform, and such a tuple.
+// In apm-server, each name is associated with one action, but that needs not to be the case (see PrivilegeGroup)
 type NamedPrivilege struct {
 	Name   PrivilegeName
 	Action PrivilegeAction

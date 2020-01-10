@@ -26,7 +26,7 @@ const (
 	AccessControlExposeHeaders = "Access-Control-Expose-Headers"
 	AccessControlMaxAge        = "Access-Control-Max-Age"
 	Authorization              = "Authorization"
-	APIKey                     = "ApiKey"
+	APIKey                     = "APIKey"
 	Bearer                     = "Bearer"
 	CacheControl               = "Cache-Control"
 	Connection                 = "Connection"

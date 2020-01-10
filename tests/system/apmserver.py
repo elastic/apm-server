@@ -346,7 +346,8 @@ class ElasticTest(ServerBaseTest):
         self.es.indices.refresh(index=index)
 
         query = {"term": {"processor.name": processor_name}}
-        result = {} # TODO(axw) use "nonlocal" when we migrate to Python 3
+        result = {}  # TODO(axw) use "nonlocal" when we migrate to Python 3
+
         def get_docs():
             hits = self.es.search(index=index, body={"query": query})['hits']
             result['docs'] = hits['hits']
@@ -464,6 +465,7 @@ class ElasticTest(ServerBaseTest):
                     return self.message + "\n\nReceived data differs from approved data. Run 'make update' and then 'approvals' to verify the diff."
             ApprovalException.__name__ = type(exc).__name__
             raise ApprovalException, exc, sys.exc_info()[2]
+
 
 class ClientSideBaseTest(ServerBaseTest):
     sourcemap_url = 'http://localhost:8200/assets/v1/sourcemaps'

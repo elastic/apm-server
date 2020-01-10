@@ -82,7 +82,7 @@ func TestBuilder(t *testing.T) {
 		t.Run("AuthorizationFor"+name, func(t *testing.T) {
 			builder := setup()
 			h := builder.ForPrivilege(PrivilegeSourcemapWrite.Action)
-			auth := h.AuthorizationFor("ApiKey", "")
+			auth := h.AuthorizationFor("APIKey", "")
 			if tc.withApikey {
 				assert.IsType(t, &apikeyAuth{}, auth)
 			} else {

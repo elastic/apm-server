@@ -51,10 +51,10 @@ class Test(ElasticTest):
 
         client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
         subprocess.check_call(['go', 'run', client,
-            '-addr', self.jaeger_grpc_addr,
-            '-insecure',
-            jaeger_request_data,
-        ])
+                               '-addr', self.jaeger_grpc_addr,
+                               '-insecure',
+                               jaeger_request_data,
+                               ])
 
         self.assert_no_logged_warnings()
         transaction_docs = self.wait_for_events('transaction', 1)
