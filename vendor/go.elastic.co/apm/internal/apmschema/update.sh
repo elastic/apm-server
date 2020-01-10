@@ -13,6 +13,7 @@ FILES=( \
     "metricsets/metricset.json" \
     "metricsets/sample.json" \
     "context.json" \
+    "message.json" \
     "metadata.json" \
     "process.json" \
     "request.json" \

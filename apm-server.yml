@@ -50,7 +50,11 @@ apm-server:
     #hosts:
     #  - http://remote-apm-server:8200
 
-    # secret_token for the remote apm-servers.
+    # API Key for the remote APM Server(s).
+    # If api_key is set then secret_token will be ignored.
+    #api_key:
+
+    # Secret token for the remote APM Server(s).
     #secret_token:
 
     # Enable profiling of the server, recording profile samples as events.

@@ -263,6 +263,9 @@ type Span struct {
 
 // SpanContext holds contextual information relating to the span.
 type SpanContext struct {
+	// Destination holds information about a destination service.
+	Destination *DestinationSpanContext `json:"destination,omitempty"`
+
 	// Database holds contextual information for database
 	// operation spans.
 	Database *DatabaseSpanContext `json:"db,omitempty"`
@@ -274,6 +277,34 @@ type SpanContext struct {
 	Tags IfaceMap `json:"tags,omitempty"`
 }
 
+// DestinationSpanContext holds contextual information about the destination
+// for a span that relates to an operation involving an external service.
+type DestinationSpanContext struct {
+	// Address holds the network address of the destination service.
+	// This may be a hostname, FQDN, or (IPv4 or IPv6) network address.
+	Address string `json:"address,omitempty"`
+
+	// Port holds the network port for the destination service.
+	Port int `json:"port,omitempty"`
+
+	// Service holds additional destination service context.
+	Service *DestinationServiceSpanContext `json:"service,omitempty"`
+}
+
+// DestinationServiceSpanContext holds contextual information about a
+// destination service,.
+type DestinationServiceSpanContext struct {
+	// Type holds the destination service type.
+	Type string `json:"type,omitempty"`
+
+	// Name holds the destination service name.
+	Name string `json:"name,omitempty"`
+
+	// Resource identifies the destination service
+	// resource, e.g. a URI or message queue name.
+	Resource string `json:"resource,omitempty"`
+}
+
 // DatabaseSpanContext holds contextual information for database
 // operation spans.
 type DatabaseSpanContext struct {
@@ -282,6 +313,10 @@ type DatabaseSpanContext struct {
 
 	// Statement holds the database statement (e.g. query).
 	Statement string `json:"statement,omitempty"`
+
+	// RowsAffected holds the number of rows affected by the
+	// database operation.
+	RowsAffected *int64 `json:"rows_affected,omitempty"`
 
 	// Type holds the database type. For any SQL database,
 	// this should be "sql"; for others, the lower-cased

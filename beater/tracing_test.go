@@ -74,6 +74,20 @@ func TestServerTracingEnabled(t *testing.T) {
 }
 
 func TestServerTracingExternal(t *testing.T) {
+	t.Run("no_auth", func(t *testing.T) {
+		testServerTracingExternal(t, "" /* Expecting no Authorization header */)
+	})
+	t.Run("secret_token_auth", func(t *testing.T) {
+		const secretToken = "s3cr3t"
+		testServerTracingExternal(t, "Bearer "+secretToken, m{"instrumentation": m{"secret_token": secretToken}})
+	})
+	t.Run("api_key_auth", func(t *testing.T) {
+		const apiKey = "bjB0czNjcjN0OnMzY3IzdA=="
+		testServerTracingExternal(t, "ApiKey "+apiKey, m{"instrumentation": m{"api_key": apiKey}})
+	})
+}
+
+func testServerTracingExternal(t *testing.T, expectedAuthorization string, extraConfigs ...map[string]interface{}) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -92,7 +106,13 @@ func TestServerTracingExternal(t *testing.T) {
 	// start a test apm-server
 	ucfg := common.MustNewConfigFrom(m{"instrumentation": m{
 		"enabled": true,
-		"hosts":   []string{"http://" + remote.Listener.Addr().String()}}})
+		"hosts":   []string{"http://" + remote.Listener.Addr().String()},
+	}})
+	for _, extra := range extraConfigs {
+		err := ucfg.Merge(extra)
+		require.NoError(t, err)
+	}
+
 	apm, teardown, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
@@ -110,8 +130,9 @@ func TestServerTracingExternal(t *testing.T) {
 	case r := <-requests:
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, api.IntakePath, r.RequestURI)
+		assert.Equal(t, expectedAuthorization, r.Header.Get("Authorization"))
 	case <-time.After(time.Second):
-		assert.FailNow(t, "timed out waiting for transaction to")
+		t.Fatal("timed out waiting for transaction to be received")
 	}
 }
 

@@ -147,6 +147,11 @@ func (w *modelWriter) buildModelSpan(out *model.Span, span *Span, sd *SpanData) 
 	out.Duration = sd.Duration.Seconds() * 1000
 	out.Context = sd.Context.build()
 
+	// Copy the span type to context.destination.service.type.
+	if out.Context != nil && out.Context.Destination != nil && out.Context.Destination.Service != nil {
+		out.Context.Destination.Service.Type = out.Type
+	}
+
 	w.modelStacktrace = appendModelStacktraceFrames(w.modelStacktrace, sd.stacktrace)
 	out.Stacktrace = w.modelStacktrace
 	w.setStacktraceContext(out.Stacktrace)
