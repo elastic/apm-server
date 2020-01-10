@@ -35,6 +35,7 @@ import (
 var (
 	elasticTraceparentHeader = strings.ToLower(apmhttp.ElasticTraceparentHeader)
 	w3cTraceparentHeader     = strings.ToLower(apmhttp.W3CTraceparentHeader)
+	tracestateHeader         = strings.ToLower(apmhttp.TracestateHeader)
 )
 
 // NewUnaryServerInterceptor returns a grpc.UnaryServerInterceptor that
@@ -96,9 +97,9 @@ func NewUnaryServerInterceptor(o ...ServerOption) grpc.UnaryServerInterceptor {
 func startTransaction(ctx context.Context, tracer *apm.Tracer, name string) (*apm.Transaction, context.Context) {
 	var opts apm.TransactionOptions
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		traceContext, ok := getIncomingMetadataTraceparent(md, elasticTraceparentHeader)
+		traceContext, ok := getIncomingMetadataTraceContext(md, elasticTraceparentHeader)
 		if !ok {
-			traceContext, _ = getIncomingMetadataTraceparent(md, w3cTraceparentHeader)
+			traceContext, _ = getIncomingMetadataTraceContext(md, w3cTraceparentHeader)
 		}
 		opts.TraceContext = traceContext
 	}
@@ -107,10 +108,11 @@ func startTransaction(ctx context.Context, tracer *apm.Tracer, name string) (*ap
 	return tx, apm.ContextWithTransaction(ctx, tx)
 }
 
-func getIncomingMetadataTraceparent(md metadata.MD, header string) (apm.TraceContext, bool) {
+func getIncomingMetadataTraceContext(md metadata.MD, header string) (apm.TraceContext, bool) {
 	if values := md.Get(header); len(values) == 1 {
 		traceContext, err := apmhttp.ParseTraceparentHeader(values[0])
 		if err == nil {
+			traceContext.State, _ = apmhttp.ParseTracestateHeader(md.Get(tracestateHeader)...)
 			return traceContext, true
 		}
 	}

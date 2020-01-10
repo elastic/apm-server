@@ -52,6 +52,7 @@ const (
 	profilePath = "/intake/v2/profile"
 	configPath  = "/config/v1/agents"
 
+	envAPIKey           = "ELASTIC_APM_API_KEY"
 	envSecretToken      = "ELASTIC_APM_SECRET_TOKEN"
 	envServerURLs       = "ELASTIC_APM_SERVER_URLS"
 	envServerURL        = "ELASTIC_APM_SERVER_URL"
@@ -174,7 +175,11 @@ func NewHTTPTransport() (*HTTPTransport, error) {
 		intakeHeaders:  intakeHeaders,
 		profileHeaders: profileHeaders,
 	}
-	t.SetSecretToken(os.Getenv(envSecretToken))
+	if apiKey := os.Getenv(envAPIKey); apiKey != "" {
+		t.SetAPIKey(apiKey)
+	} else if secretToken := os.Getenv(envSecretToken); secretToken != "" {
+		t.SetSecretToken(secretToken)
+	}
 	t.SetServerURL(serverURLs...)
 	return t, nil
 }
@@ -217,11 +222,24 @@ func (t *HTTPTransport) SetUserAgent(ua string) {
 }
 
 // SetSecretToken sets the Authorization header with the given secret token.
-// This overrides the value specified via the ELASTIC_APM_SECRET_TOKEN
-// environment variable, if any.
+//
+// This overrides the value specified via the ELASTIC_APM_SECRET_TOKEN or
+// ELASTIC_APM_API_KEY environment variables, if either are set.
 func (t *HTTPTransport) SetSecretToken(secretToken string) {
 	if secretToken != "" {
 		t.setCommonHeader("Authorization", "Bearer "+secretToken)
+	} else {
+		t.deleteCommonHeader("Authorization")
+	}
+}
+
+// SetAPIKey sets the Authorization header with the given API Key.
+//
+// This overrides the value specified via the ELASTIC_APM_SECRET_TOKEN or
+// ELASTIC_APM_API_KEY environment variables, if either are set.
+func (t *HTTPTransport) SetAPIKey(apiKey string) {
+	if apiKey != "" {
+		t.setCommonHeader("Authorization", "ApiKey "+apiKey)
 	} else {
 		t.deleteCommonHeader("Authorization")
 	}
@@ -307,7 +325,7 @@ func (t *HTTPTransport) SendProfile(
 		for _, profileReader := range profileReaders {
 			h = make(textproto.MIMEHeader)
 			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="profile"`))
-			h.Set("Content-Type", "application/x-protobuf; messageType=”perftools.profiles.Profile")
+			h.Set("Content-Type", `application/x-protobuf; messageType="perftools.profiles.Profile"`)
 			part, err = w.CreatePart(h)
 			if err != nil {
 				return err
