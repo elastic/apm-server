@@ -55,6 +55,7 @@ func NewBuilder(cfg config.Config) (*Builder, error) {
 		// do not use username+password for API Key requests
 		cfg.APIKeyConfig.ESConfig.Username = ""
 		cfg.APIKeyConfig.ESConfig.Password = ""
+		cfg.APIKeyConfig.ESConfig.APIKey = ""
 		client, err := elasticsearch.NewClient(cfg.APIKeyConfig.ESConfig)
 		if err != nil {
 			return nil, err

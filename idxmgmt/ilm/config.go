@@ -35,7 +35,7 @@ type Config struct {
 	Setup Setup       `config:"setup"`
 }
 
-//setup holds information about how to setup ILM
+//Setup holds information about how to setup ILM
 type Setup struct {
 	Enabled       bool `config:"enabled"`
 	Overwrite     bool `config:"overwrite"`
