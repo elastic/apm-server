@@ -26,7 +26,7 @@ GOBUILD_FLAGS=-ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbe
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
-ES_USER?=apm_user
+ES_USER?=apm_server_user
 ES_PASS?=changeme
 ES_LOG_LEVEL?=debug
 KIBANA_ES_USER?=kibana_system_user

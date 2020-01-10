@@ -98,6 +98,9 @@ func splitHost(in string) (host, port string) {
 	}
 	host, port, err := net.SplitHostPort(in)
 	if err != nil {
+		if n := len(in); n > 1 && in[0] == '[' && in[n-1] == ']' {
+			in = in[1 : n-1]
+		}
 		return in, ""
 	}
 	return host, port

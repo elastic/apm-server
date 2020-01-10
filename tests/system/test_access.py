@@ -90,8 +90,8 @@ class BaseAPIKeySetup(ElasticTest):
         self.resource_any = ["*"]
         self.resource_backend = ["-"]
 
-        user = os.getenv("ES_SUPERUSER_USER", "admin")
-        password = os.getenv("ES_SUPERUSER_PASS", "changeme")
+        user = os.getenv("ES_USER", "apm_server_user")
+        password = os.getenv("ES_PASS", "changeme")
         self.admin_es_url = self.get_elasticsearch_url(user, password)
 
         self.api_key_url = "{}/_security/api_key".format(self.admin_es_url)
