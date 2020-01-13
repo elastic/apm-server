@@ -93,7 +93,7 @@ func (s *esStore) runSearchQuery(name, version, path string) (int, io.ReadCloser
 		return 0, nil, err
 	}
 	// Perform the runSearchQuery request.
-	return s.client.Search(s.index, &buf)
+	return s.client.SearchQuery(s.index, &buf)
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {

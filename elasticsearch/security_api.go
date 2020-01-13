@@ -18,77 +18,69 @@
 package elasticsearch
 
 import (
-	"fmt"
 	"net/http"
-	"net/url"
-	"strconv"
+
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v7/esutil"
 )
 
 // CreateAPIKey requires manage_security cluster privilege
 func CreateAPIKey(client Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
-	response := client.JSONRequest(http.MethodPut, "/_security/api_key", apikeyReq)
-
 	var apikey CreateAPIKeyResponse
-	err := response.DecodeTo(&apikey)
+	req := esapi.SecurityCreateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
+	err := doRequest(client, req, &apikey)
 	return apikey, err
 }
 
 // GetAPIKeys requires manage_security cluster privilege
 func GetAPIKeys(client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
-	u := url.URL{Path: "/_security/api_key"}
-	params := url.Values{}
-	params.Set("owner", strconv.FormatBool(apikeyReq.Owner))
+	req := esapi.SecurityGetAPIKeyRequest{}
 	if apikeyReq.ID != nil {
-		params.Set("id", *apikeyReq.ID)
+		req.ID = *apikeyReq.ID
 	} else if apikeyReq.Name != nil {
-		params.Set("name", *apikeyReq.Name)
+		req.Name = *apikeyReq.Name
 	}
-	u.RawQuery = params.Encode()
-
-	response := client.JSONRequest(http.MethodGet, u.String(), nil)
-
 	var apikey GetAPIKeyResponse
-	err := response.DecodeTo(&apikey)
+	err := doRequest(client, req, &apikey)
 	return apikey, err
 }
 
 // CreatePrivileges requires manage_security cluster privilege
 func CreatePrivileges(client Client, privilegesReq CreatePrivilegesRequest) (CreatePrivilegesResponse, error) {
-	response := client.JSONRequest(http.MethodPut, "/_security/privilege", privilegesReq)
-
 	var privileges CreatePrivilegesResponse
-	err := response.DecodeTo(&privileges)
+	req := esapi.SecurityPutPrivilegesRequest{Body: esutil.NewJSONReader(privilegesReq)}
+	err := doRequest(client, req, &privileges)
 	return privileges, err
 }
 
 // InvalidateAPIKey requires manage_security cluster privilege
 func InvalidateAPIKey(client Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
-	response := client.JSONRequest(http.MethodDelete, "/_security/api_key", apikeyReq)
-
 	var confirmation InvalidateAPIKeyResponse
-	err := response.DecodeTo(&confirmation)
+	req := esapi.SecurityInvalidateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
+	err := doRequest(client, req, &confirmation)
 	return confirmation, err
 }
 
 // DeletePrivileges requires manage_security cluster privilege
 func DeletePrivileges(client Client, privilegesReq DeletePrivilegeRequest) (DeletePrivilegeResponse, error) {
-	path := fmt.Sprintf("/_security/privilege/%v/%v", privilegesReq.Application, privilegesReq.Privilege)
-	response := client.JSONRequest(http.MethodDelete, path, nil)
-
 	var confirmation DeletePrivilegeResponse
-	err := response.DecodeTo(&confirmation)
+	req := esapi.SecurityDeletePrivilegesRequest{
+		Application: string(privilegesReq.Application),
+		Name:        string(privilegesReq.Privilege),
+	}
+	err := doRequest(client, req, &confirmation)
 	return confirmation, err
 }
 
 func HasPrivileges(client Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
-	var h string
-	if credentials != "" {
-		h = fmt.Sprintf("Authorization: ApiKey %s", credentials)
-	}
-	response := client.JSONRequest(http.MethodGet, "/_security/user/_has_privileges", privileges, h)
-
 	var info HasPrivilegesResponse
-	err := response.DecodeTo(&info)
+	req := esapi.SecurityHasPrivilegesRequest{Body: esutil.NewJSONReader(privileges)}
+	if credentials != "" {
+		header := make(http.Header)
+		header.Set("Authorization", "ApiKey "+credentials)
+		req.Header = header
+	}
+	err := doRequest(client, req, &info)
 	return info, err
 }
 

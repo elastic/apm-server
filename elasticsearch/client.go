@@ -18,16 +18,16 @@
 package elasticsearch
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/version"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	esv7 "github.com/elastic/go-elasticsearch/v7"
 
@@ -36,66 +36,46 @@ import (
 
 // Client is an interface designed to abstract away version differences between elasticsearch clients
 type Client interface {
+	// Perform satisfies esapi.Transport
+	Perform(*http.Request) (*http.Response, error)
 	// TODO: deprecate
-	// Search performs a query against the given index with the given body
-	Search(index string, body io.Reader) (int, io.ReadCloser, error)
-	// Makes a request with application/json Content-Type and Accept headers by default
-	// pass/overwrite headers with "key: value" format
-	JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse
+	SearchQuery(index string, body io.Reader) (int, io.ReadCloser, error)
 }
 
 type clientV8 struct {
-	v8 *esv8.Client
+	*esv8.Client
 }
 
-// Search satisfies the Client interface for version 8
-func (c clientV8) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
-	response, err := c.v8.Search(
-		c.v8.Search.WithContext(context.Background()),
-		c.v8.Search.WithIndex(index),
-		c.v8.Search.WithBody(body),
-		c.v8.Search.WithTrackTotalHits(true),
-		c.v8.Search.WithPretty(),
+func (c clientV8) SearchQuery(index string, body io.Reader) (int, io.ReadCloser, error) {
+	response, err := c.Search(
+		c.Search.WithContext(context.Background()),
+		c.Search.WithIndex(index),
+		c.Search.WithBody(body),
+		c.Search.WithTrackTotalHits(true),
+		c.Search.WithPretty(),
 	)
 	if err != nil {
 		return 0, nil, err
 	}
 	return response.StatusCode, response.Body, nil
-}
-
-func (c clientV8) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
-	req, err := makeJSONRequest(method, path, body, headers...)
-	if err != nil {
-		return JSONResponse{nil, err}
-	}
-	return parseResponse(c.v8.Perform(req))
 }
 
 type clientV7 struct {
-	v7 *esv7.Client
+	*esv7.Client
 }
 
-// Search satisfies the Client interface for version 7
-func (c clientV7) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
-	response, err := c.v7.Search(
-		c.v7.Search.WithContext(context.Background()),
-		c.v7.Search.WithIndex(index),
-		c.v7.Search.WithBody(body),
-		c.v7.Search.WithTrackTotalHits(true),
-		c.v7.Search.WithPretty(),
+func (c clientV7) SearchQuery(index string, body io.Reader) (int, io.ReadCloser, error) {
+	response, err := c.Search(
+		c.Search.WithContext(context.Background()),
+		c.Search.WithIndex(index),
+		c.Search.WithBody(body),
+		c.Search.WithTrackTotalHits(true),
+		c.Search.WithPretty(),
 	)
 	if err != nil {
 		return 0, nil, err
 	}
 	return response.StatusCode, response.Body, nil
-}
-
-func (c clientV7) JSONRequest(method, path string, body interface{}, headers ...string) JSONResponse {
-	req, err := makeJSONRequest(method, path, body, headers...)
-	if err != nil {
-		return JSONResponse{nil, err}
-	}
-	return parseResponse(c.v7.Perform(req))
 }
 
 // NewClient parses the given config and returns  a version-aware client as an interface
@@ -141,58 +121,21 @@ func newV8Client(apikey, user, pwd string, addresses []string, transport http.Ro
 	})
 }
 
-type JSONResponse struct {
-	content io.ReadCloser
-	err     error
-}
-
-func (r JSONResponse) DecodeTo(i interface{}) error {
-	if r.err != nil {
-		return r.err
+func doRequest(transport esapi.Transport, req esapi.Request, out interface{}) error {
+	resp, err := req.Do(context.TODO(), transport)
+	if err != nil {
+		return err
 	}
-	defer r.content.Close()
-	err := json.NewDecoder(r.content).Decode(&i)
-	return err
-}
-
-// each header has the format "key: value"
-func makeJSONRequest(method, path string, body interface{}, headers ...string) (*http.Request, error) {
-	header := http.Header{
-		"Content-Type": []string{"application/json"},
-		"Accept":       []string{"application/json"},
-	}
-	for _, h := range headers {
-		kv := strings.Split(h, ":")
-		if len(kv) == 2 {
-			header[kv[0]] = strings.Split(kv[1], ",")
-		}
-	}
-	var reader io.Reader
-	if body != nil {
-		bs, err := json.Marshal(body)
+	defer resp.Body.Close()
+	if resp.IsError() {
+		bytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		reader = bytes.NewReader(bs)
+		return errors.New(string(bytes))
 	}
-	req, err := http.NewRequest(method, path, reader)
-	if err != nil {
-		return nil, err
+	if out != nil {
+		err = json.NewDecoder(resp.Body).Decode(out)
 	}
-	req.Header = header
-	return req, nil
-}
-
-func parseResponse(resp *http.Response, err error) JSONResponse {
-	if err != nil {
-		return JSONResponse{nil, err}
-	}
-	body := resp.Body
-	if resp.StatusCode >= http.StatusMultipleChoices {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(body)
-		body.Close()
-		return JSONResponse{nil, errors.New(buf.String())}
-	}
-	return JSONResponse{body, nil}
+	return err
 }
