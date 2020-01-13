@@ -94,8 +94,7 @@ func (a *apikeyAuth) allowed(permissions es.Permissions) bool {
 				allowed = allowed || value
 			}
 		}
-		value, _ := permissions[privilege]
-		allowed = allowed || value
+		allowed = allowed || permissions[privilege]
 	}
 	return allowed
 }

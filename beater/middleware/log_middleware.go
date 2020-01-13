@@ -20,8 +20,9 @@ package middleware
 import (
 	"github.com/gofrs/uuid"
 
-	"github.com/elastic/beats/libbeat/logp"
 	"go.elastic.co/apm"
+
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
