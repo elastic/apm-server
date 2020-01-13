@@ -21,6 +21,7 @@ import (
 	"github.com/gofrs/uuid"
 
 	"github.com/elastic/beats/libbeat/logp"
+	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -34,12 +35,24 @@ func LogMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 
 		return func(c *request.Context) {
-			reqID, err := uuid.NewV4()
-			if err != nil {
-				id := request.IDResponseErrorsInternal
-				logger.Errorw(request.MapResultIDToStatus[id].Keyword, "error", err)
-				c.Result.SetWithError(id, err)
-				c.Write()
+			var reqID, transactionID, traceID string
+			tx := apm.TransactionFromContext(c.Request.Context())
+			if tx != nil {
+				// This request is being traced, grab its IDs to add to logs.
+				traceContext := tx.TraceContext()
+				transactionID = traceContext.Span.String()
+				traceID = traceContext.Trace.String()
+				reqID = transactionID
+			} else {
+				uuid, err := uuid.NewV4()
+				if err != nil {
+					id := request.IDResponseErrorsInternal
+					logger.Errorw(request.MapResultIDToStatus[id].Keyword, "error", err)
+					c.Result.SetWithError(id, err)
+					c.Write()
+					return
+				}
+				reqID = uuid.String()
 			}
 
 			reqLogger := logger.With(
@@ -49,6 +62,13 @@ func LogMiddleware() Middleware {
 				"content_length", c.Request.ContentLength,
 				"remote_address", utility.RemoteAddr(c.Request),
 				"user-agent", c.Request.Header.Get(headers.UserAgent))
+
+			if traceID != "" {
+				reqLogger = reqLogger.With(
+					"trace.id", traceID,
+					"transaction.id", transactionID,
+				)
+			}
 
 			c.Logger = reqLogger
 			h(c)
