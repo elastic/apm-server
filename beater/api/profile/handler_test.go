@@ -44,6 +44,8 @@ import (
 	"github.com/elastic/apm-server/publish"
 )
 
+const pprofContentType = `application/x-protobuf; messageType="perftools.profiles.Profile"`
+
 func TestHandler(t *testing.T) {
 	var rateLimit, err = ratelimit.NewStore(1, 0, 0)
 	require.NoError(t, err)
@@ -127,7 +129,12 @@ func TestHandler(t *testing.T) {
 			id: request.IDResponseValidAccepted,
 			parts: []part{
 				heapProfilePart(),
-				heapProfilePart(),
+				part{
+					name: "profile",
+					// No messageType param specified, so pprof is assumed.
+					contentType: "application/x-protobuf",
+					body:        heapProfileBody(),
+				},
 				part{
 					name:        "metadata",
 					contentType: "application/json",
@@ -147,8 +154,19 @@ func TestHandler(t *testing.T) {
 		"ProfileInvalidContentType": {
 			id: request.IDResponseErrorsValidate,
 			parts: []part{{
-				name:        "metadata",
+				name:        "profile",
 				contentType: "text/plain",
+				body:        strings.NewReader(""),
+			}},
+			body: prettyJSON(map[string]interface{}{"accepted": 0}),
+		},
+		"ProfileInvalidMessageType": {
+			id: request.IDResponseErrorsValidate,
+			parts: []part{{
+				name: "profile",
+				// Improperly formatted "messageType" param
+				// in Content-Type from APM Agent Go v1.6.0.
+				contentType: "application/x-protobuf; messageType=”perftools.profiles.Profile",
 				body:        strings.NewReader(""),
 			}},
 			body: prettyJSON(map[string]interface{}{"accepted": 0}),
@@ -157,7 +175,7 @@ func TestHandler(t *testing.T) {
 			id: request.IDResponseErrorsDecode,
 			parts: []part{{
 				name:        "profile",
-				contentType: "application/x-protobuf",
+				contentType: pprofContentType,
 				body:        strings.NewReader("foo"),
 			}},
 			body: prettyJSON(map[string]interface{}{"accepted": 0}),
@@ -168,7 +186,7 @@ func TestHandler(t *testing.T) {
 				heapProfilePart(),
 				part{
 					name:        "profile",
-					contentType: "application/x-protobuf",
+					contentType: pprofContentType,
 					body:        strings.NewReader(strings.Repeat("*", 10*1024*1024)),
 				},
 			},
@@ -261,15 +279,15 @@ func emptyDec(_ *http.Request) (map[string]interface{}, error) {
 }
 
 func heapProfilePart() part {
+	return part{name: "profile", contentType: pprofContentType, body: heapProfileBody()}
+}
+
+func heapProfileBody() io.Reader {
 	var buf bytes.Buffer
 	if err := pprof.WriteHeapProfile(&buf); err != nil {
 		panic(err)
 	}
-	return part{
-		name:        "profile",
-		contentType: "application/x-protobuf",
-		body:        &buf,
-	}
+	return &buf
 }
 
 type part struct {
