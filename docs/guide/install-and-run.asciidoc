@@ -6,8 +6,6 @@ https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud. The {es} Service is available on AWS, GCP, and Azure,
 and automatically configures APM Server to work with {es} and {kib}.
 
-Alternatively, you can <<before-installation,install the stack yourself>>.
-
 [float]
 === Hosted Elasticsearch Service
 
@@ -33,6 +31,13 @@ We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
 * <<install-kibana>>
 * <<apm-server>>
 * <<agents>>
+
+[float]
+[[quick-start]]
+=== Quick start with Docker
+
+If you're interested in Elastic APM and want a quick and easy development environment to try things out,
+see <<quick-start-overview>>.
 
 [[install-elasticsearch]]
 === Step 1: Install Elasticsearch
@@ -103,7 +108,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|Go
 2+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
 |{apm-go-ref-v}/supported-tech.html[Supported technologies]
-|{apm-go-ref-v}/getting-started.html[Getting started with the Go Agent]
+|{apm-go-ref-v}/getting-started.html[Set up the Go Agent]
 
 .2+|Java
 2+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
@@ -111,7 +116,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 |{apm-java-ref-v}/setup.html[Set up the Java Agent]
 
 .2+|.NET
-2+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
+2+|The .NET agent automatically instruments ASP.NET Core applications, and .NET Framework applications.
 |{apm-dotnet-ref-v}/supported-technologies.html[Supported technologies]
 |{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
 
@@ -123,7 +128,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|Python
 2+|The Python agent automatically instruments Django and Flask out of the box.
 |{apm-py-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-py-ref-v}/getting-started.html[Getting Started with the Python Agent]
+|{apm-py-ref-v}/set-up.html[Set up the Python Agent]
 
 .2+|Ruby
 2+|The Ruby agent automatically instruments Rails out of the box.
@@ -133,7 +138,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|RUM
 2+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
 |{apm-rum-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-rum-ref-v}/getting-started.html[Getting started with the RUM Agent]
+|{apm-rum-ref-v}/getting-started.html[Set up the RUM Agent]
 
 |=======================================================================
 
@@ -199,3 +204,57 @@ More information is available in {apm-server-ref-v}/configuring-howto-apm-server
 Don't forget to also read about
 {apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
 {apm-server-ref-v}/monitoring.html[monitoring APM Server].
+
+[[quick-start-overview]]
+=== Quick start development environment
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+If you're just looking for a quick way to try out Elastic APM, you can easily get started with Docker.
+Just follow the steps below.
+
+**Create a docker-compose.yml file**
+
+The https://www.docker.elastic.co/[Elastic Docker registry] contains Docker images for all of the products
+in the {stack}.
+You can use Docker compose to easily get the default distributions of {es}, {kib},
+and APM Server up and running in Docker.
+
+Create a `docker-compose.yml` file and copy and paste in the following:
+
+["source","yaml",subs="attributes"]
+--------------------------------------------
+include::./docker-compose.yml[]
+--------------------------------------------
+
+**Compose**
+
+Run `docker-compose up`.
+Compose will download the official docker containers and start {es}, {kib}, and APM Server.
+
+**Install Agents**
+
+When Compose finishes, navigate to http://localhost:5601/app/kibana#/home/tutorial/apm.
+Complete steps 4-6 to configure your application to collect and report APM data.
+
+**Visualize**
+
+Use the APM app at http://localhost:5601/app/apm to visualize your application performance data!
+
+When you're done, `ctrl+c` will stop all of the containers.
+
+**Advanced Docker usage**
+
+If you're interested in learning more about all of the APM features available,
+or running the Elastic stack on Docker in a production environment, see the following documentation:
+
+* {apm-server-ref-v}/running-on-docker.html[Running APM Server on Docker]
+* {stack-gs}/get-started-docker.html[Running the Elastic Stack on Docker]
+
+endif::[]
