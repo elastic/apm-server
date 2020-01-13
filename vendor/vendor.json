@@ -2628,6 +2628,12 @@
 			"revisionTime": "2019-12-11T13:27:55Z"
 		},
 		{
+			"checksumSHA1": "ZE+byoICO3nIHzeHRc7EQ85hLu4=",
+			"path": "github.com/stretchr/testify/suite",
+			"revision": "858f37ff9bc48070cde7f2c2895dbe0db1ad9326",
+			"revisionTime": "2019-12-19T14:10:44Z"
+		},
+		{
 			"checksumSHA1": "X6WTt1wvfs59cC1Dr9WxDmitfnE=",
 			"path": "github.com/t-yuki/gocover-cobertura",
 			"revision": "aaee18c8195c3f2d90e5ef80ca918d265463842a",
@@ -2664,6 +2670,14 @@
 		{
 			"checksumSHA1": "oaKKkmUl8HRP90bd+yNzJ/XVya4=",
 			"path": "go.elastic.co/apm/apmconfig",
+			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
+			"revisionTime": "2020-01-10T03:30:49Z",
+			"version": "v1.7.0",
+			"versionExact": "v1.7.0"
+		},
+		{
+			"checksumSHA1": "3YhQhpZAqSMHPxWk1nIDJTzJMM0=",
+			"path": "go.elastic.co/apm/apmtest",
 			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
 			"revisionTime": "2020-01-10T03:30:49Z",
 			"version": "v1.7.0",
@@ -2800,6 +2814,14 @@
 		{
 			"checksumSHA1": "QU3jXVqVwkvR6JS9rtqt1Vurago=",
 			"path": "go.elastic.co/apm/transport",
+			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
+			"revisionTime": "2020-01-10T03:30:49Z",
+			"version": "v1.7.0",
+			"versionExact": "v1.7.0"
+		},
+		{
+			"checksumSHA1": "M2+F+/52KqvfgU7HNh7u0fm9oCg=",
+			"path": "go.elastic.co/apm/transport/transporttest",
 			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
 			"revisionTime": "2020-01-10T03:30:49Z",
 			"version": "v1.7.0",
