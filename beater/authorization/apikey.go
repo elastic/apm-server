@@ -110,6 +110,7 @@ func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
 			},
 		},
 	}
+	// TODO(axw) pass context into HasPrivileges.
 	info, err := es.HasPrivileges(a.esClient, request, a.key)
 	if err != nil {
 		var eserr *es.Error

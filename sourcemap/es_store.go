@@ -19,6 +19,7 @@ package sourcemap
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -93,7 +94,7 @@ func (s *esStore) runSearchQuery(name, version, path string) (int, io.ReadCloser
 		return 0, nil, err
 	}
 	// Perform the runSearchQuery request.
-	return s.client.SearchQuery(s.index, &buf)
+	return s.client.SearchQuery(context.TODO(), s.index, &buf)
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
