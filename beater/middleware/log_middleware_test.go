@@ -22,12 +22,13 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/beats/libbeat/logp"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/apmtest"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
@@ -46,6 +47,7 @@ func TestLogMiddleware(t *testing.T) {
 		code          int
 		error         error
 		stacktrace    bool
+		traced        bool
 	}{
 		{
 			name:    "Accepted",
@@ -53,6 +55,14 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.InfoLevel,
 			handler: beatertest.Handler202,
 			code:    http.StatusAccepted,
+		},
+		{
+			name:    "Traced",
+			message: "request accepted",
+			level:   zapcore.InfoLevel,
+			handler: beatertest.Handler202,
+			code:    http.StatusAccepted,
+			traced:  true,
 		},
 		{
 			name:    "Error",
@@ -87,7 +97,13 @@ func TestLogMiddleware(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, rec := beatertest.DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.UserAgent, tc.name)
+			if tc.traced {
+				tx := apmtest.DiscardTracer.StartTransaction("name", "type")
+				c.Request = c.Request.WithContext(apm.ContextWithTransaction(c.Request.Context(), tx))
+				defer tx.End()
+			}
 			Apply(LogMiddleware(), tc.handler)(c)
+
 			assert.Equal(t, tc.code, rec.Code)
 			for i, entry := range logp.ObserverLogs().TakeAll() {
 				// expect only one log entry per request
@@ -109,6 +125,14 @@ func TestLogMiddleware(t *testing.T) {
 				}
 				if tc.stacktrace {
 					assert.NotZero(t, ec["stacktrace"])
+				}
+				if tc.traced {
+					assert.NotEmpty(t, ec, "trace.id")
+					assert.NotEmpty(t, ec, "transaction.id")
+					assert.Equal(t, ec["request_id"], ec["transaction.id"])
+				} else {
+					assert.NotContains(t, ec, "trace.id")
+					assert.NotContains(t, ec, "transaction.id")
 				}
 			}
 		})
