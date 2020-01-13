@@ -37,7 +37,7 @@ type Handler Builder
 
 // Authorization interface to be implemented by different auth types
 type Authorization interface {
-	AuthorizedFor(_ elasticsearch.Resource) (bool, error)
+	AuthorizedFor(elasticsearch.Resource) (bool, error)
 	IsAuthorizationConfigured() bool
 }
 

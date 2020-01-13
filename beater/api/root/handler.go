@@ -20,6 +20,8 @@ package root
 import (
 	"time"
 
+	"github.com/elastic/apm-server/beater/authorization"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/version"
@@ -51,7 +53,7 @@ func Handler() request.Handler {
 		}
 
 		c.Result.SetDefault(request.IDResponseValidOK)
-		authorized, err := c.Authorization.AuthorizedFor("")
+		authorized, err := c.Authorization.AuthorizedFor(authorization.ResourceInternal)
 		if err != nil {
 			c.Result.Err = err
 		}

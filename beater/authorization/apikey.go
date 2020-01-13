@@ -67,9 +67,9 @@ func (a *apikeyAuth) IsAuthorizationConfigured() bool {
 // An api key is considered to be authorized when the api key has the configured privileges for the requested resource.
 // Permissions are fetched from Elasticsearch and then cached in a global cache.
 func (a *apikeyAuth) AuthorizedFor(resource es.Resource) (bool, error) {
-	//fetch from cache
-	if allowed, found := a.fromCache(resource); found {
-		return allowed, nil
+	privileges := a.cache.get(id(a.key, resource))
+	if privileges != nil {
+		return a.allowed(privileges), nil
 	}
 
 	if a.cache.isFull() {
@@ -78,32 +78,26 @@ func (a *apikeyAuth) AuthorizedFor(resource es.Resource) (bool, error) {
 			"or consider increasing config option `apm-server.api_key.limit`")
 	}
 
-	//fetch from ES
 	privileges, err := a.queryES(resource)
 	if err != nil {
 		return false, err
 	}
-	//add to cache
 	a.cache.add(id(a.key, resource), privileges)
-
-	allowed, _ := a.fromCache(resource)
-	return allowed, nil
+	return a.allowed(privileges), nil
 }
 
-func (a *apikeyAuth) fromCache(resource es.Resource) (allowed bool, found bool) {
-	privileges := a.cache.get(id(a.key, resource))
-	if privileges == nil {
-		return
-	}
-	found = true
-	allowed = false
+func (a *apikeyAuth) allowed(permissions es.Permissions) bool {
+	var allowed bool
 	for _, privilege := range a.anyOfPrivileges {
-		if privilegeAllowed, ok := privileges[privilege]; ok && privilegeAllowed {
-			allowed = true
-			return
+		if privilege == ActionAny {
+			for _, value := range permissions {
+				allowed = allowed || value
+			}
 		}
+		value, _ := permissions[privilege]
+		allowed = allowed || value
 	}
-	return
+	return allowed
 }
 
 func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
