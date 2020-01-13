@@ -107,7 +107,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func StartTransaction(tracer *apm.Tracer, name string, req *http.Request) (*apm.Transaction, *http.Request) {
 	traceContext, ok := getRequestTraceparent(req, ElasticTraceparentHeader)
 	if !ok {
-		traceContext, _ = getRequestTraceparent(req, W3CTraceparentHeader)
+		traceContext, ok = getRequestTraceparent(req, W3CTraceparentHeader)
+	}
+	if ok {
+		traceContext.State, _ = ParseTracestateHeader(req.Header[TracestateHeader]...)
 	}
 	tx := tracer.StartTransactionOptions(name, "request", apm.TransactionOptions{TraceContext: traceContext})
 	ctx := apm.ContextWithTransaction(req.Context(), tx)

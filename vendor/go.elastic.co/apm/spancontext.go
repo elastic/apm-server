@@ -18,16 +18,23 @@
 package apm
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
+	"go.elastic.co/apm/internal/apmhttputil"
 	"go.elastic.co/apm/model"
 )
 
 // SpanContext provides methods for setting span context.
 type SpanContext struct {
-	model    model.SpanContext
-	database model.DatabaseSpanContext
-	http     model.HTTPSpanContext
+	model                model.SpanContext
+	destination          model.DestinationSpanContext
+	destinationService   model.DestinationServiceSpanContext
+	databaseRowsAffected int64
+	database             model.DatabaseSpanContext
+	http                 model.HTTPSpanContext
 }
 
 // DatabaseSpanContext holds database span context.
@@ -46,11 +53,23 @@ type DatabaseSpanContext struct {
 	User string
 }
 
+// DestinationServiceSpanContext holds destination service span span.
+type DestinationServiceSpanContext struct {
+	// Name holds a name for the destination service, which may be used
+	// for grouping and labeling in service maps.
+	Name string
+
+	// Resource holds an identifier for a destination service resource,
+	// such as a message queue.
+	Resource string
+}
+
 func (c *SpanContext) build() *model.SpanContext {
 	switch {
 	case len(c.model.Tags) != 0:
 	case c.model.Database != nil:
 	case c.model.HTTP != nil:
+	case c.model.Destination != nil:
 	default:
 		return nil
 	}
@@ -102,17 +121,73 @@ func (c *SpanContext) SetDatabase(db DatabaseSpanContext) {
 	c.model.Database = &c.database
 }
 
+// SetDatabaseRowsAffected records the number of rows affected by
+// a database operation.
+func (c *SpanContext) SetDatabaseRowsAffected(n int64) {
+	c.databaseRowsAffected = n
+	c.database.RowsAffected = &c.databaseRowsAffected
+}
+
 // SetHTTPRequest sets the details of the HTTP request in the context.
 //
 // This function relates to client requests. If the request URL contains
 // user info, it will be removed and excluded from the stored URL.
+//
+// SetHTTPRequest makes implicit calls to SetDestinationAddress and
+// SetDestinationService, using details from req.URL.
 func (c *SpanContext) SetHTTPRequest(req *http.Request) {
+	if req.URL == nil {
+		return
+	}
 	c.http.URL = req.URL
 	c.model.HTTP = &c.http
+
+	addr, port := apmhttputil.DestinationAddr(req)
+	c.SetDestinationAddress(addr, port)
+
+	destinationServiceURL := url.URL{Scheme: req.URL.Scheme, Host: req.URL.Host}
+	destinationServiceResource := destinationServiceURL.Host
+	if port != 0 && port == apmhttputil.SchemeDefaultPort(req.URL.Scheme) {
+		var hasDefaultPort bool
+		if n := len(destinationServiceURL.Host); n > 0 && destinationServiceURL.Host[n-1] != ']' {
+			if i := strings.LastIndexByte(destinationServiceURL.Host, ':'); i != -1 {
+				// Remove the default port from destination.service.name.
+				destinationServiceURL.Host = destinationServiceURL.Host[:i]
+				hasDefaultPort = true
+			}
+		}
+		if !hasDefaultPort {
+			// Add the default port to destination.service.resource.
+			destinationServiceResource = fmt.Sprintf("%s:%d", destinationServiceResource, port)
+		}
+	}
+	c.SetDestinationService(DestinationServiceSpanContext{
+		Name:     destinationServiceURL.String(),
+		Resource: destinationServiceResource,
+	})
 }
 
 // SetHTTPStatusCode records the HTTP response status code.
 func (c *SpanContext) SetHTTPStatusCode(statusCode int) {
 	c.http.StatusCode = statusCode
 	c.model.HTTP = &c.http
+}
+
+// SetDestinationAddress sets the destination address and port in the context.
+//
+// SetDestinationAddress has no effect when called when an empty addr.
+func (c *SpanContext) SetDestinationAddress(addr string, port int) {
+	if addr != "" {
+		c.destination.Address = truncateString(addr)
+		c.destination.Port = port
+		c.model.Destination = &c.destination
+	}
+}
+
+// SetDestinationService sets the destination service info in the context.
+func (c *SpanContext) SetDestinationService(service DestinationServiceSpanContext) {
+	c.destinationService.Name = truncateString(service.Name)
+	c.destinationService.Resource = truncateString(service.Resource)
+	c.destination.Service = &c.destinationService
+	c.model.Destination = &c.destination
 }

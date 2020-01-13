@@ -68,6 +68,9 @@ func (t *Tracer) StartTransactionOptions(name, transactionType string, opts Tran
 		} else {
 			binary.LittleEndian.PutUint64(tx.traceContext.Span[:], tx.rand.Uint64())
 		}
+		if opts.TraceContext.State.Validate() == nil {
+			tx.traceContext.State = opts.TraceContext.State
+		}
 	} else {
 		// Start a new trace. We reuse the trace ID for the root transaction's ID
 		// if one is not specified in the options.
