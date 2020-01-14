@@ -73,19 +73,13 @@ func createApikeyCmd(settings instance.Settings) *cobra.Command {
 		Short: short,
 		Long: short + `.
 If no privilege(s) are specified, the API Key will be valid for all.`,
-		// always need to return error for possible scripts checking the exit code,
-		// but printing the error must be done inside
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, _, err := bootstrap(settings)
-			if err != nil {
-				return err
-			}
+		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				privileges = []es.PrivilegeAction{auth.ActionAny}
 			}
 			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
-		},
+		}),
 	}
 	create.Flags().StringVar(&keyName, "name", "apm-key", "API Key name")
 	create.Flags().StringVar(&expiration, "expiration", "",
@@ -115,16 +109,13 @@ func invalidateApikeyCmd(settings instance.Settings) *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
+				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
 			}
-			client, _, err := bootstrap(settings)
-			if err != nil {
-				return err
-			}
 			return invalidateAPIKey(client, &id, &name, purge, json)
-		},
+		}),
 	}
 	invalidate.Flags().StringVar(&id, "id", "", "id of the API Key to delete")
 	invalidate.Flags().StringVar(&name, "name", "",
@@ -179,18 +170,14 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		Use:   "verify",
 		Short: short,
 		Long:  long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			_, config, err := bootstrap(settings)
-			if err != nil {
-				return err
-			}
+		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				// can't use "*" for querying
 				privileges = auth.ActionsAll()
 			}
 			return verifyAPIKey(config, privileges, credentials, json)
-		},
+		}),
 	}
 	verify.Flags().StringVar(&credentials, "credentials", "", `credentials for which check privileges (required)`)
 	verify.Flags().BoolVar(&ingest, "ingest", false,
@@ -207,6 +194,24 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 	verify.Flags().SortFlags = false
 
 	return verify
+}
+
+type apikeyRunFunc func(client es.Client, config *config.Config, args []string) error
+
+type cobraRunFunc func(cmd *cobra.Command, args []string)
+
+func makeAPIKeyRun(settings instance.Settings, json bool, f apikeyRunFunc) cobraRunFunc {
+	return func(cmd *cobra.Command, args []string) {
+		client, config, err := bootstrap(settings)
+		if err != nil {
+			printErr(err, json)
+			os.Exit(1)
+		}
+		if err := f(client, config, args); err != nil {
+			printErr(err, json)
+			os.Exit(1)
+		}
+	}
 }
 
 // apm-server.api_key.enabled is implicitly true
@@ -279,9 +284,7 @@ func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privil
 	}
 
 	privilegesCreated, err := es.CreatePrivileges(client, privilegesRequest)
-
 	if err != nil {
-		printErr(err, asJSON)
 		return err
 	}
 
@@ -292,17 +295,23 @@ func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privil
 		Applications: []es.Application{
 			{
 				Name:       auth.Application,
-				Privileges: auth.ActionsAll(),
+				Privileges: privileges,
 				Resources:  []es.Resource{auth.ResourceInternal},
 			},
 		},
 	}, "")
 	if err != nil {
-		printErr(err, asJSON)
 		return err
 	}
 	if !hasPrivileges.HasAll {
-		printErr(fmt.Errorf(`%s does not have privileges to create API keys.
+		var missingPrivileges []string
+		for action, hasPrivilege := range hasPrivileges.Application[auth.Application][auth.ResourceInternal] {
+			if !hasPrivilege {
+				missingPrivileges = append(missingPrivileges, string(action))
+			}
+		}
+		return fmt.Errorf(`%s is missing the following requested privilege(s): %s.
+
 You might try with the superuser, or add the APM application privileges to the role of the authenticated user, eg.:
 PUT /_security/role/my_role {
 	...
@@ -313,8 +322,7 @@ PUT /_security/role/my_role {
 	}],
 	...
 }
-		`, hasPrivileges.Username), asJSON)
-		return err
+		`, hasPrivileges.Username, strings.Join(missingPrivileges, ", "))
 	}
 
 	printText, printJSON := printers(asJSON)
@@ -344,7 +352,6 @@ PUT /_security/role/my_role {
 
 	apikey, err := es.CreateAPIKey(client, apikeyRequest)
 	if err != nil {
-		printErr(err, asJSON)
 		return err
 	}
 	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.ID + ":" + apikey.Key))
@@ -383,7 +390,6 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 
 	apikeys, err := es.GetAPIKeys(client, request)
 	if err != nil {
-		printErr(err, asJSON)
 		return err
 	}
 
@@ -426,7 +432,6 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 
 	invalidation, err := es.InvalidateAPIKey(client, invalidateKeysRequest)
 	if err != nil {
-		printErr(err, asJSON)
 		return err
 	}
 	printText, printJSON := printers(asJSON)
@@ -463,15 +468,12 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 
 func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) error {
 	perms := make(es.Permissions)
-
 	printText, printJSON := printers(asJSON)
-	var err error
-
 	for _, privilege := range privileges {
 		var builder *auth.Builder
 		builder, err := auth.NewBuilder(*config)
 		if err != nil {
-			break
+			return err
 		}
 
 		var authorized bool
@@ -480,19 +482,14 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 			AuthorizationFor(headers.APIKey, credentials).
 			AuthorizedFor(auth.ResourceInternal)
 		if err != nil {
-			break
+			return err
 		}
 
 		perms[privilege] = authorized
 		printText("Authorized for %s...: %s", humanPrivilege(privilege), humanBool(authorized))
 	}
-
-	if err != nil {
-		printErr(err, asJSON)
-	} else {
-		printJSON(perms)
-	}
-	return err
+	printJSON(perms)
+	return nil
 }
 
 func humanBool(b bool) string {

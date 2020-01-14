@@ -175,4 +175,4 @@ class APIKeyBadUser2Test(APIKeyBaseTest):
         """
         result = self.subcommand_output("create", "--name", self.api_key_name)
         assert result.get("error") is not None, result
-        assert "beats_user does not have privileges to create API keys" in result.get("error"), result
+        assert "beats_user is missing the following requested privilege(s):" in result.get("error"), result
