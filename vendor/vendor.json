@@ -1545,10 +1545,10 @@
 			"revisionTime": "2020-01-02T12:26:20Z"
 		},
 		{
-			"checksumSHA1": "bcGdkHyNag5yNitK9gDwAui9mLs=",
+			"checksumSHA1": "5XKe9ycdLlVjjwW5Qvuds7SziAI=",
 			"path": "github.com/elastic/go-elasticsearch/v7",
-			"revision": "d8acaa5faade05290d8b500b8f3892a378f2d2e7",
-			"revisionTime": "2019-10-14T09:07:31Z",
+			"revision": "ed288cdc5128a5729c32b4f6aa5e30b09ebba294",
+			"revisionTime": "2019-12-08T14:07:01Z",
 			"tree": true
 		},
 		{

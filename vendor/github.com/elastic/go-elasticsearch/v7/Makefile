@@ -202,7 +202,6 @@ endif
 		set -e -o pipefail; \
 		cp internal/version/version.go internal/version/version.go.OLD && \
 		cat internal/version/version.go.OLD | sed -e 's/Client = ".*"/Client = "$(version)"/' > internal/version/version.go && \
-		rm internal/version/version.go.OLD && \
 		go vet internal/version/version.go && \
 		go fmt internal/version/version.go && \
 		git diff --color-words internal/version/version.go | tail -n 1; \
@@ -217,8 +216,14 @@ endif
 			git tag --annotate v$(version) --message 'Release $(version)'; \
 			echo "\033[2m→ Push `git show --pretty='%h (%s)' --no-patch HEAD` to Github:\033[0m\n"; \
 			echo "\033[1m  git push origin HEAD && git push origin v$(version)\033[0m\n"; \
+			mv internal/version/version.go.OLD internal/version/version.go && \
+			git add internal/version/version.go && \
+			original_version=`cat internal/version/version.go | sed -ne 's;^const Client = "\(.*\)"$$;\1;p'` && \
+			git commit --no-status --quiet --message "Update version to $$original_version"; \
+			echo "\033[2m→ Version updated to [$$original_version].\033[0m\n"; \
 		else \
 			echo "Aborting..."; \
+			rm internal/version/version.go.OLD; \
 			exit 1; \
 		fi; \
 	}
@@ -233,7 +238,7 @@ godoc: ## Display documentation for the package
 	GOROOT=/tmp/tmpgoroot/ GOPATH=/tmp/tmpgopath/ godoc -http=localhost:6060 -play
 
 cluster: ## Launch an Elasticsearch cluster with Docker
-	$(eval version ?= "elasticsearch-oss:7.4-SNAPSHOT")
+	$(eval version ?= "elasticsearch-oss:7.5-SNAPSHOT")
 ifeq ($(origin nodes), undefined)
 	$(eval nodes = 1)
 endif
@@ -254,10 +259,12 @@ else
 	$(eval xpack_env += --env "xpack.security.http.ssl.key=certs/testnode.key")
 	$(eval xpack_env += --env "xpack.security.http.ssl.certificate=certs/testnode.crt")
 	$(eval xpack_env += --env "xpack.security.http.ssl.certificate_authorities=certs/ca.crt")
+	$(eval xpack_env += --env "xpack.security.http.ssl.verification_mode=none")
 	$(eval xpack_env += --env "xpack.security.transport.ssl.enabled=true")
 	$(eval xpack_env += --env "xpack.security.transport.ssl.key=certs/testnode.key")
 	$(eval xpack_env += --env "xpack.security.transport.ssl.certificate=certs/testnode.crt")
 	$(eval xpack_env += --env "xpack.security.transport.ssl.certificate_authorities=certs/ca.crt")
+	$(eval xpack_env += --env "xpack.security.transport.ssl.verification_mode=none")
 	$(eval xpack_volumes += --volume "$(PWD)/.jenkins/certs/testnode.crt:/usr/share/elasticsearch/config/certs/testnode.crt")
 	$(eval xpack_volumes += --volume "$(PWD)/.jenkins/certs/testnode.key:/usr/share/elasticsearch/config/certs/testnode.key")
 	$(eval xpack_volumes += --volume "$(PWD)/.jenkins/certs/ca.crt:/usr/share/elasticsearch/config/certs/ca.crt")
@@ -309,7 +316,7 @@ ifdef detached
 endif
 
 cluster-update: ## Update the Docker image
-	$(eval version ?= "elasticsearch-oss:7.4-SNAPSHOT")
+	$(eval version ?= "elasticsearch-oss:7.5-SNAPSHOT")
 	@echo "\033[2m→ Updating the Docker image...\033[0m"
 	@docker pull docker.elastic.co/elasticsearch/$(version);
 

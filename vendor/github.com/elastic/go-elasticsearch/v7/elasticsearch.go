@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/elastic/go-elasticsearch/v7/estransport"
@@ -36,8 +37,25 @@ type Config struct {
 	CloudID string // Endpoint for the Elastic Service (https://elastic.co/cloud).
 	APIKey  string // Base64-encoded token for authorization; if set, overrides username and password.
 
-	Transport http.RoundTripper  // The HTTP transport object.
-	Logger    estransport.Logger // The logger object.
+	RetryOnStatus        []int // List of status codes for retry. Default: 502, 503, 504.
+	DisableRetry         bool  // Default: false.
+	EnableRetryOnTimeout bool  // Default: false.
+	MaxRetries           int   // Default: 3.
+
+	DiscoverNodesOnStart  bool          // Discover nodes when initializing the client. Default: false.
+	DiscoverNodesInterval time.Duration // Discover nodes periodically. Default: disabled.
+
+	EnableMetrics     bool // Enable the metrics collection.
+	EnableDebugLogger bool // Enable the debug logging.
+
+	RetryBackoff func(attempt int) time.Duration // Optional backoff duration. Default: nil.
+
+	Transport http.RoundTripper    // The HTTP transport object.
+	Logger    estransport.Logger   // The logger object.
+	Selector  estransport.Selector // The selector object.
+
+	// Optional constructor function for a custom ConnectionPool. Default: nil.
+	ConnectionPoolFunc func([]*estransport.Connection, estransport.Selector) estransport.ConnectionPool
 }
 
 // Client represents the Elasticsearch client.
@@ -65,38 +83,31 @@ func NewDefaultClient() (*Client, error) {
 // It will use the ELASTICSEARCH_URL environment variable, if set,
 // to configure the addresses; use a comma to separate multiple URLs.
 //
-// It's an error to set both cfg.Addresses and the ELASTICSEARCH_URL
-// environment variable.
+// If either cfg.Addresses or cfg.CloudID is set, the ELASTICSEARCH_URL
+// environment variable is ignored.
+//
+// It's an error to set both cfg.Addresses and cfg.CloudID.
 //
 func NewClient(cfg Config) (*Client, error) {
 	var addrs []string
 
-	envAddrs := addrsFromEnvironment()
-
-	if len(envAddrs) > 0 && len(cfg.Addresses) > 0 {
-		return nil, errors.New("cannot create client: both ELASTICSEARCH_URL and Addresses are set")
-	}
-
-	if len(envAddrs) > 0 && cfg.CloudID != "" {
-		return nil, errors.New("cannot create client: both ELASTICSEARCH_URL and CloudID are set")
-	}
-
-	if len(cfg.Addresses) > 0 && cfg.CloudID != "" {
-		return nil, errors.New("cannot create client: both Adresses and CloudID are set")
-	}
-
-	if cfg.CloudID != "" {
-		cloudAddrs, err := addrFromCloudID(cfg.CloudID)
-		if err != nil {
-			return nil, fmt.Errorf("cannot create client: cannot parse CloudID: %s", err)
-		}
-		addrs = append(addrs, cloudAddrs)
+	if len(cfg.Addresses) == 0 && cfg.CloudID == "" {
+		addrs = addrsFromEnvironment()
 	} else {
-		if len(envAddrs) > 0 {
-			addrs = append(envAddrs, envAddrs...)
+		if len(cfg.Addresses) > 0 && cfg.CloudID != "" {
+			return nil, errors.New("cannot create client: both Addresses and CloudID are set")
 		}
+
+		if cfg.CloudID != "" {
+			cloudAddr, err := addrFromCloudID(cfg.CloudID)
+			if err != nil {
+				return nil, fmt.Errorf("cannot create client: cannot parse CloudID: %s", err)
+			}
+			addrs = append(addrs, cloudAddr)
+		}
+
 		if len(cfg.Addresses) > 0 {
-			addrs = append(envAddrs, cfg.Addresses...)
+			addrs = append(addrs, cfg.Addresses...)
 		}
 	}
 
@@ -110,23 +121,67 @@ func NewClient(cfg Config) (*Client, error) {
 		urls = append(urls, u)
 	}
 
+	// TODO(karmi): Refactor
+	if urls[0].User != nil {
+		cfg.Username = urls[0].User.Username()
+		pw, _ := urls[0].User.Password()
+		cfg.Password = pw
+	}
+
 	tp := estransport.New(estransport.Config{
 		URLs:     urls,
 		Username: cfg.Username,
 		Password: cfg.Password,
 		APIKey:   cfg.APIKey,
 
-		Transport: cfg.Transport,
-		Logger:    cfg.Logger,
+		RetryOnStatus:        cfg.RetryOnStatus,
+		DisableRetry:         cfg.DisableRetry,
+		EnableRetryOnTimeout: cfg.EnableRetryOnTimeout,
+		MaxRetries:           cfg.MaxRetries,
+		RetryBackoff:         cfg.RetryBackoff,
+
+		EnableMetrics:     cfg.EnableMetrics,
+		EnableDebugLogger: cfg.EnableDebugLogger,
+
+		DiscoverNodesInterval: cfg.DiscoverNodesInterval,
+
+		Transport:          cfg.Transport,
+		Logger:             cfg.Logger,
+		Selector:           cfg.Selector,
+		ConnectionPoolFunc: cfg.ConnectionPoolFunc,
 	})
 
-	return &Client{Transport: tp, API: esapi.New(tp)}, nil
+	client := &Client{Transport: tp, API: esapi.New(tp)}
+
+	if cfg.DiscoverNodesOnStart {
+		go client.DiscoverNodes()
+	}
+
+	return client, nil
 }
 
 // Perform delegates to Transport to execute a request and return a response.
 //
 func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 	return c.Transport.Perform(req)
+}
+
+// Metrics returns the client metrics.
+//
+func (c *Client) Metrics() (estransport.Metrics, error) {
+	if mt, ok := c.Transport.(estransport.Measurable); ok {
+		return mt.Metrics()
+	}
+	return estransport.Metrics{}, errors.New("transport is missing method Metrics()")
+}
+
+// DiscoverNodes reloads the client connections by fetching information from the cluster.
+//
+func (c *Client) DiscoverNodes() error {
+	if dt, ok := c.Transport.(estransport.Discoverable); ok {
+		return dt.DiscoverNodes()
+	}
+	return errors.New("transport is missing method DiscoverNodes()")
 }
 
 // addrsFromEnvironment returns a list of addresses by splitting
@@ -164,10 +219,7 @@ func addrsToURLs(addrs []string) ([]*url.URL, error) {
 // See: https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html
 //
 func addrFromCloudID(input string) (string, error) {
-	var (
-		port   = 9243
-		scheme = "https://"
-	)
+	var scheme = "https://"
 
 	values := strings.Split(input, ":")
 	if len(values) != 2 {
@@ -178,5 +230,10 @@ func addrFromCloudID(input string) (string, error) {
 		return "", err
 	}
 	parts := strings.Split(string(data), "$")
-	return fmt.Sprintf("%s%s.%s:%d", scheme, parts[1], parts[0], port), nil
+
+	if len(parts) < 2 {
+		return "", fmt.Errorf("invalid encoded value: %s", parts)
+	}
+
+	return fmt.Sprintf("%s%s.%s", scheme, parts[1], parts[0]), nil
 }
