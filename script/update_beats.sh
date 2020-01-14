@@ -76,7 +76,7 @@ rsync -crpv --delete \
 popd
 
 rsync -crpv --delete \
-  ${BASEDIR}/${GIT_CLONE}/vendor/github.com/tsg/go-daemon ${BASEDIR}/dev-tools/vendor/
+  ${BASEDIR}/${GIT_CLONE}/vendor/github.com/tsg/go-daemon ${BASEDIR}/vendor/
 
 
 # use exactly the same beats revision rather than $BEATS_VERSION
