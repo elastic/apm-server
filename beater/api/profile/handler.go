@@ -20,8 +20,8 @@ package profile
 import (
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
-	"strings"
 
 	pprof_profile "github.com/google/pprof/profile"
 	"github.com/pkg/errors"
@@ -46,10 +46,12 @@ var (
 )
 
 const (
-	// TODO(axw) include messageType in pprofContentType; needs fix in agent
-	pprofContentType    = "application/x-protobuf"
-	metadataContentType = "application/json"
-	requestContentType  = "multipart/form-data"
+	pprofMediaType    = "application/x-protobuf"
+	metadataMediaType = "application/json"
+	requestMediaType  = "multipart/form-data"
+
+	// value for the "messagetype" param
+	pprofMessageType = "perftools.profiles.Profile"
 
 	metadataContentLengthLimit = 10 * 1024
 	profileContentLengthLimit  = 10 * 1024 * 1024
@@ -68,7 +70,7 @@ func Handler(
 				err: errors.New("only POST requests are supported"),
 			}
 		}
-		if err := validateContentType(c.Request.Header, requestContentType); err != nil {
+		if _, err := validateContentType(c.Request.Header, requestMediaType); err != nil {
 			return nil, requestError{
 				id:  request.IDResponseErrorsValidate,
 				err: err,
@@ -113,7 +115,7 @@ func Handler(
 
 			switch part.FormName() {
 			case "metadata":
-				if err := validateContentType(http.Header(part.Header), metadataContentType); err != nil {
+				if _, err := validateContentType(http.Header(part.Header), metadataMediaType); err != nil {
 					return nil, requestError{
 						id:  request.IDResponseErrorsValidate,
 						err: errors.Wrap(err, "invalid metadata"),
@@ -152,10 +154,20 @@ func Handler(
 				tctx.Metadata = *metadata
 
 			case "profile":
-				if err := validateContentType(http.Header(part.Header), pprofContentType); err != nil {
+				params, err := validateContentType(http.Header(part.Header), pprofMediaType)
+				if err != nil {
 					return nil, requestError{
 						id:  request.IDResponseErrorsValidate,
 						err: errors.Wrap(err, "invalid profile"),
+					}
+				}
+				if v, ok := params["messagetype"]; ok && v != pprofMessageType {
+					// If messagetype is specified, require that it matches.
+					// Otherwise we assume that it's pprof, and we'll error
+					// out below if it doesn't decode.
+					return nil, requestError{
+						id:  request.IDResponseErrorsValidate,
+						err: errors.Wrapf(err, "expected messagetype %q, got %q", pprofMessageType, v),
 					}
 				}
 				r := &decoder.LimitedReader{R: part, N: totalLimitRemaining}
@@ -218,12 +230,15 @@ func Handler(
 	}
 }
 
-func validateContentType(header http.Header, contentType string) error {
-	got := header.Get(headers.ContentType)
-	if !strings.Contains(got, contentType) {
-		return fmt.Errorf("invalid content type %q, expected %q", got, contentType)
+func validateContentType(header http.Header, expectedMediatype string) (params map[string]string, err error) {
+	mediatype, params, err := mime.ParseMediaType(header.Get(headers.ContentType))
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	if mediatype != expectedMediatype {
+		return nil, fmt.Errorf("invalid content type %q, expected %q", mediatype, expectedMediatype)
+	}
+	return params, nil
 }
 
 type result struct {
