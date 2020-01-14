@@ -160,7 +160,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/containerd/containerd
-Revision: 8ab81a0c2a00168b31360de774bb4e4eb47fe505
+Revision: 36cf5b690dcc00ff0f34ff7799209050c3d0c59a
 License type (autodetected): Apache-2.0
 ./vendor/github.com/containerd/containerd/LICENSE:
 --------------------------------------------------------------------
@@ -186,7 +186,7 @@ See also https://www.apache.org/dev/crypto.html and/or seek legal counsel.
 
 --------------------------------------------------------------------
 Dependency: github.com/containerd/continuity
-Revision: 75bee3e2ccb6402e3a986ab8bd3b17003fc0fdec
+Revision: 26c1120b8d4107d2471b93ad78ef7ce1fc84c4c4
 License type (autodetected): Apache-2.0
 ./vendor/github.com/containerd/continuity/LICENSE:
 --------------------------------------------------------------------
@@ -333,7 +333,7 @@ Copyright 2012-2017 Docker, Inc.
 
 This product includes software developed at Docker, Inc. (https://www.docker.com).
 
-This product contains software (https://github.com/kr/pty) developed
+This product contains software (https://github.com/creack/pty) developed
 by Keith Rarick, licensed under the MIT License.
 
 The following is courtesy of our legal counsel:
@@ -532,7 +532,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 7.x
-Revision: 9377a265898fd8318dc67cf37aac27ffb327c2e1
+Revision: d1b3d3e6cc0d9b691c061b7dbeb3fb51e5574124
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -541,7 +541,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/ecs
-Revision: 2eaac192a1ca67edab727d7d9d526c5142ae3eb5
+Revision: cc4b36eebec29975f57cd0475c3987c9bde5c15a
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/ecs/LICENSE.txt:
 --------------------------------------------------------------------
@@ -610,16 +610,22 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-sysinfo
-Revision: 51d9d1362d77a4792dfb39a7a19f056cdf1b9840
+Revision: b719bc42e40963c707571af208683a049e61f07f
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-sysinfo/LICENSE.txt:
 --------------------------------------------------------------------
 Apache License 2.0
 
+-------NOTICE.txt-----
+Elastic go-sysinfo
+Copyright 2017-2020 Elasticsearch B.V.
+
+This product includes software developed at
+Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-txfile
-Revision: fa3d87c14381c01aaa1c7901877fb5e483294964
+Revision: 4acb7500cf41aea9d6362378aee5ebacac831ea4
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-txfile/LICENSE:
 --------------------------------------------------------------------
@@ -813,6 +819,40 @@ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+--------------------------------------------------------------------
+Dependency: github.com/gofrs/flock
+Revision: 5135e617513b1e6e205a3a89b042249dee6730c8
+License type (autodetected): BSD-3-Clause
+./vendor/github.com/gofrs/flock/LICENSE:
+--------------------------------------------------------------------
+Copyright (c) 2015, Tim Heckman
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of linode-netint nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
@@ -2603,6 +2643,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/OneOfOne/xxhash
+Revision: 85d5025fe15b385888b1886ea99f722f549a6934
 License type (autodetected): Apache-2.0
 ./vendor/github.com/OneOfOne/xxhash/LICENSE:
 --------------------------------------------------------------------
@@ -2621,16 +2662,16 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/go-digest
-Revision: eaa60544f31ccf3b0653b1a118b76d33418ff41b
+Revision: ac19fd6e7483ff933754af248d80be865e543d22
 License type (autodetected): Apache-2.0
-./vendor/github.com/opencontainers/go-digest/LICENSE.code:
+./vendor/github.com/opencontainers/go-digest/LICENSE:
 --------------------------------------------------------------------
 Apache License 2.0
 
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/image-spec
-Revision: 4038d4391fe912af1031db5a1f511cf07c07cbc8
+Revision: 775207bd45b6cb8153ce218cc59351799217451f
 License type (autodetected): Apache-2.0
 ./vendor/github.com/opencontainers/image-spec/LICENSE:
 --------------------------------------------------------------------
@@ -2848,7 +2889,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/prometheus/procfs
-Revision: 54d17b57dd7d4a3aa092476596b3f8a933bde349
+Revision: 42f6e295b56f795825f88add3c95f83aedb744a4
 License type (autodetected): Apache-2.0
 ./vendor/github.com/prometheus/procfs/LICENSE:
 --------------------------------------------------------------------
@@ -3178,27 +3219,28 @@ Revision: f35b8ab0b5a2cef36673838d662e249dd9c94686
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
 --------------------------------------------------------------------
-MIT License
+Copyright (c) 2012 - 2013 Mat Ryer and Tyler Bunnell
 
-Copyright (c) 2012-2018 Mat Ryer and Tyler Bunnell
+Please consider promoting this project if you find it useful.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person 
+obtaining a copy of this software and associated documentation 
+files (the "Software"), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, 
+publish, distribute, sublicense, and/or sell copies of the Software, 
+and to permit persons to whom the Software is furnished to do so, 
+subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
+OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/t-yuki/gocover-cobertura
@@ -3225,40 +3267,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
---------------------------------------------------------------------
-Dependency: github.com/theckman/go-flock
-Revision: b139a2487364247d91814e4a7c7b8fdc69e342b2
-License type (autodetected): BSD-3-Clause
-./vendor/github.com/theckman/go-flock/LICENSE:
---------------------------------------------------------------------
-Copyright (c) 2015, Tim Heckman
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-
-* Neither the name of linode-netint nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/uber/tchannel-go
@@ -3291,6 +3299,15 @@ Dependency: github.com/urso/go-bin
 Revision: 781c575c9f0eb3cb9dca94521bd7ad7d5aec7fd4
 License type (autodetected): Apache-2.0
 ./vendor/github.com/urso/go-bin/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/magetools
+Revision: 61080ed7b22b35d276d023e17437c85d8a5ade51
+License type (autodetected): Apache-2.0
+./vendor/github.com/urso/magetools/LICENSE:
 --------------------------------------------------------------------
 Apache License 2.0
 
@@ -3497,7 +3514,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 5119cf507ed5294cc409c092980c7497ee5d6fd2
+Revision: 60c769a6c58655dab1b9adac0d58967dd517cfba
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/crypto/LICENSE:
 --------------------------------------------------------------------
@@ -3565,7 +3582,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: d28f0bde5980168871434b95cfc858db9f2a7a99
+Revision: ef20fe5d793301b553005db740f730d87993f778
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/net/LICENSE:
 --------------------------------------------------------------------
@@ -3667,7 +3684,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 37707fdb30a5b38865cfb95e5aab41707daec7fd
+Revision: fde4db37ae7ad8191b03d30d27f258b5291ae4e3
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/sys/LICENSE:
 --------------------------------------------------------------------
@@ -3701,7 +3718,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/text
-Revision: 4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1
+Revision: 342b2e1fbaa52c93f31447ad2c6abc048c63e475
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/text/LICENSE:
 --------------------------------------------------------------------
@@ -3735,7 +3752,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/time
-Revision: 26559e0f760e39c24d730d3224364aef164ee23f
+Revision: 555d28b269f0569763d25dbe1a237ae74c6bcc82
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/time/LICENSE:
 --------------------------------------------------------------------
@@ -3770,7 +3787,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------
 Dependency: golang.org/x/tools
 Version: release-branch.go1.12
-Revision: release-branch.go1.10
+Revision: 65e3620a7ae7ac25e8494a60f0e5ef4e4fba03b3
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/tools/LICENSE:
 --------------------------------------------------------------------
@@ -3813,7 +3830,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/genproto
-Revision: a7e196e89fd3a3c4d103ca540bd5dac3a736e375
+Revision: fa694d86fc64c7654a660f8908de4e879866748d
 License type (autodetected): Apache-2.0
 ./vendor/google.golang.org/genproto/LICENSE:
 --------------------------------------------------------------------
@@ -3823,7 +3840,7 @@ Apache License 2.0
 --------------------------------------------------------------------
 Dependency: google.golang.org/grpc
 Version: v1.25
-Revision: 501c41df7f472c740d0674ff27122f3f48c80ce7
+Revision: 1a3960e4bd028ac0cec0a2afd27d7d8e67c11514
 License type (autodetected): Apache-2.0
 ./vendor/google.golang.org/grpc/LICENSE:
 --------------------------------------------------------------------
