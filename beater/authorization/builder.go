@@ -48,7 +48,7 @@ const (
 // NewBuilder creates authorization builder based off of the given information
 // if apm-server.api_key is enabled, authorization is granted/denied solely
 // based on the request Authorization header
-func NewBuilder(cfg config.Config) (*Builder, error) {
+func NewBuilder(cfg *config.Config) (*Builder, error) {
 	b := Builder{}
 	b.fallback = AllowAuth{}
 	if cfg.APIKeyConfig.IsEnabled() {

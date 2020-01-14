@@ -83,7 +83,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
-	auth, err := authorization.NewBuilder(*beaterConfig)
+	auth, err := authorization.NewBuilder(beaterConfig)
 	if err != nil {
 		return nil, err
 	}

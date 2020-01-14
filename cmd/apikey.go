@@ -451,9 +451,12 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 				Application: auth.Application,
 				Privilege:   privilege.Name,
 			}
-
 			deletion, err := es.DeletePrivileges(client, deletePrivilegesRequest)
 			if err != nil {
+				// TODO(axw) either allow 404 in DeletePrivileges, and don't
+				// return an error, or check for 404 here and ignore that
+				// specifically. The request could failure for other reasons
+				// and we shouldn't ignore them.
 				continue
 			}
 			if result, ok := deletion[auth.Application][privilege.Name]; ok && result.Found {
@@ -470,21 +473,17 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 	perms := make(es.Permissions)
 	printText, printJSON := printers(asJSON)
 	for _, privilege := range privileges {
-		var builder *auth.Builder
-		builder, err := auth.NewBuilder(*config)
+		builder, err := auth.NewBuilder(config)
 		if err != nil {
 			return err
 		}
-
-		var authorized bool
-		authorized, err = builder.
+		authorized, err := builder.
 			ForPrivilege(privilege).
 			AuthorizationFor(headers.APIKey, credentials).
 			AuthorizedFor(auth.ResourceInternal)
 		if err != nil {
 			return err
 		}
-
 		perms[privilege] = authorized
 		printText("Authorized for %s...: %s", humanPrivilege(privilege), humanBool(authorized))
 	}

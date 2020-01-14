@@ -51,7 +51,7 @@ func TestBuilder(t *testing.T) {
 					Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()}
 			}
 
-			builder, err := NewBuilder(*cfg)
+			builder, err := NewBuilder(cfg)
 			require.NoError(t, err)
 			return builder
 		}
