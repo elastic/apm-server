@@ -324,12 +324,12 @@ func TestManager_SetupILM(t *testing.T) {
 			version:              "6.2.0",
 			templatesILMDisabled: 4,
 		},
-		"Default ES Unsupported ILM Setup disabled": {
+		"Default ES Unsupported ILM setup disabled": {
 			cfg:      common.MapStr{"apm-server.ilm.setup.enabled": false},
 			loadMode: libidxmgmt.LoadModeEnabled,
 			version:  "6.2.0",
 		},
-		"ILM True ES Unsupported ILM Setup disabled": {
+		"ILM True ES Unsupported ILM setup disabled": {
 			cfg:      common.MapStr{"apm-server.ilm.setup.enabled": false, "apm-server.ilm.enabled": true},
 			loadMode: libidxmgmt.LoadModeEnabled,
 			version:  "6.2.0",
@@ -359,7 +359,7 @@ func TestManager_SetupILM(t *testing.T) {
 			loadMode:             libidxmgmt.LoadModeEnabled,
 			templatesILMDisabled: 4,
 		},
-		"ESIndexConfigured Setup disabled": {
+		"ESIndexConfigured setup disabled": {
 			cfg: common.MapStr{
 				"apm-server.ilm.enabled":       "auto",
 				"apm-server.ilm.setup.enabled": false,
@@ -368,7 +368,7 @@ func TestManager_SetupILM(t *testing.T) {
 				"output.elasticsearch.index":   "custom"},
 			loadMode: libidxmgmt.LoadModeEnabled,
 		},
-		"ESIndicesConfigured Setup disabled": {
+		"ESIndicesConfigured setup disabled": {
 			cfg: common.MapStr{
 				"apm-server.ilm.enabled":       "auto",
 				"apm-server.ilm.setup.enabled": false,
