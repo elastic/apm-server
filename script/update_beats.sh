@@ -75,6 +75,10 @@ rsync -crpv --delete \
 
 popd
 
+rsync -crpv --delete \
+  ${BASEDIR}/${GIT_CLONE}/vendor/github.com/tsg/go-daemon ${BASEDIR}/dev-tools/vendor/
+
+
 # use exactly the same beats revision rather than $BEATS_VERSION
 BEATS_REVISION=$(GIT_DIR=${BASEDIR}/${GIT_CLONE}/.git git rev-parse HEAD)
 ${DIRNAME}/update_govendor_deps.py ${BEATS_REVISION}
