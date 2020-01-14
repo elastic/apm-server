@@ -124,5 +124,5 @@ func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
 }
 
 func id(apiKey string, resource es.Resource) string {
-	return apiKey + "_" + fmt.Sprintf("%v", resource)
+	return apiKey + "_" + string(resource)
 }
