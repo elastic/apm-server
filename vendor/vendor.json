@@ -1539,10 +1539,10 @@
 			"revisionTime": "2019-12-11T13:27:55Z"
 		},
 		{
-			"checksumSHA1": "bcGdkHyNag5yNitK9gDwAui9mLs=",
+			"checksumSHA1": "5XKe9ycdLlVjjwW5Qvuds7SziAI=",
 			"path": "github.com/elastic/go-elasticsearch/v7",
-			"revision": "d8acaa5faade05290d8b500b8f3892a378f2d2e7",
-			"revisionTime": "2019-10-14T09:07:31Z",
+			"revision": "ed288cdc5128a5729c32b4f6aa5e30b09ebba294",
+			"revisionTime": "2019-12-08T14:07:01Z",
 			"tree": true
 		},
 		{
@@ -2983,18 +2983,18 @@
 		{
 			"checksumSHA1": "3YhQhpZAqSMHPxWk1nIDJTzJMM0=",
 			"path": "go.elastic.co/apm/apmtest",
-			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
-			"revisionTime": "2020-01-10T03:30:49Z",
-			"version": "v1.7.0",
-			"versionExact": "v1.7.0"
-		},
-		{
-			"checksumSHA1": "3YhQhpZAqSMHPxWk1nIDJTzJMM0=",
-			"path": "go.elastic.co/apm/apmtest",
 			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
 			"revisionTime": "2019-11-18T01:19:44Z",
 			"version": "v1.6.0",
 			"versionExact": "v1.6.0"
+		},
+		{
+			"checksumSHA1": "3YhQhpZAqSMHPxWk1nIDJTzJMM0=",
+			"path": "go.elastic.co/apm/apmtest",
+			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
+			"revisionTime": "2020-01-10T03:30:49Z",
+			"version": "v1.7.0",
+			"versionExact": "v1.7.0"
 		},
 		{
 			"checksumSHA1": "k47GkPJ3iWtd4Fy5M/4vT7afxNE=",
@@ -3143,18 +3143,18 @@
 		{
 			"checksumSHA1": "M2+F+/52KqvfgU7HNh7u0fm9oCg=",
 			"path": "go.elastic.co/apm/transport/transporttest",
-			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
-			"revisionTime": "2020-01-10T03:30:49Z",
-			"version": "v1.7.0",
-			"versionExact": "v1.7.0"
-		},
-		{
-			"checksumSHA1": "M2+F+/52KqvfgU7HNh7u0fm9oCg=",
-			"path": "go.elastic.co/apm/transport/transporttest",
 			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
 			"revisionTime": "2019-11-18T01:19:44Z",
 			"version": "v1.6.0",
 			"versionExact": "v1.6.0"
+		},
+		{
+			"checksumSHA1": "M2+F+/52KqvfgU7HNh7u0fm9oCg=",
+			"path": "go.elastic.co/apm/transport/transporttest",
+			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
+			"revisionTime": "2020-01-10T03:30:49Z",
+			"version": "v1.7.0",
+			"versionExact": "v1.7.0"
 		},
 		{
 			"checksumSHA1": "ou8/GMlWF1EShL3NuomgkrmDwb0=",
