@@ -41,13 +41,14 @@ class APIKeyBaseTest(BaseTest):
 
     @staticmethod
     def _trim_golog(log):
-        pos = -1
-        for _ in range(2):
-            pos = log[:pos].rfind("\n")
-        command_output = log[:pos]
-        for trimmed in log[pos:].strip().splitlines():
-            assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
-        return command_output
+        # If the command fails it will exit before printing coverage,
+        # hence why this is conditional.
+        pos = log.rfind("\nPASS\n")
+        if pos >= 0:
+            for trimmed in log[pos+1:].strip().splitlines():
+                assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
+            log = log[:pos]
+        return log
 
     def create(self, *args):
         return self.subcommand_output("create", "--name", self.api_key_name, *args)
