@@ -1552,10 +1552,10 @@
 			"tree": true
 		},
 		{
-			"checksumSHA1": "ZxPyJEN87+3pfJJp/+8wWvmtQ78=",
+			"checksumSHA1": "y5IZX+1ki/l9LQ2gsXXhGFUkdmc=",
 			"path": "github.com/elastic/go-elasticsearch/v8",
-			"revision": "3b3cf00736fa466a528bf1f26d76e298a49de01f",
-			"revisionTime": "2019-11-20T06:38:12Z",
+			"revision": "5398a82b748f62db8eb34d37afbf0f95b7356176",
+			"revisionTime": "2019-12-18T08:29:11Z",
 			"tree": true
 		},
 		{
