@@ -28,10 +28,10 @@ import (
 
 const cleanupInterval = 60 * time.Second
 
-var (
+const (
 	// Application is a constant mapped to the "application" field for the Elasticsearch security API
 	// This identifies privileges and keys created for APM
-	Application = es.AppName("apm")
+	Application es.AppName = "apm"
 	// ResourceInternal is only valid for first authorization of a request.
 	// The API Key needs to grant privileges to additional resources for successful processing of requests.
 	ResourceInternal = es.Resource("-")
@@ -124,5 +124,5 @@ func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
 }
 
 func id(apiKey string, resource es.Resource) string {
-	return apiKey + "_" + fmt.Sprintf("%v", resource)
+	return apiKey + "_" + string(resource)
 }

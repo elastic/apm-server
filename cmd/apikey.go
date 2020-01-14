@@ -322,7 +322,7 @@ PUT /_security/role/my_role {
 	printText, printJSON := printers(asJSON)
 	for privilege, result := range privilegesCreated[auth.Application] {
 		if result.Created {
-			printText("Security privilege \"%v\" created", privilege)
+			printText("Security privilege %q created", privilege)
 		}
 	}
 
