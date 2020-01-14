@@ -23,9 +23,9 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 - Added experimental support for continuous profiling of the server {pull}2839[2839]
 - Build UBI based images also {pull}2994[2994].
 - Adds support for API Key authorization for incoming requests {pull}3004[3004]
-- Upgrade Go to 1.13.5 {pull}3069[3069].
 - Add experimental support for receiving Jaeger trace data {pull}3129[3129]
 - Upgrade APM Go agent to 1.7.0, and add support for API Key auth for self-instrumentation {pull}3134[3134]
 - Add correlation for server trace/log data {pull}3136[3136]
+- Upgrade Go to 1.13.6 {pull}3154[3154].
 - Add subcommand to create API Keys {pull}3063[3063]
 
