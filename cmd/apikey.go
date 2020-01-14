@@ -24,11 +24,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
 	"github.com/elastic/beats/libbeat/cfgfile"
@@ -211,7 +211,6 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 
 // apm-server.api_key.enabled is implicitly true
 func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
-
 	settings.ConfigOverrides = append(settings.ConfigOverrides, cfgfile.ConditionalOverride{
 		Check: func(_ *common.Config) bool {
 			return true
@@ -244,12 +243,11 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 		return nil, nil, err
 	}
 
-	var client es.Client
-	if err == nil {
-		client, err = es.NewClient(beaterConfig.APIKeyConfig.ESConfig)
+	client, err := es.NewClient(beaterConfig.APIKeyConfig.ESConfig)
+	if err != nil {
+		return nil, nil, err
 	}
-
-	return client, beaterConfig, err
+	return client, beaterConfig, nil
 }
 
 func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAction {
@@ -442,23 +440,22 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 	printText("Invalidated keys ... %s", strings.Join(invalidation.Invalidated, ", "))
 	printText("Error count ........ %d", invalidation.ErrorCount)
 
-	for _, privilege := range auth.PrivilegesAll {
-		if !deletePrivileges {
-			break
-		}
-		deletePrivilegesRequest := es.DeletePrivilegeRequest{
-			Application: auth.Application,
-			Privilege:   privilege.Name,
-		}
+	if deletePrivileges {
+		for _, privilege := range auth.PrivilegesAll {
+			deletePrivilegesRequest := es.DeletePrivilegeRequest{
+				Application: auth.Application,
+				Privilege:   privilege.Name,
+			}
 
-		deletion, err := es.DeletePrivileges(client, deletePrivilegesRequest)
-		if err != nil {
-			continue
+			deletion, err := es.DeletePrivileges(client, deletePrivilegesRequest)
+			if err != nil {
+				continue
+			}
+			if result, ok := deletion[auth.Application][privilege.Name]; ok && result.Found {
+				printText("Deleted privilege \"%v\"", privilege)
+			}
+			out.Privileges = append(out.Privileges, deletion)
 		}
-		if result, ok := deletion[auth.Application][privilege.Name]; ok && result.Found {
-			printText("Deleted privilege \"%v\"", privilege)
-		}
-		out.Privileges = append(out.Privileges, deletion)
 	}
 	printJSON(out)
 	return nil
@@ -518,27 +515,11 @@ func humanTime(millis *int64) string {
 	if millis == nil {
 		return "never"
 	}
-	seconds := time.Until(time.Unix(*millis/1000, 0)).Seconds()
-	if seconds < 0 {
+	expiry := time.Unix(*millis/1000, 0)
+	if !expiry.After(time.Now()) {
 		return "expired"
 	}
-	minutes := math.Round(seconds / 60)
-	if minutes < 2 {
-		return fmt.Sprintf("%.0f seconds", seconds)
-	}
-	hours := math.Round(minutes / 60)
-	if hours < 2 {
-		return fmt.Sprintf("%.0f minutes", minutes)
-	}
-	days := math.Round(hours / 24)
-	if days < 2 {
-		return fmt.Sprintf("%.0f hours", hours)
-	}
-	years := math.Round(days / 365)
-	if years < 2 {
-		return fmt.Sprintf("%.0f days", days)
-	}
-	return fmt.Sprintf("%.0f years", years)
+	return humanize.Time(expiry)
 }
 
 // returns 2 printers, one for text and one for JSON

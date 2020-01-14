@@ -18,7 +18,6 @@
 package authorization
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
