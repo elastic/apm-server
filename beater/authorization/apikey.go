@@ -28,7 +28,7 @@ import (
 
 const cleanupInterval = 60 * time.Second
 
-var (
+const (
 	// Application is a constant mapped to the "application" field for the Elasticsearch security API
 	// This identifies privileges and keys created for APM
 	Application = es.AppName("apm")
