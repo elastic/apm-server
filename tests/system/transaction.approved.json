@@ -76,7 +76,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "user": {
             "email": "foo@bar.com",
@@ -168,7 +168,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "user": {
             "email": "foo@bar.com",
@@ -261,7 +261,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "user": {
             "email": "foo@bar.com",
@@ -366,7 +366,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "url": {
             "domain": "www.example.com",
@@ -440,13 +440,21 @@
         "transaction": {
             "sampled": true,
             "name": "GET /api/types",
+            "id": "945254c567a5417e",
             "span_count": {
                 "started": 4,
                 "dropped": 2
             },
-            "page": {
-                "url": "http://localhost:8000/test/e2e/general-usecase/",
-                "referer": "http://localhost:8000/test/e2e/"
+            "custom": {
+                "(": "not a valid regex and that is fine",
+                "my_key": 1,
+                "some_other_value": "foo bar",
+                "and_objects": {
+                    "foo": [
+                        "bar",
+                        "baz"
+                    ]
+                }
             },
             "result": "success",
             "marks": {
@@ -462,19 +470,11 @@
             "duration": {
                 "us": 32592
             },
-            "custom": {
-                "(": "not a valid regex and that is fine",
-                "my_key": 1,
-                "some_other_value": "foo bar",
-                "and_objects": {
-                    "foo": [
-                        "bar",
-                        "baz"
-                    ]
-                }
-            },
             "type": "request",
-            "id": "945254c567a5417e"
+            "page": {
+                "url": "http://localhost:8000/test/e2e/general-usecase/",
+                "referer": "http://localhost:8000/test/e2e/"
+            }
         },
         "processor": {
             "name": "transaction",
