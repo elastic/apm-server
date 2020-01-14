@@ -13,7 +13,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "labels": {
                 "tag1": "label1"
@@ -70,7 +70,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "labels": {
                 "tag1": "label1"
@@ -128,7 +128,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "labels": {
                 "tag1": "value1",
@@ -190,7 +190,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "labels": {
                 "tag1": "label1"
@@ -254,7 +254,7 @@
                 "port": 5432
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "labels": {
                 "tag1": "label1"
@@ -387,7 +387,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "labels": {
                 "tag1": "label1"

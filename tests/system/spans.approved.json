@@ -100,7 +100,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -171,7 +171,7 @@
             "name": "serviceabc"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -221,7 +221,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -272,7 +272,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -321,7 +321,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
