@@ -73,10 +73,11 @@ func createApikeyCmd(settings instance.Settings) *cobra.Command {
 		Short: short,
 		Long: short + `.
 If no privilege(s) are specified, the API Key will be valid for all.`,
-		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
-				privileges = []es.PrivilegeAction{auth.ActionAny}
+				// No privileges specified, grant all.
+				privileges = auth.ActionsAll()
 			}
 			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
 		}),
@@ -109,7 +110,7 @@ func invalidateApikeyCmd(settings instance.Settings) *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
@@ -138,7 +139,7 @@ func getApikeysCmd(settings instance.Settings) *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
@@ -167,7 +168,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		Use:   "verify",
 		Short: short,
 		Long:  long,
-		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				// can't use "*" for querying
@@ -197,15 +198,15 @@ type apikeyRunFunc func(client es.Client, config *config.Config, args []string) 
 
 type cobraRunFunc func(cmd *cobra.Command, args []string)
 
-func makeAPIKeyRun(settings instance.Settings, json bool, f apikeyRunFunc) cobraRunFunc {
+func makeAPIKeyRun(settings instance.Settings, json *bool, f apikeyRunFunc) cobraRunFunc {
 	return func(cmd *cobra.Command, args []string) {
 		client, config, err := bootstrap(settings)
 		if err != nil {
-			printErr(err, json)
+			printErr(err, *json)
 			os.Exit(1)
 		}
 		if err := f(client, config, args); err != nil {
-			printErr(err, json)
+			printErr(err, *json)
 			os.Exit(1)
 		}
 	}
