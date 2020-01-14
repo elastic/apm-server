@@ -170,7 +170,6 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
-	var events []beat.Event
 
 	if e.Timestamp.IsZero() {
 		e.Timestamp = tctx.RequestTime
@@ -200,7 +199,5 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
 	utility.Set(fields, "experimental", e.Experimental)
-	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
-
-	return events
+	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
 }

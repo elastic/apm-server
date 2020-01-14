@@ -79,7 +79,7 @@ type route struct {
 
 // NewMux registers apm handlers to paths building up the APM Server API.
 func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMux, error) {
-	pool := newContextPool()
+	pool := request.NewContextPool()
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
@@ -112,7 +112,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 			return nil, err
 		}
 		logger.Infof("Path %s added to request handler", route.path)
-		mux.Handle(route.path, pool.handler(h))
+		mux.Handle(route.path, pool.HTTPHandler(h))
 
 	}
 	if beaterConfig.Expvar.IsEnabled() {

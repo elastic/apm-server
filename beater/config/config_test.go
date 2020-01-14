@@ -18,7 +18,9 @@
 package config
 
 import (
+	"crypto/tls"
 	"fmt"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -59,9 +61,9 @@ func Test_UnpackConfig(t *testing.T) {
 				"secret_token":          "1234random",
 				"ssl": map[string]interface{}{
 					"enabled":                 true,
-					"key":                     "1234key",
-					"certificate":             "1234cert",
-					"certificate_authorities": []string{"./ca.cert.pem"},
+					"key":                     path.Join("../..", "testdata", "tls", "key.pem"),
+					"certificate":             path.Join("../..", "testdata", "tls", "certificate.pem"),
+					"certificate_authorities": []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
 					"client_authentication":   "none",
 				},
 				"expvar": map[string]interface{}{
@@ -94,6 +96,10 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				"kibana":                        map[string]interface{}{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
+				"jaeger.grpc.enabled":           true,
+				"jaeger.grpc.host":              "localhost:12345",
+				"jaeger.http.enabled":           true,
+				"jaeger.http.host":              "localhost:6789",
 				"api_key": map[string]interface{}{
 					"enabled":             true,
 					"limit":               200,
@@ -110,10 +116,12 @@ func Test_UnpackConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				TLS: &tlscommon.ServerConfig{
-					Enabled:     &truthy,
-					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
-					ClientAuth:  0,
-					CAs:         []string{"./ca.cert.pem"},
+					Enabled: &truthy,
+					Certificate: outputs.CertificateConfig{
+						Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
+						Key:         path.Join("../..", "testdata", "tls", "key.pem")},
+					ClientAuth: 0,
+					CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
 				},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
@@ -150,7 +158,27 @@ func Test_UnpackConfig(t *testing.T) {
 				APIKeyConfig: &APIKeyConfig{
 					Enabled:  true,
 					LimitMin: 200,
-					ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}},
+					ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}}},
+				JaegerConfig: JaegerConfig{
+					GRPC: JaegerGRPCConfig{
+						Enabled: true,
+						Host:    "localhost:12345",
+						TLS: func() *tls.Config {
+							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
+								Enabled: &truthy,
+								Certificate: outputs.CertificateConfig{
+									Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
+									Key:         path.Join("../..", "testdata", "tls", "key.pem")},
+								ClientAuth: 0,
+								CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")}})
+							require.NoError(t, err)
+							return tlsServerConfig.BuildModuleConfig("localhost:12345")
+						}(),
+					},
+					HTTP: JaegerHTTPConfig{
+						Enabled: true,
+						Host:    "localhost:6789",
+					},
 				},
 			},
 		},
@@ -181,7 +209,9 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"api_key.enabled": true,
+				"jaeger.enabled":      true,
+				"jaeger.grpc.enabled": true,
+				"api_key.enabled":     true,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -230,6 +260,24 @@ func Test_UnpackConfig(t *testing.T) {
 				AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 				Pipeline:     defaultAPMPipeline,
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()},
+				JaegerConfig: JaegerConfig{
+					GRPC: JaegerGRPCConfig{
+						Enabled: true,
+						Host:    "localhost:14250",
+						TLS: func() *tls.Config {
+							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
+								Enabled:     &truthy,
+								Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
+								ClientAuth:  3})
+							require.NoError(t, err)
+							return tlsServerConfig.BuildModuleConfig("localhost:14250")
+						}(),
+					},
+					HTTP: JaegerHTTPConfig{
+						Enabled: false,
+						Host:    "localhost:14268",
+					},
+				},
 			},
 		},
 	}
@@ -307,12 +355,13 @@ func TestTLSSettings(t *testing.T) {
 			},
 			"DefaultRequiredByCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
-					"certificate_authorities": []string{"./path"}}},
+					"certificate_authorities": []string{path.Join("..", "..", "testdata", "tls", "./ca.crt.pem")}}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4},
 			},
 			"ConfiguredWithCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
-					"certificate_authorities": []string{"./path"}, "client_authentication": "none"}},
+					"certificate_authorities": []string{path.Join("..", "..", "testdata", "tls", "./ca.crt.pem")},
+					"client_authentication":   "none"}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 0},
 			},
 		} {

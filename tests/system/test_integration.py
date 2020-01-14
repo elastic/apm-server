@@ -1,12 +1,8 @@
-import json
-import os
-import sys
 import time
 
 from apmserver import integration_test
 from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest
 from apmserver import OverrideIndicesTest, OverrideIndicesFailureTest
-from sets import Set
 
 
 @integration_test
@@ -77,12 +73,12 @@ class Test(ElasticTest):
         # compare existing ES documents for transactions with new ones
         rs = self.es.search(index=self.index_transaction)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('transaction', rs['hits']['hits'], 'transaction')
+        self.approve_docs('transaction', rs['hits']['hits'])
 
         # compare existing ES documents for spans with new ones
         rs = self.es.search(index=self.index_span)
         assert rs['hits']['total']['value'] == 5, "found {} documents".format(rs['count'])
-        self.approve_docs('spans', rs['hits']['hits'], 'span')
+        self.approve_docs('spans', rs['hits']['hits'])
 
     def test_load_docs_with_template_and_add_error(self):
         """
@@ -95,62 +91,9 @@ class Test(ElasticTest):
         # compare existing ES documents for errors with new ones
         rs = self.es.search(index=self.index_error)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('error', rs['hits']['hits'], 'error')
+        self.approve_docs('error', rs['hits']['hits'])
 
         self.check_backend_error_sourcemap(self.index_error, count=4)
-
-    def approve_docs(self, base_path, received, doc_type):
-        base_path = self._beat_path_join(os.path.dirname(__file__), base_path)
-        approved_path = base_path + '.approved.json'
-        received_path = base_path + '.received.json'
-
-        try:
-            with open(approved_path) as f:
-                approved = json.load(f)
-        except IOError:
-            approved = []
-
-        received = [doc['_source'] for doc in received]
-        received.sort(key=lambda source: source[doc_type]['id'])
-
-        try:
-            for rec in received:
-                # Overwrite received observer values with the approved ones,
-                # in order to avoid noise in the 'approvals' diff if there are
-                # any other changes.
-                #
-                # We don't compare the observer values between received/approved,
-                # as they are dependent on the environment.
-                rec_id = rec[doc_type]['id']
-                rec_observer = rec['observer']
-                self.assertEqual(Set(rec_observer.keys()), Set(
-                    ["hostname", "version", "id", "ephemeral_id", "type", "version_major"]))
-                assert rec_observer["version"].startswith(str(rec_observer["version_major"]) + ".")
-                for appr in approved:
-                    if appr[doc_type]['id'] == rec_id:
-                        rec['observer'] = appr['observer']
-                        break
-            assert len(received) == len(approved)
-            for i, rec in enumerate(received):
-                appr = approved[i]
-                rec_id = rec[doc_type]['id']
-                assert rec_id == appr[doc_type]['id'], "New entry with id {}".format(rec_id)
-                for k, v in rec.items():
-                    self.assertEqual(v, appr[k])
-        except Exception as exc:
-            with open(received_path, 'w') as f:
-                json.dump(received, f, indent=4, separators=(',', ': '))
-
-            # Create a dynamic Exception subclass so we can fake its name to look like the original exception.
-            class ApprovalException(Exception):
-                def __init__(self, cause):
-                    super(ApprovalException, self).__init__(cause.message)
-
-                def __str__(self):
-                    return self.message + "\n\nReceived data differs from approved data. Run 'make update' and then 'approvals' to verify the diff."
-            ApprovalException.__name__ = type(exc).__name__
-
-            raise ApprovalException, exc, sys.exc_info()[2]
 
 
 @integration_test

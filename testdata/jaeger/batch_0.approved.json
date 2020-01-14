@@ -1,0 +1,204 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-20T07:41:44.953864Z",
+            "agent": {
+                "ephemeral_id": "624386e9c81d2980",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
+            "labels": {
+                "as": "thrift",
+                "peer_ipv4": 2130706433,
+                "peer_port": 50535,
+                "peer_service": "driver-client",
+                "sampler_param": true,
+                "sampler_type": "const"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "driver",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576827704953864
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 243417
+                },
+                "id": "7be2fd98d0973be3",
+                "name": "Driver::findNearest",
+                "result": "Success",
+                "sampled": true,
+                "type": "custom"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.007552Z",
+            "agent": {
+                "ephemeral_id": "624386e9c81d2980",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "log": {
+                    "message": "Retrying GetDriver after error"
+                }
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "driver",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576827705007552
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            },
+            "transaction": {
+                "id": "7be2fd98d0973be3",
+                "type": "custom"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.089431Z",
+            "agent": {
+                "ephemeral_id": "624386e9c81d2980",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "log": {
+                    "message": "Retrying GetDriver after error"
+                }
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "driver",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576827705089431
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            },
+            "transaction": {
+                "id": "7be2fd98d0973be3",
+                "type": "custom"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.17253Z",
+            "agent": {
+                "ephemeral_id": "624386e9c81d2980",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "log": {
+                    "message": "Retrying GetDriver after error"
+                }
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "driver",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576827705172530
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            },
+            "transaction": {
+                "id": "7be2fd98d0973be3",
+                "type": "custom"
+            }
+        }
+    ]
+}

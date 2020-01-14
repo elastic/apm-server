@@ -42,6 +42,7 @@ class TestExternalTracingAPIKey(BaseAPIKeySetup):
 
         query = {"term": {"processor.name": "transaction"}}
         index = self.index_transaction
+
         def get_transactions():
             self.es.indices.refresh(index=index)
             return self.es.count(index=index, body={"query": query})['count'] > 0
@@ -75,6 +76,7 @@ class TestExternalTracingSecretToken(ElasticTest):
 
         query = {"term": {"processor.name": "transaction"}}
         index = self.index_transaction
+
         def get_transactions():
             self.es.indices.refresh(index=index)
             return self.es.count(index=index, body={"query": query})['count'] > 0

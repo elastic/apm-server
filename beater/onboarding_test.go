@@ -25,31 +25,33 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-server/beater/beatertest"
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+
+	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func TestNotifyUpServerDown(t *testing.T) {
-	config := config.DefaultConfig("7.0.0")
+	cfg := config.DefaultConfig("7.0.0")
 	var saved beat.Event
 	var publisher = func(e beat.Event) { saved = e }
 
 	lis, err := net.Listen("tcp", "localhost:0")
 	assert.NoError(t, err)
 	defer lis.Close()
-	config.Host = lis.Addr().String()
+	cfg.Host = lis.Addr().String()
 
-	server, err := newServer(config, apm.DefaultTracer, beatertest.NilReporter)
+	logger := logp.NewLogger("onboarding_test")
+	server, err := newServer(logger, cfg, apm.DefaultTracer, beatertest.NilReporter)
 	require.NoError(t, err)
-	go run(logp.NewLogger("onboarding_test"), server, lis, config)
+	go server.run(lis, nil, nil)
 
-	notifyListening(config, publisher)
+	notifyListening(cfg, publisher)
 
 	listening := saved.Fields["observer"].(common.MapStr)["listening"]
-	assert.Equal(t, config.Host, listening)
+	assert.Equal(t, cfg.Host, listening)
 
 	processor := saved.Fields["processor"].(common.MapStr)
 	assert.Equal(t, "onboarding", processor["name"])

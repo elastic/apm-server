@@ -20,8 +20,9 @@ package metadata
 import (
 	"errors"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 type Process struct {
