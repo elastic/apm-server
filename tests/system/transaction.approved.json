@@ -76,7 +76,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "user": {
             "email": "foo@bar.com",
@@ -168,7 +168,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "user": {
             "email": "foo@bar.com",
@@ -261,7 +261,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "user": {
             "email": "foo@bar.com",
@@ -366,7 +366,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "url": {
             "domain": "www.example.com",

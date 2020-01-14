@@ -82,7 +82,11 @@ func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.T
 			return nil, nil, err
 		}
 		t.SetServerURL(cfg.SelfInstrumentation.Hosts...)
-		t.SetSecretToken(cfg.SelfInstrumentation.SecretToken)
+		if cfg.SelfInstrumentation.APIKey != "" {
+			t.SetAPIKey(cfg.SelfInstrumentation.APIKey)
+		} else {
+			t.SetSecretToken(cfg.SelfInstrumentation.SecretToken)
+		}
 		tracerTransport = t
 		logger.Infof("self instrumentation directed to %s", cfg.SelfInstrumentation.Hosts)
 	} else {

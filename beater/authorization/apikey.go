@@ -18,43 +18,38 @@
 package authorization
 
 import (
-	"encoding/json"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/beater/headers"
-	"github.com/elastic/apm-server/elasticsearch"
+	es "github.com/elastic/apm-server/elasticsearch"
 )
 
+const cleanupInterval = 60 * time.Second
+
 const (
-	//DefaultResource for apm backend enabled API Keys
-	DefaultResource = "-"
-
-	application = "apm"
-	sep         = `","`
-
-	cleanupInterval = 60 * time.Second
+	// Application is a constant mapped to the "application" field for the Elasticsearch security API
+	// This identifies privileges and keys created for APM
+	Application es.AppName = "apm"
+	// ResourceInternal is only valid for first authorization of a request.
+	// The API Key needs to grant privileges to additional resources for successful processing of requests.
+	ResourceInternal = es.Resource("-")
+	ResourceAny      = es.Resource("*")
 )
 
 type apikeyBuilder struct {
-	esClient        elasticsearch.Client
+	esClient        es.Client
 	cache           *privilegesCache
-	anyOfPrivileges []string
+	anyOfPrivileges []es.PrivilegeAction
 }
 
 type apikeyAuth struct {
 	*apikeyBuilder
+	// key is base64(id:apiKey)
 	key string
 }
 
-type hasPrivilegesResponse struct {
-	Applications map[string]map[string]privileges `json:"application"`
-}
-
-func newApikeyBuilder(client elasticsearch.Client, cache *privilegesCache, anyOfPrivileges []string) *apikeyBuilder {
+func newApikeyBuilder(client es.Client, cache *privilegesCache, anyOfPrivileges []es.PrivilegeAction) *apikeyBuilder {
 	return &apikeyBuilder{client, cache, anyOfPrivileges}
 }
 
@@ -69,15 +64,11 @@ func (a *apikeyAuth) IsAuthorizationConfigured() bool {
 
 // AuthorizedFor checks if the configured api key is authorized.
 // An api key is considered to be authorized when the api key has the configured privileges for the requested resource.
-// Privileges are fetched from Elasticsearch and then cached in a global cache.
-func (a *apikeyAuth) AuthorizedFor(resource string) (bool, error) {
-	if resource == "" {
-		resource = DefaultResource
-	}
-
-	//fetch from cache
-	if allowed, found := a.fromCache(resource); found {
-		return allowed, nil
+// Permissions are fetched from Elasticsearch and then cached in a global cache.
+func (a *apikeyAuth) AuthorizedFor(resource es.Resource) (bool, error) {
+	privileges := a.cache.get(id(a.key, resource))
+	if privileges != nil {
+		return a.allowed(privileges), nil
 	}
 
 	if a.cache.isFull() {
@@ -86,71 +77,51 @@ func (a *apikeyAuth) AuthorizedFor(resource string) (bool, error) {
 			"or consider increasing config option `apm-server.api_key.limit`")
 	}
 
-	//fetch from ES
 	privileges, err := a.queryES(resource)
 	if err != nil {
 		return false, err
 	}
-	//add to cache
 	a.cache.add(id(a.key, resource), privileges)
-
-	allowed, _ := a.fromCache(resource)
-	return allowed, nil
+	return a.allowed(privileges), nil
 }
 
-func (a *apikeyAuth) fromCache(resource string) (allowed bool, found bool) {
-	privileges := a.cache.get(id(a.key, resource))
-	if privileges == nil {
-		return
-	}
-	found = true
-	allowed = false
+func (a *apikeyAuth) allowed(permissions es.Permissions) bool {
+	var allowed bool
 	for _, privilege := range a.anyOfPrivileges {
-		if privilegeAllowed, ok := privileges[privilege]; ok && privilegeAllowed {
-			allowed = true
-			return
+		if privilege == ActionAny {
+			for _, value := range permissions {
+				allowed = allowed || value
+			}
 		}
+		allowed = allowed || permissions[privilege]
 	}
-	return
+	return allowed
 }
 
-func (a *apikeyAuth) queryES(resource string) (privileges, error) {
-	query := buildQuery(PrivilegesAll, resource)
-	statusCode, body, err := a.esClient.SecurityHasPrivilegesRequest(strings.NewReader(query),
-		http.Header{headers.Authorization: []string{headers.APIKey + " " + a.key}})
+func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
+	request := es.HasPrivilegesRequest{
+		Applications: []es.Application{
+			{
+				Name: Application,
+				// it is important to query all privilege actions because they are cached by api key+resources
+				// querying a.anyOfPrivileges would result in an incomplete cache entry
+				Privileges: ActionsAll(),
+				Resources:  []es.Resource{resource},
+			},
+		},
+	}
+	info, err := es.HasPrivileges(a.esClient, request, a.key)
 	if err != nil {
 		return nil, err
 	}
-	defer body.Close()
-	if statusCode != http.StatusOK {
-		// return nil privileges for queried apps to ensure they are cached
-		return privileges{}, nil
-	}
-
-	var decodedResponse hasPrivilegesResponse
-	if err := json.NewDecoder(body).Decode(&decodedResponse); err != nil {
-		return nil, err
-	}
-	if resources, ok := decodedResponse.Applications[application]; ok {
-		if privileges, ok := resources[resource]; ok {
-			return privileges, nil
+	if resources, ok := info.Application[Application]; ok {
+		if permissions, ok := resources[resource]; ok {
+			return permissions, nil
 		}
 	}
-	return privileges{}, nil
+	return es.Permissions{}, nil
 }
 
-func buildQuery(privileges []string, resource string) string {
-	var b strings.Builder
-	b.WriteString(`{"application":[{"application":"`)
-	b.WriteString(application)
-	b.WriteString(`","privileges":["`)
-	b.WriteString(strings.Join(privileges, sep))
-	b.WriteString(`"],"resources":"`)
-	b.WriteString(resource)
-	b.WriteString(`"}]}`)
-	return b.String()
-}
-
-func id(apiKey, resource string) string {
-	return apiKey + "_" + resource
+func id(apiKey string, resource es.Resource) string {
+	return apiKey + "_" + string(resource)
 }

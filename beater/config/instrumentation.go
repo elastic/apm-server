@@ -35,6 +35,7 @@ type InstrumentationConfig struct {
 	Environment *string         `config:"environment"`
 	Hosts       urls            `config:"hosts" validate:"nonzero"`
 	Profiling   ProfilingConfig `config:"profiling"`
+	APIKey      string          `config:"api_key"`
 	SecretToken string          `config:"secret_token"`
 }
 

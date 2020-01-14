@@ -68,12 +68,12 @@ func TestBuilder(t *testing.T) {
 
 		t.Run("ForPrivilege"+name, func(t *testing.T) {
 			builder := setup()
-			h := builder.ForPrivilege(PrivilegeSourcemapWrite)
+			h := builder.ForPrivilege(PrivilegeSourcemapWrite.Action)
 			assert.Equal(t, builder.bearer, h.bearer)
 			assert.Equal(t, builder.fallback, h.fallback)
 			if tc.withApikey {
-				assert.Equal(t, []string{}, builder.apikey.anyOfPrivileges)
-				assert.Equal(t, []string{PrivilegeSourcemapWrite}, h.apikey.anyOfPrivileges)
+				assert.Equal(t, []elasticsearch.PrivilegeAction{}, builder.apikey.anyOfPrivileges)
+				assert.Equal(t, []elasticsearch.PrivilegeAction{PrivilegeSourcemapWrite.Action}, h.apikey.anyOfPrivileges)
 				assert.Equal(t, builder.apikey.esClient, h.apikey.esClient)
 				assert.Equal(t, builder.apikey.cache, h.apikey.cache)
 			}
@@ -81,7 +81,7 @@ func TestBuilder(t *testing.T) {
 
 		t.Run("AuthorizationFor"+name, func(t *testing.T) {
 			builder := setup()
-			h := builder.ForPrivilege(PrivilegeSourcemapWrite)
+			h := builder.ForPrivilege(PrivilegeSourcemapWrite.Action)
 			auth := h.AuthorizationFor("ApiKey", "")
 			if tc.withApikey {
 				assert.IsType(t, &apikeyAuth{}, auth)

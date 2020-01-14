@@ -20,7 +20,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
@@ -309,7 +309,7 @@
                 "version": "1.10.0-SNAPSHOT"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "labels": {
                 "ab_testing": true,
@@ -419,7 +419,7 @@
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "host": {
                 "architecture": "amd64",
@@ -618,7 +618,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "float_gauge": 9.16,
             "host": {

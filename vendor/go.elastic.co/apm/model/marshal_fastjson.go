@@ -486,6 +486,18 @@ func (v *SpanContext) MarshalFastJSON(w *fastjson.Writer) error {
 			firstErr = err
 		}
 	}
+	if v.Destination != nil {
+		const prefix = ",\"destination\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.Destination.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.HTTP != nil {
 		const prefix = ",\"http\":"
 		if first {
@@ -514,6 +526,83 @@ func (v *SpanContext) MarshalFastJSON(w *fastjson.Writer) error {
 	return firstErr
 }
 
+func (v *DestinationSpanContext) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
+	w.RawByte('{')
+	first := true
+	if v.Address != "" {
+		const prefix = ",\"address\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Address)
+	}
+	if v.Port != 0 {
+		const prefix = ",\"port\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.Int64(int64(v.Port))
+	}
+	if v.Service != nil {
+		const prefix = ",\"service\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.Service.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	w.RawByte('}')
+	return firstErr
+}
+
+func (v *DestinationServiceSpanContext) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	first := true
+	if v.Name != "" {
+		const prefix = ",\"name\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Name)
+	}
+	if v.Resource != "" {
+		const prefix = ",\"resource\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Resource)
+	}
+	if v.Type != "" {
+		const prefix = ",\"type\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Type)
+	}
+	w.RawByte('}')
+	return nil
+}
+
 func (v *DatabaseSpanContext) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
 	first := true
@@ -526,6 +615,16 @@ func (v *DatabaseSpanContext) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawString(prefix)
 		}
 		w.String(v.Instance)
+	}
+	if v.RowsAffected != nil {
+		const prefix = ",\"rows_affected\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.Int64(*v.RowsAffected)
 	}
 	if v.Statement != "" {
 		const prefix = ",\"statement\":"

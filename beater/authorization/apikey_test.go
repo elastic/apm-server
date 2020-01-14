@@ -41,11 +41,11 @@ func TestApikeyBuilder(t *testing.T) {
 	handler2 := tc.builder.forKey(key)
 
 	// add existing privileges to shared cache
-	privilegesValid := privileges{}
+	privilegesValid := elasticsearch.Permissions{}
 	for _, p := range PrivilegesAll {
-		privilegesValid[p] = true
+		privilegesValid[p.Action] = true
 	}
-	resource := "service-go"
+	resource := elasticsearch.Resource("service-go")
 	tc.cache.add(id(key, resource), privilegesValid)
 
 	// check that cache is actually shared between apiKeyHandlers
@@ -85,12 +85,12 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.setup(t)
 		key := ""
 		handler := tc.builder.forKey(key)
-		resourceValid := "foo"
-		resourceInvalid := "bar"
-		resourceMissing := "missing"
+		resourceValid := elasticsearch.Resource("foo")
+		resourceInvalid := elasticsearch.Resource("bar")
+		resourceMissing := elasticsearch.Resource("missing")
 
-		tc.cache.add(id(key, resourceValid), privileges{tc.anyOfPrivileges[0]: true})
-		tc.cache.add(id(key, resourceInvalid), privileges{tc.anyOfPrivileges[0]: false})
+		tc.cache.add(id(key, resourceValid), elasticsearch.Permissions{tc.anyOfPrivileges[0]: true})
+		tc.cache.add(id(key, resourceInvalid), elasticsearch.Permissions{tc.anyOfPrivileges[0]: false})
 
 		valid, err := handler.AuthorizedFor(resourceValid)
 		require.NoError(t, err)
@@ -143,9 +143,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		handler := tc.builder.forKey("12a3")
 
 		valid, err := handler.AuthorizedFor("xyz")
-		require.NoError(t, err)
+		require.Error(t, err)
 		assert.False(t, valid)
-		assert.Equal(t, 1, tc.cache.cache.ItemCount())
+		assert.Equal(t, 0, tc.cache.cache.ItemCount())
 	})
 
 	t.Run("decode error from ES", func(t *testing.T) {
@@ -163,7 +163,7 @@ type apikeyTestcase struct {
 	transport       *estest.Transport
 	client          elasticsearch.Client
 	cache           *privilegesCache
-	anyOfPrivileges []string
+	anyOfPrivileges []elasticsearch.PrivilegeAction
 
 	builder *apikeyBuilder
 }
@@ -174,19 +174,19 @@ func (tc *apikeyTestcase) setup(t *testing.T) {
 		if tc.transport == nil {
 			tc.transport = estest.NewTransport(t, http.StatusOK, map[string]interface{}{
 				"application": map[string]interface{}{
-					application: map[string]privileges{
-						"foo": {PrivilegeAgentConfigRead: true, PrivilegeEventWrite: true, PrivilegeSourcemapWrite: false},
-						"bar": {PrivilegeAgentConfigRead: true, PrivilegeEventWrite: false},
+					"apm": map[string]map[string]interface{}{
+						"foo": {"config_agent:read": true, "event:write": true, "sourcemap:write": false},
+						"bar": {"config_agent:read": true, "event:write": false},
 					}}})
 		}
 		tc.client, err = estest.NewElasticsearchClient(tc.transport)
 		require.NoError(t, err)
 	}
 	if tc.cache == nil {
-		tc.cache = newPrivilegesCache(time.Millisecond, 5)
+		tc.cache = newPrivilegesCache(time.Minute, 5)
 	}
 	if tc.anyOfPrivileges == nil {
-		tc.anyOfPrivileges = []string{PrivilegeEventWrite, PrivilegeSourcemapWrite}
+		tc.anyOfPrivileges = []elasticsearch.PrivilegeAction{PrivilegeEventWrite.Action, PrivilegeSourcemapWrite.Action}
 	}
 	tc.builder = newApikeyBuilder(tc.client, tc.cache, tc.anyOfPrivileges)
 }
