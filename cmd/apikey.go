@@ -84,8 +84,7 @@ If no privilege(s) are specified, the API Key will be valid for all.`,
 			if len(privileges) == 0 {
 				privileges = []es.PrivilegeAction{auth.ActionAny}
 			}
-			createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
-			return nil
+			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
 		},
 	}
 	create.Flags().StringVar(&keyName, "name", "apm-key", "API Key name")
@@ -124,8 +123,7 @@ If neither of them are, an error will be returned.`,
 			if err != nil {
 				return err
 			}
-			invalidateAPIKey(client, &id, &name, purge, json)
-			return nil
+			return invalidateAPIKey(client, &id, &name, purge, json)
 		},
 	}
 	invalidate.Flags().StringVar(&id, "id", "", "id of the API Key to delete")
@@ -157,8 +155,7 @@ If neither of them are, an error will be returned.`,
 			if err != nil {
 				return err
 			}
-			getAPIKey(client, &id, &name, validOnly, json)
-			return nil
+			return getAPIKey(client, &id, &name, validOnly, json)
 		},
 	}
 	info.Flags().StringVar(&id, "id", "", "id of the API Key to query")
@@ -192,8 +189,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 				// can't use "*" for querying
 				privileges = auth.ActionsAll()
 			}
-			verifyAPIKey(config, privileges, credentials, json)
-			return nil
+			return verifyAPIKey(config, privileges, credentials, json)
 		},
 	}
 	verify.Flags().StringVar(&credentials, "credentials", "", `credentials for which check privileges (required)`)
@@ -273,7 +269,7 @@ func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAct
 // creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
 // we need to ensure forward-compatibility, for which future privileges must be created here and
 // during server startup because we don't know if customers will run this command
-func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) {
+func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
 	var privilegesRequest = make(es.CreatePrivilegesRequest)
 	event := auth.PrivilegeEventWrite
 	agentConfig := auth.PrivilegeAgentConfigRead
@@ -288,7 +284,7 @@ func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privil
 
 	if err != nil {
 		printErr(err, asJSON)
-		return
+		return err
 	}
 
 	// Elasticsearch will allow a user without the right apm privileges to create API keys, but the keys won't validate
@@ -305,7 +301,7 @@ func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privil
 	}, "")
 	if err != nil {
 		printErr(err, asJSON)
-		return
+		return err
 	}
 	if !hasPrivileges.HasAll {
 		printErr(fmt.Errorf(`%s does not have privileges to create API keys.
@@ -320,7 +316,7 @@ PUT /_security/role/my_role {
 	...
 }
 		`, hasPrivileges.Username), asJSON)
-		return
+		return err
 	}
 
 	printText, printJSON := printers(asJSON)
@@ -351,7 +347,7 @@ PUT /_security/role/my_role {
 	apikey, err := es.CreateAPIKey(client, apikeyRequest)
 	if err != nil {
 		printErr(err, asJSON)
-		return
+		return err
 	}
 	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.ID + ":" + apikey.Key))
 	apikey.Credentials = &credentials
@@ -371,9 +367,10 @@ PUT /_security/role/my_role {
 		CreateAPIKeyResponse: apikey,
 		Privileges:           privilegesCreated,
 	})
+	return nil
 }
 
-func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
+func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error {
 	if isSet(id) {
 		name = nil
 	} else if isSet(name) {
@@ -389,7 +386,7 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
 	apikeys, err := es.GetAPIKeys(client, request)
 	if err != nil {
 		printErr(err, asJSON)
-		return
+		return err
 	}
 
 	transform := es.GetAPIKeyResponse{APIKeys: make([]es.APIKeyResponse, 0)}
@@ -413,9 +410,10 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) {
 	}
 	printText("%d API Keys found", len(transform.APIKeys))
 	printJSON(transform)
+	return nil
 }
 
-func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJSON bool) {
+func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJSON bool) error {
 	if isSet(id) {
 		name = nil
 	} else if isSet(name) {
@@ -431,7 +429,7 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 	invalidation, err := es.InvalidateAPIKey(client, invalidateKeysRequest)
 	if err != nil {
 		printErr(err, asJSON)
-		return
+		return err
 	}
 	printText, printJSON := printers(asJSON)
 	out := struct {
@@ -457,18 +455,16 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 		if err != nil {
 			continue
 		}
-		if _, ok := deletion[auth.Application]; !ok {
-			continue
-		}
 		if result, ok := deletion[auth.Application][privilege.Name]; ok && result.Found {
 			printText("Deleted privilege \"%v\"", privilege)
 		}
 		out.Privileges = append(out.Privileges, deletion)
 	}
 	printJSON(out)
+	return nil
 }
 
-func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) {
+func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) error {
 	perms := make(es.Permissions)
 
 	printText, printJSON := printers(asJSON)
@@ -499,6 +495,7 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 	} else {
 		printJSON(perms)
 	}
+	return err
 }
 
 func humanBool(b bool) string {
@@ -519,11 +516,11 @@ func humanPrivilege(privilege es.PrivilegeAction) string {
 
 func humanTime(millis *int64) string {
 	if millis == nil {
-		return fmt.Sprint("never")
+		return "never"
 	}
 	seconds := time.Until(time.Unix(*millis/1000, 0)).Seconds()
 	if seconds < 0 {
-		return fmt.Sprintf("expired")
+		return "expired"
 	}
 	minutes := math.Round(seconds / 60)
 	if minutes < 2 {
