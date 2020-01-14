@@ -217,6 +217,24 @@
 			"revisionTime": "2020-01-14T20:26:23Z"
 		},
 		{
+			"checksumSHA1": "Hc4yYaBrUJXrXge+C5PecOIFX84=",
+			"path": "github.com/blakesmith/ar",
+			"revision": "8bd4349a67f2533b078dbc524689d15dba0f4659",
+			"revisionTime": "2015-03-11T14:59:44Z"
+		},
+		{
+			"checksumSHA1": "JtuNZxVxkhG/dwmOBOj4i25kaA4=",
+			"path": "github.com/cavaliercoder/go-rpm",
+			"revision": "7a9c54e3d83e935c2f070a97273c99be6a3ac2e9",
+			"revisionTime": "2019-01-31T05:56:24Z"
+		},
+		{
+			"checksumSHA1": "YOGrTfw2qs9xWa+dQEKtE4Bw8m0=",
+			"path": "github.com/cavaliercoder/go-rpm/version",
+			"revision": "7a9c54e3d83e935c2f070a97273c99be6a3ac2e9",
+			"revisionTime": "2019-01-31T05:56:24Z"
+		},
+		{
 			"checksumSHA1": "TfdSKf/F+uKI3PjbSuLoGvE8MNc=",
 			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1",
 			"revision": "5cec5ea58c3efa81fa808f2bd38ce182da9ee731",
@@ -3368,6 +3386,12 @@
 			"revisionTime": "2020-01-14T20:26:23Z"
 		},
 		{
+			"checksumSHA1": "zJybXQZcPAht+soLp/ozc9q5teE=",
+			"path": "golang.org/x/crypto/cast5",
+			"revision": "61a87790db17894570dfb32dbaa0a4af9ce60cb4",
+			"revisionTime": "2020-01-09T01:59:31Z"
+		},
+		{
 			"checksumSHA1": "LBGzsIWPQD6uFAeSYFg8Bd28Grw=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/crypto/ed25519",
 			"path": "golang.org/x/crypto/ed25519",
@@ -3387,6 +3411,42 @@
 			"path": "golang.org/x/crypto/md4",
 			"revision": "3f132d29a5b203baa2aea58e421d0f96e65e9156",
 			"revisionTime": "2020-01-14T20:26:23Z"
+		},
+		{
+			"checksumSHA1": "dQG5zjp8kTNBcgGUkNsrXdacRjg=",
+			"path": "golang.org/x/crypto/openpgp",
+			"revision": "61a87790db17894570dfb32dbaa0a4af9ce60cb4",
+			"revisionTime": "2020-01-09T01:59:31Z"
+		},
+		{
+			"checksumSHA1": "olOKkhrdkYQHZ0lf1orrFQPQrv4=",
+			"path": "golang.org/x/crypto/openpgp/armor",
+			"revision": "61a87790db17894570dfb32dbaa0a4af9ce60cb4",
+			"revisionTime": "2020-01-09T01:59:31Z"
+		},
+		{
+			"checksumSHA1": "juTyoXrV63uP4Quf10LtBfNdHO0=",
+			"path": "golang.org/x/crypto/openpgp/elgamal",
+			"revision": "61a87790db17894570dfb32dbaa0a4af9ce60cb4",
+			"revisionTime": "2020-01-09T01:59:31Z"
+		},
+		{
+			"checksumSHA1": "rlxVSaGgqdAgwblsErxTxIfuGfg=",
+			"path": "golang.org/x/crypto/openpgp/errors",
+			"revision": "61a87790db17894570dfb32dbaa0a4af9ce60cb4",
+			"revisionTime": "2020-01-09T01:59:31Z"
+		},
+		{
+			"checksumSHA1": "6YNP05dJZsFUQ50+i9ahzvkq+J8=",
+			"path": "golang.org/x/crypto/openpgp/packet",
+			"revision": "61a87790db17894570dfb32dbaa0a4af9ce60cb4",
+			"revisionTime": "2020-01-09T01:59:31Z"
+		},
+		{
+			"checksumSHA1": "s2qT4UwvzBSkzXuiuMkowif1Olw=",
+			"path": "golang.org/x/crypto/openpgp/s2k",
+			"revision": "61a87790db17894570dfb32dbaa0a4af9ce60cb4",
+			"revisionTime": "2020-01-09T01:59:31Z"
 		},
 		{
 			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
