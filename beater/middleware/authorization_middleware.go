@@ -28,13 +28,12 @@ import (
 
 // AuthorizationMiddleware returns a Middleware to only let authorized requests pass through
 func AuthorizationMiddleware(auth *authorization.Handler, apply bool) Middleware {
-	resource := authorization.DefaultResource
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			c.Authorization = auth.AuthorizationFor(fetchAuthHeader(c.Request))
 
 			if apply {
-				authorized, err := c.Authorization.AuthorizedFor(resource)
+				authorized, err := c.Authorization.AuthorizedFor(authorization.ResourceInternal)
 				if !authorized {
 					c.Result.SetDeniedAuthorization(err)
 					c.Write()

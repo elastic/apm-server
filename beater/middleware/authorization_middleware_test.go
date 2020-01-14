@@ -51,7 +51,7 @@ func TestAuthorizationMiddleware(t *testing.T) {
 			}
 			builder, err := authorization.NewBuilder(&config.Config{SecretToken: token})
 			require.NoError(t, err)
-			return builder.ForAnyOfPrivileges(authorization.PrivilegesAll), c, rec
+			return builder.ForAnyOfPrivileges(authorization.ActionAny), c, rec
 		}
 
 		t.Run(name+"secured apply", func(t *testing.T) {
