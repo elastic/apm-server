@@ -1,7 +1,10 @@
-from apmserver import BaseTest, integration_test
-from elasticsearch import Elasticsearch
 import json
+import os
 import random
+
+from elasticsearch import Elasticsearch
+
+from apmserver import BaseTest, integration_test
 
 
 class APIKeyBaseTest(BaseTest):
@@ -20,19 +23,21 @@ class APIKeyBaseTest(BaseTest):
         self.kibana_url = self.get_kibana_url()
         self.render_config_template(**self.config())
 
-    def subcommand_output(self, *args):
-        log = self.subcommand(*args)
+    def subcommand_output(self, *args, **kwargs):
+        log = self.subcommand(*args, **kwargs)
         # command and go test output is combined in log, pull out the command output
         command_output = self._trim_golog(log)
         return json.loads(command_output)
 
-    def subcommand(self, *args):
+    def subcommand(self, *args, **kwargs):
         logfile = self.beat_name + "-" + str(random.randint(0, 99999)) + "-" + args[0] + ".log"
         subcmd = ["apikey"]
         subcmd.extend(args)
         subcmd.append("--json")
-        self.run_beat(logging_args=[], extra_args=subcmd, output=logfile)
-        return self.get_log(logfile)
+        exit_code = self.run_beat(logging_args=[], extra_args=subcmd, output=logfile)
+        log = self.get_log(logfile)
+        assert exit_code == kwargs.get('exit_code', 0), log
+        return log
 
     @staticmethod
     def _trim_golog(log):
@@ -99,7 +104,7 @@ class APIKeyTest(APIKeyBaseTest):
         apikey = self.create()
         info = self.subcommand_output("info", "--id", apikey["id"])
         assert len(info.get("api_keys")) == 1, info
-        assert info["api_keys"][0].get("username") == "apm_server_user", info
+        assert info["api_keys"][0].get("username") == os.getenv("ES_USER", "apm_server_user"), info
         assert info["api_keys"][0].get("id") == apikey["id"], info
         assert info["api_keys"][0].get("name") == apikey["name"], info
         assert info["api_keys"][0].get("invalidated") is False, info
@@ -154,7 +159,7 @@ class APIKeyBadUserTest(APIKeyBaseTest):
 
     def test_create_bad_user(self):
         """heartbeat_user doesn't have required cluster privileges, so it can't create keys"""
-        result = self.subcommand_output("create", "--name", self.api_key_name)
+        result = self.subcommand_output("create", "--name", self.api_key_name, exit_code=1)
         assert result.get("status") == 403, result
         assert result.get("error") is not None
 
@@ -173,6 +178,6 @@ class APIKeyBadUser2Test(APIKeyBaseTest):
         """beats_user does have required cluster privileges, but not APM application privileges,
         so it can't create keys
         """
-        result = self.subcommand_output("create", "--name", self.api_key_name)
+        result = self.subcommand_output("create", "--name", self.api_key_name, exit_code=1)
         assert result.get("error") is not None, result
         assert "beats_user is missing the following requested privilege(s):" in result.get("error"), result
