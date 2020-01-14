@@ -115,14 +115,9 @@ and configuring it with the address of your APM Server, a secret token (if neces
 |{apm-java-ref-v}/setup.html[Set up the Java Agent]
 
 .2+|.NET
-<<<<<<< HEAD
-2+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
-=======
 2+|The .NET agent automatically instruments ASP.NET Core applications, and .NET Framework applications.
 |{apm-dotnet-ref-v}/supported-technologies.html[Supported technologies]
->>>>>>> d44db7aa... docs: Add quick start docker (#3106)
 |{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
-|
 
 .2+|Node.js
 2+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
