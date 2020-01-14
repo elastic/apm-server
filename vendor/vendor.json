@@ -223,6 +223,12 @@
 			"revisionTime": "2020-01-13T20:22:48Z"
 		},
 		{
+			"checksumSHA1": "Hc4yYaBrUJXrXge+C5PecOIFX84=",
+			"path": "github.com/blakesmith/ar",
+			"revision": "8bd4349a67f2533b078dbc524689d15dba0f4659",
+			"revisionTime": "2015-03-11T14:59:44Z"
+		},
+		{
 			"checksumSHA1": "TfdSKf/F+uKI3PjbSuLoGvE8MNc=",
 			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1",
 			"revision": "5cec5ea58c3efa81fa808f2bd38ce182da9ee731",
