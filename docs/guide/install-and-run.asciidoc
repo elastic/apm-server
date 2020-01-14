@@ -118,7 +118,6 @@ and configuring it with the address of your APM Server, a secret token (if neces
 2+|The .NET agent automatically instruments ASP.NET Core applications, and .NET Framework applications.
 |{apm-dotnet-ref-v}/supported-technologies.html[Supported technologies]
 |{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
-|
 
 .2+|Node.js
 2+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
