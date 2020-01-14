@@ -347,27 +347,34 @@ PUT /_security/role/my_role {
 		apikeyRequest.Expiration = &expiry
 	}
 
-	apikey, err := es.CreateAPIKey(client, apikeyRequest)
+	response, err := es.CreateAPIKey(client, apikeyRequest)
 	if err != nil {
 		return err
 	}
-	credentials := base64.StdEncoding.EncodeToString([]byte(apikey.ID + ":" + apikey.Key))
-	apikey.Credentials = &credentials
+
+	type APIKey struct {
+		es.CreateAPIKeyResponse
+		Credentials string `json:"credentials"`
+	}
+	apikey := APIKey{
+		CreateAPIKeyResponse: response,
+		Credentials:          base64.StdEncoding.EncodeToString([]byte(response.ID + ":" + response.Key)),
+	}
+
 	printText("API Key created:")
 	printText("")
 	printText("Name ........... %s", apikey.Name)
 	printText("Expiration ..... %s", humanTime(apikey.ExpirationMs))
 	printText("Id ............. %s", apikey.ID)
 	printText("API Key ........ %s (won't be shown again)", apikey.Key)
-	printText(`Credentials .... %s (use it as "Authorization: APIKey <credentials>" header to communicate with APM Server, won't be shown again)`,
-		credentials)
+	printText(`Credentials .... %s (use it as "Authorization: APIKey <credentials>" header to communicate with APM Server, won't be shown again)`, apikey.Credentials)
 
 	printJSON(struct {
-		es.CreateAPIKeyResponse
+		APIKey
 		Privileges es.CreatePrivilegesResponse `json:"created_privileges,omitempty"`
 	}{
-		CreateAPIKeyResponse: apikey,
-		Privileges:           privilegesCreated,
+		APIKey:     apikey,
+		Privileges: privilegesCreated,
 	})
 	return nil
 }

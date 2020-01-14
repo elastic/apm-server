@@ -163,8 +163,6 @@ type APIKey struct {
 	ID           string `json:"id"`
 	Name         string `json:"name"`
 	ExpirationMs *int64 `json:"expiration,omitempty"`
-	// This attribute does not come from Elasticsearch, but is filled in by APM Server
-	Credentials *string `json:"credentials,omitempty"`
 }
 
 type PrivilegeResponse map[PrivilegeAction]PutResponse
