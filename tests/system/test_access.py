@@ -92,30 +92,36 @@ class BaseAPIKeySetup(ElasticTest):
 
         user = os.getenv("ES_USER", "apm_server_user")
         password = os.getenv("ES_PASS", "changeme")
-        self.admin_es_url = self.get_elasticsearch_url(user, password)
+        self.es_url_apm_server_user = self.get_elasticsearch_url(user, password)
 
-        self.api_key_url = "{}/_security/api_key".format(self.admin_es_url)
+        self.api_key_url = "{}/_security/api_key".format(self.es_url_apm_server_user)
         self.api_key_name = "apm-systemtest"
+        self.privileges_url = "{}/_security/privilege".format(self.es_url_apm_server_user)
 
-        # clean setup: delete all existing api_keys of current user
+        # clean setup:
+        # delete all existing api_keys of current user
         requests.delete(self.api_key_url,
                         data=json.dumps({'name': self.api_key_name}),
                         headers=headers(content_type='application/json'))
         self.wait_until(lambda: self.api_keys_invalidated(), name="delete former api keys")
+        # delete all existing application privileges to ensure they can be created for current user
+        for privilege in ["sourcemap", "intake", "config"]:
+            requests.delete("{}/{}/{}".format(self.privileges_url, self.application, privilege))
+        self.wait_until(lambda: self.privileges_deleted(self.application))
 
-        # create privileges
         content_type = 'application/json'
-        url_privileges = "{}/_security/privilege".format(self.admin_es_url)
-        payload = json.dumps({self.application: {
+        # create privileges
+        privileges_payload = json.dumps({self.application: {
             "sourcemap": {"actions": [self.privilege_sourcemap]},
             "intake": {"actions": [self.privilege_intake]},
             "config": {"actions": [self.privilege_config]}}})
-        resp = requests.put(url_privileges, data=payload, headers=headers(content_type=content_type))
+
+        resp = requests.put(self.privileges_url, data=privileges_payload, headers=headers(content_type=content_type))
         assert resp.status_code == 200, resp.status_code
 
         # ensure user that creates the api keys has all privileges
         # see how application privileges can be added to user roles in testing/docker/elasticsearch/roles.yml
-        url_user_privileges = "{}/_security/user/_has_privileges".format(self.admin_es_url)
+        url_user_privileges = "{}/_security/user/_has_privileges".format(self.es_url_apm_server_user)
         payload = json.dumps({"application": [{
             "application": self.application,
             "privileges": [self.privilege_config, self.privilege_sourcemap, self.privilege_intake],
@@ -143,6 +149,11 @@ class BaseAPIKeySetup(ElasticTest):
         resp = requests.get("{}?id={}".format(self.api_key_url, id))
         assert resp.status_code == 200, resp.status_code
         return len(resp.json()["api_keys"]) == 1
+
+    def privileges_deleted(self, app):
+        resp = requests.get("{}/{}".format(self.privileges_url, self.application))
+        assert resp.status_code == 200, resp.status_code
+        return resp.json() == {}
 
     def create_api_key(self, privileges, resources, application="apm"):
         payload = json.dumps({
