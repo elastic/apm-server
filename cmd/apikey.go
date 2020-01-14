@@ -138,16 +138,13 @@ func getApikeysCmd(settings instance.Settings) *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: makeAPIKeyRun(settings, json, func(client es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
+				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
 			}
-			client, _, err := bootstrap(settings)
-			if err != nil {
-				return err
-			}
 			return getAPIKey(client, &id, &name, validOnly, json)
-		},
+		}),
 	}
 	info.Flags().StringVar(&id, "id", "", "id of the API Key to query")
 	info.Flags().StringVar(&name, "name", "",
