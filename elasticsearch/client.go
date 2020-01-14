@@ -19,6 +19,7 @@ package elasticsearch
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -92,6 +93,9 @@ func NewClient(config *Config) (Client, error) {
 
 // NewVersionedClient returns the right elasticsearch client for the current Stack version, as an interface
 func NewVersionedClient(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (Client, error) {
+	if apikey != "" {
+		apikey = base64.StdEncoding.EncodeToString([]byte(apikey))
+	}
 	version := common.MustNewVersion(version.GetDefaultVersion())
 	if version.IsMajor(8) {
 		c, err := newV8Client(apikey, user, pwd, addresses, transport)
