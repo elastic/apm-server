@@ -34,7 +34,8 @@ type LicenseGet func(o ...func(*LicenseGetRequest)) (*Response, error)
 // LicenseGetRequest configures the License Get API request.
 //
 type LicenseGetRequest struct {
-	Local *bool
+	AcceptEnterprise *bool
+	Local            *bool
 
 	Pretty     bool
 	Human      bool
@@ -61,6 +62,10 @@ func (r LicenseGetRequest) Do(ctx context.Context, transport Transport) (*Respon
 	path.WriteString("/_license")
 
 	params = make(map[string]string)
+
+	if r.AcceptEnterprise != nil {
+		params["accept_enterprise"] = strconv.FormatBool(*r.AcceptEnterprise)
+	}
 
 	if r.Local != nil {
 		params["local"] = strconv.FormatBool(*r.Local)
@@ -130,6 +135,14 @@ func (r LicenseGetRequest) Do(ctx context.Context, transport Transport) (*Respon
 func (f LicenseGet) WithContext(v context.Context) func(*LicenseGetRequest) {
 	return func(r *LicenseGetRequest) {
 		r.ctx = v
+	}
+}
+
+// WithAcceptEnterprise - supported for backwards compatibility with 7.x. if this param is used it must be set to true.
+//
+func (f LicenseGet) WithAcceptEnterprise(v bool) func(*LicenseGetRequest) {
+	return func(r *LicenseGetRequest) {
+		r.AcceptEnterprise = &v
 	}
 }
 
