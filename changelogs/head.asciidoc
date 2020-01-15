@@ -1,31 +1,14 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
+https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 
 [float]
 ==== Breaking Changes
-- Respect `apm-server.ilm.setup.overwrite` flag when running `setup --index-management` {pull}2984[2984].
 
 [float]
 ==== Intake API Changes
-- Add support for `span.context.db.rows_affected` {pull}3095[3095].
-- Add support for `classname` as stacktrace frame attribute {pull}3096[3096].
-- Add support for `message.*` information for spans and transactions {pull}3104[3104].
 
 [float]
 ==== Added
-- Adds support for global labels in spans {pull}2806[2806].
-- Updated `go.elastic.co/apm` to v1.6.0, enabling central config {pull}2913[2913]
-- Use go-elasticsearch client for fetching sourcemaps from Elasticsearch {pull}2897[2897].
-- Try to extract IP address from headers before using socket remote_address for `client.ip` and `source.ip` {pull}2935[2935].
-- Only use extracted hostname when valid IP for enriching events {pull}2935[2935].
-- Added experimental support for continuous profiling of the server {pull}2839[2839]
-- Build UBI based images also {pull}2994[2994].
-- Adds support for API Key authorization for incoming requests {pull}3004[3004]
-- Add experimental support for receiving Jaeger trace data {pull}3129[3129]
-- Upgrade APM Go agent to 1.7.0, and add support for API Key auth for self-instrumentation {pull}3134[3134]
-- Add correlation for server trace/log data {pull}3136[3136]
-- Upgrade Go to 1.13.6 {pull}3154[3154].
-- Add subcommand to create API Keys {pull}3063[3063]
 
