@@ -75,8 +75,11 @@ rsync -crpv --delete \
 popd
 
 # temporary for separate beats code vendoring and packaging
+mkdir -p ${BASEDIR}/dev-tools/vendor/
+touch  ${BASEDIR}/dev-tools/vendor/.keep
+mkdir -p ${BASEDIR}/vendor/github.com/tsg/
 rsync -crpv --delete \
-  ${BASEDIR}/${GIT_CLONE}/vendor/github.com/tsg/go-daemon ${BASEDIR}/vendor/
+  ${BASEDIR}/${GIT_CLONE}/vendor/github.com/tsg/go-daemon ${BASEDIR}/vendor/github.com/tsg/
 
 # use exactly the same beats revision rather than $BEATS_VERSION
 BEATS_REVISION=$(GIT_DIR=${BASEDIR}/${GIT_CLONE}/.git git rev-parse HEAD)
