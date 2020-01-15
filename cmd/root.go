@@ -93,7 +93,7 @@ func init() {
 		},
 	}
 	RootCmd = cmd.GenRootCmdWithSettings(beater.New, settings)
-
+	RootCmd.AddCommand(genApikeyCmd(settings))
 	for _, cmd := range RootCmd.ExportCmd.Commands() {
 
 		// remove `dashboard` from `export` commands

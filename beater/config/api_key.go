@@ -53,9 +53,7 @@ func (c *APIKeyConfig) setup(log *logp.Logger, outputESCfg *common.Config) error
 	if err := outputESCfg.Unpack(c.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into API key config")
 	}
-	// do not use username+password for API Key requests
-	c.ESConfig.Username = ""
-	c.ESConfig.Password = ""
+
 	return nil
 
 }

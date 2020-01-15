@@ -157,6 +157,11 @@ apm-server:
 
       #protocol: "http"
 
+      # Username and password are only needed for the apm-server apikey sub-command, and they are ignored otherwise
+      # See `apm-server apikey --help` for details.
+      #username: "elastic"
+      #password: "changeme"
+
       # Optional HTTP Path.
       #path: ""
 

@@ -8,7 +8,7 @@ apm_server:
       privileges: ['sourcemap:write','event:write','config_agent:read']
       resources: '*'
 beats:
-  cluster: ['manage_index_templates','monitor','manage_ingest_pipelines','manage_ilm']
+  cluster: ['manage_index_templates','monitor','manage_ingest_pipelines','manage_ilm', 'manage_security','manage_api_key']
   indices:
     - names: ['filebeat-*','shrink-filebeat-*']
       privileges: ['all']

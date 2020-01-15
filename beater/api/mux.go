@@ -125,7 +125,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 
 func profileHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
 	h := profile.Handler(systemMetadataDecoder(cfg, emptyDecoder), transform.Config{}, reporter)
-	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite)
+	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, profile.MonitoringMap)...)
 }
 
@@ -137,7 +137,7 @@ func backendIntakeHandler(cfg *config.Config, builder *authorization.Builder, re
 			MaxEventSize: cfg.MaxEventSize,
 		},
 		reporter)
-	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite)
+	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, intake.MonitoringMap)...)
 }
 
@@ -162,12 +162,12 @@ func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, report
 		return nil, err
 	}
 	h := sourcemap.Handler(systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData), psourcemap.Processor, *tcfg, reporter)
-	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite)
+	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
 	return middleware.Wrap(h, sourcemapMiddleware(cfg, authHandler)...)
 }
 
 func backendAgentConfigHandler(cfg *config.Config, builder *authorization.Builder, _ publish.Reporter) (request.Handler, error) {
-	authHandler := builder.ForPrivilege(authorization.PrivilegeAgentConfigRead)
+	authHandler := builder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
 	return agentConfigHandler(cfg, authHandler, backendMiddleware)
 }
 
@@ -193,7 +193,7 @@ func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, 
 
 func rootHandler(cfg *config.Config, builder *authorization.Builder, _ publish.Reporter) (request.Handler, error) {
 	return middleware.Wrap(root.Handler(),
-		rootMiddleware(cfg, builder.ForAnyOfPrivileges(authorization.PrivilegesAll))...)
+		rootMiddleware(cfg, builder.ForAnyOfPrivileges(authorization.ActionAny))...)
 }
 
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
