@@ -77,7 +77,7 @@ func (g *Generator) w(s string) {
 
 func (g *Generator) genHeader() {
 	g.w(`// Licensed to Elasticsearch B.V under one or more agreements.
-// Elasticsearch B.V licenses this file to you under the Apache 2.0 License.
+// Elasticsearch B.V. licenses this file to you under the Apache 2.0 License.
 // See the LICENSE file in the project root for more information.` + "\n")
 	g.w("//\n// Code generated")
 	if EsVersion != "" {
@@ -435,6 +435,20 @@ func (f ` + g.Endpoint.MethodWithNamespace() + `) WithHeader(h map[string]string
 	}
 }
 `)
+
+	// Generate methods for the X-Opaque-ID header
+	g.w(`
+// WithOpaqueID adds the X-Opaque-Id header to the HTTP request.
+//
+func (f ` + g.Endpoint.MethodWithNamespace() + `) WithOpaqueID(s string) func(*` + g.Endpoint.MethodWithNamespace() + `Request) {
+	return func(r *` + g.Endpoint.MethodWithNamespace() + `Request) {
+		if r.Header == nil {
+			r.Header = make(http.Header)
+		}
+		r.Header.Set("X-Opaque-Id", s)
+	}
+}
+`)
 }
 
 func (g *Generator) genDoMethod() {
@@ -718,7 +732,10 @@ func (r ` + g.Endpoint.MethodWithNamespace() + `Request) Do(ctx context.Context,
 		httpBody = "nil"
 	}
 
-	g.w(`req, _ := newRequest(method, path.String(), ` + httpBody + `)` + "\n\n")
+	g.w(`req, err := newRequest(method, path.String(), ` + httpBody + `)` + "\n")
+	g.w(`if err != nil {
+		return nil, err
+	}` + "\n\n")
 
 	g.w(`if len(params) > 0 {
 		q := req.URL.Query()

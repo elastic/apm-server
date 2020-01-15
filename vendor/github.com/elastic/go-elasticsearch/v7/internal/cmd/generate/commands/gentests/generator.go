@@ -199,21 +199,26 @@ func (g *Generator) genFileHeader() {
 import (
 	encjson "encoding/json"
 	encyaml "gopkg.in/yaml.v2"
+	"fmt"
 	"context"
 	"crypto/tls"
+	"net/url"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v7/estransport"
 )
 
 var (
 	// Prevent compilation errors for unused packages
+	_ = fmt.Printf
 	_ = encjson.NewDecoder
 	_ = encyaml.NewDecoder
 	_ = tls.Certificate{}
-	_ = fmt.Printf
+	_ = url.QueryEscape
 )` + "\n")
 }
 
@@ -226,11 +231,13 @@ func (g *Generator) genInitializeClient() {
 				InsecureSkipVerify: true,
 			},
 		},
-		// Logger: &estransport.TextLogger{
-		// 	Output: os.Stdout,
-		// 	// EnableRequestBody:  true,
-		// 	// EnableResponseBody: true,
-		// },
+	}
+	if os.Getenv("DEBUG") != "" {
+		cfg.Logger = &estransport.ColorLogger{
+			Output: os.Stdout,
+			// EnableRequestBody:  true,
+			EnableResponseBody: true,
+		}
 	}
 	es, eserr := elasticsearch.NewClient(cfg)
 	if eserr != nil {
@@ -961,7 +968,12 @@ func (g *Generator) genAction(a Action, skipBody ...bool) {
 						}
 						value = fmt.Sprintf("%d", dur.Nanoseconds())
 					default:
-						value = fmt.Sprintf("%q", v)
+						if strings.HasSuffix(k, "ID") {
+							value = fmt.Sprintf("url.QueryEscape(%q)", v)
+						} else {
+							value = fmt.Sprintf("%q", v)
+						}
+
 					}
 				}
 				g.w(value)

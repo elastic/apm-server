@@ -18,6 +18,8 @@ import (
 	"time"
 )
 
+var debugLogger DebuggingLogger
+
 // Logger defines an interface for logging request and response.
 //
 type Logger interface {
@@ -28,6 +30,13 @@ type Logger interface {
 	RequestBodyEnabled() bool
 	// ResponseBodyEnabled makes the client pass a copy of response body to the logger.
 	ResponseBodyEnabled() bool
+}
+
+// DebuggingLogger defines the interface for a debugging logger.
+//
+type DebuggingLogger interface {
+	Log(a ...interface{}) error
+	Logf(format string, a ...interface{}) error
 }
 
 // TextLogger prints the log message in plain text.
@@ -62,6 +71,12 @@ type JSONLogger struct {
 	EnableResponseBody bool
 }
 
+// debuggingLogger prints debug messages as plain text.
+//
+type debuggingLogger struct {
+	Output io.Writer
+}
+
 // LogRoundTrip prints the information about request and response.
 //
 func (l *TextLogger) LogRoundTrip(req *http.Request, res *http.Response, err error, start time.Time, dur time.Duration) error {
@@ -74,7 +89,12 @@ func (l *TextLogger) LogRoundTrip(req *http.Request, res *http.Response, err err
 	)
 	if l.RequestBodyEnabled() && req != nil && req.Body != nil && req.Body != http.NoBody {
 		var buf bytes.Buffer
-		buf.ReadFrom(req.Body)
+		if req.GetBody != nil {
+			b, _ := req.GetBody()
+			buf.ReadFrom(b)
+		} else {
+			buf.ReadFrom(req.Body)
+		}
 		logBodyAsText(l.Output, &buf, ">")
 	}
 	if l.ResponseBodyEnabled() && res != nil && res.Body != nil && res.Body != http.NoBody {
@@ -134,7 +154,12 @@ func (l *ColorLogger) LogRoundTrip(req *http.Request, res *http.Response, err er
 
 	if l.RequestBodyEnabled() && req != nil && req.Body != nil && req.Body != http.NoBody {
 		var buf bytes.Buffer
-		buf.ReadFrom(req.Body)
+		if req.GetBody != nil {
+			b, _ := req.GetBody()
+			buf.ReadFrom(b)
+		} else {
+			buf.ReadFrom(req.Body)
+		}
 		fmt.Fprint(l.Output, "\x1b[2m")
 		logBodyAsText(l.Output, &buf, "       »")
 		fmt.Fprint(l.Output, "\x1b[0m")
@@ -211,7 +236,12 @@ func (l *CurlLogger) LogRoundTrip(req *http.Request, res *http.Response, err err
 
 	if req != nil && req.Body != nil && req.Body != http.NoBody {
 		var buf bytes.Buffer
-		buf.ReadFrom(req.Body)
+		if req.GetBody != nil {
+			b, _ := req.GetBody()
+			buf.ReadFrom(b)
+		} else {
+			buf.ReadFrom(req.Body)
+		}
 
 		b.Grow(buf.Len())
 		b.WriteString(" -d \\\n'")
@@ -314,7 +344,12 @@ func (l *JSONLogger) LogRoundTrip(req *http.Request, res *http.Response, err err
 	appendQuote(req.Method)
 	if l.RequestBodyEnabled() && req != nil && req.Body != nil && req.Body != http.NoBody {
 		var buf bytes.Buffer
-		buf.ReadFrom(req.Body)
+		if req.GetBody != nil {
+			b, _ := req.GetBody()
+			buf.ReadFrom(b)
+		} else {
+			buf.ReadFrom(req.Body)
+		}
 
 		b.Grow(buf.Len() + 8)
 		b.WriteString(`,"body":`)
@@ -354,6 +389,20 @@ func (l *JSONLogger) RequestBodyEnabled() bool { return l.EnableRequestBody }
 
 // ResponseBodyEnabled returns true when the response body should be logged.
 func (l *JSONLogger) ResponseBodyEnabled() bool { return l.EnableResponseBody }
+
+// Log prints the arguments to output in default format.
+//
+func (l *debuggingLogger) Log(a ...interface{}) error {
+	_, err := fmt.Fprint(l.Output, a...)
+	return err
+}
+
+// Logf prints formats the arguments and prints them to output.
+//
+func (l *debuggingLogger) Logf(format string, a ...interface{}) error {
+	_, err := fmt.Fprintf(l.Output, format, a...)
+	return err
+}
 
 func logBodyAsText(dst io.Writer, body io.Reader, prefix string) {
 	scanner := bufio.NewScanner(body)

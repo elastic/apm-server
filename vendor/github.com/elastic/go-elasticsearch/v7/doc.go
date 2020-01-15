@@ -30,6 +30,7 @@ To configure the client, pass a Config object to the NewClient function:
 		elasticsearch.NewClient(cfg)
 
 When using the Elastic Service (https://elastic.co/cloud), you can use CloudID instead of Addresses.
+When either Addresses or CloudID is set, the ELASTICSEARCH_URL environment variable is ignored.
 
 See the elasticsearch_integration_test.go file and the _examples folder for more information.
 
@@ -42,6 +43,8 @@ Call the Elasticsearch APIs by invoking the corresponding methods on the client:
 
 		log.Println(res)
 
-See the github.com/elastic/go-elasticsearch/esapi package for more information and examples.
+See the github.com/elastic/go-elasticsearch/esapi package for more information about using the API.
+
+See the github.com/elastic/go-elasticsearch/estransport package for more information about configuring the transport.
 */
 package elasticsearch
