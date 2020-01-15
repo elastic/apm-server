@@ -5,9 +5,7 @@ import hashlib
 import os
 import requests
 
-
-VERSIONS = ["6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.2", "7.3", "7.x"]
-
+SUPPORTED_VERSIONS = [ "6.8", "7.5", "7.6", "7.x"]
 
 def parse_version(version):
     return tuple([int(x) if x != "x" else 100 for x in version.split('.')])
@@ -26,17 +24,17 @@ def shasum(fp):
 def main():
 
     cl_dir = 'changelogs'
+    any_failures = False
     for cl in sorted(os.listdir(cl_dir)):
         version, _ = os.path.splitext(cl)
-        if version in ['head', "6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.2"]:
+        if version not in SUPPORTED_VERSIONS:
             continue
         parsed_version = parse_version(version)
         with open(os.path.join(cl_dir, cl), mode='rb') as f:
             master = shasum(f)
 
-        any_failures = False
         print("**", cl, master, "**")
-        for v in VERSIONS:
+        for v in SUPPORTED_VERSIONS:
             if parsed_version <= parse_version(v):
                 print("checking {} on {}".format(cl, v))
                 url = "https://raw.githubusercontent.com/elastic/apm-server/{}/changelogs/{}".format(v, cl)
@@ -52,8 +50,8 @@ def main():
                     any_failures = True
                 print(h, url, status)
         print()
-        if any_failures:
-            raise Exception('Some changelogs are missing, please look at for failed.')
+    if any_failures:
+        raise Exception('Some changelogs are missing, please look at for failed.')
 
 
 if __name__ == '__main__':
