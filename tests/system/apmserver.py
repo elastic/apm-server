@@ -44,7 +44,7 @@ class BaseTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.apm_version = "7.6.0"
+        cls.apm_version = "7.7.0"
         cls.day = time.strftime("%Y.%m.%d", time.gmtime())
         cls.beat_name = "apm-server"
         cls.beat_path = os.path.abspath(os.path.join(
