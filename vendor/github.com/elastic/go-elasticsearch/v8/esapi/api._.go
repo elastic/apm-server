@@ -1,4 +1,4 @@
-// Code generated from specification version 8.0.0 (beb60d2cddb): DO NOT EDIT
+// Code generated from specification version 8.0.0 (caef1b300ce): DO NOT EDIT
 
 package esapi
 
@@ -61,6 +61,7 @@ type API struct {
 	FieldCaps                                     FieldCaps
 	Get                                           Get
 	GetScriptContext                              GetScriptContext
+	GetScriptLanguages                            GetScriptLanguages
 	GetScript                                     GetScript
 	GetSource                                     GetSource
 	GraphExplore                                  GraphExplore
@@ -87,7 +88,10 @@ type API struct {
 	SlmExecuteRetention                           SlmExecuteRetention
 	SlmGetLifecycle                               SlmGetLifecycle
 	SlmGetStats                                   SlmGetStats
+	SlmGetStatus                                  SlmGetStatus
 	SlmPutLifecycle                               SlmPutLifecycle
+	SlmStart                                      SlmStart
+	SlmStop                                       SlmStop
 	Termvectors                                   Termvectors
 	TransformDeleteTransform                      TransformDeleteTransform
 	TransformGetTransform                         TransformGetTransform
@@ -287,8 +291,10 @@ type ML struct {
 	DeleteForecast             MLDeleteForecast
 	DeleteJob                  MLDeleteJob
 	DeleteModelSnapshot        MLDeleteModelSnapshot
+	DeleteTrainedModel         MLDeleteTrainedModel
 	EstimateMemoryUsage        MLEstimateMemoryUsage
 	EvaluateDataFrame          MLEvaluateDataFrame
+	ExplainDataFrameAnalytics  MLExplainDataFrameAnalytics
 	FindFileStructure          MLFindFileStructure
 	FlushJob                   MLFlushJob
 	Forecast                   MLForecast
@@ -307,6 +313,8 @@ type ML struct {
 	GetModelSnapshots          MLGetModelSnapshots
 	GetOverallBuckets          MLGetOverallBuckets
 	GetRecords                 MLGetRecords
+	GetTrainedModels           MLGetTrainedModels
+	GetTrainedModelsStats      MLGetTrainedModelsStats
 	Info                       MLInfo
 	OpenJob                    MLOpenJob
 	PostCalendarEvents         MLPostCalendarEvents
@@ -450,6 +458,7 @@ func New(t Transport) *API {
 		FieldCaps:                                     newFieldCapsFunc(t),
 		Get:                                           newGetFunc(t),
 		GetScriptContext:                              newGetScriptContextFunc(t),
+		GetScriptLanguages:                            newGetScriptLanguagesFunc(t),
 		GetScript:                                     newGetScriptFunc(t),
 		GetSource:                                     newGetSourceFunc(t),
 		GraphExplore:                                  newGraphExploreFunc(t),
@@ -476,7 +485,10 @@ func New(t Transport) *API {
 		SlmExecuteRetention:                           newSlmExecuteRetentionFunc(t),
 		SlmGetLifecycle:                               newSlmGetLifecycleFunc(t),
 		SlmGetStats:                                   newSlmGetStatsFunc(t),
+		SlmGetStatus:                                  newSlmGetStatusFunc(t),
 		SlmPutLifecycle:                               newSlmPutLifecycleFunc(t),
+		SlmStart:                                      newSlmStartFunc(t),
+		SlmStop:                                       newSlmStopFunc(t),
 		Termvectors:                                   newTermvectorsFunc(t),
 		TransformDeleteTransform:                      newTransformDeleteTransformFunc(t),
 		TransformGetTransform:                         newTransformGetTransformFunc(t),
@@ -648,8 +660,10 @@ func New(t Transport) *API {
 			DeleteForecast:             newMLDeleteForecastFunc(t),
 			DeleteJob:                  newMLDeleteJobFunc(t),
 			DeleteModelSnapshot:        newMLDeleteModelSnapshotFunc(t),
+			DeleteTrainedModel:         newMLDeleteTrainedModelFunc(t),
 			EstimateMemoryUsage:        newMLEstimateMemoryUsageFunc(t),
 			EvaluateDataFrame:          newMLEvaluateDataFrameFunc(t),
+			ExplainDataFrameAnalytics:  newMLExplainDataFrameAnalyticsFunc(t),
 			FindFileStructure:          newMLFindFileStructureFunc(t),
 			FlushJob:                   newMLFlushJobFunc(t),
 			Forecast:                   newMLForecastFunc(t),
@@ -668,6 +682,8 @@ func New(t Transport) *API {
 			GetModelSnapshots:          newMLGetModelSnapshotsFunc(t),
 			GetOverallBuckets:          newMLGetOverallBucketsFunc(t),
 			GetRecords:                 newMLGetRecordsFunc(t),
+			GetTrainedModels:           newMLGetTrainedModelsFunc(t),
+			GetTrainedModelsStats:      newMLGetTrainedModelsStatsFunc(t),
 			Info:                       newMLInfoFunc(t),
 			OpenJob:                    newMLOpenJobFunc(t),
 			PostCalendarEvents:         newMLPostCalendarEventsFunc(t),
