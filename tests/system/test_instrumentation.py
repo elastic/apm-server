@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import time
-
+import unittest
 import requests
 
 from apmserver import integration_test
@@ -33,6 +33,7 @@ class TestExternalTracingAPIKey(BaseAPIKeySetup):
         })
         return cfg
 
+    @unittest.skip("flaky")
     def test_api_key_auth(self):
         # Send a POST request to the intake API URL. Doesn't matter what the
         # request body contents are, as the request will fail due to lack of
