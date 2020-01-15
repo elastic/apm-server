@@ -67,7 +67,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "error": {
             "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -172,7 +172,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "url": {
             "domain": "www.example.com",
@@ -191,13 +191,13 @@
                         {
                             "function": "foo",
                             "abs_path": "/real/file/name.py",
-                            "library_frame": true,
                             "vars": {
                                 "key": "value"
                             },
                             "module": "App::MyModule",
-                            "filename": "file/name.py",
                             "exclude_from_grouping": false,
+                            "filename": "file/name.py",
+                            "library_frame": true,
                             "context": {
                                 "pre": [
                                     "line1",
@@ -263,13 +263,13 @@
                     {
                         "function": "foo",
                         "abs_path": "/real/file/name.py",
-                        "library_frame": false,
                         "vars": {
                             "key": "value"
                         },
                         "module": "App::MyModule",
-                        "filename": "/webpack/file/name.py",
                         "exclude_from_grouping": false,
+                        "filename": "/webpack/file/name.py",
+                        "library_frame": false,
                         "context": {
                             "pre": [
                                 "line1",
@@ -471,7 +471,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "error": {
             "exception": [
@@ -555,7 +555,7 @@
             }
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "error": {
             "exception": [

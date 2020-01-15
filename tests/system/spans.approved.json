@@ -11,13 +11,13 @@
                 {
                     "function": "onread",
                     "abs_path": "net.js",
-                    "library_frame": true,
                     "vars": {
                         "key": "value"
                     },
                     "module": "some module",
-                    "filename": "net.js",
                     "exclude_from_grouping": false,
+                    "filename": "net.js",
+                    "library_frame": true,
                     "context": {
                         "pre": [
                             "  var trans = this.currentTransaction",
@@ -53,7 +53,9 @@
                 }
             },
             "name": "SELECT FROM product_types",
-            "subtype": "postgresql",
+            "start": {
+                "us": 2830
+            },
             "db": {
                 "instance": "customers",
                 "type": "sql",
@@ -63,15 +65,13 @@
                 "statement": "SELECT * FROM product_types WHERE user_id=?"
             },
             "sync": false,
-            "id": "0aaaaaaaaaaaaaaa",
-            "start": {
-                "us": 2830
-            },
+            "action": "query",
+            "subtype": "postgresql",
             "duration": {
                 "us": 3781
             },
             "type": "db",
-            "action": "query"
+            "id": "0aaaaaaaaaaaaaaa"
         },
         "trace": {
             "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
@@ -100,7 +100,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -171,7 +171,7 @@
             "name": "serviceabc"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -221,7 +221,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -272,7 +272,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
@@ -321,7 +321,7 @@
             "name": "1234_service-12a3"
         },
         "ecs": {
-            "version": "1.2.0"
+            "version": "1.4.0"
         },
         "processor": {
             "name": "transaction",
