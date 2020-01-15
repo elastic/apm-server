@@ -16,7 +16,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "host": {
                 "architecture": "x64",
@@ -127,7 +127,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "host": {
                 "architecture": "x64",
@@ -325,7 +325,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "host": {
                 "architecture": "x64",
@@ -449,7 +449,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.2.0"
+                "version": "1.4.0"
             },
             "host": {
                 "architecture": "x64",
