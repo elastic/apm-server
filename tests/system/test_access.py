@@ -148,12 +148,12 @@ class BaseAPIKeySetup(ElasticTest):
     def api_key_exists(self, id):
         resp = requests.get("{}?id={}".format(self.api_key_url, id))
         assert resp.status_code == 200, resp.status_code
-        return len(resp.json()["api_keys"]) == 1
+        return len(resp.json()["api_keys"]) == 1, resp.json()
 
     def privileges_deleted(self, app):
         resp = requests.get("{}/{}".format(self.privileges_url, self.application))
         assert resp.status_code == 200, resp.status_code
-        return resp.json() == {}
+        return resp.json() == {}, resp.json()
 
     def create_api_key(self, privileges, resources, application="apm"):
         payload = json.dumps({
