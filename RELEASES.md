@@ -9,7 +9,7 @@
 
 * Update beats
 
-  run `make update-beats` in the `7.x` branch before FF to recognize potential issues
+  run `make update-beats` in the branch from which the new branch will be created before FF to recognize potential issues
 
 * Update Kibana Index Pattern
   
@@ -28,15 +28,14 @@
   * Run the [`check_changelogs.py`](script/check_changelogs.py) script to ensure changelogs are synced across branches. This will soon be a PR check.
   * Don't forget to update the "SUPPORTED_VERSIONS" to include a new branch if necessary.
 
-* When [beats]() has merged all PRs
+* For minor releases create a new release branch and 
+  * update versions in release branch, e.g. [#2803](https://github.com/elastic/apm-server/pull/2803/files)
+  * update versions in `major.x` branch to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804)
+   
+* Update to latest changes of [beats](https://github.com/elastic/beats/pulls/)
   
-  * minor releases:
-    * branch out and update beats again 
-    * update versions in release branch, e.g.[#2803](https://github.com/elastic/apm-server/pull/2803/files)
-    * update versions in `7.x` branch to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804)
-    
-  * patch releases:
-    * update beats
+  When beats has merged all PRs and for minor releases created the new branch, update beats again.
+  
 
 * The following may also need to be updated manually:
     * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
