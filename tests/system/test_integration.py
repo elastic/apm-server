@@ -567,7 +567,6 @@ class MetricsIntegrationTest(ElasticTest):
 @integration_test
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
-        self.wait_until_pipelines_registered()
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
         self.wait_until(lambda: self.log_contains("events have been published"), max_timeout=10)

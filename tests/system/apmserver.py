@@ -10,7 +10,7 @@ import time
 import unittest
 from urlparse import urlparse
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import nottest
 import requests
 
@@ -176,7 +176,8 @@ class BaseTest(TestCase):
         raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
                            "Waited {} seconds.".format(max_timeout))
 
-
+# If you implement a Subclass of ServerSetUpBaseTest ensure to implement a `tearDown` function taking care of
+# stopping the APM Server instance.
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
     root_url = "{}/".format(host)
@@ -219,14 +220,6 @@ class ServerSetUpBaseTest(BaseTest):
         self.apmserver_proc = self.start_beat(**self.start_args())
         self.wait_until_started()
 
-        # try make sure APM Server is fully up
-        cfg = self.config()
-        # pipeline registration is enabled by default and only happens if the output is elasticsearch
-        if not getattr(self, "register_pipeline_disabled", False) and \
-                cfg.get("elasticsearch_host") and \
-                cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
-            self.wait_until_pipelines_registered()
-
     def start_args(self):
         return {}
 
@@ -236,9 +229,14 @@ class ServerSetUpBaseTest(BaseTest):
     def wait_until_ilm_setup(self):
         self.wait_until(lambda: self.log_contains("Finished index management setup."), name="ILM setup")
 
-    def wait_until_pipelines_registered(self):
-        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
-                        name="pipelines registered")
+    def wait_until_pipeline_setup(self):
+        cfg = self.config()
+        if cfg.get("register_pipeline_enabled") != "false":
+            self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
+                            name="pipelines registered")
+        else:
+            self.wait_until(lambda: self.log_contains("No pipeline callback registered"),
+                            name="pipeline registration disabled")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -268,7 +266,6 @@ class ServerSetUpBaseTest(BaseTest):
             headers = {'content-type': 'application/x-ndjson'}
         return requests.post(url, data=data, headers=headers)
 
-
 class ServerBaseTest(ServerSetUpBaseTest):
     def tearDown(self):
         super(ServerBaseTest, self).tearDown()
@@ -277,6 +274,7 @@ class ServerBaseTest(ServerSetUpBaseTest):
 
 class ElasticTest(ServerBaseTest):
     config_overrides = {}
+    skip_clean_pipelines = False
 
     def config(self):
         cfg = super(ElasticTest, self).config()
@@ -313,11 +311,33 @@ class ElasticTest(ServerBaseTest):
             self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0,
                             max_timeout=30, name="acm index {} to be empty".format(self.index_acm))
 
-        # Cleanup pipelines
-        if self.es.ingest.get_pipeline(ignore=[400, 404]):
-            self.es.ingest.delete_pipeline(id="*")
+        # clean up policy
+        try:
+            path = '/_ilm/policy/apm-rollover-30-days'
+            self.es.transport.perform_request('DELETE', path)
+
+            def policies_deleted(es):
+                try:
+                    es.transport.perform_request('GET', path)
+                    return False
+                except NotFoundError:
+                    return True
+
+            self.wait_until(lambda: policies_deleted(self.es), name="policy to be deleted")
+        except NotFoundError:
+            pass
+
+        if not self.skip_clean_pipelines:
+            id = "apm*"
+            self.es.ingest.delete_pipeline(id=id, ignore=[400,404])
+            self.wait_until(lambda: id not in self.es.ingest.get_pipeline(ignore=[400,404]))
 
         super(ElasticTest, self).setUp()
+
+        # try make sure APM Server is fully up
+        self.wait_until_ilm_setup()
+        self.wait_until_pipeline_setup()
+
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
                                 query_index=None, max_timeout=10, extra_headers=None):
@@ -334,7 +354,7 @@ class ElasticTest(ServerBaseTest):
         assert r.status_code == 202, r.status_code
 
         # Wait to give documents some time to be sent to the index
-        self.wait_for_events(endpoint, expected_events_count, index=query_index)
+        self.wait_for_events(endpoint, expected_events_count, index=query_index, max_timeout=max_timeout)
 
     def wait_for_events(self, processor_name, expected_count, index=None, max_timeout=10):
         """
@@ -352,8 +372,7 @@ class ElasticTest(ServerBaseTest):
             result['docs'] = hits['hits']
             return hits['total']['value'] == expected_count
 
-        self.wait_until(
-            get_docs,
+        self.wait_until(get_docs,
             max_timeout=max_timeout,
             name="{} documents to reach {}".format(processor_name, expected_count),
         )

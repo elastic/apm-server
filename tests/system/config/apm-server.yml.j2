@@ -15,8 +15,8 @@ apm-server:
 
   {% if api_key_enabled %}
   api_key.enabled: {{ api_key_enabled }}
-  api_key.limit: {{ api_key_limit | default(100) }}
   {% endif %}
+  api_key.limit: {{ api_key_limit | default(100) }}
   {% if api_key_es %}
   api_key.elasticsearch.hosts: [{{ api_key_es }}]
   {% endif %}
