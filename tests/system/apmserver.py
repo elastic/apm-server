@@ -173,7 +173,7 @@ class BaseTest(TestCase):
                 result = False
             if datetime.now() - start > timedelta(seconds=max_timeout):
                 raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
-                                   +                                   "Waited {} seconds.".format(max_timeout))
+                                   "Waited {} seconds.".format(max_timeout))
             time.sleep(poll_interval)
         return result
 
