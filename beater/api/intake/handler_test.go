@@ -19,6 +19,8 @@ package intake
 
 import (
 	"bytes"
+	"compress/gzip"
+	"compress/zlib"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -76,29 +78,25 @@ func TestIntakeHandler(t *testing.T) {
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
 		},
-		"CompressedBodyReaderDeflate": {
+		"CompressedBodyReaderDeflateInvalid": {
 			path: "errors.ndjson",
-			r: func() *http.Request {
-				data, err := loader.LoadDataAsBytes("../testdata/intake-v2/errors.ndjson")
-				require.NoError(t, err)
-				req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(data))
-				req.Header.Set(headers.ContentType, "application/x-ndjson")
-				req.Header.Set(headers.ContentEncoding, "deflate")
-				return req
-			}(),
+			r:    compressedRequest(t, "deflate", false),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
 		},
-		"CompressedBodyReaderGzip": {
+		"CompressedBodyReaderDeflateValid": {
 			path: "errors.ndjson",
-			r: func() *http.Request {
-				data, err := loader.LoadDataAsBytes("../testdata/intake-v2/errors.ndjson")
-				require.NoError(t, err)
-				req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(data))
-				req.Header.Set(headers.ContentType, "application/x-ndjson")
-				req.Header.Set(headers.ContentEncoding, "gzip")
-				return req
-			}(),
+			r:    compressedRequest(t, "deflate", true),
+			code: http.StatusAccepted, id: request.IDResponseValidAccepted,
+		},
+		"CompressedBodyReaderGzipInvalid": {
+			path: "errors.ndjson",
+			r:    compressedRequest(t, "gzip", false),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
+		},
+		"CompressedBodyReaderGzipValid": {
+			path: "errors.ndjson",
+			r:    compressedRequest(t, "gzip", true),
+			code: http.StatusAccepted, id: request.IDResponseValidAccepted,
 		},
 		"Decoder": {
 			path: "errors.ndjson",
@@ -138,20 +136,19 @@ func TestIntakeHandler(t *testing.T) {
 			path: "errors.ndjson",
 			code: http.StatusAccepted, id: request.IDResponseValidAccepted},
 	} {
-		// setup
-		tc.setup(t)
+		t.Run(name, func(t *testing.T) {
 
-		if tc.rateLimit != nil {
-			tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
-		}
-		// call handler
-		h := Handler(tc.dec, tc.processor, tc.reporter)
-		h(tc.c)
+			// setup
+			tc.setup(t)
 
-		t.Run(name+"ID", func(t *testing.T) {
-			assert.Equal(t, tc.id, tc.c.Result.ID)
-		})
-		t.Run(name+"Response", func(t *testing.T) {
+			if tc.rateLimit != nil {
+				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
+			}
+			// call handler
+			h := Handler(tc.dec, tc.processor, tc.reporter)
+			h(tc.c)
+
+			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
 			assert.Equal(t, tc.code, tc.w.Code)
 			assert.Equal(t, "application/json", tc.w.Header().Get(headers.ContentType))
 
@@ -203,15 +200,40 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 
 		tc.r = httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
 		tc.r.Header.Add("Content-Type", "application/x-ndjson")
-		q := tc.r.URL.Query()
-		q.Add("verbose", "")
-		tc.r.URL.RawQuery = q.Encode()
 	}
+	q := tc.r.URL.Query()
+	q.Add("verbose", "")
+	tc.r.URL.RawQuery = q.Encode()
 	tc.r.Header.Add("Accept", "application/json")
 
 	tc.w = httptest.NewRecorder()
 	tc.c = &request.Context{}
 	tc.c.Reset(tc.w, tc.r)
+}
+
+func compressedRequest(t *testing.T, compressionType string, compressPayload bool) *http.Request {
+	data, err := loader.LoadDataAsBytes("../testdata/intake-v2/errors.ndjson")
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	if compressPayload {
+		switch compressionType {
+		case "gzip":
+			w := gzip.NewWriter(&buf)
+			_, err = w.Write(data)
+			require.NoError(t, w.Close())
+		case "deflate":
+			w := zlib.NewWriter(&buf)
+			_, err = w.Write(data)
+			require.NoError(t, w.Close())
+		}
+	} else {
+		_, err = buf.Write(data)
+	}
+	require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodPost, "/", &buf)
+	req.Header.Set(headers.ContentType, "application/x-ndjson")
+	req.Header.Set(headers.ContentEncoding, compressionType)
+	return req
 }
 
 func emptyDec(_ *http.Request) (map[string]interface{}, error) {
