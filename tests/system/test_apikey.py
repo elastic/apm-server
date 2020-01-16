@@ -8,7 +8,7 @@ from apmserver import BaseTest, integration_test
 
 
 class APIKeyBaseTest(BaseTest):
-    api_key_name = "apm_integration_key"
+    apikey_name = "apm_integration_key"
 
     def config(self):
         return {
@@ -51,7 +51,7 @@ class APIKeyBaseTest(BaseTest):
         return log
 
     def create(self, *args):
-        return self.subcommand_output("create", "--name", self.api_key_name, *args)
+        return self.subcommand_output("create", "--name", self.apikey_name, *args)
 
 
 @integration_test
@@ -62,13 +62,13 @@ class APIKeyTest(APIKeyBaseTest):
 
     def tearDown(self):
         super(APIKeyBaseTest, self).tearDown()
-        invalidated = self.subcommand_output("invalidate", "--name", self.api_key_name)
+        invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
         assert invalidated.get("error_count") == 0
 
     def test_create(self):
         apikey = self.create()
 
-        assert apikey.get("name") == self.api_key_name, apikey
+        assert apikey.get("name") == self.apikey_name, apikey
 
         for privilege in ["sourcemap", "agentConfig", "event"]:
             apikey["created_privileges"]["apm"][privilege]["created"] = True, apikey
@@ -96,7 +96,7 @@ class APIKeyTest(APIKeyBaseTest):
     def test_invalidate_by_name(self):
         self.create()
         self.create()
-        invalidated = self.subcommand_output("invalidate", "--name", self.api_key_name)
+        invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
         assert len(invalidated.get("invalidated_api_keys")) == 2, invalidated
         assert invalidated.get("error_count") == 0, invalidated
 
@@ -117,11 +117,11 @@ class APIKeyTest(APIKeyBaseTest):
         self.create()
         self.create()
 
-        info = self.subcommand_output("info", "--name", self.api_key_name)
+        info = self.subcommand_output("info", "--name", self.apikey_name)
         # can't test exact number because these tests have side effects
         assert len(info.get("api_keys")) > 2, info
 
-        info = self.subcommand_output("info", "--name", self.api_key_name, "--valid-only")
+        info = self.subcommand_output("info", "--name", self.apikey_name, "--valid-only")
         assert len(info.get("api_keys")) == 2, info
 
     def test_verify_all(self):
@@ -160,7 +160,7 @@ class APIKeyBadUserTest(APIKeyBaseTest):
 
     def test_create_bad_user(self):
         """heartbeat_user doesn't have required cluster privileges, so it can't create keys"""
-        result = self.subcommand_output("create", "--name", self.api_key_name, exit_code=1)
+        result = self.subcommand_output("create", "--name", self.apikey_name, exit_code=1)
         assert result.get("status") == 403, result
         assert result.get("error") is not None
 
@@ -179,6 +179,6 @@ class APIKeyBadUser2Test(APIKeyBaseTest):
         """beats_user does have required cluster privileges, but not APM application privileges,
         so it can't create keys
         """
-        result = self.subcommand_output("create", "--name", self.api_key_name, exit_code=1)
+        result = self.subcommand_output("create", "--name", self.apikey_name, exit_code=1)
         assert result.get("error") is not None, result
         assert "beats_user is missing the following requested privilege(s):" in result.get("error"), result
