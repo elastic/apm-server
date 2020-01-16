@@ -6,7 +6,7 @@ import requests
 
 from apmserver import integration_test
 from apmserver import ElasticTest
-from test_access import BaseAPIKeySetup
+from test_access import BaseAPIKey
 
 
 # Set ELASTIC_APM_API_REQUEST_TIME to a short duration
@@ -16,7 +16,7 @@ os.environ["ELASTIC_APM_API_REQUEST_TIME"] = "1s"
 
 
 @integration_test
-class TestExternalTracingAPIKey(BaseAPIKeySetup):
+class TestExternalTracingAPIKey(BaseAPIKey):
     def config(self):
         cfg = super(TestExternalTracingAPIKey, self).config()
         api_key = self.create_api_key([self.privilege_intake], self.resource_any).lstrip("ApiKey ")
@@ -29,7 +29,7 @@ class TestExternalTracingAPIKey(BaseAPIKeySetup):
             # Explicitly specifying hosts configures the tracer to
             # behave as if it's sending to an external server, rather
             # than using the in-memory transport that bypasses auth.
-            "instrumentation_host": BaseAPIKeySetup.host,
+            "instrumentation_host": BaseAPIKey.host,
         })
         return cfg
 

@@ -73,96 +73,90 @@ class TestAccessWithSecretToken(ServerBaseTest):
 
 
 @integration_test
-class BaseAPIKeySetup(ElasticTest):
+class BaseAPIKey(ElasticTest):
 
     def setUp(self):
         # application
         self.application = "apm"
 
-        # apm-backend privileges
-        self.privilege_intake = "event:write"
-        self.privilege_config = "config_agent:read"
+        # apm privileges
+        self.privilege_agent_config = "config_agent:read"
+        self.privilege_event = "event:write"
         self.privilege_sourcemap = "sourcemap:write"
-        self.privileges_all = [self.privilege_intake, self.privilege_sourcemap, self.privilege_config]
+        self.privileges = {
+            "agentConfig": self.privilege_agent_config,
+            "event": self.privilege_event,
+            "sourcemap": self.privilege_sourcemap
+        }
+        self.privileges_all = self.privileges.values()
         self.privilege_any = "*"
 
         # resources
         self.resource_any = ["*"]
         self.resource_backend = ["-"]
 
+        self.apikey_name = "apm-systemtest"
+        content_type = 'application/json'
+
+        # apikey related urls for configured user (default: apm_server_user)
         user = os.getenv("ES_USER", "apm_server_user")
         password = os.getenv("ES_PASS", "changeme")
         self.es_url_apm_server_user = self.get_elasticsearch_url(user, password)
-
-        self.api_key_url = "{}/_security/api_key".format(self.es_url_apm_server_user)
-        self.api_key_name = "apm-systemtest"
+        self.apikey_url = "{}/_security/api_key".format(self.es_url_apm_server_user)
         self.privileges_url = "{}/_security/privilege".format(self.es_url_apm_server_user)
 
         # clean setup:
-        # delete all existing api_keys of current user
-        requests.delete(self.api_key_url,
-                        data=json.dumps({'name': self.api_key_name}),
+        # delete all existing apikeys with defined name of current user
+        requests.delete(self.apikey_url,
+                        data=json.dumps({'name': self.apikey_name}),
                         headers=headers(content_type='application/json'))
-        self.wait_until(lambda: self.api_keys_invalidated(), name="delete former api keys")
+        self.wait_until(lambda: self.apikeys_invalidated(), name="delete former api keys")
         # delete all existing application privileges to ensure they can be created for current user
-        for privilege in ["sourcemap", "intake", "config"]:
-            requests.delete("{}/{}/{}".format(self.privileges_url, self.application, privilege))
-        self.wait_until(lambda: self.privileges_deleted(self.application))
+        for name in self.privileges.keys():
+            url = "{}/{}/{}".format(self.privileges_url, self.application, name)
+            requests.delete(url)
+            self.wait_until(lambda: requests.get(url).status_code == 404)
 
-        content_type = 'application/json'
-        # create privileges
-        privileges_payload = json.dumps({self.application: {
-            "sourcemap": {"actions": [self.privilege_sourcemap]},
-            "intake": {"actions": [self.privilege_intake]},
-            "config": {"actions": [self.privilege_config]}}})
-
-        resp = requests.put(self.privileges_url, data=privileges_payload, headers=headers(content_type=content_type))
+        # call create privileges and ensure they are created for the user
+        payload = {self.application:{}}
+        for name, action in self.privileges.items():
+            payload[self.application][name] = {"actions": [action]}
+        resp = requests.put(self.privileges_url,
+                            data=json.dumps(payload),
+                            headers=headers(content_type=content_type))
         assert resp.status_code == 200, resp.status_code
+        apm_privilges = resp.json()[self.application]
+        for name in self.privileges.keys():
+            assert name in apm_privilges, name
+            assert apm_privilges[name]['created'], apm_privilges
 
-        # ensure user that creates the api keys has all privileges
-        # see how application privileges can be added to user roles in testing/docker/elasticsearch/roles.yml
-        url_user_privileges = "{}/_security/user/_has_privileges".format(self.es_url_apm_server_user)
-        payload = json.dumps({"application": [{
-            "application": self.application,
-            "privileges": [self.privilege_config, self.privilege_sourcemap, self.privilege_intake],
-            "resources": self.resource_backend}]})
-        resp = requests.post(url_user_privileges, data=payload, headers=headers(content_type=content_type))
-        assert resp.status_code == 200, resp.status_code
-        assert "has_all_requested" in resp.json(), resp.content
-        assert resp.json()["has_all_requested"] == True, resp.json()
+        super(BaseAPIKey, self).setUp()
 
-        super(BaseAPIKeySetup, self).setUp()
-
-    def fetch_api_keys(self):
-        resp = requests.get("{}?name={}".format(self.api_key_url, self.api_key_name))
+    def fetch_apikeys(self):
+        resp = requests.get("{}?name={}".format(self.apikey_url, self.apikey_name))
         assert resp.status_code == 200
         assert "api_keys" in resp.json(), resp.json()
         return resp.json()["api_keys"]
 
-    def api_keys_invalidated(self):
-        for entry in self.fetch_api_keys():
+    def apikeys_invalidated(self):
+        for entry in self.fetch_apikeys():
             if not entry["invalidated"]:
                 return False
         return True
 
     def api_key_exists(self, id):
-        resp = requests.get("{}?id={}".format(self.api_key_url, id))
+        resp = requests.get("{}?id={}".format(self.apikey_url, id))
         assert resp.status_code == 200, resp.status_code
         return len(resp.json()["api_keys"]) == 1, resp.json()
 
-    def privileges_deleted(self, app):
-        resp = requests.get("{}/{}".format(self.privileges_url, self.application))
-        assert resp.status_code == 200, resp.status_code
-        return resp.json() == {}, resp.json()
-
     def create_api_key(self, privileges, resources, application="apm"):
         payload = json.dumps({
-            "name": self.api_key_name,
+            "name": self.apikey_name,
             "role_descriptors": {
-                self.api_key_name+"role_desc": {
+                self.apikey_name + "role_desc": {
                     "applications": [
                         {"application": application, "privileges": privileges, "resources": resources}]}}})
-        resp = requests.post(self.api_key_url,
+        resp = requests.post(self.apikey_url,
                              data=payload,
                              headers=headers(content_type='application/json'))
         assert resp.status_code == 200, resp.status_code
@@ -171,8 +165,9 @@ class BaseAPIKeySetup(ElasticTest):
         return "ApiKey {}".format(base64.b64encode("{}:{}".format(id, resp.json()["api_key"])))
 
 
+
 @integration_test
-class TestAPIKeyCache(BaseAPIKeySetup):
+class TestAPIKeyCache(BaseAPIKey):
     def config(self):
         cfg = super(TestAPIKeyCache, self).config()
         cfg.update({"api_key_enabled": True, "api_key_limit": 1})
@@ -186,8 +181,8 @@ class TestAPIKeyCache(BaseAPIKeySetup):
         => cache size is api_key_limit*5
         """
 
-        key1 = self.create_api_key([self.privilege_intake], self.resource_any)
-        key2 = self.create_api_key([self.privilege_intake], self.resource_any)
+        key1 = self.create_api_key([self.privilege_event], self.resource_any)
+        key2 = self.create_api_key([self.privilege_event], self.resource_any)
 
         def assert_intake(api_key, authorized):
             resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(api_key))
@@ -209,7 +204,7 @@ class TestAPIKeyCache(BaseAPIKeySetup):
 
 
 @integration_test
-class TestAPIKeyWithInvalidESConfig(BaseAPIKeySetup):
+class TestAPIKeyWithInvalidESConfig(BaseAPIKey):
     def config(self):
         cfg = super(TestAPIKeyWithInvalidESConfig, self).config()
         cfg.update({"api_key_enabled": True, "api_key_es": "localhost:9999"})
@@ -219,13 +214,13 @@ class TestAPIKeyWithInvalidESConfig(BaseAPIKeySetup):
         """
         API Key cannot be verified when invalid Elasticsearch instance configured
         """
-        key = self.create_api_key([self.privilege_intake], self.resource_any)
+        key = self.create_api_key([self.privilege_event], self.resource_any)
         resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
         assert resp.status_code == 401,  "token: {}, status_code: {}".format(key, resp.status_code)
 
 
 @integration_test
-class TestAPIKeyWithESConfig(BaseAPIKeySetup):
+class TestAPIKeyWithESConfig(BaseAPIKey):
     def config(self):
         cfg = super(TestAPIKeyWithESConfig, self).config()
         cfg.update({"api_key_enabled": True, "api_key_es": self.get_elasticsearch_url()})
@@ -235,13 +230,13 @@ class TestAPIKeyWithESConfig(BaseAPIKeySetup):
         """
         Use dedicated Elasticsearch configuration for API Key validation
         """
-        key = self.create_api_key([self.privilege_intake], self.resource_any)
+        key = self.create_api_key([self.privilege_event], self.resource_any)
         resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
         assert resp.status_code == 202,  "token: {}, status_code: {}".format(key, resp.status_code)
 
 
 @integration_test
-class TestAccessWithAuthorization(BaseAPIKeySetup):
+class TestAccessWithAuthorization(BaseAPIKey):
 
     def setUp(self):
         super(TestAccessWithAuthorization, self).setUp()
@@ -251,8 +246,8 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
         self.api_key_privilege_any_resource_any = self.create_api_key(self.privilege_any, self.resource_any)
         self.api_key_privilege_any_resource_backend = self.create_api_key(self.privilege_any, self.resource_backend)
 
-        self.api_key_privilege_intake = self.create_api_key([self.privilege_intake], self.resource_any)
-        self.api_key_privilege_config = self.create_api_key([self.privilege_config], self.resource_any)
+        self.api_key_privilege_event = self.create_api_key([self.privilege_event], self.resource_any)
+        self.api_key_privilege_config = self.create_api_key([self.privilege_agent_config], self.resource_any)
         self.api_key_privilege_sourcemap = self.create_api_key([self.privilege_sourcemap], self.resource_any)
 
         self.api_key_invalid_application = self.create_api_key(
@@ -285,7 +280,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
             assert resp.content == '', "token: {}, response: {}".format(token, resp.content)
 
         keys_one_privilege = [self.api_key_privilege_config,
-                              self.api_key_privilege_sourcemap, self.api_key_privilege_intake]
+                              self.api_key_privilege_sourcemap, self.api_key_privilege_event]
         for token in self.authorized_keys+keys_one_privilege:
             resp = requests.get(url, headers=headers(token))
             assert resp.status_code == 200,  "token: {}, status_code: {}".format(token, resp.status_code)
@@ -300,7 +295,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
         url = self.intake_url
         events = self.get_event_payload()
 
-        for token in self.authorized_keys+[self.api_key_privilege_intake]:
+        for token in self.authorized_keys+[self.api_key_privilege_event]:
             resp = requests.post(url, data=events, headers=headers(token))
             assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
 
@@ -332,7 +327,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
                                 headers=headers(token, content_type="application/json"))
             assert resp.status_code == 200,  "token: {}, status_code: {}".format(token, resp.status_code)
 
-        for token in self.unauthorized_keys+[self.api_key_privilege_intake, self.api_key_privilege_sourcemap]:
+        for token in self.unauthorized_keys+[self.api_key_privilege_event, self.api_key_privilege_sourcemap]:
             resp = requests.get(url, headers=headers(token, content_type="application/json"))
             assert resp.status_code == 401,  "token: {}, status_code: {}".format(token, resp.status_code)
 
@@ -362,7 +357,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
                                        })
             return resp
 
-        for token in self.unauthorized_keys+[self.api_key_privilege_config, self.api_key_privilege_intake]:
+        for token in self.unauthorized_keys+[self.api_key_privilege_config, self.api_key_privilege_event]:
             resp = upload(token)
             assert resp.status_code == 401, "token: {}, status_code: {}".format(token, resp.status_code)
 
@@ -372,11 +367,11 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
 
 
 @integration_test
-class TestSelfInstrumentationWithAPIKeys(BaseAPIKeySetup):
+class TestSelfInstrumentationWithAPIKeys(BaseAPIKey):
 
     def setUp(self):
         super(TestSelfInstrumentationWithAPIKeys, self).setUp()
-        self.api_key = self.create_api_key([self.privilege_intake], self.resource_any)
+        self.api_key = self.create_api_key([self.privilege_event], self.resource_any)
 
     def config(self):
         cfg = super(TestSelfInstrumentationWithAPIKeys, self).config()
