@@ -3,11 +3,9 @@ from apmserver import ServerBaseTest, ServerSetUpBaseTest, ElasticTest
 import base64
 import json
 import os
-import random
 import requests
 import shutil
 import ssl
-import string
 import subprocess
 
 from nose.tools import raises

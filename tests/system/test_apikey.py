@@ -2,8 +2,6 @@ import json
 import os
 import random
 
-from elasticsearch import Elasticsearch
-
 from apmserver import BaseTest, integration_test
 
 
