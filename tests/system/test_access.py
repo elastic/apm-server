@@ -118,7 +118,7 @@ class BaseAPIKey(ElasticTest):
             self.wait_until(lambda: requests.get(url).status_code == 404)
 
         # call create privileges and ensure they are created for the user
-        payload = {self.application:{}}
+        payload = {self.application: {}}
         for name, action in self.privileges.items():
             payload[self.application][name] = {"actions": [action]}
         resp = requests.put(self.privileges_url,
@@ -163,7 +163,6 @@ class BaseAPIKey(ElasticTest):
         id = resp.json()["id"]
         self.wait_until(lambda: self.api_key_exists(id), name="create api key")
         return "ApiKey {}".format(base64.b64encode("{}:{}".format(id, resp.json()["api_key"])))
-
 
 
 @integration_test

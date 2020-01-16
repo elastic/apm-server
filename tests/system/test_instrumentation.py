@@ -13,10 +13,12 @@ from test_access import BaseAPIKey
 # to be ingested.
 os.environ["ELASTIC_APM_API_REQUEST_TIME"] = "1s"
 
+
 def get_instrumentation_event(es, index):
     query = {"term": {"service.name": "apm-server"}}
     es.indices.refresh(index=index)
     return es.count(index=index, body={"query": query})['count'] > 0
+
 
 @integration_test
 class TestInMemoryTracingAPIKey(BaseAPIKey):
