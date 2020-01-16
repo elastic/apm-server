@@ -4,22 +4,44 @@
 
 * Backport all relevant commits
 
-* Create a PR that uncomments out relevant release notes. Release notes are in the [changelogs](https://github.com/elastic/apm-server/tree/master/changelogs).
-    * [Sample PR](https://github.com/elastic/apm-server/pull/2064/files)
+  e.g. start with following command to see which files differ that are not necessarily expected:
+  `git diff elastic/master --name-only | grep -v '^vendor/' | grep -v '^docs/' | grep -v '^_beats'`
 
-* Create a separate PR to update `vendor/github.com/elastic/beats/libbeat/version/version.go`
-    * [Sample PR](https://github.com/elastic/apm-server/pull/1886)
+* Update beats
+
+  run `make update-beats` in the branch from which the new branch will be created before FF to recognize potential issues
+
+* Update Kibana Index Pattern
+  
+  If fields are not up-to-date, run `make update && script/update_kibana_objects.py` and create a PR.
+
+* Update Changelog 
+
+  * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/master/changelogs/head.asciidoc) to ensure all relevant notes have been added
+  * Move changelogs from _head_ to _release_version_:
+    * Minor version: Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/master/changelogs/head.asciidoc)
+      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file. 
+    * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
+    
+    Create PR in `master` and backport.
+  
+  * Run the [`check_changelogs.py`](script/check_changelogs.py) script to ensure changelogs are synced across branches. This will soon be a PR check.
+  * Don't forget to update the "SUPPORTED_VERSIONS" to include a new branch if necessary.
+
+* For minor releases create a new release branch and 
+  * update versions in release branch, e.g. [#2803](https://github.com/elastic/apm-server/pull/2803/files)
+  * update versions in `major.x` branch to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804)
+   
+* Update to latest changes of [beats](https://github.com/elastic/beats/pulls/)
+  
+  When beats has merged all PRs and for minor releases created the new branch, update beats again.
+  
 
 * The following may also need to be updated manually:
     * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
     * APM Overview's [breaking changes](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-breaking-changes.asciidoc) - Any breaking changes across the APM stack.
     * APM Server's [breaking changes](https://github.com/elastic/apm-server/blob/master/docs/breaking-changes.asciidoc) - Any APM Server breaking changes.
     * APM Server's [upgrade guide](https://github.com/elastic/apm-server/blob/master/docs/upgrading.asciidoc).
-
-* Changelogs:
-    * Review the [changelogs](https://github.com/elastic/apm-server/tree/master/changelogs) to ensure all relevant notes have been added
-    * Run the [`check_changelogs.py`](script/check_changelogs.py) script to ensure changelogs are synced across branches. This will soon be a PR check.
-        * Don't forget to update the "VERSIONS" to include a new branch if necessary.
 
 * For major releases, update and smoke test the dev quick start [`docker-compose.yml`](https://github.com/elastic/apm-server/blob/master/docs/guide/docker-compose.yml).
 
@@ -30,6 +52,10 @@
 * Merge the above PRs
 
 * Verify that a new [tag](https://github.com/elastic/apm-server/releases) has been created on GitHub.
+
+* Bump the version in anticipation of the next release, e.g. [after 7.5.1 release](https://github.com/elastic/apm-server/pull/3045/files) bump to 7.5.2
+ 
+  Prepare this PR ahead of time, but only merge after release!
 
 ## When compatibility between Agents & Server changes
 
@@ -57,13 +83,16 @@ https://github.com/elastic/apm-server/compare/v7.0.1\...v7.1.0[View commits]
 No significant changes.
 ////
 [float]
-==== Added
-
-[float]
-==== Removed
+==== Breaking Changes
 
 [float]
 ==== Bug fixes
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
 ////
 ```
 </details>
