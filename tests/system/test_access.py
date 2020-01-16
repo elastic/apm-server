@@ -367,36 +367,6 @@ class TestAccessWithAuthorization(BaseAPIKey):
 
 
 @integration_test
-class TestSelfInstrumentationWithAPIKeys(BaseAPIKey):
-
-    def setUp(self):
-        super(TestSelfInstrumentationWithAPIKeys, self).setUp()
-        self.api_key = self.create_api_key([self.privilege_event], self.resource_any)
-
-    def config(self):
-        cfg = super(TestSelfInstrumentationWithAPIKeys, self).config()
-        cfg.update({"api_key_enabled": True, "instrumentation_enabled": "true"})
-        return cfg
-
-    def test_self_instrumentation(self):
-        """
-        Test that self-instrumentation works when API Keys auth is enabled.
-        """
-        url = self.intake_url
-        events = self.get_event_payload()
-        resp = requests.post(url, data=events, headers=headers(self.api_key))
-        assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
-
-        def have_apm_server_traces():
-            self.es.indices.refresh(index=self.index_transaction)
-            response = self.es.count(index=self.index_transaction, body={"query": {
-                "term": {"service.name": "apm-server"},
-            }})
-            return response['count'] != 0
-        self.wait_until(have_apm_server_traces, max_timeout=20, name="waiting for apm-server traces")
-
-
-@integration_test
 class TestSecureServerBaseTest(ServerSetUpBaseTest):
     @classmethod
     def setUpClass(cls):
