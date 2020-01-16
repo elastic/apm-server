@@ -26,7 +26,7 @@
     Create PR in `master` and backport.
   
   * Run the [`check_changelogs.py`](script/check_changelogs.py) script to ensure changelogs are synced across branches. This will soon be a PR check.
-  * Don't forget to update the "VERSIONS" to include a new branch if necessary.
+  * Don't forget to update the "SUPPORTED_VERSIONS" to include a new branch if necessary.
 
 * When [beats]() has merged all PRs
   
@@ -36,7 +36,7 @@
     * update versions in `7.x` branch to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804)
     
   * patch releases:
-    * updae beats
+    * update beats
 
 * The following may also need to be updated manually:
     * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
@@ -54,7 +54,7 @@
 
 * Verify that a new [tag](https://github.com/elastic/apm-server/releases) has been created on GitHub.
 
-* Bump the version, e.g. [after 7.5.1 release](https://github.com/elastic/apm-server/pull/3045/files)
+* Bump the version in anticipation of the next release, e.g. [after 7.5.1 release](https://github.com/elastic/apm-server/pull/3045/files) bump to 7.5.2
  
   Prepare this PR ahead of time, but only merge after release!
 
