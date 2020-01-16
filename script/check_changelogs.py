@@ -5,7 +5,8 @@ import hashlib
 import os
 import requests
 
-SUPPORTED_VERSIONS = [ "6.8", "7.5", "7.6", "7.x"]
+SUPPORTED_VERSIONS = ["6.8", "7.5", "7.6", "7.x"]
+
 
 def parse_version(version):
     return tuple([int(x) if x != "x" else 100 for x in version.split('.')])
