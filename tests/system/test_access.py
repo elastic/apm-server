@@ -95,22 +95,22 @@ class BaseAPIKey(ElasticTest):
         self.resource_any = ["*"]
         self.resource_backend = ["-"]
 
-        self.apikey_name = "apm-systemtest"
+        self.api_key_name = "apm-systemtest"
         content_type = 'application/json'
 
-        # apikey related urls for configured user (default: apm_server_user)
+        # api_key related urls for configured user (default: apm_server_user)
         user = os.getenv("ES_USER", "apm_server_user")
         password = os.getenv("ES_PASS", "changeme")
         self.es_url_apm_server_user = self.get_elasticsearch_url(user, password)
-        self.apikey_url = "{}/_security/api_key".format(self.es_url_apm_server_user)
+        self.api_key_url = "{}/_security/api_key".format(self.es_url_apm_server_user)
         self.privileges_url = "{}/_security/privilege".format(self.es_url_apm_server_user)
 
         # clean setup:
-        # delete all existing apikeys with defined name of current user
-        requests.delete(self.apikey_url,
-                        data=json.dumps({'name': self.apikey_name}),
+        # delete all existing api_keys with defined name of current user
+        requests.delete(self.api_key_url,
+                        data=json.dumps({'name': self.api_key_name}),
                         headers=headers(content_type='application/json'))
-        self.wait_until(lambda: self.apikeys_invalidated(), name="delete former api keys")
+        self.wait_until(lambda: self.api_keys_invalidated(), name="delete former api keys")
         # delete all existing application privileges to ensure they can be created for current user
         for name in self.privileges.keys():
             url = "{}/{}/{}".format(self.privileges_url, self.application, name)
@@ -132,31 +132,31 @@ class BaseAPIKey(ElasticTest):
 
         super(BaseAPIKey, self).setUp()
 
-    def fetch_apikeys(self):
-        resp = requests.get("{}?name={}".format(self.apikey_url, self.apikey_name))
+    def fetch_api_keys(self):
+        resp = requests.get("{}?name={}".format(self.api_key_url, self.api_key_name))
         assert resp.status_code == 200
         assert "api_keys" in resp.json(), resp.json()
         return resp.json()["api_keys"]
 
-    def apikeys_invalidated(self):
-        for entry in self.fetch_apikeys():
+    def api_keys_invalidated(self):
+        for entry in self.fetch_api_keys():
             if not entry["invalidated"]:
                 return False
         return True
 
     def api_key_exists(self, id):
-        resp = requests.get("{}?id={}".format(self.apikey_url, id))
+        resp = requests.get("{}?id={}".format(self.api_key_url, id))
         assert resp.status_code == 200, resp.status_code
         return len(resp.json()["api_keys"]) == 1, resp.json()
 
     def create_api_key(self, privileges, resources, application="apm"):
         payload = json.dumps({
-            "name": self.apikey_name,
+            "name": self.api_key_name,
             "role_descriptors": {
-                self.apikey_name + "role_desc": {
+                self.api_key_name + "role_desc": {
                     "applications": [
                         {"application": application, "privileges": privileges, "resources": resources}]}}})
-        resp = requests.post(self.apikey_url,
+        resp = requests.post(self.api_key_url,
                              data=payload,
                              headers=headers(content_type='application/json'))
         assert resp.status_code == 200, resp.status_code
