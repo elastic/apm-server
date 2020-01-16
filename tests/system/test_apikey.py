@@ -12,14 +12,16 @@ class APIKeyBaseTest(BaseTest):
 
     def config(self):
         return {
-            "elasticsearch_host": self.get_elasticsearch_url(),
+            "elasticsearch_host": self.es_url,
             "file_enabled": "false",
             "kibana_enabled": "false",
         }
 
     def setUp(self):
         super(APIKeyBaseTest, self).setUp()
-        self.es = Elasticsearch([self.get_elasticsearch_url()])
+        self.user = os.getenv("ES_USER", "apm_server_user")
+        password = os.getenv("ES_PASS", "changeme")
+        self.es_url = self.get_elasticsearch_url(self.user, password)
         self.kibana_url = self.get_kibana_url()
         self.render_config_template(**self.config())
 
@@ -60,8 +62,8 @@ class APIKeyTest(APIKeyBaseTest):
     Tests the apikey subcommand.
     """
 
-    def tearDown(self):
-        super(APIKeyBaseTest, self).tearDown()
+    def setUp(self):
+        super(APIKeyTest, self).setUp()
         invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
         assert invalidated.get("error_count") == 0
 
@@ -79,7 +81,7 @@ class APIKeyTest(APIKeyBaseTest):
     def test_create_with_settings_override(self):
         apikey = self.create(
             "-E", "output.elasticsearch.enabled=false",
-            "-E", "apm-server.api_key.elasticsearch.hosts=[{}]".format(self.get_elasticsearch_url())
+            "-E", "apm-server.api_key.elasticsearch.hosts=[{}]".format(self.es_url)
         )
         assert apikey.get("credentials") is not None, apikey
 
@@ -105,7 +107,7 @@ class APIKeyTest(APIKeyBaseTest):
         apikey = self.create()
         info = self.subcommand_output("info", "--id", apikey["id"])
         assert len(info.get("api_keys")) == 1, info
-        assert info["api_keys"][0].get("username") == os.getenv("ES_USER", "apm_server_user"), info
+        assert info["api_keys"][0].get("username") == self.user, info
         assert info["api_keys"][0].get("id") == apikey["id"], info
         assert info["api_keys"][0].get("name") == apikey["name"], info
         assert info["api_keys"][0].get("invalidated") is False, info
