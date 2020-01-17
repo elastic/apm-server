@@ -266,24 +266,23 @@ class ElasticTest(ServerBaseTest):
         cfg.update(self.config_overrides)
         return cfg
 
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
+    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
         """
         Like beat.beat.wait_until but catches exceptions
         In a ElasticTest `cond` will usually be a query, and we need to keep retrying
          eg. on 503 response codes
         """
         start = datetime.now()
-        result = False
-        while not result:
+        while datetime.now()-start < timedelta(seconds=max_timeout):
             try:
                 result = cond()
+                if result:
+                    return result
             except:
-                result = False
-            if datetime.now() - start > timedelta(seconds=max_timeout):
-                raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
-                                   "Waited {} seconds.".format(max_timeout))
+                pass
             time.sleep(poll_interval)
-        return result
+        raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
+                           "Waited {} seconds.".format(max_timeout))
 
     def setUp(self):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
@@ -558,7 +557,7 @@ class OverrideIndicesFailureTest(ElasticTest):
         cfg.update({"override_index": self.index_name, })
         return cfg
 
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
+    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
         return
 
     def tearDown(self):
