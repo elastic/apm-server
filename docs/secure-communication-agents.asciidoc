@@ -1,20 +1,212 @@
 [[secure-communication-agents]]
 == Secure communication with APM Agents
 
-To secure the communication between APM Agents and the APM Server:
+There are two ways to secure the communication between APM Agents and the APM Server.
+Both options can be enabled in parallel,
+allowing Elastic APM agents to chose whichever mechanism they support.
 
-. <<secret-token,Set a secret token in your Agents and Server>>
-. <<ssl-setup,Enable SSL/TLS in APM Server>>
-. <<https-in-agents,Enable HTTPS in your APM Agents>>
+As soon as secure communication is enabled, requests without a valid token will be denied by APM Server.
+As RUM endpoints cannot be secured, they are exempt from this rule.
+
+* <<api-key,API keys>>
+* <<secret-token,Secret token>>
+
+[[api-key]]
+=== API Keys
+
+//**************************************************
+// NEW STUFF
+//**************************************************
+
+You can configure an API key to authorize requests to the APM Server.
+When both the agents and the APM servers are configured with the same API key,
+this ensures that only your agents are able to send data to your APM servers.
+
+IMPORTANT: Because API keys are sent as plain-text, you should also secure you communication with HTTPS.
+
+To secure the communication between APM Agents and the APM Server with API keys:
+
+. Enable SSL/TLS
+. Create a secret token with APM Server
+. Set the secret token in your APM Agents
+
+// We recommend saving the api key in the APM Server <<keystore>>.
+
+IMPORTANT: API Keys are not applicable for the RUM Agent,
+as there is no way to prevent them from being publicly exposed.
+
+// BEGIN SSL
+// ************
+
+// Can we use a shared include for this?
+
+[[ssl-setup]]
+[float]
+=== SSL/TLS communication in APM Server
+
+To enable SSL/TLS, you need to enable SSL and provide both a private key and a certificate
+issued by a certificate authority (CA).
+You can then specify the path to those files in your configuration properties.
+This will make APM Server serve HTTPS requests instead of HTTP.
+
+Here's a basic APM Server SSL config with secure communication enabled:
+
+[source,yaml]
+----
+apm-server.ssl.enabled: true
+apm-server.ssl.key: "/etc/pki/key.pem"
+apm-server.ssl.certificate: "/etc/pki/apm-server.pem"
+----
+
+A full list of configuration options is available in <<agent-server-ssl>>.
+
+// END SSL
+// ************
+
+**Agent specific configuration**
+
+// Agent meta: https://github.com/elastic/apm/issues/183
+
+Each Agent has a configuration for setting the value of the API Key:
+
+// GOOD DOCS:
+* *Go Agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
+// MERGED: https://github.com/elastic/apm-agent-go/pull/698
+
+// No issue or docs yet
+// * *Java Agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
+
+// No issue or docs yet
+// * *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#[`API_KEY`]
+
+// No issue or docs yet
+// * *Node.js Agent*: {apm-node-ref}/configuration.html[`api_key`]
+
+// No docs yet
+// * *Python Agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
+// WIP
+
+// No docs yet
+// * *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
+// MERGED: https://github.com/elastic/apm-agent-ruby/pull/655
+
+
+CONFIG OPTIONS BELOW
+
+[float]
+==== api_key.enabled
+Enable API key authorization by setting enabled to true. By default API key support is disabled.
+Agents include a valid API key in the following format: Authorization: ApiKey <token>.
+The key must be the base64 encoded representation of the API key's "id:key".
+api_key.enabled: false
+
+[float]
+==== api_key.limit
+Restrict how many unique API keys are allowed per minute. Should be set to at least the amount of different
+API keys configured in your monitored services. Every unique API key triggers one request to Elasticsearch.
+api_key.limit: 100
+
+[float]
+==== api_key.elasticsearch.hosts
+API keys need to be fetched from Elasticsearch. If nothing is configured, configuration settings from the
+output section will be reused.
+Note that configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
+api_key.elasticsearch.hosts: ["localhost:9200"]
+
+[float]
+==== api_key.elasticsearch.protocol
+api_key.elasticsearch.protocol: "http"
+
+[float]
+==== api_key.elasticsearch.path
+Optional HTTP Path.
+api_key.elasticsearch.path: ""
+
+[float]
+==== api_key.elasticsearch.proxy_url
+Proxy server url.
+api_key.elasticsearch.proxy_url: ""
+api_key.elasticsearch.proxy_disable: false
+
+[float]
+==== api_key.elasticsearch.timeout
+Configure http request timeout before failing an request to Elasticsearch.
+api_key.elasticsearch.timeout: 10s
+
+[float]
+==== api_key.elasticsearch.ssl.enabled
+Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
+api_key.elasticsearch.ssl.enabled: true
+
+[float]
+==== api_key.elasticsearch.ssl.verification_mode
+Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
+Configure SSL verification mode. If `none` is configured, all server hosts and certificates will be accepted.
+In this mode, SSL based connections are susceptible to man-in-the-middle attacks. Use only for testing. Default is `full`.
+api_key.elasticsearch.ssl.verification_mode: full
+
+[float]
+==== api_key.elasticsearch.ssl.supported_protocols
+List of supported/valid TLS versions. By default all TLS versions 1.0 up to 1.2 are enabled.
+api_key.elasticsearch.ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+
+[float]
+==== api_key.elasticsearch.ssl.certificate_authorities
+List of root certificates for HTTPS server verifications.
+api_key.elasticsearch.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+
+[float]
+==== api_key.elasticsearch.ssl.certificate
+Certificate for SSL client authentication.
+api_key.elasticsearch.ssl.certificate: "/etc/pki/client/cert.pem"
+
+[float]
+==== api_key.elasticsearch.ssl.key
+Client Certificate Key
+api_key.elasticsearch.ssl.key: "/etc/pki/client/cert.key"
+
+[float]
+==== api_key.elasticsearch.ssl.key_passphrase
+Optional passphrase for decrypting the Certificate Key.
+It is recommended to use the provided keystore instead of entering the passphrase in plain text.
+api_key.elasticsearch.ssl.key_passphrase: ''
+
+[float]
+==== api_key.elasticsearch.ssl.cipher_suites
+Configure cipher suites to be used for SSL connections.
+api_key.elasticsearch.ssl.cipher_suites: []
+
+[float]
+==== api_key.elasticsearch.ssl.curve_types
+Configure curve types for ECDHE based cipher suites.
+api_key.elasticsearch.ssl.curve_types: []
+
+[float]
+==== api_key.elasticsearch.ssl.renegotiation
+Configure what types of renegotiation are supported. Valid options are `never`, `once`, and `freely`. Default is `never`.
+api_key.elasticsearch.ssl.renegotiation: never
+
+//**************************************************
+// END NEW STUFF
+//**************************************************
 
 [[secret-token]]
-[float]
 === Secret token
 
 You can configure a secret token to authorize requests to the APM Server.
 This ensures that only your agents are able to send data to your APM servers.
 Both the agents and the APM servers have to be configured with the same secret token,
 and secret tokens only provide security when used in combination with SSL/TLS.
+
+To secure the communication between APM Agents and the APM Server with a secret token:
+
+. <<set-secret-token,Set a secret token in your Agents and Server>>
+. <<ssl-setup,Enable SSL/TLS in APM Server>>
+. <<https-in-agents,Enable HTTPS in your APM Agents>>
+
+[[set-secret-token]]
+[float]
+=== Set a secret token
 
 **APM Server configuration**
 
