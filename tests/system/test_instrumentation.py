@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
 import os
 import time
-import unittest
 import requests
 
 from apmserver import integration_test
 from apmserver import ElasticTest
-from test_access import BaseAPIKeySetup
+from test_access import BaseAPIKey
 
 
 # Set ELASTIC_APM_API_REQUEST_TIME to a short duration
@@ -15,11 +14,41 @@ from test_access import BaseAPIKeySetup
 os.environ["ELASTIC_APM_API_REQUEST_TIME"] = "1s"
 
 
+def get_instrumentation_event(es, index):
+    query = {"term": {"service.name": "apm-server"}}
+    es.indices.refresh(index=index)
+    return es.count(index=index, body={"query": query})['count'] > 0
+
+
 @integration_test
-class TestExternalTracingAPIKey(BaseAPIKeySetup):
+class TestInMemoryTracingAPIKey(BaseAPIKey):
+    def config(self):
+        cfg = super(TestInMemoryTracingAPIKey, self).config()
+        cfg.update({
+            "api_key_enabled": True,
+            "instrumentation_enabled": "true",
+        })
+        return cfg
+
+    def test_api_key_auth(self):
+        """Self-instrumentation using in-memory listener without configuring an APIKey"""
+
+        # Send a POST request to the intake API URL. Doesn't matter what the
+        # request body contents are, as the request will fail due to lack of
+        # authorization. We just want to trigger the server's in-memory tracing,
+        # and test that the in-memory tracer works without having an api_key configured
+        r = requests.post(self.intake_url, data="invalid")
+        self.assertEqual(401, r.status_code)
+
+        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
+                        name='have in-memory instrumentation documents without api_key')
+
+
+@integration_test
+class TestExternalTracingAPIKey(BaseAPIKey):
     def config(self):
         cfg = super(TestExternalTracingAPIKey, self).config()
-        api_key = self.create_api_key([self.privilege_intake], self.resource_any).lstrip("ApiKey ")
+        api_key = self.create_api_key([self.privilege_event], self.resource_any).lstrip("ApiKey ")
         cfg.update({
             "api_key_enabled": True,
             "instrumentation_enabled": "true",
@@ -29,11 +58,10 @@ class TestExternalTracingAPIKey(BaseAPIKeySetup):
             # Explicitly specifying hosts configures the tracer to
             # behave as if it's sending to an external server, rather
             # than using the in-memory transport that bypasses auth.
-            "instrumentation_host": BaseAPIKeySetup.host,
+            "instrumentation_host": BaseAPIKey.host,
         })
         return cfg
 
-    @unittest.skip("flaky")
     def test_api_key_auth(self):
         # Send a POST request to the intake API URL. Doesn't matter what the
         # request body contents are, as the request will fail due to lack of
@@ -41,13 +69,8 @@ class TestExternalTracingAPIKey(BaseAPIKeySetup):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        query = {"term": {"processor.name": "transaction"}}
-        index = self.index_transaction
-
-        def get_transactions():
-            self.es.indices.refresh(index=index)
-            return self.es.count(index=index, body={"query": query})['count'] > 0
-        self.wait_until(get_transactions, name='have transaction documents')
+        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
+                        name='have external server instrumentation documents with api_key')
 
 
 @integration_test
@@ -75,13 +98,8 @@ class TestExternalTracingSecretToken(ElasticTest):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        query = {"term": {"processor.name": "transaction"}}
-        index = self.index_transaction
-
-        def get_transactions():
-            self.es.indices.refresh(index=index)
-            return self.es.count(index=index, body={"query": query})['count'] > 0
-        self.wait_until(get_transactions, name='have transaction documents')
+        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
+                        name='have external server instrumentation documents with secret_token')
 
 
 class ProfilingTest(ElasticTest):
