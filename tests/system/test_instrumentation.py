@@ -45,7 +45,6 @@ class TestExternalTracingAPIKey(BaseAPIKeySetup):
         index = self.index_transaction
 
         def get_transactions():
-            self.es.indices.refresh(index=index)
             return self.es.count(index=index, body={"query": query})['count'] > 0
         self.wait_until(get_transactions, name='have transaction documents')
 
@@ -79,7 +78,6 @@ class TestExternalTracingSecretToken(ElasticTest):
         index = self.index_transaction
 
         def get_transactions():
-            self.es.indices.refresh(index=index)
             return self.es.count(index=index, body={"query": query})['count'] > 0
         self.wait_until(get_transactions, name='have transaction documents')
 
@@ -95,7 +93,6 @@ class ProfilingTest(ElasticTest):
 
     def wait_for_profile(self):
         def cond():
-            self.es.indices.refresh(index=self.index_profile)
             response = self.es.count(index=self.index_profile, body={"query": {"term": {"processor.name": "profile"}}})
             return response['count'] != 0
         self.wait_until(cond, max_timeout=10, name="waiting for profile")

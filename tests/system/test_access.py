@@ -382,7 +382,6 @@ class TestSelfInstrumentationWithAPIKeys(BaseAPIKeySetup):
         assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
 
         def have_apm_server_traces():
-            self.es.indices.refresh(index=self.index_transaction)
             response = self.es.count(index=self.index_transaction, body={"query": {
                 "term": {"service.name": "apm-server"},
             }})

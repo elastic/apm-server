@@ -331,8 +331,6 @@ class ElasticTest(ServerBaseTest):
         assert r.status_code == 202, r.status_code
 
         # Wait to give documents some time to be sent to the index
-        # This is not required but speeds up the tests
-        time.sleep(2)
         self.wait_for_events(endpoint, expected_events_count, index=query_index)
 
     def wait_for_events(self, processor_name, expected_count, index=None, max_timeout=10):
@@ -342,8 +340,6 @@ class ElasticTest(ServerBaseTest):
         """
         if index is None:
             index = self.index_name_pattern
-
-        self.es.indices.refresh(index=index)
 
         query = {"term": {"processor.name": processor_name}}
         result = {}  # TODO(axw) use "nonlocal" when we migrate to Python 3
@@ -501,21 +497,13 @@ class ClientSideBaseTest(ServerBaseTest):
                          service_name='apm-agent-js',
                          service_version='1.0.1',
                          bundle_filepath='bundle_no_mapping.js.map'):
-        path = self._beat_path_join(
-            'testdata',
-            'sourcemap',
-            file_name)
-        f = open(path)
-        r = requests.post(self.sourcemap_url,
-                          files={'sourcemap': f},
-                          data={'service_version': service_version,
-                                'bundle_filepath': bundle_filepath,
-                                'service_name': service_name
-                                })
-        # Wait to give documents some time to be sent to the index before refresh
-        time.sleep(2)
-        self.es.indices.refresh()
-        return r
+        path = self._beat_path_join('testdata', 'sourcemap', file_name)
+        with open(path) as f:
+            return requests.post(self.sourcemap_url,
+                                 files={'sourcemap': f},
+                                 data={'service_version': service_version,
+                                       'bundle_filepath': bundle_filepath,
+                                       'service_name': service_name})
 
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
