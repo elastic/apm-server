@@ -154,7 +154,7 @@ class BaseTest(TestCase):
                 except Exception as e:
                     out.write("failed to query tasks: {}\n".format(e))
 
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
+    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
         """
         Like beat.beat.wait_until but catches exceptions
         In a ElasticTest `cond` will usually be a query, and we need to keep retrying
@@ -163,19 +163,18 @@ class BaseTest(TestCase):
         assert callable(cond), "First argument of wait_until must be a function"
 
         start = datetime.now()
-        result = False
-        while not result:
+        while datetime.now()-start < timedelta(seconds=max_timeout):
             try:
                 result = cond()
+                if result:
+                    return result
             except AttributeError as ex:
                 raise ex
             except:
-                result = False
-            if datetime.now() - start > timedelta(seconds=max_timeout):
-                raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
-                                   "Waited {} seconds.".format(max_timeout))
+                pass
             time.sleep(poll_interval)
-        return result
+        raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
+                           "Waited {} seconds.".format(max_timeout))
 
 
 class ServerSetUpBaseTest(BaseTest):
@@ -335,8 +334,6 @@ class ElasticTest(ServerBaseTest):
         assert r.status_code == 202, r.status_code
 
         # Wait to give documents some time to be sent to the index
-        # This is not required but speeds up the tests
-        time.sleep(2)
         self.wait_for_events(endpoint, expected_events_count, index=query_index)
 
     def wait_for_events(self, processor_name, expected_count, index=None, max_timeout=10):
@@ -346,8 +343,6 @@ class ElasticTest(ServerBaseTest):
         """
         if index is None:
             index = self.index_name_pattern
-
-        self.es.indices.refresh(index=index)
 
         query = {"term": {"processor.name": processor_name}}
         result = {}  # TODO(axw) use "nonlocal" when we migrate to Python 3
@@ -505,21 +500,13 @@ class ClientSideBaseTest(ServerBaseTest):
                          service_name='apm-agent-js',
                          service_version='1.0.1',
                          bundle_filepath='bundle_no_mapping.js.map'):
-        path = self._beat_path_join(
-            'testdata',
-            'sourcemap',
-            file_name)
-        f = open(path)
-        r = requests.post(self.sourcemap_url,
-                          files={'sourcemap': f},
-                          data={'service_version': service_version,
-                                'bundle_filepath': bundle_filepath,
-                                'service_name': service_name
-                                })
-        # Wait to give documents some time to be sent to the index before refresh
-        time.sleep(2)
-        self.es.indices.refresh()
-        return r
+        path = self._beat_path_join('testdata', 'sourcemap', file_name)
+        with open(path) as f:
+            return requests.post(self.sourcemap_url,
+                                 files={'sourcemap': f},
+                                 data={'service_version': service_version,
+                                       'bundle_filepath': bundle_filepath,
+                                       'service_name': service_name})
 
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
@@ -574,7 +561,7 @@ class OverrideIndicesFailureTest(ElasticTest):
         cfg.update({"override_index": self.index_name, })
         return cfg
 
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
+    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
         return
 
     def tearDown(self):
@@ -601,6 +588,7 @@ class ExpvarBaseTest(ServerBaseTest):
 
 
 class SubCommandTest(ServerSetUpBaseTest):
+    config_overrides = {}
 
     def config(self):
         cfg = super(SubCommandTest, self).config()
@@ -608,6 +596,7 @@ class SubCommandTest(ServerSetUpBaseTest):
             "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
         })
+        cfg.update(self.config_overrides)
         return cfg
 
     def wait_until_started(self):
