@@ -585,6 +585,7 @@ class ExpvarBaseTest(ServerBaseTest):
 
 
 class SubCommandTest(ServerSetUpBaseTest):
+    config_overrides = {}
 
     def config(self):
         cfg = super(SubCommandTest, self).config()
@@ -592,6 +593,7 @@ class SubCommandTest(ServerSetUpBaseTest):
             "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
         })
+        cfg.update(self.config_overrides)
         return cfg
 
     def wait_until_started(self):
