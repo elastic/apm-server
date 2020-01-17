@@ -64,14 +64,14 @@ pipeline {
           dir("${BASE_DIR}"){
             env.GO_VERSION = readFile(".go-version").trim()
             def regexps =[
-              "^_beats",
+              "^_beats.*",
               "^apm-server.yml",
               "^apm-server.docker.yml",
               "^magefile.go",
-              "^ingest",
-              "^packaging",
-              "^tests/packaging",
-              "^vendor/github.com/elastic/beats"
+              "^ingest.*",
+              "^packaging.*",
+              "^tests/packaging.*",
+              "^vendor/github.com/elastic/beats.*"
             ]
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
 
