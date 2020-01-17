@@ -15,34 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package metadata
 
 import (
-	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/common/kubernetes"
+	"github.com/elastic/beats/libbeat/common/safemapstr"
 )
 
-func TestOnboarding(t *testing.T) {
-	events := make(chan beat.Event, 1)
-	beater, teardown, err := setupServer(t, nil, nil, events)
-	require.NoError(t, err)
-	defer teardown()
+// MetaGen allows creation of metadata from either Kubernetes resources or their Resource names.
+type MetaGen interface {
+	// Generate generates metadata for a given resource
+	Generate(kubernetes.Resource, ...FieldOptions) common.MapStr
+	// GenerateFromName generates metadata for a given resource based on it's name
+	GenerateFromName(string, ...FieldOptions) common.MapStr
+}
 
-	select {
-	case event := <-events:
-		listening := event.Fields["observer"].(common.MapStr)["listening"]
-		assert.NotEqual(t, "localhost:0", listening)
-		assert.Equal(t, beater.config.Host, listening)
-		processor := event.Fields["processor"].(common.MapStr)
-		assert.Equal(t, "onboarding", processor["name"])
-		assert.Equal(t, "onboarding", processor["event"])
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for onboarding event")
+// FieldOptions allows additional enrichment to be done on top of existing metadata
+type FieldOptions func(common.MapStr)
+
+// WithFields FieldOption allows adding specific fields into the generated metadata
+func WithFields(key string, value interface{}) FieldOptions {
+	return func(meta common.MapStr) {
+		safemapstr.Put(meta, key, value)
 	}
 }
