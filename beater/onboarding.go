@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"context"
 	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -26,16 +27,28 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/transform"
 )
 
-func notifyListening(config *config.Config, pubFct func(beat.Event)) {
+func notifyListening(ctx context.Context, config *config.Config, reporter publish.Reporter) {
 	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
-	event := beat.Event{
-		Timestamp: time.Now(),
+	reporter(ctx, publish.PendingReq{
+		Transformables: []transform.Transformable{onboardingDoc{listenAddr: config.Host}},
+		Tcontext:       &transform.Context{RequestTime: time.Now()},
+	})
+}
+
+type onboardingDoc struct {
+	listenAddr string
+}
+
+func (o onboardingDoc) Transform(tctx *transform.Context) []beat.Event {
+	return []beat.Event{{
+		Timestamp: tctx.RequestTime,
 		Fields: common.MapStr{
 			"processor": common.MapStr{"name": "onboarding", "event": "onboarding"},
-			"observer":  common.MapStr{"listening": config.Host},
+			"observer":  common.MapStr{"listening": o.listenAddr},
 		},
-	}
-	pubFct(event)
+	}}
 }
