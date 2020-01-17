@@ -123,10 +123,10 @@ class BaseAPIKey(ElasticTest):
                             data=json.dumps(payload),
                             headers=headers(content_type=content_type))
         assert resp.status_code == 200, resp.status_code
-        apm_privilges = resp.json()[self.application]
+        apm_privileges = resp.json()[self.application]
         for name in self.privileges.keys():
-            assert name in apm_privilges, name
-            assert apm_privilges[name]['created'], apm_privilges
+            assert name in apm_privileges, name
+            assert apm_privileges[name]['created'], apm_privileges
 
         super(BaseAPIKey, self).setUp()
 
@@ -145,7 +145,7 @@ class BaseAPIKey(ElasticTest):
     def api_key_exists(self, id):
         resp = requests.get("{}?id={}".format(self.api_key_url, id))
         assert resp.status_code == 200, resp.status_code
-        return len(resp.json()["api_keys"]) == 1, resp.json()
+        return len(resp.json()["api_keys"]) == 1
 
     def create_api_key(self, privileges, resources, application="apm"):
         payload = json.dumps({
