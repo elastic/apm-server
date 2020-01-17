@@ -154,6 +154,29 @@ class BaseTest(TestCase):
                 except Exception as e:
                     out.write("failed to query tasks: {}\n".format(e))
 
+    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
+        """
+        Like beat.beat.wait_until but catches exceptions
+        In a ElasticTest `cond` will usually be a query, and we need to keep retrying
+         eg. on 503 response codes
+        """
+        assert callable(cond), "First argument of wait_until must be a function"
+
+        start = datetime.now()
+        result = False
+        while not result:
+            try:
+                result = cond()
+            except AttributeError as ex:
+                raise ex
+            except:
+                result = False
+            if datetime.now() - start > timedelta(seconds=max_timeout):
+                raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
+                                   "Waited {} seconds.".format(max_timeout))
+            time.sleep(poll_interval)
+        return result
+
 
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
@@ -265,25 +288,6 @@ class ElasticTest(ServerBaseTest):
         })
         cfg.update(self.config_overrides)
         return cfg
-
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
-        """
-        Like beat.beat.wait_until but catches exceptions
-        In a ElasticTest `cond` will usually be a query, and we need to keep retrying
-         eg. on 503 response codes
-        """
-        start = datetime.now()
-        result = False
-        while not result:
-            try:
-                result = cond()
-            except:
-                result = False
-            if datetime.now() - start > timedelta(seconds=max_timeout):
-                raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
-                                   "Waited {} seconds.".format(max_timeout))
-            time.sleep(poll_interval)
-        return result
 
     def setUp(self):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
