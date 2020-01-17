@@ -481,8 +481,7 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 	return p
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
-	events chan beat.Event) (*beater, func(), error) {
+func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beater, func(), error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
