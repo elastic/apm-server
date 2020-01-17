@@ -246,7 +246,7 @@ See also https://www.apache.org/dev/crypto.html and/or seek legal counsel.
 
 --------------------------------------------------------------------
 Dependency: github.com/containerd/continuity
-Revision: 75bee3e2ccb6402e3a986ab8bd3b17003fc0fdec
+Revision: 26c1120b8d4107d2471b93ad78ef7ce1fc84c4c4
 License type (autodetected): Apache-2.0
 ./vendor/github.com/containerd/continuity/LICENSE:
 --------------------------------------------------------------------
@@ -558,7 +558,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: ad8c50341e0497a4553588a102d3d47d165ab821
+Revision: 3ed9a542ae5414c83e4f5f63c1aab037a1938080
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -645,7 +645,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-sysinfo
-Revision: cee67141de1bdfb666367301f44e559e58b16734
+Revision: b719bc42e40963c707571af208683a049e61f07f
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-sysinfo/LICENSE.txt:
 --------------------------------------------------------------------
@@ -2743,7 +2743,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/OneOfOne/xxhash
-Revision: 85d5025fe15b385888b1886ea99f722f549a6934
+Revision: 8f0be54a8d5ccf68817143d8c996147ec5cbd795
 License type (autodetected): Apache-2.0
 ./vendor/github.com/OneOfOne/xxhash/LICENSE:
 --------------------------------------------------------------------
