@@ -13,11 +13,7 @@ class Test(ElasticTest):
         This test starts the beat and checks that the onboarding doc has been published to ES
         """
         self.wait_until(lambda: self.es.indices.exists(self.index_onboarding), name="onboarding index created")
-        self.es.indices.refresh(index=self.index_onboarding)
-
-        self.wait_until(
-            lambda: (self.es.count(index=self.index_onboarding)['count'] == 1)
-        )
+        self.wait_until(lambda: (self.es.count(index=self.index_onboarding)['count'] == 1))
 
         # Makes sure no error or warnings were logged
         self.assert_no_logged_warnings()
@@ -27,7 +23,6 @@ class Test(ElasticTest):
         This test starts the beat and checks that the template has been loaded to ES
         """
         self.wait_until(lambda: self.es.indices.exists(self.index_onboarding))
-        self.es.indices.refresh(index=self.index_onboarding)
         templates = self.es.indices.get_template(self.index_name)
         assert len(templates) == 1
         t = templates[self.index_name]
@@ -437,7 +432,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         # fetching from ES would lead to an error afterwards
         self.es.indices.delete(index=self.index_smap, ignore=[400, 404])
         self.es.indices.delete(index="{}-000001".format(self.index_error), ignore=[400, 404])
-        self.es.indices.refresh()
 
         # insert document,
         # fetching sourcemap without errors, so it must be fetched from cache

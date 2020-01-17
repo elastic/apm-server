@@ -170,14 +170,15 @@ apm-server:
 ############################# Setup ##########################################
 
 {% if override_template %}
-
 setup.template.name: {{ override_template }}
 setup.template.pattern: {{ override_template }}*
+{% endif %}
+
+{% if not default_setup_template_settings %}
 setup.template.settings:
   index.number_of_shards: 1
   index.number_of_replicas: 0
-  index.refresh_interval: 1ms
-
+  index.refresh_interval: 250ms
 {% endif %}
 
 ############################# Output ##########################################

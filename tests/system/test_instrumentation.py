@@ -16,7 +16,6 @@ os.environ["ELASTIC_APM_API_REQUEST_TIME"] = "1s"
 
 def get_instrumentation_event(es, index):
     query = {"term": {"service.name": "apm-server"}}
-    es.indices.refresh(index=index)
     return es.count(index=index, body={"query": query})['count'] > 0
 
 
@@ -113,7 +112,6 @@ class ProfilingTest(ElasticTest):
 
     def wait_for_profile(self):
         def cond():
-            self.es.indices.refresh(index=self.index_profile)
             response = self.es.count(index=self.index_profile, body={"query": {"term": {"processor.name": "profile"}}})
             return response['count'] != 0
         self.wait_until(cond, max_timeout=10, name="waiting for profile")

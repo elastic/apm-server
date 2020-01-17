@@ -6,6 +6,7 @@ from apmserver import SubCommandTest, integration_test
 
 
 class ExportCommandTest(SubCommandTest):
+    config_overrides = {"default_setup_template_settings": True}
     register_pipeline_disabled = True
 
 
@@ -116,8 +117,8 @@ class TestExportTemplate(ExportCommandTest):
         """
         Test export general apm template to file
         """
-        file = os.path.join(self.dir, "template", self.index_name + '.json')
-        with open(file) as f:
+        path = os.path.join(self.dir, "template", self.index_name + '.json')
+        with open(path) as f:
             template = json.load(f)
         assert template['index_patterns'] == [self.index_name + '*']
         assert template['settings']['index']['mapping']['total_fields']['limit'] == 5
