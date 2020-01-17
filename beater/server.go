@@ -19,6 +19,7 @@ package beater
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -41,6 +42,7 @@ type server struct {
 
 	httpServer   *httpServer
 	jaegerServer *jaeger.Server
+	reporter     publish.Reporter
 }
 
 func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
@@ -52,13 +54,18 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	if err != nil {
 		return server{}, err
 	}
-	return server{logger, cfg, httpServer, jaegerServer}, nil
+	return server{
+		logger:       logger,
+		cfg:          cfg,
+		httpServer:   httpServer,
+		jaegerServer: jaegerServer,
+		reporter:     reporter,
+	}, nil
 }
 
-func (s server) run(listener net.Listener, tracerServer *tracerServer, pub *publish.Publisher) error {
+func (s server) run(listener net.Listener, tracerServer *tracerServer) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
-
 	if s.jaegerServer != nil {
 		g.Go(s.jaegerServer.Serve)
 	}
@@ -66,28 +73,23 @@ func (s server) run(listener net.Listener, tracerServer *tracerServer, pub *publ
 		g.Go(func() error {
 			return s.httpServer.start(listener)
 		})
-
 		if s.isAvailable() {
-			go notifyListening(s.cfg, pub.Client().Publish)
+			notifyListening(context.Background(), s.cfg, s.reporter)
 		}
-
 		if tracerServer != nil {
 			g.Go(func() error {
-				return tracerServer.serve(pub.Send)
+				return tracerServer.serve(s.reporter)
 			})
 		}
-
-		if err := g.Wait(); err != http.ErrServerClosed {
-			return err
-		}
-
-		s.logger.Infof("Server stopped")
 	}
-
+	if err := g.Wait(); err != http.ErrServerClosed {
+		return err
+	}
+	s.logger.Infof("Server stopped")
 	return nil
 }
 
-func (s server) stop(logger *logp.Logger) {
+func (s server) stop() {
 	if s.jaegerServer != nil {
 		s.jaegerServer.Stop()
 	}

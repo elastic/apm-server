@@ -182,7 +182,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	bt.mutex.Lock()
 	if bt.stopped {
-		defer bt.mutex.Unlock()
+		bt.mutex.Unlock()
 		return nil
 	}
 
@@ -194,7 +194,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	bt.mutex.Unlock()
 
 	//blocking until shutdown
-	return bt.server.run(lis, tracerServer, pub)
+	return bt.server.run(lis, tracerServer)
 }
 
 func isElasticsearchOutput(b *beat.Beat) bool {
@@ -229,7 +229,7 @@ func (bt *beater) Stop() {
 	}
 	bt.logger.Infof("stopping apm-server... waiting maximum of %v seconds for queues to drain",
 		bt.config.ShutdownTimeout.Seconds())
-	bt.server.stop(bt.logger)
+	bt.server.stop()
 	close(bt.stopping)
 	bt.stopped = true
 }
