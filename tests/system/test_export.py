@@ -6,12 +6,9 @@ from apmserver import SubCommandTest, integration_test
 
 
 class ExportCommandTest(SubCommandTest):
+    config_overrides = {"default_setup_template_settings": True}
+    register_pipeline_disabled = True
 
-    def config(self):
-        # disable pipeline registration to speed up tests
-        cfg = super(SubCommandTest, self).config()
-        cfg.update({"register_pipeline_enabled": False})
-        return cfg
 
 @integration_test
 class ExportConfigDefaultTest(ExportCommandTest):

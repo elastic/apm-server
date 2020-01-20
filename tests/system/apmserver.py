@@ -17,6 +17,7 @@ import requests
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
+from helper import wait_until, cleanup
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
@@ -63,7 +64,7 @@ class BaseTest(TestCase):
         cls.index_acm = ".apm-agent-configuration"
         cls.indices = [cls.index_onboarding, cls.index_error, cls.index_transaction,
                        cls.index_span, cls.index_metric, cls.index_smap, cls.index_profile]
-        cls.policy_name = "apm-rollover-30-days"
+        cls.policies = ["apm-rollover-30-days"]
 
         super(BaseTest, cls).setUpClass()
 
@@ -156,29 +157,12 @@ class BaseTest(TestCase):
                     out.write("failed to query tasks: {}\n".format(e))
 
     def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
-        """
-        Like beat.beat.wait_until but catches exceptions
-        In a ElasticTest `cond` will usually be a query, and we need to keep retrying
-         eg. on 503 response codes
-        """
-        assert callable(cond), "First argument of wait_until must be a function"
-
-        start = datetime.now()
-        while datetime.now()-start < timedelta(seconds=max_timeout):
-            try:
-                result = cond()
-                if result:
-                    return result
-            except AttributeError as ex:
-                raise ex
-            except:
-                pass
-            time.sleep(poll_interval)
-        raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
-                           "Waited {} seconds.".format(max_timeout))
+        wait_until(cond, max_timeout=max_timeout, poll_interval=poll_interval, name=name)
 
 # If you implement a Subclass of ServerSetUpBaseTest ensure to implement a `tearDown` function taking care of
 # stopping the APM Server instance.
+
+
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
     root_url = "{}/".format(host)
@@ -228,11 +212,13 @@ class ServerSetUpBaseTest(BaseTest):
         self.wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
 
     def wait_until_ilm_setup(self):
-        msg = "Finished index management setup." if self.config().get("ilm_setup_enabled") != "false" else "Manage ILM setup is disabled."
+        msg = "Finished index management setup." if self.config().get(
+            "ilm_setup_enabled") != "false" else "Manage ILM setup is disabled."
         self.wait_until(lambda: self.log_contains(msg), name="ILM setup")
 
     def wait_until_pipeline_setup(self):
-        msg = "Registered Ingest Pipelines successfully" if self.config().get("register_pipeline_enabled") != "false" else "No pipeline callback registered"
+        msg = "Registered Ingest Pipelines successfully" if self.config().get(
+            "register_pipeline_enabled") != "false" else "No pipeline callback registered"
         self.wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def assert_no_logged_warnings(self, suppress=None):
@@ -263,6 +249,7 @@ class ServerSetUpBaseTest(BaseTest):
             headers = {'content-type': 'application/x-ndjson'}
         return requests.post(url, data=data, headers=headers)
 
+
 class ServerBaseTest(ServerSetUpBaseTest):
     def tearDown(self):
         super(ServerBaseTest, self).tearDown()
@@ -287,55 +274,14 @@ class ElasticTest(ServerBaseTest):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.kibana_url = self.get_kibana_url()
 
-        # Cleanup index and template first
-        apm_prefix = "apm*"
-        assert all(idx.startswith("apm")
-                   for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
-        if self.es.indices.get(apm_prefix):
-            self.es.indices.delete(index=apm_prefix, ignore=[400, 404])
-            for idx in self.indices:
-                self.wait_until(lambda: not self.es.indices.exists(idx), name="index {} to be deleted".format(idx))
-
-        if self.es.indices.get_template(name=apm_prefix, ignore=[400, 404]):
-            self.es.indices.delete_template(name=apm_prefix, ignore=[400, 404])
-            for idx in self.indices:
-                self.wait_until(lambda: not self.es.indices.exists_template(idx),
-                                name="index template {} to be deleted".format(idx))
-
-        # truncate, don't delete agent configuration index since it's only created when kibana starts up
-        if self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] > 0:
-            self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
-                                    ignore_unavailable=True, wait_for_completion=True)
-            self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0,
-                            max_timeout=30, name="acm index {} to be empty".format(self.index_acm))
-
-        # clean up policy
-        try:
-            path = "/_ilm/policy/{}".format(self.policy_name)
-            self.es.transport.perform_request('DELETE', path)
-
-            def policies_deleted(es):
-                try:
-                    es.transport.perform_request('GET', path)
-                    return False
-                except NotFoundError:
-                    return True
-
-            self.wait_until(lambda: policies_deleted(self.es), name="policy to be deleted")
-        except NotFoundError:
-            pass
-
-        if not self.skip_clean_pipelines:
-            id = "apm*"
-            self.es.ingest.delete_pipeline(id=id, ignore=[400,404])
-            self.wait_until(lambda: id not in self.es.ingest.get_pipeline(ignore=[400,404]))
+        cleanup(self.es, self.indices, self.indices, self.policies, [self.index_acm],
+                skip_pipelines=self.skip_clean_pipelines)
 
         super(ElasticTest, self).setUp()
 
         # try make sure APM Server is fully up
         self.wait_until_ilm_setup()
         self.wait_until_pipeline_setup()
-
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
                                 query_index=None, max_timeout=10, extra_headers=None):
@@ -371,9 +317,9 @@ class ElasticTest(ServerBaseTest):
             return hits['total']['value'] == expected_count
 
         self.wait_until(get_docs,
-            max_timeout=max_timeout,
-            name="{} documents to reach {}".format(processor_name, expected_count),
-        )
+                        max_timeout=max_timeout,
+                        name="{} documents to reach {}".format(processor_name, expected_count),
+                        )
         return result['docs']
 
     def check_backend_error_sourcemap(self, index, count=1):

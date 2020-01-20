@@ -4,16 +4,20 @@ from nose.tools import raises
 
 # APM Server `setup`
 
+
 def pipeline_exists(es, id):
     return id in es.ingest.get_pipeline(id, ignore=[404])
 
-pipeline_names = ["apm_user_agent","apm_user_geo", "apm"]
+
+pipeline_names = ["apm_user_agent", "apm_user_geo", "apm"]
+
 
 @integration_test
 class SetupCmdPipelinesDefaultTest(SubCommandTest):
     """
     Registers pipelines by default when running `setup --pipelines` command
     """
+
     def start_args(self):
         return {
             "logging_args": ["-v", "-d", "*"],
@@ -26,7 +30,7 @@ class SetupCmdPipelinesDefaultTest(SubCommandTest):
         # TODO (gr): consolidate with ElasticTest
         # ensure environment is clean before cmd is run
         self.es = Elasticsearch([self.get_elasticsearch_url()])
-        self.es.ingest.delete_pipeline(id="apm*", ignore=[400,404])
+        self.es.ingest.delete_pipeline(id="apm*", ignore=[400, 404])
         self.wait_until(lambda: not pipeline_exists(self.es, 'apm*'))
 
         # pipelines are setup when running the command
@@ -39,11 +43,13 @@ class SetupCmdPipelinesDefaultTest(SubCommandTest):
             self.wait_until(lambda: pipeline_exists(self.es, name),
                             name="expect pipeline {}".format(name))
 
+
 @integration_test
 class SetupCmdPipelinesDisabledTest(SetupCmdPipelinesDefaultTest):
     """
     Does not register pipelines when disabled via configuration and running `setup --pipelines` command
     """
+
     def config(self):
         cfg = super(SetupCmdPipelinesDisabledTest, self).config()
         cfg.update({"register_pipeline_enabled": "false"})
@@ -54,6 +60,7 @@ class SetupCmdPipelinesDisabledTest(SetupCmdPipelinesDefaultTest):
         for name in pipeline_names:
             self.wait_until(lambda: not pipeline_exists(self.es, name),
                             name="expect no pipeline {}".format(name))
+
 
 @integration_test
 class PipelineRegisterTest(ElasticTest):
@@ -113,6 +120,7 @@ class PipelineConfigurationNoneTest(ElasticTest):
                 assert 'name' not in ua
         assert uaFound
 
+
 @integration_test
 class PipelineDisableRegisterTest(ElasticTest):
     """
@@ -127,7 +135,6 @@ class PipelineDisableRegisterTest(ElasticTest):
                                      self.intake_url, 'transaction', 4)
 
 
-
 class PipelineOverwriteBase(ElasticTest):
     def setUp(self):
         # ensure pipelines do not get deleted on APM Server startup, otherwise `overwrite` flag cannot be tested
@@ -136,7 +143,7 @@ class PipelineOverwriteBase(ElasticTest):
         # Ensure all pipelines are deleted before test
         es = Elasticsearch([self.get_elasticsearch_url()])
         apm_pipelines = "apm*"
-        es.ingest.delete_pipeline(id=apm_pipelines, ignore=[400,404])
+        es.ingest.delete_pipeline(id=apm_pipelines, ignore=[400, 404])
         self.wait_until(lambda: not pipeline_exists(es, apm_pipelines), name="apm ingest pipelines cleaned")
 
         # Ensure `apm` pipeline is already registered in ES before APM Server is started
@@ -153,14 +160,15 @@ class PipelineDisableRegisterOverwriteTest(PipelineOverwriteBase):
     """
     Does not overwrite existing pipelines when overwrite is disabled (default)
     """
-    config_overrides = {"queue_flush": 2048 }
+    config_overrides = {"queue_flush": 2048}
 
     def test_pipeline_not_overwritten(self):
         loaded_msg = "Pipeline already registered: apm"
         self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
         desc = "empty apm test pipeline"
         self.wait_until(lambda: self.es.ingest.get_pipeline(id=self.pipeline_apm)[self.pipeline_apm]['description'] == desc,
-                    name="fetching pipeline {}".format(self.pipeline_apm))
+                        name="fetching pipeline {}".format(self.pipeline_apm))
+
 
 @integration_test
 class PipelineEnableRegisterOverwriteTest(PipelineOverwriteBase):
