@@ -5,6 +5,12 @@ https://github.com/elastic/apm-server/compare/7.4\...7.5[View commits]
 
 * <<release-notes-7.5.0>>
 * <<release-notes-7.5.1>>
+* <<release-notes-7.5.2>>
+
+[[release-notes-7.5.2]]
+=== APM Server version 7.5.2
+
+coming::[7.5.2]
 
 [[release-notes-7.5.1]]
 === APM Server version 7.5.1
