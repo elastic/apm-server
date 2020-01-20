@@ -1,12 +1,7 @@
 from datetime import datetime, timedelta
-import os
-import sys
 import time
 from elasticsearch import Elasticsearch, NotFoundError
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..',
-                             '..', '_beats', 'libbeat', 'tests', 'system'))
-from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
+from beat.beat import TimeoutError
 
 apm = "apm"
 apm_prefix = "{}*".format(apm)
@@ -121,6 +116,22 @@ def wait_until_policies(es, policies):
 
 def url_policies(policies=None):
     return "/_ilm/policy/{}".format(",".join(policies) if policies else apm_prefix)
+
+
+def wait_until_pipelines_deleted(es, pipelines):
+    assert_apm(pipelines, "pipelines")
+    es.ingest.delete_pipeline(id=apm_prefix, ignore=[400, 404])
+    wait_until(lambda: len(es.ingest.get_pipeline(id=pipelines, ignore=[400, 404])) == 0,
+               name="pipelines deleted")
+
+
+def wait_until_pipelines(es, pipelines):
+    expected = len(pipelines)
+    if not pipelines:
+        pipelines = apm_prefix
+        expected = 0
+    wait_until(lambda: len(es.ingest.get_pipeline(pipelines, ignore=[404])) == expected,
+               name="expect {} pipelines".format(expected))
 
 
 def assert_apm(names, kind):

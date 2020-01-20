@@ -1,15 +1,9 @@
 from apmserver import ElasticTest, SubCommandTest, TimeoutError, integration_test
 from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import raises
+from helper import wait_until_pipelines_deleted, wait_until_pipelines
 
 # APM Server `setup`
-
-
-def pipeline_exists(es, id):
-    return id in es.ingest.get_pipeline(id, ignore=[404])
-
-
-pipeline_names = ["apm_user_agent", "apm_user_geo", "apm"]
 
 
 @integration_test
@@ -27,21 +21,16 @@ class SetupCmdPipelinesDefaultTest(SubCommandTest):
         }
 
     def setUp(self):
-        # TODO (gr): consolidate with ElasticTest
         # ensure environment is clean before cmd is run
         self.es = Elasticsearch([self.get_elasticsearch_url()])
-        self.es.ingest.delete_pipeline(id="apm*", ignore=[400, 404])
-        self.wait_until(lambda: not pipeline_exists(self.es, 'apm*'))
-
+        wait_until_pipelines_deleted(self.es, self.pipelines)
         # pipelines are setup when running the command
         super(SetupCmdPipelinesDefaultTest, self).setUp()
 
     def test_setup_pipelines(self):
         assert self.log_contains("Pipeline successfully registered: apm_user_agent")
         assert self.log_contains("Registered Ingest Pipelines successfully.")
-        for name in pipeline_names:
-            self.wait_until(lambda: pipeline_exists(self.es, name),
-                            name="expect pipeline {}".format(name))
+        wait_until_pipelines(self.es, self.pipelines)
 
 
 @integration_test
@@ -57,9 +46,7 @@ class SetupCmdPipelinesDisabledTest(SetupCmdPipelinesDefaultTest):
 
     def test_setup_pipelines(self):
         assert self.log_contains("No pipeline callback registered")
-        for name in pipeline_names:
-            self.wait_until(lambda: not pipeline_exists(self.es, name),
-                            name="expect no pipeline {}".format(name))
+        wait_until_pipelines(self.es, [])
 
 
 @integration_test
@@ -68,12 +55,8 @@ class PipelineRegisterTest(ElasticTest):
     Registers pipelines by default when starting apm-server
     """
 
-    def test_default_pipelines_registered(self):
-        for pipeline_id in pipeline_names:
-            self.wait_until(lambda: pipeline_exists(self.es, pipeline_id),
-                            name="fetching pipeline {}".format(pipeline_id))
-
-    def test_pipeline_applied(self):
+    def test_pipeline_registered_and_applied(self):
+        wait_until_pipelines(self.es, self.pipelines)
         # setup
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 4)
@@ -105,6 +88,7 @@ class PipelineConfigurationNoneTest(ElasticTest):
     config_overrides = {"disable_pipeline": True}
 
     def test_pipeline_not_applied(self):
+        wait_until_pipelines(self.es, self.pipelines)
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 4)
         uaFound = False
@@ -130,6 +114,7 @@ class PipelineDisableRegisterTest(ElasticTest):
 
     @raises(TimeoutError)
     def test_pipeline_not_registered(self):
+        wait_until_pipelines(self.es, [])
         # ensure events get stored properly nevertheless
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 4)
@@ -142,14 +127,12 @@ class PipelineOverwriteBase(ElasticTest):
 
         # Ensure all pipelines are deleted before test
         es = Elasticsearch([self.get_elasticsearch_url()])
-        apm_pipelines = "apm*"
-        es.ingest.delete_pipeline(id=apm_pipelines, ignore=[400, 404])
-        self.wait_until(lambda: not pipeline_exists(es, apm_pipelines), name="apm ingest pipelines cleaned")
+        wait_until_pipelines_deleted(es, self.pipelines)
 
         # Ensure `apm` pipeline is already registered in ES before APM Server is started
         self.pipeline_apm = "apm"
         es.ingest.put_pipeline(id=self.pipeline_apm, body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: pipeline_exists(es, self.pipeline_apm), name="apm ingest pipeline created")
+        wait_until_pipelines(es, ["apm"])
 
         # When starting APM Server pipeline `apm` is already registered, the other pipelines are not
         super(PipelineOverwriteBase, self).setUp()

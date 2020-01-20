@@ -65,6 +65,7 @@ class BaseTest(TestCase):
         cls.indices = [cls.index_onboarding, cls.index_error, cls.index_transaction,
                        cls.index_span, cls.index_metric, cls.index_smap, cls.index_profile]
         cls.policies = ["apm-rollover-30-days"]
+        cls.pipelines = ["apm_user_agent", "apm_user_geo", "apm"]
 
         super(BaseTest, cls).setUpClass()
 
@@ -575,5 +576,3 @@ class SubCommandTest(ServerSetUpBaseTest):
         for trimmed in log[pos:].strip().splitlines():
             # ensure only skipping expected lines
             assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
-
-    # TODO(simi): tearDown
