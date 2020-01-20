@@ -63,6 +63,7 @@ class BaseTest(TestCase):
         cls.index_acm = ".apm-agent-configuration"
         cls.indices = [cls.index_onboarding, cls.index_error, cls.index_transaction,
                        cls.index_span, cls.index_metric, cls.index_smap, cls.index_profile]
+        cls.policy_name = "apm-rollover-30-days"
 
         super(BaseTest, cls).setUpClass()
 
@@ -227,16 +228,12 @@ class ServerSetUpBaseTest(BaseTest):
         self.wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
 
     def wait_until_ilm_setup(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."), name="ILM setup")
+        msg = "Finished index management setup." if self.config().get("ilm_setup_enabled") != "false" else "Manage ILM setup is disabled."
+        self.wait_until(lambda: self.log_contains(msg), name="ILM setup")
 
     def wait_until_pipeline_setup(self):
-        cfg = self.config()
-        if cfg.get("register_pipeline_enabled") != "false":
-            self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
-                            name="pipelines registered")
-        else:
-            self.wait_until(lambda: self.log_contains("No pipeline callback registered"),
-                            name="pipeline registration disabled")
+        msg = "Registered Ingest Pipelines successfully" if self.config().get("register_pipeline_enabled") != "false" else "No pipeline callback registered"
+        self.wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -291,15 +288,16 @@ class ElasticTest(ServerBaseTest):
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
+        apm_prefix = "apm*"
         assert all(idx.startswith("apm")
                    for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
-        if self.es.indices.get("apm*"):
-            self.es.indices.delete(index="apm*", ignore=[400, 404])
+        if self.es.indices.get(apm_prefix):
+            self.es.indices.delete(index=apm_prefix, ignore=[400, 404])
             for idx in self.indices:
                 self.wait_until(lambda: not self.es.indices.exists(idx), name="index {} to be deleted".format(idx))
 
-        if self.es.indices.get_template(name="apm*", ignore=[400, 404]):
-            self.es.indices.delete_template(name="apm*", ignore=[400, 404])
+        if self.es.indices.get_template(name=apm_prefix, ignore=[400, 404]):
+            self.es.indices.delete_template(name=apm_prefix, ignore=[400, 404])
             for idx in self.indices:
                 self.wait_until(lambda: not self.es.indices.exists_template(idx),
                                 name="index template {} to be deleted".format(idx))
@@ -313,7 +311,7 @@ class ElasticTest(ServerBaseTest):
 
         # clean up policy
         try:
-            path = '/_ilm/policy/apm-rollover-30-days'
+            path = "/_ilm/policy/{}".format(self.policy_name)
             self.es.transport.perform_request('DELETE', path)
 
             def policies_deleted(es):
@@ -631,3 +629,5 @@ class SubCommandTest(ServerSetUpBaseTest):
         for trimmed in log[pos:].strip().splitlines():
             # ensure only skipping expected lines
             assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
+
+    # TODO(simi): tearDown
