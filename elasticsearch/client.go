@@ -21,7 +21,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -136,10 +135,35 @@ func doRequest(transport esapi.Transport, req esapi.Request, out interface{}) er
 		if err != nil {
 			return err
 		}
-		return errors.New(string(bytes))
+		return &Error{
+			StatusCode: resp.StatusCode,
+			Header:     resp.Header,
+			body:       string(bytes),
+		}
 	}
 	if out != nil {
 		err = json.NewDecoder(resp.Body).Decode(out)
 	}
 	return err
+}
+
+// Error holds the details for a failed Elasticsearch request.
+//
+// Error is only returned for request is serviced, and not when
+// a client or network failure occurs.
+type Error struct {
+	// StatusCode holds the HTTP response status code.
+	StatusCode int
+
+	// Header holds the HTTP response headers.
+	Header http.Header
+
+	body string
+}
+
+func (e *Error) Error() string {
+	if e.body != "" {
+		return e.body
+	}
+	return http.StatusText(e.StatusCode)
 }

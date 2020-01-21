@@ -54,6 +54,5 @@ func TestClient(t *testing.T) {
 		} else {
 			assert.Fail(t, "unknown version ", version.GetDefaultVersion())
 		}
-
 	})
 }

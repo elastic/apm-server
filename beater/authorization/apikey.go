@@ -18,9 +18,9 @@
 package authorization
 
 import (
+	"errors"
+	"net/http"
 	"time"
-
-	"github.com/pkg/errors"
 
 	es "github.com/elastic/apm-server/elasticsearch"
 )
@@ -112,12 +112,14 @@ func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
 	}
 	info, err := es.HasPrivileges(a.esClient, request, a.key)
 	if err != nil {
+		var eserr *es.Error
+		if errors.As(err, &eserr) && eserr.StatusCode == http.StatusUnauthorized {
+			return es.Permissions{}, nil
+		}
 		return nil, err
 	}
-	if resources, ok := info.Application[Application]; ok {
-		if permissions, ok := resources[resource]; ok {
-			return permissions, nil
-		}
+	if permissions, ok := info.Application[Application][resource]; ok {
+		return permissions, nil
 	}
 	return es.Permissions{}, nil
 }
