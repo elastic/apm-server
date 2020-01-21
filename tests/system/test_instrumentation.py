@@ -6,7 +6,7 @@ import requests
 from apmserver import integration_test
 from apmserver import ElasticTest
 from test_access import BaseAPIKey
-
+from helper import wait_until
 
 # Set ELASTIC_APM_API_REQUEST_TIME to a short duration
 # to speed up the time taken for self-tracing events
@@ -39,8 +39,8 @@ class TestInMemoryTracingAPIKey(BaseAPIKey):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
-                        name='have in-memory instrumentation documents without api_key')
+        wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
+                   name='have in-memory instrumentation documents without api_key')
 
 
 @integration_test
@@ -68,8 +68,8 @@ class TestExternalTracingAPIKey(BaseAPIKey):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
-                        name='have external server instrumentation documents with api_key')
+        wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
+                   name='have external server instrumentation documents with api_key')
 
 
 @integration_test
@@ -97,8 +97,8 @@ class TestExternalTracingSecretToken(ElasticTest):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
-                        name='have external server instrumentation documents with secret_token')
+        wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
+                   name='have external server instrumentation documents with secret_token')
 
 
 class ProfilingTest(ElasticTest):
@@ -114,7 +114,7 @@ class ProfilingTest(ElasticTest):
         def cond():
             response = self.es.count(index=self.index_profile, body={"query": {"term": {"processor.name": "profile"}}})
             return response['count'] != 0
-        self.wait_until(cond, max_timeout=10, name="waiting for profile")
+        wait_until(cond, max_timeout=10, name="waiting for profile")
 
 
 @integration_test

@@ -3,8 +3,9 @@ from apmserver import ElasticTest
 
 import os
 import urlparse
-
 from elasticsearch import Elasticsearch
+
+from helper import wait_until
 
 
 @integration_test
@@ -43,4 +44,4 @@ class Test(ElasticTest):
 
     def test_connect(self):
         goal_log = "Successfully connected to X-Pack Monitoring endpoint"
-        self.wait_until(lambda: self.log_contains(goal_log), name="apm-server connected to monitoring endpoint")
+        wait_until(lambda: self.log_contains(goal_log), name="apm-server connected to monitoring endpoint")

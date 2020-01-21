@@ -2,6 +2,7 @@ from apmserver import ElasticTest, SubCommandTest, TimeoutError, integration_tes
 from elasticsearch import Elasticsearch
 from nose.tools import raises
 from es_helper import wait_until_pipelines_deleted, wait_until_pipelines
+from helper import wait_until
 
 # APM Server `setup`
 
@@ -147,10 +148,10 @@ class PipelineDisableRegisterOverwriteTest(PipelineOverwriteBase):
 
     def test_pipeline_not_overwritten(self):
         loaded_msg = "Pipeline already registered: apm"
-        self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
+        wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
         desc = "empty apm test pipeline"
-        self.wait_until(lambda: self.es.ingest.get_pipeline(id=self.pipeline_apm)[self.pipeline_apm]['description'] == desc,
-                        name="fetching pipeline {}".format(self.pipeline_apm))
+        wait_until(lambda: self.es.ingest.get_pipeline(id=self.pipeline_apm)[self.pipeline_apm]['description'] == desc,
+                   name="fetching pipeline {}".format(self.pipeline_apm))
 
 
 @integration_test
@@ -165,5 +166,5 @@ class PipelineEnableRegisterOverwriteTest(PipelineOverwriteBase):
 
     def test_pipeline_overwritten(self):
         desc = "Default enrichment for APM events"
-        self.wait_until(lambda: self.es.ingest.get_pipeline(id=self.pipeline_apm)[self.pipeline_apm]['description'] == desc,
-                        name="fetching pipeline {}".format(self.pipeline_apm))
+        wait_until(lambda: self.es.ingest.get_pipeline(id=self.pipeline_apm)[self.pipeline_apm]['description'] == desc,
+                   name="fetching pipeline {}".format(self.pipeline_apm))

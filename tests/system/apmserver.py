@@ -161,9 +161,6 @@ class BaseTest(TestCase):
     def ilm_index(self, index):
         return "{}-000001".format(index)
 
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
-        wait_until(cond, max_timeout=max_timeout, poll_interval=poll_interval, name=name)
-
 
 class ServerBaseTest(BaseTest):
     config_overrides = {}
@@ -212,11 +209,15 @@ class ServerBaseTest(BaseTest):
         self.wait_until_started()
 
     def start_proc(self):
-        self.addCleanup(self.stop_proc)
+        print("------------------ ServerBaseTest start_proc ")
         self.apmserver_proc = self.start_beat(**self.start_args())
+        self.addCleanup(self.stop_proc)
+        print("------------------ ServerBaseTest start_proc finished")
 
     def stop_proc(self):
+        print("------------------ ServerBaseTest stop_proc kill_and_wait ")
         self.apmserver_proc.check_kill_and_wait()
+        print( "------------------ ServerBaseTest stop_proc kill_and_wait finished")
 
     def start_args(self):
         return {}
@@ -322,10 +323,10 @@ class ElasticTest(ServerBaseTest):
             result['docs'] = hits['hits']
             return hits['total']['value'] == expected_count
 
-        self.wait_until(get_docs,
-                        max_timeout=max_timeout,
-                        name="{} documents to reach {}".format(processor_name, expected_count),
-                        )
+        wait_until(get_docs,
+                   max_timeout=max_timeout,
+                   name="{} documents to reach {}".format(processor_name, expected_count),
+                   )
         return result['docs']
 
     def check_backend_error_sourcemap(self, index, count=1):
@@ -555,20 +556,34 @@ class SubCommandTest(ServerBaseTest):
             # ensure only skipping expected lines
             assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
 
+
     def stop_proc(self):
+        print( "------------------ SubCommandTest stop_proc kill")
         try:
             self.apmserver_proc.kill()
+            print( "------------------ SubCommandTest stop_proc kill finished")
         except:
+            pass
+        finally:
+            print( "------------------ SubCommandTest stop_proc wait")
             self.apmserver_proc.wait()
+            print( "------------------ SubCommandTest stop_proc wait finished")
+
 
 
 class ProcStartupFailureTest(ServerBaseTest):
 
     def stop_proc(self):
+        print( "------------------ stop_proc kill")
         try:
             self.apmserver_proc.kill()
+            print( "------------------ stop_proc kill finished")
         except:
+            pass
+        finally:
+            print( "------------------ stop_proc wait")
             self.apmserver_proc.wait()
+            print( "------------------ stop_proc wait finished")
 
     def wait_until_started(self):
         return

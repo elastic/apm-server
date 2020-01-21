@@ -2,9 +2,6 @@ from datetime import datetime, timedelta
 import time
 from beat.beat import TimeoutError
 
-apm = "apm"
-apm_prefix = "{}*".format(apm)
-
 
 def wait_until(cond, max_timeout=10, poll_interval=0.25, name="cond"):
     """
