@@ -405,9 +405,7 @@ class TestSecureServerBaseTest(ServerBaseTest):
         super(TestSecureServerBaseTest, self).setUp()
 
     def stop_proc(self):
-        print( "------------------ TestSecureServerBaseTest stop_proc kill_and_wait")
         self.apmserver_proc.kill_and_wait()
-        print( "------------------ TestSecureServerBaseTest stop_proc kill_and_wait finished")
 
     def ssl_overrides(self):
         return {}
