@@ -76,9 +76,10 @@ func ESClientWithValidSourcemap(t *testing.T) elasticsearch.Client {
 	return client
 }
 
-// ESClientUnavailable returns an elasticsearch client that will always return an internal server error
+// ESClientUnavailable returns an elasticsearch client that will always return a client error, mimicking an
+// unavailable Elasticsearch server.
 func ESClientUnavailable(t *testing.T) elasticsearch.Client {
-	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusInternalServerError, nil))
+	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, -1, nil))
 	require.NoError(t, err)
 	return client
 }

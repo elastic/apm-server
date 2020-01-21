@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -458,11 +459,11 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 			}
 			deletion, err := es.DeletePrivileges(client, deletePrivilegesRequest)
 			if err != nil {
-				// TODO(axw) either allow 404 in DeletePrivileges, and don't
-				// return an error, or check for 404 here and ignore that
-				// specifically. The request could failure for other reasons
-				// and we shouldn't ignore them.
-				continue
+				var eserr *es.Error
+				if errors.As(err, &eserr) && eserr.StatusCode == http.StatusNotFound {
+					continue
+				}
+				return err
 			}
 			if result, ok := deletion[auth.Application][privilege.Name]; ok && result.Found {
 				printText("Deleted privilege \"%v\"", privilege)

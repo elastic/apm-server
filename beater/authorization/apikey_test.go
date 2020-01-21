@@ -124,17 +124,28 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		assert.Equal(t, 3, tc.cache.cache.ItemCount())
 	})
 
-	t.Run("error from ES", func(t *testing.T) {
+	t.Run("client error", func(t *testing.T) {
 		tc := &apikeyTestcase{
-			transport: estest.NewTransport(t, http.StatusInternalServerError, nil)}
+			transport: estest.NewTransport(t, -1, nil)}
 		tc.setup(t)
 		handler := tc.builder.forKey("12a3")
 
 		valid, err := handler.AuthorizedFor("xyz")
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "Internal server error")
+		assert.Contains(t, err.Error(), "client error")
 		assert.False(t, valid)
 		assert.Zero(t, tc.cache.cache.ItemCount())
+	})
+
+	t.Run("unauthorized status from ES", func(t *testing.T) {
+		tc := &apikeyTestcase{transport: estest.NewTransport(t, http.StatusUnauthorized, nil)}
+		tc.setup(t)
+		handler := tc.builder.forKey("12a3")
+
+		valid, err := handler.AuthorizedFor("xyz")
+		require.NoError(t, err)
+		assert.False(t, valid)
+		assert.Equal(t, 1, tc.cache.cache.ItemCount()) // unauthorized responses are cached
 	})
 
 	t.Run("invalid status from ES", func(t *testing.T) {
