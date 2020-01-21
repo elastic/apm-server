@@ -49,8 +49,8 @@ func NewTransport(t *testing.T, statusCode int, esBody map[string]interface{}) *
 
 	return &Transport{
 		roundTripFn: func(_ *http.Request) (*http.Response, error) {
-			if statusCode == http.StatusInternalServerError {
-				return &http.Response{}, errors.New("Internal server error")
+			if statusCode == -1 {
+				return nil, errors.New("client error")
 			}
 			var body io.ReadCloser
 			if esBody == nil {
