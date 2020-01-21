@@ -1,4 +1,4 @@
-from apmserver import ServerBaseTest, ServerSetUpBaseTest, ElasticTest
+from apmserver import ServerBaseTest, ElasticTest
 
 import base64
 import json
@@ -364,7 +364,7 @@ class TestAccessWithAuthorization(BaseAPIKey):
 
 
 @integration_test
-class TestSecureServerBaseTest(ServerSetUpBaseTest):
+class TestSecureServerBaseTest(ServerBaseTest):
     @classmethod
     def setUpClass(cls):
         # According to https://docs.python.org/2/library/unittest.html#setupclass-and-teardownclass setUp and tearDown
@@ -401,8 +401,7 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
         self.password = "foobar"
         super(TestSecureServerBaseTest, self).setUp()
 
-    def tearDown(self):
-        super(TestSecureServerBaseTest, self).tearDown()
+    def stop_proc(self):
         self.apmserver_proc.kill_and_wait()
 
     def config_overrides(self):

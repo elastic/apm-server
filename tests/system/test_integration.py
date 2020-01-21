@@ -1,9 +1,9 @@
 import time
 
 from apmserver import integration_test
-from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest
-from apmserver import OverrideIndicesTest
+from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest, ProcStartupFailureTest
 from helper import wait_until
+
 
 @integration_test
 class Test(ElasticTest):
@@ -207,6 +207,14 @@ class ILMDisabledIntegrationTest(ElasticTest):
                                      query_index="{}-2017.05.09".format(self.index_error))
 
 
+class OverrideIndicesTest(ElasticTest):
+    def config(self):
+        cfg = super(OverrideIndicesTest, self).config()
+        cfg.update({"override_index": self.index_name,
+                    "override_template": self.index_name})
+        return cfg
+
+
 @integration_test
 class OverrideIndicesIntegrationTest(OverrideIndicesTest):
     # default ILM=auto disables ILM when custom indices given
@@ -257,20 +265,16 @@ class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
 
 
 @integration_test
-class OverrideIndicesFailureIntegrationTest(ElasticTest):
-    skip_startup = True
-
-    def config(self):
-        cfg = super(OverrideIndicesFailureIntegrationTest, self).config()
-        cfg.update({"override_index": self.index_name})
-        return cfg
-
-    def tearDown(self):
-        return
+class OverrideIndicesFailureIntegrationTest(ProcStartupFailureTest):
+    config_overrides = {
+        "override_index": "apm-foo",
+        "elasticsearch_host": "localhost:8200",
+        "file_enabled": "false",
+    }
 
     def test_template_setup_error(self):
         loaded_msg = "Exiting: `setup.template.name` and `setup.template.pattern` have to be set"
-        wait_until(lambda: self.log_contains(loaded_msg),max_timeout=5)
+        wait_until(lambda: self.log_contains(loaded_msg), max_timeout=5)
 
 
 @integration_test

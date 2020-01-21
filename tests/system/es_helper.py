@@ -4,6 +4,7 @@ from helper import wait_until
 apm = "apm"
 apm_prefix = "{}*".format(apm)
 
+
 def cleanup(es, indices, templates, policies, indices_truncate, skip_pipelines=True):
     wait_until_indices_deleted(es, indices)
     wait_until_templates_deleted(es, templates)

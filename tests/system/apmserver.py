@@ -29,20 +29,40 @@ class BaseTest(TestCase):
 
     def setUp(self):
         super(BaseTest, self).setUp()
-        if diagnostic_interval > 0:
-            self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
-            os.makedirs(self.diagnostics_path)
-            self.running = True
-            self.diagnostic_thread = threading.Thread(
-                target=self.dump_diagnotics, kwargs=dict(interval=diagnostic_interval))
-            self.diagnostic_thread.daemon = True
-            self.diagnostic_thread.start()
+        self.setup_diagnostics()
 
-    def tearDown(self):
-        if diagnostic_interval > 0:
-            self.running = False
-            self.diagnostic_thread.join(timeout=30)
-        super(BaseTest, self).tearDown()
+    def setup_diagnostics(self):
+        if diagnostic_interval <= 0:
+            return
+        self.addCleanup(self.cleanup_diagnostics)
+        self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
+        os.makedirs(self.diagnostics_path)
+        self.running = True
+        self.diagnostic_thread = threading.Thread(
+            target=self.dump_diagnotics, kwargs=dict(interval=diagnostic_interval))
+        self.diagnostic_thread.daemon = True
+        self.diagnostic_thread.start()
+
+    def cleanup_diagnostics(self):
+        self.running = False
+        self.diagnostic_thread.join(timeout=30)
+
+    def dump_diagnotics(self, interval=2):
+        while self.running:
+            time.sleep(interval)
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
+                try:
+                    out.write(self.es.nodes.hot_threads(threads=99999))
+                except Exception as e:
+                    out.write("failed to query hot threads: {}\n".format(e))
+
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
+                try:
+                    json.dump(self.es.tasks.list(), out, indent=True, sort_keys=True)
+                except Exception as e:
+                    out.write("failed to query tasks: {}\n".format(e))
 
     @classmethod
     def setUpClass(cls):
@@ -141,31 +161,13 @@ class BaseTest(TestCase):
     def ilm_index(self, index):
         return "{}-000001".format(index)
 
-    def dump_diagnotics(self, interval=2):
-        while self.running:
-            time.sleep(interval)
-            with open(os.path.join(self.diagnostics_path,
-                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
-                try:
-                    out.write(self.es.nodes.hot_threads(threads=99999))
-                except Exception as e:
-                    out.write("failed to query hot threads: {}\n".format(e))
-
-            with open(os.path.join(self.diagnostics_path,
-                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
-                try:
-                    json.dump(self.es.tasks.list(), out, indent=True, sort_keys=True)
-                except Exception as e:
-                    out.write("failed to query tasks: {}\n".format(e))
-
     def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
         wait_until(cond, max_timeout=max_timeout, poll_interval=poll_interval, name=name)
 
-# If you implement a Subclass of ServerSetUpBaseTest ensure to implement a `tearDown` function taking care of
-# stopping the APM Server instance.
 
+class ServerBaseTest(BaseTest):
+    config_overrides = {}
 
-class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
     root_url = "{}/".format(host)
     agent_config_url = "{}/{}".format(host, "config/v1/agents")
@@ -179,19 +181,19 @@ class ServerSetUpBaseTest(BaseTest):
     jaeger_http_host = "localhost:14268"
     jaeger_http_url = "http://{}/{}".format(jaeger_http_host, 'api/traces')
 
-    skip_startup = False
-
     def config(self):
-        return {"ssl_enabled": "false",
-                "queue_flush": 0,
-                "jaeger_grpc_enabled": "true",
-                "jaeger_grpc_host": self.jaeger_grpc_host,
-                "jaeger_http_enabled": "true",
-                "jaeger_http_host": self.jaeger_http_host,
-                "path": os.path.abspath(self.working_dir) + "/log/*"}
+        cfg = {"ssl_enabled": "false",
+               "queue_flush": 0,
+               "jaeger_grpc_enabled": "true",
+               "jaeger_grpc_host": self.jaeger_grpc_host,
+               "jaeger_http_enabled": "true",
+               "jaeger_http_host": self.jaeger_http_host,
+               "path": os.path.abspath(self.working_dir) + "/log/*"}
+        cfg.update(self.config_overrides)
+        return cfg
 
     def setUp(self):
-        super(ServerSetUpBaseTest, self).setUp()
+        super(ServerBaseTest, self).setUp()
         shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
 
         # Copy ingest pipeline definition to home directory of the test.
@@ -206,25 +208,21 @@ class ServerSetUpBaseTest(BaseTest):
         shutil.copy(self._beat_path_join(pipeline_def), target_dir)
 
         self.render_config_template(**self.config())
+        self.start_proc()
+        self.wait_until_started()
+
+    def start_proc(self):
+        self.addCleanup(self.stop_proc)
         self.apmserver_proc = self.start_beat(**self.start_args())
-        if not self.skip_startup:
-            self.wait_until_started()
+
+    def stop_proc(self):
+        self.apmserver_proc.check_kill_and_wait()
 
     def start_args(self):
         return {}
 
     def wait_until_started(self):
         wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
-
-    def wait_until_ilm_setup(self):
-        msg = "Finished index management setup." if self.config().get(
-            "ilm_setup_enabled") != "false" else "Manage ILM setup is disabled."
-        wait_until(lambda: self.log_contains(msg), name="ILM setup")
-
-    def wait_until_pipeline_setup(self):
-        msg = "Registered Ingest Pipelines successfully" if self.config().get(
-            "register_pipeline_enabled") != "false" else "No pipeline callback registered"
-        wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -255,14 +253,7 @@ class ServerSetUpBaseTest(BaseTest):
         return requests.post(url, data=data, headers=headers)
 
 
-class ServerBaseTest(ServerSetUpBaseTest):
-    def tearDown(self):
-        super(ServerBaseTest, self).tearDown()
-        self.apmserver_proc.check_kill_and_wait()
-
-
 class ElasticTest(ServerBaseTest):
-    config_overrides = {}
     skip_clean_pipelines = False
 
     def config(self):
@@ -285,9 +276,18 @@ class ElasticTest(ServerBaseTest):
         super(ElasticTest, self).setUp()
 
         # try make sure APM Server is fully up
-        if not self.skip_startup:
-            self.wait_until_ilm_setup()
-            self.wait_until_pipeline_setup()
+        self.wait_until_ilm_logged()
+        self.wait_until_pipeline_logged()
+
+    def wait_until_ilm_logged(self):
+        setup_enabled = self.config().get("ilm_setup_enabled")
+        msg = "Finished index management setup." if setup_enabled != "false" else "Manage ILM setup is disabled."
+        wait_until(lambda: self.log_contains(msg), name="ILM setup")
+
+    def wait_until_pipeline_logged(self):
+        registration_enabled = self.config().get("register_pipeline_enabled")
+        msg = "Registered Ingest Pipelines successfully" if registration_enabled != "false" else "No pipeline callback registered"
+        wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
                                 query_index=None, max_timeout=10, extra_headers=None):
@@ -441,10 +441,6 @@ class ClientSideBaseTest(ServerBaseTest):
     backend_intake_url = 'http://localhost:8200/intake/v2/events'
     config_overrides = {}
 
-    @classmethod
-    def setUpClass(cls):
-        super(ClientSideBaseTest, cls).setUpClass()
-
     def config(self):
         cfg = super(ClientSideBaseTest, self).config()
         cfg.update({"enable_rum": "true",
@@ -513,13 +509,6 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
                 assert err in smap["error"]
             assert smap["updated"] == updated
 
-class OverrideIndicesTest(ElasticTest):
-
-    def config(self):
-        cfg = super(OverrideIndicesTest, self).config()
-        cfg.update({"override_index": self.index_name,
-                    "override_template": self.index_name})
-        return cfg
 
 class CorsBaseTest(ClientSideBaseTest):
     def config(self):
@@ -540,7 +529,7 @@ class ExpvarBaseTest(ServerBaseTest):
         return requests.get(self.expvar_url)
 
 
-class SubCommandTest(ServerSetUpBaseTest):
+class SubCommandTest(ServerBaseTest):
     config_overrides = {}
 
     def config(self):
@@ -565,3 +554,21 @@ class SubCommandTest(ServerSetUpBaseTest):
         for trimmed in log[pos:].strip().splitlines():
             # ensure only skipping expected lines
             assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
+
+    def stop_proc(self):
+        try:
+            self.apmserver_proc.kill()
+        except:
+            self.apmserver_proc.wait()
+
+
+class ProcStartupFailureTest(ServerBaseTest):
+
+    def stop_proc(self):
+        try:
+            self.apmserver_proc.kill()
+        except:
+            self.apmserver_proc.wait()
+
+    def wait_until_started(self):
+        return

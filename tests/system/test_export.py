@@ -108,9 +108,10 @@ class TestExportTemplate(ExportCommandTest):
 
     def setUp(self):
         self.dir = os.path.abspath(os.path.join(self.beat_path, os.path.dirname(__file__), "test-export-template"))
+        self.addCleanup(self.cleanup_exports)
         super(TestExportTemplate, self).setUp()
 
-    def tearDown(self):
+    def cleanup_exports(self):
         shutil.rmtree(self.dir)
 
     def test_export_template_to_file(self):
@@ -140,9 +141,10 @@ class TestExportILMPolicy(ExportCommandTest):
 
     def setUp(self):
         self.dir = os.path.abspath(os.path.join(self.beat_path, os.path.dirname(__file__), "test-export-ilm"))
+        self.addCleanup(self.cleanup_exports)
         super(TestExportILMPolicy, self).setUp()
 
-    def tearDown(self):
+    def cleanup_exports(self):
         shutil.rmtree(self.dir)
 
     def test_export_ilm_policy_to_files(self):
