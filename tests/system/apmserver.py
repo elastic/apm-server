@@ -209,15 +209,11 @@ class ServerBaseTest(BaseTest):
         self.wait_until_started()
 
     def start_proc(self):
-        # print("------------------ ServerBaseTest start_proc ")
         self.apmserver_proc = self.start_beat(**self.start_args())
         self.addCleanup(self.stop_proc)
-        # print("------------------ ServerBaseTest start_proc finished")
 
     def stop_proc(self):
-        # print("------------------ ServerBaseTest stop_proc kill_and_wait ")
         self.apmserver_proc.check_kill_and_wait()
-        # print( "------------------ ServerBaseTest stop_proc kill_and_wait finished")
 
     def start_args(self):
         return {}
@@ -556,34 +552,17 @@ class SubCommandTest(ServerBaseTest):
             # ensure only skipping expected lines
             assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
 
-
     def stop_proc(self):
-        # print( "------------------ SubCommandTest stop_proc kill")
-        try:
-            self.apmserver_proc.kill()
-            # print( "------------------ SubCommandTest stop_proc kill finished")
-        except:
-            pass
-        finally:
-            # print( "------------------ SubCommandTest stop_proc wait")
-            self.apmserver_proc.wait()
-            # print( "------------------ SubCommandTest stop_proc wait finished")
-
+        return
 
 
 class ProcStartupFailureTest(ServerBaseTest):
 
     def stop_proc(self):
-        # print( "------------------ stop_proc kill")
         try:
-            self.apmserver_proc.kill()
-            # print( "------------------ stop_proc kill finished")
+            self.apmserver_proc.kill_and_wait()
         except:
-            pass
-        finally:
-            # print( "------------------ stop_proc wait")
             self.apmserver_proc.wait()
-            # print( "------------------ stop_proc wait finished")
 
     def wait_until_started(self):
         return
