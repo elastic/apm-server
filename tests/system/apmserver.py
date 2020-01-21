@@ -17,7 +17,8 @@ import requests
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
-from helper import wait_until, cleanup
+from helper import wait_until
+from es_helper import cleanup
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
@@ -178,6 +179,8 @@ class ServerSetUpBaseTest(BaseTest):
     jaeger_http_host = "localhost:14268"
     jaeger_http_url = "http://{}/{}".format(jaeger_http_host, 'api/traces')
 
+    skip_startup = False
+
     def config(self):
         return {"ssl_enabled": "false",
                 "queue_flush": 0,
@@ -204,23 +207,24 @@ class ServerSetUpBaseTest(BaseTest):
 
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat(**self.start_args())
-        self.wait_until_started()
+        if not self.skip_startup:
+            self.wait_until_started()
 
     def start_args(self):
         return {}
 
     def wait_until_started(self):
-        self.wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
+        wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
 
     def wait_until_ilm_setup(self):
         msg = "Finished index management setup." if self.config().get(
             "ilm_setup_enabled") != "false" else "Manage ILM setup is disabled."
-        self.wait_until(lambda: self.log_contains(msg), name="ILM setup")
+        wait_until(lambda: self.log_contains(msg), name="ILM setup")
 
     def wait_until_pipeline_setup(self):
         msg = "Registered Ingest Pipelines successfully" if self.config().get(
             "register_pipeline_enabled") != "false" else "No pipeline callback registered"
-        self.wait_until(lambda: self.log_contains(msg), name="pipelines registration")
+        wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -281,8 +285,9 @@ class ElasticTest(ServerBaseTest):
         super(ElasticTest, self).setUp()
 
         # try make sure APM Server is fully up
-        self.wait_until_ilm_setup()
-        self.wait_until_pipeline_setup()
+        if not self.skip_startup:
+            self.wait_until_ilm_setup()
+            self.wait_until_pipeline_setup()
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
                                 query_index=None, max_timeout=10, extra_headers=None):
@@ -508,7 +513,6 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
                 assert err in smap["error"]
             assert smap["updated"] == updated
 
-
 class OverrideIndicesTest(ElasticTest):
 
     def config(self):
@@ -516,21 +520,6 @@ class OverrideIndicesTest(ElasticTest):
         cfg.update({"override_index": self.index_name,
                     "override_template": self.index_name})
         return cfg
-
-
-class OverrideIndicesFailureTest(ElasticTest):
-
-    def config(self):
-        cfg = super(OverrideIndicesFailureTest, self).config()
-        cfg.update({"override_index": self.index_name, })
-        return cfg
-
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
-        return
-
-    def tearDown(self):
-        return
-
 
 class CorsBaseTest(ClientSideBaseTest):
     def config(self):

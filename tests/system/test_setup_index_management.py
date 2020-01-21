@@ -2,7 +2,7 @@ from apmserver import BaseTest, ElasticTest, integration_test
 import logging
 from elasticsearch import Elasticsearch, NotFoundError, RequestError
 from nose.tools import raises
-from helper import wait_until, cleanup, wait_until_policies, wait_until_aliases, wait_until_templates
+from es_helper import cleanup, wait_until_policies, wait_until_aliases, wait_until_templates
 
 EVENT_NAMES = ('error', 'span', 'transaction', 'metric', 'profile')
 

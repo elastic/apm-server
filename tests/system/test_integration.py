@@ -2,8 +2,8 @@ import time
 
 from apmserver import integration_test
 from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest
-from apmserver import OverrideIndicesTest, OverrideIndicesFailureTest
-
+from apmserver import OverrideIndicesTest
+from helper import wait_until
 
 @integration_test
 class Test(ElasticTest):
@@ -12,8 +12,8 @@ class Test(ElasticTest):
         """
         This test starts the beat and checks that the onboarding doc has been published to ES
         """
-        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding), name="onboarding index created")
-        self.wait_until(lambda: (self.es.count(index=self.index_onboarding)['count'] == 1))
+        wait_until(lambda: self.es.indices.exists(self.index_onboarding), name="onboarding index created")
+        wait_until(lambda: (self.es.count(index=self.index_onboarding)['count'] == 1))
 
         # Makes sure no error or warnings were logged
         self.assert_no_logged_warnings()
@@ -22,7 +22,7 @@ class Test(ElasticTest):
         """
         This test starts the beat and checks that the template has been loaded to ES
         """
-        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding))
+        wait_until(lambda: self.es.indices.exists(self.index_onboarding))
         templates = self.es.indices.get_template(self.index_name)
         assert len(templates) == 1
         t = templates[self.index_name]
@@ -257,12 +257,20 @@ class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
 
 
 @integration_test
-class OverrideIndicesFailureIntegrationTest(OverrideIndicesFailureTest):
+class OverrideIndicesFailureIntegrationTest(ElasticTest):
+    skip_startup = True
+
+    def config(self):
+        cfg = super(OverrideIndicesFailureIntegrationTest, self).config()
+        cfg.update({"override_index": self.index_name})
+        return cfg
+
+    def tearDown(self):
+        return
 
     def test_template_setup_error(self):
-        loaded_msg = "Exiting: setup.template.name and setup.template.pattern have to be set"
-        self.wait_until(lambda: self.log_contains(loaded_msg),
-                        max_timeout=5)
+        loaded_msg = "Exiting: `setup.template.name` and `setup.template.pattern` have to be set"
+        wait_until(lambda: self.log_contains(loaded_msg),max_timeout=5)
 
 
 @integration_test
@@ -398,7 +406,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
 
         # remove existing document
         self.es.delete_by_query(index=self.index_error, body={"query": {"term": {"processor.name": 'error'}}})
-        self.wait_until(lambda: (self.es.count(index=self.index_error)['count'] == 0))
+        wait_until(lambda: (self.es.count(index=self.index_error)['count'] == 0))
 
         # upload second sourcemap file with same key,
         # that actually leads to proper matchings
@@ -480,7 +488,7 @@ class SourcemappingCacheIntegrationTest(ClientSideElasticTest):
         self.es.indices.delete(index=self.ilm_index(self.index_error))
         # fetching from ES will lead to an error afterwards
         self.es.indices.delete(index=self.index_smap, ignore=[400, 404])
-        self.wait_until(lambda: not self.es.indices.exists(self.index_smap))
+        wait_until(lambda: not self.es.indices.exists(self.index_smap))
         # ensure smap is not in cache any more
         time.sleep(1)
 
@@ -569,7 +577,7 @@ class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
-        self.wait_until(lambda: self.log_contains("events have been published"), max_timeout=10)
+        wait_until(lambda: self.log_contains("events have been published"), max_timeout=10)
         time.sleep(2)
         self.assert_no_logged_warnings()
 

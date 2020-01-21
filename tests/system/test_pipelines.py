@@ -1,7 +1,7 @@
 from apmserver import ElasticTest, SubCommandTest, TimeoutError, integration_test
-from elasticsearch import Elasticsearch, NotFoundError
+from elasticsearch import Elasticsearch
 from nose.tools import raises
-from helper import wait_until_pipelines_deleted, wait_until_pipelines
+from es_helper import wait_until_pipelines_deleted, wait_until_pipelines
 
 # APM Server `setup`
 
@@ -108,14 +108,14 @@ class PipelineConfigurationNoneTest(ElasticTest):
 @integration_test
 class PipelineDisableRegisterTest(ElasticTest):
     """
-    Can ingest data when pipeline registration is disabled.
+    Cannot ingest data when pipeline is not registered
     """
     config_overrides = {"register_pipeline_enabled": "false"}
 
     @raises(TimeoutError)
     def test_pipeline_not_registered(self):
         wait_until_pipelines(self.es, [])
-        # ensure events get stored properly nevertheless
+        # events do not get stored when pipeline is missing
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 4)
 
