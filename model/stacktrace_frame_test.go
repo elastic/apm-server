@@ -232,7 +232,7 @@ func TestSourcemap_Apply(t *testing.T) {
 			expectedErrorMsg string
 		}{
 			"ESUnavailable": {store: testSourcemapStore(t, test.ESClientUnavailable(t)),
-				expectedErrorMsg: "Internal server error"},
+				expectedErrorMsg: "client error"},
 			"invalidSourcemap": {store: testSourcemapStore(t, test.ESClientWithInvalidSourcemap(t)),
 				expectedErrorMsg: "Could not parse Sourcemap."},
 			"unsupportedSourcemap": {store: testSourcemapStore(t, test.ESClientWithUnsupportedSourcemap(t)),
