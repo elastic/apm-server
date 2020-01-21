@@ -19,7 +19,6 @@ package sourcemap
 
 import (
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -43,7 +42,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 		temporary  bool
 	}{
 		"es not reachable": {
-			statusCode: http.StatusInternalServerError, temporary: true,
+			statusCode: -1, temporary: true,
 		},
 		"es bad request": {
 			statusCode: http.StatusBadRequest,
@@ -67,7 +66,11 @@ func Test_esFetcher_fetchError(t *testing.T) {
 			require.NoError(t, err)
 			consumer, err := testESStore(client).fetch("abc", "1.0", "/tmp")
 			require.Error(t, err)
-			assert.Equal(t, tc.temporary, strings.Contains(err.Error(), errMsgESFailure))
+			if tc.temporary {
+				assert.Contains(t, err.Error(), errMsgESFailure)
+			} else {
+				assert.NotContains(t, err.Error(), errMsgESFailure)
+			}
 			assert.Empty(t, consumer)
 		})
 	}
