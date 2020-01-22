@@ -3,6 +3,7 @@ from elasticsearch import Elasticsearch
 from nose.tools import raises
 from es_helper import wait_until_pipelines_deleted, wait_until_pipelines
 from helper import wait_until
+from es_helper import index_transaction
 
 # APM Server `setup`
 
@@ -24,14 +25,14 @@ class SetupCmdPipelinesDefaultTest(SubCommandTest):
     def setUp(self):
         # ensure environment is clean before cmd is run
         self.es = Elasticsearch([self.get_elasticsearch_url()])
-        wait_until_pipelines_deleted(self.es, self.pipelines)
+        wait_until_pipelines_deleted(self.es)
         # pipelines are setup when running the command
         super(SetupCmdPipelinesDefaultTest, self).setUp()
 
     def test_setup_pipelines(self):
         assert self.log_contains("Pipeline successfully registered: apm_user_agent")
         assert self.log_contains("Registered Ingest Pipelines successfully.")
-        wait_until_pipelines(self.es, self.pipelines)
+        wait_until_pipelines(self.es)
 
 
 @integration_test
@@ -57,12 +58,12 @@ class PipelineRegisterTest(ElasticTest):
     """
 
     def test_pipeline_registered_and_applied(self):
-        wait_until_pipelines(self.es, self.pipelines)
+        wait_until_pipelines(self.es)
         # setup
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 4)
 
-        entries = self.es.search(index=self.index_transaction)['hits']['hits']
+        entries = self.es.search(index=index_transaction)['hits']['hits']
         ua_found = False
         for e in entries:
             src = e['_source']
@@ -89,11 +90,11 @@ class PipelineConfigurationNoneTest(ElasticTest):
     config_overrides = {"disable_pipeline": True}
 
     def test_pipeline_not_applied(self):
-        wait_until_pipelines(self.es, self.pipelines)
+        wait_until_pipelines(self.es)
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 4)
         uaFound = False
-        entries = self.es.search(index=self.index_transaction)['hits']['hits']
+        entries = self.es.search(index=index_transaction)['hits']['hits']
         for e in entries:
             src = e['_source']
             if 'user_agent' in src:
@@ -128,7 +129,7 @@ class PipelineOverwriteBase(ElasticTest):
 
         # Ensure all pipelines are deleted before test
         es = Elasticsearch([self.get_elasticsearch_url()])
-        wait_until_pipelines_deleted(es, self.pipelines)
+        wait_until_pipelines_deleted(es)
 
         # Ensure `apm` pipeline is already registered in ES before APM Server is started
         self.pipeline_apm = "apm"

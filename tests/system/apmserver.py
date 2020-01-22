@@ -18,7 +18,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 from helper import wait_until
-from es_helper import cleanup
+from es_helper import cleanup, default_pipelines
+from es_helper import index_smap, index_span, index_error, apm_prefix
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
@@ -66,28 +67,10 @@ class BaseTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.apm_version = "8.0.0"
-        cls.day = time.strftime("%Y.%m.%d", time.gmtime())
         cls.beat_name = "apm-server"
         cls.beat_path = os.path.abspath(os.path.join(
             os.path.dirname(__file__), "..", ".."))
         cls.build_path = cls._beat_path_join("build", "system-tests")
-
-        cls.index_name = "apm-{}".format(cls.apm_version)
-        cls.index_name_pattern = "apm-*"
-        cls.index_onboarding = "apm-{}-onboarding-{}".format(cls.apm_version, cls.day)
-        cls.index_error = "apm-{}-error".format(cls.apm_version)
-        cls.index_transaction = "apm-{}-transaction".format(cls.apm_version)
-        cls.index_span = "apm-{}-span".format(cls.apm_version)
-        cls.index_metric = "apm-{}-metric".format(cls.apm_version)
-        cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
-        cls.index_profile = "apm-{}-profile".format(cls.apm_version)
-        cls.index_acm = ".apm-agent-configuration"
-        cls.indices = [cls.index_onboarding, cls.index_error, cls.index_transaction,
-                       cls.index_span, cls.index_metric, cls.index_smap, cls.index_profile]
-        cls.policies = ["apm-rollover-30-days"]
-        cls.pipelines = ["apm_user_agent", "apm_user_geo", "apm"]
-
         super(BaseTest, cls).setUpClass()
 
     @classmethod
@@ -267,8 +250,8 @@ class ElasticTest(ServerBaseTest):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.kibana_url = self.get_kibana_url()
 
-        cleanup(self.es, self.indices, self.indices, self.policies, [self.index_acm],
-                skip_pipelines=self.skip_clean_pipelines)
+        delete_pipelines = [] if self.skip_clean_pipelines else default_pipelines
+        cleanup(self.es, delete_pipelines=delete_pipelines)
 
         super(ElasticTest, self).setUp()
 
@@ -290,7 +273,7 @@ class ElasticTest(ServerBaseTest):
                                 query_index=None, max_timeout=10, extra_headers=None):
 
         if query_index is None:
-            query_index = self.index_name_pattern
+            query_index = apm_prefix
 
         headers = {'content-type': 'application/x-ndjson'}
         if extra_headers:
@@ -309,7 +292,7 @@ class ElasticTest(ServerBaseTest):
         'processor.name' value, and returns the hits when found.
         """
         if index is None:
-            index = self.index_name_pattern
+            index = apm_prefix
 
         query = {"term": {"processor.name": processor_name}}
         result = {}  # TODO(axw) use "nonlocal" when we migrate to Python 3
@@ -337,7 +320,7 @@ class ElasticTest(ServerBaseTest):
                 self.check_for_no_smap(err["log"])
 
     def check_backend_span_sourcemap(self, count=1):
-        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=index_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -473,10 +456,10 @@ class ClientSideBaseTest(ServerBaseTest):
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
     def wait_for_sourcemaps(self, expected_ct=1):
-        self.wait_for_events('sourcemap', expected_ct, index=self.index_smap)
+        self.wait_for_events('sourcemap', expected_ct, index=index_smap)
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_error, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=index_error, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -487,7 +470,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
                 self.check_smap(err["log"], updated, expected_err)
 
     def check_rum_transaction_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=index_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
