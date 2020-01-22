@@ -1565,10 +1565,10 @@
 			"revisionTime": "2020-01-15T10:53:42Z"
 		},
 		{
-			"checksumSHA1": "5XKe9ycdLlVjjwW5Qvuds7SziAI=",
+			"checksumSHA1": "dyn6a6PFqd0Pyz87v3yMYfISU5w=",
 			"path": "github.com/elastic/go-elasticsearch/v7",
-			"revision": "ed288cdc5128a5729c32b4f6aa5e30b09ebba294",
-			"revisionTime": "2019-12-08T14:07:01Z",
+			"revision": "7550e30bc9546e055670c5136238b4350e6d6599",
+			"revisionTime": "2020-01-20T08:41:37Z",
 			"tree": true
 		},
 		{
