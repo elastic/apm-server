@@ -27,7 +27,7 @@ endif::[]
 --
 
 ifdef::apm-server[]
-include::{docdir}/secure-communication-agents.asciidoc[]
+include::./../../secure-communication-agents.asciidoc[]
 endif::[]
 
 //sets block macro for https.asciidoc included in next section
