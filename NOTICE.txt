@@ -625,7 +625,7 @@ limitations under the License.
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-elasticsearch
-Revision: ed288cdc5128a5729c32b4f6aa5e30b09ebba294
+Revision: 7550e30bc9546e055670c5136238b4350e6d6599
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-elasticsearch/LICENSE:
 --------------------------------------------------------------------
@@ -634,7 +634,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-elasticsearch/v7
-Revision: ed288cdc5128a5729c32b4f6aa5e30b09ebba294
+Revision: 7550e30bc9546e055670c5136238b4350e6d6599
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-elasticsearch/v7/LICENSE:
 --------------------------------------------------------------------
