@@ -18,6 +18,7 @@ trap "{ set +e;popd 2>/dev/null;set -e;rm -rf ${BASEDIR}/${GIT_CLONE}; }" EXIT
 git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 (
     cd ${GIT_CLONE}
+    git fetch --all
     git checkout ${BEATS_VERSION}
 )
 
