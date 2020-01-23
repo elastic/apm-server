@@ -1,4 +1,6 @@
-from apmserver import ServerBaseTest, ServerSetUpBaseTest, ElasticTest
+from apmserver import ServerBaseTest, ElasticTest
+from apmserver import TimeoutError, integration_test
+from helper import wait_until
 
 import base64
 import json
@@ -10,7 +12,6 @@ import subprocess
 
 from nose.tools import raises
 from requests.exceptions import SSLError, ChunkedEncodingError
-from apmserver import TimeoutError, integration_test
 from requests.packages.urllib3.exceptions import SubjectAltNameWarning
 requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
@@ -108,12 +109,12 @@ class BaseAPIKey(ElasticTest):
         requests.delete(self.api_key_url,
                         data=json.dumps({'name': self.api_key_name}),
                         headers=headers(content_type='application/json'))
-        self.wait_until(lambda: self.api_keys_invalidated(), name="delete former api keys")
+        wait_until(lambda: self.api_keys_invalidated(), name="delete former api keys")
         # delete all existing application privileges to ensure they can be created for current user
         for name in self.privileges.keys():
             url = "{}/{}/{}".format(self.privileges_url, self.application, name)
             requests.delete(url)
-            self.wait_until(lambda: requests.get(url).status_code == 404)
+            wait_until(lambda: requests.get(url).status_code == 404)
 
         # call create privileges and ensure they are created for the user
         payload = {self.application: {}}
@@ -159,7 +160,7 @@ class BaseAPIKey(ElasticTest):
                              headers=headers(content_type='application/json'))
         assert resp.status_code == 200, resp.status_code
         id = resp.json()["id"]
-        self.wait_until(lambda: self.api_key_exists(id), name="create api key")
+        wait_until(lambda: self.api_key_exists(id), name="create api key")
         return "ApiKey {}".format(base64.b64encode("{}:{}".format(id, resp.json()["api_key"])))
 
 
@@ -364,7 +365,7 @@ class TestAccessWithAuthorization(BaseAPIKey):
 
 
 @integration_test
-class TestSecureServerBaseTest(ServerSetUpBaseTest):
+class TestSecureServerBaseTest(ServerBaseTest):
     @classmethod
     def setUpClass(cls):
         # According to https://docs.python.org/2/library/unittest.html#setupclass-and-teardownclass setUp and tearDown
@@ -399,30 +400,26 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
         self.server_cert = os.path.join(self.cert_path, "server.crt.pem")
         self.server_key = os.path.join(self.cert_path, "server.key.pem")
         self.password = "foobar"
+        self.host = "localhost"
+        self.port = 8200
         super(TestSecureServerBaseTest, self).setUp()
 
-    def tearDown(self):
-        super(TestSecureServerBaseTest, self).tearDown()
+    def stop_proc(self):
         self.apmserver_proc.kill_and_wait()
-
-    def config_overrides(self):
-        cfg = {
-            "ssl_enabled": "true",
-            "ssl_certificate": self.server_cert,
-            "ssl_key": self.server_key,
-            "ssl_key_passphrase": self.password
-        }
-        cfg.update(self.ssl_overrides())
-        return cfg
 
     def ssl_overrides(self):
         return {}
 
     def config(self):
         cfg = super(TestSecureServerBaseTest, self).config()
-        cfg.update(self.config_overrides())
-        self.host = "localhost"
-        self.port = 8200
+        overrides = {
+            "ssl_enabled": "true",
+            "ssl_certificate": self.server_cert,
+            "ssl_key": self.server_key,
+            "ssl_key_passphrase": self.password
+        }
+        cfg.update(overrides)
+        cfg.update(self.ssl_overrides())
         return cfg
 
     def send_http_request(self, cert=None, verify=False, protocol='https'):
