@@ -48,7 +48,7 @@ func TestBuilder(t *testing.T) {
 			}
 			if tc.withApikey {
 				cfg.APIKeyConfig = &config.APIKeyConfig{
-					Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()}
+					Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()}
 			}
 
 			builder, err := NewBuilder(cfg)
@@ -61,7 +61,7 @@ func TestBuilder(t *testing.T) {
 			assert.Equal(t, tc.bearer, builder.bearer)
 			if tc.withApikey {
 				assert.NotNil(t, builder.apikey)
-				assert.Equal(t, 500, builder.apikey.cache.size)
+				assert.Equal(t, 100, builder.apikey.cache.size)
 				assert.NotNil(t, builder.apikey.esClient)
 			}
 		})

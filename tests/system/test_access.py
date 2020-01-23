@@ -168,15 +168,13 @@ class BaseAPIKey(ElasticTest):
 class TestAPIKeyCache(BaseAPIKey):
     def config(self):
         cfg = super(TestAPIKeyCache, self).config()
-        cfg.update({"api_key_enabled": True, "api_key_limit": 1})
+        cfg.update({"api_key_enabled": True, "api_key_limit": 5})
         return cfg
 
     def test_cache_full(self):
         """
         Test that authorized API Key is not accepted when cache is full
-        api_key.limit: number of unique API Keys per minute
-        cache expires every 5 minutes
-        => cache size is api_key_limit*5
+        api_key.limit: number of unique API Keys per minute => cache size
         """
 
         key1 = self.create_api_key([self.privilege_event], self.resource_any)
