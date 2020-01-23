@@ -30,6 +30,7 @@ class BaseTest(TestCase):
 
     def setUp(self):
         super(BaseTest, self).setUp()
+        # TODO: move to Mixin and use only in tests where self.es is available
         self.setup_diagnostics()
 
     def setup_diagnostics(self):
@@ -50,6 +51,7 @@ class BaseTest(TestCase):
 
     def dump_diagnotics(self, interval=2):
         while self.running:
+            # TODO: use threading.Timer instead to not block tearDown
             time.sleep(interval)
             with open(os.path.join(self.diagnostics_path,
                                    datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
