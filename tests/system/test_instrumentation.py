@@ -6,7 +6,8 @@ import requests
 from apmserver import integration_test
 from apmserver import ElasticTest
 from test_access import BaseAPIKey
-
+from helper import wait_until
+from es_helper import index_profile, index_transaction
 
 # Set ELASTIC_APM_API_REQUEST_TIME to a short duration
 # to speed up the time taken for self-tracing events
@@ -39,8 +40,8 @@ class TestInMemoryTracingAPIKey(BaseAPIKey):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
-                        name='have in-memory instrumentation documents without api_key')
+        wait_until(lambda: get_instrumentation_event(self.es, index_transaction),
+                   name='have in-memory instrumentation documents without api_key')
 
 
 @integration_test
@@ -68,8 +69,8 @@ class TestExternalTracingAPIKey(BaseAPIKey):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
-                        name='have external server instrumentation documents with api_key')
+        wait_until(lambda: get_instrumentation_event(self.es, index_transaction),
+                   name='have external server instrumentation documents with api_key')
 
 
 @integration_test
@@ -97,14 +98,14 @@ class TestExternalTracingSecretToken(ElasticTest):
         r = requests.post(self.intake_url, data="invalid")
         self.assertEqual(401, r.status_code)
 
-        self.wait_until(lambda: get_instrumentation_event(self.es, self.index_transaction),
-                        name='have external server instrumentation documents with secret_token')
+        wait_until(lambda: get_instrumentation_event(self.es, index_transaction),
+                   name='have external server instrumentation documents with secret_token')
 
 
 class ProfilingTest(ElasticTest):
     def metric_fields(self):
         metric_fields = set()
-        rs = self.es.search(index=self.index_profile)
+        rs = self.es.search(index=index_profile)
         for hit in rs["hits"]["hits"]:
             profile = hit["_source"]["profile"]
             metric_fields.update((k for (k, v) in profile.items() if type(v) is int))
@@ -112,9 +113,9 @@ class ProfilingTest(ElasticTest):
 
     def wait_for_profile(self):
         def cond():
-            response = self.es.count(index=self.index_profile, body={"query": {"term": {"processor.name": "profile"}}})
+            response = self.es.count(index=index_profile, body={"query": {"term": {"processor.name": "profile"}}})
             return response['count'] != 0
-        self.wait_until(cond, max_timeout=10, name="waiting for profile")
+        wait_until(cond, max_timeout=10, name="waiting for profile")
 
 
 @integration_test

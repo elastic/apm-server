@@ -10,13 +10,16 @@ import time
 import unittest
 from urlparse import urlparse
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import nottest
 import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
+from helper import wait_until
+from es_helper import cleanup, default_pipelines
+from es_helper import index_smap, index_span, index_error, apm_prefix
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
@@ -27,43 +30,49 @@ class BaseTest(TestCase):
 
     def setUp(self):
         super(BaseTest, self).setUp()
-        if diagnostic_interval > 0:
-            self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
-            os.makedirs(self.diagnostics_path)
-            self.running = True
-            self.diagnostic_thread = threading.Thread(
-                target=self.dump_diagnotics, kwargs=dict(interval=diagnostic_interval))
-            self.diagnostic_thread.daemon = True
-            self.diagnostic_thread.start()
+        # TODO: move to Mixin and use only in tests where self.es is available
+        self.setup_diagnostics()
 
-    def tearDown(self):
-        if diagnostic_interval > 0:
-            self.running = False
-            self.diagnostic_thread.join(timeout=30)
-        super(BaseTest, self).tearDown()
+    def setup_diagnostics(self):
+        if diagnostic_interval <= 0:
+            return
+        self.addCleanup(self.cleanup_diagnostics)
+        self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
+        os.makedirs(self.diagnostics_path)
+        self.running = True
+        self.diagnostic_thread = threading.Thread(
+            target=self.dump_diagnotics, kwargs=dict(interval=diagnostic_interval))
+        self.diagnostic_thread.daemon = True
+        self.diagnostic_thread.start()
+
+    def cleanup_diagnostics(self):
+        self.running = False
+        self.diagnostic_thread.join(timeout=30)
+
+    def dump_diagnotics(self, interval=2):
+        while self.running:
+            # TODO: use threading.Timer instead to not block tearDown
+            time.sleep(interval)
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
+                try:
+                    out.write(self.es.nodes.hot_threads(threads=99999))
+                except Exception as e:
+                    out.write("failed to query hot threads: {}\n".format(e))
+
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
+                try:
+                    json.dump(self.es.tasks.list(), out, indent=True, sort_keys=True)
+                except Exception as e:
+                    out.write("failed to query tasks: {}\n".format(e))
 
     @classmethod
     def setUpClass(cls):
-        cls.apm_version = "8.0.0"
-        cls.day = time.strftime("%Y.%m.%d", time.gmtime())
         cls.beat_name = "apm-server"
         cls.beat_path = os.path.abspath(os.path.join(
             os.path.dirname(__file__), "..", ".."))
         cls.build_path = cls._beat_path_join("build", "system-tests")
-
-        cls.index_name = "apm-{}".format(cls.apm_version)
-        cls.index_name_pattern = "apm-*"
-        cls.index_onboarding = "apm-{}-onboarding-{}".format(cls.apm_version, cls.day)
-        cls.index_error = "apm-{}-error".format(cls.apm_version)
-        cls.index_transaction = "apm-{}-transaction".format(cls.apm_version)
-        cls.index_span = "apm-{}-span".format(cls.apm_version)
-        cls.index_metric = "apm-{}-metric".format(cls.apm_version)
-        cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
-        cls.index_profile = "apm-{}-profile".format(cls.apm_version)
-        cls.index_acm = ".apm-agent-configuration"
-        cls.indices = [cls.index_onboarding, cls.index_error, cls.index_transaction,
-                       cls.index_span, cls.index_metric, cls.index_smap, cls.index_profile]
-
         super(BaseTest, cls).setUpClass()
 
     @classmethod
@@ -137,47 +146,10 @@ class BaseTest(TestCase):
     def ilm_index(self, index):
         return "{}-000001".format(index)
 
-    def dump_diagnotics(self, interval=2):
-        while self.running:
-            time.sleep(interval)
-            with open(os.path.join(self.diagnostics_path,
-                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
-                try:
-                    out.write(self.es.nodes.hot_threads(threads=99999))
-                except Exception as e:
-                    out.write("failed to query hot threads: {}\n".format(e))
 
-            with open(os.path.join(self.diagnostics_path,
-                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
-                try:
-                    json.dump(self.es.tasks.list(), out, indent=True, sort_keys=True)
-                except Exception as e:
-                    out.write("failed to query tasks: {}\n".format(e))
+class ServerBaseTest(BaseTest):
+    config_overrides = {}
 
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
-        """
-        Like beat.beat.wait_until but catches exceptions
-        In a ElasticTest `cond` will usually be a query, and we need to keep retrying
-         eg. on 503 response codes
-        """
-        assert callable(cond), "First argument of wait_until must be a function"
-
-        start = datetime.now()
-        while datetime.now()-start < timedelta(seconds=max_timeout):
-            try:
-                result = cond()
-                if result:
-                    return result
-            except AttributeError as ex:
-                raise ex
-            except:
-                pass
-            time.sleep(poll_interval)
-        raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
-                           "Waited {} seconds.".format(max_timeout))
-
-
-class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
     root_url = "{}/".format(host)
     agent_config_url = "{}/{}".format(host, "config/v1/agents")
@@ -192,16 +164,18 @@ class ServerSetUpBaseTest(BaseTest):
     jaeger_http_url = "http://{}/{}".format(jaeger_http_host, 'api/traces')
 
     def config(self):
-        return {"ssl_enabled": "false",
-                "queue_flush": 0,
-                "jaeger_grpc_enabled": "true",
-                "jaeger_grpc_host": self.jaeger_grpc_host,
-                "jaeger_http_enabled": "true",
-                "jaeger_http_host": self.jaeger_http_host,
-                "path": os.path.abspath(self.working_dir) + "/log/*"}
+        cfg = {"ssl_enabled": "false",
+               "queue_flush": 0,
+               "jaeger_grpc_enabled": "true",
+               "jaeger_grpc_host": self.jaeger_grpc_host,
+               "jaeger_http_enabled": "true",
+               "jaeger_http_host": self.jaeger_http_host,
+               "path": os.path.abspath(self.working_dir) + "/log/*"}
+        cfg.update(self.config_overrides)
+        return cfg
 
     def setUp(self):
-        super(ServerSetUpBaseTest, self).setUp()
+        super(ServerBaseTest, self).setUp()
         shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
 
         # Copy ingest pipeline definition to home directory of the test.
@@ -216,29 +190,21 @@ class ServerSetUpBaseTest(BaseTest):
         shutil.copy(self._beat_path_join(pipeline_def), target_dir)
 
         self.render_config_template(**self.config())
-        self.apmserver_proc = self.start_beat(**self.start_args())
+        self.start_proc()
         self.wait_until_started()
 
-        # try make sure APM Server is fully up
-        cfg = self.config()
-        # pipeline registration is enabled by default and only happens if the output is elasticsearch
-        if not getattr(self, "register_pipeline_disabled", False) and \
-                cfg.get("elasticsearch_host") and \
-                cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
-            self.wait_until_pipelines_registered()
+    def start_proc(self):
+        self.apmserver_proc = self.start_beat(**self.start_args())
+        self.addCleanup(self.stop_proc)
+
+    def stop_proc(self):
+        self.apmserver_proc.check_kill_and_wait()
 
     def start_args(self):
         return {}
 
     def wait_until_started(self):
-        self.wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
-
-    def wait_until_ilm_setup(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."), name="ILM setup")
-
-    def wait_until_pipelines_registered(self):
-        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
-                        name="pipelines registered")
+        wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -269,14 +235,8 @@ class ServerSetUpBaseTest(BaseTest):
         return requests.post(url, data=data, headers=headers)
 
 
-class ServerBaseTest(ServerSetUpBaseTest):
-    def tearDown(self):
-        super(ServerBaseTest, self).tearDown()
-        self.apmserver_proc.check_kill_and_wait()
-
-
 class ElasticTest(ServerBaseTest):
-    config_overrides = {}
+    skip_clean_pipelines = False
 
     def config(self):
         cfg = super(ElasticTest, self).config()
@@ -292,38 +252,30 @@ class ElasticTest(ServerBaseTest):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.kibana_url = self.get_kibana_url()
 
-        # Cleanup index and template first
-        assert all(idx.startswith("apm")
-                   for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
-        if self.es.indices.get("apm*"):
-            self.es.indices.delete(index="apm*", ignore=[400, 404])
-            for idx in self.indices:
-                self.wait_until(lambda: not self.es.indices.exists(idx), name="index {} to be deleted".format(idx))
-
-        if self.es.indices.get_template(name="apm*", ignore=[400, 404]):
-            self.es.indices.delete_template(name="apm*", ignore=[400, 404])
-            for idx in self.indices:
-                self.wait_until(lambda: not self.es.indices.exists_template(idx),
-                                name="index template {} to be deleted".format(idx))
-
-        # truncate, don't delete agent configuration index since it's only created when kibana starts up
-        if self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] > 0:
-            self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
-                                    ignore_unavailable=True, wait_for_completion=True)
-            self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0,
-                            max_timeout=30, name="acm index {} to be empty".format(self.index_acm))
-
-        # Cleanup pipelines
-        if self.es.ingest.get_pipeline(ignore=[400, 404]):
-            self.es.ingest.delete_pipeline(id="*")
+        delete_pipelines = [] if self.skip_clean_pipelines else default_pipelines
+        cleanup(self.es, delete_pipelines=delete_pipelines)
 
         super(ElasticTest, self).setUp()
+
+        # try make sure APM Server is fully up
+        self.wait_until_ilm_logged()
+        self.wait_until_pipeline_logged()
+
+    def wait_until_ilm_logged(self):
+        setup_enabled = self.config().get("ilm_setup_enabled")
+        msg = "Finished index management setup." if setup_enabled != "false" else "Manage ILM setup is disabled."
+        wait_until(lambda: self.log_contains(msg), name="ILM setup")
+
+    def wait_until_pipeline_logged(self):
+        registration_enabled = self.config().get("register_pipeline_enabled")
+        msg = "Registered Ingest Pipelines successfully" if registration_enabled != "false" else "No pipeline callback registered"
+        wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
                                 query_index=None, max_timeout=10, extra_headers=None):
 
         if query_index is None:
-            query_index = self.index_name_pattern
+            query_index = apm_prefix
 
         headers = {'content-type': 'application/x-ndjson'}
         if extra_headers:
@@ -334,7 +286,7 @@ class ElasticTest(ServerBaseTest):
         assert r.status_code == 202, r.status_code
 
         # Wait to give documents some time to be sent to the index
-        self.wait_for_events(endpoint, expected_events_count, index=query_index)
+        self.wait_for_events(endpoint, expected_events_count, index=query_index, max_timeout=max_timeout)
 
     def wait_for_events(self, processor_name, expected_count, index=None, max_timeout=10):
         """
@@ -342,7 +294,7 @@ class ElasticTest(ServerBaseTest):
         'processor.name' value, and returns the hits when found.
         """
         if index is None:
-            index = self.index_name_pattern
+            index = apm_prefix
 
         query = {"term": {"processor.name": processor_name}}
         result = {}  # TODO(axw) use "nonlocal" when we migrate to Python 3
@@ -352,11 +304,10 @@ class ElasticTest(ServerBaseTest):
             result['docs'] = hits['hits']
             return hits['total']['value'] == expected_count
 
-        self.wait_until(
-            get_docs,
-            max_timeout=max_timeout,
-            name="{} documents to reach {}".format(processor_name, expected_count),
-        )
+        wait_until(get_docs,
+                   max_timeout=max_timeout,
+                   name="{} documents to reach {}".format(processor_name, expected_count),
+                   )
         return result['docs']
 
     def check_backend_error_sourcemap(self, index, count=1):
@@ -371,7 +322,7 @@ class ElasticTest(ServerBaseTest):
                 self.check_for_no_smap(err["log"])
 
     def check_backend_span_sourcemap(self, count=1):
-        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=index_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -472,10 +423,6 @@ class ClientSideBaseTest(ServerBaseTest):
     backend_intake_url = 'http://localhost:8200/intake/v2/events'
     config_overrides = {}
 
-    @classmethod
-    def setUpClass(cls):
-        super(ClientSideBaseTest, cls).setUpClass()
-
     def config(self):
         cfg = super(ClientSideBaseTest, self).config()
         cfg.update({"enable_rum": "true",
@@ -511,10 +458,10 @@ class ClientSideBaseTest(ServerBaseTest):
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
     def wait_for_sourcemaps(self, expected_ct=1):
-        self.wait_for_events('sourcemap', expected_ct, index=self.index_smap)
+        self.wait_for_events('sourcemap', expected_ct, index=index_smap)
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_error, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=index_error, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -525,7 +472,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
                 self.check_smap(err["log"], updated, expected_err)
 
     def check_rum_transaction_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=index_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -543,29 +490,6 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
             else:
                 assert err in smap["error"]
             assert smap["updated"] == updated
-
-
-class OverrideIndicesTest(ElasticTest):
-
-    def config(self):
-        cfg = super(OverrideIndicesTest, self).config()
-        cfg.update({"override_index": self.index_name,
-                    "override_template": self.index_name})
-        return cfg
-
-
-class OverrideIndicesFailureTest(ElasticTest):
-
-    def config(self):
-        cfg = super(OverrideIndicesFailureTest, self).config()
-        cfg.update({"override_index": self.index_name, })
-        return cfg
-
-    def wait_until(self, cond, max_timeout=10, poll_interval=0.25, name="cond"):
-        return
-
-    def tearDown(self):
-        return
 
 
 class CorsBaseTest(ClientSideBaseTest):
@@ -587,7 +511,7 @@ class ExpvarBaseTest(ServerBaseTest):
         return requests.get(self.expvar_url)
 
 
-class SubCommandTest(ServerSetUpBaseTest):
+class SubCommandTest(ServerBaseTest):
     config_overrides = {}
 
     def config(self):
@@ -612,3 +536,18 @@ class SubCommandTest(ServerSetUpBaseTest):
         for trimmed in log[pos:].strip().splitlines():
             # ensure only skipping expected lines
             assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
+
+    def stop_proc(self):
+        return
+
+
+class ProcStartupFailureTest(ServerBaseTest):
+
+    def stop_proc(self):
+        try:
+            self.apmserver_proc.kill_and_wait()
+        except:
+            self.apmserver_proc.wait()
+
+    def wait_until_started(self):
+        return

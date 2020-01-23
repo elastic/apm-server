@@ -15,8 +15,8 @@ apm-server:
 
   {% if api_key_enabled %}
   api_key.enabled: {{ api_key_enabled }}
-  api_key.limit: {{ api_key_limit | default(100) }}
   {% endif %}
+  api_key.limit: {{ api_key_limit | default(100) }}
   {% if api_key_es %}
   api_key.elasticsearch.hosts: [{{ api_key_es }}]
   {% endif %}
@@ -126,15 +126,19 @@ apm-server:
   ilm.enabled: {{ ilm_enabled }}
   {% endif %}
 
+  {% if ilm_setup_enabled %}
+  ilm.setup.enabled: {{ ilm_setup_enabled }}
+  {% endif %}
+
   {% if ilm_policies %}
   ilm.setup.mapping:
     - event_type: "error"
-      policy_name: "rollover-10-days"
+      policy_name: "apm-rollover-10-days"
     - event_type: "span"
       policy_name: "apm-rollover-30-days"
 
   ilm.setup.policies:
-    - name: "rollover-10-days"
+    - name: "apm-rollover-10-days"
       policy:
         phases:
           hot:
