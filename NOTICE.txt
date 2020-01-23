@@ -591,8 +591,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
-Version: 7.x
-Revision: 1d0dab588eb7c1550a866b5d2f81ceb6a17a57ce
+Version: 7.6
+Revision: 9d2f9e4c1e0b74f2226d4e1eb48fe62374e5813a
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
