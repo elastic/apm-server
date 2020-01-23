@@ -5,14 +5,14 @@ There are two ways to secure the communication between APM Agents and the APM Se
 Both options can be enabled in parallel,
 allowing Elastic APM agents to chose whichever mechanism they support.
 
-As soon as secure communication is enabled, requests without a valid token will be denied by APM Server.
+As soon as secure communication is enabled, requests without a valid token or API key will be denied by APM Server.
 As RUM endpoints cannot be secured, they are exempt from this rule.
 
 * <<api-key,API keys>>
 * <<secret-token,Secret token>>
 
 [[api-key]]
-=== API Keys
+=== API keys
 
 // Most operations require the `manage_security` cluster privilege,
 // and you must ensure that `apm-server.api_key` or `output.elasticsearch` are configured appropriately.
@@ -48,7 +48,23 @@ include::./ssl-input-short.asciidoc[]
 [float]
 === Configure API keys
 
-// TO DO
+API keys are disabled by default. You can change this, and additional settings,
+in the `apm-server.api_key` section of the +{beatname_lc}.yml+ configuration file.
+
+At a minimum, you must enable API keys,
+and should set a limit on the number of unique API keys {es} allows per minute.
+Here's an example `apm-server.api_key` config using 50 unique API keys:
+
+[source,yaml]
+----
+apm-server.api_key.enabled: true <1>
+apm-server.api_key.limit: 50 <2>
+----
+<1> Enables API keys
+<2> Restricts the number of unique API keys that {es} allows each minute.
+This value should be the number of unique API keys configured in your monitored services.
+
+All other options are described in <<api-key-settings>>.
 
 [[create-api-key]]
 [float]
@@ -59,32 +75,39 @@ Keys created using this method can only be used for Agent/Server communication.
 
 While it is possible to CURL {es} directly to create API keys,
 using this method is not recommended.
-The command line tool uses safeguards, which ensure that the required privileges exist before creating an API key.
+The command line tool has safeguards that ensure the required privileges exist before creating an API key.
 If they do not exist, the CLI tool will create the privileges.
 Regardless, the user that creates the API key will need to have the privileges they wish to give to the API key.
 
-The available commands are:
+[[create-api-key-subcommands]]
+[float]
+==== API key subcommands
 
 include::{libbeat-dir}/command-reference.asciidoc[tag=api-key-subcommands]
 
-For API keys, we created dedicated privileges. There are three unique privileges.
-If no privileges are specified, the created key has all privileges. 
+[[create-api-key-privileges]]
+[float]
+==== API key privileges
 
-*Agent configuration*::
-Required for agents to read configuration remotely.
+There are three unique privileges you can assign to each API keys.
+If privileges are not specified at creation time, the created key will have all privileges. 
+
+* *Agent configuration* - Required for agents to read
+{kibana-ref}/agent-configuration.html[Agent configuration remotely].
 `--agent-config` gives the `config_agent:read` privilege to the created key.
-
-*Ingest*::
-Required for ingesting events.
+* *Ingest* - Required for ingesting Agent events.
 `--ingest` gives the `event:write` privilege to the created key.
-
-*Sourcemap*::
-Required for uploading sourcemaps.
+* *Sourcemap* - Required for <<sourcemaps,uploading sourcemaps>>.
 `--sourcemap` gives the `sourcemap:write` privilege to the created key.
 
+[[create-api-key-workflow]]
+[float]
+==== API key example workflow
+
 Create an API key with the `create` subcommand.
+
 The following example creates an API key with a `name` of `java-001`,
-and the Agent configuration and ingest privileges.
+and gives the "agent configuration" and "ingest" privileges.
 
 ["source","sh",subs="attributes"]
 -----
@@ -104,14 +127,15 @@ Credentials .... cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==
 
 You should always verify the privileges of an API key after creating it.
 Verification can be done using the `verify` subcommand.
-The following example verifies that the `java-001` API key has the request privileges.
+
+The following example verifies that the `java-001` API key has the "agent configuration" and "ingest" privileges.
 
 ["source","sh",subs="attributes"]
 -----
 {beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==  
 -----
 
-If your API key has the right privileges, the response will look similar to this:
+If the API key has the requested privileges, the response will look similar to this:
 
 [source,console-result,subs="attributes,callouts"]
 --------------------------------------------------
@@ -120,6 +144,7 @@ Authorized for privilege "config_agent:read"...:    Yes
 --------------------------------------------------
 
 To invalidate an API key, use the `invalidate` subcommand.
+
 The following example invalidates the `java-001` API key.
 
 ["source","sh",subs="attributes"]
@@ -135,14 +160,13 @@ Invalidated keys ... qT4tz28B1g59zC3uAXfW
 Error count ........ 0
 --------------------------------------------------
 
-A full list of `apikey` subcommands, flags, and additional examples,
-is available in the <<apikey-command,API key command reference>>
+A full list of `apikey` subcommands and flags is available in the <<apikey-command,API key command reference>>.
 
 [[set-api-key]]
 [float]
 === Set the API key in your APM Agents
 
-You can now set your newly created API keys in the configuration of your APM Agents.
+You can now apply your newly created API keys in the configuration of each of your APM Agents.
 See the relevant Agent documentation for additional information:
 
 // Agent meta: https://github.com/elastic/apm/issues/183
@@ -168,12 +192,11 @@ See the relevant Agent documentation for additional information:
 // * *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
 // MERGED: https://github.com/elastic/apm-agent-ruby/pull/655
 
-
-[float]
 [[api-key-settings]]
-=== API key settings
+=== API key configuration options
 
-You can specify the following options in the `apm-server.api_key` section of the +{beatname_lc}.yml+ config file.
+You can specify the following options in the `apm-server.api_key.*` section of the
++{beatname_lc}.yml+ configuration file.
 They apply to API key communication between the APM Server and APM Agents.
 
 // To do!
@@ -181,97 +204,121 @@ They apply to API key communication between the APM Server and APM Agents.
 These are different from the API key settings used for the Elasticsearch output and monitoring.
 
 [float]
-==== api_key.enabled
-Enable API key authorization by setting enabled to true. By default API key support is disabled.
-Agents include a valid API key in the following format: Authorization: ApiKey <token>.
-The key must be the base64 encoded representation of the API key's "id:key".
-api_key.enabled: false
+===== `enabled`
+
+Enable API key authorization by setting `enabled` to `true`.
+Agents will include a valid API key in the following format: `Authorization: ApiKey <token>`.
+The key must be the base64 encoded representation of the API key's `id:key`.
+By default, `enabled` is set to `false`, and API key support is disabled.
 
 [float]
-==== api_key.limit
-Restrict how many unique API keys are allowed per minute. Should be set to at least the amount of different
-API keys configured in your monitored services. Every unique API key triggers one request to Elasticsearch.
-api_key.limit: 100
+===== `limit`
+
+Each unique API key triggers one request to Elasticsearch.
+This setting restricts the number of unique API keys are allowed per minute.
+The minimum value for this setting should be the number of API keys configured in your monitored services.
+The default `limit` is `100`.
 
 [float]
-==== api_key.elasticsearch.hosts
-API keys need to be fetched from Elasticsearch. If nothing is configured, configuration settings from the
-output section will be reused.
-Note that configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
-api_key.elasticsearch.hosts: ["localhost:9200"]
+===== `elasticsearch.hosts`
+
+API keys are fetched from Elasticsearch.
+This configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
+If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
-==== api_key.elasticsearch.protocol
-api_key.elasticsearch.protocol: "http"
+===== `elasticsearch.protocol`
+
+The name of the protocol Elasticsearch is reachable on.
+The options are: `http` or `https`. The default is `http`.
+If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
-==== api_key.elasticsearch.path
-Optional HTTP Path.
-api_key.elasticsearch.path: ""
+===== `elasticsearch.path`
+
+An optional HTTP path prefix that is prepended to the HTTP API calls.
+If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
-==== api_key.elasticsearch.proxy_url
-Proxy server url.
-api_key.elasticsearch.proxy_url: ""
-api_key.elasticsearch.proxy_disable: false
+===== `elasticsearch.proxy_url`
+
+The URL of the proxy to use when connecting to the Elasticsearch servers.
+The value may be either a complete URL or a "host[:port]", in which case the "http"scheme is assumed.
+If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
-==== api_key.elasticsearch.timeout
-Configure http request timeout before failing an request to Elasticsearch.
-api_key.elasticsearch.timeout: 10s
+===== `elasticsearch.timeout`
+
+The http request timeout in seconds for the Elasticsearch request.
+If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
-==== api_key.elasticsearch.ssl.enabled
-Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
-api_key.elasticsearch.ssl.enabled: true
+=== Optional SSL configuration options
+
+SSL is off by default. Set `protocol` to `https` if you want to enable `https`.
 
 [float]
-==== api_key.elasticsearch.ssl.verification_mode
-Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
-Configure SSL verification mode. If `none` is configured, all server hosts and certificates will be accepted.
-In this mode, SSL based connections are susceptible to man-in-the-middle attacks. Use only for testing. Default is `full`.
-api_key.elasticsearch.ssl.verification_mode: full
+===== `elasticsearch.ssl.enabled`
+
+Enable custom SSL settings.
+Set to false to ignore custom SSL settings for secure communication.
 
 [float]
-==== api_key.elasticsearch.ssl.supported_protocols
-List of supported/valid TLS versions. By default all TLS versions 1.0 up to 1.2 are enabled.
-api_key.elasticsearch.ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+===== `elasticsearch.ssl.verification_mode`
+
+Configure SSL verification mode.
+If `none` is configured, all server hosts and certificates will be accepted.
+In this mode, SSL based connections are susceptible to man-in-the-middle attacks.
+**Use only for testing**. Default is `full`.
 
 [float]
-==== api_key.elasticsearch.ssl.certificate_authorities
+===== `elasticsearch.ssl.supported_protocols`
+
+List of supported/valid TLS versions.
+By default, all TLS versions from 1.0 to 1.2 are enabled.
+
+[float]
+===== `elasticsearch.ssl.certificate_authorities`
+
 List of root certificates for HTTPS server verifications.
-api_key.elasticsearch.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
 
 [float]
-==== api_key.elasticsearch.ssl.certificate
-Certificate for SSL client authentication.
-api_key.elasticsearch.ssl.certificate: "/etc/pki/client/cert.pem"
+===== `elasticsearch.ssl.certificate`
+
+The path to the certificate for SSL client authentication.
 
 [float]
-==== api_key.elasticsearch.ssl.key
-Client Certificate Key
-api_key.elasticsearch.ssl.key: "/etc/pki/client/cert.key"
+===== `elasticsearch.ssl.key`
+
+The client certificate key used for client authentication.
+This option is required if certificate is specified.
 
 [float]
-==== api_key.elasticsearch.ssl.key_passphrase
-Optional passphrase for decrypting the Certificate Key.
+===== `elasticsearch.ssl.key_passphrase`
+
+An optional passphrase used to decrypt an encrypted key stored in the configured key file.
 It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-api_key.elasticsearch.ssl.key_passphrase: ''
 
 [float]
-==== api_key.elasticsearch.ssl.cipher_suites
-Configure cipher suites to be used for SSL connections.
-api_key.elasticsearch.ssl.cipher_suites: []
+===== `elasticsearch.ssl.cipher_suites`
+
+The list of cipher suites to use. The first entry has the highest priority.
+If this option is omitted, the Go crypto library’s default suites are used (recommended).
 
 [float]
-==== api_key.elasticsearch.ssl.curve_types
-Configure curve types for ECDHE based cipher suites.
-api_key.elasticsearch.ssl.curve_types: []
+===== `elasticsearch.ssl.curve_types`
+
+The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key exchange).
 
 [float]
-==== api_key.elasticsearch.ssl.renegotiation
-Configure what types of renegotiation are supported. Valid options are `never`, `once`, and `freely`. Default is `never`.
-api_key.elasticsearch.ssl.renegotiation: never
+===== `elasticsearch.ssl.renegotiation`
+
+Configure what types of renegotiation are supported.
+Valid options are `never`, `once`, and `freely`. Default is `never`.
+
+* `never` - Disables renegotiation.
+* `once` - Allows a remote server to request renegotiation once per connection.
+* `freely` - Allows a remote server to repeatedly request renegotiation.
 
 [[secret-token]]
 === Secret token
