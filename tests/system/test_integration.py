@@ -1,8 +1,9 @@
 import time
 
 from apmserver import integration_test
-from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest
-from apmserver import OverrideIndicesTest, OverrideIndicesFailureTest
+from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest, ProcStartupFailureTest
+from helper import wait_until
+from es_helper import index_smap, index_metric, index_transaction, index_error, index_span, index_onboarding, index_name
 
 
 @integration_test
@@ -12,8 +13,8 @@ class Test(ElasticTest):
         """
         This test starts the beat and checks that the onboarding doc has been published to ES
         """
-        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding), name="onboarding index created")
-        self.wait_until(lambda: (self.es.count(index=self.index_onboarding)['count'] == 1))
+        wait_until(lambda: self.es.indices.exists(index_onboarding), name="onboarding index created")
+        wait_until(lambda: (self.es.count(index=index_onboarding)['count'] == 1))
 
         # Makes sure no error or warnings were logged
         self.assert_no_logged_warnings()
@@ -22,10 +23,10 @@ class Test(ElasticTest):
         """
         This test starts the beat and checks that the template has been loaded to ES
         """
-        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding))
-        templates = self.es.indices.get_template(self.index_name)
+        wait_until(lambda: self.es.indices.exists(index_onboarding))
+        templates = self.es.indices.get_template(index_name)
         assert len(templates) == 1
-        t = templates[self.index_name]
+        t = templates[index_name]
         total_fields_limit = t['settings']['index']['mapping']['total_fields']['limit']
         assert total_fields_limit == "2000", total_fields_limit
 
@@ -33,8 +34,8 @@ class Test(ElasticTest):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
-        mappings = self.es.indices.get_field_mapping(index=self.index_transaction, fields="context.tags.*")
-        for name, metric in mappings["{}-000001".format(self.index_transaction)]["mappings"].items():
+        mappings = self.es.indices.get_field_mapping(index=index_transaction, fields="context.tags.*")
+        for name, metric in mappings["{}-000001".format(index_transaction)]["mappings"].items():
             fullname = metric["full_name"]
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
@@ -49,8 +50,8 @@ class Test(ElasticTest):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
-        mappings = self.es.indices.get_field_mapping(index=self.index_transaction, fields="transaction.marks.*")
-        for name, metric in mappings["{}-000001".format(self.index_transaction)]["mappings"].items():
+        mappings = self.es.indices.get_field_mapping(index=index_transaction, fields="transaction.marks.*")
+        for name, metric in mappings["{}-000001".format(index_transaction)]["mappings"].items():
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
                 assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
@@ -66,12 +67,12 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
-        rs = self.es.search(index=self.index_transaction)
+        rs = self.es.search(index=index_transaction)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
         self.approve_docs('transaction', rs['hits']['hits'])
 
         # compare existing ES documents for spans with new ones
-        rs = self.es.search(index=self.index_span)
+        rs = self.es.search(index=index_span)
         assert rs['hits']['total']['value'] == 5, "found {} documents".format(rs['count'])
         self.approve_docs('spans', rs['hits']['hits'])
 
@@ -84,11 +85,11 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for errors with new ones
-        rs = self.es.search(index=self.index_error)
+        rs = self.es.search(index=index_error)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
         self.approve_docs('error', rs['hits']['hits'])
 
-        self.check_backend_error_sourcemap(self.index_error, count=4)
+        self.check_backend_error_sourcemap(index_error, count=4)
 
 
 @integration_test
@@ -100,14 +101,14 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      self.backend_intake_url,
                                      'error',
                                      4)
-        self.check_library_frames({"true": 1, "false": 1, "empty": 2}, self.index_error)
+        self.check_library_frames({"true": 1, "false": 1, "empty": 2}, index_error)
 
     def test_rum_error(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
                                      'error',
                                      1)
-        self.check_library_frames({"true": 5, "false": 1, "empty": 0}, self.index_error)
+        self.check_library_frames({"true": 5, "false": 1, "empty": 0}, index_error)
 
     def test_backend_transaction(self):
         # for backend events library_frame information should not be changed,
@@ -116,20 +117,20 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      self.backend_intake_url,
                                      'transaction',
                                      9)
-        self.check_library_frames({"true": 1, "false": 0, "empty": 1}, self.index_span)
+        self.check_library_frames({"true": 1, "false": 0, "empty": 1}, index_span)
 
     def test_rum_transaction(self):
         self.load_docs_with_template(self.get_transaction_payload_path(),
                                      self.intake_url,
                                      'transaction',
                                      2)
-        self.check_library_frames({"true": 1, "false": 1, "empty": 0}, self.index_span)
+        self.check_library_frames({"true": 1, "false": 1, "empty": 0}, index_span)
 
     def test_enrich_backend_event(self):
         self.load_docs_with_template(self.get_backend_transaction_payload_path(),
                                      self.backend_intake_url, 'transaction', 9)
 
-        rs = self.es.search(index=self.index_transaction)
+        rs = self.es.search(index=index_transaction)
 
         assert "ip" in rs['hits']['hits'][0]["_source"]["host"], rs['hits']
 
@@ -139,7 +140,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      'error',
                                      1)
 
-        rs = self.es.search(index=self.index_error)
+        rs = self.es.search(index=index_error)
 
         hits = rs['hits']['hits']
         for hit in hits:
@@ -160,7 +161,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      'error',
                                      2)
 
-        rs = self.es.search(index=self.index_error)
+        rs = self.es.search(index=index_error)
         docs = rs['hits']['hits']
         grouping_key1 = docs[0]["_source"]["error"]["grouping_key"]
         grouping_key2 = docs[1]["_source"]["error"]["grouping_key"]
@@ -204,7 +205,15 @@ class ILMDisabledIntegrationTest(ElasticTest):
                                      self.intake_url,
                                      'error',
                                      4,
-                                     query_index="{}-2017.05.09".format(self.index_error))
+                                     query_index="{}-2017.05.09".format(index_error))
+
+
+class OverrideIndicesTest(ElasticTest):
+    def config(self):
+        cfg = super(OverrideIndicesTest, self).config()
+        cfg.update({"override_index": index_name,
+                    "override_template": index_name})
+        return cfg
 
 
 @integration_test
@@ -217,15 +226,15 @@ class OverrideIndicesIntegrationTest(OverrideIndicesTest):
                                      self.intake_url,
                                      'error',
                                      4,
-                                     query_index=self.index_name)
+                                     query_index=index_name)
         self.load_docs_with_template(self.get_payload_path("transactions_spans_rum.ndjson"),
                                      self.intake_url,
                                      'transaction',
                                      2,
-                                     query_index=self.index_name)
+                                     query_index=index_name)
 
         # check that every document is indexed once in the expected index (incl.1 onboarding doc)
-        assert 4+2+1 == self.es.count(index=self.index_name)['count']
+        assert 4+2+1 == self.es.count(index=index_name)['count']
 
 
 @integration_test
@@ -238,8 +247,8 @@ class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
                                      self.intake_url,
                                      'error',
                                      4,
-                                     query_index=self.index_name)
-        assert 4+1 == self.es.count(index=self.index_name)['count']
+                                     query_index=index_name)
+        assert 4+1 == self.es.count(index=index_name)['count']
 
 
 @integration_test
@@ -252,17 +261,21 @@ class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
                                      self.intake_url,
                                      'error',
                                      4,
-                                     query_index=self.ilm_index(self.index_error))
-        assert 4 == self.es.count(index=self.ilm_index(self.index_error))['count']
+                                     query_index=self.ilm_index(index_error))
+        assert 4 == self.es.count(index=self.ilm_index(index_error))['count']
 
 
 @integration_test
-class OverrideIndicesFailureIntegrationTest(OverrideIndicesFailureTest):
+class OverrideIndicesFailureIntegrationTest(ProcStartupFailureTest):
+    config_overrides = {
+        "override_index": "apm-foo",
+        "elasticsearch_host": "localhost:8200",
+        "file_enabled": "false",
+    }
 
     def test_template_setup_error(self):
-        loaded_msg = "Exiting: setup.template.name and setup.template.pattern have to be set"
-        self.wait_until(lambda: self.log_contains(loaded_msg),
-                        max_timeout=5)
+        loaded_msg = "Exiting: `setup.template.name` and `setup.template.pattern` have to be set"
+        wait_until(lambda: self.log_contains(loaded_msg), max_timeout=5)
 
 
 @integration_test
@@ -283,7 +296,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
-        self.check_backend_error_sourcemap(self.index_error)
+        self.check_backend_error_sourcemap(index_error)
 
     def test_duplicated_sourcemap_warning(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
@@ -397,8 +410,8 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
             False, expected_err="No Sourcemap found for")
 
         # remove existing document
-        self.es.delete_by_query(index=self.index_error, body={"query": {"term": {"processor.name": 'error'}}})
-        self.wait_until(lambda: (self.es.count(index=self.index_error)['count'] == 0))
+        self.es.delete_by_query(index=index_error, body={"query": {"term": {"processor.name": 'error'}}})
+        wait_until(lambda: (self.es.count(index=index_error)['count'] == 0))
 
         # upload second sourcemap file with same key,
         # that actually leads to proper matchings
@@ -430,8 +443,8 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
 
         # delete sourcemap from ES
         # fetching from ES would lead to an error afterwards
-        self.es.indices.delete(index=self.index_smap, ignore=[400, 404])
-        self.es.indices.delete(index="{}-000001".format(self.index_error), ignore=[400, 404])
+        self.es.indices.delete(index=index_smap, ignore=[400, 404])
+        self.es.indices.delete(index="{}-000001".format(index_error), ignore=[400, 404])
 
         # insert document,
         # fetching sourcemap without errors, so it must be fetched from cache
@@ -477,10 +490,10 @@ class SourcemappingCacheIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
 
         # delete sourcemap and error event from ES
-        self.es.indices.delete(index=self.ilm_index(self.index_error))
+        self.es.indices.delete(index=self.ilm_index(index_error))
         # fetching from ES will lead to an error afterwards
-        self.es.indices.delete(index=self.index_smap, ignore=[400, 404])
-        self.wait_until(lambda: not self.es.indices.exists(self.index_smap))
+        self.es.indices.delete(index=index_smap, ignore=[400, 404])
+        wait_until(lambda: not self.es.indices.exists(index_smap))
         # ensure smap is not in cache any more
         time.sleep(1)
 
@@ -509,7 +522,7 @@ class SourcemappingDisabledIntegrationTest(ClientSideElasticTest):
                                      self.intake_url,
                                      'transaction',
                                      2)
-        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=index_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == 1, "found {} documents, expected {}".format(
             rs['hits']['total'], 1)
         frames_checked = 0
@@ -557,9 +570,9 @@ class MetricsIntegrationTest(ElasticTest):
     def test_metric_doc(self):
         self.load_docs_with_template(self.get_metricset_payload_payload_path(), self.intake_url, 'metric', 2)
         mappings = self.es.indices.get_field_mapping(
-            index=self.index_metric, fields="system.process.cpu.total.norm.pct")
+            index=index_metric, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"
-        doc = mappings[self.ilm_index(self.index_metric)]["mappings"]
+        doc = mappings[self.ilm_index(index_metric)]["mappings"]
         actual_type = doc["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
@@ -567,14 +580,13 @@ class MetricsIntegrationTest(ElasticTest):
 @integration_test
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
-        self.wait_until_pipelines_registered()
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
-        self.wait_until(lambda: self.log_contains("events have been published"), max_timeout=10)
+        wait_until(lambda: self.log_contains("events have been published"), max_timeout=10)
         time.sleep(2)
         self.assert_no_logged_warnings()
 
-        for idx in [self.index_transaction, self.index_span, self.index_error]:
+        for idx in [index_transaction, index_span, index_error]:
             # ensure documents exist
             rs = self.es.search(index=idx)
             assert rs['hits']['total']['value'] == 1

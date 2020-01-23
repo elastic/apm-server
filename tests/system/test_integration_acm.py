@@ -9,16 +9,14 @@ from apmserver import ElasticTest, integration_test
 
 
 class AgentConfigurationTest(ElasticTest):
-    config_overrides = {
-        "logging_json": "true",
-        "kibana_enabled": "true",
-        "acm_cache_expiration": "1s",
-    }
 
     def config(self):
-        cfg = super(ElasticTest, self).config()
+        cfg = super(AgentConfigurationTest, self).config()
         cfg.update({
             "kibana_host": self.get_kibana_url(),
+            "logging_json": "true",
+            "kibana_enabled": "true",
+            "acm_cache_expiration": "1s"
         })
         cfg.update(self.config_overrides)
         return cfg
