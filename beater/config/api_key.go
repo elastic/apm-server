@@ -31,9 +31,9 @@ const apiKeyLimit = 100
 
 // APIKeyConfig can be used for authorizing against the APM Server via API Keys.
 type APIKeyConfig struct {
-	Enabled  bool                  `config:"enabled"`
-	LimitMin int                   `config:"limit"`
-	ESConfig *elasticsearch.Config `config:"elasticsearch"`
+	Enabled     bool                  `config:"enabled"`
+	LimitPerMin int                   `config:"limit"`
+	ESConfig    *elasticsearch.Config `config:"elasticsearch"`
 }
 
 // IsEnabled returns whether or not API Key authorization is enabled
@@ -59,5 +59,5 @@ func (c *APIKeyConfig) setup(log *logp.Logger, outputESCfg *common.Config) error
 }
 
 func defaultAPIKeyConfig() *APIKeyConfig {
-	return &APIKeyConfig{Enabled: false, LimitMin: apiKeyLimit}
+	return &APIKeyConfig{Enabled: false, LimitPerMin: apiKeyLimit}
 }
