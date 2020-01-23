@@ -30,7 +30,7 @@ you ensure that only your agents are able to send data to your APM servers.
 To secure the communication between APM Agents and the APM Server with API keys:
 
 . <<ssl-setup-api,Enable SSL/TLS>>
-. <<configure-api-key,Configure API keys>>
+. <<configure-api-key,Enable and configure API keys>>
 . <<create-api-key,Create an API key with APM Server>>
 . <<set-api-key,Set the API key in your APM Agents>>
 
@@ -39,14 +39,14 @@ as there is no way to prevent them from being publicly exposed.
 
 [[ssl-setup-api]]
 [float]
-=== SSL/TLS communication in APM Server
+=== Enable SSL/TLS communication
 
 // Use the shared ssl short description
 include::./ssl-input-short.asciidoc[]
 
 [[configure-api-key]]
 [float]
-=== Configure API keys
+=== Enable and configure API keys
 
 API keys are disabled by default. You can change this, and additional settings,
 in the `apm-server.api_key` section of the +{beatname_lc}.yml+ configuration file.
@@ -64,11 +64,11 @@ apm-server.api_key.limit: 50 <2>
 <2> Restricts the number of unique API keys that {es} allows each minute.
 This value should be the number of unique API keys configured in your monitored services.
 
-All other options are described in <<api-key-settings>>.
+All other configuration options are described in <<api-key-settings>>.
 
 [[create-api-key]]
 [float]
-=== Create an API key
+=== Create and validate an API key
 
 APM Server provides a command line interface for creating API keys.
 Keys created using this method can only be used for Agent/Server communication.
@@ -81,13 +81,13 @@ Regardless, the user that creates the API key will need to have the privileges t
 
 [[create-api-key-subcommands]]
 [float]
-==== API key subcommands
+==== `apikey` subcommands
 
 include::{libbeat-dir}/command-reference.asciidoc[tag=api-key-subcommands]
 
 [[create-api-key-privileges]]
 [float]
-==== API key privileges
+==== Privileges
 
 There are three unique privileges you can assign to each API keys.
 If privileges are not specified at creation time, the created key will have all privileges. 
