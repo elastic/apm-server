@@ -2,16 +2,16 @@ import os
 import re
 import subprocess
 
-from apmserver import integration_test
-from apmserver import ElasticTest
+from apmserver import integration_test, ElasticTest
+from helper import wait_until
 
 
 @integration_test
 class Test(ElasticTest):
     def setUp(self):
         super(Test, self).setUp()
-        self.wait_until(lambda: self.log_contains("Listening for Jaeger HTTP"), name="Jaeger HTTP listener started")
-        self.wait_until(lambda: self.log_contains("Listening for Jaeger gRPC"), name="Jaeger gRPC listener started")
+        wait_until(lambda: self.log_contains("Listening for Jaeger HTTP"), name="Jaeger HTTP listener started")
+        wait_until(lambda: self.log_contains("Listening for Jaeger gRPC"), name="Jaeger gRPC listener started")
 
         # Extract the Jaeger server addresses.
         log = self.get_log()

@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 from apmserver import SubCommandTest, integration_test
+from es_helper import index_name
 
 
 class ExportCommandTest(SubCommandTest):
@@ -108,19 +109,20 @@ class TestExportTemplate(ExportCommandTest):
 
     def setUp(self):
         self.dir = os.path.abspath(os.path.join(self.beat_path, os.path.dirname(__file__), "test-export-template"))
+        self.addCleanup(self.cleanup_exports)
         super(TestExportTemplate, self).setUp()
 
-    def tearDown(self):
+    def cleanup_exports(self):
         shutil.rmtree(self.dir)
 
     def test_export_template_to_file(self):
         """
         Test export general apm template to file
         """
-        path = os.path.join(self.dir, "template", self.index_name + '.json')
+        path = os.path.join(self.dir, "template", index_name + '.json')
         with open(path) as f:
             template = json.load(f)
-        assert template['index_patterns'] == [self.index_name + '*']
+        assert template['index_patterns'] == [index_name + '*']
         assert template['settings']['index']['mapping']['total_fields']['limit'] == 5
         assert len(template['mappings']) > 0
         assert template['order'] == 1
@@ -140,9 +142,10 @@ class TestExportILMPolicy(ExportCommandTest):
 
     def setUp(self):
         self.dir = os.path.abspath(os.path.join(self.beat_path, os.path.dirname(__file__), "test-export-ilm"))
+        self.addCleanup(self.cleanup_exports)
         super(TestExportILMPolicy, self).setUp()
 
-    def tearDown(self):
+    def cleanup_exports(self):
         shutil.rmtree(self.dir)
 
     def test_export_ilm_policy_to_files(self):
