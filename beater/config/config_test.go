@@ -177,9 +177,9 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 				},
 				APIKeyConfig: &APIKeyConfig{
-					Enabled:  true,
-					LimitMin: 200,
-					ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}},
+					Enabled:     true,
+					LimitPerMin: 200,
+					ESConfig:    &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}},
 				},
 			},
 		},
@@ -277,7 +277,7 @@ func Test_UnpackConfig(t *testing.T) {
 						Host:    "localhost:14268",
 					},
 				},
-				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()},
+				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 			},
 		},
 	}

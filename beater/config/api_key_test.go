@@ -49,11 +49,11 @@ func TestAPIKeyConfig_ESConfig(t *testing.T) {
 			expectedConfig: defaultAPIKeyConfig(),
 		},
 		"ES config missing": {
-			cfg: &APIKeyConfig{Enabled: true, LimitMin: apiKeyLimit},
+			cfg: &APIKeyConfig{Enabled: true, LimitPerMin: apiKeyLimit},
 			expectedConfig: &APIKeyConfig{
-				Enabled:  true,
-				LimitMin: apiKeyLimit,
-				ESConfig: elasticsearch.DefaultConfig()},
+				Enabled:     true,
+				LimitPerMin: apiKeyLimit,
+				ESConfig:    elasticsearch.DefaultConfig()},
 		},
 		"ES configured": {
 			cfg: &APIKeyConfig{
@@ -70,11 +70,11 @@ func TestAPIKeyConfig_ESConfig(t *testing.T) {
 			expectedConfig: defaultAPIKeyConfig(),
 		},
 		"ES from output": {
-			cfg:   &APIKeyConfig{Enabled: true, LimitMin: 20},
+			cfg:   &APIKeyConfig{Enabled: true, LimitPerMin: 20},
 			esCfg: common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"],"username":"foo","password":"bar"}`),
 			expectedConfig: &APIKeyConfig{
-				Enabled:  true,
-				LimitMin: 20,
+				Enabled:     true,
+				LimitPerMin: 20,
 				ESConfig: &elasticsearch.Config{
 					Timeout:  5 * time.Second,
 					Username: "foo",
