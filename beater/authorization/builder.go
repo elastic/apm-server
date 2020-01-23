@@ -42,7 +42,7 @@ type Authorization interface {
 }
 
 const (
-	cacheTimeoutMinute = 5
+	cacheTimeoutMinute = 1 * time.Minute
 )
 
 // NewBuilder creates authorization builder based off of the given information
@@ -61,8 +61,7 @@ func NewBuilder(cfg *config.Config) (*Builder, error) {
 			return nil, err
 		}
 
-		size := cfg.APIKeyConfig.LimitMin * cacheTimeoutMinute
-		cache := newPrivilegesCache(cacheTimeoutMinute*time.Minute, size)
+		cache := newPrivilegesCache(cacheTimeoutMinute, cfg.APIKeyConfig.LimitPerMin)
 		b.apikey = newApikeyBuilder(client, cache, []elasticsearch.PrivilegeAction{})
 		b.fallback = DenyAuth{}
 	}
