@@ -158,7 +158,6 @@ class APIKeyBadUserTest(APIKeyBaseTest):
     def test_create_bad_user(self):
         """heartbeat_user doesn't have required cluster privileges, so it can't create keys"""
         result = self.subcommand_output("create", "--name", self.apikey_name, exit_code=1)
-        assert result.get("status") == 403, result
         assert result.get("error") is not None
 
 
