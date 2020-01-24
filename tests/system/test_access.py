@@ -161,7 +161,10 @@ class BaseAPIKey(ElasticTest):
         assert resp.status_code == 200, resp.status_code
         id = resp.json()["id"]
         wait_until(lambda: self.api_key_exists(id), name="create api key")
-        return "ApiKey {}".format(base64.b64encode("{}:{}".format(id, resp.json()["api_key"])))
+        return base64.b64encode("{}:{}".format(id, resp.json()["api_key"]))
+
+    def create_api_key_header(self, privileges, resources, application="apm"):
+        return "ApiKey {}".format(self.create_api_key(privileges, resources, application=application))
 
 
 @integration_test
@@ -179,8 +182,8 @@ class TestAPIKeyCache(BaseAPIKey):
         => cache size is api_key_limit*5
         """
 
-        key1 = self.create_api_key([self.privilege_event], self.resource_any)
-        key2 = self.create_api_key([self.privilege_event], self.resource_any)
+        key1 = self.create_api_key_header([self.privilege_event], self.resource_any)
+        key2 = self.create_api_key_header([self.privilege_event], self.resource_any)
 
         def assert_intake(api_key, authorized):
             resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(api_key))
@@ -212,7 +215,7 @@ class TestAPIKeyWithInvalidESConfig(BaseAPIKey):
         """
         API Key cannot be verified when invalid Elasticsearch instance configured
         """
-        key = self.create_api_key([self.privilege_event], self.resource_any)
+        key = self.create_api_key_header([self.privilege_event], self.resource_any)
         resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
         assert resp.status_code == 401,  "token: {}, status_code: {}".format(key, resp.status_code)
 
@@ -228,7 +231,7 @@ class TestAPIKeyWithESConfig(BaseAPIKey):
         """
         Use dedicated Elasticsearch configuration for API Key validation
         """
-        key = self.create_api_key([self.privilege_event], self.resource_any)
+        key = self.create_api_key_header([self.privilege_event], self.resource_any)
         resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
         assert resp.status_code == 202,  "token: {}, status_code: {}".format(key, resp.status_code)
 
@@ -239,19 +242,21 @@ class TestAccessWithAuthorization(BaseAPIKey):
     def setUp(self):
         super(TestAccessWithAuthorization, self).setUp()
 
-        self.api_key_privileges_all_resource_any = self.create_api_key(self.privileges_all, self.resource_any)
-        self.api_key_privileges_all_resource_backend = self.create_api_key(self.privileges_all, self.resource_backend)
-        self.api_key_privilege_any_resource_any = self.create_api_key(self.privilege_any, self.resource_any)
-        self.api_key_privilege_any_resource_backend = self.create_api_key(self.privilege_any, self.resource_backend)
+        self.api_key_privileges_all_resource_any = self.create_api_key_header(self.privileges_all, self.resource_any)
+        self.api_key_privileges_all_resource_backend = self.create_api_key_header(
+            self.privileges_all, self.resource_backend)
+        self.api_key_privilege_any_resource_any = self.create_api_key_header(self.privilege_any, self.resource_any)
+        self.api_key_privilege_any_resource_backend = self.create_api_key_header(
+            self.privilege_any, self.resource_backend)
 
-        self.api_key_privilege_event = self.create_api_key([self.privilege_event], self.resource_any)
-        self.api_key_privilege_config = self.create_api_key([self.privilege_agent_config], self.resource_any)
-        self.api_key_privilege_sourcemap = self.create_api_key([self.privilege_sourcemap], self.resource_any)
+        self.api_key_privilege_event = self.create_api_key_header([self.privilege_event], self.resource_any)
+        self.api_key_privilege_config = self.create_api_key_header([self.privilege_agent_config], self.resource_any)
+        self.api_key_privilege_sourcemap = self.create_api_key_header([self.privilege_sourcemap], self.resource_any)
 
-        self.api_key_invalid_application = self.create_api_key(
+        self.api_key_invalid_application = self.create_api_key_header(
             self.privileges_all, self.resource_any, application="foo")
-        self.api_key_invalid_privilege = self.create_api_key(["foo"], self.resource_any)
-        self.api_key_invalid_resource = self.create_api_key(self.privileges_all, "foo")
+        self.api_key_invalid_privilege = self.create_api_key_header(["foo"], self.resource_any)
+        self.api_key_invalid_resource = self.create_api_key_header(self.privileges_all, "foo")
 
         self.authorized_keys = ["Bearer 1234",
                                 self.api_key_privileges_all_resource_any, self.api_key_privileges_all_resource_backend,
