@@ -155,10 +155,6 @@ func Test_UnpackConfig(t *testing.T) {
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
 				Pipeline:    defaultAPMPipeline,
-				APIKeyConfig: &APIKeyConfig{
-					Enabled:  true,
-					LimitMin: 200,
-					ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}}},
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{
 						Enabled: true,
@@ -179,6 +175,11 @@ func Test_UnpackConfig(t *testing.T) {
 						Enabled: true,
 						Host:    "localhost:6789",
 					},
+				},
+				APIKeyConfig: &APIKeyConfig{
+					Enabled:     true,
+					LimitPerMin: 200,
+					ESConfig:    &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}},
 				},
 			},
 		},
@@ -256,10 +257,9 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-				Pipeline:     defaultAPMPipeline,
-				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()},
+				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+				Pipeline:    defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{
 						Enabled: true,
@@ -278,6 +278,7 @@ func Test_UnpackConfig(t *testing.T) {
 						Host:    "localhost:14268",
 					},
 				},
+				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 			},
 		},
 	}
