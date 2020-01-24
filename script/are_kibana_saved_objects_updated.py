@@ -144,7 +144,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--branch', default='master')
     parser.add_argument('-I', '--index-pattern',
-                        default='src/legacy/core_plugins/kibana/server/tutorials/apm/index_pattern.json',
+                        default='x-pack/plugins/apm/server/tutorial/index_pattern.json',
                         help='index-pattern file path')
     parser.add_argument('-P', '--repo-path',
                         default='https://raw.githubusercontent.com/elastic/kibana/',
