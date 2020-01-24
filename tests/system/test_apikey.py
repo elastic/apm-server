@@ -70,9 +70,6 @@ class APIKeyTest(APIKeyBaseTest):
 
         assert apikey.get("name") == self.apikey_name, apikey
 
-        for privilege in ["sourcemap", "agentConfig", "event"]:
-            apikey["created_privileges"]["apm"][privilege]["created"] = True, apikey
-
         for attr in ["id", "api_key", "credentials"]:
             assert apikey.get(attr) != "", apikey
 

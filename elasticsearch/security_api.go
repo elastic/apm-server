@@ -135,25 +135,9 @@ type APIKey struct {
 	ExpirationMs *int64 `json:"expiration,omitempty"`
 }
 
-type PrivilegeResponse map[PrivilegeAction]PutResponse
-
-type PrivilegeGroup map[PrivilegeName]Actions
-
 type Permissions map[PrivilegeAction]bool
 
 type PermissionsPerResource map[Resource]Permissions
-
-type Actions struct {
-	Actions []PrivilegeAction `json:"actions"`
-}
-
-type PutResponse struct {
-	Created bool `json:"created"`
-}
-
-type DeleteResponse struct {
-	Found bool `json:"found"`
-}
 
 type AppName string
 

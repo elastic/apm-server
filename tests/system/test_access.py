@@ -115,19 +115,6 @@ class BaseAPIKey(ElasticTest):
             requests.delete(url)
             self.wait_until(lambda: requests.get(url).status_code == 404)
 
-        # call create privileges and ensure they are created for the user
-        payload = {self.application: {}}
-        for name, action in self.privileges.items():
-            payload[self.application][name] = {"actions": [action]}
-        resp = requests.put(self.privileges_url,
-                            data=json.dumps(payload),
-                            headers=headers(content_type=content_type))
-        assert resp.status_code == 200, resp.status_code
-        apm_privileges = resp.json()[self.application]
-        for name in self.privileges.keys():
-            assert name in apm_privileges, name
-            assert apm_privileges[name]['created'], apm_privileges
-
         super(BaseAPIKey, self).setUp()
 
     def fetch_api_keys(self):

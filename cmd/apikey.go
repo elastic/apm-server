@@ -79,7 +79,7 @@ If no privilege(s) are specified, the API Key will be valid for all.`,
 				// No privileges specified, grant all.
 				privileges = auth.ActionsAll()
 			}
-			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
+			return createAPIKey(client, keyName, expiration, privileges, json)
 		}),
 	}
 	create.Flags().StringVar(&keyName, "name", "apm-key", "API Key name")
@@ -265,10 +265,7 @@ func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAct
 	return privileges
 }
 
-// creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
-// we need to ensure forward-compatibility, for which future privileges must be created here and
-// during server startup because we don't know if customers will run this command
-func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
+func createAPIKey(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
 
 	// Elasticsearch will allow a user without the right apm privileges to create API keys, but the keys won't validate
 	// check first whether the user has the right privileges, and bail out early if not
