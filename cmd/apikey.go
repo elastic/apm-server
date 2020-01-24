@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -50,7 +49,7 @@ func genApikeyCmd(settings instance.Settings) *cobra.Command {
 		Use:   "apikey",
 		Short: short,
 		Long: short + `. 
-Most operations require the "manage_security" cluster privilege. Ensure to configure "apm-server.api_key.*" or 
+Most operations require the "manage_api_key" cluster privilege. Ensure to configure "apm-server.api_key.*" or 
 "output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application; 
 you can freely query them. If you modify or delete apm privileges, APM Server might reject all requests.
 Check the Elastic Security API documentation for details.`,
@@ -80,7 +79,7 @@ If no privilege(s) are specified, the API Key will be valid for all.`,
 				// No privileges specified, grant all.
 				privileges = auth.ActionsAll()
 			}
-			return createAPIKeyWithPrivileges(client, keyName, expiration, privileges, json)
+			return createAPIKey(client, keyName, expiration, privileges, json)
 		}),
 	}
 	create.Flags().StringVar(&keyName, "name", "apm-key", "API Key name")
@@ -103,7 +102,7 @@ If no privilege(s) are specified, the API Key will be valid for all.`,
 
 func invalidateApikeyCmd(settings instance.Settings) *cobra.Command {
 	var id, name string
-	var purge, json bool
+	var json bool
 	short := "Invalidate API Key(s) by Id or Name"
 	invalidate := &cobra.Command{
 		Use:   "invalidate",
@@ -116,14 +115,12 @@ If neither of them are, an error will be returned.`,
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
 			}
-			return invalidateAPIKey(client, &id, &name, purge, json)
+			return invalidateAPIKey(client, &id, &name, json)
 		}),
 	}
 	invalidate.Flags().StringVar(&id, "id", "", "id of the API Key to delete")
 	invalidate.Flags().StringVar(&name, "name", "",
 		"name of the API Key(s) to delete (several might match)")
-	invalidate.Flags().BoolVar(&purge, "purge", false,
-		"also remove all privileges created and used by APM Server")
 	invalidate.Flags().BoolVar(&json, "json", false,
 		"prints the output of this command as JSON")
 	invalidate.Flags().SortFlags = false
@@ -268,24 +265,7 @@ func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAct
 	return privileges
 }
 
-// creates an API Key with the given privileges, *AND* all the privileges modeled in apm-server
-// we need to ensure forward-compatibility, for which future privileges must be created here and
-// during server startup because we don't know if customers will run this command
-func createAPIKeyWithPrivileges(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
-	var privilegesRequest = make(es.CreatePrivilegesRequest)
-	event := auth.PrivilegeEventWrite
-	agentConfig := auth.PrivilegeAgentConfigRead
-	sourcemap := auth.PrivilegeSourcemapWrite
-	privilegesRequest[auth.Application] = map[es.PrivilegeName]es.Actions{
-		agentConfig.Name: {Actions: []es.PrivilegeAction{agentConfig.Action}},
-		event.Name:       {Actions: []es.PrivilegeAction{event.Action}},
-		sourcemap.Name:   {Actions: []es.PrivilegeAction{sourcemap.Action}},
-	}
-
-	privilegesCreated, err := es.CreatePrivileges(client, privilegesRequest)
-	if err != nil {
-		return err
-	}
+func createAPIKey(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
 
 	// Elasticsearch will allow a user without the right apm privileges to create API keys, but the keys won't validate
 	// check first whether the user has the right privileges, and bail out early if not
@@ -325,11 +305,6 @@ PUT /_security/role/my_role {
 	}
 
 	printText, printJSON := printers(asJSON)
-	for privilege, result := range privilegesCreated[auth.Application] {
-		if result.Created {
-			printText("Security privilege %q created", privilege)
-		}
-	}
 
 	apikeyRequest := es.CreateAPIKeyRequest{
 		Name: keyName,
@@ -371,13 +346,7 @@ PUT /_security/role/my_role {
 	printText("API Key ........ %s (won't be shown again)", apikey.Key)
 	printText(`Credentials .... %s (use it as "Authorization: APIKey <credentials>" header to communicate with APM Server, won't be shown again)`, apikey.Credentials)
 
-	printJSON(struct {
-		APIKey
-		Privileges es.CreatePrivilegesResponse `json:"created_privileges,omitempty"`
-	}{
-		APIKey:     apikey,
-		Privileges: privilegesCreated,
-	})
+	printJSON(apikey)
 	return nil
 }
 
@@ -423,7 +392,7 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 	return nil
 }
 
-func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJSON bool) error {
+func invalidateAPIKey(client es.Client, id, name *string, asJSON bool) error {
 	if isSet(id) {
 		name = nil
 	} else if isSet(name) {
@@ -435,43 +404,15 @@ func invalidateAPIKey(client es.Client, id, name *string, deletePrivileges, asJS
 			Name: name,
 		},
 	}
-
 	invalidation, err := es.InvalidateAPIKey(client, invalidateKeysRequest)
 	if err != nil {
 		return err
 	}
+
 	printText, printJSON := printers(asJSON)
-	out := struct {
-		es.InvalidateAPIKeyResponse
-		Privileges []es.DeletePrivilegeResponse `json:"deleted_privileges,omitempty"`
-	}{
-		InvalidateAPIKeyResponse: invalidation,
-		Privileges:               make([]es.DeletePrivilegeResponse, 0),
-	}
 	printText("Invalidated keys ... %s", strings.Join(invalidation.Invalidated, ", "))
 	printText("Error count ........ %d", invalidation.ErrorCount)
-
-	if deletePrivileges {
-		for _, privilege := range auth.PrivilegesAll {
-			deletePrivilegesRequest := es.DeletePrivilegeRequest{
-				Application: auth.Application,
-				Privilege:   privilege.Name,
-			}
-			deletion, err := es.DeletePrivileges(client, deletePrivilegesRequest)
-			if err != nil {
-				var eserr *es.Error
-				if errors.As(err, &eserr) && eserr.StatusCode == http.StatusNotFound {
-					continue
-				}
-				return err
-			}
-			if result, ok := deletion[auth.Application][privilege.Name]; ok && result.Found {
-				printText("Deleted privilege \"%v\"", privilege)
-			}
-			out.Privileges = append(out.Privileges, deletion)
-		}
-	}
-	printJSON(out)
+	printJSON(invalidation)
 	return nil
 }
 
