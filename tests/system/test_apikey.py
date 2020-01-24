@@ -70,9 +70,6 @@ class APIKeyTest(APIKeyBaseTest):
 
         assert apikey.get("name") == self.apikey_name, apikey
 
-        for privilege in ["sourcemap", "agentConfig", "event"]:
-            apikey["created_privileges"]["apm"][privilege]["created"] = True, apikey
-
         for attr in ["id", "api_key", "credentials"]:
             assert apikey.get(attr) != "", apikey
 
@@ -161,7 +158,6 @@ class APIKeyBadUserTest(APIKeyBaseTest):
     def test_create_bad_user(self):
         """heartbeat_user doesn't have required cluster privileges, so it can't create keys"""
         result = self.subcommand_output("create", "--name", self.apikey_name, exit_code=1)
-        assert result.get("status") == 403, result
         assert result.get("error") is not None
 
 
