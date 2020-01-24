@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 )
 
-// CreateAPIKey requires manage_security cluster privilege
+// CreateAPIKey requires manage_api_key cluster privilege
 func CreateAPIKey(client Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
 	var apikey CreateAPIKeyResponse
 	req := esapi.SecurityCreateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
@@ -32,7 +32,7 @@ func CreateAPIKey(client Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyRes
 	return apikey, err
 }
 
-// GetAPIKeys requires manage_security cluster privilege
+// GetAPIKeys requires manage_api_key cluster privilege
 func GetAPIKeys(client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
 	req := esapi.SecurityGetAPIKeyRequest{}
 	if apikeyReq.ID != nil {
@@ -45,29 +45,10 @@ func GetAPIKeys(client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, e
 	return apikey, err
 }
 
-// CreatePrivileges requires manage_security cluster privilege
-func CreatePrivileges(client Client, privilegesReq CreatePrivilegesRequest) (CreatePrivilegesResponse, error) {
-	var privileges CreatePrivilegesResponse
-	req := esapi.SecurityPutPrivilegesRequest{Body: esutil.NewJSONReader(privilegesReq)}
-	err := doRequest(client, req, &privileges)
-	return privileges, err
-}
-
-// InvalidateAPIKey requires manage_security cluster privilege
+// InvalidateAPIKey requires manage_api_key cluster privilege
 func InvalidateAPIKey(client Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
 	var confirmation InvalidateAPIKeyResponse
 	req := esapi.SecurityInvalidateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
-	err := doRequest(client, req, &confirmation)
-	return confirmation, err
-}
-
-// DeletePrivileges requires manage_security cluster privilege
-func DeletePrivileges(client Client, privilegesReq DeletePrivilegeRequest) (DeletePrivilegeResponse, error) {
-	var confirmation DeletePrivilegeResponse
-	req := esapi.SecurityDeletePrivilegesRequest{
-		Application: string(privilegesReq.Application),
-		Name:        string(privilegesReq.Privilege),
-	}
 	err := doRequest(client, req, &confirmation)
 	return confirmation, err
 }
@@ -104,10 +85,6 @@ type GetAPIKeyResponse struct {
 	APIKeys []APIKeyResponse `json:"api_keys"`
 }
 
-type CreatePrivilegesRequest map[AppName]PrivilegeGroup
-
-type CreatePrivilegesResponse map[AppName]PrivilegeResponse
-
 type HasPrivilegesRequest struct {
 	// can't reuse the `Applications` type because here the JSON attribute must be singular
 	Applications []Application `json:"application"`
@@ -126,13 +103,6 @@ type InvalidateAPIKeyResponse struct {
 	Invalidated []string `json:"invalidated_api_keys"`
 	ErrorCount  int      `json:"error_count"`
 }
-
-type DeletePrivilegeRequest struct {
-	Application AppName       `json:"application"`
-	Privilege   PrivilegeName `json:"privilege"`
-}
-
-type DeletePrivilegeResponse map[AppName](map[PrivilegeName]DeleteResponse)
 
 type RoleDescriptor map[AppName]Applications
 
@@ -165,25 +135,9 @@ type APIKey struct {
 	ExpirationMs *int64 `json:"expiration,omitempty"`
 }
 
-type PrivilegeResponse map[PrivilegeAction]PutResponse
-
-type PrivilegeGroup map[PrivilegeName]Actions
-
 type Permissions map[PrivilegeAction]bool
 
 type PermissionsPerResource map[Resource]Permissions
-
-type Actions struct {
-	Actions []PrivilegeAction `json:"actions"`
-}
-
-type PutResponse struct {
-	Created bool `json:"created"`
-}
-
-type DeleteResponse struct {
-	Found bool `json:"found"`
-}
 
 type AppName string
 
