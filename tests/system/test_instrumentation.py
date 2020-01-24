@@ -48,7 +48,7 @@ class TestInMemoryTracingAPIKey(BaseAPIKey):
 class TestExternalTracingAPIKey(BaseAPIKey):
     def config(self):
         cfg = super(TestExternalTracingAPIKey, self).config()
-        api_key = self.create_api_key([self.privilege_event], self.resource_any).lstrip("ApiKey ")
+        api_key = self.create_api_key([self.privilege_event], self.resource_any)
         cfg.update({
             "api_key_enabled": True,
             "instrumentation_enabled": "true",
