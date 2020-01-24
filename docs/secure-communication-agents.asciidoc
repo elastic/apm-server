@@ -14,18 +14,13 @@ As RUM endpoints cannot be secured, they are exempt from this rule.
 [[api-key]]
 === API keys
 
-// Most operations require the `manage_security` cluster privilege,
-// and you must ensure that `apm-server.api_key` or `output.elasticsearch` are configured appropriately.
-// If you modify or delete apm privileges, APM Server might reject all requests.
-// APM Server will create security privileges for the `apm` application; you can freely query them.
-// If you modify or delete apm privileges, APM Server might reject all requests.
-// Check the Elastic Security API documentation for details.
+experimental::[]
 
 You can configure an API key to authorize requests to the APM Server.
 API keys are sent as plain-text,
 so they only provide security when used in combination with SSL/TLS.
-When you set an API key in each of your agents,
-you ensure that only your agents are able to send data to your APM servers.
+By enabling `apm-server.api_key.enabled: true`, you ensure that only agents with a valid API Key
+are able to successfully use APM Server's API (except for RUM endpoints).
 
 To secure the communication between APM Agents and the APM Server with API keys:
 
@@ -52,7 +47,7 @@ API keys are disabled by default. You can change this, and additional settings,
 in the `apm-server.api_key` section of the +{beatname_lc}.yml+ configuration file.
 
 At a minimum, you must enable API keys,
-and should set a limit on the number of unique API keys {es} allows per minute.
+and should set a limit on the number of unique API keys APM Server allows per minute.
 Here's an example `apm-server.api_key` config using 50 unique API keys:
 
 [source,yaml]
@@ -72,18 +67,16 @@ All other configuration options are described in <<api-key-settings>>.
 
 APM Server provides a command line interface for creating API keys.
 Keys created using this method can only be used for Agent/Server communication.
+The user that creates the API key will need to have the privileges they wish to give to the API key.
 
-While it is possible to CURL {es} directly to create API keys,
+While it is also possible to CURL {es} directly to create API keys,
 using this method is not recommended.
-The command line tool has safeguards that ensure the required privileges exist before creating an API key.
-If they do not exist, the CLI tool will create the privileges.
-Regardless, the user that creates the API key will need to have the privileges they wish to give to the API key.
 
 [[create-api-key-subcommands]]
 [float]
 ==== `apikey` subcommands
 
-include::{libbeat-dir}/command-reference.asciidoc[tag=api-key-subcommands]
+include::{libbeat-dir}/command-reference.asciidoc[tag=apikey-subcommands]
 
 [[create-api-key-privileges]]
 [float]
@@ -193,7 +186,7 @@ See the relevant Agent documentation for additional information:
 // MERGED: https://github.com/elastic/apm-agent-ruby/pull/655
 
 [[api-key-settings]]
-=== API key configuration options
+=== `api_key.*` configuration options
 
 You can specify the following options in the `apm-server.api_key.*` section of the
 +{beatname_lc}.yml+ configuration file.
@@ -220,11 +213,17 @@ The minimum value for this setting should be the number of API keys configured i
 The default `limit` is `100`.
 
 [float]
+=== `api_key.elasticsearch.*` configuration options
+
+All of the `api_key.elasticsearch.*` configurations are optional.
+If none are set, configuration settings from the `apm-server.output` section will be reused.
+
+[float]
 ===== `elasticsearch.hosts`
 
 API keys are fetched from Elasticsearch.
 This configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
-If nothing is configured, configuration settings from the `output` section will be reused.
+
 
 [float]
 ===== `elasticsearch.protocol`
@@ -253,9 +252,9 @@ The http request timeout in seconds for the Elasticsearch request.
 If nothing is configured, configuration settings from the `output` section will be reused.
 
 [float]
-=== Optional SSL configuration options
+==== `api_key.elasticsearch.ssl.*` configuration options
 
-SSL is off by default. Set `protocol` to `https` if you want to enable `https`.
+SSL is off by default. Set `elasticsearch.protocol` to `https` if you want to enable `https`.
 
 [float]
 ===== `elasticsearch.ssl.enabled`
