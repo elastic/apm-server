@@ -2,7 +2,7 @@
 == Secure communication with APM Agents
 
 There are two ways to secure the communication between APM Agents and the APM Server.
-Both options can be enabled in parallel,
+Both options can be enabled at the same time,
 allowing Elastic APM agents to chose whichever mechanism they support.
 
 As soon as secure communication is enabled, requests without a valid token or API key will be denied by APM Server.
@@ -47,7 +47,7 @@ API keys are disabled by default. You can change this, and additional settings,
 in the `apm-server.api_key` section of the +{beatname_lc}.yml+ configuration file.
 
 At a minimum, you must enable API keys,
-and should set a limit on the number of unique API keys APM Server allows per minute.
+and should set a limit on the number of unique API keys that APM Server allows per minute.
 Here's an example `apm-server.api_key` config using 50 unique API keys:
 
 [source,yaml]
@@ -68,9 +68,6 @@ All other configuration options are described in <<api-key-settings>>.
 APM Server provides a command line interface for creating API keys.
 Keys created using this method can only be used for Agent/Server communication.
 The user that creates the API key will need to have the privileges they wish to give to the API key.
-
-While it is also possible to CURL {es} directly to create API keys,
-using this method is not recommended.
 
 [[create-api-key-subcommands]]
 [float]
@@ -115,7 +112,7 @@ Name ........... java-001
 Expiration ..... never
 Id ............. qT4tz28B1g59zC3uAXfW
 API Key ........ rH55zKd5QT6wvs3UbbkxOA (won't be shown again)
-Credentials .... cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==
+Credentials .... cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ== (won't be shown again)
 --------------------------------------------------
 
 You should always verify the privileges of an API key after creating it.
@@ -137,6 +134,7 @@ Authorized for privilege "config_agent:read"...:    Yes
 --------------------------------------------------
 
 To invalidate an API key, use the `invalidate` subcommand.
+Due to {es} caching, there may be a delay between when this subcommand is executed and when it takes effect.
 
 The following example invalidates the `java-001` API key.
 
@@ -201,7 +199,7 @@ These are different from the API key settings used for the Elasticsearch output 
 
 Enable API key authorization by setting `enabled` to `true`.
 Agents will include a valid API key in the following format: `Authorization: ApiKey <token>`.
-The key must be the base64 encoded representation of the API key's `id:key`.
+The key must be the base64 encoded representation of the API key's `id:name`.
 By default, `enabled` is set to `false`, and API key support is disabled.
 
 [float]

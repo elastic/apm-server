@@ -135,7 +135,7 @@ Communication between APM agents and APM Server now supports sending an
 <<api-key,API Key in the Authorization header>>.
 APM Server provides an `apikey` command that can create, verify, invalidate,
 and show information about API Keys for agent/server communication.
-Most operations require the `manage_security` cluster privilege,
+Most operations require the `manage_api_key` cluster privilege,
 and you must ensure that `apm-server.api_key` or `output.elasticsearch` are configured appropriately.
 
 *SYNOPSIS*
@@ -186,6 +186,7 @@ When used with `verify`, asks for the `config_agent:read` privilege.
 
 *`--credentials CREDS`*::
 Required for the `verify` subcommand. Specifies the credentials for which to to check privileges.
+Credentials are the base64 encoded representation of the API key's `id:name`.
 
 *`--expiration TIME`*::
 When used with `create`, specifies the expiration for the key, e.g., "1d" (default never).
@@ -201,7 +202,8 @@ When used with `create`, gives the `event:write` privilege to the created key.
 When used with `verify`, asks for the `event:write` privilege.
 
 *`--json`*::
-Prints the output of the command as JSON
+Prints the output of the command as JSON.
+Valid with all `apikey` subcommands.
 
 *`--name NAME`*::
 Name of the API key(s). Valid with the `create`, `info`, and `invalidate` subcommands.
@@ -223,9 +225,9 @@ When used with `info`, only returns valid API Keys (not expired or invalidated).
 
 ["source","sh",subs="attributes"]
 -----
-{beatname_lc} apikey create --ingest --agent-config --name service-001
-{beatname_lc} apikey info --name service-001 --valid-only
-{beatname_lc} apikey invalidate --name service-001
+{beatname_lc} apikey create --ingest --agent-config --name example-001
+{beatname_lc} apikey info --name example-001 --valid-only
+{beatname_lc} apikey invalidate --name example-001
 -----
 
 For more information, see <<api-key>>.
