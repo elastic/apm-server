@@ -1,20 +1,349 @@
 [[secure-communication-agents]]
 == Secure communication with APM Agents
 
-To secure the communication between APM Agents and the APM Server:
+There are two ways to secure the communication between APM Agents and the APM Server.
+Both options can be enabled at the same time,
+allowing Elastic APM agents to chose whichever mechanism they support.
 
-. <<secret-token,Set a secret token in your Agents and Server>>
-. <<ssl-setup,Enable SSL/TLS in APM Server>>
-. <<https-in-agents,Enable HTTPS in your APM Agents>>
+As soon as secure communication is enabled, requests without a valid token or API key will be denied by APM Server.
+As RUM endpoints cannot be secured, they are exempt from this rule.
+
+* <<api-key,API keys>>
+* <<secret-token,Secret token>>
+
+[[api-key]]
+=== API keys
+
+experimental::[]
+
+You can configure an API key to authorize requests to the APM Server.
+API keys are sent as plain-text,
+so they only provide security when used in combination with SSL/TLS.
+By enabling `apm-server.api_key.enabled: true`, you ensure that only agents with a valid API Key
+are able to successfully use APM Server's API (except for RUM endpoints).
+
+To secure the communication between APM Agents and the APM Server with API keys:
+
+. <<ssl-setup-api,Enable SSL/TLS>>
+. <<configure-api-key,Enable and configure API keys>>
+. <<create-api-key,Create an API key with APM Server>>
+. <<set-api-key,Set the API key in your APM Agents>>
+
+NOTE: API Keys are not applicable for the RUM Agent,
+as there is no way to prevent them from being publicly exposed.
+
+[[ssl-setup-api]]
+[float]
+=== Enable SSL/TLS communication
+
+// Use the shared ssl short description
+include::./ssl-input-short.asciidoc[]
+
+[[configure-api-key]]
+[float]
+=== Enable and configure API keys
+
+API keys are disabled by default. You can change this, and additional settings,
+in the `apm-server.api_key` section of the +{beatname_lc}.yml+ configuration file.
+
+At a minimum, you must enable API keys,
+and should set a limit on the number of unique API keys that APM Server allows per minute.
+Here's an example `apm-server.api_key` config using 50 unique API keys:
+
+[source,yaml]
+----
+apm-server.api_key.enabled: true <1>
+apm-server.api_key.limit: 50 <2>
+----
+<1> Enables API keys
+<2> Restricts the number of unique API keys that {es} allows each minute.
+This value should be the number of unique API keys configured in your monitored services.
+
+All other configuration options are described in <<api-key-settings>>.
+
+[[create-api-key]]
+[float]
+=== Create and validate an API key
+
+APM Server provides a command line interface for creating API keys.
+Keys created using this method can only be used for Agent/Server communication.
+The user that creates the API key will need to have the privileges they wish to give to the API key.
+
+[[create-api-key-subcommands]]
+[float]
+==== `apikey` subcommands
+
+include::{libbeat-dir}/command-reference.asciidoc[tag=apikey-subcommands]
+
+[[create-api-key-privileges]]
+[float]
+==== Privileges
+
+There are three unique privileges you can assign to each API keys.
+If privileges are not specified at creation time, the created key will have all privileges. 
+
+* *Agent configuration* - Required for agents to read
+{kibana-ref}/agent-configuration.html[Agent configuration remotely].
+`--agent-config` gives the `config_agent:read` privilege to the created key.
+* *Ingest* - Required for ingesting Agent events.
+`--ingest` gives the `event:write` privilege to the created key.
+* *Sourcemap* - Required for <<sourcemaps,uploading sourcemaps>>.
+`--sourcemap` gives the `sourcemap:write` privilege to the created key.
+
+[[create-api-key-workflow]]
+[float]
+==== API key example workflow
+
+Create an API key with the `create` subcommand.
+
+The following example creates an API key with a `name` of `java-001`,
+and gives the "agent configuration" and "ingest" privileges.
+
+["source","sh",subs="attributes"]
+-----
+{beatname_lc} apikey create --ingest --agent-config --name java-001
+-----
+
+The response will look similar to this:
+
+[source,console-result,subs="attributes,callouts"]
+--------------------------------------------------
+Name ........... java-001
+Expiration ..... never
+Id ............. qT4tz28B1g59zC3uAXfW
+API Key ........ rH55zKd5QT6wvs3UbbkxOA (won't be shown again)
+Credentials .... cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ== (won't be shown again)
+--------------------------------------------------
+
+You should always verify the privileges of an API key after creating it.
+Verification can be done using the `verify` subcommand.
+
+The following example verifies that the `java-001` API key has the "agent configuration" and "ingest" privileges.
+
+["source","sh",subs="attributes"]
+-----
+{beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==  
+-----
+
+If the API key has the requested privileges, the response will look similar to this:
+
+[source,console-result,subs="attributes,callouts"]
+--------------------------------------------------
+Authorized for privilege "event:write"...:          Yes
+Authorized for privilege "config_agent:read"...:    Yes
+--------------------------------------------------
+
+To invalidate an API key, use the `invalidate` subcommand.
+Due to {es} caching, there may be a delay between when this subcommand is executed and when it takes effect.
+
+The following example invalidates the `java-001` API key.
+
+["source","sh",subs="attributes"]
+-----
+{beatname_lc} apikey invalidate --name java-001
+-----
+
+The response will look similar to this:
+
+[source,console-result,subs="attributes,callouts"]
+--------------------------------------------------
+Invalidated keys ... qT4tz28B1g59zC3uAXfW
+Error count ........ 0
+--------------------------------------------------
+
+A full list of `apikey` subcommands and flags is available in the <<apikey-command,API key command reference>>.
+
+[[set-api-key]]
+[float]
+=== Set the API key in your APM Agents
+
+You can now apply your newly created API keys in the configuration of each of your APM Agents.
+See the relevant Agent documentation for additional information:
+
+// Agent meta: https://github.com/elastic/apm/issues/183
+
+// GOOD DOCS:
+* *Go Agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
+// MERGED: https://github.com/elastic/apm-agent-go/pull/698
+
+// No issue or docs yet
+// * *Java Agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
+
+// No issue or docs yet
+// * *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#[`API_KEY`]
+
+// No issue or docs yet
+// * *Node.js Agent*: {apm-node-ref}/configuration.html[`api_key`]
+
+// No docs yet
+// * *Python Agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
+// WIP
+
+// No docs yet
+// * *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
+// MERGED: https://github.com/elastic/apm-agent-ruby/pull/655
+
+[[api-key-settings]]
+=== `api_key.*` configuration options
+
+You can specify the following options in the `apm-server.api_key.*` section of the
++{beatname_lc}.yml+ configuration file.
+They apply to API key communication between the APM Server and APM Agents.
+
+// To do!
+// These will become links, but the relevant docs haven't been merged yet.
+These are different from the API key settings used for the Elasticsearch output and monitoring.
+
+[float]
+===== `enabled`
+
+Enable API key authorization by setting `enabled` to `true`.
+Agents will include a valid API key in the following format: `Authorization: ApiKey <token>`.
+The key must be the base64 encoded representation of the API key's `id:name`.
+By default, `enabled` is set to `false`, and API key support is disabled.
+
+[float]
+===== `limit`
+
+Each unique API key triggers one request to Elasticsearch.
+This setting restricts the number of unique API keys are allowed per minute.
+The minimum value for this setting should be the number of API keys configured in your monitored services.
+The default `limit` is `100`.
+
+[float]
+=== `api_key.elasticsearch.*` configuration options
+
+All of the `api_key.elasticsearch.*` configurations are optional.
+If none are set, configuration settings from the `apm-server.output` section will be reused.
+
+[float]
+===== `elasticsearch.hosts`
+
+API keys are fetched from Elasticsearch.
+This configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
+
+
+[float]
+===== `elasticsearch.protocol`
+
+The name of the protocol Elasticsearch is reachable on.
+The options are: `http` or `https`. The default is `http`.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+===== `elasticsearch.path`
+
+An optional HTTP path prefix that is prepended to the HTTP API calls.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+===== `elasticsearch.proxy_url`
+
+The URL of the proxy to use when connecting to the Elasticsearch servers.
+The value may be either a complete URL or a "host[:port]", in which case the "http"scheme is assumed.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+===== `elasticsearch.timeout`
+
+The http request timeout in seconds for the Elasticsearch request.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+==== `api_key.elasticsearch.ssl.*` configuration options
+
+SSL is off by default. Set `elasticsearch.protocol` to `https` if you want to enable `https`.
+
+[float]
+===== `elasticsearch.ssl.enabled`
+
+Enable custom SSL settings.
+Set to false to ignore custom SSL settings for secure communication.
+
+[float]
+===== `elasticsearch.ssl.verification_mode`
+
+Configure SSL verification mode.
+If `none` is configured, all server hosts and certificates will be accepted.
+In this mode, SSL based connections are susceptible to man-in-the-middle attacks.
+**Use only for testing**. Default is `full`.
+
+[float]
+===== `elasticsearch.ssl.supported_protocols`
+
+List of supported/valid TLS versions.
+By default, all TLS versions from 1.0 to 1.2 are enabled.
+
+[float]
+===== `elasticsearch.ssl.certificate_authorities`
+
+List of root certificates for HTTPS server verifications.
+
+[float]
+===== `elasticsearch.ssl.certificate`
+
+The path to the certificate for SSL client authentication.
+
+[float]
+===== `elasticsearch.ssl.key`
+
+The client certificate key used for client authentication.
+This option is required if certificate is specified.
+
+[float]
+===== `elasticsearch.ssl.key_passphrase`
+
+An optional passphrase used to decrypt an encrypted key stored in the configured key file.
+It is recommended to use the provided keystore instead of entering the passphrase in plain text.
+
+[float]
+===== `elasticsearch.ssl.cipher_suites`
+
+The list of cipher suites to use. The first entry has the highest priority.
+If this option is omitted, the Go crypto library’s default suites are used (recommended).
+
+[float]
+===== `elasticsearch.ssl.curve_types`
+
+The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key exchange).
+
+[float]
+===== `elasticsearch.ssl.renegotiation`
+
+Configure what types of renegotiation are supported.
+Valid options are `never`, `once`, and `freely`. Default is `never`.
+
+* `never` - Disables renegotiation.
+* `once` - Allows a remote server to request renegotiation once per connection.
+* `freely` - Allows a remote server to repeatedly request renegotiation.
 
 [[secret-token]]
-[float]
 === Secret token
 
 You can configure a secret token to authorize requests to the APM Server.
 This ensures that only your agents are able to send data to your APM servers.
 Both the agents and the APM servers have to be configured with the same secret token,
 and secret tokens only provide security when used in combination with SSL/TLS.
+
+To secure the communication between APM Agents and the APM Server with a secret token:
+
+. <<ssl-setup-token,Enable SSL/TLS in APM Server>>
+. <<set-secret-token,Set a secret token in your Agents and Server>>
+. <<https-in-agents,Enable HTTPS in your APM Agents>>
+
+NOTE: Secret tokens are not applicable for the RUM Agent,
+as there is no way to prevent them from being publicly exposed.
+
+[[ssl-setup-token]]
+[float]
+=== SSL/TLS communication in APM Server
+
+// Use the shared ssl short description
+include::./ssl-input-short.asciidoc[]
+
+[[set-secret-token]]
+[float]
+=== Set a secret token
 
 **APM Server configuration**
 
@@ -40,26 +369,6 @@ Each Agent has a configuration for setting the value of the secret token:
 * *Node.js Agent*: {apm-node-ref}/configuration.html#secret-token[`Secret Token`]
 * *Python Agent*: {apm-py-ref}/configuration.html#config-secret-token[`secret_token`]
 * *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-secret-token[`secret_token`]
-
-[[ssl-setup]]
-[float]
-=== SSL/TLS communication in APM Server
-
-To enable SSL/TLS, you need to enable SSL and provide both a private key and a certificate
-issued by a certificate authority (CA).
-You can then specify the path to those files in your configuration properties.
-This will make APM Server serve HTTPS requests instead of HTTP.
-
-Here's a basic APM Server SSL config with secure communication enabled:
-
-[source,yaml]
-----
-apm-server.ssl.enabled: true
-apm-server.ssl.key: "/etc/pki/key.pem"
-apm-server.ssl.certificate: "/etc/pki/apm-server.pem"
-----
-
-A full list of configuration options is available in <<agent-server-ssl>>.
 
 [[https-in-agents]]
 [float]
