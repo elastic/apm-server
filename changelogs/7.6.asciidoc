@@ -33,6 +33,5 @@ https://github.com/elastic/apm-server/compare/v7.5.1\...v7.6.0[View commits]
 - Add experimental support for receiving Jaeger trace data {pull}3129[3129]
 - Upgrade APM Go agent to 1.7.0, and add support for API Key auth for self-instrumentation {pull}3134[3134]
 - Add correlation for server trace/log data {pull}3136[3136]
-- Upgrade Go to 1.13.6 {pull}3154[3154].
 - Add subcommand to create API Keys {pull}3063[3063]
-
+- Upgrade Go to 1.13.7 {pull}3264[3264].
