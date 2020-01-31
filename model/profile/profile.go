@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/OneOfOne/xxhash"
+	"github.com/cespare/xxhash"
 	"github.com/google/pprof/profile"
 
 	"github.com/elastic/apm-server/transform"
@@ -63,7 +63,7 @@ func (pp PprofProfile) Transform(tctx *transform.Context) []beat.Event {
 			profileFields["duration"] = pp.Profile.DurationNanos
 		}
 		if len(sample.Location) > 0 {
-			hash := xxhash.New64()
+			hash := xxhash.New()
 			stack := make([]common.MapStr, len(sample.Location))
 			for i := len(sample.Location) - 1; i >= 0; i-- {
 				loc := sample.Location[i]
