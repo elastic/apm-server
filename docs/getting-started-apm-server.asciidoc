@@ -360,3 +360,8 @@ include::{libbeat-dir}/repositories.asciidoc[]
 
 // Shared docker
 include::{libbeat-dir}/shared-docker.asciidoc[]
+
+// APM Jaeger integration
+ifdef::apm-server[]
+include::./jaeger-support.asciidoc[]
+endif::[]
