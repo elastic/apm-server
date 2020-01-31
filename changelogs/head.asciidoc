@@ -6,6 +6,8 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 [float]
 ==== Breaking Changes
 
+* Remove enroll subcommand {pull}3270[3270].
+
 [float]
 ==== Intake API Changes
 
