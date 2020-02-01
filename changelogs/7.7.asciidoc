@@ -1,0 +1,21 @@
+[[release-notes-7.7]]
+== APM Server version 7.7
+
+https://github.com/elastic/apm-server/compare/7.6\...7.7[View commits]
+
+* <<release-notes-7.7.0>>
+
+[[release-notes-7.7.0]]
+=== APM Server version 7.7.0
+
+https://github.com/elastic/apm-server/compare/v7.6.0\...v7.7.0[View commits]
+
+[float]
+==== Breaking Changes
+* Remove enroll subcommand {pull}3270[3270].
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
