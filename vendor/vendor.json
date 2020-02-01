@@ -259,6 +259,12 @@
 			"revisionTime": "2019-08-26T04:01:38Z"
 		},
 		{
+			"checksumSHA1": "Dc69d85Cos3gpsT4d/BJRQNeOMg=",
+			"path": "github.com/cespare/xxhash",
+			"revision": "2372543dd2bbab7a55ce14c54eb357abe23a42f5",
+			"revisionTime": "2019-10-31T20:04:18Z"
+		},
+		{
 			"checksumSHA1": "rYc2bTNfDk0JL5Tb+B/snlzRkJE=",
 			"path": "github.com/client9/misspell",
 			"revision": "c0b55c8239520f6b5aa15a0207ca8b28027ba49e",
