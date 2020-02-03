@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -39,6 +38,10 @@ import (
 func Test_UnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
 	version := "8.0.0"
+
+	kibanaNoSlashConfig := DefaultConfig(version)
+	kibanaNoSlashConfig.Kibana.Enabled = true
+	kibanaNoSlashConfig.Kibana.Config.Host = "kibanahost:5601/proxy"
 
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
@@ -152,7 +155,10 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
+				Kibana: kibanaConfig{
+					Enabled: true,
+					Config:  defaultKibanaConfig().Config,
+				},
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
 				Pipeline:    defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
@@ -256,7 +262,7 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+				Kibana:      defaultKibanaConfig(),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 				Pipeline:    defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
@@ -279,6 +285,15 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 			},
+		},
+		"kibana trailing slash": {
+			inpCfg: map[string]interface{}{
+				"kibana": map[string]interface{}{
+					"enabled": "true",
+					"host":    "kibanahost:5601/proxy/",
+				},
+			},
+			outCfg: kibanaNoSlashConfig,
 		},
 	}
 

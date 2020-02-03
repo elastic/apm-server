@@ -20,8 +20,10 @@ package config
 import (
 	"net"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/elastic/beats/libbeat/kibana"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -42,6 +44,45 @@ var (
 	regexObserverVersion = regexp.MustCompile("%.*{.*observer.version.?}")
 )
 
+type kibanaConfig struct {
+	Enabled bool                `config:"enabled"`
+	Config  kibana.ClientConfig `config:",inline"`
+}
+
+func (k *kibanaConfig) Unpack(c interface{}) error {
+	if c == nil {
+		return nil
+	}
+
+	cfg, err := common.NewConfigFrom(c)
+	if err != nil {
+		return err
+	}
+	k.Enabled = cfg.Enabled()
+	if err := cfg.Unpack(&(k.Config)); err != nil {
+		return err
+	}
+	k.Config.Host = strings.TrimRight(k.Config.Host, "/")
+
+	return nil
+}
+
+func defaultKibanaConfig() kibanaConfig {
+	return kibanaConfig{
+		Enabled: false,
+		Config: kibana.ClientConfig{
+			Protocol: "http",
+			Host:     "localhost:5601",
+			Path:     "",
+			SpaceID:  "",
+			Username: "",
+			Password: "",
+			Timeout:  90 * time.Second,
+			TLS:      nil,
+		},
+	}
+}
+
 // Config holds configuration information nested under the key `apm-server`
 type Config struct {
 	Host                string                  `config:"host"`
@@ -59,7 +100,7 @@ type Config struct {
 	RumConfig           *RumConfig              `config:"rum"`
 	Register            *RegisterConfig         `config:"register"`
 	Mode                Mode                    `config:"mode"`
-	Kibana              *common.Config          `config:"kibana"`
+	Kibana              kibanaConfig            `config:"kibana"`
 	AgentConfig         *AgentConfig            `config:"agent.config"`
 	SecretToken         string                  `config:"secret_token"`
 	APIKeyConfig        *APIKeyConfig           `config:"api_key"`
@@ -156,7 +197,7 @@ func DefaultConfig(beatVersion string) *Config {
 		RumConfig:    defaultRum(beatVersion),
 		Register:     defaultRegisterConfig(true),
 		Mode:         ModeProduction,
-		Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+		Kibana:       defaultKibanaConfig(),
 		AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 		Pipeline:     defaultAPMPipeline,
 		APIKeyConfig: defaultAPIKeyConfig(),
