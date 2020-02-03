@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/beats/libbeat/logp"
@@ -179,15 +180,15 @@ type middlewareFunc func(*config.Config, *authorization.Handler, map[request.Res
 
 func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, middlewareFunc middlewareFunc) (request.Handler, error) {
 	var client kibana.Client
-	if cfg.Kibana.Enabled() {
-		client = kibana.NewConnectingClient(cfg.Kibana)
+	if cfg.Kibana.Enabled {
+		client = kibana.NewConnectingClient(common.MustNewConfigFrom(cfg.Kibana.Config))
 	}
 	h := agent.Handler(client, cfg.AgentConfig)
 	msg := "Agent remote configuration is disabled. " +
 		"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
 		"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
 		"If you are not using remote configuration, you can safely ignore this error."
-	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled(), msg)
+	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg)
 	return middleware.Wrap(h, append(middlewareFunc(cfg, authHandler, agent.MonitoringMap), ks)...)
 }
 
