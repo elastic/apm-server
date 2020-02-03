@@ -73,19 +73,20 @@ func (h Hosts) Validate() error {
 }
 
 func connectionConfig(config *Config) (*http.Transport, []string, error) {
-	var dial, tlsDial transport.Dialer
 	var addrs []string
 	proxy, err := httpProxyURL(config)
 	if err == nil {
 		addrs, err = addresses(config)
 	}
-	if err == nil {
-		dial, tlsDial, err = dialer(config)
+	if err != nil {
+		return &http.Transport{}, nil, nil
 	}
+	dial, tlsDial, tlsConfig, err := dialer(config)
 	transport := &http.Transport{
-		Proxy:   proxy,
-		Dial:    dial.Dial,
-		DialTLS: tlsDial.Dial,
+		Proxy:           proxy,
+		Dial:            dial.Dial,
+		DialTLS:         tlsDial.Dial,
+		TLSClientConfig: tlsConfig.ToConfig(),
 	}
 	return transport, addrs, err
 }
@@ -122,16 +123,16 @@ func addresses(cfg *Config) ([]string, error) {
 	return addresses, nil
 }
 
-func dialer(cfg *Config) (transport.Dialer, transport.Dialer, error) {
+func dialer(cfg *Config) (transport.Dialer, transport.Dialer, *tlscommon.TLSConfig, error) {
 	var tlsConfig *tlscommon.TLSConfig
 	var err error
 	if cfg.TLS.IsEnabled() {
 		if tlsConfig, err = tlscommon.LoadTLSConfig(cfg.TLS); err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
 	dialer := transport.NetDialer(cfg.Timeout)
 	tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, cfg.Timeout)
-	return dialer, tlsDialer, err
+	return dialer, tlsDialer, tlsConfig, err
 }
