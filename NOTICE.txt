@@ -587,7 +587,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 3ed9a542ae5414c83e4f5f63c1aab037a1938080
+Revision: 7aa2f7a8d6efcefd85918be6aa2724ad045d8dd7
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -698,7 +698,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-ucfg
-Revision: 0539807037ce820e147797f051ff32b05f4f9288
+Revision: 093a6898c440d2e5e93abf09850068c60428b2cd
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-ucfg/LICENSE:
 --------------------------------------------------------------------
@@ -2550,7 +2550,7 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------
 Dependency: github.com/magefile/mage
-Revision: aedfce64c122eef47009b7f80c9771044753215d
+Revision: 1c36bf78a98209d91af71354deb001cca75e11fc
 License type (autodetected): Apache-2.0
 ./vendor/github.com/magefile/mage/LICENSE:
 --------------------------------------------------------------------
