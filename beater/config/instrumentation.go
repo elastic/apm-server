@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/go-ucfg"
 )
 
 const (
@@ -33,10 +34,19 @@ const (
 type InstrumentationConfig struct {
 	Enabled     *bool           `config:"enabled"`
 	Environment *string         `config:"environment"`
-	Hosts       urls            `config:"hosts" validate:"nonzero"`
+	Hosts       urls            `config:"hosts"` //TODO(simi): add `validate:"nonzero"` again once https://github.com/elastic/go-ucfg/issues/147 is fixed
 	Profiling   ProfilingConfig `config:"profiling"`
 	APIKey      string          `config:"api_key"`
 	SecretToken string          `config:"secret_token"`
+}
+
+func (c *InstrumentationConfig) Validate() error {
+	for _, h := range c.Hosts {
+		if h == nil || h.Host == "" {
+			return ucfg.ErrZeroValue
+		}
+	}
+	return nil
 }
 
 // IsEnabled indicates whether self instrumentation is enabled
