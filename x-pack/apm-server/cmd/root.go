@@ -15,4 +15,8 @@ var RootCmd = cmd.RootCmd
 
 func init() {
 	xpackcmd.AddXPack(RootCmd, cmd.Name)
+	if enrollCmd, _, err := RootCmd.Find([]string{"enroll"}); err == nil {
+		// error is ok => enroll has already been removed
+		RootCmd.RemoveCommand(enrollCmd)
+	}
 }
