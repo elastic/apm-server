@@ -49,19 +49,14 @@ type kibanaConfig struct {
 	kibana.ClientConfig `config:",inline"`
 }
 
-func (k *kibanaConfig) Unpack(c interface{}) error {
-	if c == nil {
+func (k *kibanaConfig) Unpack(cfg *common.Config) error {
+	if cfg == nil {
 		return nil
 	}
-
-	cfg, err := common.NewConfigFrom(c)
-	if err != nil {
-		return err
-	}
-	k.Enabled = cfg.Enabled()
 	if err := cfg.Unpack(&(k.ClientConfig)); err != nil {
 		return err
 	}
+	k.Enabled = cfg.Enabled()
 	k.Host = strings.TrimRight(k.Host, "/")
 
 	return nil
