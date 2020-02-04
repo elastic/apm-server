@@ -1,5 +1,9 @@
 [[events-api]]
-== Events API
+== Events Intake API
+
+NOTE: Most users do not need to interact directly with the events intake API.
+
+The events intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
 
 Agents capture different types of information, known as events.
 These events are sent to a single endpoint which then sorts and processes the events.
@@ -9,8 +13,9 @@ Events can be:
 * Spans
 * Errors
 * Metrics
+* Metadata
 
-You can learn more about events in the {apm-overview-ref-v}/apm-data-model.html[APM Data Model]. 
+See the {apm-overview-ref-v}/apm-data-model.html[APM Data Model] to learn more about the different types of events. 
 
 [[events-api-endpoint]]
 [float]
@@ -90,7 +95,7 @@ An example error response might look something like this:
 <3> An immediately returning non-event related error
 <4> The number of accepted events
 
-If you're developing an agent, these errors can be useful for debugging your agent while building it. 
+If you're developing an agent, these errors can be useful for debugging. 
 
 [[events-api-schema-definition]]
 [float]
