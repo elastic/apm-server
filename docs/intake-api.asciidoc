@@ -20,11 +20,12 @@ With NDJSON, agents can open an HTTP POST request and use chunked encoding to st
 This makes it simple for agents to serialize each event to a stream of newline delimited JSON.
 The APM Server also treats the HTTP body as a compressed stream and thus reads and handles each event independently.
 
-The APM Server exposes endpoints for
+The APM Server exposes endpoints for:
 
-* <<events-api,Events>>
-* <<sourcemap-api,Source Map Upload>>
-* <<server-info,Server Information>>
+* <<events-api,Events intake>>
+* <<sourcemap-api,Sourcemap upload>>
+* <<agent-configuration-api,Agent configuration>>
+* <<server-info,Server information>>
 --
 
 include::./events-api.asciidoc[]
