@@ -1,5 +1,5 @@
 [[jaeger]]
-=== Jaeger integration
+== Jaeger integration
 
 experimental::[]
 
@@ -10,7 +10,7 @@ Best of all, this can be done without any instrumentation changes in your applic
 
 [float]
 [[jaeger-supported]]
-==== Supported architecture
+=== Supported architecture
 
 Jaeger architecture supports different data formats and transport protocols
 that define how data can be sent to a collector. Elastic APM, as a Jaeger Collector, supports:
@@ -29,7 +29,7 @@ for more information on Jaeger architecture.
 
 [float]
 [[jaeger-get-started]]
-==== Get started
+=== Get started
 
 Connecting your preexisting Jaeger setup to Elastic APM is easy!
 First, configure APM Server to receive Jaeger data,
@@ -83,7 +83,7 @@ Data sent from Jaeger Agents or Clients to APM Server should now be visible in t
 
 [float]
 [[jaeger-caveats]]
-==== Caveats
+=== Caveats
 
 There are some limitations and differences between Elastic APM and Jaeger that you should be aware of.
 
@@ -108,7 +108,7 @@ https://github.com/opentracing/specification/blob/master/semantic_conventions.md
 
 [float]
 [[jaeger-configuration]]
-==== Configuration options
+=== Configuration options
 
 You can specify the following options in the `apm-server.jaeger.*` section of the
 +{beatname_lc}.yml+ configuration file.
