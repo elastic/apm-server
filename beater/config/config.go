@@ -45,8 +45,8 @@ var (
 )
 
 type kibanaConfig struct {
-	Enabled bool                `config:"enabled"`
-	Config  kibana.ClientConfig `config:",inline"`
+	Enabled             bool `config:"enabled"`
+	kibana.ClientConfig `config:",inline"`
 }
 
 func (k *kibanaConfig) Unpack(c interface{}) error {
@@ -59,10 +59,10 @@ func (k *kibanaConfig) Unpack(c interface{}) error {
 		return err
 	}
 	k.Enabled = cfg.Enabled()
-	if err := cfg.Unpack(&(k.Config)); err != nil {
+	if err := cfg.Unpack(&(k.ClientConfig)); err != nil {
 		return err
 	}
-	k.Config.Host = strings.TrimRight(k.Config.Host, "/")
+	k.Host = strings.TrimRight(k.Host, "/")
 
 	return nil
 }
@@ -70,7 +70,7 @@ func (k *kibanaConfig) Unpack(c interface{}) error {
 func defaultKibanaConfig() kibanaConfig {
 	return kibanaConfig{
 		Enabled: false,
-		Config: kibana.ClientConfig{
+		ClientConfig: kibana.ClientConfig{
 			Protocol: "http",
 			Host:     "localhost:5601",
 			Path:     "",

@@ -98,7 +98,7 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 func configEnabledConfigAgent() *config.Config {
 	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
 	cfg.Kibana.Enabled = true
-	cfg.Kibana.Config.Host = "localhost:foo"
+	cfg.Kibana.Host = "localhost:foo"
 	return cfg
 }
 

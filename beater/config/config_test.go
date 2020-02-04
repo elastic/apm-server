@@ -41,7 +41,7 @@ func Test_UnpackConfig(t *testing.T) {
 
 	kibanaNoSlashConfig := DefaultConfig(version)
 	kibanaNoSlashConfig.Kibana.Enabled = true
-	kibanaNoSlashConfig.Kibana.Config.Host = "kibanahost:5601/proxy"
+	kibanaNoSlashConfig.Kibana.Host = "kibanahost:5601/proxy"
 
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
@@ -156,8 +156,8 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 				},
 				Kibana: kibanaConfig{
-					Enabled: true,
-					Config:  defaultKibanaConfig().Config,
+					Enabled:      true,
+					ClientConfig: defaultKibanaConfig().ClientConfig,
 				},
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
 				Pipeline:    defaultAPMPipeline,
