@@ -7,6 +7,7 @@ For a full list of changes, see the
 {apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
+* <<release-highlights-7.6.0>>
 * <<release-highlights-7.5.0>>
 * <<release-highlights-7.4.0>>
 * <<release-highlights-7.3.0>>
@@ -25,6 +26,15 @@ For a full list of changes, see the
 // tag::notable-v8-highlights[]
 
 // end::notable-v8-highlights[]
+
+[[release-highlights-7.6.0]]
+=== APM version 7.6.0
+
+// tag::notable-v76-highlights[]
+*APM app in Kibana*
+*APM Agents*
+*APM Server*
+// end::notable-v76-highlights[]
 
 [[release-highlights-7.5.0]]
 === APM version 7.5.0
