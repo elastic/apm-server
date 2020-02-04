@@ -353,7 +353,9 @@ If you haven't already, you can now install APM Agents in your services!
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
 Once you have at least one Agent sending data to APM Server,
-you can start visualizing your data in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
+you can start visualizing your data in the {kibana-ref}/xpack-apm.html[APM app].
+
+If you're migrating from Jaeger, see <<jaeger>>.
 
 // Shared APM & YUM
 include::{libbeat-dir}/repositories.asciidoc[]

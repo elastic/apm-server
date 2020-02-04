@@ -1,0 +1,132 @@
+[[jaeger]]
+== Jaeger integration
+
+experimental::[]
+
+Elastic APM integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.
+This integration allows users with an existing Jaeger setup to switch from the default Jaeger backend,
+to ingesting data with Elastic's APM Server, storing data in {es}, and visualizing traces in the APM app.
+Best of all, this can be done without any instrumentation changes in your application code.
+
+[float]
+[[jaeger-supported]]
+=== Supported architecture
+
+Jaeger architecture supports different data formats and transport protocols
+that define how data can be sent to a collector. Elastic APM, as a Jaeger Collector, supports:
+
+* Communication with *Jaeger Agents* via gRPC
++
+The gRPC endpoint supports TLS. If the Jaeger gRPC collector service is enabled,
+and `apm-server.ssl` is configured, SSL settings will automatically be applied to APM Server's Jaeger gRPC endpoint.
+
+* Communication with *Jaeger Clients* via thrift over HTTP
++
+The Client HTTP endpoint does not support TLS.
+
+TIP: See the https://www.jaegertracing.io/docs/1.14/architecture[Jaeger docs]
+for more information on Jaeger architecture.
+
+[float]
+[[jaeger-get-started]]
+=== Get started
+
+Connecting your preexisting Jaeger setup to Elastic APM is easy!
+First, configure APM Server to receive Jaeger data,
+then configure your Jaeger Agents or Jaeger Clients to start sending spans to APM Server.
+
+*Configure APM Server*
+
+. Enable the correct jaeger endpoint in the `apm-server.yml` configuration file.
++
+In a typical Jaeger deployment, Clients send spans to Agents, who forward them to Collectors.
+If this matches your architecture, enable the gRPC endpoint by setting
+`apm-server.jaeger.grpc.enabled` to `true`.
++
+Alternatively, if you've configured your Clients to send spans directly to Collectors (bypassing Jaeger Agents),
+enable the HTTP endpoint by setting `apm-server.jaeger.http.enabled` to `true`.
+
+. Configure the host and port that APM Server listens on.
++
+Based on the endpoint enabled in the previous step, configure the relevant host and port:
++
+* `apm-server.jaeger.grpc.host` defaults to `localhost:14250`.
+* `apm-server.jaeger.http.host` defaults to `localhost:14268`.
+
+*Configure Jaeger Agent communication with APM Server (gRPC)*
+
+As of this writing, the Jaeger Agent binary offers the `--reporter.grpc.host-port` CLI flag,
+which can be used to set a static list of collectors for the Jaeger Agent to connect to.
+The `host:port` set here should correspond with the value set in `apm-server.jaeger.grpc.host`.
+
+See the https://www.jaegertracing.io/docs/1.16/cli/[Jaeger CLI flags documentation] for more information.
+
+*Configure Jaeger Client communication with APM Server (HTTP)*
+
+If you're using an officially supported Jaeger Client library and want to connect directly to APM Server,
+you need to update the `JAEGER_ENDPOINT` configuration property.
+This is the HTTP endpoint the Client will send spans to.
+The `host:port` set here should correspond to the value set in `apm-server.jaeger.http.host`.
+
+See the relevant supported Jaeger library for more information.
+
+* https://github.com/jaegertracing/jaeger-client-go[Go]	
+* https://github.com/jaegertracing/jaeger-client-java[Java]
+* https://github.com/jaegertracing/jaeger-client-node[Node.js]
+* https://github.com/jaegertracing/jaeger-client-python[Python]
+* https://github.com/jaegertracing/jaeger-client-cpp[C++]
+* https://github.com/jaegertracing/jaeger-client-csharp[C#]
+
+*Start sending span data*
+
+Data sent from Jaeger Agents or Clients to APM Server should now be visible in the APM app!
+
+[float]
+[[jaeger-caveats]]
+=== Caveats
+
+There are some limitations and differences between Elastic APM and Jaeger that you should be aware of.
+
+*Jaeger integration limitations:*
+
+* Because Jaeger has its own trace context header, and does not currently support W3C trace context headers,
+it is not possible to mix and match the use of Elastic's APM Agents and Jaeger's Clients.
+* Sampling decisions cannot currently be pushed from the APM Server.
+* We currently only support exception logging. Span logs are not supported.
+
+*Differences between APM Agents and Jaeger Clients:*
+
+* Jaeger Clients only sends trace data.
+APM Agents support a larger number of features, like 
+multiple types of metrics, and application breakdown charts.
+When using Jaeger, features like this will not be available in the APM app.
+* Elastic APM's {apm-overview-ref-v}/apm-data-model.html[data model] is different than Jaegers.
+For Jaeger trace data to work with Elastic's data model, we rely on spans being tagged with the appropriate
+https://github.com/opentracing/specification/blob/master/semantic_conventions.md[`span.kind`].
+** Server Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transactions.html[transactions].
+** Client Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transaction-spans.html[spans] -- unless the span is the root, in which case it is mapped to an Elastic APM {apm-overview-ref-v}/transactions.html[transaction].
+
+[float]
+[[jaeger-configuration]]
+=== Configuration options
+
+You can specify the following options in the `apm-server.jaeger.*` section of the
++{beatname_lc}.yml+ configuration file.
+
+[float]
+===== `grpc.enabled`
+Set to true to enable the Jaeger gRPC collector service. Defaults to `false`.
+
+[float]
+===== `grpc.host`
+Define the gRPC host and port the server is listening on.
+Defaults to the standard Jaeger gRPC collector port `14250`.
+
+[float]
+===== `http.enabled`
+Set to true to enable the Jaeger HTTP collector endpoint. Defaults to `false`.
+
+[float]
+===== `http.host`
+Define the HTTP host and port the server is listening on.
+Defaults to the standard Jaeger HTTP collector port `14268`.

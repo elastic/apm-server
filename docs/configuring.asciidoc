@@ -14,6 +14,7 @@ include::{libbeat-dir}/shared-configuring.asciidoc[]
 * <<configuration-logging>>
 * <<setup-kibana-endpoint>>
 * <<configuration-rum>>
+* <<jaeger>>
 * <<using-environ-vars>>
 * <<configuration-path>>
 --
@@ -39,7 +40,7 @@ Additional information on getting started with SSL/TLS is available in <<securin
 // the specified number of levels. It is required here because the shared Beats
 // documentation was created as a level 1 heading. In the APM book, this level
 // would break the DTD. Using leveloffset +1, we can include this file here.
-// It's important too reset the level heading after including the file.
+// It's important to reset the level heading after including a file.
 :leveloffset: +1
 include::{libbeat-dir}/shared-ssl-config.asciidoc[]
 :leveloffset: -1
@@ -57,6 +58,8 @@ include::{libbeat-dir}/loggingconfig.asciidoc[]
 include::./configure-kibana-endpoint.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
+
+include::./jaeger-support.asciidoc[]
 
 :standalone:
 include::{libbeat-dir}/shared-env-vars.asciidoc[]
