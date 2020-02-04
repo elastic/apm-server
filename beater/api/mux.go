@@ -22,7 +22,6 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/beats/libbeat/logp"
@@ -181,7 +180,7 @@ type middlewareFunc func(*config.Config, *authorization.Handler, map[request.Res
 func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, middlewareFunc middlewareFunc) (request.Handler, error) {
 	var client kibana.Client
 	if cfg.Kibana.Enabled {
-		client = kibana.NewConnectingClient(common.MustNewConfigFrom(cfg.Kibana))
+		client = kibana.NewConnectingClient(&cfg.Kibana.ClientConfig)
 	}
 	h := agent.Handler(client, cfg.AgentConfig)
 	msg := "Agent remote configuration is disabled. " +
