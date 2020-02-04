@@ -103,7 +103,7 @@ When using Jaeger, features like this will not be available in the APM app.
 For Jaeger trace data to work with Elastic's data model, we rely on spans being tagged with the appropriate
 https://github.com/opentracing/specification/blob/master/semantic_conventions.md[`span.kind`].
 ** Server Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transactions.html[transactions].
-** Client Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transaction-spans.html[spans] -- unless the span is the root, in which case it is mapped to Elastic APM {apm-overview-ref-v}/transactions.html[transactions].
+** Client Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transaction-spans.html[spans] -- unless the span is the root, in which case it is mapped to an Elastic APM {apm-overview-ref-v}/transactions.html[transaction].
 
 [float]
 [[jaeger-configuration]]
