@@ -44,12 +44,12 @@ var (
 	regexObserverVersion = regexp.MustCompile("%.*{.*observer.version.?}")
 )
 
-type kibanaConfig struct {
+type KibanaConfig struct {
 	Enabled             bool `config:"enabled"`
 	kibana.ClientConfig `config:",inline"`
 }
 
-func (k *kibanaConfig) Unpack(cfg *common.Config) error {
+func (k *KibanaConfig) Unpack(cfg *common.Config) error {
 	if cfg == nil {
 		return nil
 	}
@@ -62,8 +62,8 @@ func (k *kibanaConfig) Unpack(cfg *common.Config) error {
 	return nil
 }
 
-func defaultKibanaConfig() kibanaConfig {
-	return kibanaConfig{
+func defaultKibanaConfig() KibanaConfig {
+	return KibanaConfig{
 		Enabled: false,
 		ClientConfig: kibana.ClientConfig{
 			Protocol: "http",
@@ -95,7 +95,7 @@ type Config struct {
 	RumConfig           *RumConfig              `config:"rum"`
 	Register            *RegisterConfig         `config:"register"`
 	Mode                Mode                    `config:"mode"`
-	Kibana              kibanaConfig            `config:"kibana"`
+	Kibana              KibanaConfig            `config:"kibana"`
 	AgentConfig         *AgentConfig            `config:"agent.config"`
 	SecretToken         string                  `config:"secret_token"`
 	APIKeyConfig        *APIKeyConfig           `config:"api_key"`

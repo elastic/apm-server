@@ -155,7 +155,7 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana: kibanaConfig{
+				Kibana: KibanaConfig{
 					Enabled:      true,
 					ClientConfig: defaultKibanaConfig().ClientConfig,
 				},
