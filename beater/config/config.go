@@ -53,7 +53,7 @@ func (k *kibanaConfig) Unpack(cfg *common.Config) error {
 	if cfg == nil {
 		return nil
 	}
-	if err := cfg.Unpack(&(k.ClientConfig)); err != nil {
+	if err := cfg.Unpack(&k.ClientConfig); err != nil {
 		return err
 	}
 	k.Enabled = cfg.Enabled()
