@@ -69,6 +69,11 @@ class Test(ElasticTest):
         # compare existing ES documents for transactions with new ones
         rs = self.es.search(index=index_transaction)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
+
+        # make ingestion time same as @timestamp, will raise an Exception if event.ingested is missing
+        for hit in rs['hits']['hits']:
+            hit["_source"]["event"]["ingested"] = hit["_source"]["@timestamp"]
+
         self.approve_docs('transaction', rs['hits']['hits'])
 
         # compare existing ES documents for spans with new ones
@@ -87,6 +92,11 @@ class Test(ElasticTest):
         # compare existing ES documents for errors with new ones
         rs = self.es.search(index=index_error)
         assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
+
+        # make ingestion time same as @timestamp, will raise an Exception if event.ingested is missing
+        for hit in rs['hits']['hits']:
+            hit["_source"]["event"]["ingested"] = hit["_source"]["@timestamp"]
+
         self.approve_docs('error', rs['hits']['hits'])
 
         self.check_backend_error_sourcemap(index_error, count=4)
