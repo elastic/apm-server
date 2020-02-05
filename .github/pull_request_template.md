@@ -37,7 +37,10 @@ Major changes require a number of considerations including impact on:
 Add a checklist of things that are required to be reviewed in order to have the PR approved
 List here all the items you have verified BEFORE sending this PR. Please DO NOT remove any item, striking through those that do not apply. (Just in case, strikethrough uses two tildes. ~~Scratch this.~~)
 -->
-- [ ] I have signed the [Contributor License Agreement](https://www.elastic.co/contributor-agreement/). 
+- [ ] I have signed the [Contributor License Agreement](https://www.elastic.co/contributor-agreement/).
+<!--
+We are not asking you to assign copyright to us, but to give us the right to distribute your code without restriction. We ask this of all contributors in order to assure our users of the origin and continuing existence of the code. You only need to sign the CLA once.
+-->
 - [ ] My code follows the style guidelines of this project
 - [ ] I have rebased my changes on top of the latest master branch
 <!--
