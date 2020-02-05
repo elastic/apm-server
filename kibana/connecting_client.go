@@ -55,31 +55,29 @@ type Client interface {
 
 // ConnectingClient implements Client interface
 type ConnectingClient struct {
-	client *kibana.Client
-	cfg    *common.Config
 	m      sync.RWMutex
+	client *kibana.Client
+	cfg    *kibana.ClientConfig
 }
 
 // NewConnectingClient returns instance of ConnectingClient and starts a background routine trying to connect
 // to configured Kibana instance, using JitterBackoff for establishing connection.
-func NewConnectingClient(cfg *common.Config) Client {
+func NewConnectingClient(cfg *kibana.ClientConfig) Client {
 	c := &ConnectingClient{cfg: cfg}
-	if cfg.Enabled() {
-		go func() {
-			log := logp.NewLogger(logs.Kibana)
-			done := make(chan struct{})
-			jitterBackoff := backoff.NewEqualJitterBackoff(done, initBackoff, maxBackoff)
-			for c.client == nil {
-				log.Debug("Trying to obtain connection to Kibana.")
-				err := c.connect()
-				if err != nil {
-					log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
-				}
-				backoff.WaitOnError(jitterBackoff, err)
+	go func() {
+		log := logp.NewLogger(logs.Kibana)
+		done := make(chan struct{})
+		jitterBackoff := backoff.NewEqualJitterBackoff(done, initBackoff, maxBackoff)
+		for c.client == nil {
+			log.Debug("Trying to obtain connection to Kibana.")
+			err := c.connect()
+			if err != nil {
+				log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
 			}
-			log.Info("Successfully obtained connection to Kibana.")
-		}()
-	}
+			backoff.WaitOnError(jitterBackoff, err)
+		}
+		log.Info("Successfully obtained connection to Kibana.")
+	}()
 
 	return c
 }
@@ -128,7 +126,7 @@ func (c *ConnectingClient) SupportsVersion(v *common.Version, retry bool) (bool,
 	if !retry || upToDate {
 		return upToDate, nil
 	}
-	client, err := kibana.NewKibanaClient(c.cfg)
+	client, err := kibana.NewClientWithConfig(c.cfg)
 	if err != nil {
 		log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
 		return upToDate, err
@@ -148,7 +146,7 @@ func (c *ConnectingClient) connect() error {
 	if c.client != nil {
 		return nil
 	}
-	client, err := kibana.NewKibanaClient(c.cfg)
+	client, err := kibana.NewClientWithConfig(c.cfg)
 	if err != nil {
 		return err
 	}
