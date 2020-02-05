@@ -25,6 +25,9 @@
             "us": 1578451731616515
         },
         "@timestamp": "2020-01-08T02:48:51.616Z",
+        "event": {
+            "ingested": "2020-01-08T02:48:51.617Z"
+        },
         "labels": {
             "sampler_type": "const",
             "sampler_param": true

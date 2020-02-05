@@ -44,6 +44,9 @@
             "us": 1496170422281000
         },
         "@timestamp": "2017-05-30T18:53:42.281Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:42.282Z"
+        },
         "agent": {
             "version": "3.14.0",
             "name": "elastic-node"
@@ -136,6 +139,9 @@
             "us": 1496170422000000
         },
         "@timestamp": "2017-05-30T18:53:42.000Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:42.001Z"
+        },
         "agent": {
             "version": "3.14.0",
             "name": "elastic-node"
@@ -229,6 +235,9 @@
             "us": 1496170422281999
         },
         "@timestamp": "2017-05-30T18:53:42.281Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:42.282Z"
+        },
         "agent": {
             "version": "3.14.0",
             "name": "elastic-node"
@@ -315,6 +324,9 @@
             "us": 1496170407154000
         },
         "@timestamp": "2017-05-30T18:53:27.154Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:27.155Z"
+        },
         "labels": {
             "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
             "bool_error": false,

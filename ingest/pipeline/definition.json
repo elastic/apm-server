@@ -13,6 +13,11 @@
         "pipeline": {
           "name": "apm_user_geo"
         }
+      },
+      {
+        "pipeline": {
+          "name": "apm_ingest_timestamp"
+        }
       }
     ]
   }
@@ -53,6 +58,21 @@
               }
             }
           ]
+        }
+      }
+    ]
+  }
+},
+{
+  "id": "apm_ingest_timestamp",
+  "body": {
+    "description": "Add an ingest timestamp for APM events",
+    "processors": [
+      {
+        "set": {
+          "if": "ctx.processor?.event != 'span'",
+          "field": "event.ingested",
+          "value": "{{_ingest.timestamp}}"
         }
       }
     ]

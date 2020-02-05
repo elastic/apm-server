@@ -67,14 +67,12 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
-        rs = self.es.search(index=index_transaction)
-        assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('transaction', rs['hits']['hits'])
+        transaction_docs = self.wait_for_events('transaction', 4, index=index_transaction)
+        self.approve_docs('transaction', transaction_docs)
 
         # compare existing ES documents for spans with new ones
-        rs = self.es.search(index=index_span)
-        assert rs['hits']['total']['value'] == 5, "found {} documents".format(rs['count'])
-        self.approve_docs('spans', rs['hits']['hits'])
+        span_docs = self.wait_for_events('transaction', 5, index=index_span)
+        self.approve_docs('spans', span_docs)
 
     def test_load_docs_with_template_and_add_error(self):
         """
@@ -85,9 +83,8 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for errors with new ones
-        rs = self.es.search(index=index_error)
-        assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
-        self.approve_docs('error', rs['hits']['hits'])
+        error_docs = self.wait_for_events('error', 4, index=index_error)
+        self.approve_docs('error', error_docs)
 
         self.check_backend_error_sourcemap(index_error, count=4)
 
