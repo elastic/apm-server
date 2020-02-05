@@ -32,6 +32,9 @@ const (
 	setPriorityStr = "set_priority"
 	priorityStr    = "priority"
 	readonlyStr    = "readonly"
+	allocateStr    = "allocate"
+	requireStr     = "require"
+	dataStr        = "data"
 
 	errorEvent       = "error"
 	spanEvent        = "span"
@@ -67,6 +70,11 @@ func policyPool() map[string]policyBody {
 					warmStr: map[string]interface{}{
 						minAgeStr: "30d",
 						actionsStr: map[string]interface{}{
+							allocateStr: map[string]interface{}{
+								requireStr: map[string]interface{}{
+									dataStr: "warm",
+								},
+							},
 							setPriorityStr: map[string]interface{}{
 								priorityStr: 50,
 							},
