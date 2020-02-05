@@ -394,6 +394,12 @@ class ElasticTest(ServerBaseTest):
                 for appr in approved:
                     if get_doc_id(appr) == rec_id:
                         rec['observer'] = appr['observer']
+                        # ensure both docs have the same event keys set
+                        self.assertEqual(rec.get("event", {}).keys(), appr.get("event", {}).keys())
+                        # We don't compare the event values between received/approved
+                        # as they are dependent on the environment.
+                        if 'event' in rec:
+                            rec['event'] = appr['event']
                         break
             assert len(received) == len(approved)
             for i, rec in enumerate(received):
