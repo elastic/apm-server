@@ -21,6 +21,10 @@ or that there are particular issues that you should know about before implementi
 You will have to fork the `apm-server` repo,
 please follow the instructions in the [readme](README.md).
 
+### Submitting your changes
+
+Please read our [pull request template](.github/pull_request_template.md), which includes the information we care the most when submitting new changes.
+
 ### Workflow
 
 All feature development and most bug fixes hit the master branch first.
