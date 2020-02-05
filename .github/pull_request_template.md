@@ -41,7 +41,7 @@ List here all the items you have verified BEFORE sending this PR. Please DO NOT 
 <!--
 We are not asking you to assign copyright to us, but to give us the right to distribute your code without restriction. We ask this of all contributors in order to assure our users of the origin and continuing existence of the code. You only need to sign the CLA once.
 -->
-- [ ] My code follows the style guidelines of this project
+- [ ] My code follows the style guidelines of this project (run `make check-full` for static code checks and linting)
 - [ ] I have rebased my changes on top of the latest master branch
 <!--
 Update your local repository with the most recent code from the main repo, and rebase your branch on top of the latest master branch. We prefer your initial changes to be squashed into a single commit. Later, if we ask you to make changes, add them as separate commits. This makes them easier to review.
