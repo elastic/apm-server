@@ -1,3 +1,5 @@
+import datetime
+
 from apmserver import ElasticTest, SubCommandTest, TimeoutError, integration_test
 from elasticsearch import Elasticsearch
 from nose.tools import raises
@@ -67,6 +69,12 @@ class PipelineRegisterTest(ElasticTest):
         ua_found = False
         for e in entries:
             src = e['_source']
+
+            # ingest timestamp pipeline
+            ingest_ts = src.get("event", {}).get("ingested")
+            assert datetime.datetime.strptime(ingest_ts[:19], "%Y-%m-%dT%H:%M:%S")
+
+            # user agent pipeline
             if 'user_agent' in src:
                 ua_found = True
                 ua = src['user_agent']
