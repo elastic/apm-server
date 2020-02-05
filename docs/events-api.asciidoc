@@ -4,18 +4,23 @@
 NOTE: Most users do not need to interact directly with the events intake API.
 
 The events intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
-
-Agents capture different types of information, known as events.
-These events are sent to a single endpoint which then sorts and processes the events.
+Agents communicate with the Server by sending events -- captured pieces of information -- in an HTTP request.
 Events can be:
 
 * Transactions
 * Spans
 * Errors
 * Metrics
-* Metadata
 
-See the {apm-overview-ref-v}/apm-data-model.html[APM Data Model] to learn more about the different types of events. 
+Each event is sent as its own line in the HTTP request body.
+This is known as http://ndjson.org[newline delimited JSON (NDJSON)].
+
+With NDJSON, agents can open an HTTP POST request and use chunked encoding to stream events to the APM Server
+as soon as they are recorded in the agent.
+This makes it simple for agents to serialize each event to a stream of newline delimited JSON.
+The APM Server also treats the HTTP body as a compressed stream and thus reads and handles each event independently.
+
+See the {apm-overview-ref-v}/apm-data-model.html[APM Data Model] to learn more about the different types of events.
 
 [[events-api-endpoint]]
 [float]

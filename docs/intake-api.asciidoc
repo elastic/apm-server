@@ -3,23 +3,6 @@
 
 [partintro]
 --
-APM agents communicate with the APM server by sending events in an HTTP request.
-Each event is sent as its own line in the HTTP request body.
-This is known as http://ndjson.org[newline delimited JSON (NDJSON)].
-The request body looks roughly like this:
-
-[source,bash]
-------------------------------------------------------------
-{"metadata": {"service": {"name": "ecommerce-front"}}}
-{"span": {"name": "SELECT FROM products", "duration": 323, "transaction_id": "A"}}
-{"span": {"name": "SELECT FROM users", "duration": 202, "transaction_id": "A"}}
-{"transaction": {"name": "GET /index", "id": "A"}}
-------------------------------------------------------------
-
-With NDJSON, agents can open an HTTP POST request and use chunked encoding to stream events to the APM Server as soon as they are recorded in the agent.
-This makes it simple for agents to serialize each event to a stream of newline delimited JSON.
-The APM Server also treats the HTTP body as a compressed stream and thus reads and handles each event independently.
-
 The APM Server exposes endpoints for:
 
 * <<events-api,Events intake>>
