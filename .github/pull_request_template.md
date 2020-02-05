@@ -35,8 +35,6 @@ Major changes require a number of considerations including impact on:
 ## Checklist
 <!--
 Add a checklist of things that are required to be reviewed in order to have the PR approved
-List here all the items you have verified BEFORE sending this PR. Please DO NOT remove any item, striking through those that do not apply.
-
 List here all the items you have verified BEFORE sending this PR. Please DO NOT remove any item, striking through those that do not apply. (Just in case, strikethrough uses two tildes. ~~Scratch this.~~)
 -->
 - [ ] I have signed the [Contributor License Agreement](https://www.elastic.co/contributor-agreement/). 
