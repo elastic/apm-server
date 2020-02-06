@@ -8,9 +8,7 @@ A few suggestions about filling out this PR:
 1. Use a descriptive title for the PR.
 2. If this pull request is work in progress, create a draft PR instead of prefixing the title with WIP.
 3. Please label this PR with at least one of the following labels, depending on the scope of your change:
-- feature, which adds new behavior
 - bug fix
-- enhancement, which modifies existing behavior
 - breaking change
 4. Remove those recommended/optional sections if you don't need them.
 5. Submit the pull request: Push your local changes to your forked copy of the repository and submit a pull request (https://help.github.com/articles/using-pull-requests).
