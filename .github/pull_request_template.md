@@ -68,5 +68,5 @@ Examples:
 - Closes #ISSUE_ID
 - Relates #ISSUE_ID
 - Requires #ISSUE_ID
-- Superseds #ISSUE_ID
+- Supersedes #ISSUE_ID
 -->
