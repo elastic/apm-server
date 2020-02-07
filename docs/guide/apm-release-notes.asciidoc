@@ -31,8 +31,6 @@ For a full list of changes, see the
 === APM version 7.6.0
 
 // tag::notable-v76-highlights[]
-*APM*
-
 Jaeger integration::
 
 Elastic APM now integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.
@@ -64,8 +62,6 @@ and you can visualize when this happens in the APM app!
 [role="screenshot"]
 image::images/chained-exceptions.png[Chained exceptions]
 
-*APM app*
-
 Deployment annotations::
 
 The APM app now displays {apm-app-ref}/transactions.html[deployment annotations] on all transaction charts.
@@ -90,8 +86,6 @@ image::images/apm-settings-kib.png[APM Settings in Kibana]
 +
 See {apm-app-ref}/apm-settings-in-kibana.html[APM Settings in Kibana] for more details.
 
-*APM Agents*
-
 Java Agent support for Kafka and JMS::
 
 The Java Agent now supports Kafka and JMS,
@@ -104,8 +98,7 @@ image::images/java-kafka.png[Java Kafka trace sample]
 [role="screenshot"]
 image::images/java-metadata.png[Java metadata]
 +
-See the APM Java Agent's {apm-agent-java}/supported-technologies-details.html[Supported technologies] for more information.
-
+See the APM Java Agent's {apm-java-ref}/supported-technologies-details.html[Supported technologies] for more information.
 // end::notable-v76-highlights[]
 
 [[release-highlights-7.5.0]]
