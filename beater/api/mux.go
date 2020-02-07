@@ -20,7 +20,6 @@ package api
 import (
 	"expvar"
 	"net/http"
-	"regexp"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
@@ -38,11 +37,8 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
-	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 const (
@@ -66,10 +62,6 @@ const (
 	AgentConfigRUMPath = "/config/v1/rum/agents"
 	// IntakeRUMPath defines the path to ingest monitored RUM events
 	IntakeRUMPath = "/intake/v2/rum/events"
-)
-
-var (
-	emptyDecoder = func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil }
 )
 
 type route struct {
@@ -124,44 +116,34 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 }
 
 func profileHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := profile.Handler(systemMetadataDecoder(cfg, emptyDecoder), transform.Config{}, reporter)
+	h := profile.Handler(decoder.DecodeSystemData(cfg.AugmentEnabled), reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, profile.MonitoringMap)...)
 }
 
 func backendIntakeHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := intake.Handler(systemMetadataDecoder(cfg, emptyDecoder),
-		&stream.Processor{
-			Tconfig:      transform.Config{},
-			Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
-			MaxEventSize: cfg.MaxEventSize,
-		},
+	h := intake.Handler(decoder.DecodeSystemData(cfg.AugmentEnabled),
+		stream.BackendProcessor(cfg.Mode == config.ModeExperimental, cfg.MaxEventSize),
 		reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, intake.MonitoringMap)...)
 }
 
 func rumIntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	tcfg, err := rumTransformConfig(cfg)
+	processor, err := stream.RUMProcessor(cfg.Mode == config.ModeExperimental, cfg.MaxEventSize, cfg.RumConfig)
 	if err != nil {
 		return nil, err
 	}
-	h := intake.Handler(userMetaDataDecoder(cfg, emptyDecoder),
-		&stream.Processor{
-			Tconfig:      *tcfg,
-			Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
-			MaxEventSize: cfg.MaxEventSize,
-		},
-		reporter)
+	h := intake.Handler(decoder.DecodeUserData(cfg.AugmentEnabled), processor, reporter)
 	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
 
 func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	tcfg, err := rumTransformConfig(cfg)
+	sourcemapStore, err := cfg.RumConfig.MemoizedSourcemapStore()
 	if err != nil {
 		return nil, err
 	}
-	h := sourcemap.Handler(systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData), psourcemap.Processor, *tcfg, reporter)
+	h := sourcemap.Handler(decoder.DecodeSourcemapFormData(cfg.AugmentEnabled), sourcemapStore, reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
 	return middleware.Wrap(h, sourcemapMiddleware(cfg, authHandler)...)
 }
@@ -233,24 +215,4 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []midd
 func rootMiddleware(_ *config.Config, auth *authorization.Handler) []middleware.Middleware {
 	return append(apmMiddleware(root.MonitoringMap),
 		middleware.AuthorizationMiddleware(auth, false))
-}
-
-func systemMetadataDecoder(beaterConfig *config.Config, d decoder.ReqDecoder) decoder.ReqDecoder {
-	return decoder.DecodeSystemData(d, beaterConfig.AugmentEnabled)
-}
-
-func userMetaDataDecoder(beaterConfig *config.Config, d decoder.ReqDecoder) decoder.ReqDecoder {
-	return decoder.DecodeUserData(d, beaterConfig.AugmentEnabled)
-}
-
-func rumTransformConfig(beaterConfig *config.Config) (*transform.Config, error) {
-	store, err := beaterConfig.RumConfig.MemoizedSourcemapStore()
-	if err != nil {
-		return nil, err
-	}
-	return &transform.Config{
-		SourcemapStore:      store,
-		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
-		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
-	}, nil
 }

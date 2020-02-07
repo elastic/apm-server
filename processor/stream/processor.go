@@ -22,24 +22,20 @@ import (
 	"context"
 	"errors"
 	"io"
+	"regexp"
 	"sync"
 	"time"
 
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/model/transformer"
 
-	"github.com/santhosh-tekuri/jsonschema"
 	"golang.org/x/time/rate"
 
 	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/decoder"
-	er "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/metricset"
-	"github.com/elastic/apm-server/model/span"
-	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -47,6 +43,43 @@ import (
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
 )
+
+func RUMProcessor(experimental bool, maxEventSize int, cfg *config.RumConfig) (*Processor, error) {
+	sourcemapStore, err := cfg.MemoizedSourcemapStore()
+	if err != nil {
+		return nil, err
+	}
+	transformer := &transformer.Transformer{
+		Experimental:        experimental,
+		SourcemapStore:      sourcemapStore,
+		LibraryPattern:      regexp.MustCompile(cfg.LibraryPattern),
+		ExcludeFromGrouping: regexp.MustCompile(cfg.ExcludeFromGrouping),
+	}
+	return &Processor{
+		Decoders: map[string]EventDecoder{
+			"transaction": DecoderFunc(transformer.DecodeTransaction),
+			"span":        DecoderFunc(transformer.DecodeSpan),
+			"error":       DecoderFunc(transformer.DecodeError),
+			"metricset":   DecoderFunc(transformer.DecodeMetricset),
+		},
+		MaxEventSize: maxEventSize,
+	}, nil
+}
+
+func BackendProcessor(experimental bool, maxEventSize int) *Processor {
+	transformer := transformer.Transformer{
+		Experimental: experimental,
+	}
+	return &Processor{
+		Decoders: map[string]EventDecoder{
+			"transaction": DecoderFunc(transformer.DecodeTransaction),
+			"span":        DecoderFunc(transformer.DecodeSpan),
+			"error":       DecoderFunc(transformer.DecodeError),
+			"metricset":   DecoderFunc(transformer.DecodeMetricset),
+		},
+		MaxEventSize: maxEventSize,
+	}
+}
 
 type StreamReader interface {
 	Read() (map[string]interface{}, error)
@@ -83,42 +116,16 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 }
 
 type Processor struct {
-	Tconfig      transform.Config
-	Mconfig      model.Config
-	MaxEventSize int
-	bufferPool   sync.Pool
+	Decoders      map[string]EventDecoder
+	MaxEventSize  int
+	bufferPool    sync.Pool
+	stoppingError error
+	errors        []error
 }
 
 const batchSize = 10
 
-var models = []struct {
-	key          string
-	schema       *jsonschema.Schema
-	modelDecoder func(interface{}, model.Config, error) (transform.Transformable, error)
-}{
-	{
-		"transaction",
-		transaction.ModelSchema(),
-		transaction.DecodeEvent,
-	},
-	{
-		"span",
-		span.ModelSchema(),
-		span.DecodeEvent,
-	},
-	{
-		"metricset",
-		metricset.ModelSchema(),
-		metricset.DecodeEvent,
-	},
-	{
-		"error",
-		er.ModelSchema(),
-		er.DecodeEvent,
-	},
-}
-
-func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
+func readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
 	// first item is the metadata object
 	rawModel, err := reader.Read()
 	if err != nil {
@@ -164,32 +171,24 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamRe
 	return metadata, nil
 }
 
-// HandleRawModel validates and decodes a single json object into its struct form
-func (p *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
-	for _, model := range models {
-		if entry, ok := rawModel[model.key]; ok {
-			err := validation.Validate(entry, model.schema)
-			if err != nil {
-				return nil, err
-			}
-
-			tr, err := model.modelDecoder(entry, p.Mconfig, err)
-			if err != nil {
-				return nil, err
-			}
-			return tr, nil
+// handleRawModel validates and decodes a single json object into its struct form
+func handleRawModel(rawModel map[string]interface{}, decoders map[string]EventDecoder, requestTime time.Time, metadata metadata.Metadata) (publish.Transformable, error) {
+	for name, decoder := range decoders {
+		if entry, ok := rawModel[name]; ok {
+			return decoder.Decode(entry, requestTime, metadata)
 		}
 	}
 	return nil, ErrUnrecognizedObject
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
-// it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+// It returns a slice of transformables and a bool that indicates if there might be more to read.
+// It accumulates errors encountered in the processor itself
+func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, metadata metadata.Metadata, reader StreamReader) ([]publish.Transformable, bool) {
 	var (
-		err        error
-		rawModel   map[string]interface{}
-		eventables []transform.Transformable
+		err      error
+		rawModel map[string]interface{}
+		events   []publish.Transformable
 	)
 
 	if ipRateLimiter != nil {
@@ -198,49 +197,62 @@ func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, 
 		err = ipRateLimiter.WaitN(ctxT, batchSize)
 		cancel()
 		if err != nil {
-			response.Add(&Error{
+			p.stoppingError = &Error{
 				Type:    RateLimitErrType,
 				Message: "rate limit exceeded",
-			})
-			return eventables, true
+			}
+			return events, true
 		}
 	}
 
+	requestTime := utility.RequestTime(ctx)
 	for i := 0; i < batchSize && err == nil; i++ {
 
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
 
 			if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
-				response.LimitedAdd(e)
+				p.errors = append(p.errors, e)
 				continue
 			}
 			// return early, we assume we can only recover from a input error types
-			response.Add(err)
-			return eventables, true
+			p.stoppingError = err
+			return events, true
 		}
 
 		if rawModel != nil {
-			tr, err := p.HandleRawModel(rawModel)
+			evt, err := handleRawModel(rawModel, p.Decoders, requestTime, metadata)
 			if err != nil {
-				response.LimitedAdd(&Error{
+				p.errors = append(p.errors, &Error{
 					Type:     InvalidInputErrType,
 					Message:  err.Error(),
 					Document: string(reader.LatestLine()),
 				})
 				continue
 			}
-			eventables = append(eventables, tr)
+			events = append(events, evt)
 		}
 	}
 
-	return eventables, reader.IsEOF()
+	return events, reader.IsEOF()
 }
 
-// HandleStream processes a stream of events
 func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
+	transformables := p.Process(ctx, ipRateLimiter, meta, reader, report)
+	if p.stoppingError != nil {
+		res.Add(p.stoppingError)
+	}
+	for _, err := range p.errors {
+		res.LimitedAdd(err)
+	}
+	res.AddAccepted(len(transformables))
+	return res
+}
 
+// Process processes a stream of events
+// It returns a list of APM Events conforming the Transformable interface
+func (p *Processor) Process(ctx context.Context, ipRateLimiter *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) []publish.Transformable {
 	buf, ok := p.bufferPool.Get().(*bufio.Reader)
 	if !ok {
 		buf = bufio.NewReaderSize(reader, p.MaxEventSize)
@@ -258,57 +270,48 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	// our own wrapper converts json reader errors to errors that are useful to us
 	jsonReader := &srErrorWrapper{ndReader}
 
-	metadata, err := p.readMetadata(meta, jsonReader)
+	metadata, err := readMetadata(meta, jsonReader)
 	// no point in continuing if we couldn't read the metadata
 	if err != nil {
-		res.Add(err)
-		return res
-	}
-
-	tctx := &transform.Context{
-		RequestTime: utility.RequestTime(ctx),
-		Config:      p.Tconfig,
-		Metadata:    *metadata,
+		p.stoppingError = err
+		return nil
 	}
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
+	var transformables []publish.Transformable
 	for {
-
-		transformables, done := p.readBatch(ctx, ipRateLimiter, batchSize, jsonReader, res)
-		if transformables != nil {
+		batch, done := p.readBatch(ctx, ipRateLimiter, *metadata, jsonReader)
+		if batch != nil {
 			err := report(ctx, publish.PendingReq{
-				Transformables: transformables,
-				Tcontext:       tctx,
+				Transformables: batch,
 				Trace:          !sp.Dropped(),
 			})
 
 			if err != nil {
 				switch err {
 				case publish.ErrChannelClosed:
-					res.Add(&Error{
+					p.stoppingError = &Error{
 						Type:    ShuttingDownErrType,
 						Message: "server is shutting down",
-					})
+					}
 				case publish.ErrFull:
-					res.Add(&Error{
+					p.stoppingError = &Error{
 						Type:    QueueFullErrType,
 						Message: err.Error(),
-					})
+					}
 				default:
-					res.Add(err)
+					p.stoppingError = err
 				}
-
-				return res
+				return transformables
 			}
-
-			res.AddAccepted(len(transformables))
+			transformables = append(transformables, batch...)
 		}
 
 		if done {
 			break
 		}
 	}
-	return res
+	return transformables
 }
