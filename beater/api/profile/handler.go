@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/profile"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -58,11 +57,7 @@ const (
 )
 
 // Handler returns a request.Handler for managing profile requests.
-func Handler(
-	dec decoder.ReqDecoder,
-	transformConfig transform.Config,
-	report publish.Reporter,
-) request.Handler {
+func Handler(dec decoder.ReqDecoder, report publish.Reporter) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
@@ -94,11 +89,7 @@ func Handler(
 			}
 		}
 
-		tctx := &transform.Context{
-			RequestTime: utility.RequestTime(c.Request.Context()),
-			Config:      transformConfig,
-		}
-
+		var meta metadata.Metadata
 		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
 		mr, err := c.Request.MultipartReader()
@@ -144,14 +135,14 @@ func Handler(
 						err: errors.Wrap(err, "invalid metadata"),
 					}
 				}
-				metadata, err := metadata.DecodeMetadata(raw)
+				decodedMeta, err := metadata.DecodeMetadata(raw)
 				if err != nil {
 					return nil, requestError{
 						id:  request.IDResponseErrorsDecode,
 						err: errors.Wrap(err, "failed to decode metadata"),
 					}
 				}
-				tctx.Metadata = *metadata
+				meta = *decodedMeta
 
 			case "profile":
 				params, err := validateContentType(http.Header(part.Header), pprofMediaType)
@@ -189,14 +180,13 @@ func Handler(
 			}
 		}
 
-		transformables := make([]transform.Transformable, len(profiles))
+		transformables := make([]publish.Transformable, len(profiles))
 		for i, p := range profiles {
-			transformables[i] = profile.PprofProfile{Profile: p}
+			transformables[i] = profile.PprofProfile{Profile: p, Metadata: meta}
 		}
 
 		if err := report(c.Request.Context(), publish.PendingReq{
 			Transformables: transformables,
-			Tcontext:       tctx,
 		}); err != nil {
 			switch err {
 			case publish.ErrChannelClosed:
