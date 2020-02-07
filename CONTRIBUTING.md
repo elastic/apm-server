@@ -23,7 +23,7 @@ please follow the instructions in the [readme](README.md).
 
 ### Submitting your changes
 
-Please read our [pull request template](.github/pull_request_template.md), which includes the information we care the most when submitting new changes.
+Please read our [pull request template](.github/pull_request_template.md), which includes the information we care about the most when submitting new changes.
 
 ### Workflow
 
