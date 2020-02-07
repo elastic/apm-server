@@ -27,7 +27,7 @@ The request must include some fields needed to identify `source map` correctly l
 The source map must follow the
 https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k[Source map revision 3 proposal] spec and be attached as a `file upload`.
 
-You can configure a <<secret-token, secret token>> to upload sourcemaps.
+You can configure an <<api-key>> or <<secret-token>> to upload sourcemaps.
 
 [[sourcemap-api-examples]]
 [float]

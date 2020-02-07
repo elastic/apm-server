@@ -1,8 +1,10 @@
 [[events-api]]
-== Events API
+== Events Intake API
 
-Agents capture different types of information, known as events.
-These events are sent to a single endpoint which then sorts and processes the events.
+NOTE: Most users do not need to interact directly with the events intake API.
+
+The events intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
+Agents communicate with the Server by sending events -- captured pieces of information -- in an HTTP request.
 Events can be:
 
 * Transactions
@@ -10,7 +12,15 @@ Events can be:
 * Errors
 * Metrics
 
-You can learn more about events in the {apm-overview-ref-v}/apm-data-model.html[APM Data Model]. 
+Each event is sent as its own line in the HTTP request body.
+This is known as http://ndjson.org[newline delimited JSON (NDJSON)].
+
+With NDJSON, agents can open an HTTP POST request and use chunked encoding to stream events to the APM Server
+as soon as they are recorded in the agent.
+This makes it simple for agents to serialize each event to a stream of newline delimited JSON.
+The APM Server also treats the HTTP body as a compressed stream and thus reads and handles each event independently.
+
+See the {apm-overview-ref-v}/apm-data-model.html[APM Data Model] to learn more about the different types of events.
 
 [[events-api-endpoint]]
 [float]
@@ -40,7 +50,7 @@ Keep in mind that events can succeed and fail independently of each other. Only 
 
 [[events-api-errors]]
 [float]
-==== Errors
+=== Errors
 
 There are two types of errors that the APM Server may return to an agent:
 
@@ -90,7 +100,7 @@ An example error response might look something like this:
 <3> An immediately returning non-event related error
 <4> The number of accepted events
 
-If you're developing an agent, these errors can be useful for debugging your agent while building it. 
+If you're developing an agent, these errors can be useful for debugging. 
 
 [[events-api-schema-definition]]
 [float]
@@ -98,12 +108,12 @@ If you're developing an agent, these errors can be useful for debugging your age
 
 The APM Server uses a collection of JSON Schemas for validating requests to the intake API:
 
-* <<metadata-api, Metadata>>
-* <<transaction-api, Transactions>>
-* <<span-api, Spans>>
-* <<error-api, Errors>>
-* <<metricset-api, Metrics>>
-* <<example-intake-events, Example Request Body>>
+* <<metadata-api>>
+* <<transaction-api>>
+* <<span-api>>
+* <<error-api>>
+* <<metricset-api>>
+* <<example-intake-events>>
 
 include::./metadata-api.asciidoc[]
 include::./transaction-api.asciidoc[]
