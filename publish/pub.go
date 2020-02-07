@@ -23,10 +23,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/apm-server/beater/config"
+
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -49,17 +50,12 @@ type Publisher struct {
 }
 
 type PendingReq struct {
-	Transformables []transform.Transformable
-	Tcontext       *transform.Context
+	Transformables []Transformable
 	Trace          bool
 }
 
-// PublisherConfig is a struct holding configuration information for the publisher,
-// such as shutdown timeout, default pipeline name and beat info.
-type PublisherConfig struct {
-	Info            beat.Info
-	ShutdownTimeout time.Duration
-	Pipeline        string
+type Transformable interface {
+	Transform() []beat.Event
 }
 
 var (
@@ -70,16 +66,16 @@ var (
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
+func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *config.Config, info beat.Info) (*Publisher, error) {
 	processingCfg := beat.ProcessingConfig{
 		Fields: common.MapStr{
 			"observer": common.MapStr{
-				"type":          cfg.Info.Beat,
-				"hostname":      cfg.Info.Hostname,
-				"version":       cfg.Info.Version,
+				"type":          info.Beat,
+				"hostname":      info.Hostname,
+				"version":       info.Version,
 				"version_major": 8,
-				"id":            cfg.Info.ID.String(),
-				"ephemeral_id":  cfg.Info.EphemeralID.String(),
+				"id":            info.ID.String(),
+				"ephemeral_id":  info.EphemeralID.String(),
 			},
 		},
 	}
@@ -163,7 +159,7 @@ func (p *Publisher) processPendingReq(req PendingReq) {
 
 	for _, transformable := range req.Transformables {
 		span := tx.StartSpan("Transform", "Publisher", nil)
-		events := transformable.Transform(req.Tcontext)
+		events := transformable.Transform()
 		span.End()
 
 		span = tx.StartSpan("PublishAll", "Publisher", nil)

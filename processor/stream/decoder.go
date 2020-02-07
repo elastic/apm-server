@@ -15,8 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package stream
 
-type Config struct {
-	Experimental bool
+import (
+	"time"
+
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/publish"
+)
+
+type EventDecoder interface {
+	Decode(interface{}, time.Time, metadata.Metadata) (publish.Transformable, error)
+}
+
+type DecoderFunc func(interface{}, time.Time, metadata.Metadata) (publish.Transformable, error)
+
+func (f DecoderFunc) Decode(input interface{}, requestTime time.Time, metadata metadata.Metadata) (publish.Transformable, error) {
+	return f(input, requestTime, metadata)
 }
