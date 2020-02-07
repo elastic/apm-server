@@ -20,6 +20,8 @@ package sourcemap
 import (
 	"time"
 
+	"github.com/elastic/apm-server/sourcemap"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -29,7 +31,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -59,16 +60,16 @@ type Sourcemap struct {
 	BundleFilepath string
 }
 
-func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
+func (pa *Sourcemap) Transform(store *sourcemap.Store) []beat.Event {
 	sourcemapCounter.Inc()
 	if pa == nil {
 		return nil
 	}
 
-	if tctx.Config.SourcemapStore == nil {
+	if store == nil {
 		logp.NewLogger(logs.Sourcemap).Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		tctx.Config.SourcemapStore.Added(pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
+		store.Added(pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
 	}
 
 	ev := beat.Event{
@@ -85,7 +86,7 @@ func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
 	return []beat.Event{ev}
 }
 
-func DecodeSourcemap(raw map[string]interface{}) (transform.Transformable, error) {
+func DecodeSourcemap(raw map[string]interface{}) (*Sourcemap, error) {
 	decoder := utility.ManualDecoder{}
 	pa := Sourcemap{
 		ServiceName:    decoder.String(raw, "service_name"),
