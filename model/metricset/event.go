@@ -22,17 +22,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/santhosh-tekuri/jsonschema"
-
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -51,10 +48,6 @@ var (
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
 
 type Sample struct {
 	Name  string
@@ -79,22 +72,21 @@ type Metricset struct {
 	Transaction *Transaction
 	Span        *Span
 	Timestamp   time.Time
+	Metadata    metadata.Metadata
 }
 
 type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func DecodeEvent(input interface{}, _ model.Config, err error) (transform.Transformable, error) {
-	if err != nil {
-		return nil, err
-	}
-	if input == nil {
-		return nil, errors.New("no data for metric event")
-	}
+func Decode(input interface{}, requestTime time.Time, metadata metadata.Metadata) (*Metricset, error) {
 	raw, ok := input.(map[string]interface{})
 	if !ok {
 		return nil, errors.New("invalid type for metric event")
+	}
+	err := validation.Validate(input, cachedModelSchema)
+	if err != nil {
+		return nil, err
 	}
 
 	md := metricsetDecoder{&utility.ManualDecoder{}}
@@ -102,7 +94,8 @@ func DecodeEvent(input interface{}, _ model.Config, err error) (transform.Transf
 		Samples:     md.decodeSamples(raw["samples"]),
 		Transaction: md.decodeTransaction(raw[transactionKey]),
 		Span:        md.decodeSpan(raw[spanKey]),
-		Timestamp:   md.TimeEpochMicro(raw, "timestamp"),
+		Timestamp:   md.TimeEpochMicro(raw, "timestamp", requestTime),
+		Metadata:    metadata,
 	}
 
 	if md.Err != nil {
@@ -202,7 +195,7 @@ func (t *Transaction) fields() common.MapStr {
 	return fields
 }
 
-func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
+func (me *Metricset) Transform() []beat.Event {
 	transformations.Inc()
 	if me == nil {
 		return nil
@@ -217,16 +210,12 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	fields["processor"] = processorEntry
-	tctx.Metadata.Set(fields)
+	me.Metadata.Set(fields)
 
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", me.Labels)
 	utility.DeepUpdate(fields, transactionKey, me.Transaction.fields())
 	utility.DeepUpdate(fields, spanKey, me.Span.fields())
-
-	if me.Timestamp.IsZero() {
-		me.Timestamp = tctx.RequestTime
-	}
 
 	return []beat.Event{
 		{

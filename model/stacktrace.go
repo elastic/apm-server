@@ -19,13 +19,15 @@ package model
 
 import (
 	"errors"
+	"regexp"
+
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/sourcemap"
 
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 
 	logs "github.com/elastic/apm-server/log"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -50,7 +52,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	return &st, err
 }
 
-func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
+func (st *Stacktrace) Transform(libraryPattern, excludeFromGrouping *regexp.Regexp, sourcemapStore *sourcemap.Store, service *metadata.Service) []common.MapStr {
 	if st == nil {
 		return nil
 	}
@@ -71,20 +73,21 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 	// - abs_path is set to the cleaned abs_path
 	// - sourcmeap.updated is set to true
 
-	if tctx.Config.SourcemapStore == nil {
-		return st.transform(tctx, noSourcemapping)
+	if sourcemapStore == nil {
+		return st.transform(libraryPattern, excludeFromGrouping, noSourcemapping)
 	}
-	if tctx.Metadata.Service == nil || tctx.Metadata.Service.Name == nil || tctx.Metadata.Service.Version == nil {
+	// service comes from metadata, not from the event
+	if service == nil || service.Name == nil || service.Version == nil {
 		logp.NewLogger(logs.Stacktrace).Warn(msgServiceInvalidForSourcemapping)
-		return st.transform(tctx, noSourcemapping)
+		return st.transform(libraryPattern, excludeFromGrouping, noSourcemapping)
 	}
 
 	var errMsg string
 	var sourcemapErrorSet = map[string]interface{}{}
 	logger := logp.NewLogger(logs.Stacktrace)
 	fct := "<anonymous>"
-	return st.transform(tctx, func(frame *StacktraceFrame) {
-		fct, errMsg = frame.applySourcemap(tctx.Config.SourcemapStore, tctx.Metadata.Service, fct)
+	return st.transform(libraryPattern, excludeFromGrouping, func(frame *StacktraceFrame) {
+		fct, errMsg = frame.applySourcemap(sourcemapStore, service, fct)
 		if errMsg != "" {
 			if _, ok := sourcemapErrorSet[errMsg]; !ok {
 				logger.Warn(errMsg)
@@ -94,7 +97,7 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 	})
 }
 
-func (st *Stacktrace) transform(ctx *transform.Context, apply func(*StacktraceFrame)) []common.MapStr {
+func (st *Stacktrace) transform(libraryPattern, excludeFromGrouping *regexp.Regexp, apply func(*StacktraceFrame)) []common.MapStr {
 	frameCount := len(*st)
 	if frameCount == 0 {
 		return nil
@@ -105,7 +108,7 @@ func (st *Stacktrace) transform(ctx *transform.Context, apply func(*StacktraceFr
 	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = (*st)[idx]
 		apply(fr)
-		frames[idx] = fr.Transform(ctx)
+		frames[idx] = fr.transform(libraryPattern, excludeFromGrouping)
 	}
 	return frames
 }

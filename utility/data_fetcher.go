@@ -222,24 +222,10 @@ func (d *ManualDecoder) MapStr(base map[string]interface{}, key string, keys ...
 	return nil
 }
 
-func (d *ManualDecoder) TimeRFC3339(base map[string]interface{}, key string, keys ...string) time.Time {
-	val := getDeep(base, keys...)[key]
+func (d *ManualDecoder) TimeEpochMicro(base map[string]interface{}, key string, defaultTime time.Time) time.Time {
+	val := base[key]
 	if val == nil {
-		return time.Time{}
-	}
-	if valStr, ok := val.(string); ok {
-		if valTime, err := time.Parse(time.RFC3339, valStr); err == nil {
-			return valTime
-		}
-	}
-	d.Err = ErrFetch
-	return time.Time{}
-}
-
-func (d *ManualDecoder) TimeEpochMicro(base map[string]interface{}, key string, keys ...string) time.Time {
-	val := getDeep(base, keys...)[key]
-	if val == nil {
-		return time.Time{}
+		return defaultTime
 	}
 
 	if valNum, ok := val.(json.Number); ok {

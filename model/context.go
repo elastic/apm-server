@@ -106,9 +106,9 @@ type Client struct {
 }
 
 // DecodeContext parses all information from input, nested under key context and returns an instance of Context.
-func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
-	if input == nil || err != nil {
-		return nil, err
+func DecodeContext(input interface{}, allowExperimental bool) (*Context, error) {
+	if input == nil {
+		return nil, nil
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
@@ -124,7 +124,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	userInp := decoder.Interface(ctxInp, "user")
 	serviceInp := decoder.Interface(ctxInp, "service")
 	var experimental interface{}
-	if cfg.Experimental {
+	if allowExperimental {
 		experimental = decoder.Interface(ctxInp, "experimental")
 	}
 	http, err := decodeHttp(ctxInp, decoder.Err)

@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -30,7 +29,6 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -46,14 +44,8 @@ var (
 	transformations   = monitoring.NewInt(Metrics, "transformations")
 	processorEntry    = common.MapStr{"name": processorName, "event": transactionDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
-
-	errMissingInput = errors.New("input missing for decoding transaction event")
-	errInvalidType  = errors.New("invalid type for transaction event")
+	errInvalidType    = errors.New("invalid type for transaction event")
 )
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
 
 type Event struct {
 	Id       string
@@ -80,6 +72,8 @@ type Event struct {
 	Client    *m.Client
 
 	Experimental interface{}
+
+	Metadata metadata.Metadata
 }
 
 type SpanCount struct {
@@ -87,19 +81,17 @@ type SpanCount struct {
 	Started *int
 }
 
-func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
-	if err != nil {
-		return nil, err
-	}
-	if input == nil {
-		return nil, errMissingInput
-	}
+func Decode(input interface{}, requestTime time.Time, metadata metadata.Metadata, experimental bool) (*Event, error) {
 	raw, ok := input.(map[string]interface{})
 	if !ok {
 		return nil, errInvalidType
 	}
+	err := validation.Validate(input, cachedModelSchema)
+	if err != nil {
+		return nil, err
+	}
 
-	ctx, err := m.DecodeContext(raw, cfg, nil)
+	ctx, err := m.DecodeContext(raw, experimental)
 	if err != nil {
 		return nil, err
 	}
@@ -122,21 +114,22 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Message:      ctx.Message,
 		Sampled:      decoder.BoolPtr(raw, "sampled"),
 		Marks:        decoder.MapStr(raw, "marks"),
-		Timestamp:    decoder.TimeEpochMicro(raw, "timestamp"),
+		Timestamp:    decoder.TimeEpochMicro(raw, "timestamp", requestTime),
 		SpanCount: SpanCount{
 			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
 			Started: decoder.IntPtr(raw, "started", "span_count")},
 		ParentId: decoder.StringPtr(raw, "parent_id"),
 		TraceId:  decoder.String(raw, "trace_id"),
+		Metadata: metadata,
 	}
+
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
-
 	return &e, nil
 }
 
-func (e *Event) fields(tctx *transform.Context) common.MapStr {
+func (e *Event) fields() common.MapStr {
 	tx := common.MapStr{"id": e.Id}
 	utility.Set(tx, "name", e.Name)
 	utility.Set(tx, "duration", utility.MillisAsMicros(e.Duration))
@@ -168,20 +161,16 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	return tx
 }
 
-func (e *Event) Transform(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform() []beat.Event {
 	transformations.Inc()
-
-	if e.Timestamp.IsZero() {
-		e.Timestamp = tctx.RequestTime
-	}
 
 	fields := common.MapStr{
 		"processor":        processorEntry,
-		transactionDocType: e.fields(tctx),
+		transactionDocType: e.fields(),
 	}
 
 	// first set generic metadata (order is relevant)
-	tctx.Metadata.Set(fields)
+	e.Metadata.Set(fields)
 
 	// then merge event specific information
 	utility.Update(fields, "user", e.User.Fields())

@@ -19,11 +19,13 @@ package span
 
 import (
 	"net"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/elastic/apm-server/sourcemap"
+
 	"github.com/pkg/errors"
-	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -32,7 +34,6 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span/generated/schema"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -51,13 +52,8 @@ var (
 	processorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
 
-	errMissingInput = errors.New("input missing for decoding span event")
-	errInvalidType  = errors.New("invalid type for span event")
+	errInvalidType = errors.New("invalid type for span event")
 )
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
 
 type Event struct {
 	Id            string
@@ -86,6 +82,7 @@ type Event struct {
 	DestinationService *DestinationService
 
 	Experimental interface{}
+	Metadata     metadata.Metadata
 }
 
 // DB contains information related to a database query of a span event
@@ -256,26 +253,30 @@ func (d *DestinationService) fields() common.MapStr {
 	return fields
 }
 
-// DecodeEvent decodes a span event.
-func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
-	if err != nil {
-		return nil, err
-	}
-	if input == nil {
-		return nil, errMissingInput
-	}
+func Decode(input interface{}, requestTime time.Time, meta metadata.Metadata, experimental bool) (*Event, error) {
 	raw, ok := input.(map[string]interface{})
 	if !ok {
 		return nil, errInvalidType
 	}
+	err := validation.Validate(input, cachedModelSchema)
+	if err != nil {
+		return nil, err
+	}
 
 	decoder := utility.ManualDecoder{}
+
+	var offset time.Duration
+	start := decoder.Float64Ptr(raw, "start")
+	if start != nil {
+		offset = time.Duration(float64(time.Millisecond) * *start)
+	}
+
 	event := Event{
 		Name:          decoder.String(raw, "name"),
-		Start:         decoder.Float64Ptr(raw, "start"),
+		Start:         start,
 		Duration:      decoder.Float64(raw, "duration"),
 		Sync:          decoder.BoolPtr(raw, "sync"),
-		Timestamp:     decoder.TimeEpochMicro(raw, "timestamp"),
+		Timestamp:     decoder.TimeEpochMicro(raw, "timestamp", requestTime.Add(offset)),
 		Id:            decoder.String(raw, "id"),
 		ParentId:      decoder.String(raw, "parent_id"),
 		TraceId:       decoder.String(raw, "trace_id"),
@@ -283,6 +284,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Type:          decoder.String(raw, "type"),
 		Subtype:       decoder.StringPtr(raw, "subtype"),
 		Action:        decoder.StringPtr(raw, "action"),
+		Metadata:      meta,
 	}
 
 	ctx := decoder.MapStr(raw, "context")
@@ -322,7 +324,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			return nil, err
 		}
 
-		if cfg.Experimental {
+		if experimental {
 			if obj, set := ctx["experimental"]; set {
 				event.Experimental = obj
 			}
@@ -354,7 +356,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	return &event, nil
 }
 
-func (e *Event) Transform(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform(libraryPattern, excludeFromGrouping *regexp.Regexp, sourcemapStore *sourcemap.Store) []beat.Event {
 	transformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
@@ -363,11 +365,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	fields := common.MapStr{
 		"processor": processorEntry,
-		spanDocType: e.fields(tctx),
+		spanDocType: e.fields(libraryPattern, excludeFromGrouping, sourcemapStore),
 	}
 
 	// first set the generic metadata
-	tctx.Metadata.SetMinimal(fields)
+	e.Metadata.SetMinimal(fields)
 
 	// then add event specific information
 	utility.DeepUpdate(fields, "service", e.Service.MinimalFields())
@@ -380,27 +382,17 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())
 
-	timestamp := e.Timestamp
-	if timestamp.IsZero() {
-		timestamp = tctx.RequestTime
-	}
-
-	// adjust timestamp to be reqTime + start
-	if e.Timestamp.IsZero() && e.Start != nil {
-		timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
-	}
-
-	utility.Set(fields, "timestamp", utility.TimeAsMicros(timestamp))
+	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
 		{
 			Fields:    fields,
-			Timestamp: timestamp,
+			Timestamp: e.Timestamp,
 		},
 	}
 }
 
-func (e *Event) fields(tctx *transform.Context) common.MapStr {
+func (e *Event) fields(libraryPattern, excludeFromGrouping *regexp.Regexp, sourcemapStore *sourcemap.Store) common.MapStr {
 	if e == nil {
 		return nil
 	}
@@ -428,7 +420,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 	utility.Set(fields, "message", e.Message.Fields())
 
-	st := e.Stacktrace.Transform(tctx)
+	st := e.Stacktrace.Transform(libraryPattern, excludeFromGrouping, sourcemapStore, e.Metadata.Service)
 	utility.Set(fields, "stacktrace", st)
 	return fields
 }
