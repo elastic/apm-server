@@ -20,10 +20,13 @@
                                 "exclude_from_grouping": false,
                                 "filename": "test/e2e/general-usecase/bundle.js.map",
                                 "function": "\u003canonymous\u003e",
-                                "library_frame": true,
+                                "library_frame": false,
                                 "line": {
                                     "column": 18,
                                     "number": 1
+                                },
+                                "original": {
+                                    "library_frame": true
                                 }
                             },
                             {
@@ -35,6 +38,9 @@
                                 "line": {
                                     "column": 181,
                                     "number": 1
+                                },
+                                "original": {
+                                    "library_frame": false
                                 }
                             },
                             {
@@ -42,6 +48,7 @@
                                 "exclude_from_grouping": false,
                                 "filename": "~/test/e2e/general-usecase/bundle.js.map",
                                 "function": "runTask",
+                                "library_frame": false,
                                 "line": {
                                     "column": 15,
                                     "number": 1
@@ -52,6 +59,7 @@
                                 "exclude_from_grouping": false,
                                 "filename": "~/test/e2e/general-usecase/bundle.js.map",
                                 "function": "invoke",
+                                "library_frame": false,
                                 "line": {
                                     "column": 199,
                                     "number": 1
@@ -62,6 +70,7 @@
                                 "exclude_from_grouping": false,
                                 "filename": "~/test/e2e/general-usecase/bundle.js.map",
                                 "function": "timer",
+                                "library_frame": false,
                                 "line": {
                                     "column": 33,
                                     "number": 1
@@ -81,6 +90,7 @@
                             "exclude_from_grouping": false,
                             "filename": "~/test/e2e/general-usecase/bundle.js.map",
                             "function": "\u003canonymous\u003e",
+                            "library_frame": false,
                             "line": {
                                 "column": 18,
                                 "number": 1

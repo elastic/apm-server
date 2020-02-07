@@ -13,6 +13,42 @@
     "Id": "41414646",
     "Labels": null,
     "Message": null,
+    "Metadata": {
+        "Labels": {},
+        "Process": null,
+        "Service": {
+            "Agent": {
+                "EphemeralId": null,
+                "Name": "Jaeger",
+                "Version": "unknown"
+            },
+            "Environment": null,
+            "Framework": {
+                "Name": null,
+                "Version": null
+            },
+            "Language": {
+                "Name": "unknown",
+                "Version": null
+            },
+            "Name": "unknown",
+            "Runtime": {
+                "Name": null,
+                "Version": null
+            },
+            "Version": null
+        },
+        "System": {
+            "Architecture": null,
+            "ConfiguredHostname": null,
+            "Container": null,
+            "DetectedHostname": "host-abc",
+            "IP": "",
+            "Kubernetes": null,
+            "Platform": null
+        },
+        "User": null
+    },
     "Name": "HTTP GET",
     "ParentId": "58585858",
     "Service": null,

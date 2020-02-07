@@ -110,6 +110,25 @@
                 },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
+                "stacktrace": [
+                    {
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "}"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "file2.js",
+                        "line": {
+                            "number": 12
+                        }
+                    }
+                ],
                 "start": {
                     "us": 1845
                 },

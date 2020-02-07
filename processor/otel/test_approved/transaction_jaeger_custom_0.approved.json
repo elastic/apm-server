@@ -10,6 +10,34 @@
     },
     "Marks": null,
     "Message": null,
+    "Metadata": {
+        "Labels": {},
+        "Process": null,
+        "Service": {
+            "Agent": {
+                "EphemeralId": null,
+                "Name": "Jaeger",
+                "Version": "unknown"
+            },
+            "Environment": null,
+            "Framework": {
+                "Name": null,
+                "Version": null
+            },
+            "Language": {
+                "Name": "unknown",
+                "Version": null
+            },
+            "Name": "unknown",
+            "Runtime": {
+                "Name": null,
+                "Version": null
+            },
+            "Version": null
+        },
+        "System": null,
+        "User": null
+    },
     "Name": "",
     "Page": null,
     "ParentId": null,

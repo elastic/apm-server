@@ -75,6 +75,7 @@
                         "exclude_from_grouping": false,
                         "filename": "test/e2e/general-usecase/bundle.js.map",
                         "function": "\u003canonymous\u003e",
+                        "library_frame": false,
                         "line": {
                             "column": 18,
                             "number": 1
@@ -85,6 +86,7 @@
                         "exclude_from_grouping": false,
                         "filename": "~/test/e2e/general-usecase/bundle.js.map",
                         "function": "\u003canonymous\u003e",
+                        "library_frame": false,
                         "line": {
                             "column": 18,
                             "number": 1
