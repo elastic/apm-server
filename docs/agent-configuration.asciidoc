@@ -16,7 +16,7 @@ Send an `HTTP GET` request to the agent configuration endpoint.
 http(s)://{hostname}:{port}/config/v1/agents?service.name=SERVICE_NAME
 ------------------------------------------------------------
 
-If a <<secret-token,`secret_token`>> has been configured, it should also apply to this endpoint.
+If an <<api-key>> or <<secret-token>> has been configured, it will also apply to this endpoint.
 
 [[agent-config-api-response]]
 [float]
