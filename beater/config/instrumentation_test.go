@@ -22,9 +22,10 @@ import (
 
 	"github.com/elastic/go-ucfg"
 
-	"github.com/elastic/beats/libbeat/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestNonzeroHosts(t *testing.T) {

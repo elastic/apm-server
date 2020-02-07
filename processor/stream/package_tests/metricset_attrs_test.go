@@ -21,15 +21,19 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/elastic/apm-server/model/metricset/generated/schema"
+	"github.com/elastic/apm-server/model/transformer"
 	"github.com/elastic/apm-server/processor/stream"
+
+	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/tests"
 )
 
 func metricsetProcSetup() *tests.ProcessorSetup {
+	path := "../testdata/intake-v2/metricsets.ndjson"
 	return &tests.ProcessorSetup{
-		Proc:            &intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}},
-		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
+		FullPayloadPath: path,
+		Decoder:         stream.DecoderFunc((&transformer.Transformer{}).DecodeMetricset),
+		SamplePayload:   loadEvent(path, 0)["metricset"],
 		TemplatePaths: []string{
 			"../../../model/metricset/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
@@ -54,11 +58,11 @@ func TestInvalidPayloads(t *testing.T) {
 
 	validMetric := obj{"value": json.Number("1.0")}
 	payloadData := []tests.SchemaTestData{
-		{Key: "metricset.timestamp",
+		{Key: "timestamp",
 			Valid: val{json.Number("1496170422281000")},
 			Invalid: []tests.Invalid{
 				{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
-		{Key: "metricset.tags",
+		{Key: "tags",
 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 			Invalid: []tests.Invalid{
 				{Msg: `tags/type`, Values: val{"tags"}},
@@ -66,7 +70,7 @@ func TestInvalidPayloads(t *testing.T) {
 				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
 		},
 		{
-			Key: "metricset.samples",
+			Key: "samples",
 			Valid: val{
 				obj{"valid-metric": validMetric},
 			},

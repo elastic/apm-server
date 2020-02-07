@@ -27,11 +27,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/tests"
 )
 
 func TestDecodeMessage(t *testing.T) {
+	name, body := "order", "user A ordered book B"
+	ageMillis := 1577958057123
 	for _, tc := range []struct {
 		name    string
 		inp     interface{}
@@ -52,10 +52,10 @@ func TestDecodeMessage(t *testing.T) {
 					"headers": map[string]interface{}{"internal": "false", "services": []string{"user", "order"}},
 					"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}},
 			message: &Message{
-				QueueName: tests.StringPtr("order"),
-				Body:      tests.StringPtr("user A ordered book B"),
+				QueueName: &name,
+				Body:      &body,
 				Headers:   http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-				AgeMillis: tests.IntPtr(1577958057123),
+				AgeMillis: &ageMillis,
 			},
 		},
 	} {
@@ -74,6 +74,9 @@ func TestDecodeMessage(t *testing.T) {
 }
 
 func TestMessaging_Fields(t *testing.T) {
+	name, body := "orders", "order confirmed"
+	ageMillis := 1577958057123
+
 	var m *Message
 	require.Nil(t, m.Fields())
 
@@ -81,10 +84,10 @@ func TestMessaging_Fields(t *testing.T) {
 	require.Equal(t, common.MapStr{}, m.Fields())
 
 	m = &Message{
-		QueueName: tests.StringPtr("orders"),
-		Body:      tests.StringPtr("order confirmed"),
+		QueueName: &name,
+		Body:      &body,
 		Headers:   http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		AgeMillis: tests.IntPtr(1577958057123),
+		AgeMillis: &ageMillis,
 	}
 	outp := common.MapStr{
 		"queue":   common.MapStr{"name": "orders"},

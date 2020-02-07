@@ -19,34 +19,15 @@ package package_tests
 
 import (
 	"bufio"
-	"bytes"
-	"context"
-	"errors"
 	"io"
 
-	"github.com/santhosh-tekuri/jsonschema"
-
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/beats/libbeat/beat"
 )
-
-type TestSetup struct {
-	InputDataPath string
-	TemplatePaths []string
-	Schema        *jsonschema.Schema
-}
-
-type intakeTestProcessor struct {
-	stream.Processor
-}
 
 const lrSize = 100 * 1024
 
-func (v *intakeTestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, error) {
+func getReader(path string) (*decoder.NDJSONStreamReader, error) {
 	reader, err := loader.LoadDataAsStream(path)
 	if err != nil {
 		return nil, err
@@ -55,11 +36,11 @@ func (v *intakeTestProcessor) getReader(path string) (*decoder.NDJSONStreamReade
 	return decoder.NewNDJSONStreamReader(lr), nil
 }
 
-func (v *intakeTestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]interface{}, error) {
+func readEvents(reader *decoder.NDJSONStreamReader) ([]map[string]interface{}, error) {
 	var (
 		err    error
 		e      map[string]interface{}
-		events []interface{}
+		events []map[string]interface{}
 	)
 
 	for err != io.EOF {
@@ -74,51 +55,21 @@ func (v *intakeTestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]
 	return events, nil
 }
 
-func (p *intakeTestProcessor) LoadPayload(path string) (interface{}, error) {
-	ndjson, err := p.getReader(path)
+func loadPayload(path string) ([]map[string]interface{}, error) {
+	ndjson, err := getReader(path)
 	if err != nil {
 		return nil, err
 	}
-
 	// read and discard metadata
 	ndjson.Read()
-
-	return p.readEvents(ndjson)
+	return readEvents(ndjson)
 }
 
-func (p *intakeTestProcessor) Decode(data interface{}) error {
-	events := data.([]interface{})
-	for _, e := range events {
-		_, err := p.Processor.HandleRawModel(e.(map[string]interface{}))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+func loadEvents(path string) (interface{}, error) {
+	return loadPayload(path)
 }
 
-func (p *intakeTestProcessor) Validate(data interface{}) error {
-	return p.Decode(data)
-}
-
-func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
-	var reqs []publish.PendingReq
-	report := tests.TestReporter(&reqs)
-
-	result := p.HandleStream(context.TODO(), nil, nil, bytes.NewBuffer(buf), report)
-	var events []beat.Event
-	for _, req := range reqs {
-		if req.Transformables != nil {
-			for _, transformable := range req.Transformables {
-				events = append(events, transformable.Transform(req.Tcontext)...)
-			}
-		}
-	}
-
-	if len(result.Errors) > 0 {
-		return events, errors.New(result.Error())
-	}
-
-	return events, nil
+func loadEvent(path string, index int) map[string]interface{} {
+	events, _ := loadPayload(path)
+	return events[index]
 }

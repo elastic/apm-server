@@ -21,16 +21,22 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/elastic/apm-server/model/span/generated/schema"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/model/transformer"
 	"github.com/elastic/apm-server/processor/stream"
+
+	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/tests"
 )
 
 func spanProcSetup() *tests.ProcessorSetup {
+	path := "../testdata/intake-v2/spans.ndjson"
 	return &tests.ProcessorSetup{
-		Proc:            &intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}},
-		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
+		FullPayloadPath: path,
+		Decoder:         stream.DecoderFunc((&transformer.Transformer{}).DecodeSpan),
 		Schema:          schema.ModelSchema,
+		SamplePayload:   loadEvent(path, 2)["span"],
 		SchemaPrefix:    "span",
 		TemplatePaths: []string{
 			"../../../model/span/_meta/fields.yml",
@@ -165,14 +171,19 @@ func spanKeywordExceptionKeys() *tests.Set {
 func TestSpanPayloadMatchFields(t *testing.T) {
 	spanProcSetup().PayloadAttrsMatchFields(t,
 		spanPayloadAttrsNotInFields(),
-		spanFieldsNotInPayloadAttrs())
+		spanFieldsNotInPayloadAttrs(),
+		false)
 
 }
 
 func TestSpanPayloadMatchJsonSchema(t *testing.T) {
-	spanProcSetup().PayloadAttrsMatchJsonSchema(t,
+	proc := spanProcSetup()
+	payload, err := loadEvents(proc.FullPayloadPath)
+	require.NoError(t, err)
+	proc.PayloadAttrsMatchJSONSchema(t,
 		spanPayloadAttrsNotInJsonSchema(),
-		spanJsonSchemaNotInPayloadAttrs())
+		spanJsonSchemaNotInPayloadAttrs(),
+		payload)
 }
 
 func TestAttrsPresenceInSpan(t *testing.T) {
@@ -208,23 +219,24 @@ func TestPayloadDataForSpans(t *testing.T) {
 
 	spanProcSetup().DataValidation(t,
 		[]tests.SchemaTestData{
-			{Key: "span.context.tags",
+			{Key: "context.tags",
 				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 				Invalid: []tests.Invalid{
 					{Msg: `tags/type`, Values: val{"tags"}},
 					{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
-					{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}},
+					{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}},
+				},
 			},
-			{Key: "span.timestamp",
+			{Key: "timestamp",
 				Valid: val{json.Number("1496170422281000")},
 				Invalid: []tests.Invalid{
 					{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
-			{Key: "span.stacktrace.pre_context",
+			{Key: "stacktrace.pre_context",
 				Valid: val{[]interface{}{}, []interface{}{"context"}},
 				Invalid: []tests.Invalid{
 					{Msg: `/stacktrace/items/properties/pre_context/items/type`, Values: val{[]interface{}{123}}},
 					{Msg: `stacktrace/items/properties/pre_context/type`, Values: val{"test"}}}},
-			{Key: "span.stacktrace.post_context",
+			{Key: "stacktrace.post_context",
 				Valid: val{[]interface{}{}, []interface{}{"context"}},
 				Invalid: []tests.Invalid{
 					{Msg: `/stacktrace/items/properties/post_context/items/type`, Values: val{[]interface{}{123}}},

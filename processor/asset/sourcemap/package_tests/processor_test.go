@@ -20,6 +20,10 @@ package package_tests
 import (
 	"fmt"
 	"testing"
+	"time"
+
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/publish"
 
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
 	"github.com/elastic/apm-server/tests/approvals"
@@ -32,17 +36,32 @@ import (
 
 	"github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/transform"
 )
 
-var (
-	procSetup = tests.ProcessorSetup{
-		Proc:            &TestProcessor{Processor: sourcemap.Processor},
-		FullPayloadPath: "../testdata/sourcemap/payload.json",
+type sourcemapEventDecoder struct{}
+
+func (s sourcemapEventDecoder) Decode(input interface{}, _ time.Time, _ metadata.Metadata) (publish.Transformable, error) {
+	if err := sourcemap.Processor.Validate(input.(map[string]interface{})); err != nil {
+		return nil, err
+	}
+	transformables, err := sourcemap.Processor.Decode(input.(map[string]interface{}), nil)
+	if err != nil {
+		return nil, err
+	}
+	return transformables[0], err
+}
+
+func sourcemapProcSetup() *tests.ProcessorSetup {
+	path := "../testdata/sourcemap/payload.json"
+	payload, _ := loader.LoadData(path)
+	return &tests.ProcessorSetup{
+		Decoder:         sourcemapEventDecoder{},
+		FullPayloadPath: path,
+		SamplePayload:   payload,
 		TemplatePaths:   []string{"../../../../model/sourcemap/_meta/fields.yml"},
 		Schema:          schema.PayloadSchema,
 	}
-)
+}
 
 // ensure all valid documents pass through the whole validation and transformation process
 func TestSourcemapProcessorOK(t *testing.T) {
@@ -56,7 +75,6 @@ func TestSourcemapProcessorOK(t *testing.T) {
 
 	for _, info := range data {
 		p := sourcemap.Processor
-		tctx := transform.Context{}
 
 		data, err := loader.LoadData(info.Path)
 		require.NoError(t, err)
@@ -64,13 +82,12 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		err = p.Validate(data)
 		require.NoError(t, err)
 
-		metadata, payload, err := p.Decode(data)
+		payload, err := p.Decode(data, nil)
 		require.NoError(t, err)
 
-		tctx.Metadata = *metadata
 		var events []beat.Event
 		for _, transformable := range payload {
-			events = append(events, transformable.Transform(&tctx)...)
+			events = append(events, transformable.Transform()...)
 		}
 		verifyErr := approvals.ApproveEvents(events, info.Name, "@timestamp")
 		if verifyErr != nil {
@@ -80,17 +97,20 @@ func TestSourcemapProcessorOK(t *testing.T) {
 }
 
 func TestPayloadAttrsMatchFields(t *testing.T) {
-	procSetup.PayloadAttrsMatchFields(t, tests.NewSet("sourcemap.sourcemap"), tests.NewSet())
+	sourcemapProcSetup().PayloadAttrsMatchFields(t, tests.NewSet("sourcemap.sourcemap"), tests.NewSet(), true)
 }
 
 func TestPayloadAttrsMatchJsonSchema(t *testing.T) {
-	procSetup.PayloadAttrsMatchJsonSchema(t,
+	proc := sourcemapProcSetup()
+	payload, err := loader.LoadData(proc.FullPayloadPath)
+	require.NoError(t, err)
+	proc.PayloadAttrsMatchJSONSchema(t,
 		tests.NewSet("sourcemap", "sourcemap.file", "sourcemap.names",
-			"sourcemap.sources", "sourcemap.sourceRoot"), tests.NewSet())
+			"sourcemap.sources", "sourcemap.sourceRoot"), tests.NewSet(), payload)
 }
 
 func TestAttributesPresenceRequirementInSourcemap(t *testing.T) {
-	procSetup.AttrsPresence(t,
+	sourcemapProcSetup().AttrsPresence(t,
 		tests.NewSet("service_name", "service_version",
 			"bundle_filepath", "sourcemap"), nil)
 }
@@ -102,7 +122,7 @@ func TestKeywordLimitationOnSourcemapAttributes(t *testing.T) {
 		{Template: "sourcemap.bundle_filepath", Mapping: "bundle_filepath"},
 	}
 
-	procSetup.KeywordLimitation(t, tests.NewSet(), mapping)
+	sourcemapProcSetup().KeywordLimitation(t, tests.NewSet(), mapping)
 }
 
 func TestPayloadDataForSourcemap(t *testing.T) {
@@ -127,5 +147,5 @@ func TestPayloadDataForSourcemap(t *testing.T) {
 		{Key: "bundle_filepath", Valid: []interface{}{tests.Str1024},
 			Invalid: []tests.Invalid{{Msg: `bundle_filepath/minlength`, Values: val{""}}}},
 	}
-	procSetup.DataValidation(t, payloadData)
+	sourcemapProcSetup().DataValidation(t, payloadData)
 }

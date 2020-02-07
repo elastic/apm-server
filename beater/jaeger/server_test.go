@@ -270,7 +270,7 @@ type testcase struct {
 func (tc *testcase) setup(t *testing.T) {
 	reporter := func(ctx context.Context, req publish.PendingReq) error {
 		for _, transformable := range req.Transformables {
-			tc.events = append(tc.events, transformable.Transform(req.Tcontext)...)
+			tc.events = append(tc.events, transformable.Transform()...)
 		}
 		return nil
 	}

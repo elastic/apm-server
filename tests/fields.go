@@ -18,11 +18,18 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/elastic/apm-server/processor/stream"
+	"github.com/elastic/apm-server/publish"
+
+	"github.com/elastic/apm-server/processor/asset/sourcemap"
+	"github.com/elastic/beats/libbeat/beat"
 
 	"github.com/stretchr/testify/require"
 
@@ -42,7 +49,7 @@ import (
 // indexed or not specifically mentioned in ES template.
 // - fieldsAttrsNotInPayload: attributes that are reflected in the fields.yml but are
 // not part of the payload, e.g. Kibana visualisation attributes.
-func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotInFields, fieldsNotInPayload *Set) {
+func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotInFields, fieldsNotInPayload *Set, sourcemap bool) {
 	notInFields := Union(payloadAttrsNotInFields, NewSet(
 		Group("processor"),
 		//dynamically indexed:
@@ -57,11 +64,11 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		Group("http.request.headers"),
 		Group("http.response.headers"),
 	))
-	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
+	events := fetchFields(t, ps.FullPayloadPath, notInFields, sourcemap)
 	ps.EventFieldsInTemplateFields(t, events, notInFields)
 
 	// check ES fields in event
-	events = fetchFields(t, ps.Proc, ps.FullPayloadPath, fieldsNotInPayload)
+	events = fetchFields(t, ps.FullPayloadPath, fieldsNotInPayload, sourcemap)
 	ps.TemplateFieldsInEventFields(t, events, fieldsNotInPayload)
 }
 
@@ -115,11 +122,24 @@ func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields,
 	assertEmptySet(t, missing, fmt.Sprintf("Fields missing in event: %v", missing))
 }
 
-func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *Set {
-	buf, err := loader.LoadDataAsBytes(path)
-	require.NoError(t, err)
-	events, err := p.Process(buf)
-	require.NoError(t, err)
+func fetchFields(t *testing.T, path string, blacklisted *Set, isSourcemap bool) *Set {
+	var transformables []publish.Transformable
+	if isSourcemap {
+		data, err := loader.LoadData(path)
+		require.NoError(t, err)
+		transformables, err = sourcemap.Processor.Decode(data, nil)
+		require.NoError(t, err)
+	} else {
+		buf, err := loader.LoadDataAsStream(path)
+		require.NoError(t, err)
+		p := stream.BackendProcessor(false, 100*1024)
+		transformables = p.Process(context.Background(), nil, nil, buf, TestReporter(&[]publish.PendingReq{}))
+	}
+
+	var events []beat.Event
+	for _, transformable := range transformables {
+		events = append(events, transformable.Transform()...)
+	}
 
 	keys := NewSet()
 	for _, event := range events {

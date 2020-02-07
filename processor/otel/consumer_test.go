@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
+	"time"
 
 	commonpb "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1"
 	resourcepb "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1"
@@ -35,8 +36,6 @@ import (
 
 	"github.com/elastic/beats/libbeat/beat"
 
-	model_error "github.com/elastic/apm-server/model/error"
-	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/approvals"
@@ -64,7 +63,7 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 			reporter := func(ctx context.Context, p publish.PendingReq) error {
 				var events []beat.Event
 				for _, transformable := range p.Transformables {
-					events = append(events, transformable.Transform(p.Tcontext)...)
+					events = append(events, transformable.Transform()...)
 				}
 				assert.NoError(t, approvals.ApproveEvents(events, file("consume_"+tc.name)))
 				return nil
@@ -83,6 +82,14 @@ func TestConsumer_Metadata(t *testing.T) {
 		{name: "jaeger",
 			td: consumerdata.TraceData{
 				SourceFormat: "jaeger",
+				Spans: []*tracepb.Span{{
+					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_SERVER,
+					StartTime: testStartTime(),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"http.status_code": testAttributeIntValue(200),
+						"http.protocol":    testAttributeStringValue("HTTP"),
+						"http.path":        testAttributeStringValue("http://foo.bar.com?a=12"),
+					}}}},
 				Node: &commonpb.Node{
 					Identifier: &commonpb.ProcessIdentifier{
 						HostName:       "host-foo",
@@ -97,14 +104,38 @@ func TestConsumer_Metadata(t *testing.T) {
 				}}},
 		{name: "jaeger-version",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
+				Spans: []*tracepb.Span{{
+					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_SERVER,
+					StartTime: testStartTime(),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"http.status_code": testAttributeIntValue(200),
+						"http.protocol":    testAttributeStringValue("HTTP"),
+						"http.path":        testAttributeStringValue("http://foo.bar.com?a=12"),
+					}}}},
 				Node: &commonpb.Node{LibraryInfo: &commonpb.LibraryInfo{
 					Language: 7, ExporterVersion: "Jaeger-3.4.12"}}}},
 		{name: "jaeger-no-language",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
+				Spans: []*tracepb.Span{{
+					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_SERVER,
+					StartTime: testStartTime(),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"http.status_code": testAttributeIntValue(200),
+						"http.protocol":    testAttributeStringValue("HTTP"),
+						"http.path":        testAttributeStringValue("http://foo.bar.com?a=12"),
+					}}}},
 				Node: &commonpb.Node{LibraryInfo: &commonpb.LibraryInfo{ExporterVersion: "Jaeger-3.4.12"}}}},
 		{name: "jaeger_minimal",
 			td: consumerdata.TraceData{
 				SourceFormat: "jaeger",
+				Spans: []*tracepb.Span{{
+					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_SERVER,
+					StartTime: testStartTime(),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"http.status_code": testAttributeIntValue(200),
+						"http.protocol":    testAttributeStringValue("HTTP"),
+						"http.path":        testAttributeStringValue("http://foo.bar.com?a=12"),
+					}}}},
 				Node: &commonpb.Node{
 					Identifier:  &commonpb.ProcessIdentifier{},
 					LibraryInfo: &commonpb.LibraryInfo{},
@@ -112,12 +143,22 @@ func TestConsumer_Metadata(t *testing.T) {
 				}}},
 
 		{name: "minimal",
-			td: consumerdata.TraceData{SourceFormat: "foo"}},
+			td: consumerdata.TraceData{SourceFormat: "foo",
+				Spans: []*tracepb.Span{{
+					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_SERVER,
+					StartTime: testStartTime(),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"http.status_code": testAttributeIntValue(200),
+						"http.protocol":    testAttributeStringValue("HTTP"),
+						"http.path":        testAttributeStringValue("http://foo.bar.com?a=12"),
+					}}}},
+			}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
-				metadata := req.Tcontext.Metadata
+				// TODO
+				metadata := req.Transformables[0].(*transaction.Event).Metadata
 				out, err := json.Marshal(metadata)
 				require.NoError(t, err)
 				approvals.AssertApproveResult(t, file("metadata_"+tc.name), out)
@@ -217,10 +258,15 @@ func TestConsumer_Transaction(t *testing.T) {
 				for i, transformable := range req.Transformables {
 					switch data := transformable.(type) {
 					case *transaction.Event:
+						// hack to test events without timestamp
+						if time.Since(data.Timestamp) < time.Minute*5 {
+							data.Timestamp = time.Time{}
+						}
 						tr, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_%s_%d", tc.name, i)), tr)
-					case *model_error.Event:
+					// model_error.Event
+					default:
 						e, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_error_%s_%d", tc.name, i)), e)
@@ -261,8 +307,10 @@ func TestConsumer_Span(t *testing.T) {
 						"peer.address":     testAttributeStringValue("mysql://db:3306"),
 						"peer.service":     testAttributeStringValue("sql"),
 					}},
-					TimeEvents: testTimeEvents(),
-				}}}},
+					TimeEvents: nonConvertibleError(),
+				}},
+			},
+		},
 		{name: "jaeger_http_status_code",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
@@ -300,16 +348,58 @@ func TestConsumer_Span(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
 				for i, transformable := range req.Transformables {
-					switch data := transformable.(type) {
-					case *span.Event:
-						span, err := json.Marshal(data)
-						require.NoError(t, err)
-						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_%s_%d", tc.name, i)), span)
-					case *model_error.Event:
-						e, err := json.Marshal(data)
-						require.NoError(t, err)
-						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_error_%s_%d", tc.name, i)), e)
-					}
+					span, err := json.Marshal(transformable)
+					require.NoError(t, err)
+					approvals.AssertApproveResult(t, file(fmt.Sprintf("span_%s_%d", tc.name, i)), span)
+				}
+				return nil
+			}
+			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
+		})
+	}
+}
+
+func TestConsumer_SpanError(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		td   consumerdata.TraceData
+	}{
+		{name: "jaeger_http",
+			td: consumerdata.TraceData{
+				SourceFormat: "jaeger",
+				Node:         &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
+				Spans: []*tracepb.Span{{
+					TraceId: []byte("FFx0"), SpanId: []byte("AAFF"), ParentSpanId: []byte("XXXX"),
+					StartTime: testStartTime(), EndTime: testEndTime(),
+					Name: testTruncatableString("HTTP GET"),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"error":            testAttributeBoolValue(true),
+						"hasErrors":        testAttributeBoolValue(true),
+						"double.a":         testAttributeDoubleValue(14.65),
+						"http.status_code": testAttributeIntValue(200),
+						"int.a":            testAttributeIntValue(148),
+						"span.kind":        testAttributeStringValue("filtered"),
+						"http.url":         testAttributeStringValue("http://foo.bar.com?a=12"),
+						"http.method":      testAttributeStringValue("get"),
+						"type":             testAttributeStringValue("db_request"),
+						"component":        testAttributeStringValue("foo"),
+						"string.a.b":       testAttributeStringValue("some note"),
+						"peer.port":        testAttributeIntValue(3306),
+						"peer.address":     testAttributeStringValue("mysql://db:3306"),
+						"peer.service":     testAttributeStringValue("sql"),
+					}},
+					TimeEvents: convertibleErrors(),
+				}},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			reporter := func(ctx context.Context, req publish.PendingReq) error {
+				require.True(t, len(req.Transformables) >= 1)
+				for i, transformable := range req.Transformables {
+					e, err := json.Marshal(transformable)
+					require.NoError(t, err)
+					approvals.AssertApproveResult(t, file(fmt.Sprintf("span_error_%s_%d", tc.name, i)), e)
 				}
 				return nil
 			}
@@ -319,8 +409,37 @@ func TestConsumer_Span(t *testing.T) {
 }
 
 func testTimeEvents() *tracepb.Span_TimeEvents {
+	convertibleErrors := convertibleErrors()
+	nonConvertibleError := nonConvertibleError()
+	events := &tracepb.Span_TimeEvents{TimeEvent: []*tracepb.Span_TimeEvent{
+		// no errors
+		{Time: testTimeStamp(testStartTime(), 15),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event":   testAttributeStringValue("baggage"),
+					"isValid": testAttributeBoolValue(false),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 65),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"event": testAttributeStringValue("retrying connection"),
+					"level": testAttributeStringValue("info"),
+				}}}}},
+		{Time: testTimeStamp(testStartTime(), 67),
+			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
+				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+					"level": testAttributeStringValue("error"),
+				}}}}},
+	},
+	}
+	events.TimeEvent = append(events.TimeEvent, convertibleErrors.TimeEvent...)
+	events.TimeEvent = append(events.TimeEvent, nonConvertibleError.TimeEvent...)
+	return events
+}
+
+// errors that can be converted to elastic errors
+func convertibleErrors() *tracepb.Span_TimeEvents {
 	return &tracepb.Span_TimeEvents{TimeEvent: []*tracepb.Span_TimeEvent{
-		// errors that can be converted to elastic errors
 		{Time: testTimeStamp(testStartTime(), 23),
 			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
 				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
@@ -356,21 +475,12 @@ func testTimeEvents() *tracepb.Span_TimeEvents {
 				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
 					"event":   testAttributeStringValue("error"),
 					"message": testAttributeStringValue("no connection established"),
-				}}}}},
-		// no errors
-		{Time: testTimeStamp(testStartTime(), 15),
-			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
-				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-					"event":   testAttributeStringValue("baggage"),
-					"isValid": testAttributeBoolValue(false),
-				}}}}},
-		{Time: testTimeStamp(testStartTime(), 65),
-			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
-				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-					"event": testAttributeStringValue("retrying connection"),
-					"level": testAttributeStringValue("info"),
-				}}}}},
-		// errors not convertable to elastic errors
+				}}}}}}}
+}
+
+// errors not convertible to elastic errors
+func nonConvertibleError() *tracepb.Span_TimeEvents {
+	return &tracepb.Span_TimeEvents{TimeEvent: []*tracepb.Span_TimeEvent{
 		{Time: testTimeStamp(testStartTime(), 67),
 			Value: &tracepb.Span_TimeEvent_Annotation_{Annotation: &tracepb.Span_TimeEvent_Annotation{
 				Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{

@@ -25,7 +25,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -33,31 +32,20 @@ import (
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 )
 
 func TestTransactionEventDecodeFailure(t *testing.T) {
 	for name, test := range map[string]struct {
-		input       interface{}
-		err, inpErr error
-		e           *Event
+		input interface{}
 	}{
-		"no input":           {input: nil, err: errMissingInput, e: nil},
-		"input error":        {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		"invalid type":       {input: "", err: errInvalidType, e: nil},
-		"cannot fetch field": {input: map[string]interface{}{}, err: utility.ErrFetch, e: nil},
+		"no input":           {input: nil},
+		"invalid type":       {input: ""},
+		"cannot fetch field": {input: map[string]interface{}{}},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, model.Config{}, test.inpErr)
-			assert.Equal(t, test.err, err)
-			if test.e != nil {
-				event := transformable.(*Event)
-				assert.Equal(t, test.e, event)
-			} else {
-				assert.Nil(t, transformable)
-			}
+			event, err := Decode(test.input, time.Now(), metadata.Metadata{}, true)
+			assert.NotNil(t, err)
+			assert.Nil(t, event)
 		})
 	}
 }
@@ -67,10 +55,12 @@ func TestTransactionEventDecode(t *testing.T) {
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
-	dropped, started, duration := 12, 6, 1.67
+	dropped, started, duration, ageMillis := 12, 6, 1.67, 1577958057123
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
+	queueName, body := "order", "confirmed"
+
 	url, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
-	marks := map[string]interface{}{"k": "b"}
+	marks := map[string]interface{}{"k": nil}
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
@@ -83,81 +73,88 @@ func TestTransactionEventDecode(t *testing.T) {
 	custom := model.Custom{"abc": 1}
 
 	for name, test := range map[string]struct {
-		input interface{}
-		cfg   model.Config
-		err   string
-		e     *Event
+		input        interface{}
+		experimental bool
+		e            Event
 	}{
 		"event experimental=true, no experimental payload": {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
-				"timestamp": timestampEpoch, "context": map[string]interface{}{"foo": "bar"},
+				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
+				"timestamp":  timestampEpoch, "context": map[string]interface{}{"foo": "bar"},
 			},
-			cfg: model.Config{Experimental: true},
-			e: &Event{
+			experimental: true,
+			e: Event{
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
 				TraceId:   traceId,
 				Duration:  duration,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 				Timestamp: timestampParsed,
 			},
 		},
 		"event experimental=false": {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId, "timestamp": timestampEpoch,
-				"context": map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
+				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
+				"context":    map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
 			},
-			cfg: model.Config{Experimental: false},
-			e: &Event{
+			experimental: false,
+			e: Event{
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
 				TraceId:   traceId,
 				Duration:  duration,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 				Timestamp: timestampParsed,
 			},
 		},
 		"event experimental=true": {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId, "timestamp": timestampEpoch,
-				"context": map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
+				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
+				"context":    map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
 			},
-			cfg: model.Config{Experimental: true},
-			e: &Event{
+			experimental: true,
+			e: Event{
 				Id:           id,
 				Type:         trType,
 				Name:         &name,
 				TraceId:      traceId,
 				Duration:     duration,
+				SpanCount:    SpanCount{Dropped: &dropped, Started: &started},
 				Timestamp:    timestampParsed,
 				Experimental: map[string]interface{}{"foo": "bar"},
 			},
 		},
 		"messaging event": {
 			input: map[string]interface{}{
-				"id":        id,
-				"trace_id":  traceId,
-				"duration":  duration,
-				"timestamp": timestampEpoch,
-				"type":      "messaging",
+				"id":         id,
+				"trace_id":   traceId,
+				"duration":   duration,
+				"timestamp":  timestampEpoch,
+				"type":       "messaging",
+				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
 				"context": map[string]interface{}{
 					"message": map[string]interface{}{
 						"queue":   map[string]interface{}{"name": "order"},
 						"body":    "confirmed",
 						"headers": map[string]interface{}{"internal": "false"},
 						"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}}},
-			e: &Event{
+			e: Event{
 				Id:        id,
 				Type:      "messaging",
 				TraceId:   traceId,
 				Duration:  duration,
 				Timestamp: timestampParsed,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 				Message: &model.Message{
-					QueueName: tests.StringPtr("order"),
-					Body:      tests.StringPtr("confirmed"),
+					QueueName: &queueName,
+					Body:      &body,
 					Headers:   http.Header{"Internal": []string{"false"}},
-					AgeMillis: tests.IntPtr(1577958057123),
+					AgeMillis: &ageMillis,
 				},
 			},
 		},
@@ -186,7 +183,7 @@ func TestTransactionEventDecode(t *testing.T) {
 						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
 					}},
 				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0}},
-			e: &Event{
+			e: Event{
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -209,15 +206,10 @@ func TestTransactionEventDecode(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, test.cfg, nil)
-			if test.err != "" {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), test.err)
-			}
-			if test.e != nil && assert.NotNil(t, transformable) {
-				event := transformable.(*Event)
-				assert.Equal(t, test.e, event)
-			}
+			event, err := Decode(test.input, time.Now(), metadata.Metadata{}, test.experimental)
+			require.Nil(t, err)
+			require.NotNil(t, event)
+			assert.Equal(t, test.e, *event)
 		})
 	}
 }
@@ -314,10 +306,8 @@ func TestEventTransform(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{}
-
 	for idx, test := range tests {
-		output := test.Event.Transform(tctx)
+		output := test.Event.Transform()
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -389,6 +379,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{}}
 	response := model.Resp{Finished: new(bool), Headers: http.Header{"content-type": []string{"text/html"}}}
+	msg := "routeUser"
 	txWithContext := Event{
 		Timestamp: timestamp,
 		User:      &user,
@@ -398,7 +389,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Url:       &model.Url{Original: &url},
 		Custom:    &model.Custom{"foo": "bar"},
 		Client:    &model.Client{IP: net.ParseIP("198.12.13.1")},
-		Message:   &model.Message{QueueName: tests.StringPtr("routeUser")},
+		Message:   &model.Message{QueueName: &msg},
 	}
 	txWithContextEs := common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
@@ -458,7 +449,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	tests := []struct {
 		Metadata *metadata.Metadata
-		Event    transform.Transformable
+		Event    *Event
 		Output   []common.MapStr
 		Msg      string
 	}{
@@ -520,11 +511,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		tctx := &transform.Context{
-			Metadata:    *test.Metadata,
-			RequestTime: timestamp,
-		}
-		outputEvents := test.Event.Transform(tctx)
+		test.Event.Metadata = *test.Metadata
+		outputEvents := test.Event.Transform()
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
@@ -535,8 +523,13 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 func TestEventTransformUseReqTime(t *testing.T) {
 	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
-	e := Event{}
-	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
-	require.Len(t, beatEvent, 1)
-	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
+
+	event, error := Decode(map[string]interface{}{
+		"id": "id", "type": "type", "name": "name",
+		"duration": 10.0, "trace_id": "traceId",
+		"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
+	}, reqTimestampParsed, metadata.Metadata{}, false)
+	require.NoError(t, error)
+	require.NotNil(t, event)
+	assert.Equal(t, reqTimestampParsed, event.Timestamp)
 }

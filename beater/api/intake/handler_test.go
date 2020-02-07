@@ -22,6 +22,7 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -29,7 +30,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/api/ratelimit"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -38,12 +38,10 @@ import (
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestIntakeHandler(t *testing.T) {
@@ -184,11 +182,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	}
 	if tc.processor == nil {
 		cfg := config.DefaultConfig("7.0.0")
-		tc.processor = &stream.Processor{
-			Tconfig:      transform.Config{},
-			Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
-			MaxEventSize: cfg.MaxEventSize,
-		}
+		tc.processor = stream.BackendProcessor(false, cfg.MaxEventSize)
 	}
 	if tc.reporter == nil {
 		tc.reporter = beatertest.NilReporter

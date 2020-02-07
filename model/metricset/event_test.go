@@ -26,13 +26,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/transform"
 )
 
 // assertMetricsMatch is an equality test for a metricset as sample order is not important
@@ -159,14 +157,13 @@ func TestDecode(t *testing.T) {
 		},
 	} {
 		var err error
-		transformables, err := DecodeEvent(test.input, model.Config{}, err)
+		got, err := Decode(test.input, time.Now(), metadata.Metadata{})
 		if test.err != nil {
 			assert.Error(t, err)
 		}
 
 		if test.metricset != nil {
 			want := test.metricset
-			got := transformables.(*Metricset)
 			assertMetricsetsMatch(t, *want, *got)
 		}
 	}
@@ -243,9 +240,11 @@ func TestTransform(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{Config: transform.Config{}, Metadata: *md}
 	for idx, test := range tests {
-		outputEvents := test.Metricset.Transform(tctx)
+		if test.Metricset != nil {
+			test.Metricset.Metadata = *md
+		}
+		outputEvents := test.Metricset.Transform()
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
@@ -256,8 +255,9 @@ func TestTransform(t *testing.T) {
 
 func TestEventTransformUseReqTime(t *testing.T) {
 	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
-	e := Metricset{}
-	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
-	require.Len(t, beatEvent, 1)
-	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
+
+	event, error := Decode(map[string]interface{}{"samples": map[string]interface{}{}}, reqTimestampParsed, metadata.Metadata{})
+	require.NoError(t, error)
+	require.NotNil(t, event)
+	assert.Equal(t, reqTimestampParsed, event.Timestamp)
 }

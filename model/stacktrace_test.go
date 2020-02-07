@@ -28,7 +28,6 @@ import (
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap/test"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestStacktraceDecode(t *testing.T) {
@@ -138,14 +137,8 @@ func TestStacktraceTransform(t *testing.T) {
 			Msg: "Stacktrace with sourcemapping",
 		},
 	}
-
-	tctx := transform.Context{
-		Metadata: metadata.Metadata{
-			Service: &service,
-		},
-	}
 	for idx, test := range tests {
-		output := test.Stacktrace.Transform(&tctx)
+		output := test.Stacktrace.Transform(nil, nil, nil, &service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -287,14 +280,9 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			tctx := &transform.Context{
-				Config:   transform.Config{SourcemapStore: testSourcemapStore(t, test.ESClientWithValidSourcemap(t))},
-				Metadata: metadata.Metadata{Service: &service},
-			}
-
-			// run `Stacktrace.Transform` twice to ensure method is idempotent
-			tc.Stacktrace.Transform(tctx)
-			output := tc.Stacktrace.Transform(tctx)
+			// run `Stacktrace.transform` twice to ensure method is idempotent
+			tc.Stacktrace.Transform(nil, nil, testSourcemapStore(t, test.ESClientWithValidSourcemap(t)), &service)
+			output := tc.Stacktrace.Transform(nil, nil, testSourcemapStore(t, test.ESClientWithValidSourcemap(t)), &service)
 			assert.Equal(t, tc.Output, output)
 		})
 	}

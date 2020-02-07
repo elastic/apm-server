@@ -34,7 +34,6 @@ import (
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -52,7 +51,7 @@ func TestDecode(t *testing.T) {
 	sourcemap, err := DecodeSourcemap(data)
 	assert.NoError(t, err)
 
-	rs := sourcemap.Transform(&transform.Context{})
+	rs := sourcemap.Transform(nil)
 	assert.Len(t, rs, 1)
 	event := rs[0]
 	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
@@ -75,9 +74,7 @@ func TestTransform(t *testing.T) {
 		BundleFilepath: "/my/path",
 		Sourcemap:      "mysmap",
 	}
-
-	tctx := &transform.Context{}
-	events := p.Transform(tctx)
+	events := p.Transform(nil)
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -105,9 +102,8 @@ func TestInvalidateCache(t *testing.T) {
 	// load sourcemap from file and decode
 	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
 	assert.NoError(t, err)
-	decoded, err := DecodeSourcemap(data)
+	event, err := DecodeSourcemap(data)
 	require.NoError(t, err)
-	event := decoded.(*Sourcemap)
 
 	t.Run("withSourcemapStore", func(t *testing.T) {
 		// collect logs
@@ -120,7 +116,7 @@ func TestInvalidateCache(t *testing.T) {
 		require.NoError(t, err)
 
 		// transform with sourcemap store
-		event.Transform(&transform.Context{Config: transform.Config{SourcemapStore: store}})
+		event.Transform(store)
 
 		logCollection := logp.ObserverLogs().TakeAll()
 		assert.Equal(t, 2, len(logCollection))
@@ -143,7 +139,7 @@ func TestInvalidateCache(t *testing.T) {
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 		// transform with sourcemap store
-		event.Transform(&transform.Context{Config: transform.Config{SourcemapStore: nil}})
+		event.Transform(nil)
 
 		logCollection := logp.ObserverLogs().TakeAll()
 		assert.Equal(t, 1, len(logCollection))

@@ -19,7 +19,6 @@ package utility
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -234,22 +233,6 @@ func TestMapStr(t *testing.T) {
 		decoder := ManualDecoder{}
 		out := decoder.MapStr(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, decoder.Err, test.err)
-	}
-}
-
-func TestTimeRFC3339(t *testing.T) {
-	var outZero time.Time
-	tp := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
-	for _, test := range []testStr{
-		{key: "time", keys: []string{}, out: tp, err: nil},
-		{key: "missing", keys: []string{"a", "b"}, out: outZero, err: nil},
-		{key: "str", keys: []string{"a", "b"}, out: outZero, err: ErrFetch},
-		{key: "b", keys: []string{"a"}, out: outZero, err: ErrFetch},
-	} {
-		decoder := ManualDecoder{}
-		out := decoder.TimeRFC3339(decoderBase, test.key, test.keys...)
-		assert.InDelta(t, out.Unix(), test.out.(time.Time).Unix(), time.Millisecond.Seconds()*10)
 		assert.Equal(t, decoder.Err, test.err)
 	}
 }

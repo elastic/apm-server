@@ -21,13 +21,15 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,9 +38,6 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
-	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -82,10 +81,11 @@ func TestErrorEventDecode(t *testing.T) {
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 
 	id, culprit, lineno := "123", "foo()", 2
+	exceptionMsg := "Exception Msg"
 	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
 	pUrl, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
-	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
+	code, module, attrs, exType, handled := "200", "a", map[string]interface{}{}, "errorEx", false
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
 	transactionSampled := true
 	transactionType := "request"
@@ -100,32 +100,49 @@ func TestErrorEventDecode(t *testing.T) {
 	ctxUrl := m.Url{Original: &origUrl}
 
 	for name, test := range map[string]struct {
-		input       interface{}
-		cfg         m.Config
-		err, inpErr error
-		e           *Event
+		input        interface{}
+		experimental bool
+		error        string
+		event        *Event
 	}{
-		"no input":               {input: nil, err: errMissingInput, e: nil},
-		"an error passed as arg": {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		"invalid type":           {input: "", err: errInvalidType, e: nil},
+		"invalid type": {input: "", event: nil},
 		"error decoding timestamp": {
-			input: map[string]interface{}{"timestamp": 123},
-			err:   utility.ErrFetch,
+			input: map[string]interface{}{
+				"timestamp": 123,
+				"id":        id,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
+			},
+			error: utility.ErrFetch.Error(),
 		},
 		"error decoding transaction id": {
-			input: map[string]interface{}{"transaction_id": 123},
-			err:   utility.ErrFetch,
+			input: map[string]interface{}{
+				"transaction_id": 123,
+				"id":             id,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
+			},
+			error: "expected string or null, but got number",
 		},
-		"only parent id given": {input: map[string]interface{}{
-			"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
-			"parent_id": 123},
-			err: utility.ErrFetch,
+		"only parent id given": {
+			input: map[string]interface{}{
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
+				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
+				"parent_id": "123"},
+			error: "missing properties: \"trace_id\"",
 		},
 		"only trace id given": {
 			input: map[string]interface{}{
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
 				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
-				"trace_id": 123},
-			err: utility.ErrFetch,
+				"trace_id": "123"},
+			error: "missing properties: \"parent_id\"",
 		},
 		"invalid type for exception stacktrace": {
 			input: map[string]interface{}{
@@ -134,8 +151,9 @@ func TestErrorEventDecode(t *testing.T) {
 					"message":    "Exception Msg",
 					"stacktrace": "123",
 				},
+				"id": "id1",
 			},
-			err: errors.New("invalid type for stacktrace"),
+			error: "expected array or null, but got string",
 		},
 		"invalid type for log stacktrace": {
 			input: map[string]interface{}{
@@ -144,65 +162,87 @@ func TestErrorEventDecode(t *testing.T) {
 					"message":    "Log Msg",
 					"stacktrace": "123",
 				},
+				"id": "id1",
 			},
-			err: errors.New("invalid type for stacktrace"),
+			error: "expected array or null, but got string",
 		},
 		"minimal valid error": {
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp},
-			e: &Event{
-				Id:        &id,
-				Culprit:   &culprit,
-				Timestamp: timestampParsed,
-			},
-		},
-		"minimal valid error with log and exception": {
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"exception": map[string]interface{}{},
-				"log":       map[string]interface{}{},
-			},
-			e: &Event{
+				"id":      id,
+				"culprit": culprit,
+				"context": map[string]interface{}{},
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
+				"timestamp": timestamp},
+			event: &Event{
+				Id:      &id,
+				Culprit: &culprit,
+				Exception: &Exception{
+					Message:    &exceptionMsg,
+					Stacktrace: m.Stacktrace{},
+				},
 				Timestamp: timestampParsed,
 			},
 		},
 		"valid error experimental=true, no experimental payload": {
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
 				"context": map[string]interface{}{"foo": []string{"a", "b"}}},
-			e: &Event{
+			event: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
 				Timestamp: timestampParsed,
+				Exception: &Exception{
+					Message:    &exceptionMsg,
+					Stacktrace: m.Stacktrace{},
+				},
 			},
-			cfg: m.Config{Experimental: true},
+			experimental: true,
 		},
 		"valid error experimental=false": {
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
 				"context": map[string]interface{}{"experimental": []string{"a", "b"}}},
-			e: &Event{
+			event: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
 				Timestamp: timestampParsed,
+				Exception: &Exception{
+					Message:    &exceptionMsg,
+					Stacktrace: m.Stacktrace{},
+				},
 			},
-			cfg: m.Config{Experimental: false},
 		},
 		"valid error experimental=true": {
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+				},
 				"context": map[string]interface{}{"experimental": []string{"a", "b"}}},
-			e: &Event{
+			event: &Event{
 				Id:           &id,
 				Culprit:      &culprit,
 				Timestamp:    timestampParsed,
 				Experimental: []string{"a", "b"},
+				Exception: &Exception{
+					Message:    &exceptionMsg,
+					Stacktrace: m.Stacktrace{},
+				},
 			},
-			cfg: m.Config{Experimental: true},
+			experimental: true,
 		},
 		"full valid error event": {
 			input: map[string]interface{}{
 				"timestamp": timestamp,
+				"id":        id,
 				"context": map[string]interface{}{
 					"a":      "b",
 					"user":   map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
@@ -243,8 +283,9 @@ func TestErrorEventDecode(t *testing.T) {
 				"trace_id":       traceId,
 				"transaction":    map[string]interface{}{"sampled": transactionSampled, "type": transactionType},
 			},
-			e: &Event{
+			event: &Event{
 				Timestamp: timestampParsed,
+				Id:        &id,
 				User:      &user,
 				Labels:    &labels,
 				Page:      &page,
@@ -260,7 +301,7 @@ func TestErrorEventDecode(t *testing.T) {
 					Attributes: attrs,
 					Handled:    &handled,
 					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{Filename: tests.StringPtr("file")},
+						&m.StacktraceFrame{Filename: pointer("file")},
 					},
 				},
 				Log: &Log{
@@ -269,7 +310,7 @@ func TestErrorEventDecode(t *testing.T) {
 					Level:        &level,
 					LoggerName:   &logger,
 					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{Filename: tests.StringPtr("log file"), Lineno: &lineno},
+						&m.StacktraceFrame{Filename: pointer("log file"), Lineno: &lineno},
 					},
 				},
 				TransactionId:      &transactionId,
@@ -281,19 +322,23 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, test.cfg, test.inpErr)
-			if test.e != nil && assert.NotNil(t, transformable) {
-				event := transformable.(*Event)
-				assert.Equal(t, test.e, event)
+			event, err := Decode(test.input, time.Now(), metadata.Metadata{}, test.experimental)
+			if test.event != nil {
+				if err != nil {
+					assert.Equal(t, err, err.Error())
+				}
+				require.NotNil(t, event)
+				assert.Equal(t, test.event, event)
+			} else {
+				assert.Contains(t, err.Error(), test.error)
 			}
-
-			assert.Equal(t, test.err, err)
 		})
 	}
 }
 
 func TestHandleExceptionTree(t *testing.T) {
 	errorEvent := map[string]interface{}{
+		"id": "id",
 		"exception": map[string]interface{}{
 			"message": "message0",
 			"type":    "type0",
@@ -314,10 +359,9 @@ func TestHandleExceptionTree(t *testing.T) {
 			},
 		},
 	}
-	result, err := DecodeEvent(errorEvent, m.Config{}, nil)
+	event, err := Decode(errorEvent, time.Now(), metadata.Metadata{}, false)
 	require.NoError(t, err)
 
-	event := result.(*Event)
 	exceptions := flattenExceptionTree(event.Exception)
 
 	assert.Len(t, exceptions, 7)
@@ -341,9 +385,9 @@ func TestDecodingAnomalies(t *testing.T) {
 				"type":    "type0",
 			},
 		}
-		result, err := DecodeEvent(badID, m.Config{}, nil)
+		event, err := Decode(badID, time.Now(), metadata.Metadata{}, false)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, event)
 	})
 
 	t.Run("exception decoding error bubbles up", func(t *testing.T) {
@@ -357,9 +401,9 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeEvent(badException, m.Config{}, nil)
+		event, err := Decode(badException, time.Now(), metadata.Metadata{}, false)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, event)
 	})
 
 	t.Run("wrong cause type", func(t *testing.T) {
@@ -368,31 +412,33 @@ func TestDecodingAnomalies(t *testing.T) {
 			"exception": map[string]interface{}{
 				"message": "message0",
 				"type":    "type0",
-				"cause":   []interface{}{7.4},
+				"cause":   []interface{}{74},
 			},
 		}
-		result, err := DecodeEvent(badException, m.Config{}, nil)
-		assert.Error(t, err)
-		assert.EqualError(t, err, "cause must be an exception")
-		assert.Nil(t, result)
+		event, err := Decode(badException, time.Now(), metadata.Metadata{}, false)
+		require.Error(t, err)
+		assert.True(t, strings.HasPrefix(err.Error(), "error validating JSON document against schema"), err.Error())
+		assert.Nil(t, event)
 	})
 
 	t.Run("handle nil exceptions", func(t *testing.T) {
-		emptyCauses := map[string]interface{}{
+		input := map[string]interface{}{
 			"exception": map[string]interface{}{
 				"message": "message0",
 				"type":    "type0",
 				"cause": []interface{}{
-					map[string]interface{}{"message": "message1", "type": "type1", "cause": []interface{}{}},
+					map[string]interface{}{"message": "message1", "type": "type1", "id": "id2", "cause": []interface{}{}},
 					map[string]interface{}{},
 				},
 			},
+			"id":        "id",
+			"timestamp": json.Number("1496170407154000"),
 		}
-		result, err := DecodeEvent(emptyCauses, m.Config{}, nil)
-		require.NoError(t, err)
-		assert.NotNil(t, result)
 
-		event := result.(*Event)
+		event, err := Decode(input, time.Now(), metadata.Metadata{}, false)
+		require.NoError(t, err)
+		assert.NotNil(t, event)
+
 		assert.Equal(t, *event.Exception.Message, "message0")
 		assert.Len(t, event.Exception.Cause, 1)
 		assert.Equal(t, *event.Exception.Cause[0].Message, "message1")
@@ -417,7 +463,7 @@ func TestEventFields(t *testing.T) {
 		Module:     &module,
 		Handled:    &handled,
 		Attributes: attributes,
-		Stacktrace: []*m.StacktraceFrame{{Filename: tests.StringPtr("st file")}},
+		Stacktrace: []*m.StacktraceFrame{{Filename: pointer("st file")}},
 	}
 
 	level := "level"
@@ -535,14 +581,8 @@ func TestEventFields(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			s := "myservice"
-			tctx := &transform.Context{
-				Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
-				Metadata: metadata.Metadata{
-					Service: &metadata.Service{Name: &s, Version: &s},
-				},
-			}
-
-			output := tc.Event.Transform(tctx)
+			tc.Event.Metadata = metadata.Metadata{Service: &metadata.Service{Name: &s, Version: &s}}
+			output := tc.Event.Transform(nil, nil, &sourcemap.Store{})
 			require.Len(t, output, 1)
 			fields := output[0].Fields["error"]
 			assert.Equal(t, tc.Output, fields)
@@ -558,7 +598,6 @@ func TestEvents(t *testing.T) {
 	service := metadata.Service{
 		Name: &serviceName, Version: &version, Agent: metadata.Agent{Name: &agentName, Version: &version},
 	}
-	serviceVersion := "1.2.3"
 	exMsg := "exception message"
 	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 	sampledTrue, sampledFalse := true, false
@@ -571,7 +610,7 @@ func TestEvents(t *testing.T) {
 	custom := m.Custom(common.MapStr{"foo": "bar"})
 	metadataLabels := common.MapStr{"label": 101}
 	for name, tc := range map[string]struct {
-		Transformable transform.Transformable
+		Transformable *Event
 		Output        common.MapStr
 		Msg           string
 	}{
@@ -625,7 +664,7 @@ func TestEvents(t *testing.T) {
 				Log:       baseLog(),
 				Exception: &Exception{
 					Message:    &exMsg,
-					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: tests.StringPtr("myFile")}},
+					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: pointer("myFile")}},
 				},
 				TransactionId:      &trId,
 				TransactionSampled: &sampledTrue,
@@ -668,28 +707,10 @@ func TestEvents(t *testing.T) {
 				"timestamp":   common.MapStr{"us": timestampUs},
 			},
 		},
-		"deepUpdateService": {
-			Transformable: &Event{Timestamp: timestamp, Service: &metadata.Service{Version: &serviceVersion}},
-			Output: common.MapStr{
-				"service":   common.MapStr{"name": serviceName, "version": serviceVersion},
-				"labels":    common.MapStr{"label": 101},
-				"agent":     common.MapStr{"name": "go", "version": "1.0"},
-				"user":      common.MapStr{"id": uid},
-				"error":     common.MapStr{"grouping_key": "d41d8cd98f00b204e9800998ecf8427e"},
-				"processor": common.MapStr{"event": "error", "name": "error"},
-				"timestamp": common.MapStr{"us": timestampUs},
-			},
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			me := metadata.NewMetadata(&service, nil, nil, &metadata.User{Id: &uid}, metadataLabels)
-			tctx := &transform.Context{
-				Metadata:    *me,
-				Config:      transform.Config{SourcemapStore: &sourcemap.Store{}},
-				RequestTime: timestamp,
-			}
-
-			outputEvents := tc.Transformable.Transform(tctx)
+			tc.Transformable.Metadata = *metadata.NewMetadata(&service, nil, nil, &metadata.User{Id: &uid}, metadataLabels)
+			outputEvents := tc.Transformable.Transform(nil, nil, &sourcemap.Store{})
 			require.Len(t, outputEvents, 1)
 			outputEvent := outputEvents[0]
 			assert.Equal(t, tc.Output, outputEvent.Fields)
@@ -704,36 +725,31 @@ func TestCulprit(t *testing.T) {
 	fct := "fct"
 	truthy := true
 	st := m.Stacktrace{
-		&m.StacktraceFrame{Filename: tests.StringPtr("a"), Function: &fct, Sourcemap: m.Sourcemap{}},
+		&m.StacktraceFrame{Filename: pointer("a"), Function: &fct, Sourcemap: m.Sourcemap{}},
 	}
 	stUpdate := m.Stacktrace{
-		&m.StacktraceFrame{Filename: tests.StringPtr("a"), Function: &fct, Sourcemap: m.Sourcemap{}},
-		&m.StacktraceFrame{Filename: tests.StringPtr("a"), LibraryFrame: &truthy, Sourcemap: m.Sourcemap{Updated: &truthy}},
-		&m.StacktraceFrame{Filename: tests.StringPtr("f"), Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
-		&m.StacktraceFrame{Filename: tests.StringPtr("bar"), Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
+		&m.StacktraceFrame{Filename: pointer("a"), Function: &fct, Sourcemap: m.Sourcemap{}},
+		&m.StacktraceFrame{Filename: pointer("a"), LibraryFrame: &truthy, Sourcemap: m.Sourcemap{Updated: &truthy}},
+		&m.StacktraceFrame{Filename: pointer("f"), Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
+		&m.StacktraceFrame{Filename: pointer("bar"), Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
 	}
-	store := &sourcemap.Store{}
 	tests := []struct {
 		event   Event
-		config  transform.Config
 		culprit string
 		msg     string
 	}{
 		{
 			event:   Event{Culprit: &c},
-			config:  transform.Config{},
 			culprit: "foo",
 			msg:     "No Sourcemap in config",
 		},
 		{
 			event:   Event{Culprit: &c},
-			config:  transform.Config{SourcemapStore: store},
 			culprit: "foo",
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
 			event:   Event{Culprit: &c, Log: &Log{Stacktrace: st}},
-			config:  transform.Config{SourcemapStore: store},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
 		},
@@ -743,14 +759,13 @@ func TestCulprit(t *testing.T) {
 				Log: &Log{
 					Stacktrace: m.Stacktrace{
 						&m.StacktraceFrame{
-							Filename:  tests.StringPtr("f"),
-							Classname: tests.StringPtr("xyz"),
+							Filename:  pointer("f"),
+							Classname: pointer("xyz"),
 							Sourcemap: m.Sourcemap{Updated: &truthy},
 						},
 					},
 				},
 			},
-			config:  transform.Config{SourcemapStore: store},
 			culprit: "f",
 			msg:     "Adapt culprit to first valid Log.StacktraceFrame filename information.",
 		},
@@ -760,13 +775,12 @@ func TestCulprit(t *testing.T) {
 				Log: &Log{
 					Stacktrace: m.Stacktrace{
 						&m.StacktraceFrame{
-							Classname: tests.StringPtr("xyz"),
+							Classname: pointer("xyz"),
 							Sourcemap: m.Sourcemap{Updated: &truthy},
 						},
 					},
 				},
 			},
-			config:  transform.Config{SourcemapStore: store},
 			culprit: "xyz",
 			msg:     "Adapt culprit Log.StacktraceFrame classname information.",
 		},
@@ -775,7 +789,6 @@ func TestCulprit(t *testing.T) {
 				Culprit:   &c,
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SourcemapStore: store},
 			culprit: "f in fct",
 			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
 		},
@@ -785,7 +798,6 @@ func TestCulprit(t *testing.T) {
 				Log:       &Log{Stacktrace: st},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SourcemapStore: store},
 			culprit: "f in fct",
 			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
 		},
@@ -795,7 +807,7 @@ func TestCulprit(t *testing.T) {
 				Log: &Log{
 					Stacktrace: m.Stacktrace{
 						&m.StacktraceFrame{
-							Filename:  tests.StringPtr("a"),
+							Filename:  pointer("a"),
 							Function:  &fct,
 							Sourcemap: m.Sourcemap{Updated: &truthy},
 						},
@@ -803,19 +815,13 @@ func TestCulprit(t *testing.T) {
 				},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SourcemapStore: store},
 			culprit: "a in fct",
 			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
 		},
 	}
 	for idx, test := range tests {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
-
-			tctx := &transform.Context{
-				Config: test.config,
-			}
-
-			test.event.updateCulprit(tctx)
+			test.event.updateCulprit()
 			assert.Equal(t, test.culprit, *test.event.Culprit,
 				fmt.Sprintf("(%v) %s: expected <%v>, received <%v>", idx, test.msg, test.culprit, *test.event.Culprit))
 		})
@@ -852,14 +858,14 @@ func TestFramesUsableForGroupingKey(t *testing.T) {
 	webpackLineno := 77
 	tmpLineno := 45
 	st1 := m.Stacktrace{
-		&m.StacktraceFrame{Filename: tests.StringPtr("/a/b/c"), ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: tests.StringPtr("webpack"), Lineno: &webpackLineno, ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: tests.StringPtr("~/tmp"), Lineno: &tmpLineno, ExcludeFromGrouping: true},
+		&m.StacktraceFrame{Filename: pointer("/a/b/c"), ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: pointer("webpack"), Lineno: &webpackLineno, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: pointer("~/tmp"), Lineno: &tmpLineno, ExcludeFromGrouping: true},
 	}
 	st2 := m.Stacktrace{
-		&m.StacktraceFrame{Filename: tests.StringPtr("/a/b/c"), ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: tests.StringPtr("webpack"), Lineno: &webpackLineno, ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: tests.StringPtr("~/tmp"), Lineno: &tmpLineno, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: pointer("/a/b/c"), ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: pointer("webpack"), Lineno: &webpackLineno, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: pointer("~/tmp"), Lineno: &tmpLineno, ExcludeFromGrouping: false},
 	}
 	exMsg := "base exception"
 	e1 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st1}}
@@ -990,7 +996,7 @@ func TestGroupableEvents(t *testing.T) {
 				Log: baseLog().withFrames([]*m.StacktraceFrame{{Module: &value, Filename: &name}}),
 			},
 			e2: Event{
-				Exception: baseException().withFrames([]*m.StacktraceFrame{{Module: &value, Filename: tests.StringPtr("nameEx")}}),
+				Exception: baseException().withFrames([]*m.StacktraceFrame{{Module: &value, Filename: pointer("nameEx")}}),
 			},
 			result: true,
 		},
@@ -1022,31 +1028,30 @@ func md5With(args ...string) []byte {
 }
 
 func TestSourcemapping(t *testing.T) {
+	str := "foo"
 	col, line, path := 23, 1, "../a/b"
 	exMsg := "exception message"
 	event1 := Event{Exception: &Exception{Message: &exMsg,
-		Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: tests.StringPtr("/a/b/c"), Lineno: &line, Colno: &col, AbsPath: &path}},
-	}}
+		Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: pointer("/a/b/c"), Lineno: &line, Colno: &col, AbsPath: &path}},
+	}, Metadata: metadata.Metadata{Service: &metadata.Service{Name: &str, Version: &str}}}
 	event2 := Event{Exception: &Exception{Message: &exMsg,
-		Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: tests.StringPtr("/a/b/c"), Lineno: &line, Colno: &col, AbsPath: &path}},
-	}}
+		Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: pointer("/a/b/c"), Lineno: &line, Colno: &col, AbsPath: &path}},
+	}, Metadata: metadata.Metadata{Service: &metadata.Service{Name: &str, Version: &str}}}
 
 	// transform without sourcemap store
-	str := "foo"
-	tctx := &transform.Context{
-		Config:   transform.Config{SourcemapStore: nil},
-		Metadata: metadata.Metadata{Service: &metadata.Service{Name: &str, Version: &str}},
-	}
-	transformedNoSourcemap := event1.fields(tctx)
+	transformedNoSourcemap := event1.fields(nil, nil, nil)
 
 	// transform with sourcemap store
 	store, err := sourcemap.NewStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
-	tctx.Config = transform.Config{SourcemapStore: store}
-	transformedWithSourcemap := event2.fields(tctx)
+	transformedWithSourcemap := event2.fields(nil, nil, store)
 
 	// ensure events have different line number and grouping keys
 	assert.Equal(t, 1, *event1.Exception.Stacktrace[0].Lineno)
 	assert.Equal(t, 5, *event2.Exception.Stacktrace[0].Lineno)
 	assert.NotEqual(t, transformedNoSourcemap["grouping_key"], transformedWithSourcemap["grouping_key"])
+}
+
+func pointer(s string) *string {
+	return &s
 }

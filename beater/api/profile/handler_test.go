@@ -31,8 +31,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elastic/apm-server/model/profile"
+
 	"github.com/elastic/apm-server/beater/api/ratelimit"
-	"github.com/elastic/apm-server/transform"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -129,13 +130,13 @@ func TestHandler(t *testing.T) {
 			id: request.IDResponseValidAccepted,
 			parts: []part{
 				heapProfilePart(),
-				part{
+				{
 					name: "profile",
 					// No messageType param specified, so pprof is assumed.
 					contentType: "application/x-protobuf",
 					body:        heapProfileBody(),
 				},
-				part{
+				{
 					name:        "metadata",
 					contentType: "application/json",
 					body:        strings.NewReader(`{"service":{"name":"foo","agent":{}}}`),
@@ -146,7 +147,7 @@ func TestHandler(t *testing.T) {
 			reporter: func(t *testing.T) publish.Reporter {
 				return func(ctx context.Context, req publish.PendingReq) error {
 					require.Len(t, req.Transformables, 2)
-					assert.Equal(t, "foo", *req.Tcontext.Metadata.Service.Name)
+					assert.Equal(t, "foo", *req.Transformables[0].(profile.PprofProfile).Metadata.Service.Name)
 					return nil
 				}
 			},
@@ -198,7 +199,7 @@ func TestHandler(t *testing.T) {
 			if tc.rateLimit != nil {
 				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
 			}
-			Handler(tc.dec, transform.Config{}, tc.reporter(t))(tc.c)
+			Handler(tc.dec, tc.reporter(t))(tc.c)
 
 			assert.Equal(t, string(tc.id), string(tc.c.Result.ID))
 			resultStatus := request.MapResultIDToStatus[tc.id]

@@ -19,7 +19,6 @@ package span
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -32,9 +31,6 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 )
 
 func TestDecodeSpan(t *testing.T) {
@@ -43,14 +39,14 @@ func TestDecodeSpan(t *testing.T) {
 	id, parentId := "0000000000000000", "FFFFFFFFFFFFFFFF"
 	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
 	name, spType := "foo", "db"
-	start, duration := 1.2, 3.4
+	start, duration, ageMillis := 1.2, 3.4, 1577958057123
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, link, rowsAffected := "db01", "select *", "sql", "joe", "other.db.com", 34
 	address, port := "localhost", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 	context := map[string]interface{}{
 		"a":    "b",
-		"tags": map[string]interface{}{"a": "tag", "tag.key": 17},
+		"tags": map[string]interface{}{"a": "tag", "tag-key": 17},
 		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
 		"db": map[string]interface{}{
 			"instance": instance, "statement": statement, "type": dbType,
@@ -71,63 +67,57 @@ func TestDecodeSpan(t *testing.T) {
 	subtype := "postgresql"
 	action, action2 := "query", "query.custom"
 	stacktrace := []interface{}{map[string]interface{}{
-		"filename": "file",
+		"filename": "foo",
 	}}
 
 	for name, test := range map[string]struct {
 		input interface{}
-		cfg   m.Config
 		// we don't use a regular `error.New` here, because some errors are of a different type
-		err    string
-		inpErr error
-		e      transform.Transformable
+		err          string
+		experimental bool
+		event        *Event
 	}{
-		"no input":     {input: nil, err: errMissingInput.Error()},
-		"input error":  {input: nil, inpErr: errors.New("a"), err: "a"},
+		"no input":     {input: nil, err: errInvalidType.Error()},
 		"invalid type": {input: "", err: errInvalidType.Error()},
-		"missing required field": {
-			input: map[string]interface{}{},
-			err:   utility.ErrFetch.Error(),
-		},
 		"transaction id wrong type": {
 			input: map[string]interface{}{"name": name, "type": spType, "start": start, "duration": duration,
 				"timestamp": "2018-05-30T19:53:17.134Z", "transaction_id": 123},
-			err: utility.ErrFetch.Error(),
+			err: "expected integer or null, but got string",
 		},
 		"no trace_id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "transaction_id": transactionId,
 			},
-			err: utility.ErrFetch.Error(),
+			err: "missing properties: \"trace_id\"",
 		},
 		"no id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "trace_id": traceId, "transaction_id": transactionId,
 			},
-			err: utility.ErrFetch.Error(),
+			err: "missing properties: \"id\"",
 		},
 		"no parent_id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
-			err: utility.ErrFetch.Error(),
+			err: "missing properties: \"parent_id\"",
 		},
 		"invalid stacktrace": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "stacktrace": []interface{}{"foo"},
 			},
-			err: "invalid type for stacktrace frame",
+			err: "expected object, but got string",
 		},
 		"minimal payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
 			},
-			e: &Event{
+			event: &Event{
 				Name:      name,
 				Type:      "db",
 				Subtype:   &subtype,
@@ -145,7 +135,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &Event{
+			event: &Event{
 				Name:          name,
 				Type:          "db",
 				Subtype:       &subtype,
@@ -165,7 +155,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 				"context": map[string]interface{}{"foo": 123},
 			},
-			e: &Event{
+			event: &Event{
 				Name:          name,
 				Type:          "db",
 				Subtype:       &subtype,
@@ -178,7 +168,7 @@ func TestDecodeSpan(t *testing.T) {
 				TraceId:       traceId,
 				TransactionId: &transactionId,
 			},
-			cfg: m.Config{Experimental: true},
+			experimental: true,
 		},
 		"event experimental=true": {
 			input: map[string]interface{}{
@@ -186,7 +176,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &Event{
+			event: &Event{
 				Name:          name,
 				Type:          "db",
 				Subtype:       &subtype,
@@ -200,7 +190,7 @@ func TestDecodeSpan(t *testing.T) {
 				TransactionId: &transactionId,
 				Experimental:  123,
 			},
-			cfg: m.Config{Experimental: true},
+			experimental: true,
 		},
 		"full valid payload": {
 			input: map[string]interface{}{
@@ -208,7 +198,7 @@ func TestDecodeSpan(t *testing.T) {
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
-			e: &Event{
+			event: &Event{
 				Name:      name,
 				Type:      "messaging",
 				Subtype:   &subtype,
@@ -217,9 +207,9 @@ func TestDecodeSpan(t *testing.T) {
 				Duration:  duration,
 				Timestamp: spanTime,
 				Stacktrace: m.Stacktrace{
-					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
+					&m.StacktraceFrame{Filename: &name},
 				},
-				Labels:        common.MapStr{"a": "tag", "tag.key": 17},
+				Labels:        common.MapStr{"a": "tag", "tag-key": 17},
 				Id:            id,
 				TraceId:       traceId,
 				ParentId:      parentId,
@@ -240,16 +230,16 @@ func TestDecodeSpan(t *testing.T) {
 					Resource: &destServiceResource,
 				},
 				Message: &m.Message{
-					QueueName: tests.StringPtr("foo"),
-					AgeMillis: tests.IntPtr(1577958057123)},
+					QueueName: &name,
+					AgeMillis: &ageMillis},
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			span, err := DecodeEvent(test.input, test.cfg, test.inpErr)
+			span, err := Decode(test.input, spanTime, metadata.Metadata{}, test.experimental)
 			if test.err == "" {
 				require.Nil(t, err)
-				assert.Equal(t, test.e, span)
+				assert.Equal(t, test.event, span)
 			} else {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), test.err)
@@ -321,7 +311,7 @@ func TestSpanTransform(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Message: &m.Message{QueueName: tests.StringPtr("users")},
+				Message: &m.Message{QueueName: &action},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -358,12 +348,11 @@ func TestSpanTransform(t *testing.T) {
 							"resource": destServiceResource,
 						},
 					},
-					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
+					"message": common.MapStr{"queue": common.MapStr{"name": "publish"}},
 				},
 				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
 				"service":     common.MapStr{"name": serviceName, "environment": env},
-				"timestamp":   common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
 				"trace":       common.MapStr{"id": traceId},
 				"parent":      common.MapStr{"id": parentId},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
@@ -372,13 +361,9 @@ func TestSpanTransform(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{
-		Config:      transform.Config{SourcemapStore: &sourcemap.Store{}},
-		Metadata:    metadata.Metadata{Service: &service, Labels: metadataLabels},
-		RequestTime: timestamp,
-	}
 	for _, test := range tests {
-		output := test.Event.Transform(tctx)
+		test.Event.Metadata = metadata.Metadata{Service: &service, Labels: metadataLabels}
+		output := test.Event.Transform(nil, nil, &sourcemap.Store{})
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields)
 	}
@@ -387,10 +372,17 @@ func TestSpanTransform(t *testing.T) {
 func TestEventTransformUseReqTimePlusStart(t *testing.T) {
 	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	start := 1234.8
-	e := Event{Start: &start}
-	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
-	require.Len(t, beatEvent, 1)
+	event, error := Decode(map[string]interface{}{
+		"start":     start,
+		"duration":  0.0,
+		"type":      "db",
+		"id":        "abc",
+		"name":      "name",
+		"trace_id":  "abd",
+		"parent_id": "tx1",
+	}, reqTimestampParsed, metadata.Metadata{}, false)
+	require.NoError(t, error)
 
 	adjustedParsed := time.Date(2017, 5, 30, 18, 53, 28, 388.8*1e6, time.UTC)
-	assert.Equal(t, adjustedParsed, beatEvent[0].Timestamp)
+	assert.Equal(t, adjustedParsed, event.Timestamp)
 }

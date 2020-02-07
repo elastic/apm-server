@@ -19,7 +19,6 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"testing"
 
@@ -34,13 +33,11 @@ import (
 
 func TestDecodeContext(t *testing.T) {
 	for name, test := range map[string]struct {
-		input  interface{}
-		cfg    Config
-		errIn  error
-		errOut string
+		input        interface{}
+		errOut       string
+		experimental bool
 	}{
 		"input_nil":  {},
-		"input_err":  {errIn: errors.New("test error"), errOut: "test error"},
 		"wrong_type": {input: "some string", errOut: "invalid type"},
 		"no_context": {input: map[string]interface{}{}},
 		"empty":      {input: map[string]interface{}{"context": map[string]interface{}{}}},
@@ -141,6 +138,7 @@ func TestDecodeContext(t *testing.T) {
 				}},
 		},
 		"full_event with experimental=true": {
+			experimental: true,
 			input: map[string]interface{}{
 				"context": map[string]interface{}{
 					"experimental": map[string]interface{}{"foo": "bar"},
@@ -202,11 +200,10 @@ func TestDecodeContext(t *testing.T) {
 						"queue": map[string]interface{}{"name": "order"},
 						"topic": map[string]interface{}{"name": "routeA"}},
 				}},
-			cfg: Config{Experimental: true},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			out, err := DecodeContext(test.input, test.cfg, test.errIn)
+			out, err := DecodeContext(test.input, test.experimental)
 			if test.errOut != "" {
 				if assert.Error(t, err) {
 					assert.Contains(t, err.Error(), test.errOut)
