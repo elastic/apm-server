@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 // Server manages Jaeger gRPC and HTTP servers, providing methods for starting and stopping them.
@@ -57,8 +56,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		return nil, nil
 	}
 	traceConsumer := &processor.Consumer{
-		Reporter:        reporter,
-		TransformConfig: transform.Config{},
+		Reporter: reporter,
 	}
 
 	srv := &Server{logger: logger}

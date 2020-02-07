@@ -31,6 +31,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 
@@ -41,7 +42,6 @@ import (
 	model_span "github.com/elastic/apm-server/model/span"
 	model_transaction "github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -55,39 +55,30 @@ const (
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
 type Consumer struct {
-	TransformConfig transform.Config
-	ModelConfig     model.Config
-	Reporter        publish.Reporter
+	Reporter publish.Reporter
 }
 
 // ConsumeTraceData consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
-	requestTime := time.Now()
-	metadata, transformables := c.convert(td)
-	transformContext := &transform.Context{
-		RequestTime: requestTime,
-		Config:      c.TransformConfig,
-		Metadata:    metadata,
-	}
+	transformables := c.convert(td)
 
 	return c.Reporter(ctx, publish.PendingReq{
 		Transformables: transformables,
-		Tcontext:       transformContext,
 		Trace:          true,
 	})
 }
 
-func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []transform.Transformable) {
+func (c *Consumer) convert(td consumerdata.TraceData) []publish.Transformable {
 	md := metadata.Metadata{}
 	parseMetadata(td, &md)
 	var hostname string
 	if md.System != nil && md.System.DetectedHostname != nil {
 		hostname = *md.System.DetectedHostname
 	}
-
+	now := time.Now()
 	logger := logp.NewLogger(logs.Otel)
-	transformables := make([]transform.Transformable, 0, len(td.Spans))
+	transformables := make([]publish.Transformable, 0, len(td.Spans))
 	for _, otelSpan := range td.Spans {
 		if otelSpan == nil {
 			continue
@@ -115,12 +106,18 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      &name,
+				Metadata:  md,
 			}
 			parseTransaction(otelSpan, hostname, &transaction)
+			if transaction.Timestamp.IsZero() {
+				transaction.Timestamp = now
+			}
+
 			transformables = append(transformables, &transaction)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
+				err.Metadata = md
 				addTransactionCtxToErr(transaction, err)
-				transformables = append(transformables, err)
+				transformables = append(transformables, transformableError{err})
 			}
 
 		} else {
@@ -131,16 +128,28 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
+				Metadata:  md,
 			}
 			parseSpan(otelSpan, &span)
-			transformables = append(transformables, &span)
+
+			var offset time.Duration
+			if span.Start != nil {
+				offset = time.Duration(float64(time.Millisecond) * *span.Start)
+			}
+			// todo should move this before "if otelSpan.EndTime != nil && !startTime.IsZero()"?
+			if span.Timestamp.IsZero() {
+				span.Timestamp = now.Add(offset)
+			}
+
+			transformables = append(transformables, transformableSpan{&span})
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
+				err.Metadata = md
 				addSpanCtxToErr(span, hostname, err)
-				transformables = append(transformables, err)
+				transformables = append(transformables, transformableError{err})
 			}
 		}
 	}
-	return md, transformables
+	return transformables
 }
 
 func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
@@ -610,4 +619,22 @@ func truncate(s string) string {
 		j++
 	}
 	return s
+}
+
+type transformableError struct {
+	*model_error.Event
+}
+
+func (te transformableError) Transform() []beat.Event {
+	// TODO(axw) provide different methods on Error for transforming RUM vs. non-RUM errors?
+	return te.Event.Transform(nil, nil, nil)
+}
+
+type transformableSpan struct {
+	*model_span.Event
+}
+
+func (ts transformableSpan) Transform() []beat.Event {
+	// TODO(axw) provide different methods on Span for transforming RUM vs. non-RUM errors?
+	return ts.Event.Transform(nil, nil, nil)
 }
