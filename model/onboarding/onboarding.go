@@ -15,40 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package onboarding
 
 import (
-	"context"
 	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
-
-	"github.com/elastic/apm-server/beater/config"
-	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
-func notifyListening(ctx context.Context, config *config.Config, reporter publish.Reporter) {
-	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
-	reporter(ctx, publish.PendingReq{
-		Transformables: []transform.Transformable{onboardingDoc{listenAddr: config.Host}},
-		Tcontext:       &transform.Context{RequestTime: time.Now()},
-	})
+type Doc struct {
+	ListenAddr string
 }
 
-type onboardingDoc struct {
-	listenAddr string
-}
-
-func (o onboardingDoc) Transform(tctx *transform.Context) []beat.Event {
+func (d Doc) Transform() []beat.Event {
 	return []beat.Event{{
-		Timestamp: tctx.RequestTime,
+		Timestamp: time.Now(),
 		Fields: common.MapStr{
 			"processor": common.MapStr{"name": "onboarding", "event": "onboarding"},
-			"observer":  common.MapStr{"listening": o.listenAddr},
+			"observer":  common.MapStr{"listening": d.ListenAddr},
 		},
 	}}
 }

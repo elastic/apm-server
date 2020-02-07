@@ -25,6 +25,9 @@ import (
 	"net/http"
 	"time"
 
+	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model/onboarding"
+
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
 
@@ -96,6 +99,13 @@ func (s server) stop() {
 	if s.httpServer != nil {
 		s.httpServer.stop()
 	}
+}
+
+func notifyListening(ctx context.Context, config *config.Config, reporter publish.Reporter) {
+	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
+	reporter(ctx, publish.PendingReq{
+		Transformables: []publish.Transformable{onboarding.Doc{ListenAddr: config.Host}},
+	})
 }
 
 func (s server) isAvailable(timeout time.Duration) bool {
