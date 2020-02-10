@@ -5,10 +5,7 @@ As such, any breaking change in libbeat is also considered to be a breaking chan
 
 [float]
 ==== 7.6
-* APM Server now respects {apm-server-ref-v}/ilm.html#ilm-setup-overwrite-config[`apm-server.ilm.setup.overwrite`]
-when running `setup --index-management`.
-Previously, when running APM Server, `apm-server.ilm.setup.overwrite` was ignored and
-always set to the same value as `apm-server.ilm.setup.enabled`.
+* There are no breaking changes in APM Server.
 
 [float]
 ==== 7.5
