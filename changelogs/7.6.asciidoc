@@ -11,10 +11,6 @@ https://github.com/elastic/apm-server/compare/7.5\...7.6[View commits]
 https://github.com/elastic/apm-server/compare/v7.5.1\...v7.6.0[View commits]
 
 [float]
-==== Breaking Changes
-- Respect `apm-server.ilm.setup.overwrite` flag when running `setup --index-management` {pull}2984[2984].
-
-[float]
 ==== Intake API Changes
 - Add support for `span.context.db.rows_affected` {pull}3095[3095].
 - Add support for `classname` as stacktrace frame attribute {pull}3096[3096].
