@@ -31,7 +31,7 @@ For a full list of changes, see the
 === APM version 7.6.0
 
 // tag::notable-v76-highlights[]
-Jaeger integration::
+Experimental Jaeger integration::
 
 Elastic APM now integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.
 This integration allows users with an existing Jaeger setup to switch from the default Jaeger backend,
@@ -40,7 +40,7 @@ Best of all, this can be done without any instrumentation changes in your applic
 +
 See {apm-server-ref-v}/jaeger.html[Jaeger integration] for more information.
 
-API Key authentication::
+Experimental API Key authentication::
 
 You can now secure the communication between APM Agents and APM Server with
 {apm-server-ref-v}/api-key.html[API keys].
