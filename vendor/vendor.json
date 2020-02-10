@@ -200,12 +200,14 @@
 		},
 		{
 			"checksumSHA1": "P3fwZGBhH8PYauHxLb8yWjunJKw=",
+			"origin": "github.com/elastic/beats/vendor/github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2",
 			"path": "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2",
 			"revision": "30227e279ed706a05f08ea688686c5764f465904",
 			"revisionTime": "2019-08-10T04:47:35Z"
 		},
 		{
 			"checksumSHA1": "kCyrtNPVHzoajcxIYke+pHqWkR0=",
+			"origin": "github.com/elastic/beats/vendor/github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/elasticloadbalancingv2iface",
 			"path": "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/elasticloadbalancingv2iface",
 			"revision": "30227e279ed706a05f08ea688686c5764f465904",
 			"revisionTime": "2019-08-10T04:47:35Z"
