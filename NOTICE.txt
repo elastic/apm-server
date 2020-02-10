@@ -621,7 +621,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 7.x
-Revision: 32f1a9eb60b45a7157d9b9bcc7d626182baad633
+Revision: a8a3208373c6bc8bd783e0d03064baac8fafa44c
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -3928,7 +3928,6 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/grpc
-Version: v1.25
 Revision: 1a3960e4bd028ac0cec0a2afd27d7d8e67c11514
 License type (autodetected): Apache-2.0
 ./vendor/google.golang.org/grpc/LICENSE:
