@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateFlowLogsRequest
 type CreateFlowLogsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -35,9 +36,7 @@ type CreateFlowLogsInput struct {
 	// for LogDestinationType.
 	//
 	// If LogDestinationType is not specified or cloud-watch-logs, specify the Amazon
-	// Resource Name (ARN) of the CloudWatch Logs log group. For example, to publish
-	// to a log group called my-logs, specify arn:aws:logs:us-east-1:123456789012:log-group:my-logs.
-	// Alternatively, use LogGroupName instead.
+	// Resource Name (ARN) of the CloudWatch Logs log group.
 	//
 	// If LogDestinationType is s3, specify the ARN of the Amazon S3 bucket. You
 	// can also specify a subfolder in the bucket. To specify a subfolder in the
@@ -57,17 +56,6 @@ type CreateFlowLogsInput struct {
 	//
 	// Default: cloud-watch-logs
 	LogDestinationType LogDestinationType `type:"string" enum:"true"`
-
-	// The fields to include in the flow log record, in the order in which they
-	// should appear. For a list of available fields, see Flow Log Records (https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html#flow-log-records).
-	// If you omit this parameter, the flow log is created using the default format.
-	// If you specify this parameter, you must specify at least one field.
-	//
-	// Specify the fields using the ${field-id} format, separated by spaces. For
-	// the AWS CLI, use single quotation marks (' ') to surround the parameter value.
-	//
-	// Only applicable to flow logs that are published to an Amazon S3 bucket.
-	LogFormat *string `type:"string"`
 
 	// The name of a new or existing CloudWatch Logs log group where Amazon EC2
 	// publishes your flow logs.
@@ -122,6 +110,7 @@ func (s *CreateFlowLogsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateFlowLogsResult
 type CreateFlowLogsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -151,7 +140,7 @@ const opCreateFlowLogs = "CreateFlowLogs"
 //
 // Flow log data for a monitored network interface is recorded as flow log records,
 // which are log events consisting of fields that describe the traffic flow.
-// For more information, see Flow Log Records (https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html#flow-log-records)
+// For more information, see Flow Log Records (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/flow-logs.html#flow-log-records)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 // When publishing to CloudWatch Logs, flow log records are published to a log
@@ -160,7 +149,7 @@ const opCreateFlowLogs = "CreateFlowLogs"
 // interfaces are published to a single log file object that is stored in the
 // specified bucket.
 //
-// For more information, see VPC Flow Logs (https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html)
+// For more information, see VPC Flow Logs (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/flow-logs.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using CreateFlowLogsRequest.

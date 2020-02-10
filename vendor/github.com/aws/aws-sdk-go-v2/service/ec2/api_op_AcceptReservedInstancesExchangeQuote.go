@@ -11,6 +11,7 @@ import (
 )
 
 // Contains the parameters for accepting the quote.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AcceptReservedInstancesExchangeQuoteRequest
 type AcceptReservedInstancesExchangeQuoteInput struct {
 	_ struct{} `type:"structure"`
 
@@ -58,6 +59,7 @@ func (s *AcceptReservedInstancesExchangeQuoteInput) Validate() error {
 }
 
 // The result of the exchange and whether it was successful.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AcceptReservedInstancesExchangeQuoteResult
 type AcceptReservedInstancesExchangeQuoteOutput struct {
 	_ struct{} `type:"structure"`
 

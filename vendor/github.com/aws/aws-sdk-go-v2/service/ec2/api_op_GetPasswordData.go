@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/GetPasswordDataRequest
 type GetPasswordDataInput struct {
 	_ struct{} `type:"structure"`
 
@@ -44,6 +45,7 @@ func (s *GetPasswordDataInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/GetPasswordDataResult
 type GetPasswordDataOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -55,7 +57,7 @@ type GetPasswordDataOutput struct {
 	PasswordData *string `locationName:"passwordData" type:"string"`
 
 	// The time the data was last updated.
-	Timestamp *time.Time `locationName:"timestamp" type:"timestamp"`
+	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation

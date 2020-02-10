@@ -11,6 +11,7 @@ import (
 )
 
 // Contains the parameters for DescribeSpotPriceHistory.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotPriceHistoryRequest
 type DescribeSpotPriceHistoryInput struct {
 	_ struct{} `type:"structure"`
 
@@ -25,7 +26,7 @@ type DescribeSpotPriceHistoryInput struct {
 
 	// The date and time, up to the current date, from which to stop retrieving
 	// the price history data, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
-	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
+	EndTime *time.Time `locationName:"endTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// One or more filters.
 	//
@@ -62,7 +63,7 @@ type DescribeSpotPriceHistoryInput struct {
 
 	// The date and time, up to the past 90 days, from which to start retrieving
 	// the price history data, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
-	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -71,6 +72,7 @@ func (s DescribeSpotPriceHistoryInput) String() string {
 }
 
 // Contains the output of DescribeSpotPriceHistory.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotPriceHistoryResult
 type DescribeSpotPriceHistoryOutput struct {
 	_ struct{} `type:"structure"`
 

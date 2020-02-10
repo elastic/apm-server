@@ -12,6 +12,7 @@ import (
 )
 
 // Contains the parameters for DetachNetworkInterface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DetachNetworkInterfaceRequest
 type DetachNetworkInterfaceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -27,19 +28,6 @@ type DetachNetworkInterfaceInput struct {
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
 	// Specifies whether to force a detachment.
-	//
-	//    * Use the Force parameter only as a last resort to detach a network interface
-	//    from a failed instance.
-	//
-	//    * If you use the Force parameter to detach a network interface, you might
-	//    not be able to attach a different network interface to the same index
-	//    on the instance without first stopping and starting the instance.
-	//
-	//    * If you force the detachment of a network interface, the instance metadata
-	//    (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html)
-	//    might not get updated. This means that the attributes associated with
-	//    the detached network interface might still be visible. The instance metadata
-	//    will get updated when you stop and start the instance.
 	Force *bool `locationName:"force" type:"boolean"`
 }
 
@@ -62,6 +50,7 @@ func (s *DetachNetworkInterfaceInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DetachNetworkInterfaceOutput
 type DetachNetworkInterfaceOutput struct {
 	_ struct{} `type:"structure"`
 }

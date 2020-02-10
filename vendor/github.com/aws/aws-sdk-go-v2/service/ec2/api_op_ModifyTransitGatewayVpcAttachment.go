@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyTransitGatewayVpcAttachmentRequest
 type ModifyTransitGatewayVpcAttachmentInput struct {
 	_ struct{} `type:"structure"`
 
@@ -23,8 +24,6 @@ type ModifyTransitGatewayVpcAttachmentInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// The new VPC attachment options.
-	//
-	// You cannot modify the IPv6 options.
 	Options *ModifyTransitGatewayVpcAttachmentRequestOptions `type:"structure"`
 
 	// The IDs of one or more subnets to remove.
@@ -55,6 +54,7 @@ func (s *ModifyTransitGatewayVpcAttachmentInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyTransitGatewayVpcAttachmentResult
 type ModifyTransitGatewayVpcAttachmentOutput struct {
 	_ struct{} `type:"structure"`
 

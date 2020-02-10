@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeHostReservationOfferingsRequest
 type DescribeHostReservationOfferingsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -65,6 +66,7 @@ func (s *DescribeHostReservationOfferingsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeHostReservationOfferingsResult
 type DescribeHostReservationOfferingsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -88,8 +90,8 @@ const opDescribeHostReservationOfferings = "DescribeHostReservationOfferings"
 //
 // Describes the Dedicated Host reservations that are available to purchase.
 //
-// The results describe all of the Dedicated Host reservation offerings, including
-// offerings that might not match the instance family and Region of your Dedicated
+// The results describe all the Dedicated Host reservation offerings, including
+// offerings that may not match the instance family and Region of your Dedicated
 // Hosts. When purchasing an offering, ensure that the instance family and Region
 // of the offering matches that of the Dedicated Hosts with which it is to be
 // associated. For more information about supported instance types, see Dedicated

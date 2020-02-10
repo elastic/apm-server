@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateFpgaImageRequest
 type CreateFpgaImageInput struct {
 	_ struct{} `type:"structure"`
 
@@ -36,9 +37,6 @@ type CreateFpgaImageInput struct {
 
 	// A name for the AFI.
 	Name *string `type:"string"`
-
-	// The tags to apply to the FPGA image during creation.
-	TagSpecifications []TagSpecification `locationName:"TagSpecification" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -60,6 +58,7 @@ func (s *CreateFpgaImageInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateFpgaImageResult
 type CreateFpgaImageOutput struct {
 	_ struct{} `type:"structure"`
 

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateDefaultSubnetRequest
 type CreateDefaultSubnetInput struct {
 	_ struct{} `type:"structure"`
 
@@ -43,6 +44,7 @@ func (s *CreateDefaultSubnetInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateDefaultSubnetResult
 type CreateDefaultSubnetOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -63,7 +65,7 @@ const opCreateDefaultSubnet = "CreateDefaultSubnet"
 // Creates a default subnet with a size /20 IPv4 CIDR block in the specified
 // Availability Zone in your default VPC. You can have only one default subnet
 // per Availability Zone. For more information, see Creating a Default Subnet
-// (https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html#create-default-subnet)
+// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html#create-default-subnet)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using CreateDefaultSubnetRequest.

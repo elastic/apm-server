@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AuthorizeClientVpnIngressRequest
 type AuthorizeClientVpnIngressInput struct {
 	_ struct{} `type:"structure"`
 
@@ -67,6 +68,7 @@ func (s *AuthorizeClientVpnIngressInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AuthorizeClientVpnIngressResult
 type AuthorizeClientVpnIngressOutput struct {
 	_ struct{} `type:"structure"`
 

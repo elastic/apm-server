@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DisassociateRouteTableRequest
 type DisassociateRouteTableInput struct {
 	_ struct{} `type:"structure"`
 
@@ -46,6 +47,7 @@ func (s *DisassociateRouteTableInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DisassociateRouteTableOutput
 type DisassociateRouteTableOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -64,7 +66,7 @@ const opDisassociateRouteTable = "DisassociateRouteTable"
 //
 // After you perform this action, the subnet no longer uses the routes in the
 // route table. Instead, it uses the routes in the VPC's main route table. For
-// more information about route tables, see Route Tables (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html)
+// more information about route tables, see Route Tables (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using DisassociateRouteTableRequest.

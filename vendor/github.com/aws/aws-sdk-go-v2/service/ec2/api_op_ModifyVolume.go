@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVolumeRequest
 type ModifyVolumeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -63,6 +64,7 @@ func (s *ModifyVolumeInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVolumeResult
 type ModifyVolumeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -99,9 +101,9 @@ const opModifyVolume = "ModifyVolume"
 // You can use CloudWatch Events to check the status of a modification to an
 // EBS volume. For information about CloudWatch Events, see the Amazon CloudWatch
 // Events User Guide (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/).
-// You can also track the status of a modification using DescribeVolumesModifications.
-// For information about tracking status changes using either method, see Monitoring
-// Volume Modifications (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-expand-volume.html#monitoring_mods).
+// You can also track the status of a modification using the DescribeVolumesModifications
+// API. For information about tracking status changes using either method, see
+// Monitoring Volume Modifications (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-expand-volume.html#monitoring_mods).
 //
 // With previous-generation instance types, resizing an EBS volume may require
 // detaching and reattaching the volume or stopping and restarting the instance.

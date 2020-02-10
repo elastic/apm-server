@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpcEndpointConnectionsRequest
 type DescribeVpcEndpointConnectionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -33,7 +34,7 @@ type DescribeVpcEndpointConnectionsInput struct {
 	// The maximum number of results to return for the request in a single page.
 	// The remaining results of the initial request can be seen by sending another
 	// request with the returned NextToken value. This value can be between 5 and
-	// 1,000; if MaxResults is given a value larger than 1,000, only 1,000 results
+	// 1000; if MaxResults is given a value larger than 1000, only 1000 results
 	// are returned.
 	MaxResults *int64 `type:"integer"`
 
@@ -46,6 +47,7 @@ func (s DescribeVpcEndpointConnectionsInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpcEndpointConnectionsResult
 type DescribeVpcEndpointConnectionsOutput struct {
 	_ struct{} `type:"structure"`
 

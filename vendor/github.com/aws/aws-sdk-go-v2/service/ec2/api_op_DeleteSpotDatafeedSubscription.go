@@ -12,6 +12,7 @@ import (
 )
 
 // Contains the parameters for DeleteSpotDatafeedSubscription.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteSpotDatafeedSubscriptionRequest
 type DeleteSpotDatafeedSubscriptionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -27,6 +28,7 @@ func (s DeleteSpotDatafeedSubscriptionInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteSpotDatafeedSubscriptionOutput
 type DeleteSpotDatafeedSubscriptionOutput struct {
 	_ struct{} `type:"structure"`
 }

@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeNetworkInterfaceAttribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeNetworkInterfaceAttributeRequest
 type DescribeNetworkInterfaceAttributeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -48,6 +49,7 @@ func (s *DescribeNetworkInterfaceAttributeInput) Validate() error {
 }
 
 // Contains the output of DescribeNetworkInterfaceAttribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeNetworkInterfaceAttributeResult
 type DescribeNetworkInterfaceAttributeOutput struct {
 	_ struct{} `type:"structure"`
 

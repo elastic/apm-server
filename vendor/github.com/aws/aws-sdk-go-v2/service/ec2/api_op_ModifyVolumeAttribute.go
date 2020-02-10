@@ -11,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Contains the parameters for ModifyVolumeAttribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVolumeAttributeRequest
 type ModifyVolumeAttributeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -48,6 +50,7 @@ func (s *ModifyVolumeAttributeInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVolumeAttributeOutput
 type ModifyVolumeAttributeOutput struct {
 	_ struct{} `type:"structure"`
 }

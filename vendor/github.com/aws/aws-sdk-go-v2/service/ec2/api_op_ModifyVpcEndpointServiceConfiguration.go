@@ -9,11 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVpcEndpointServiceConfigurationRequest
 type ModifyVpcEndpointServiceConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates whether requests to create an endpoint to your service must be
-	// accepted.
+	// Indicate whether requests to create an endpoint to your service must be accepted.
 	AcceptanceRequired *bool `type:"boolean"`
 
 	// The Amazon Resource Names (ARNs) of Network Load Balancers to add to your
@@ -26,15 +26,9 @@ type ModifyVpcEndpointServiceConfigurationInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `type:"boolean"`
 
-	// The private DNS name to assign to the endpoint service.
-	PrivateDnsName *string `type:"string"`
-
 	// The Amazon Resource Names (ARNs) of Network Load Balancers to remove from
 	// your service configuration.
 	RemoveNetworkLoadBalancerArns []string `locationName:"RemoveNetworkLoadBalancerArn" locationNameList:"item" type:"list"`
-
-	// Removes the private DNS name of the endpoint service.
-	RemovePrivateDnsName *bool `type:"boolean"`
 
 	// The ID of the service.
 	//
@@ -61,6 +55,7 @@ func (s *ModifyVpcEndpointServiceConfigurationInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVpcEndpointServiceConfigurationResult
 type ModifyVpcEndpointServiceConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -82,11 +77,6 @@ const opModifyVpcEndpointServiceConfiguration = "ModifyVpcEndpointServiceConfigu
 // change the Network Load Balancers for your service, and you can specify whether
 // acceptance is required for requests to connect to your endpoint service through
 // an interface VPC endpoint.
-//
-// If you set or modify the private DNS name, you must prove that you own the
-// private DNS domain name. For more information, see VPC Endpoint Service Private
-// DNS Name Verification (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html)
-// in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using ModifyVpcEndpointServiceConfigurationRequest.
 //    req := client.ModifyVpcEndpointServiceConfigurationRequest(params)

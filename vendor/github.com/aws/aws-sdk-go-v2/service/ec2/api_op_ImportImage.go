@@ -9,12 +9,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for ImportImage.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportImageRequest
 type ImportImageInput struct {
 	_ struct{} `type:"structure"`
 
 	// The architecture of the virtual machine.
 	//
-	// Valid values: i386 | x86_64 | arm64
+	// Valid values: i386 | x86_64
 	Architecture *string `type:"string"`
 
 	// The client-specific data.
@@ -47,11 +49,11 @@ type ImportImageInput struct {
 	// Valid values: xen
 	Hypervisor *string `type:"string"`
 
-	// An identifier for the symmetric AWS Key Management Service (AWS KMS) customer
-	// master key (CMK) to use when creating the encrypted AMI. This parameter is
-	// only required if you want to use a non-default CMK; if this parameter is
-	// not specified, the default CMK for EBS is used. If a KmsKeyId is specified,
-	// the Encrypted flag must also be set.
+	// An identifier for the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) to use when creating the encrypted AMI. This parameter is only
+	// required if you want to use a non-default CMK; if this parameter is not specified,
+	// the default CMK for EBS is used. If a KmsKeyId is specified, the Encrypted
+	// flag must also be set.
 	//
 	// The CMK identifier may be provided in any of the following formats:
 	//
@@ -74,24 +76,25 @@ type ImportImageInput struct {
 	// will eventually report failure.
 	//
 	// The specified CMK must exist in the Region that the AMI is being copied to.
-	//
-	// Amazon EBS does not support asymmetric CMKs.
 	KmsKeyId *string `type:"string"`
-
-	// The ARNs of the license configurations.
-	LicenseSpecifications []ImportImageLicenseConfigurationRequest `locationNameList:"item" type:"list"`
 
 	// The license type to be used for the Amazon Machine Image (AMI) after importing.
 	//
-	// By default, we detect the source-system operating system (OS) and apply the
-	// appropriate license. Specify AWS to replace the source-system license with
-	// an AWS license, if appropriate. Specify BYOL to retain the source-system
-	// license, if appropriate.
-	//
-	// To use BYOL, you must have existing licenses with rights to use these licenses
-	// in a third party cloud, such as AWS. For more information, see Prerequisites
-	// (https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html#prerequisites-image)
+	// Note: You may only use BYOL if you have existing licenses with rights to
+	// use these licenses in a third party cloud like AWS. For more information,
+	// see Prerequisites (https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html#prerequisites-image)
 	// in the VM Import/Export User Guide.
+	//
+	// Valid values include:
+	//
+	//    * Auto - Detects the source-system operating system (OS) and applies the
+	//    appropriate license.
+	//
+	//    * AWS - Replaces the source-system license with an AWS license, if appropriate.
+	//
+	//    * BYOL - Retains the source-system license, if appropriate.
+	//
+	// Default value: Auto
 	LicenseType *string `type:"string"`
 
 	// The operating system of the virtual machine.
@@ -108,6 +111,8 @@ func (s ImportImageInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Contains the output for ImportImage.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportImageResult
 type ImportImageOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -129,12 +134,9 @@ type ImportImageOutput struct {
 	// The task ID of the import image task.
 	ImportTaskId *string `locationName:"importTaskId" type:"string"`
 
-	// The identifier for the symmetric AWS Key Management Service (AWS KMS) customer
-	// master key (CMK) that was used to create the encrypted AMI.
+	// The identifier for the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) that was used to create the encrypted AMI.
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
-
-	// The ARNs of the license configurations.
-	LicenseSpecifications []ImportImageLicenseConfigurationResponse `locationName:"licenseSpecifications" locationNameList:"item" type:"list"`
 
 	// The license type of the virtual machine.
 	LicenseType *string `locationName:"licenseType" type:"string"`

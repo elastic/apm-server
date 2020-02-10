@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribePublicIpv4PoolsRequest
 type DescribePublicIpv4PoolsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -17,7 +18,7 @@ type DescribePublicIpv4PoolsInput struct {
 	MaxResults *int64 `min:"1" type:"integer"`
 
 	// The token for the next page of results.
-	NextToken *string `type:"string"`
+	NextToken *string `min:"1" type:"string"`
 
 	// The IDs of the address pools.
 	PoolIds []string `locationName:"PoolId" locationNameList:"item" type:"list"`
@@ -34,6 +35,9 @@ func (s *DescribePublicIpv4PoolsInput) Validate() error {
 	if s.MaxResults != nil && *s.MaxResults < 1 {
 		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 1))
 	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(aws.NewErrParamMinLen("NextToken", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -41,6 +45,7 @@ func (s *DescribePublicIpv4PoolsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribePublicIpv4PoolsResult
 type DescribePublicIpv4PoolsOutput struct {
 	_ struct{} `type:"structure"`
 

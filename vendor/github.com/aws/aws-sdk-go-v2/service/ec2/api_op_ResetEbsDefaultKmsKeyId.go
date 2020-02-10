@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ResetEbsDefaultKmsKeyIdRequest
 type ResetEbsDefaultKmsKeyIdInput struct {
 	_ struct{} `type:"structure"`
 
@@ -24,10 +25,12 @@ func (s ResetEbsDefaultKmsKeyIdInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ResetEbsDefaultKmsKeyIdResult
 type ResetEbsDefaultKmsKeyIdOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the default CMK for EBS encryption by default.
+	// The full ARN of the default CMK that your account uses to encrypt an EBS
+	// volume when no CMK is specified in the API call that creates the volume.
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
 }
 
@@ -41,13 +44,19 @@ const opResetEbsDefaultKmsKeyId = "ResetEbsDefaultKmsKeyId"
 // ResetEbsDefaultKmsKeyIdRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Resets the default customer master key (CMK) for EBS encryption for your
-// account in this Region to the AWS managed CMK for EBS.
+// Resets the account's default customer master key (CMK) to the account's AWS-managed
+// default CMK. This default CMK is used to encrypt EBS volumes when you have
+// enabled EBS encryption by default without specifying a CMK in the API call.
+// If you have not enabled encryption by default, then this CMK is used when
+// you set the Encrypted parameter to true without specifying a custom CMK in
+// the API call.
 //
-// After resetting the default CMK to the AWS managed CMK, you can continue
-// to encrypt by a customer managed CMK by specifying it when you create the
-// volume. For more information, see Amazon EBS Encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
-// in the Amazon Elastic Compute Cloud User Guide.
+// Call this API if you have modified the default CMK that is used for encrypting
+// your EBS volume using ModifyEbsDefaultKmsKeyId and you want to reset it to
+// the AWS-managed default CMK. After resetting, you can continue to provide
+// a CMK of your choice in the API call that creates the volume. However, if
+// no CMK is specified, your account will encrypt the volume to the AWS-managed
+// default CMK.
 //
 //    // Example sending a request using ResetEbsDefaultKmsKeyIdRequest.
 //    req := client.ResetEbsDefaultKmsKeyIdRequest(params)

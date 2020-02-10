@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AllocateHostsRequest
 type AllocateHostsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -27,34 +28,16 @@ type AllocateHostsInput struct {
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string" required:"true"`
 
 	// Unique, case-sensitive identifier that you provide to ensure the idempotency
-	// of the request. For more information, see How to Ensure Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	// of the request. For more information, see How to Ensure Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html)
+	// in the Amazon Elastic Compute Cloud User Guide.
 	ClientToken *string `locationName:"clientToken" type:"string"`
 
-	// Indicates whether to enable or disable host recovery for the Dedicated Host.
-	// Host recovery is disabled by default. For more information, see Host Recovery
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-recovery.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
+	// Specifies the instance type for which to configure your Dedicated Hosts.
+	// When you specify the instance type, that is the only instance type that you
+	// can launch onto that host.
 	//
-	// Default: off
-	HostRecovery HostRecovery `type:"string" enum:"true"`
-
-	// Specifies the instance family to be supported by the Dedicated Hosts. If
-	// you specify an instance family, the Dedicated Hosts support multiple instance
-	// types within that instance family.
-	//
-	// If you want the Dedicated Hosts to support a specific instance type only,
-	// omit this parameter and specify InstanceType instead. You cannot specify
-	// InstanceFamily and InstanceType in the same request.
-	InstanceFamily *string `type:"string"`
-
-	// Specifies the instance type to be supported by the Dedicated Hosts. If you
-	// specify an instance type, the Dedicated Hosts support instances of the specified
-	// instance type only.
-	//
-	// If you want the Dedicated Hosts to support multiple instance types in a specific
-	// instance family, omit this parameter and specify InstanceFamily instead.
-	// You cannot specify InstanceType and InstanceFamily in the same request.
-	InstanceType *string `locationName:"instanceType" type:"string"`
+	// InstanceType is a required field
+	InstanceType *string `locationName:"instanceType" type:"string" required:"true"`
 
 	// The number of Dedicated Hosts to allocate to your account with these parameters.
 	//
@@ -78,6 +61,10 @@ func (s *AllocateHostsInput) Validate() error {
 		invalidParams.Add(aws.NewErrParamRequired("AvailabilityZone"))
 	}
 
+	if s.InstanceType == nil {
+		invalidParams.Add(aws.NewErrParamRequired("InstanceType"))
+	}
+
 	if s.Quantity == nil {
 		invalidParams.Add(aws.NewErrParamRequired("Quantity"))
 	}
@@ -89,6 +76,7 @@ func (s *AllocateHostsInput) Validate() error {
 }
 
 // Contains the output of AllocateHosts.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AllocateHostsResult
 type AllocateHostsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -107,9 +95,8 @@ const opAllocateHosts = "AllocateHosts"
 // AllocateHostsRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Allocates a Dedicated Host to your account. At a minimum, specify the supported
-// instance type or instance family, the Availability Zone in which to allocate
-// the host, and the number of hosts to allocate.
+// Allocates a Dedicated Host to your account. At a minimum, specify the instance
+// size type, Availability Zone, and quantity of hosts to allocate.
 //
 //    // Example sending a request using AllocateHostsRequest.
 //    req := client.AllocateHostsRequest(params)

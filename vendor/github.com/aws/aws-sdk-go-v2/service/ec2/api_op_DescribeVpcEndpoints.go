@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeVpcEndpoints.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpcEndpointsRequest
 type DescribeVpcEndpointsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -21,14 +22,14 @@ type DescribeVpcEndpointsInput struct {
 
 	// One or more filters.
 	//
-	//    * service-name - The name of the service.
+	//    * service-name: The name of the service.
 	//
-	//    * vpc-id - The ID of the VPC in which the endpoint resides.
+	//    * vpc-id: The ID of the VPC in which the endpoint resides.
 	//
-	//    * vpc-endpoint-id - The ID of the endpoint.
+	//    * vpc-endpoint-id: The ID of the endpoint.
 	//
-	//    * vpc-endpoint-state - The state of the endpoint (pendingAcceptance |
-	//    pending | available | deleting | deleted | rejected | failed).
+	//    * vpc-endpoint-state: The state of the endpoint. (pending | available
+	//    | deleting | deleted)
 	//
 	//    * tag:<key> - The key/value combination of a tag assigned to the resource.
 	//    Use the tag key in the filter name and the tag value as the filter value.
@@ -45,7 +46,7 @@ type DescribeVpcEndpointsInput struct {
 	// a token that you can specify in a subsequent call to get the next set of
 	// results.
 	//
-	// Constraint: If the value is greater than 1,000, we return only 1,000 items.
+	// Constraint: If the value is greater than 1000, we return only 1000 items.
 	MaxResults *int64 `type:"integer"`
 
 	// The token for the next set of items to return. (You received this token from
@@ -62,6 +63,7 @@ func (s DescribeVpcEndpointsInput) String() string {
 }
 
 // Contains the output of DescribeVpcEndpoints.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpcEndpointsResult
 type DescribeVpcEndpointsOutput struct {
 	_ struct{} `type:"structure"`
 

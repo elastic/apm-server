@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteFlowLogsRequest
 type DeleteFlowLogsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -19,8 +20,6 @@ type DeleteFlowLogsInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// One or more flow log IDs.
-	//
-	// Constraint: Maximum of 1000 flow log IDs.
 	//
 	// FlowLogIds is a required field
 	FlowLogIds []string `locationName:"FlowLogId" locationNameList:"item" type:"list" required:"true"`
@@ -45,6 +44,7 @@ func (s *DeleteFlowLogsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteFlowLogsResult
 type DeleteFlowLogsOutput struct {
 	_ struct{} `type:"structure"`
 

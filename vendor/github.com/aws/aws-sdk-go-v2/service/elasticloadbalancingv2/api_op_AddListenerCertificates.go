@@ -52,7 +52,7 @@ func (s *AddListenerCertificatesInput) Validate() error {
 type AddListenerCertificatesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the certificates in the certificate list.
+	// Information about the certificates.
 	Certificates []Certificate `type:"list"`
 }
 
@@ -66,18 +66,14 @@ const opAddListenerCertificates = "AddListenerCertificates"
 // AddListenerCertificatesRequest returns a request value for making API operation for
 // Elastic Load Balancing.
 //
-// Adds the specified SSL server certificate to the certificate list for the
-// specified HTTPS listener.
+// Adds the specified certificate to the specified HTTPS listener.
 //
-// If the certificate in already in the certificate list, the call is successful
-// but the certificate is not added again.
+// If the certificate was already added, the call is successful but the certificate
+// is not added again.
 //
-// To get the certificate list for a listener, use DescribeListenerCertificates.
-// To remove certificates from the certificate list for a listener, use RemoveListenerCertificates.
-// To replace the default certificate for a listener, use ModifyListener.
-//
-// For more information, see SSL Certificates (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#https-listener-certificates)
-// in the Application Load Balancers Guide.
+// To list the certificates for your listener, use DescribeListenerCertificates.
+// To remove certificates from your listener, use RemoveListenerCertificates.
+// To specify the default SSL server certificate, use ModifyListener.
 //
 //    // Example sending a request using AddListenerCertificatesRequest.
 //    req := client.AddListenerCertificatesRequest(params)

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeFpgaImagesRequest
 type DescribeFpgaImagesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -57,7 +58,7 @@ type DescribeFpgaImagesInput struct {
 	MaxResults *int64 `min:"5" type:"integer"`
 
 	// The token to retrieve the next page of results.
-	NextToken *string `type:"string"`
+	NextToken *string `min:"1" type:"string"`
 
 	// Filters the AFI by owner. Specify an AWS account ID, self (owner is the sender
 	// of the request), or an AWS owner alias (valid values are amazon | aws-marketplace).
@@ -75,6 +76,9 @@ func (s *DescribeFpgaImagesInput) Validate() error {
 	if s.MaxResults != nil && *s.MaxResults < 5 {
 		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 5))
 	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(aws.NewErrParamMinLen("NextToken", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -82,6 +86,7 @@ func (s *DescribeFpgaImagesInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeFpgaImagesResult
 type DescribeFpgaImagesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -90,7 +95,7 @@ type DescribeFpgaImagesOutput struct {
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
-	NextToken *string `locationName:"nextToken" type:"string"`
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 }
 
 // String returns the string representation

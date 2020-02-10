@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TerminateClientVpnConnectionsRequest
 type TerminateClientVpnConnectionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -51,6 +52,7 @@ func (s *TerminateClientVpnConnectionsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TerminateClientVpnConnectionsResult
 type TerminateClientVpnConnectionsOutput struct {
 	_ struct{} `type:"structure"`
 

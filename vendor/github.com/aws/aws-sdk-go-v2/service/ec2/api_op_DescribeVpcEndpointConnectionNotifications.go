@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpcEndpointConnectionNotificationsRequest
 type DescribeVpcEndpointConnectionNotificationsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -23,7 +24,7 @@ type DescribeVpcEndpointConnectionNotificationsInput struct {
 
 	// One or more filters.
 	//
-	//    * connection-notification-arn - The ARN of the SNS topic for the notification.
+	//    * connection-notification-arn - The ARN of SNS topic for the notification.
 	//
 	//    * connection-notification-id - The ID of the notification.
 	//
@@ -50,6 +51,7 @@ func (s DescribeVpcEndpointConnectionNotificationsInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpcEndpointConnectionNotificationsResult
 type DescribeVpcEndpointConnectionNotificationsOutput struct {
 	_ struct{} `type:"structure"`
 

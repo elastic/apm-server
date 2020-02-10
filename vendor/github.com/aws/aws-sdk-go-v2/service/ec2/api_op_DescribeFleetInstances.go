@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeFleetInstancesRequest
 type DescribeFleetInstancesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -56,6 +57,7 @@ func (s *DescribeFleetInstancesInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeFleetInstancesResult
 type DescribeFleetInstancesOutput struct {
 	_ struct{} `type:"structure"`
 

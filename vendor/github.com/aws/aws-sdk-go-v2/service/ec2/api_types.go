@@ -14,6 +14,7 @@ var _ aws.Config
 var _ = awsutil.Prettify
 
 // Describes an account attribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AccountAttribute
 type AccountAttribute struct {
 	_ struct{} `type:"structure"`
 
@@ -30,6 +31,7 @@ func (s AccountAttribute) String() string {
 }
 
 // Describes a value of an account attribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AccountAttributeValue
 type AccountAttributeValue struct {
 	_ struct{} `type:"structure"`
 
@@ -43,6 +45,7 @@ func (s AccountAttributeValue) String() string {
 }
 
 // Describes a running instance in a Spot Fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ActiveInstance
 type ActiveInstance struct {
 	_ struct{} `type:"structure"`
 
@@ -67,6 +70,7 @@ func (s ActiveInstance) String() string {
 }
 
 // Describes an Elastic IP address.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Address
 type Address struct {
 	_ struct{} `type:"structure"`
 
@@ -77,21 +81,12 @@ type Address struct {
 	// VPC.
 	AssociationId *string `locationName:"associationId" type:"string"`
 
-	// The customer-owned IP address.
-	CustomerOwnedIp *string `locationName:"customerOwnedIp" type:"string"`
-
-	// The ID of the customer-owned address pool.
-	CustomerOwnedIpv4Pool *string `locationName:"customerOwnedIpv4Pool" type:"string"`
-
 	// Indicates whether this Elastic IP address is for use with instances in EC2-Classic
 	// (standard) or instances in a VPC (vpc).
 	Domain DomainType `locationName:"domain" type:"string" enum:"true"`
 
 	// The ID of the instance that the address is associated with (if any).
 	InstanceId *string `locationName:"instanceId" type:"string"`
-
-	// The name of the location from which the IP address is advertised.
-	NetworkBorderGroup *string `locationName:"networkBorderGroup" type:"string"`
 
 	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
@@ -118,6 +113,7 @@ func (s Address) String() string {
 }
 
 // Describes a principal.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AllowedPrincipal
 type AllowedPrincipal struct {
 	_ struct{} `type:"structure"`
 
@@ -133,21 +129,9 @@ func (s AllowedPrincipal) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the private IP addresses assigned to a network interface.
-type AssignedPrivateIpAddress struct {
-	_ struct{} `type:"structure"`
-
-	// The private IP address assigned to the network interface.
-	PrivateIpAddress *string `locationName:"privateIpAddress" type:"string"`
-}
-
-// String returns the string representation
-func (s AssignedPrivateIpAddress) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a target network that is associated with a Client VPN endpoint.
 // A target network is a subnet in a VPC.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociatedTargetNetwork
 type AssociatedTargetNetwork struct {
 	_ struct{} `type:"structure"`
 
@@ -164,6 +148,7 @@ func (s AssociatedTargetNetwork) String() string {
 }
 
 // Describes the state of a target network association.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociationStatus
 type AssociationStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -180,6 +165,7 @@ func (s AssociationStatus) String() string {
 }
 
 // Describes a value for a resource attribute that is a Boolean value.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AttributeBooleanValue
 type AttributeBooleanValue struct {
 	_ struct{} `type:"structure"`
 
@@ -193,6 +179,7 @@ func (s AttributeBooleanValue) String() string {
 }
 
 // Describes a value for a resource attribute that is a String.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AttributeValue
 type AttributeValue struct {
 	_ struct{} `type:"structure"`
 
@@ -206,6 +193,7 @@ func (s AttributeValue) String() string {
 }
 
 // Information about an authorization rule.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AuthorizationRule
 type AuthorizationRule struct {
 	_ struct{} `type:"structure"`
 
@@ -235,37 +223,24 @@ func (s AuthorizationRule) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes an Availability Zone or Local Zone.
+// Describes an Availability Zone.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AvailabilityZone
 type AvailabilityZone struct {
 	_ struct{} `type:"structure"`
 
-	// For Availability Zones, this parameter has the same value as the Region name.
-	//
-	// For Local Zones, the name of the associated group, for example us-west-2-lax-1.
-	GroupName *string `locationName:"groupName" type:"string"`
-
-	// Any messages about the Availability Zone or Local Zone.
+	// Any messages about the Availability Zone.
 	Messages []AvailabilityZoneMessage `locationName:"messageSet" locationNameList:"item" type:"list"`
-
-	// The name of the location from which the address is advertised.
-	NetworkBorderGroup *string `locationName:"networkBorderGroup" type:"string"`
-
-	// For Availability Zones, this parameter always has the value of opt-in-not-required.
-	//
-	// For Local Zones, this parameter is the opt in status. The possible values
-	// are opted-in, and not-opted-in.
-	OptInStatus AvailabilityZoneOptInStatus `locationName:"optInStatus" type:"string" enum:"true"`
 
 	// The name of the Region.
 	RegionName *string `locationName:"regionName" type:"string"`
 
-	// The state of the Availability Zone or Local Zone.
+	// The state of the Availability Zone.
 	State AvailabilityZoneState `locationName:"zoneState" type:"string" enum:"true"`
 
-	// The ID of the Availability Zone or Local Zone.
+	// The ID of the Availability Zone.
 	ZoneId *string `locationName:"zoneId" type:"string"`
 
-	// The name of the Availability Zone or Local Zone.
+	// The name of the Availability Zone.
 	ZoneName *string `locationName:"zoneName" type:"string"`
 }
 
@@ -274,11 +249,12 @@ func (s AvailabilityZone) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes a message about an Availability Zone or Local Zone.
+// Describes a message about an Availability Zone.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AvailabilityZoneMessage
 type AvailabilityZoneMessage struct {
 	_ struct{} `type:"structure"`
 
-	// The message about the Availability Zone or Local Zone.
+	// The message about the Availability Zone.
 	Message *string `locationName:"message" type:"string"`
 }
 
@@ -287,19 +263,15 @@ func (s AvailabilityZoneMessage) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The capacity information for instances that can be launched onto the Dedicated
-// Host.
+// The capacity information for instances launched onto the Dedicated Host.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AvailableCapacity
 type AvailableCapacity struct {
 	_ struct{} `type:"structure"`
 
-	// The number of instances that can be launched onto the Dedicated Host depending
-	// on the host's available capacity. For Dedicated Hosts that support multiple
-	// instance types, this parameter represents the number of instances for each
-	// instance size that is supported on the host.
+	// The total number of instances supported by the Dedicated Host.
 	AvailableInstanceCapacity []InstanceCapacity `locationName:"availableInstanceCapacity" locationNameList:"item" type:"list"`
 
-	// The number of vCPUs available for launching instances onto the Dedicated
-	// Host.
+	// The number of vCPUs available on the Dedicated Host.
 	AvailableVCpus *int64 `locationName:"availableVCpus" type:"integer"`
 }
 
@@ -308,6 +280,7 @@ func (s AvailableCapacity) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/BlobAttributeValue
 type BlobAttributeValue struct {
 	_ struct{} `type:"structure"`
 
@@ -321,6 +294,7 @@ func (s BlobAttributeValue) String() string {
 }
 
 // Describes a block device mapping.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/BlockDeviceMapping
 type BlockDeviceMapping struct {
 	_ struct{} `type:"structure"`
 
@@ -357,6 +331,7 @@ func (s BlockDeviceMapping) String() string {
 }
 
 // Describes a bundle task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/BundleTask
 type BundleTask struct {
 	_ struct{} `type:"structure"`
 
@@ -373,7 +348,7 @@ type BundleTask struct {
 	Progress *string `locationName:"progress" type:"string"`
 
 	// The time this task started.
-	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The state of the task.
 	State BundleTaskState `locationName:"state" type:"string" enum:"true"`
@@ -382,7 +357,7 @@ type BundleTask struct {
 	Storage *Storage `locationName:"storage" type:"structure"`
 
 	// The time of the most recent update for the task.
-	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp"`
+	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -391,6 +366,7 @@ func (s BundleTask) String() string {
 }
 
 // Describes an error for BundleInstance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/BundleTaskError
 type BundleTaskError struct {
 	_ struct{} `type:"structure"`
 
@@ -408,10 +384,11 @@ func (s BundleTaskError) String() string {
 
 // Information about an address range that is provisioned for use with your
 // AWS resources through bring your own IP addresses (BYOIP).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ByoipCidr
 type ByoipCidr struct {
 	_ struct{} `type:"structure"`
 
-	// The address range, in CIDR notation.
+	// The public IPv4 address range, in CIDR notation.
 	Cidr *string `locationName:"cidr" type:"string"`
 
 	// The description of the address range.
@@ -431,6 +408,7 @@ func (s ByoipCidr) String() string {
 }
 
 // Describes a Spot Fleet error.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CancelSpotFleetRequestsError
 type CancelSpotFleetRequestsError struct {
 	_ struct{} `type:"structure"`
 
@@ -447,6 +425,7 @@ func (s CancelSpotFleetRequestsError) String() string {
 }
 
 // Describes a Spot Fleet request that was not successfully canceled.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CancelSpotFleetRequestsErrorItem
 type CancelSpotFleetRequestsErrorItem struct {
 	_ struct{} `type:"structure"`
 
@@ -463,6 +442,7 @@ func (s CancelSpotFleetRequestsErrorItem) String() string {
 }
 
 // Describes a Spot Fleet request that was successfully canceled.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CancelSpotFleetRequestsSuccessItem
 type CancelSpotFleetRequestsSuccessItem struct {
 	_ struct{} `type:"structure"`
 
@@ -482,6 +462,7 @@ func (s CancelSpotFleetRequestsSuccessItem) String() string {
 }
 
 // Describes a request to cancel a Spot Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CancelledSpotInstanceRequest
 type CancelledSpotInstanceRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -498,27 +479,22 @@ func (s CancelledSpotInstanceRequest) String() string {
 }
 
 // Describes a Capacity Reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CapacityReservation
 type CapacityReservation struct {
 	_ struct{} `type:"structure"`
 
 	// The Availability Zone in which the capacity is reserved.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
-	// The Availability Zone ID of the Capacity Reservation.
-	AvailabilityZoneId *string `locationName:"availabilityZoneId" type:"string"`
-
 	// The remaining capacity. Indicates the number of instances that can be launched
 	// in the Capacity Reservation.
 	AvailableInstanceCount *int64 `locationName:"availableInstanceCount" type:"integer"`
-
-	// The Amazon Resource Name (ARN) of the Capacity Reservation.
-	CapacityReservationArn *string `locationName:"capacityReservationArn" type:"string"`
 
 	// The ID of the Capacity Reservation.
 	CapacityReservationId *string `locationName:"capacityReservationId" type:"string"`
 
 	// The date and time at which the Capacity Reservation was created.
-	CreateDate *time.Time `locationName:"createDate" type:"timestamp"`
+	CreateDate *time.Time `locationName:"createDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Indicates whether the Capacity Reservation supports EBS-optimized instances.
 	// This optimization provides dedicated throughput to Amazon EBS and an optimized
@@ -531,7 +507,7 @@ type CapacityReservation struct {
 	// Reservation expires, the reserved capacity is released and you can no longer
 	// launch instances into it. The Capacity Reservation's state changes to expired
 	// when it reaches its end date and time.
-	EndDate *time.Time `locationName:"endDate" type:"timestamp"`
+	EndDate *time.Time `locationName:"endDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Indicates the way in which the Capacity Reservation ends. A Capacity Reservation
 	// can have one of the following end types:
@@ -568,20 +544,17 @@ type CapacityReservation struct {
 	// The type of instance for which the Capacity Reservation reserves capacity.
 	InstanceType *string `locationName:"instanceType" type:"string"`
 
-	// The ID of the AWS account that owns the Capacity Reservation.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
 	// The current state of the Capacity Reservation. A Capacity Reservation can
 	// be in one of the following states:
 	//
 	//    * active - The Capacity Reservation is active and the capacity is available
 	//    for your use.
 	//
-	//    * expired - The Capacity Reservation expired automatically at the date
+	//    * cancelled - The Capacity Reservation expired automatically at the date
 	//    and time specified in your request. The reserved capacity is no longer
 	//    available for your use.
 	//
-	//    * cancelled - The Capacity Reservation was manually cancelled. The reserved
+	//    * expired - The Capacity Reservation was manually cancelled. The reserved
 	//    capacity is no longer available for your use.
 	//
 	//    * pending - The Capacity Reservation request was successful but the capacity
@@ -605,81 +578,12 @@ type CapacityReservation struct {
 	//    that is dedicated to a single AWS account.
 	Tenancy CapacityReservationTenancy `locationName:"tenancy" type:"string" enum:"true"`
 
-	// The total number of instances for which the Capacity Reservation reserves
-	// capacity.
+	// The number of instances for which the Capacity Reservation reserves capacity.
 	TotalInstanceCount *int64 `locationName:"totalInstanceCount" type:"integer"`
 }
 
 // String returns the string representation
 func (s CapacityReservation) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the strategy for using unused Capacity Reservations for fulfilling
-// On-Demand capacity.
-//
-// This strategy can only be used if the EC2 Fleet is of type instant.
-//
-// For more information about Capacity Reservations, see On-Demand Capacity
-// Reservations (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html)
-// in the Amazon Elastic Compute Cloud User Guide. For examples of using Capacity
-// Reservations in an EC2 Fleet, see EC2 Fleet Example Configurations (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-examples.html)
-// in the Amazon Elastic Compute Cloud User Guide.
-type CapacityReservationOptions struct {
-	_ struct{} `type:"structure"`
-
-	// Indicates whether to use unused Capacity Reservations for fulfilling On-Demand
-	// capacity.
-	//
-	// If you specify use-capacity-reservations-first, the fleet uses unused Capacity
-	// Reservations to fulfill On-Demand capacity up to the target On-Demand capacity.
-	// If multiple instance pools have unused Capacity Reservations, the On-Demand
-	// allocation strategy (lowest-price or prioritized) is applied. If the number
-	// of unused Capacity Reservations is less than the On-Demand target capacity,
-	// the remaining On-Demand target capacity is launched according to the On-Demand
-	// allocation strategy (lowest-price or prioritized).
-	//
-	// If you do not specify a value, the fleet fulfils the On-Demand capacity according
-	// to the chosen On-Demand allocation strategy.
-	UsageStrategy FleetCapacityReservationUsageStrategy `locationName:"usageStrategy" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s CapacityReservationOptions) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the strategy for using unused Capacity Reservations for fulfilling
-// On-Demand capacity.
-//
-// This strategy can only be used if the EC2 Fleet is of type instant.
-//
-// For more information about Capacity Reservations, see On-Demand Capacity
-// Reservations (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html)
-// in the Amazon Elastic Compute Cloud User Guide. For examples of using Capacity
-// Reservations in an EC2 Fleet, see EC2 Fleet Example Configurations (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-examples.html)
-// in the Amazon Elastic Compute Cloud User Guide.
-type CapacityReservationOptionsRequest struct {
-	_ struct{} `type:"structure"`
-
-	// Indicates whether to use unused Capacity Reservations for fulfilling On-Demand
-	// capacity.
-	//
-	// If you specify use-capacity-reservations-first, the fleet uses unused Capacity
-	// Reservations to fulfill On-Demand capacity up to the target On-Demand capacity.
-	// If multiple instance pools have unused Capacity Reservations, the On-Demand
-	// allocation strategy (lowest-price or prioritized) is applied. If the number
-	// of unused Capacity Reservations is less than the On-Demand target capacity,
-	// the remaining On-Demand target capacity is launched according to the On-Demand
-	// allocation strategy (lowest-price or prioritized).
-	//
-	// If you do not specify a value, the fleet fulfils the On-Demand capacity according
-	// to the chosen On-Demand allocation strategy.
-	UsageStrategy FleetCapacityReservationUsageStrategy `type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s CapacityReservationOptionsRequest) String() string {
 	return awsutil.Prettify(s)
 }
 
@@ -692,6 +596,7 @@ func (s CapacityReservationOptionsRequest) String() string {
 // that has matching attributes (instance type, platform, Availability Zone).
 // Use the CapacityReservationTarget parameter to explicitly target a specific
 // Capacity Reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CapacityReservationSpecification
 type CapacityReservationSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -720,6 +625,7 @@ func (s CapacityReservationSpecification) String() string {
 // in run in any open Capacity Reservation that has matching attributes (instance
 // type, platform, Availability Zone). The action returns the capacityReservationTarget
 // response element if the instance explicily targets a specific Capacity Reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CapacityReservationSpecificationResponse
 type CapacityReservationSpecificationResponse struct {
 	_ struct{} `type:"structure"`
 
@@ -743,6 +649,7 @@ func (s CapacityReservationSpecificationResponse) String() string {
 }
 
 // Describes a target Capacity Reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CapacityReservationTarget
 type CapacityReservationTarget struct {
 	_ struct{} `type:"structure"`
 
@@ -756,6 +663,7 @@ func (s CapacityReservationTarget) String() string {
 }
 
 // Describes a target Capacity Reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CapacityReservationTargetResponse
 type CapacityReservationTargetResponse struct {
 	_ struct{} `type:"structure"`
 
@@ -769,6 +677,7 @@ func (s CapacityReservationTargetResponse) String() string {
 }
 
 // Information about the client certificate used for authentication.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CertificateAuthentication
 type CertificateAuthentication struct {
 	_ struct{} `type:"structure"`
 
@@ -782,6 +691,7 @@ func (s CertificateAuthentication) String() string {
 }
 
 // Information about the client certificate to be used for authentication.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CertificateAuthenticationRequest
 type CertificateAuthenticationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -796,6 +706,7 @@ func (s CertificateAuthenticationRequest) String() string {
 }
 
 // Describes the state of a client certificate revocation list.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientCertificateRevocationListStatus
 type CertificateRevocationListStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -817,6 +728,7 @@ func (s CertificateRevocationListStatus) String() string {
 // information, see Prepare to Bring Your Address Range to Your AWS Account
 // (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html#prepare-for-byoip)
 // in the Amazon Elastic Compute Cloud User Guide.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CidrAuthorizationContext
 type CidrAuthorizationContext struct {
 	_ struct{} `type:"structure"`
 
@@ -855,6 +767,7 @@ func (s *CidrAuthorizationContext) Validate() error {
 }
 
 // Describes an IPv4 CIDR block.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CidrBlock
 type CidrBlock struct {
 	_ struct{} `type:"structure"`
 
@@ -868,6 +781,7 @@ func (s CidrBlock) String() string {
 }
 
 // Describes the ClassicLink DNS support status of a VPC.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClassicLinkDnsSupport
 type ClassicLinkDnsSupport struct {
 	_ struct{} `type:"structure"`
 
@@ -884,6 +798,7 @@ func (s ClassicLinkDnsSupport) String() string {
 }
 
 // Describes a linked EC2-Classic instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClassicLinkInstance
 type ClassicLinkInstance struct {
 	_ struct{} `type:"structure"`
 
@@ -906,6 +821,7 @@ func (s ClassicLinkInstance) String() string {
 }
 
 // Describes a Classic Load Balancer.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClassicLoadBalancer
 type ClassicLoadBalancer struct {
 	_ struct{} `type:"structure"`
 
@@ -920,6 +836,7 @@ func (s ClassicLoadBalancer) String() string {
 
 // Describes the Classic Load Balancers to attach to a Spot Fleet. Spot Fleet
 // registers the running Spot Instances with these Classic Load Balancers.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClassicLoadBalancersConfig
 type ClassicLoadBalancersConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -945,51 +862,8 @@ func (s *ClassicLoadBalancersConfig) Validate() error {
 	return nil
 }
 
-// Describes address usage for a customer-owned address pool.
-type CoipAddressUsage struct {
-	_ struct{} `type:"structure"`
-
-	// The allocation ID of the address.
-	AllocationId *string `locationName:"allocationId" type:"string"`
-
-	// The AWS account ID.
-	AwsAccountId *string `locationName:"awsAccountId" type:"string"`
-
-	// The AWS service.
-	AwsService *string `locationName:"awsService" type:"string"`
-
-	// The customer-owned IP address.
-	CoIp *string `locationName:"coIp" type:"string"`
-}
-
-// String returns the string representation
-func (s CoipAddressUsage) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a customer-owned address pool.
-type CoipPool struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the local gateway route table.
-	LocalGatewayRouteTableId *string `locationName:"localGatewayRouteTableId" type:"string"`
-
-	// The address ranges of the address pool.
-	PoolCidrs []string `locationName:"poolCidrSet" locationNameList:"item" type:"list"`
-
-	// The ID of the address pool.
-	PoolId *string `locationName:"poolId" type:"string"`
-
-	// The tags.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s CoipPool) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the client connection logging options for the Client VPN endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ConnectionLogOptions
 type ConnectionLogOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -1011,6 +885,7 @@ func (s ConnectionLogOptions) String() string {
 
 // Information about the client connection logging options for a Client VPN
 // endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ConnectionLogResponseOptions
 type ConnectionLogResponseOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -1033,6 +908,7 @@ func (s ConnectionLogResponseOptions) String() string {
 }
 
 // Describes a connection notification for a VPC endpoint or VPC endpoint service.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ConnectionNotification
 type ConnectionNotification struct {
 	_ struct{} `type:"structure"`
 
@@ -1065,6 +941,7 @@ func (s ConnectionNotification) String() string {
 }
 
 // Describes a conversion task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ConversionTask
 type ConversionTask struct {
 	_ struct{} `type:"structure"`
 
@@ -1099,6 +976,7 @@ func (s ConversionTask) String() string {
 }
 
 // The CPU options for the instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CpuOptions
 type CpuOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -1116,14 +994,16 @@ func (s CpuOptions) String() string {
 
 // The CPU options for the instance. Both the core count and threads per core
 // must be specified in the request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CpuOptionsRequest
 type CpuOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
 	// The number of CPU cores for the instance.
 	CoreCount *int64 `type:"integer"`
 
-	// The number of threads per CPU core. To disable multithreading for the instance,
-	// specify a value of 1. Otherwise, specify the default value of 2.
+	// The number of threads per CPU core. To disable Intel Hyper-Threading Technology
+	// for the instance, specify a value of 1. Otherwise, specify the default value
+	// of 2.
 	ThreadsPerCore *int64 `type:"integer"`
 }
 
@@ -1133,6 +1013,7 @@ func (s CpuOptionsRequest) String() string {
 }
 
 // Describes the instances that could not be launched by the fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateFleetError
 type CreateFleetError struct {
 	_ struct{} `type:"structure"`
 
@@ -1141,12 +1022,12 @@ type CreateFleetError struct {
 	ErrorCode *string `locationName:"errorCode" type:"string"`
 
 	// The error message that describes why the instance could not be launched.
-	// For more information about error messages, see Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html.html).
+	// For more information about error messages, see ee Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html.html).
 	ErrorMessage *string `locationName:"errorMessage" type:"string"`
 
 	// The launch templates and overrides that were used for launching the instances.
-	// The values that you specify in the Overrides replace the values in the launch
-	// template.
+	// Any parameters that you specify in the Overrides override the same parameters
+	// in the launch template.
 	LaunchTemplateAndOverrides *LaunchTemplateAndOverridesResponse `locationName:"launchTemplateAndOverrides" type:"structure"`
 
 	// Indicates if the instance that could not be launched was a Spot Instance
@@ -1160,6 +1041,7 @@ func (s CreateFleetError) String() string {
 }
 
 // Describes the instances that were launched by the fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateFleetInstance
 type CreateFleetInstance struct {
 	_ struct{} `type:"structure"`
 
@@ -1170,15 +1052,15 @@ type CreateFleetInstance struct {
 	InstanceType InstanceType `locationName:"instanceType" type:"string" enum:"true"`
 
 	// The launch templates and overrides that were used for launching the instances.
-	// The values that you specify in the Overrides replace the values in the launch
-	// template.
+	// Any parameters that you specify in the Overrides override the same parameters
+	// in the launch template.
 	LaunchTemplateAndOverrides *LaunchTemplateAndOverridesResponse `locationName:"launchTemplateAndOverrides" type:"structure"`
 
 	// Indicates if the instance that was launched is a Spot Instance or On-Demand
 	// Instance.
 	Lifecycle InstanceLifecycle `locationName:"lifecycle" type:"string" enum:"true"`
 
-	// The value is Windows for Windows instances. Otherwise, the value is blank.
+	// The value is Windows for Windows instances; otherwise blank.
 	Platform PlatformValues `locationName:"platform" type:"string" enum:"true"`
 }
 
@@ -1188,6 +1070,7 @@ func (s CreateFleetInstance) String() string {
 }
 
 // Describes the options for a VPC attachment.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateTransitGatewayVpcAttachmentRequestOptions
 type CreateTransitGatewayVpcAttachmentRequestOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -1205,6 +1088,7 @@ func (s CreateTransitGatewayVpcAttachmentRequestOptions) String() string {
 
 // Describes the user or group to be added or removed from the list of create
 // volume permissions for a volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateVolumePermission
 type CreateVolumePermission struct {
 	_ struct{} `type:"structure"`
 
@@ -1221,6 +1105,7 @@ func (s CreateVolumePermission) String() string {
 }
 
 // Describes modifications to the list of create volume permissions for a volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateVolumePermissionModifications
 type CreateVolumePermissionModifications struct {
 	_ struct{} `type:"structure"`
 
@@ -1237,6 +1122,7 @@ func (s CreateVolumePermissionModifications) String() string {
 }
 
 // Describes the credit option for CPU usage of a T2 or T3 instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreditSpecification
 type CreditSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -1251,6 +1137,7 @@ func (s CreditSpecification) String() string {
 }
 
 // The credit option for CPU usage of a T2 or T3 instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreditSpecificationRequest
 type CreditSpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -1281,6 +1168,7 @@ func (s *CreditSpecificationRequest) Validate() error {
 }
 
 // Describes a customer gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CustomerGateway
 type CustomerGateway struct {
 	_ struct{} `type:"structure"`
 
@@ -1288,14 +1176,8 @@ type CustomerGateway struct {
 	// (ASN).
 	BgpAsn *string `locationName:"bgpAsn" type:"string"`
 
-	// The Amazon Resource Name (ARN) for the customer gateway certificate.
-	CertificateArn *string `locationName:"certificateArn" type:"string"`
-
 	// The ID of the customer gateway.
 	CustomerGatewayId *string `locationName:"customerGatewayId" type:"string"`
-
-	// The name of customer gateway device.
-	DeviceName *string `locationName:"deviceName" type:"string"`
 
 	// The Internet-routable IP address of the customer gateway's outside interface.
 	IpAddress *string `locationName:"ipAddress" type:"string"`
@@ -1317,6 +1199,7 @@ func (s CustomerGateway) String() string {
 }
 
 // Describes the client-specific data.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientData
 type Data struct {
 	_ struct{} `type:"structure"`
 
@@ -1324,13 +1207,13 @@ type Data struct {
 	Comment *string `type:"string"`
 
 	// The time that the disk upload ends.
-	UploadEnd *time.Time `type:"timestamp"`
+	UploadEnd *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
 	// The size of the uploaded disk image, in GiB.
 	UploadSize *float64 `type:"double"`
 
 	// The time that the disk upload starts.
-	UploadStart *time.Time `type:"timestamp"`
+	UploadStart *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -1339,6 +1222,7 @@ func (s Data) String() string {
 }
 
 // Describes an EC2 Fleet error.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteFleetError
 type DeleteFleetError struct {
 	_ struct{} `type:"structure"`
 
@@ -1355,6 +1239,7 @@ func (s DeleteFleetError) String() string {
 }
 
 // Describes an EC2 Fleet that was not successfully deleted.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteFleetErrorItem
 type DeleteFleetErrorItem struct {
 	_ struct{} `type:"structure"`
 
@@ -1371,6 +1256,7 @@ func (s DeleteFleetErrorItem) String() string {
 }
 
 // Describes an EC2 Fleet that was successfully deleted.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteFleetSuccessItem
 type DeleteFleetSuccessItem struct {
 	_ struct{} `type:"structure"`
 
@@ -1390,6 +1276,7 @@ func (s DeleteFleetSuccessItem) String() string {
 }
 
 // Describes a launch template version that could not be deleted.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteLaunchTemplateVersionsResponseErrorItem
 type DeleteLaunchTemplateVersionsResponseErrorItem struct {
 	_ struct{} `type:"structure"`
 
@@ -1412,6 +1299,7 @@ func (s DeleteLaunchTemplateVersionsResponseErrorItem) String() string {
 }
 
 // Describes a launch template version that was successfully deleted.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteLaunchTemplateVersionsResponseSuccessItem
 type DeleteLaunchTemplateVersionsResponseSuccessItem struct {
 	_ struct{} `type:"structure"`
 
@@ -1430,73 +1318,8 @@ func (s DeleteLaunchTemplateVersionsResponseSuccessItem) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the error for a Reserved Instance whose queued purchase could not
-// be deleted.
-type DeleteQueuedReservedInstancesError struct {
-	_ struct{} `type:"structure"`
-
-	// The error code.
-	Code DeleteQueuedReservedInstancesErrorCode `locationName:"code" type:"string" enum:"true"`
-
-	// The error message.
-	Message *string `locationName:"message" type:"string"`
-}
-
-// String returns the string representation
-func (s DeleteQueuedReservedInstancesError) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes fast snapshot restores for a snapshot.
-type DescribeFastSnapshotRestoreSuccessItem struct {
-	_ struct{} `type:"structure"`
-
-	// The Availability Zone.
-	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
-
-	// The time at which fast snapshot restores entered the disabled state.
-	DisabledTime *time.Time `locationName:"disabledTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the disabling state.
-	DisablingTime *time.Time `locationName:"disablingTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the enabled state.
-	EnabledTime *time.Time `locationName:"enabledTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the enabling state.
-	EnablingTime *time.Time `locationName:"enablingTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the optimizing state.
-	OptimizingTime *time.Time `locationName:"optimizingTime" type:"timestamp"`
-
-	// The alias of the snapshot owner.
-	OwnerAlias *string `locationName:"ownerAlias" type:"string"`
-
-	// The ID of the AWS account that owns the snapshot.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// The ID of the snapshot.
-	SnapshotId *string `locationName:"snapshotId" type:"string"`
-
-	// The state of fast snapshot restores.
-	State FastSnapshotRestoreStateCode `locationName:"state" type:"string" enum:"true"`
-
-	// The reason for the state transition. The possible values are as follows:
-	//
-	//    * Client.UserInitiated - The state successfully transitioned to enabling
-	//    or disabling.
-	//
-	//    * Client.UserInitiated - Lifecycle state transition - The state successfully
-	//    transitioned to optimizing, enabled, or disabled.
-	StateTransitionReason *string `locationName:"stateTransitionReason" type:"string"`
-}
-
-// String returns the string representation
-func (s DescribeFastSnapshotRestoreSuccessItem) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the instances that could not be launched by the fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeFleetError
 type DescribeFleetError struct {
 	_ struct{} `type:"structure"`
 
@@ -1505,12 +1328,12 @@ type DescribeFleetError struct {
 	ErrorCode *string `locationName:"errorCode" type:"string"`
 
 	// The error message that describes why the instance could not be launched.
-	// For more information about error messages, see Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html.html).
+	// For more information about error messages, see ee Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html.html).
 	ErrorMessage *string `locationName:"errorMessage" type:"string"`
 
 	// The launch templates and overrides that were used for launching the instances.
-	// The values that you specify in the Overrides replace the values in the launch
-	// template.
+	// Any parameters that you specify in the Overrides override the same parameters
+	// in the launch template.
 	LaunchTemplateAndOverrides *LaunchTemplateAndOverridesResponse `locationName:"launchTemplateAndOverrides" type:"structure"`
 
 	// Indicates if the instance that could not be launched was a Spot Instance
@@ -1524,6 +1347,7 @@ func (s DescribeFleetError) String() string {
 }
 
 // Describes the instances that were launched by the fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeFleetsInstances
 type DescribeFleetsInstances struct {
 	_ struct{} `type:"structure"`
 
@@ -1534,15 +1358,15 @@ type DescribeFleetsInstances struct {
 	InstanceType InstanceType `locationName:"instanceType" type:"string" enum:"true"`
 
 	// The launch templates and overrides that were used for launching the instances.
-	// The values that you specify in the Overrides replace the values in the launch
-	// template.
+	// Any parameters that you specify in the Overrides override the same parameters
+	// in the launch template.
 	LaunchTemplateAndOverrides *LaunchTemplateAndOverridesResponse `locationName:"launchTemplateAndOverrides" type:"structure"`
 
 	// Indicates if the instance that was launched is a Spot Instance or On-Demand
 	// Instance.
 	Lifecycle InstanceLifecycle `locationName:"lifecycle" type:"string" enum:"true"`
 
-	// The value is Windows for Windows instances. Otherwise, the value is blank.
+	// The value is Windows for Windows instances; otherwise blank.
 	Platform PlatformValues `locationName:"platform" type:"string" enum:"true"`
 }
 
@@ -1552,6 +1376,7 @@ func (s DescribeFleetsInstances) String() string {
 }
 
 // Describes a DHCP configuration option.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DhcpConfiguration
 type DhcpConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -1568,6 +1393,7 @@ func (s DhcpConfiguration) String() string {
 }
 
 // Describes a set of DHCP options.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DhcpOptions
 type DhcpOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -1590,6 +1416,7 @@ func (s DhcpOptions) String() string {
 }
 
 // Describes an Active Directory.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DirectoryServiceAuthentication
 type DirectoryServiceAuthentication struct {
 	_ struct{} `type:"structure"`
 
@@ -1603,6 +1430,7 @@ func (s DirectoryServiceAuthentication) String() string {
 }
 
 // Describes the Active Directory to be used for client authentication.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DirectoryServiceAuthenticationRequest
 type DirectoryServiceAuthenticationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -1615,106 +1443,8 @@ func (s DirectoryServiceAuthenticationRequest) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Contains information about the errors that occurred when disabling fast snapshot
-// restores.
-type DisableFastSnapshotRestoreErrorItem struct {
-	_ struct{} `type:"structure"`
-
-	// The errors.
-	FastSnapshotRestoreStateErrors []DisableFastSnapshotRestoreStateErrorItem `locationName:"fastSnapshotRestoreStateErrorSet" locationNameList:"item" type:"list"`
-
-	// The ID of the snapshot.
-	SnapshotId *string `locationName:"snapshotId" type:"string"`
-}
-
-// String returns the string representation
-func (s DisableFastSnapshotRestoreErrorItem) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes an error that occurred when disabling fast snapshot restores.
-type DisableFastSnapshotRestoreStateError struct {
-	_ struct{} `type:"structure"`
-
-	// The error code.
-	Code *string `locationName:"code" type:"string"`
-
-	// The error message.
-	Message *string `locationName:"message" type:"string"`
-}
-
-// String returns the string representation
-func (s DisableFastSnapshotRestoreStateError) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Contains information about an error that occurred when disabling fast snapshot
-// restores.
-type DisableFastSnapshotRestoreStateErrorItem struct {
-	_ struct{} `type:"structure"`
-
-	// The Availability Zone.
-	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
-
-	// The error.
-	Error *DisableFastSnapshotRestoreStateError `locationName:"error" type:"structure"`
-}
-
-// String returns the string representation
-func (s DisableFastSnapshotRestoreStateErrorItem) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes fast snapshot restores that were successfully disabled.
-type DisableFastSnapshotRestoreSuccessItem struct {
-	_ struct{} `type:"structure"`
-
-	// The Availability Zone.
-	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
-
-	// The time at which fast snapshot restores entered the disabled state.
-	DisabledTime *time.Time `locationName:"disabledTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the disabling state.
-	DisablingTime *time.Time `locationName:"disablingTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the enabled state.
-	EnabledTime *time.Time `locationName:"enabledTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the enabling state.
-	EnablingTime *time.Time `locationName:"enablingTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the optimizing state.
-	OptimizingTime *time.Time `locationName:"optimizingTime" type:"timestamp"`
-
-	// The alias of the snapshot owner.
-	OwnerAlias *string `locationName:"ownerAlias" type:"string"`
-
-	// The ID of the AWS account that owns the snapshot.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// The ID of the snapshot.
-	SnapshotId *string `locationName:"snapshotId" type:"string"`
-
-	// The state of fast snapshot restores for the snapshot.
-	State FastSnapshotRestoreStateCode `locationName:"state" type:"string" enum:"true"`
-
-	// The reason for the state transition. The possible values are as follows:
-	//
-	//    * Client.UserInitiated - The state successfully transitioned to enabling
-	//    or disabling.
-	//
-	//    * Client.UserInitiated - Lifecycle state transition - The state successfully
-	//    transitioned to optimizing, enabled, or disabled.
-	StateTransitionReason *string `locationName:"stateTransitionReason" type:"string"`
-}
-
-// String returns the string representation
-func (s DisableFastSnapshotRestoreSuccessItem) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a disk image.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DiskImage
 type DiskImage struct {
 	_ struct{} `type:"structure"`
 
@@ -1754,6 +1484,7 @@ func (s *DiskImage) Validate() error {
 }
 
 // Describes a disk image.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DiskImageDescription
 type DiskImageDescription struct {
 	_ struct{} `type:"structure"`
 
@@ -1783,6 +1514,7 @@ func (s DiskImageDescription) String() string {
 }
 
 // Describes a disk image.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DiskImageDetail
 type DiskImageDetail struct {
 	_ struct{} `type:"structure"`
 
@@ -1836,6 +1568,7 @@ func (s *DiskImageDetail) Validate() error {
 }
 
 // Describes a disk image volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DiskImageVolumeDescription
 type DiskImageVolumeDescription struct {
 	_ struct{} `type:"structure"`
 
@@ -1851,26 +1584,8 @@ func (s DiskImageVolumeDescription) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the disk.
-type DiskInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The number of disks with this configuration.
-	Count *int64 `locationName:"count" type:"integer"`
-
-	// The size of the disk in GB.
-	SizeInGB *int64 `locationName:"sizeInGB" type:"long"`
-
-	// The type of disk.
-	Type DiskType `locationName:"type" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s DiskInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a DNS entry.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DnsEntry
 type DnsEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -1887,6 +1602,7 @@ func (s DnsEntry) String() string {
 }
 
 // Information about the DNS server to be used.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DnsServersOptionsModifyStructure
 type DnsServersOptionsModifyStructure struct {
 	_ struct{} `type:"structure"`
 
@@ -1906,20 +1622,22 @@ func (s DnsServersOptionsModifyStructure) String() string {
 }
 
 // Describes a block device for an EBS volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/EbsBlockDevice
 type EbsBlockDevice struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates whether the EBS volume is deleted on instance termination. For
-	// more information, see Preserving Amazon EBS Volumes on Instance Termination
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#preserving-volumes-on-termination)
-	// in the Amazon Elastic Compute Cloud User Guide.
+	// Indicates whether the EBS volume is deleted on instance termination.
 	DeleteOnTermination *bool `locationName:"deleteOnTermination" type:"boolean"`
 
 	// Indicates whether the encryption state of an EBS volume is changed while
-	// being restored from a backing snapshot. The effect of setting the encryption
-	// state to true depends on the volume origin (new or from a snapshot), starting
-	// encryption state, ownership, and whether encryption by default is enabled.
-	// For more information, see Amazon EBS Encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-parameters)
+	// being restored from a backing snapshot. The default effect of setting the
+	// Encrypted parameter to true through the console, API, or CLI depends on the
+	// volume's origin (new or from a snapshot), starting encryption state, ownership,
+	// and whether account-level encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/account-level-encryption.html)
+	// is enabled. Each default case can be overridden by specifying a customer
+	// master key (CMK) with the KmsKeyId parameter in addition to setting Encrypted
+	// to true. For a complete list of possible encryption cases, see Amazon EBS
+	// Encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-parameters)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	//
 	// In no case can you remove encryption from an encrypted volume.
@@ -1946,8 +1664,8 @@ type EbsBlockDevice struct {
 	// it is not used in requests to create gp2, st1, sc1, or standard volumes.
 	Iops *int64 `locationName:"iops" type:"integer"`
 
-	// Identifier (key ID, key alias, ID ARN, or alias ARN) for a customer managed
-	// CMK under which the EBS volume is encrypted.
+	// Identifier (key ID, key alias, ID ARN, or alias ARN) for a user-managed CMK
+	// under which the EBS volume is encrypted.
 	//
 	// This parameter is only supported on BlockDeviceMapping objects called by
 	// RunInstances (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RunInstances.html),
@@ -1970,11 +1688,9 @@ type EbsBlockDevice struct {
 	// size.
 	VolumeSize *int64 `locationName:"volumeSize" type:"integer"`
 
-	// The volume type. If you set the type to io1, you must also specify the Iops
-	// parameter. If you set the type to gp2, st1, sc1, or standard, you must omit
-	// the Iops parameter.
+	// The volume type. If you set the type to io1, you must also set the Iops property.
 	//
-	// Default: gp2
+	// Default: standard
 	VolumeType VolumeType `locationName:"volumeType" type:"string" enum:"true"`
 }
 
@@ -1983,30 +1699,13 @@ func (s EbsBlockDevice) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the Amazon EBS features supported by the instance type.
-type EbsInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Indicates that the instance type is Amazon EBS-optimized. For more information,
-	// see Amazon EBS-Optimized Instances (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSOptimized.html)
-	// in Amazon EC2 User Guide for Linux Instances.
-	EbsOptimizedSupport EbsOptimizedSupport `locationName:"ebsOptimizedSupport" type:"string" enum:"true"`
-
-	// Indicates whether Amazon EBS encryption is supported.
-	EncryptionSupport EbsEncryptionSupport `locationName:"encryptionSupport" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s EbsInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a parameter used to set up an EBS volume in a block device mapping.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/EbsInstanceBlockDevice
 type EbsInstanceBlockDevice struct {
 	_ struct{} `type:"structure"`
 
 	// The time stamp when the attachment initiated.
-	AttachTime *time.Time `locationName:"attachTime" type:"timestamp"`
+	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Indicates whether the volume is deleted on instance termination.
 	DeleteOnTermination *bool `locationName:"deleteOnTermination" type:"boolean"`
@@ -2025,6 +1724,7 @@ func (s EbsInstanceBlockDevice) String() string {
 
 // Describes information used to set up an EBS volume specified in a block device
 // mapping.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/EbsInstanceBlockDeviceSpecification
 type EbsInstanceBlockDeviceSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -2041,6 +1741,7 @@ func (s EbsInstanceBlockDeviceSpecification) String() string {
 }
 
 // Describes an egress-only internet gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/EgressOnlyInternetGateway
 type EgressOnlyInternetGateway struct {
 	_ struct{} `type:"structure"`
 
@@ -2049,9 +1750,6 @@ type EgressOnlyInternetGateway struct {
 
 	// The ID of the egress-only internet gateway.
 	EgressOnlyInternetGatewayId *string `locationName:"egressOnlyInternetGatewayId" type:"string"`
-
-	// The tags assigned to the egress-only internet gateway.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -2060,6 +1758,7 @@ func (s EgressOnlyInternetGateway) String() string {
 }
 
 // Describes the association between an instance and an Elastic Graphics accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ElasticGpuAssociation
 type ElasticGpuAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -2083,6 +1782,7 @@ func (s ElasticGpuAssociation) String() string {
 }
 
 // Describes the status of an Elastic Graphics accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ElasticGpuHealth
 type ElasticGpuHealth struct {
 	_ struct{} `type:"structure"`
 
@@ -2096,13 +1796,11 @@ func (s ElasticGpuHealth) String() string {
 }
 
 // A specification for an Elastic Graphics accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ElasticGpuSpecification
 type ElasticGpuSpecification struct {
 	_ struct{} `type:"structure"`
 
-	// The type of Elastic Graphics accelerator. For more information about the
-	// values to specify for Type, see Elastic Graphics Basics (https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/elastic-graphics.html#elastic-graphics-basics),
-	// specifically the Elastic Graphics accelerator column, in the Amazon Elastic
-	// Compute Cloud User Guide for Windows Instances.
+	// The type of Elastic Graphics accelerator.
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true"`
@@ -2128,6 +1826,7 @@ func (s *ElasticGpuSpecification) Validate() error {
 }
 
 // Describes an elastic GPU.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ElasticGpuSpecificationResponse
 type ElasticGpuSpecificationResponse struct {
 	_ struct{} `type:"structure"`
 
@@ -2141,6 +1840,7 @@ func (s ElasticGpuSpecificationResponse) String() string {
 }
 
 // Describes an Elastic Graphics accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ElasticGpus
 type ElasticGpus struct {
 	_ struct{} `type:"structure"`
 
@@ -2161,9 +1861,6 @@ type ElasticGpus struct {
 
 	// The ID of the instance to which the Elastic Graphics accelerator is attached.
 	InstanceId *string `locationName:"instanceId" type:"string"`
-
-	// The tags assigned to the Elastic Graphics accelerator.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -2172,16 +1869,12 @@ func (s ElasticGpus) String() string {
 }
 
 // Describes an elastic inference accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ElasticInferenceAccelerator
 type ElasticInferenceAccelerator struct {
 	_ struct{} `type:"structure"`
 
-	// The number of elastic inference accelerators to attach to the instance.
-	//
-	// Default: 1
-	Count *int64 `min:"1" type:"integer"`
-
-	// The type of elastic inference accelerator. The possible values are eia1.medium,
-	// eia1.large, and eia1.xlarge.
+	// The type of elastic inference accelerator. The possible values are eia1.small,
+	// eia1.medium, and eia1.large.
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true"`
@@ -2195,9 +1888,6 @@ func (s ElasticInferenceAccelerator) String() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *ElasticInferenceAccelerator) Validate() error {
 	invalidParams := aws.ErrInvalidParams{Context: "ElasticInferenceAccelerator"}
-	if s.Count != nil && *s.Count < 1 {
-		invalidParams.Add(aws.NewErrParamMinValue("Count", 1))
-	}
 
 	if s.Type == nil {
 		invalidParams.Add(aws.NewErrParamRequired("Type"))
@@ -2210,6 +1900,7 @@ func (s *ElasticInferenceAccelerator) Validate() error {
 }
 
 // Describes the association between an instance and an elastic inference accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ElasticInferenceAcceleratorAssociation
 type ElasticInferenceAcceleratorAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -2224,7 +1915,7 @@ type ElasticInferenceAcceleratorAssociation struct {
 
 	// The time at which the elastic inference accelerator is associated with an
 	// instance.
-	ElasticInferenceAcceleratorAssociationTime *time.Time `locationName:"elasticInferenceAcceleratorAssociationTime" type:"timestamp"`
+	ElasticInferenceAcceleratorAssociationTime *time.Time `locationName:"elasticInferenceAcceleratorAssociationTime" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -2232,106 +1923,8 @@ func (s ElasticInferenceAcceleratorAssociation) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Contains information about the errors that occurred when enabling fast snapshot
-// restores.
-type EnableFastSnapshotRestoreErrorItem struct {
-	_ struct{} `type:"structure"`
-
-	// The errors.
-	FastSnapshotRestoreStateErrors []EnableFastSnapshotRestoreStateErrorItem `locationName:"fastSnapshotRestoreStateErrorSet" locationNameList:"item" type:"list"`
-
-	// The ID of the snapshot.
-	SnapshotId *string `locationName:"snapshotId" type:"string"`
-}
-
-// String returns the string representation
-func (s EnableFastSnapshotRestoreErrorItem) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes an error that occurred when enabling fast snapshot restores.
-type EnableFastSnapshotRestoreStateError struct {
-	_ struct{} `type:"structure"`
-
-	// The error code.
-	Code *string `locationName:"code" type:"string"`
-
-	// The error message.
-	Message *string `locationName:"message" type:"string"`
-}
-
-// String returns the string representation
-func (s EnableFastSnapshotRestoreStateError) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Contains information about an error that occurred when enabling fast snapshot
-// restores.
-type EnableFastSnapshotRestoreStateErrorItem struct {
-	_ struct{} `type:"structure"`
-
-	// The Availability Zone.
-	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
-
-	// The error.
-	Error *EnableFastSnapshotRestoreStateError `locationName:"error" type:"structure"`
-}
-
-// String returns the string representation
-func (s EnableFastSnapshotRestoreStateErrorItem) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes fast snapshot restores that were successfully enabled.
-type EnableFastSnapshotRestoreSuccessItem struct {
-	_ struct{} `type:"structure"`
-
-	// The Availability Zone.
-	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
-
-	// The time at which fast snapshot restores entered the disabled state.
-	DisabledTime *time.Time `locationName:"disabledTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the disabling state.
-	DisablingTime *time.Time `locationName:"disablingTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the enabled state.
-	EnabledTime *time.Time `locationName:"enabledTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the enabling state.
-	EnablingTime *time.Time `locationName:"enablingTime" type:"timestamp"`
-
-	// The time at which fast snapshot restores entered the optimizing state.
-	OptimizingTime *time.Time `locationName:"optimizingTime" type:"timestamp"`
-
-	// The alias of the snapshot owner.
-	OwnerAlias *string `locationName:"ownerAlias" type:"string"`
-
-	// The ID of the AWS account that owns the snapshot.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// The ID of the snapshot.
-	SnapshotId *string `locationName:"snapshotId" type:"string"`
-
-	// The state of fast snapshot restores.
-	State FastSnapshotRestoreStateCode `locationName:"state" type:"string" enum:"true"`
-
-	// The reason for the state transition. The possible values are as follows:
-	//
-	//    * Client.UserInitiated - The state successfully transitioned to enabling
-	//    or disabling.
-	//
-	//    * Client.UserInitiated - Lifecycle state transition - The state successfully
-	//    transitioned to optimizing, enabled, or disabled.
-	StateTransitionReason *string `locationName:"stateTransitionReason" type:"string"`
-}
-
-// String returns the string representation
-func (s EnableFastSnapshotRestoreSuccessItem) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an EC2 Fleet or Spot Fleet event.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/EventInformation
 type EventInformation struct {
 	_ struct{} `type:"structure"`
 
@@ -2413,39 +2006,8 @@ func (s EventInformation) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes an export image task.
-type ExportImageTask struct {
-	_ struct{} `type:"structure"`
-
-	// A description of the image being exported.
-	Description *string `locationName:"description" type:"string"`
-
-	// The ID of the export image task.
-	ExportImageTaskId *string `locationName:"exportImageTaskId" type:"string"`
-
-	// The ID of the image.
-	ImageId *string `locationName:"imageId" type:"string"`
-
-	// The percent complete of the export image task.
-	Progress *string `locationName:"progress" type:"string"`
-
-	// Information about the destination S3 bucket.
-	S3ExportLocation *ExportTaskS3Location `locationName:"s3ExportLocation" type:"structure"`
-
-	// The status of the export image task. The possible values are active, completed,
-	// deleting, and deleted.
-	Status *string `locationName:"status" type:"string"`
-
-	// The status message for the export image task.
-	StatusMessage *string `locationName:"statusMessage" type:"string"`
-}
-
-// String returns the string representation
-func (s ExportImageTask) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an instance export task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ExportTask
 type ExportTask struct {
 	_ struct{} `type:"structure"`
 
@@ -2466,9 +2028,6 @@ type ExportTask struct {
 
 	// The status message related to the export task.
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
-
-	// The tags for the export task.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -2476,55 +2035,8 @@ func (s ExportTask) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the destination for an export image task.
-type ExportTaskS3Location struct {
-	_ struct{} `type:"structure"`
-
-	// The destination S3 bucket.
-	S3Bucket *string `locationName:"s3Bucket" type:"string"`
-
-	// The prefix (logical hierarchy) in the bucket.
-	S3Prefix *string `locationName:"s3Prefix" type:"string"`
-}
-
-// String returns the string representation
-func (s ExportTaskS3Location) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the destination for an export image task.
-type ExportTaskS3LocationRequest struct {
-	_ struct{} `type:"structure"`
-
-	// The destination S3 bucket.
-	//
-	// S3Bucket is a required field
-	S3Bucket *string `type:"string" required:"true"`
-
-	// The prefix (logical hierarchy) in the bucket.
-	S3Prefix *string `type:"string"`
-}
-
-// String returns the string representation
-func (s ExportTaskS3LocationRequest) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *ExportTaskS3LocationRequest) Validate() error {
-	invalidParams := aws.ErrInvalidParams{Context: "ExportTaskS3LocationRequest"}
-
-	if s.S3Bucket == nil {
-		invalidParams.Add(aws.NewErrParamRequired("S3Bucket"))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
-}
-
 // Describes the format and location for an instance export task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ExportToS3Task
 type ExportToS3Task struct {
 	_ struct{} `type:"structure"`
 
@@ -2549,6 +2061,7 @@ func (s ExportToS3Task) String() string {
 }
 
 // Describes an instance export task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ExportToS3TaskSpecification
 type ExportToS3TaskSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -2570,22 +2083,6 @@ type ExportToS3TaskSpecification struct {
 
 // String returns the string representation
 func (s ExportToS3TaskSpecification) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a Reserved Instance whose queued purchase was not deleted.
-type FailedQueuedPurchaseDeletion struct {
-	_ struct{} `type:"structure"`
-
-	// The error.
-	Error *DeleteQueuedReservedInstancesError `locationName:"error" type:"structure"`
-
-	// The ID of the Reserved Instance.
-	ReservedInstancesId *string `locationName:"reservedInstancesId" type:"string"`
-}
-
-// String returns the string representation
-func (s FailedQueuedPurchaseDeletion) String() string {
 	return awsutil.Prettify(s)
 }
 
@@ -2614,6 +2111,7 @@ func (s FailedQueuedPurchaseDeletion) String() string {
 //    * DescribeVolumes
 //
 //    * DescribeVpcs
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Filter
 type Filter struct {
 	_ struct{} `type:"structure"`
 
@@ -2630,6 +2128,7 @@ func (s Filter) String() string {
 }
 
 // Describes an EC2 Fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FleetData
 type FleetData struct {
 	_ struct{} `type:"structure"`
 
@@ -2640,14 +2139,14 @@ type FleetData struct {
 	// is pending_termination while instances are terminating.
 	ActivityStatus FleetActivityStatus `locationName:"activityStatus" type:"string" enum:"true"`
 
-	// Unique, case-sensitive identifier that you provide to ensure the idempotency
-	// of the request. For more information, see Ensuring Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	// Unique, case-sensitive identifier you provide to ensure the idempotency of
+	// the request. For more information, see Ensuring Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
 	//
 	// Constraints: Maximum 64 ASCII characters
 	ClientToken *string `locationName:"clientToken" type:"string"`
 
 	// The creation date and time of the EC2 Fleet.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Information about the instances that could not be launched by the fleet.
 	// Valid only when Type is set to instant.
@@ -2704,21 +2203,21 @@ type FleetData struct {
 	// The type of request. Indicates whether the EC2 Fleet only requests the target
 	// capacity, or also attempts to maintain it. If you request a certain target
 	// capacity, EC2 Fleet only places the required requests; it does not attempt
-	// to replenish instances if capacity is diminished, and it does not submit
-	// requests in alternative capacity pools if capacity is unavailable. To maintain
-	// a certain target capacity, EC2 Fleet places the required requests to meet
-	// this target capacity. It also automatically replenishes any interrupted Spot
-	// Instances. Default: maintain.
+	// to replenish instances if capacity is diminished, and does not submit requests
+	// in alternative capacity pools if capacity is unavailable. To maintain a certain
+	// target capacity, EC2 Fleet places the required requests to meet this target
+	// capacity. It also automatically replenishes any interrupted Spot Instances.
+	// Default: maintain.
 	Type FleetType `locationName:"type" type:"string" enum:"true"`
 
 	// The start date and time of the request, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	// The default is to start fulfilling the request immediately.
-	ValidFrom *time.Time `locationName:"validFrom" type:"timestamp"`
+	ValidFrom *time.Time `locationName:"validFrom" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The end date and time of the request, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	// At this point, no new instance requests are placed or able to fulfill the
 	// request. The default end date is 7 days from the current date.
-	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp"`
+	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -2727,6 +2226,7 @@ func (s FleetData) String() string {
 }
 
 // Describes a launch template and overrides.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FleetLaunchTemplateConfig
 type FleetLaunchTemplateConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -2744,6 +2244,7 @@ func (s FleetLaunchTemplateConfig) String() string {
 }
 
 // Describes a launch template and overrides.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FleetLaunchTemplateConfigRequest
 type FleetLaunchTemplateConfigRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -2777,6 +2278,7 @@ func (s *FleetLaunchTemplateConfigRequest) Validate() error {
 }
 
 // Describes overrides for a launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FleetLaunchTemplateOverrides
 type FleetLaunchTemplateOverrides struct {
 	_ struct{} `type:"structure"`
 
@@ -2813,6 +2315,7 @@ func (s FleetLaunchTemplateOverrides) String() string {
 }
 
 // Describes overrides for a launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FleetLaunchTemplateOverridesRequest
 type FleetLaunchTemplateOverridesRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -2849,6 +2352,7 @@ func (s FleetLaunchTemplateOverridesRequest) String() string {
 }
 
 // Describes a launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FleetLaunchTemplateSpecification
 type FleetLaunchTemplateSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -2884,6 +2388,7 @@ func (s *FleetLaunchTemplateSpecification) Validate() error {
 
 // The launch template to use. You must specify either the launch template ID
 // or launch template name in the request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FleetLaunchTemplateSpecificationRequest
 type FleetLaunchTemplateSpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -2893,8 +2398,7 @@ type FleetLaunchTemplateSpecificationRequest struct {
 	// The name of the launch template.
 	LaunchTemplateName *string `min:"3" type:"string"`
 
-	// The version number of the launch template. Note: This is a required parameter
-	// and will be updated soon.
+	// The version number of the launch template.
 	Version *string `type:"string"`
 }
 
@@ -2917,11 +2421,12 @@ func (s *FleetLaunchTemplateSpecificationRequest) Validate() error {
 }
 
 // Describes a flow log.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FlowLog
 type FlowLog struct {
 	_ struct{} `type:"structure"`
 
 	// The date and time the flow log was created.
-	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+	CreationTime *time.Time `locationName:"creationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Information about the error that occurred. Rate limited indicates that CloudWatch
 	// Logs throttling has been applied for one or more network interfaces, or that
@@ -2955,9 +2460,6 @@ type FlowLog struct {
 	// Flow log data can be published to CloudWatch Logs or Amazon S3.
 	LogDestinationType LogDestinationType `locationName:"logDestinationType" type:"string" enum:"true"`
 
-	// The format of the flow log record.
-	LogFormat *string `locationName:"logFormat" type:"string"`
-
 	// The name of the flow log group.
 	LogGroupName *string `locationName:"logGroupName" type:"string"`
 
@@ -2973,47 +2475,13 @@ func (s FlowLog) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the FPGA accelerator for the instance type.
-type FpgaDeviceInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The count of FPGA accelerators for the instance type.
-	Count *int64 `locationName:"count" type:"integer"`
-
-	// The manufacturer of the FPGA accelerator.
-	Manufacturer *string `locationName:"manufacturer" type:"string"`
-
-	// Describes the memory for the FPGA accelerator for the instance type.
-	MemoryInfo *FpgaDeviceMemoryInfo `locationName:"memoryInfo" type:"structure"`
-
-	// The name of the FPGA accelerator.
-	Name *string `locationName:"name" type:"string"`
-}
-
-// String returns the string representation
-func (s FpgaDeviceInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the memory for the FPGA accelerator for the instance type.
-type FpgaDeviceMemoryInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The size (in MiB) for the memory available to the FPGA accelerator.
-	SizeInMiB *int64 `locationName:"sizeInMiB" type:"integer"`
-}
-
-// String returns the string representation
-func (s FpgaDeviceMemoryInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an Amazon FPGA image (AFI).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FpgaImage
 type FpgaImage struct {
 	_ struct{} `type:"structure"`
 
 	// The date and time the AFI was created.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Indicates whether data retention support is enabled for the AFI.
 	DataRetentionSupport *bool `locationName:"dataRetentionSupport" type:"boolean"`
@@ -3055,7 +2523,7 @@ type FpgaImage struct {
 	Tags []Tag `locationName:"tags" locationNameList:"item" type:"list"`
 
 	// The time of the most recent update to the AFI.
-	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp"`
+	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -3064,6 +2532,7 @@ func (s FpgaImage) String() string {
 }
 
 // Describes an Amazon FPGA image (AFI) attribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FpgaImageAttribute
 type FpgaImageAttribute struct {
 	_ struct{} `type:"structure"`
 
@@ -3090,6 +2559,7 @@ func (s FpgaImageAttribute) String() string {
 
 // Describes the state of the bitstream generation process for an Amazon FPGA
 // image (AFI).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/FpgaImageState
 type FpgaImageState struct {
 	_ struct{} `type:"structure"`
 
@@ -3113,74 +2583,8 @@ func (s FpgaImageState) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the FPGAs for the instance type.
-type FpgaInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Describes the FPGAs for the instance type.
-	Fpgas []FpgaDeviceInfo `locationName:"fpgas" locationNameList:"item" type:"list"`
-
-	// The total memory of all FPGA accelerators for the instance type.
-	TotalFpgaMemoryInMiB *int64 `locationName:"totalFpgaMemoryInMiB" type:"integer"`
-}
-
-// String returns the string representation
-func (s FpgaInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the GPU accelerators for the instance type.
-type GpuDeviceInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The number of GPUs for the instance type.
-	Count *int64 `locationName:"count" type:"integer"`
-
-	// The manufacturer of the GPU accelerator.
-	Manufacturer *string `locationName:"manufacturer" type:"string"`
-
-	// Describes the memory available to the GPU accelerator.
-	MemoryInfo *GpuDeviceMemoryInfo `locationName:"memoryInfo" type:"structure"`
-
-	// The name of the GPU accelerator.
-	Name *string `locationName:"name" type:"string"`
-}
-
-// String returns the string representation
-func (s GpuDeviceInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the memory available to the GPU accelerator.
-type GpuDeviceMemoryInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The size (in MiB) for the memory available to the GPU accelerator.
-	SizeInMiB *int64 `locationName:"sizeInMiB" type:"integer"`
-}
-
-// String returns the string representation
-func (s GpuDeviceMemoryInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the GPU accelerators for the instance type.
-type GpuInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Describes the GPU accelerators for the instance type.
-	Gpus []GpuDeviceInfo `locationName:"gpus" locationNameList:"item" type:"list"`
-
-	// The total size of the memory for the GPU accelerators for the instance type.
-	TotalGpuMemoryInMiB *int64 `locationName:"totalGpuMemoryInMiB" type:"integer"`
-}
-
-// String returns the string representation
-func (s GpuInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/GroupIdentifier
 type GroupIdentifier struct {
 	_ struct{} `type:"structure"`
 
@@ -3198,8 +2602,10 @@ func (s GroupIdentifier) String() string {
 
 // Indicates whether your instance is configured for hibernation. This parameter
 // is valid only if the instance meets the hibernation prerequisites (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites).
-// For more information, see Hibernate Your Instance (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html)
+// Hibernation is currently supported only for Amazon Linux. For more information,
+// see Hibernate Your Instance (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html)
 // in the Amazon Elastic Compute Cloud User Guide.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HibernationOptions
 type HibernationOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -3215,8 +2621,10 @@ func (s HibernationOptions) String() string {
 
 // Indicates whether your instance is configured for hibernation. This parameter
 // is valid only if the instance meets the hibernation prerequisites (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites).
-// For more information, see Hibernate Your Instance (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html)
+// Hibernation is currently supported only for Amazon Linux. For more information,
+// see Hibernate Your Instance (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html)
 // in the Amazon Elastic Compute Cloud User Guide.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HibernationOptionsRequest
 type HibernationOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -3232,6 +2640,7 @@ func (s HibernationOptionsRequest) String() string {
 }
 
 // Describes an event in the history of the Spot Fleet request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HistoryRecord
 type HistoryRecord struct {
 	_ struct{} `type:"structure"`
 
@@ -3251,7 +2660,7 @@ type HistoryRecord struct {
 	EventType EventType `locationName:"eventType" type:"string" enum:"true"`
 
 	// The date and time of the event, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
-	Timestamp *time.Time `locationName:"timestamp" type:"timestamp"`
+	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -3260,6 +2669,7 @@ func (s HistoryRecord) String() string {
 }
 
 // Describes an event in the history of an EC2 Fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HistoryRecordEntry
 type HistoryRecordEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -3270,7 +2680,7 @@ type HistoryRecordEntry struct {
 	EventType FleetEventType `locationName:"eventType" type:"string" enum:"true"`
 
 	// The date and time of the event, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
-	Timestamp *time.Time `locationName:"timestamp" type:"timestamp"`
+	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -3279,18 +2689,12 @@ func (s HistoryRecordEntry) String() string {
 }
 
 // Describes the properties of the Dedicated Host.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Host
 type Host struct {
 	_ struct{} `type:"structure"`
 
 	// The time that the Dedicated Host was allocated.
-	AllocationTime *time.Time `locationName:"allocationTime" type:"timestamp"`
-
-	// Indicates whether the Dedicated Host supports multiple instance types of
-	// the same instance family, or a specific instance type only. one indicates
-	// that the Dedicated Host supports multiple instance types in the instance
-	// family. off indicates that the Dedicated Host supports a single instance
-	// type only.
-	AllowsMultipleInstanceTypes AllowsMultipleInstanceTypes `locationName:"allowsMultipleInstanceTypes" type:"string" enum:"true"`
+	AllocationTime *time.Time `locationName:"allocationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Whether auto-placement is on or off.
 	AutoPlacement AutoPlacement `locationName:"autoPlacement" type:"string" enum:"true"`
@@ -3298,14 +2702,12 @@ type Host struct {
 	// The Availability Zone of the Dedicated Host.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
-	// The ID of the Availability Zone in which the Dedicated Host is allocated.
-	AvailabilityZoneId *string `locationName:"availabilityZoneId" type:"string"`
-
-	// Information about the instances running on the Dedicated Host.
+	// The number of new instances that can be launched onto the Dedicated Host.
 	AvailableCapacity *AvailableCapacity `locationName:"availableCapacity" type:"structure"`
 
-	// Unique, case-sensitive identifier that you provide to ensure the idempotency
-	// of the request. For more information, see How to Ensure Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	// Unique, case-sensitive identifier that you provide to ensure idempotency
+	// of the request. For more information, see How to Ensure Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html)
+	// in the Amazon Elastic Compute Cloud User Guide.
 	ClientToken *string `locationName:"clientToken" type:"string"`
 
 	// The ID of the Dedicated Host.
@@ -3314,10 +2716,6 @@ type Host struct {
 	// The hardware specifications of the Dedicated Host.
 	HostProperties *HostProperties `locationName:"hostProperties" type:"structure"`
 
-	// Indicates whether host recovery is enabled or disabled for the Dedicated
-	// Host.
-	HostRecovery HostRecovery `locationName:"hostRecovery" type:"string" enum:"true"`
-
 	// The reservation ID of the Dedicated Host. This returns a null response if
 	// the Dedicated Host doesn't have an associated reservation.
 	HostReservationId *string `locationName:"hostReservationId" type:"string"`
@@ -3325,15 +2723,8 @@ type Host struct {
 	// The IDs and instance type that are currently running on the Dedicated Host.
 	Instances []HostInstance `locationName:"instances" locationNameList:"item" type:"list"`
 
-	// Indicates whether the Dedicated Host is in a host resource group. If memberOfServiceLinkedResourceGroup
-	// is true, the host is in a host resource group; otherwise, it is not.
-	MemberOfServiceLinkedResourceGroup *bool `locationName:"memberOfServiceLinkedResourceGroup" type:"boolean"`
-
-	// The ID of the AWS account that owns the Dedicated Host.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
 	// The time that the Dedicated Host was released.
-	ReleaseTime *time.Time `locationName:"releaseTime" type:"timestamp"`
+	ReleaseTime *time.Time `locationName:"releaseTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The Dedicated Host's state.
 	State AllocationState `locationName:"state" type:"string" enum:"true"`
@@ -3348,17 +2739,15 @@ func (s Host) String() string {
 }
 
 // Describes an instance running on a Dedicated Host.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HostInstance
 type HostInstance struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of instance that is running on the Dedicated Host.
+	// the IDs of instances that are running on the Dedicated Host.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
-	// The instance type (for example, m3.medium) of the running instance.
+	// The instance type size (for example, m3.medium) of the running instance.
 	InstanceType *string `locationName:"instanceType" type:"string"`
-
-	// The ID of the AWS account that owns the instance.
-	OwnerId *string `locationName:"ownerId" type:"string"`
 }
 
 // String returns the string representation
@@ -3367,6 +2756,7 @@ func (s HostInstance) String() string {
 }
 
 // Details about the Dedicated Host Reservation offering.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HostOffering
 type HostOffering struct {
 	_ struct{} `type:"structure"`
 
@@ -3397,24 +2787,21 @@ func (s HostOffering) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the properties of a Dedicated Host.
+// Describes properties of a Dedicated Host.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HostProperties
 type HostProperties struct {
 	_ struct{} `type:"structure"`
 
 	// The number of cores on the Dedicated Host.
 	Cores *int64 `locationName:"cores" type:"integer"`
 
-	// The instance family supported by the Dedicated Host. For example, m5.
-	InstanceFamily *string `locationName:"instanceFamily" type:"string"`
-
-	// The instance type supported by the Dedicated Host. For example, m5.large.
-	// If the host supports multiple instance types, no instanceType is returned.
+	// The instance type size that the Dedicated Host supports (for example, m3.medium).
 	InstanceType *string `locationName:"instanceType" type:"string"`
 
 	// The number of sockets on the Dedicated Host.
 	Sockets *int64 `locationName:"sockets" type:"integer"`
 
-	// The total number of vCPUs on the Dedicated Host.
+	// The number of vCPUs on the Dedicated Host.
 	TotalVCpus *int64 `locationName:"totalVCpus" type:"integer"`
 }
 
@@ -3424,6 +2811,7 @@ func (s HostProperties) String() string {
 }
 
 // Details about the Dedicated Host Reservation and associated Dedicated Hosts.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/HostReservation
 type HostReservation struct {
 	_ struct{} `type:"structure"`
 
@@ -3439,7 +2827,7 @@ type HostReservation struct {
 	Duration *int64 `locationName:"duration" type:"integer"`
 
 	// The date and time that the reservation ends.
-	End *time.Time `locationName:"end" type:"timestamp"`
+	End *time.Time `locationName:"end" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The IDs of the Dedicated Hosts associated with the reservation.
 	HostIdSet []string `locationName:"hostIdSet" locationNameList:"item" type:"list"`
@@ -3463,7 +2851,7 @@ type HostReservation struct {
 	PaymentOption PaymentOption `locationName:"paymentOption" type:"string" enum:"true"`
 
 	// The date and time that the reservation started.
-	Start *time.Time `locationName:"start" type:"timestamp"`
+	Start *time.Time `locationName:"start" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The state of the reservation.
 	State ReservationState `locationName:"state" type:"string" enum:"true"`
@@ -3480,33 +2868,8 @@ func (s HostReservation) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The internet key exchange (IKE) version permitted for the VPN tunnel.
-type IKEVersionsListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The IKE version.
-	Value *string `locationName:"value" type:"string"`
-}
-
-// String returns the string representation
-func (s IKEVersionsListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The IKE version that is permitted for the VPN tunnel.
-type IKEVersionsRequestListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The IKE version.
-	Value *string `type:"string"`
-}
-
-// String returns the string representation
-func (s IKEVersionsRequestListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an IAM instance profile.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/IamInstanceProfile
 type IamInstanceProfile struct {
 	_ struct{} `type:"structure"`
 
@@ -3523,6 +2886,7 @@ func (s IamInstanceProfile) String() string {
 }
 
 // Describes an association between an IAM instance profile and an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/IamInstanceProfileAssociation
 type IamInstanceProfileAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -3539,7 +2903,7 @@ type IamInstanceProfileAssociation struct {
 	State IamInstanceProfileAssociationState `locationName:"state" type:"string" enum:"true"`
 
 	// The time the IAM instance profile was associated with the instance.
-	Timestamp *time.Time `locationName:"timestamp" type:"timestamp"`
+	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -3548,6 +2912,7 @@ func (s IamInstanceProfileAssociation) String() string {
 }
 
 // Describes an IAM instance profile.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/IamInstanceProfileSpecification
 type IamInstanceProfileSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -3564,6 +2929,7 @@ func (s IamInstanceProfileSpecification) String() string {
 }
 
 // Describes the ICMP type and code.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/IcmpTypeCode
 type IcmpTypeCode struct {
 	_ struct{} `type:"structure"`
 
@@ -3580,13 +2946,14 @@ func (s IcmpTypeCode) String() string {
 }
 
 // Describes the ID format for a resource.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/IdFormat
 type IdFormat struct {
 	_ struct{} `type:"structure"`
 
 	// The date in UTC at which you are permanently switched over to using longer
 	// IDs. If a deadline is not yet available for this resource type, this field
 	// is not returned.
-	Deadline *time.Time `locationName:"deadline" type:"timestamp"`
+	Deadline *time.Time `locationName:"deadline" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The type of resource.
 	Resource *string `locationName:"resource" type:"string"`
@@ -3601,6 +2968,7 @@ func (s IdFormat) String() string {
 }
 
 // Describes an image.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Image
 type Image struct {
 	_ struct{} `type:"structure"`
 
@@ -3645,7 +3013,7 @@ type Image struct {
 	// The AWS account ID of the image owner.
 	OwnerId *string `locationName:"imageOwnerId" type:"string"`
 
-	// This value is set to windows for Windows AMIs; otherwise, it is blank.
+	// The value is Windows for Windows AMIs; otherwise blank.
 	Platform PlatformValues `locationName:"platform" type:"string" enum:"true"`
 
 	// Any product codes associated with the AMI.
@@ -3691,6 +3059,7 @@ func (s Image) String() string {
 }
 
 // Describes the disk container object for an import image task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImageDiskContainer
 type ImageDiskContainer struct {
 	_ struct{} `type:"structure"`
 
@@ -3721,39 +3090,14 @@ func (s ImageDiskContainer) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The request information of license configurations.
-type ImportImageLicenseConfigurationRequest struct {
-	_ struct{} `type:"structure"`
-
-	// The ARN of a license configuration.
-	LicenseConfigurationArn *string `type:"string"`
-}
-
-// String returns the string representation
-func (s ImportImageLicenseConfigurationRequest) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The response information for license configurations.
-type ImportImageLicenseConfigurationResponse struct {
-	_ struct{} `type:"structure"`
-
-	// The ARN of a license configuration.
-	LicenseConfigurationArn *string `locationName:"licenseConfigurationArn" type:"string"`
-}
-
-// String returns the string representation
-func (s ImportImageLicenseConfigurationResponse) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an import image task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportImageTask
 type ImportImageTask struct {
 	_ struct{} `type:"structure"`
 
 	// The architecture of the virtual machine.
 	//
-	// Valid values: i386 | x86_64 | arm64
+	// Valid values: i386 | x86_64
 	Architecture *string `locationName:"architecture" type:"string"`
 
 	// A description of the import task.
@@ -3777,10 +3121,6 @@ type ImportImageTask struct {
 	// key (CMK) that was used to create the encrypted image.
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
 
-	// The ARNs of the license configurations that are associated with the import
-	// image task.
-	LicenseSpecifications []ImportImageLicenseConfigurationResponse `locationName:"licenseSpecifications" locationNameList:"item" type:"list"`
-
 	// The license type of the virtual machine.
 	LicenseType *string `locationName:"licenseType" type:"string"`
 
@@ -3798,9 +3138,6 @@ type ImportImageTask struct {
 
 	// A descriptive status message for the import image task.
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
-
-	// The tags for the import image task.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -3809,6 +3146,7 @@ func (s ImportImageTask) String() string {
 }
 
 // Describes the launch specification for VM import.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportInstanceLaunchSpecification
 type ImportInstanceLaunchSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -3846,7 +3184,7 @@ type ImportInstanceLaunchSpecification struct {
 	SubnetId *string `locationName:"subnetId" type:"string"`
 
 	// The Base64-encoded user data to make available to the instance.
-	UserData *UserData `locationName:"userData" type:"structure" sensitive:"true"`
+	UserData *UserData `locationName:"userData" type:"structure"`
 }
 
 // String returns the string representation
@@ -3855,6 +3193,7 @@ func (s ImportInstanceLaunchSpecification) String() string {
 }
 
 // Describes an import instance task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportInstanceTaskDetails
 type ImportInstanceTaskDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -3877,6 +3216,7 @@ func (s ImportInstanceTaskDetails) String() string {
 }
 
 // Describes an import volume task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportInstanceVolumeDetailItem
 type ImportInstanceVolumeDetailItem struct {
 	_ struct{} `type:"structure"`
 
@@ -3908,6 +3248,7 @@ func (s ImportInstanceVolumeDetailItem) String() string {
 }
 
 // Describes an import snapshot task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportSnapshotTask
 type ImportSnapshotTask struct {
 	_ struct{} `type:"structure"`
 
@@ -3919,9 +3260,6 @@ type ImportSnapshotTask struct {
 
 	// Describes an import snapshot task.
 	SnapshotTaskDetail *SnapshotTaskDetail `locationName:"snapshotTaskDetail" type:"structure"`
-
-	// The tags for the import snapshot task.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -3930,6 +3268,7 @@ func (s ImportSnapshotTask) String() string {
 }
 
 // Describes an import volume task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportVolumeTaskDetails
 type ImportVolumeTaskDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -3954,39 +3293,8 @@ func (s ImportVolumeTaskDetails) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the Inference accelerators for the instance type.
-type InferenceAcceleratorInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Describes the Inference accelerators for the instance type.
-	Accelerators []InferenceDeviceInfo `locationName:"accelerators" type:"list"`
-}
-
-// String returns the string representation
-func (s InferenceAcceleratorInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the Inference accelerators for the instance type.
-type InferenceDeviceInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The number of Inference accelerators for the instance type.
-	Count *int64 `locationName:"count" type:"integer"`
-
-	// The manufacturer of the Inference accelerator.
-	Manufacturer *string `locationName:"manufacturer" type:"string"`
-
-	// The name of the Inference accelerator.
-	Name *string `locationName:"name" type:"string"`
-}
-
-// String returns the string representation
-func (s InferenceDeviceInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Instance
 type Instance struct {
 	_ struct{} `type:"structure"`
 
@@ -4057,22 +3365,16 @@ type Instance struct {
 	KeyName *string `locationName:"keyName" type:"string"`
 
 	// The time the instance was launched.
-	LaunchTime *time.Time `locationName:"launchTime" type:"timestamp"`
+	LaunchTime *time.Time `locationName:"launchTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The license configurations.
 	Licenses []LicenseConfiguration `locationName:"licenseSet" locationNameList:"item" type:"list"`
-
-	// The metadata options for the instance.
-	MetadataOptions *InstanceMetadataOptionsResponse `locationName:"metadataOptions" type:"structure"`
 
 	// The monitoring for the instance.
 	Monitoring *Monitoring `locationName:"monitoring" type:"structure"`
 
 	// [EC2-VPC] The network interfaces for the instance.
 	NetworkInterfaces []InstanceNetworkInterface `locationName:"networkInterfaceSet" locationNameList:"item" type:"list"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
 
 	// The location where the instance launched, if applicable.
 	Placement *Placement `locationName:"placement" type:"structure"`
@@ -4160,6 +3462,7 @@ func (s Instance) String() string {
 }
 
 // Describes a block device mapping.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceBlockDeviceMapping
 type InstanceBlockDeviceMapping struct {
 	_ struct{} `type:"structure"`
 
@@ -4177,6 +3480,7 @@ func (s InstanceBlockDeviceMapping) String() string {
 }
 
 // Describes a block device mapping entry.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceBlockDeviceMappingSpecification
 type InstanceBlockDeviceMappingSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -4199,20 +3503,18 @@ func (s InstanceBlockDeviceMappingSpecification) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Information about the number of instances that can be launched onto the Dedicated
-// Host.
+// Information about the instance type that the Dedicated Host supports.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceCapacity
 type InstanceCapacity struct {
 	_ struct{} `type:"structure"`
 
-	// The number of instances that can be launched onto the Dedicated Host based
-	// on the host's available capacity.
+	// The number of instances that can still be launched onto the Dedicated Host.
 	AvailableCapacity *int64 `locationName:"availableCapacity" type:"integer"`
 
-	// The instance type supported by the Dedicated Host.
+	// The instance type size supported by the Dedicated Host.
 	InstanceType *string `locationName:"instanceType" type:"string"`
 
-	// The total number of instances that can be launched onto the Dedicated Host
-	// if there are no instances running on it.
+	// The total number of instances that can be launched onto the Dedicated Host.
 	TotalCapacity *int64 `locationName:"totalCapacity" type:"integer"`
 }
 
@@ -4222,6 +3524,7 @@ func (s InstanceCapacity) String() string {
 }
 
 // Describes a Reserved Instance listing state.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceCount
 type InstanceCount struct {
 	_ struct{} `type:"structure"`
 
@@ -4237,7 +3540,8 @@ func (s InstanceCount) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the credit option for CPU usage of a burstable performance instance.
+// Describes the credit option for CPU usage of a T2 or T3 instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceCreditSpecification
 type InstanceCreditSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -4254,7 +3558,8 @@ func (s InstanceCreditSpecification) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the credit option for CPU usage of a burstable performance instance.
+// Describes the credit option for CPU usage of a T2 or T3 instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceCreditSpecificationRequest
 type InstanceCreditSpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -4272,6 +3577,7 @@ func (s InstanceCreditSpecificationRequest) String() string {
 }
 
 // Describes an instance to export.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceExportDetails
 type InstanceExportDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -4287,25 +3593,8 @@ func (s InstanceExportDetails) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the default credit option for CPU usage of a burstable performance
-// instance family.
-type InstanceFamilyCreditSpecification struct {
-	_ struct{} `type:"structure"`
-
-	// The default credit option for CPU usage of the instance family. Valid values
-	// are standard and unlimited.
-	CpuCredits *string `locationName:"cpuCredits" type:"string"`
-
-	// The instance family.
-	InstanceFamily UnlimitedSupportedInstanceFamily `locationName:"instanceFamily" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s InstanceFamilyCreditSpecification) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an IPv6 address.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceIpv6Address
 type InstanceIpv6Address struct {
 	_ struct{} `type:"structure"`
 
@@ -4319,6 +3608,7 @@ func (s InstanceIpv6Address) String() string {
 }
 
 // Describes an IPv6 address.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceIpv6AddressRequest
 type InstanceIpv6AddressRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -4332,6 +3622,7 @@ func (s InstanceIpv6AddressRequest) String() string {
 }
 
 // Describes the market (purchasing) option for the instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceMarketOptionsRequest
 type InstanceMarketOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -4347,95 +3638,8 @@ func (s InstanceMarketOptionsRequest) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The metadata options for the instance.
-type InstanceMetadataOptionsRequest struct {
-	_ struct{} `type:"structure"`
-
-	// This parameter enables or disables the HTTP metadata endpoint on your instances.
-	// If the parameter is not specified, the default state is enabled.
-	//
-	// If you specify a value of disabled, you will not be able to access your instance
-	// metadata.
-	HttpEndpoint InstanceMetadataEndpointState `type:"string" enum:"true"`
-
-	// The desired HTTP PUT response hop limit for instance metadata requests. The
-	// larger the number, the further instance metadata requests can travel.
-	//
-	// Default: 1
-	//
-	// Possible values: Integers from 1 to 64
-	HttpPutResponseHopLimit *int64 `type:"integer"`
-
-	// The state of token usage for your instance metadata requests. If the parameter
-	// is not specified in the request, the default state is optional.
-	//
-	// If the state is optional, you can choose to retrieve instance metadata with
-	// or without a signed token header on your request. If you retrieve the IAM
-	// role credentials without a token, the version 1.0 role credentials are returned.
-	// If you retrieve the IAM role credentials using a valid signed token, the
-	// version 2.0 role credentials are returned.
-	//
-	// If the state is required, you must send a signed token header with any instance
-	// metadata retrieval requests. In this state, retrieving the IAM role credentials
-	// always returns the version 2.0 credentials; the version 1.0 credentials are
-	// not available.
-	HttpTokens HttpTokensState `type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s InstanceMetadataOptionsRequest) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The metadata options for the instance.
-type InstanceMetadataOptionsResponse struct {
-	_ struct{} `type:"structure"`
-
-	// This parameter enables or disables the HTTP metadata endpoint on your instances.
-	// If the parameter is not specified, the default state is enabled.
-	//
-	// If you specify a value of disabled, you will not be able to access your instance
-	// metadata.
-	HttpEndpoint InstanceMetadataEndpointState `locationName:"httpEndpoint" type:"string" enum:"true"`
-
-	// The desired HTTP PUT response hop limit for instance metadata requests. The
-	// larger the number, the further instance metadata requests can travel.
-	//
-	// Default: 1
-	//
-	// Possible values: Integers from 1 to 64
-	HttpPutResponseHopLimit *int64 `locationName:"httpPutResponseHopLimit" type:"integer"`
-
-	// The state of token usage for your instance metadata requests. If the parameter
-	// is not specified in the request, the default state is optional.
-	//
-	// If the state is optional, you can choose to retrieve instance metadata with
-	// or without a signed token header on your request. If you retrieve the IAM
-	// role credentials without a token, the version 1.0 role credentials are returned.
-	// If you retrieve the IAM role credentials using a valid signed token, the
-	// version 2.0 role credentials are returned.
-	//
-	// If the state is required, you must send a signed token header with any instance
-	// metadata retrieval requests. In this state, retrieving the IAM role credential
-	// always returns the version 2.0 credentials; the version 1.0 credentials are
-	// not available.
-	HttpTokens HttpTokensState `locationName:"httpTokens" type:"string" enum:"true"`
-
-	// The state of the metadata option changes.
-	//
-	// pending - The metadata options are being updated and the instance is not
-	// ready to process metadata traffic with the new selection.
-	//
-	// applied - The metadata options have been successfully applied on the instance.
-	State InstanceMetadataOptionsState `locationName:"state" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s InstanceMetadataOptionsResponse) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the monitoring of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceMonitoring
 type InstanceMonitoring struct {
 	_ struct{} `type:"structure"`
 
@@ -4452,6 +3656,7 @@ func (s InstanceMonitoring) String() string {
 }
 
 // Describes a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceNetworkInterface
 type InstanceNetworkInterface struct {
 	_ struct{} `type:"structure"`
 
@@ -4513,6 +3718,7 @@ func (s InstanceNetworkInterface) String() string {
 }
 
 // Describes association information for an Elastic IP address (IPv4).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceNetworkInterfaceAssociation
 type InstanceNetworkInterfaceAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -4532,11 +3738,12 @@ func (s InstanceNetworkInterfaceAssociation) String() string {
 }
 
 // Describes a network interface attachment.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceNetworkInterfaceAttachment
 type InstanceNetworkInterfaceAttachment struct {
 	_ struct{} `type:"structure"`
 
 	// The time stamp when the attachment initiated.
-	AttachTime *time.Time `locationName:"attachTime" type:"timestamp"`
+	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The ID of the network interface attachment.
 	AttachmentId *string `locationName:"attachmentId" type:"string"`
@@ -4557,6 +3764,7 @@ func (s InstanceNetworkInterfaceAttachment) String() string {
 }
 
 // Describes a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceNetworkInterfaceSpecification
 type InstanceNetworkInterfaceSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -4593,7 +3801,7 @@ type InstanceNetworkInterfaceSpecification struct {
 	//
 	// If you are not creating an EFA, specify interface or omit this parameter.
 	//
-	// Valid values: interface | efa
+	// Valide values: interface | efa
 	InterfaceType *string `type:"string"`
 
 	// A number of IPv6 addresses to assign to the network interface. Amazon EC2
@@ -4632,8 +3840,8 @@ type InstanceNetworkInterfaceSpecification struct {
 	// request.
 	SecondaryPrivateIpAddressCount *int64 `locationName:"secondaryPrivateIpAddressCount" type:"integer"`
 
-	// The ID of the subnet associated with the network interface. Applies only
-	// if creating a network interface when launching an instance.
+	// The ID of the subnet associated with the network string. Applies only if
+	// creating a network interface when launching an instance.
 	SubnetId *string `locationName:"subnetId" type:"string"`
 }
 
@@ -4643,6 +3851,7 @@ func (s InstanceNetworkInterfaceSpecification) String() string {
 }
 
 // Describes a private IPv4 address.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstancePrivateIpAddress
 type InstancePrivateIpAddress struct {
 	_ struct{} `type:"structure"`
 
@@ -4665,23 +3874,8 @@ func (s InstancePrivateIpAddress) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The instance details to specify which volumes should be snapshotted.
-type InstanceSpecification struct {
-	_ struct{} `type:"structure"`
-
-	// Excludes the root volume from being snapshotted.
-	ExcludeBootVolume *bool `type:"boolean"`
-
-	// The instance to specify which volumes should be snapshotted.
-	InstanceId *string `type:"string"`
-}
-
-// String returns the string representation
-func (s InstanceSpecification) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the current state of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceState
 type InstanceState struct {
 	_ struct{} `type:"structure"`
 
@@ -4723,6 +3917,7 @@ func (s InstanceState) String() string {
 }
 
 // Describes an instance state change.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceStateChange
 type InstanceStateChange struct {
 	_ struct{} `type:"structure"`
 
@@ -4742,6 +3937,7 @@ func (s InstanceStateChange) String() string {
 }
 
 // Describes the status of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceStatus
 type InstanceStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -4762,9 +3958,6 @@ type InstanceStatus struct {
 	// such as impaired reachability.
 	InstanceStatus *InstanceStatusSummary `locationName:"instanceStatus" type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
-
 	// Reports impaired functionality that stems from issues related to the systems
 	// that support an instance, such as hardware failures and network connectivity
 	// problems.
@@ -4777,12 +3970,13 @@ func (s InstanceStatus) String() string {
 }
 
 // Describes the instance status.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceStatusDetails
 type InstanceStatusDetails struct {
 	_ struct{} `type:"structure"`
 
 	// The time when a status check failed. For an instance that was launched and
 	// impaired, this is the time when the instance was launched.
-	ImpairedSince *time.Time `locationName:"impairedSince" type:"timestamp"`
+	ImpairedSince *time.Time `locationName:"impairedSince" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The type of instance status.
 	Name StatusName `locationName:"name" type:"string" enum:"true"`
@@ -4797,6 +3991,7 @@ func (s InstanceStatusDetails) String() string {
 }
 
 // Describes a scheduled event for an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceStatusEvent
 type InstanceStatusEvent struct {
 	_ struct{} `type:"structure"`
 
@@ -4814,13 +4009,13 @@ type InstanceStatusEvent struct {
 	InstanceEventId *string `locationName:"instanceEventId" type:"string"`
 
 	// The latest scheduled end time for the event.
-	NotAfter *time.Time `locationName:"notAfter" type:"timestamp"`
+	NotAfter *time.Time `locationName:"notAfter" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The earliest scheduled start time for the event.
-	NotBefore *time.Time `locationName:"notBefore" type:"timestamp"`
+	NotBefore *time.Time `locationName:"notBefore" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The deadline for starting the event.
-	NotBeforeDeadline *time.Time `locationName:"notBeforeDeadline" type:"timestamp"`
+	NotBeforeDeadline *time.Time `locationName:"notBeforeDeadline" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -4829,6 +4024,7 @@ func (s InstanceStatusEvent) String() string {
 }
 
 // Describes the status of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InstanceStatusSummary
 type InstanceStatusSummary struct {
 	_ struct{} `type:"structure"`
 
@@ -4844,138 +4040,8 @@ func (s InstanceStatusSummary) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the disks that are available for the instance type.
-type InstanceStorageInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Array describing the disks that are available for the instance type.
-	Disks []DiskInfo `locationName:"disks" locationNameList:"item" type:"list"`
-
-	// The total size of the disks, in GB.
-	TotalSizeInGB *int64 `locationName:"totalSizeInGB" type:"long"`
-}
-
-// String returns the string representation
-func (s InstanceStorageInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the instance type.
-type InstanceTypeInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Indicates whether auto recovery is supported.
-	AutoRecoverySupported *bool `locationName:"autoRecoverySupported" type:"boolean"`
-
-	// Indicates whether the instance is bare metal.
-	BareMetal *bool `locationName:"bareMetal" type:"boolean"`
-
-	// Indicates whether the instance type is a burstable performance instance type.
-	BurstablePerformanceSupported *bool `locationName:"burstablePerformanceSupported" type:"boolean"`
-
-	// Indicates whether the instance type is a current generation.
-	CurrentGeneration *bool `locationName:"currentGeneration" type:"boolean"`
-
-	// Indicates whether Dedicated Hosts are supported on the instance type.
-	DedicatedHostsSupported *bool `locationName:"dedicatedHostsSupported" type:"boolean"`
-
-	// Describes the Amazon EBS settings for the instance type.
-	EbsInfo *EbsInfo `locationName:"ebsInfo" type:"structure"`
-
-	// Describes the FPGA accelerator settings for the instance type.
-	FpgaInfo *FpgaInfo `locationName:"fpgaInfo" type:"structure"`
-
-	// Indicates whether the instance type is eligible for the free tier.
-	FreeTierEligible *bool `locationName:"freeTierEligible" type:"boolean"`
-
-	// Describes the GPU accelerator settings for the instance type.
-	GpuInfo *GpuInfo `locationName:"gpuInfo" type:"structure"`
-
-	// Indicates whether On-Demand hibernation is supported.
-	HibernationSupported *bool `locationName:"hibernationSupported" type:"boolean"`
-
-	// Indicates the hypervisor used for the instance type.
-	Hypervisor InstanceTypeHypervisor `locationName:"hypervisor" type:"string" enum:"true"`
-
-	// Describes the Inference accelerator settings for the instance type.
-	InferenceAcceleratorInfo *InferenceAcceleratorInfo `locationName:"inferenceAcceleratorInfo" type:"structure"`
-
-	// Describes the disks for the instance type.
-	InstanceStorageInfo *InstanceStorageInfo `locationName:"instanceStorageInfo" type:"structure"`
-
-	// Indicates whether instance storage is supported.
-	InstanceStorageSupported *bool `locationName:"instanceStorageSupported" type:"boolean"`
-
-	// The instance type. For more information, see Instance Types (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	InstanceType InstanceType `locationName:"instanceType" type:"string" enum:"true"`
-
-	// Describes the memory for the instance type.
-	MemoryInfo *MemoryInfo `locationName:"memoryInfo" type:"structure"`
-
-	// Describes the network settings for the instance type.
-	NetworkInfo *NetworkInfo `locationName:"networkInfo" type:"structure"`
-
-	// Describes the placement group settings for the instance type.
-	PlacementGroupInfo *PlacementGroupInfo `locationName:"placementGroupInfo" type:"structure"`
-
-	// Describes the processor.
-	ProcessorInfo *ProcessorInfo `locationName:"processorInfo" type:"structure"`
-
-	// Indicates the supported root device types.
-	SupportedRootDeviceTypes []RootDeviceType `locationName:"supportedRootDeviceTypes" locationNameList:"item" type:"list"`
-
-	// Indicates whether the instance type is offered for spot or On-Demand.
-	SupportedUsageClasses []UsageClassType `locationName:"supportedUsageClasses" locationNameList:"item" type:"list"`
-
-	// Describes the vCPU configurations for the instance type.
-	VCpuInfo *VCpuInfo `locationName:"vCpuInfo" type:"structure"`
-}
-
-// String returns the string representation
-func (s InstanceTypeInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The instance types offered.
-type InstanceTypeOffering struct {
-	_ struct{} `type:"structure"`
-
-	// The instance type. For more information, see Instance Types (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	InstanceType InstanceType `locationName:"instanceType" type:"string" enum:"true"`
-
-	// The identifier for the location. This depends on the location type. For example,
-	// if the location type is region, the location is the Region code (for example,
-	// us-east-2.)
-	Location *string `locationName:"location" type:"string"`
-
-	// The location type.
-	LocationType LocationType `locationName:"locationType" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s InstanceTypeOffering) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Information about the Capacity Reservation usage.
-type InstanceUsage struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the AWS account that is making use of the Capacity Reservation.
-	AccountId *string `locationName:"accountId" type:"string"`
-
-	// The number of instances the AWS account currently has in the Capacity Reservation.
-	UsedInstanceCount *int64 `locationName:"usedInstanceCount" type:"integer"`
-}
-
-// String returns the string representation
-func (s InstanceUsage) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an internet gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InternetGateway
 type InternetGateway struct {
 	_ struct{} `type:"structure"`
 
@@ -4999,6 +4065,7 @@ func (s InternetGateway) String() string {
 
 // Describes the attachment of a VPC to an internet gateway or an egress-only
 // internet gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/InternetGatewayAttachment
 type InternetGatewayAttachment struct {
 	_ struct{} `type:"structure"`
 
@@ -5016,6 +4083,7 @@ func (s InternetGatewayAttachment) String() string {
 }
 
 // Describes a set of permissions for a security group rule.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/IpPermission
 type IpPermission struct {
 	_ struct{} `type:"structure"`
 
@@ -5061,6 +4129,7 @@ func (s IpPermission) String() string {
 }
 
 // Describes an IPv4 range.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/IpRange
 type IpRange struct {
 	_ struct{} `type:"structure"`
 
@@ -5072,7 +4141,7 @@ type IpRange struct {
 	// range.
 	//
 	// Constraints: Up to 255 characters in length. Allowed characters are a-z,
-	// A-Z, 0-9, spaces, and ._-:/()#,@[]+=&;{}!$*
+	// A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*
 	Description *string `locationName:"description" type:"string"`
 }
 
@@ -5081,23 +4150,8 @@ func (s IpRange) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes an IPv6 CIDR block association.
-type Ipv6CidrAssociation struct {
-	_ struct{} `type:"structure"`
-
-	// The resource that's associated with the IPv6 CIDR block.
-	AssociatedResource *string `locationName:"associatedResource" type:"string"`
-
-	// The IPv6 CIDR block.
-	Ipv6Cidr *string `locationName:"ipv6Cidr" type:"string"`
-}
-
-// String returns the string representation
-func (s Ipv6CidrAssociation) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes an IPv6 CIDR block.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Ipv6CidrBlock
 type Ipv6CidrBlock struct {
 	_ struct{} `type:"structure"`
 
@@ -5110,29 +4164,8 @@ func (s Ipv6CidrBlock) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes an IPv6 address pool.
-type Ipv6Pool struct {
-	_ struct{} `type:"structure"`
-
-	// The description for the address pool.
-	Description *string `locationName:"description" type:"string"`
-
-	// The CIDR blocks for the address pool.
-	PoolCidrBlocks []PoolCidrBlock `locationName:"poolCidrBlockSet" locationNameList:"item" type:"list"`
-
-	// The ID of the address pool.
-	PoolId *string `locationName:"poolId" type:"string"`
-
-	// Any tags for the address pool.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s Ipv6Pool) String() string {
-	return awsutil.Prettify(s)
-}
-
 // [EC2-VPC only] Describes an IPv6 range.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Ipv6Range
 type Ipv6Range struct {
 	_ struct{} `type:"structure"`
 
@@ -5144,7 +4177,7 @@ type Ipv6Range struct {
 	// range.
 	//
 	// Constraints: Up to 255 characters in length. Allowed characters are a-z,
-	// A-Z, 0-9, spaces, and ._-:/()#,@[]+=&;{}!$*
+	// A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*
 	Description *string `locationName:"description" type:"string"`
 }
 
@@ -5154,6 +4187,7 @@ func (s Ipv6Range) String() string {
 }
 
 // Describes a key pair.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/KeyPairInfo
 type KeyPairInfo struct {
 	_ struct{} `type:"structure"`
 
@@ -5165,12 +4199,6 @@ type KeyPairInfo struct {
 
 	// The name of the key pair.
 	KeyName *string `locationName:"keyName" type:"string"`
-
-	// The ID of the key pair.
-	KeyPairId *string `locationName:"keyPairId" type:"string"`
-
-	// Any tags applied to the key pair.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -5178,23 +4206,8 @@ func (s KeyPairInfo) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The last error that occurred for a VPC endpoint.
-type LastError struct {
-	_ struct{} `type:"structure"`
-
-	// The error code for the VPC endpoint error.
-	Code *string `locationName:"code" type:"string"`
-
-	// The error message for the VPC endpoint error.
-	Message *string `locationName:"message" type:"string"`
-}
-
-// String returns the string representation
-func (s LastError) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a launch permission.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchPermission
 type LaunchPermission struct {
 	_ struct{} `type:"structure"`
 
@@ -5211,6 +4224,7 @@ func (s LaunchPermission) String() string {
 }
 
 // Describes a launch permission modification.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchPermissionModifications
 type LaunchPermissionModifications struct {
 	_ struct{} `type:"structure"`
 
@@ -5228,6 +4242,7 @@ func (s LaunchPermissionModifications) String() string {
 }
 
 // Describes the launch specification for an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchSpecification
 type LaunchSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -5292,11 +4307,12 @@ func (s LaunchSpecification) String() string {
 }
 
 // Describes a launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplate
 type LaunchTemplate struct {
 	_ struct{} `type:"structure"`
 
 	// The time launch template was created.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The principal that created the launch template.
 	CreatedBy *string `locationName:"createdBy" type:"string"`
@@ -5323,6 +4339,7 @@ func (s LaunchTemplate) String() string {
 }
 
 // Describes a launch template and overrides.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateAndOverridesResponse
 type LaunchTemplateAndOverridesResponse struct {
 	_ struct{} `type:"structure"`
 
@@ -5340,6 +4357,7 @@ func (s LaunchTemplateAndOverridesResponse) String() string {
 }
 
 // Describes a block device mapping.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateBlockDeviceMapping
 type LaunchTemplateBlockDeviceMapping struct {
 	_ struct{} `type:"structure"`
 
@@ -5363,6 +4381,7 @@ func (s LaunchTemplateBlockDeviceMapping) String() string {
 }
 
 // Describes a block device mapping.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateBlockDeviceMappingRequest
 type LaunchTemplateBlockDeviceMappingRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5396,6 +4415,7 @@ func (s LaunchTemplateBlockDeviceMappingRequest) String() string {
 // Capacity Reservation that has matching attributes (instance type, platform,
 // Availability Zone). Use the CapacityReservationTarget parameter to explicitly
 // target a specific Capacity Reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateCapacityReservationSpecificationRequest
 type LaunchTemplateCapacityReservationSpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5419,6 +4439,7 @@ func (s LaunchTemplateCapacityReservationSpecificationRequest) String() string {
 }
 
 // Information about the Capacity Reservation targeting option.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateCapacityReservationSpecificationResponse
 type LaunchTemplateCapacityReservationSpecificationResponse struct {
 	_ struct{} `type:"structure"`
 
@@ -5442,6 +4463,7 @@ func (s LaunchTemplateCapacityReservationSpecificationResponse) String() string 
 }
 
 // Describes a launch template and overrides.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateConfig
 type LaunchTemplateConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -5474,6 +4496,7 @@ func (s *LaunchTemplateConfig) Validate() error {
 }
 
 // The CPU options for the instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateCpuOptions
 type LaunchTemplateCpuOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -5491,14 +4514,16 @@ func (s LaunchTemplateCpuOptions) String() string {
 
 // The CPU options for the instance. Both the core count and threads per core
 // must be specified in the request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateCpuOptionsRequest
 type LaunchTemplateCpuOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
 	// The number of CPU cores for the instance.
 	CoreCount *int64 `type:"integer"`
 
-	// The number of threads per CPU core. To disable multithreading for the instance,
-	// specify a value of 1. Otherwise, specify the default value of 2.
+	// The number of threads per CPU core. To disable Intel Hyper-Threading Technology
+	// for the instance, specify a value of 1. Otherwise, specify the default value
+	// of 2.
 	ThreadsPerCore *int64 `type:"integer"`
 }
 
@@ -5508,6 +4533,7 @@ func (s LaunchTemplateCpuOptionsRequest) String() string {
 }
 
 // Describes a block device for an EBS volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateEbsBlockDevice
 type LaunchTemplateEbsBlockDevice struct {
 	_ struct{} `type:"structure"`
 
@@ -5539,6 +4565,7 @@ func (s LaunchTemplateEbsBlockDevice) String() string {
 }
 
 // The parameters for a block device for an EBS volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateEbsBlockDeviceRequest
 type LaunchTemplateEbsBlockDeviceRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5562,8 +4589,7 @@ type LaunchTemplateEbsBlockDeviceRequest struct {
 	// it is not used in requests to create gp2, st1, sc1, or standard volumes.
 	Iops *int64 `type:"integer"`
 
-	// The ARN of the symmetric AWS Key Management Service (AWS KMS) CMK used for
-	// encryption.
+	// The ARN of the AWS Key Management Service (AWS KMS) CMK used for encryption.
 	KmsKeyId *string `type:"string"`
 
 	// The ID of the snapshot.
@@ -5585,13 +4611,9 @@ func (s LaunchTemplateEbsBlockDeviceRequest) String() string {
 }
 
 // Describes an elastic inference accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateElasticInferenceAccelerator
 type LaunchTemplateElasticInferenceAccelerator struct {
 	_ struct{} `type:"structure"`
-
-	// The number of elastic inference accelerators to attach to the instance.
-	//
-	// Default: 1
-	Count *int64 `min:"1" type:"integer"`
 
 	// The type of elastic inference accelerator. The possible values are eia1.medium,
 	// eia1.large, and eia1.xlarge.
@@ -5608,9 +4630,6 @@ func (s LaunchTemplateElasticInferenceAccelerator) String() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *LaunchTemplateElasticInferenceAccelerator) Validate() error {
 	invalidParams := aws.ErrInvalidParams{Context: "LaunchTemplateElasticInferenceAccelerator"}
-	if s.Count != nil && *s.Count < 1 {
-		invalidParams.Add(aws.NewErrParamMinValue("Count", 1))
-	}
 
 	if s.Type == nil {
 		invalidParams.Add(aws.NewErrParamRequired("Type"))
@@ -5623,13 +4642,9 @@ func (s *LaunchTemplateElasticInferenceAccelerator) Validate() error {
 }
 
 // Describes an elastic inference accelerator.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateElasticInferenceAcceleratorResponse
 type LaunchTemplateElasticInferenceAcceleratorResponse struct {
 	_ struct{} `type:"structure"`
-
-	// The number of elastic inference accelerators to attach to the instance.
-	//
-	// Default: 1
-	Count *int64 `locationName:"count" type:"integer"`
 
 	// The type of elastic inference accelerator. The possible values are eia1.medium,
 	// eia1.large, and eia1.xlarge.
@@ -5642,6 +4657,7 @@ func (s LaunchTemplateElasticInferenceAcceleratorResponse) String() string {
 }
 
 // Indicates whether an instance is configured for hibernation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateHibernationOptions
 type LaunchTemplateHibernationOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -5657,6 +4673,8 @@ func (s LaunchTemplateHibernationOptions) String() string {
 
 // Indicates whether the instance is configured for hibernation. This parameter
 // is valid only if the instance meets the hibernation prerequisites (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites).
+// Hibernation is currently supported only for Amazon Linux.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateHibernationOptionsRequest
 type LaunchTemplateHibernationOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5672,6 +4690,7 @@ func (s LaunchTemplateHibernationOptionsRequest) String() string {
 }
 
 // Describes an IAM instance profile.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateIamInstanceProfileSpecification
 type LaunchTemplateIamInstanceProfileSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -5688,6 +4707,7 @@ func (s LaunchTemplateIamInstanceProfileSpecification) String() string {
 }
 
 // An IAM instance profile.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateIamInstanceProfileSpecificationRequest
 type LaunchTemplateIamInstanceProfileSpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5704,6 +4724,7 @@ func (s LaunchTemplateIamInstanceProfileSpecificationRequest) String() string {
 }
 
 // The market (purchasing) option for the instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateInstanceMarketOptions
 type LaunchTemplateInstanceMarketOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -5720,6 +4741,7 @@ func (s LaunchTemplateInstanceMarketOptions) String() string {
 }
 
 // The market (purchasing) option for the instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateInstanceMarketOptionsRequest
 type LaunchTemplateInstanceMarketOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5735,99 +4757,8 @@ func (s LaunchTemplateInstanceMarketOptionsRequest) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The metadata options for the instance. For more information, see Instance
-// Metadata and User Data (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html)
-// in the Amazon Elastic Compute Cloud User Guide.
-type LaunchTemplateInstanceMetadataOptions struct {
-	_ struct{} `type:"structure"`
-
-	// This parameter enables or disables the HTTP metadata endpoint on your instances.
-	// If the parameter is not specified, the default state is enabled.
-	//
-	// If you specify a value of disabled, you will not be able to access your instance
-	// metadata.
-	HttpEndpoint LaunchTemplateInstanceMetadataEndpointState `locationName:"httpEndpoint" type:"string" enum:"true"`
-
-	// The desired HTTP PUT response hop limit for instance metadata requests. The
-	// larger the number, the further instance metadata requests can travel.
-	//
-	// Default: 1
-	//
-	// Possible values: Integers from 1 to 64
-	HttpPutResponseHopLimit *int64 `locationName:"httpPutResponseHopLimit" type:"integer"`
-
-	// The state of token usage for your instance metadata requests. If the parameter
-	// is not specified in the request, the default state is optional.
-	//
-	// If the state is optional, you can choose to retrieve instance metadata with
-	// or without a signed token header on your request. If you retrieve the IAM
-	// role credentials without a token, the version 1.0 role credentials are returned.
-	// If you retrieve the IAM role credentials using a valid signed token, the
-	// version 2.0 role credentials are returned.
-	//
-	// If the state is required, you must send a signed token header with any instance
-	// metadata retrieval requests. In this state, retrieving the IAM role credentials
-	// always returns the version 2.0 credentials; the version 1.0 credentials are
-	// not available.
-	HttpTokens LaunchTemplateHttpTokensState `locationName:"httpTokens" type:"string" enum:"true"`
-
-	// The state of the metadata option changes.
-	//
-	// pending - The metadata options are being updated and the instance is not
-	// ready to process metadata traffic with the new selection.
-	//
-	// applied - The metadata options have been successfully applied on the instance.
-	State LaunchTemplateInstanceMetadataOptionsState `locationName:"state" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s LaunchTemplateInstanceMetadataOptions) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The metadata options for the instance. For more information, see Instance
-// Metadata and User Data (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html)
-// in the Amazon Elastic Compute Cloud User Guide.
-type LaunchTemplateInstanceMetadataOptionsRequest struct {
-	_ struct{} `type:"structure"`
-
-	// This parameter enables or disables the HTTP metadata endpoint on your instances.
-	// If the parameter is not specified, the default state is enabled.
-	//
-	// If you specify a value of disabled, you will not be able to access your instance
-	// metadata.
-	HttpEndpoint LaunchTemplateInstanceMetadataEndpointState `type:"string" enum:"true"`
-
-	// The desired HTTP PUT response hop limit for instance metadata requests. The
-	// larger the number, the further instance metadata requests can travel.
-	//
-	// Default: 1
-	//
-	// Possible values: Integers from 1 to 64
-	HttpPutResponseHopLimit *int64 `type:"integer"`
-
-	// The state of token usage for your instance metadata requests. If the parameter
-	// is not specified in the request, the default state is optional.
-	//
-	// If the state is optional, you can choose to retrieve instance metadata with
-	// or without a signed token header on your request. If you retrieve the IAM
-	// role credentials without a token, the version 1.0 role credentials are returned.
-	// If you retrieve the IAM role credentials using a valid signed token, the
-	// version 2.0 role credentials are returned.
-	//
-	// If the state is required, you must send a signed token header with any instance
-	// metadata retrieval requests. In this state, retrieving the IAM role credentials
-	// always returns the version 2.0 credentials; the version 1.0 credentials are
-	// not available.
-	HttpTokens LaunchTemplateHttpTokensState `type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s LaunchTemplateInstanceMetadataOptionsRequest) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateInstanceNetworkInterfaceSpecification
 type LaunchTemplateInstanceNetworkInterfaceSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -5878,6 +4809,7 @@ func (s LaunchTemplateInstanceNetworkInterfaceSpecification) String() string {
 }
 
 // The parameters for a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateInstanceNetworkInterfaceSpecificationRequest
 type LaunchTemplateInstanceNetworkInterfaceSpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5896,13 +4828,7 @@ type LaunchTemplateInstanceNetworkInterfaceSpecificationRequest struct {
 	// The IDs of one or more security groups.
 	Groups []string `locationName:"SecurityGroupId" locationNameList:"SecurityGroupId" type:"list"`
 
-	// The type of network interface. To create an Elastic Fabric Adapter (EFA),
-	// specify efa. For more information, see Elastic Fabric Adapter (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	//
-	// If you are not creating an EFA, specify interface or omit this parameter.
-	//
-	// Valid values: interface | efa
+	// The type of networking interface.
 	InterfaceType *string `type:"string"`
 
 	// The number of IPv6 addresses to assign to a network interface. Amazon EC2
@@ -5936,6 +4862,7 @@ func (s LaunchTemplateInstanceNetworkInterfaceSpecificationRequest) String() str
 }
 
 // Describes a license configuration.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateLicenseConfiguration
 type LaunchTemplateLicenseConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -5949,6 +4876,7 @@ func (s LaunchTemplateLicenseConfiguration) String() string {
 }
 
 // Describes a license configuration.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateLicenseConfigurationRequest
 type LaunchTemplateLicenseConfigurationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -5962,6 +4890,7 @@ func (s LaunchTemplateLicenseConfigurationRequest) String() string {
 }
 
 // Describes overrides for a launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateOverrides
 type LaunchTemplateOverrides struct {
 	_ struct{} `type:"structure"`
 
@@ -5995,6 +4924,7 @@ func (s LaunchTemplateOverrides) String() string {
 }
 
 // Describes the placement of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplatePlacement
 type LaunchTemplatePlacement struct {
 	_ struct{} `type:"structure"`
 
@@ -6010,13 +4940,6 @@ type LaunchTemplatePlacement struct {
 	// The ID of the Dedicated Host for the instance.
 	HostId *string `locationName:"hostId" type:"string"`
 
-	// The ARN of the host resource group in which to launch the instances.
-	HostResourceGroupArn *string `locationName:"hostResourceGroupArn" type:"string"`
-
-	// The number of the partition the instance should launch in. Valid only if
-	// the placement group strategy is set to partition.
-	PartitionNumber *int64 `locationName:"partitionNumber" type:"integer"`
-
 	// Reserved for future use.
 	SpreadDomain *string `locationName:"spreadDomain" type:"string"`
 
@@ -6031,6 +4954,7 @@ func (s LaunchTemplatePlacement) String() string {
 }
 
 // Describes the placement of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplatePlacementRequest
 type LaunchTemplatePlacementRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -6045,15 +4969,6 @@ type LaunchTemplatePlacementRequest struct {
 
 	// The ID of the Dedicated Host for the instance.
 	HostId *string `type:"string"`
-
-	// The ARN of the host resource group in which to launch the instances. If you
-	// specify a host resource group ARN, omit the Tenancy parameter or set it to
-	// host.
-	HostResourceGroupArn *string `type:"string"`
-
-	// The number of the partition the instance should launch in. Valid only if
-	// the placement group strategy is set to partition.
-	PartitionNumber *int64 `type:"integer"`
 
 	// Reserved for future use.
 	SpreadDomain *string `type:"string"`
@@ -6070,6 +4985,7 @@ func (s LaunchTemplatePlacementRequest) String() string {
 
 // The launch template to use. You must specify either the launch template ID
 // or launch template name in the request, but not both.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateSpecification
 type LaunchTemplateSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -6091,6 +5007,7 @@ func (s LaunchTemplateSpecification) String() string {
 }
 
 // The options for Spot Instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateSpotMarketOptions
 type LaunchTemplateSpotMarketOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -6112,7 +5029,7 @@ type LaunchTemplateSpotMarketOptions struct {
 	// active until all instances launch, the request is canceled, or this date
 	// is reached. If the request is persistent, it remains active until it is canceled
 	// or this date and time is reached.
-	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp"`
+	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -6121,6 +5038,7 @@ func (s LaunchTemplateSpotMarketOptions) String() string {
 }
 
 // The options for Spot Instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateSpotMarketOptionsRequest
 type LaunchTemplateSpotMarketOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -6143,7 +5061,7 @@ type LaunchTemplateSpotMarketOptionsRequest struct {
 	// is reached. If the request is persistent, it remains active until it is canceled
 	// or this date and time is reached. The default end date is 7 days from the
 	// current date.
-	ValidUntil *time.Time `type:"timestamp"`
+	ValidUntil *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -6152,6 +5070,7 @@ func (s LaunchTemplateSpotMarketOptionsRequest) String() string {
 }
 
 // The tag specification for the launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateTagSpecification
 type LaunchTemplateTagSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -6168,6 +5087,7 @@ func (s LaunchTemplateTagSpecification) String() string {
 }
 
 // The tags specification for the launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateTagSpecificationRequest
 type LaunchTemplateTagSpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -6186,11 +5106,12 @@ func (s LaunchTemplateTagSpecificationRequest) String() string {
 }
 
 // Describes a launch template version.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplateVersion
 type LaunchTemplateVersion struct {
 	_ struct{} `type:"structure"`
 
 	// The time the version was created.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The principal that created the version.
 	CreatedBy *string `locationName:"createdBy" type:"string"`
@@ -6220,6 +5141,7 @@ func (s LaunchTemplateVersion) String() string {
 }
 
 // Describes the monitoring for the instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplatesMonitoring
 type LaunchTemplatesMonitoring struct {
 	_ struct{} `type:"structure"`
 
@@ -6234,6 +5156,7 @@ func (s LaunchTemplatesMonitoring) String() string {
 }
 
 // Describes the monitoring for the instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LaunchTemplatesMonitoringRequest
 type LaunchTemplatesMonitoringRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -6248,6 +5171,7 @@ func (s LaunchTemplatesMonitoringRequest) String() string {
 }
 
 // Describes a license configuration.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LicenseConfiguration
 type LicenseConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -6261,6 +5185,7 @@ func (s LicenseConfiguration) String() string {
 }
 
 // Describes a license configuration.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LicenseConfigurationRequest
 type LicenseConfigurationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -6275,6 +5200,7 @@ func (s LicenseConfigurationRequest) String() string {
 
 // Describes the Classic Load Balancers and target groups to attach to a Spot
 // Fleet request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LoadBalancersConfig
 type LoadBalancersConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -6311,6 +5237,7 @@ func (s *LoadBalancersConfig) Validate() error {
 }
 
 // Describes a load permission.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LoadPermission
 type LoadPermission struct {
 	_ struct{} `type:"structure"`
 
@@ -6327,6 +5254,7 @@ func (s LoadPermission) String() string {
 }
 
 // Describes modifications to the load permissions of an Amazon FPGA image (AFI).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LoadPermissionModifications
 type LoadPermissionModifications struct {
 	_ struct{} `type:"structure"`
 
@@ -6343,6 +5271,7 @@ func (s LoadPermissionModifications) String() string {
 }
 
 // Describes a load permission.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/LoadPermissionRequest
 type LoadPermissionRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -6358,209 +5287,8 @@ func (s LoadPermissionRequest) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes a local gateway.
-type LocalGateway struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `locationName:"localGatewayId" type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
-
-	// The ID of the AWS account ID that owns the local gateway.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// The state of the local gateway.
-	State *string `locationName:"state" type:"string"`
-
-	// The tags assigned to the local gateway.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s LocalGateway) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a route for a local gateway route table.
-type LocalGatewayRoute struct {
-	_ struct{} `type:"structure"`
-
-	// The CIDR block used for destination matches.
-	DestinationCidrBlock *string `locationName:"destinationCidrBlock" type:"string"`
-
-	// The ID of the local gateway route table.
-	LocalGatewayRouteTableId *string `locationName:"localGatewayRouteTableId" type:"string"`
-
-	// The ID of the virtual interface group.
-	LocalGatewayVirtualInterfaceGroupId *string `locationName:"localGatewayVirtualInterfaceGroupId" type:"string"`
-
-	// The state of the route.
-	State LocalGatewayRouteState `locationName:"state" type:"string" enum:"true"`
-
-	// The route type.
-	Type LocalGatewayRouteType `locationName:"type" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s LocalGatewayRoute) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a local gateway route table.
-type LocalGatewayRouteTable struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `locationName:"localGatewayId" type:"string"`
-
-	// The ID of the local gateway route table.
-	LocalGatewayRouteTableId *string `locationName:"localGatewayRouteTableId" type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
-
-	// The state of the local gateway route table.
-	State *string `locationName:"state" type:"string"`
-
-	// The tags assigned to the local gateway route table.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s LocalGatewayRouteTable) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes an association between a local gateway route table and a virtual
-// interface group.
-type LocalGatewayRouteTableVirtualInterfaceGroupAssociation struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `locationName:"localGatewayId" type:"string"`
-
-	// The ID of the local gateway route table.
-	LocalGatewayRouteTableId *string `locationName:"localGatewayRouteTableId" type:"string"`
-
-	// The ID of the association.
-	LocalGatewayRouteTableVirtualInterfaceGroupAssociationId *string `locationName:"localGatewayRouteTableVirtualInterfaceGroupAssociationId" type:"string"`
-
-	// The ID of the virtual interface group.
-	LocalGatewayVirtualInterfaceGroupId *string `locationName:"localGatewayVirtualInterfaceGroupId" type:"string"`
-
-	// The state of the association.
-	State *string `locationName:"state" type:"string"`
-
-	// The tags assigned to the association.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s LocalGatewayRouteTableVirtualInterfaceGroupAssociation) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes an association between a local gateway route table and a VPC.
-type LocalGatewayRouteTableVpcAssociation struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `locationName:"localGatewayId" type:"string"`
-
-	// The ID of the local gateway route table.
-	LocalGatewayRouteTableId *string `locationName:"localGatewayRouteTableId" type:"string"`
-
-	// The ID of the association.
-	LocalGatewayRouteTableVpcAssociationId *string `locationName:"localGatewayRouteTableVpcAssociationId" type:"string"`
-
-	// The state of the association.
-	State *string `locationName:"state" type:"string"`
-
-	// The tags assigned to the association.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// The ID of the VPC.
-	VpcId *string `locationName:"vpcId" type:"string"`
-}
-
-// String returns the string representation
-func (s LocalGatewayRouteTableVpcAssociation) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a local gateway virtual interface.
-type LocalGatewayVirtualInterface struct {
-	_ struct{} `type:"structure"`
-
-	// The local address.
-	LocalAddress *string `locationName:"localAddress" type:"string"`
-
-	// The Border Gateway Protocol (BGP) Autonomous System Number (ASN) of the local
-	// gateway.
-	LocalBgpAsn *int64 `locationName:"localBgpAsn" type:"integer"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `locationName:"localGatewayId" type:"string"`
-
-	// The ID of the virtual interface.
-	LocalGatewayVirtualInterfaceId *string `locationName:"localGatewayVirtualInterfaceId" type:"string"`
-
-	// The peer address.
-	PeerAddress *string `locationName:"peerAddress" type:"string"`
-
-	// The peer BGP ASN.
-	PeerBgpAsn *int64 `locationName:"peerBgpAsn" type:"integer"`
-
-	// The tags assigned to the virtual interface.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// The ID of the VLAN.
-	Vlan *int64 `locationName:"vlan" type:"integer"`
-}
-
-// String returns the string representation
-func (s LocalGatewayVirtualInterface) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a local gateway virtual interface group.
-type LocalGatewayVirtualInterfaceGroup struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `locationName:"localGatewayId" type:"string"`
-
-	// The ID of the virtual interface group.
-	LocalGatewayVirtualInterfaceGroupId *string `locationName:"localGatewayVirtualInterfaceGroupId" type:"string"`
-
-	// The IDs of the virtual interfaces.
-	LocalGatewayVirtualInterfaceIds []string `locationName:"localGatewayVirtualInterfaceIdSet" locationNameList:"item" type:"list"`
-
-	// The tags assigned to the virtual interface group.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s LocalGatewayVirtualInterfaceGroup) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the memory for the instance type.
-type MemoryInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Size of the memory, in MiB.
-	SizeInMiB *int64 `locationName:"sizeInMiB" type:"long"`
-}
-
-// String returns the string representation
-func (s MemoryInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the options for a VPC attachment.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyTransitGatewayVpcAttachmentRequestOptions
 type ModifyTransitGatewayVpcAttachmentRequestOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -6576,134 +5304,8 @@ func (s ModifyTransitGatewayVpcAttachmentRequestOptions) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The AWS Site-to-Site VPN tunnel options to modify.
-type ModifyVpnTunnelOptionsSpecification struct {
-	_ struct{} `type:"structure"`
-
-	// The number of seconds after which a DPD timeout occurs.
-	//
-	// Constraints: A value between 0 and 30.
-	//
-	// Default: 30
-	DPDTimeoutSeconds *int64 `type:"integer"`
-
-	// The IKE versions that are permitted for the VPN tunnel.
-	//
-	// Valid values: ikev1 | ikev2
-	IKEVersions []IKEVersionsRequestListValue `locationName:"IKEVersion" locationNameList:"item" type:"list"`
-
-	// One or more Diffie-Hellman group numbers that are permitted for the VPN tunnel
-	// for phase 1 IKE negotiations.
-	//
-	// Valid values: 2 | 14 | 15 | 16 | 17 | 18 | 22 | 23 | 24
-	Phase1DHGroupNumbers []Phase1DHGroupNumbersRequestListValue `locationName:"Phase1DHGroupNumber" locationNameList:"item" type:"list"`
-
-	// One or more encryption algorithms that are permitted for the VPN tunnel for
-	// phase 1 IKE negotiations.
-	//
-	// Valid values: AES128 | AES256
-	Phase1EncryptionAlgorithms []Phase1EncryptionAlgorithmsRequestListValue `locationName:"Phase1EncryptionAlgorithm" locationNameList:"item" type:"list"`
-
-	// One or more integrity algorithms that are permitted for the VPN tunnel for
-	// phase 1 IKE negotiations.
-	//
-	// Valid values: SHA1 | SHA2-256
-	Phase1IntegrityAlgorithms []Phase1IntegrityAlgorithmsRequestListValue `locationName:"Phase1IntegrityAlgorithm" locationNameList:"item" type:"list"`
-
-	// The lifetime for phase 1 of the IKE negotiation, in seconds.
-	//
-	// Constraints: A value between 900 and 28,800.
-	//
-	// Default: 28800
-	Phase1LifetimeSeconds *int64 `type:"integer"`
-
-	// One or more Diffie-Hellman group numbers that are permitted for the VPN tunnel
-	// for phase 2 IKE negotiations.
-	//
-	// Valid values: 2 | 5 | 14 | 15 | 16 | 17 | 18 | 22 | 23 | 24
-	Phase2DHGroupNumbers []Phase2DHGroupNumbersRequestListValue `locationName:"Phase2DHGroupNumber" locationNameList:"item" type:"list"`
-
-	// One or more encryption algorithms that are permitted for the VPN tunnel for
-	// phase 2 IKE negotiations.
-	//
-	// Valid values: AES128 | AES256
-	Phase2EncryptionAlgorithms []Phase2EncryptionAlgorithmsRequestListValue `locationName:"Phase2EncryptionAlgorithm" locationNameList:"item" type:"list"`
-
-	// One or more integrity algorithms that are permitted for the VPN tunnel for
-	// phase 2 IKE negotiations.
-	//
-	// Valid values: SHA1 | SHA2-256
-	Phase2IntegrityAlgorithms []Phase2IntegrityAlgorithmsRequestListValue `locationName:"Phase2IntegrityAlgorithm" locationNameList:"item" type:"list"`
-
-	// The lifetime for phase 2 of the IKE negotiation, in seconds.
-	//
-	// Constraints: A value between 900 and 3,600. The value must be less than the
-	// value for Phase1LifetimeSeconds.
-	//
-	// Default: 3600
-	Phase2LifetimeSeconds *int64 `type:"integer"`
-
-	// The pre-shared key (PSK) to establish initial authentication between the
-	// virtual private gateway and the customer gateway.
-	//
-	// Constraints: Allowed characters are alphanumeric characters, periods (.),
-	// and underscores (_). Must be between 8 and 64 characters in length and cannot
-	// start with zero (0).
-	PreSharedKey *string `type:"string"`
-
-	// The percentage of the rekey window (determined by RekeyMarginTimeSeconds)
-	// during which the rekey time is randomly selected.
-	//
-	// Constraints: A value between 0 and 100.
-	//
-	// Default: 100
-	RekeyFuzzPercentage *int64 `type:"integer"`
-
-	// The margin time, in seconds, before the phase 2 lifetime expires, during
-	// which the AWS side of the VPN connection performs an IKE rekey. The exact
-	// time of the rekey is randomly selected based on the value for RekeyFuzzPercentage.
-	//
-	// Constraints: A value between 60 and half of Phase2LifetimeSeconds.
-	//
-	// Default: 540
-	RekeyMarginTimeSeconds *int64 `type:"integer"`
-
-	// The number of packets in an IKE replay window.
-	//
-	// Constraints: A value between 64 and 2048.
-	//
-	// Default: 1024
-	ReplayWindowSize *int64 `type:"integer"`
-
-	// The range of inside IP addresses for the tunnel. Any specified CIDR blocks
-	// must be unique across all VPN connections that use the same virtual private
-	// gateway.
-	//
-	// Constraints: A size /30 CIDR block from the 169.254.0.0/16 range. The following
-	// CIDR blocks are reserved and cannot be used:
-	//
-	//    * 169.254.0.0/30
-	//
-	//    * 169.254.1.0/30
-	//
-	//    * 169.254.2.0/30
-	//
-	//    * 169.254.3.0/30
-	//
-	//    * 169.254.4.0/30
-	//
-	//    * 169.254.5.0/30
-	//
-	//    * 169.254.169.252/30
-	TunnelInsideCidr *string `type:"string"`
-}
-
-// String returns the string representation
-func (s ModifyVpnTunnelOptionsSpecification) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the monitoring of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Monitoring
 type Monitoring struct {
 	_ struct{} `type:"structure"`
 
@@ -6718,6 +5320,7 @@ func (s Monitoring) String() string {
 }
 
 // Describes the status of a moving Elastic IP address.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/MovingAddressStatus
 type MovingAddressStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -6735,14 +5338,15 @@ func (s MovingAddressStatus) String() string {
 }
 
 // Describes a NAT gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NatGateway
 type NatGateway struct {
 	_ struct{} `type:"structure"`
 
 	// The date and time the NAT gateway was created.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The date and time the NAT gateway was deleted, if applicable.
-	DeleteTime *time.Time `locationName:"deleteTime" type:"timestamp"`
+	DeleteTime *time.Time `locationName:"deleteTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// If the NAT gateway could not be created, specifies the error code for the
 	// failure. (InsufficientFreeAddressesInSubnet | Gateway.NotAttached | InvalidAllocationID.NotFound
@@ -6779,7 +5383,7 @@ type NatGateway struct {
 	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
 
 	// Reserved. If you need to sustain traffic greater than the documented limits
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html),
+	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html),
 	// contact us through the Support Center (https://console.aws.amazon.com/support/home?).
 	ProvisionedBandwidth *ProvisionedBandwidth `locationName:"provisionedBandwidth" type:"structure"`
 
@@ -6818,6 +5422,7 @@ func (s NatGateway) String() string {
 }
 
 // Describes the IP addresses and network interface associated with a NAT gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NatGatewayAddress
 type NatGatewayAddress struct {
 	_ struct{} `type:"structure"`
 
@@ -6841,6 +5446,7 @@ func (s NatGatewayAddress) String() string {
 }
 
 // Describes a network ACL.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkAcl
 type NetworkAcl struct {
 	_ struct{} `type:"structure"`
 
@@ -6872,6 +5478,7 @@ func (s NetworkAcl) String() string {
 }
 
 // Describes an association between a network ACL and a subnet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkAclAssociation
 type NetworkAclAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -6891,6 +5498,7 @@ func (s NetworkAclAssociation) String() string {
 }
 
 // Describes an entry in a network ACL.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkAclEntry
 type NetworkAclEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -6926,35 +5534,8 @@ func (s NetworkAclEntry) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the networking features of the instance type.
-type NetworkInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Indicates whether Elastic Network Adapter (ENA) is supported.
-	EnaSupport EnaSupport `locationName:"enaSupport" type:"string" enum:"true"`
-
-	// The maximum number of IPv4 addresses per network interface.
-	Ipv4AddressesPerInterface *int64 `locationName:"ipv4AddressesPerInterface" type:"integer"`
-
-	// The maximum number of IPv6 addresses per network interface.
-	Ipv6AddressesPerInterface *int64 `locationName:"ipv6AddressesPerInterface" type:"integer"`
-
-	// Indicates whether IPv6 is supported.
-	Ipv6Supported *bool `locationName:"ipv6Supported" type:"boolean"`
-
-	// The maximum number of network interfaces for the instance type.
-	MaximumNetworkInterfaces *int64 `locationName:"maximumNetworkInterfaces" type:"integer"`
-
-	// Describes the network performance.
-	NetworkPerformance *string `locationName:"networkPerformance" type:"string"`
-}
-
-// String returns the string representation
-func (s NetworkInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterface
 type NetworkInterface struct {
 	_ struct{} `type:"structure"`
 
@@ -6985,9 +5566,6 @@ type NetworkInterface struct {
 
 	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
 
 	// The AWS account ID of the owner of the network interface.
 	OwnerId *string `locationName:"ownerId" type:"string"`
@@ -7030,6 +5608,7 @@ func (s NetworkInterface) String() string {
 }
 
 // Describes association information for an Elastic IP address (IPv4 only).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterfaceAssociation
 type NetworkInterfaceAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -7055,11 +5634,12 @@ func (s NetworkInterfaceAssociation) String() string {
 }
 
 // Describes a network interface attachment.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterfaceAttachment
 type NetworkInterfaceAttachment struct {
 	_ struct{} `type:"structure"`
 
 	// The timestamp indicating when the attachment initiated.
-	AttachTime *time.Time `locationName:"attachTime" type:"timestamp"`
+	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The ID of the network interface attachment.
 	AttachmentId *string `locationName:"attachmentId" type:"string"`
@@ -7086,6 +5666,7 @@ func (s NetworkInterfaceAttachment) String() string {
 }
 
 // Describes an attachment change.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterfaceAttachmentChanges
 type NetworkInterfaceAttachmentChanges struct {
 	_ struct{} `type:"structure"`
 
@@ -7102,6 +5683,7 @@ func (s NetworkInterfaceAttachmentChanges) String() string {
 }
 
 // Describes an IPv6 address associated with a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterfaceIpv6Address
 type NetworkInterfaceIpv6Address struct {
 	_ struct{} `type:"structure"`
 
@@ -7115,6 +5697,7 @@ func (s NetworkInterfaceIpv6Address) String() string {
 }
 
 // Describes a permission for a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterfacePermission
 type NetworkInterfacePermission struct {
 	_ struct{} `type:"structure"`
 
@@ -7143,6 +5726,7 @@ func (s NetworkInterfacePermission) String() string {
 }
 
 // Describes the state of a network interface permission.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterfacePermissionState
 type NetworkInterfacePermissionState struct {
 	_ struct{} `type:"structure"`
 
@@ -7159,6 +5743,7 @@ func (s NetworkInterfacePermissionState) String() string {
 }
 
 // Describes the private IPv4 address of a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NetworkInterfacePrivateIpAddress
 type NetworkInterfacePrivateIpAddress struct {
 	_ struct{} `type:"structure"`
 
@@ -7182,6 +5767,7 @@ func (s NetworkInterfacePrivateIpAddress) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/NewDhcpConfiguration
 type NewDhcpConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -7195,7 +5781,8 @@ func (s NewDhcpConfiguration) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the configuration of On-Demand Instances in an EC2 Fleet.
+// The allocation strategy of On-Demand Instances in an EC2 Fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/OnDemandOptions
 type OnDemandOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -7207,24 +5794,16 @@ type OnDemandOptions struct {
 	// Fleet defaults to lowest-price.
 	AllocationStrategy FleetOnDemandAllocationStrategy `locationName:"allocationStrategy" type:"string" enum:"true"`
 
-	// The strategy for using unused Capacity Reservations for fulfilling On-Demand
-	// capacity. Supported only for fleets of type instant.
-	CapacityReservationOptions *CapacityReservationOptions `locationName:"capacityReservationOptions" type:"structure"`
-
-	// The maximum amount per hour for On-Demand Instances that you're willing to
-	// pay.
-	MaxTotalPrice *string `locationName:"maxTotalPrice" type:"string"`
-
 	// The minimum target capacity for On-Demand Instances in the fleet. If the
 	// minimum target capacity is not reached, the fleet launches no instances.
 	MinTargetCapacity *int64 `locationName:"minTargetCapacity" type:"integer"`
 
 	// Indicates that the fleet launches all On-Demand Instances into a single Availability
-	// Zone. Supported only for fleets of type instant.
+	// Zone.
 	SingleAvailabilityZone *bool `locationName:"singleAvailabilityZone" type:"boolean"`
 
 	// Indicates that the fleet uses a single instance type to launch all On-Demand
-	// Instances in the fleet. Supported only for fleets of type instant.
+	// Instances in the fleet.
 	SingleInstanceType *bool `locationName:"singleInstanceType" type:"boolean"`
 }
 
@@ -7233,7 +5812,8 @@ func (s OnDemandOptions) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the configuration of On-Demand Instances in an EC2 Fleet.
+// The allocation strategy of On-Demand Instances in an EC2 Fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/OnDemandOptionsRequest
 type OnDemandOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -7245,24 +5825,16 @@ type OnDemandOptionsRequest struct {
 	// Fleet defaults to lowest-price.
 	AllocationStrategy FleetOnDemandAllocationStrategy `type:"string" enum:"true"`
 
-	// The strategy for using unused Capacity Reservations for fulfilling On-Demand
-	// capacity. Supported only for fleets of type instant.
-	CapacityReservationOptions *CapacityReservationOptionsRequest `type:"structure"`
-
-	// The maximum amount per hour for On-Demand Instances that you're willing to
-	// pay.
-	MaxTotalPrice *string `type:"string"`
-
 	// The minimum target capacity for On-Demand Instances in the fleet. If the
 	// minimum target capacity is not reached, the fleet launches no instances.
 	MinTargetCapacity *int64 `type:"integer"`
 
 	// Indicates that the fleet launches all On-Demand Instances into a single Availability
-	// Zone. Supported only for fleets of type instant.
+	// Zone.
 	SingleAvailabilityZone *bool `type:"boolean"`
 
 	// Indicates that the fleet uses a single instance type to launch all On-Demand
-	// Instances in the fleet. Supported only for fleets of type instant.
+	// Instances in the fleet.
 	SingleInstanceType *bool `type:"boolean"`
 }
 
@@ -7273,6 +5845,7 @@ func (s OnDemandOptionsRequest) String() string {
 
 // Describes the data that identifies an Amazon FPGA image (AFI) on the PCI
 // bus.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PciId
 type PciId struct {
 	_ struct{} `type:"structure"`
 
@@ -7294,23 +5867,8 @@ func (s PciId) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The status of the transit gateway peering attachment.
-type PeeringAttachmentStatus struct {
-	_ struct{} `type:"structure"`
-
-	// The status code.
-	Code *string `locationName:"code" type:"string"`
-
-	// The status message, if applicable.
-	Message *string `locationName:"message" type:"string"`
-}
-
-// String returns the string representation
-func (s PeeringAttachmentStatus) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the VPC peering connection options.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PeeringConnectionOptions
 type PeeringConnectionOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -7333,6 +5891,7 @@ func (s PeeringConnectionOptions) String() string {
 }
 
 // The VPC peering connection options.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PeeringConnectionOptionsRequest
 type PeeringConnectionOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -7354,184 +5913,8 @@ func (s PeeringConnectionOptionsRequest) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Information about the transit gateway in the peering attachment.
-type PeeringTgwInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The AWS account ID of the owner of the transit gateway.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// The Region of the transit gateway.
-	Region *string `locationName:"region" type:"string"`
-
-	// The ID of the transit gateway.
-	TransitGatewayId *string `locationName:"transitGatewayId" type:"string"`
-}
-
-// String returns the string representation
-func (s PeeringTgwInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The Diffie-Hellmann group number for phase 1 IKE negotiations.
-type Phase1DHGroupNumbersListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The Diffie-Hellmann group number.
-	Value *int64 `locationName:"value" type:"integer"`
-}
-
-// String returns the string representation
-func (s Phase1DHGroupNumbersListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Specifies a Diffie-Hellman group number for the VPN tunnel for phase 1 IKE
-// negotiations.
-type Phase1DHGroupNumbersRequestListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The Diffie-Hellmann group number.
-	Value *int64 `type:"integer"`
-}
-
-// String returns the string representation
-func (s Phase1DHGroupNumbersRequestListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The encryption algorithm for phase 1 IKE negotiations.
-type Phase1EncryptionAlgorithmsListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The value for the encryption algorithm.
-	Value *string `locationName:"value" type:"string"`
-}
-
-// String returns the string representation
-func (s Phase1EncryptionAlgorithmsListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Specifies the encryption algorithm for the VPN tunnel for phase 1 IKE negotiations.
-type Phase1EncryptionAlgorithmsRequestListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The value for the encryption algorithm.
-	Value *string `type:"string"`
-}
-
-// String returns the string representation
-func (s Phase1EncryptionAlgorithmsRequestListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The integrity algorithm for phase 1 IKE negotiations.
-type Phase1IntegrityAlgorithmsListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The value for the integrity algorithm.
-	Value *string `locationName:"value" type:"string"`
-}
-
-// String returns the string representation
-func (s Phase1IntegrityAlgorithmsListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Specifies the integrity algorithm for the VPN tunnel for phase 1 IKE negotiations.
-type Phase1IntegrityAlgorithmsRequestListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The value for the integrity algorithm.
-	Value *string `type:"string"`
-}
-
-// String returns the string representation
-func (s Phase1IntegrityAlgorithmsRequestListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The Diffie-Hellmann group number for phase 2 IKE negotiations.
-type Phase2DHGroupNumbersListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The Diffie-Hellmann group number.
-	Value *int64 `locationName:"value" type:"integer"`
-}
-
-// String returns the string representation
-func (s Phase2DHGroupNumbersListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Specifies a Diffie-Hellman group number for the VPN tunnel for phase 2 IKE
-// negotiations.
-type Phase2DHGroupNumbersRequestListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The Diffie-Hellmann group number.
-	Value *int64 `type:"integer"`
-}
-
-// String returns the string representation
-func (s Phase2DHGroupNumbersRequestListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The encryption algorithm for phase 2 IKE negotiations.
-type Phase2EncryptionAlgorithmsListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The encryption algorithm.
-	Value *string `locationName:"value" type:"string"`
-}
-
-// String returns the string representation
-func (s Phase2EncryptionAlgorithmsListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Specifies the encryption algorithm for the VPN tunnel for phase 2 IKE negotiations.
-type Phase2EncryptionAlgorithmsRequestListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The encryption algorithm.
-	Value *string `type:"string"`
-}
-
-// String returns the string representation
-func (s Phase2EncryptionAlgorithmsRequestListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// The integrity algorithm for phase 2 IKE negotiations.
-type Phase2IntegrityAlgorithmsListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The integrity algorithm.
-	Value *string `locationName:"value" type:"string"`
-}
-
-// String returns the string representation
-func (s Phase2IntegrityAlgorithmsListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Specifies the integrity algorithm for the VPN tunnel for phase 2 IKE negotiations.
-type Phase2IntegrityAlgorithmsRequestListValue struct {
-	_ struct{} `type:"structure"`
-
-	// The integrity algorithm.
-	Value *string `type:"string"`
-}
-
-// String returns the string representation
-func (s Phase2IntegrityAlgorithmsRequestListValue) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the placement of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Placement
 type Placement struct {
 	_ struct{} `type:"structure"`
 
@@ -7552,11 +5935,6 @@ type Placement struct {
 	// is not supported for the ImportInstance command.
 	HostId *string `locationName:"hostId" type:"string"`
 
-	// The ARN of the host resource group in which to launch the instances. If you
-	// specify a host resource group ARN, omit the Tenancy parameter or set it to
-	// host.
-	HostResourceGroupArn *string `locationName:"hostResourceGroupArn" type:"string"`
-
 	// The number of the partition the instance is in. Valid only if the placement
 	// group strategy is set to partition.
 	PartitionNumber *int64 `locationName:"partitionNumber" type:"integer"`
@@ -7576,11 +5954,9 @@ func (s Placement) String() string {
 }
 
 // Describes a placement group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PlacementGroup
 type PlacementGroup struct {
 	_ struct{} `type:"structure"`
-
-	// The ID of the placement group.
-	GroupId *string `locationName:"groupId" type:"string"`
 
 	// The name of the placement group.
 	GroupName *string `locationName:"groupName" type:"string"`
@@ -7593,9 +5969,6 @@ type PlacementGroup struct {
 
 	// The placement strategy.
 	Strategy PlacementStrategy `locationName:"strategy" type:"string" enum:"true"`
-
-	// Any tags applied to the placement group.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -7603,24 +5976,12 @@ func (s PlacementGroup) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the placement group support of the instance type.
-type PlacementGroupInfo struct {
-	_ struct{} `type:"structure"`
-
-	// A list of supported placement groups types.
-	SupportedStrategies []PlacementGroupStrategy `locationName:"supportedStrategies" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s PlacementGroupInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the placement of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PlacementResponse
 type PlacementResponse struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the placement group that the instance is in.
+	// The name of the placement group the instance is in.
 	GroupName *string `locationName:"groupName" type:"string"`
 }
 
@@ -7629,20 +5990,8 @@ func (s PlacementResponse) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes a CIDR block for an address pool.
-type PoolCidrBlock struct {
-	_ struct{} `type:"structure"`
-
-	// The CIDR block.
-	Cidr *string `locationName:"poolCidrBlock" type:"string"`
-}
-
-// String returns the string representation
-func (s PoolCidrBlock) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a range of ports.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PortRange
 type PortRange struct {
 	_ struct{} `type:"structure"`
 
@@ -7659,6 +6008,7 @@ func (s PortRange) String() string {
 }
 
 // Describes prefixes for AWS services.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PrefixList
 type PrefixList struct {
 	_ struct{} `type:"structure"`
 
@@ -7678,6 +6028,7 @@ func (s PrefixList) String() string {
 }
 
 // Describes a prefix list ID.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PrefixListId
 type PrefixListId struct {
 	_ struct{} `type:"structure"`
 
@@ -7698,6 +6049,7 @@ func (s PrefixListId) String() string {
 }
 
 // Describes the price for a Reserved Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PriceSchedule
 type PriceSchedule struct {
 	_ struct{} `type:"structure"`
 
@@ -7731,6 +6083,7 @@ func (s PriceSchedule) String() string {
 }
 
 // Describes the price for a Reserved Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PriceScheduleSpecification
 type PriceScheduleSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -7752,6 +6105,7 @@ func (s PriceScheduleSpecification) String() string {
 }
 
 // Describes a Reserved Instance offering.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PricingDetail
 type PricingDetail struct {
 	_ struct{} `type:"structure"`
 
@@ -7768,6 +6122,7 @@ func (s PricingDetail) String() string {
 }
 
 // PrincipalIdFormat description
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PrincipalIdFormat
 type PrincipalIdFormat struct {
 	_ struct{} `type:"structure"`
 
@@ -7783,37 +6138,8 @@ func (s PrincipalIdFormat) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Information about the private DNS name for the service endpoint. For more
-// information about these parameters, see VPC Endpoint Service Private DNS
-// Name Verification (https://docs.aws.amazon.com/vpc/latest/userguide/ndpoint-services-dns-validation.html)
-// in the Amazon Virtual Private Cloud User Guide.
-type PrivateDnsNameConfiguration struct {
-	_ struct{} `type:"structure"`
-
-	// The name of the record subdomain the service provider needs to create. The
-	// service provider adds the value text to the name.
-	Name *string `locationName:"name" type:"string"`
-
-	// The verification state of the VPC endpoint service.
-	//
-	// >Consumers of the endpoint service can use the private name only when the
-	// state is verified.
-	State DnsNameState `locationName:"state" type:"string" enum:"true"`
-
-	// The endpoint service verification type, for example TXT.
-	Type *string `locationName:"type" type:"string"`
-
-	// The value the service provider adds to the private DNS name domain record
-	// before verification.
-	Value *string `locationName:"value" type:"string"`
-}
-
-// String returns the string representation
-func (s PrivateDnsNameConfiguration) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a secondary private IPv4 address for a network interface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PrivateIpAddressSpecification
 type PrivateIpAddressSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -7830,23 +6156,8 @@ func (s PrivateIpAddressSpecification) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the processor used by the instance type.
-type ProcessorInfo struct {
-	_ struct{} `type:"structure"`
-
-	// A list of architectures supported by the instance type.
-	SupportedArchitectures []ArchitectureType `locationName:"supportedArchitectures" locationNameList:"item" type:"list"`
-
-	// The speed of the processor, in GHz.
-	SustainedClockSpeedInGhz *float64 `locationName:"sustainedClockSpeedInGhz" type:"double"`
-}
-
-// String returns the string representation
-func (s ProcessorInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a product code.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ProductCode
 type ProductCode struct {
 	_ struct{} `type:"structure"`
 
@@ -7863,6 +6174,7 @@ func (s ProductCode) String() string {
 }
 
 // Describes a virtual private gateway propagating route.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PropagatingVgw
 type PropagatingVgw struct {
 	_ struct{} `type:"structure"`
 
@@ -7876,33 +6188,34 @@ func (s PropagatingVgw) String() string {
 }
 
 // Reserved. If you need to sustain traffic greater than the documented limits
-// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html),
+// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html),
 // contact us through the Support Center (https://console.aws.amazon.com/support/home?).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ProvisionedBandwidth
 type ProvisionedBandwidth struct {
 	_ struct{} `type:"structure"`
 
 	// Reserved. If you need to sustain traffic greater than the documented limits
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html),
+	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html),
 	// contact us through the Support Center (https://console.aws.amazon.com/support/home?).
-	ProvisionTime *time.Time `locationName:"provisionTime" type:"timestamp"`
+	ProvisionTime *time.Time `locationName:"provisionTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Reserved. If you need to sustain traffic greater than the documented limits
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html),
+	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html),
 	// contact us through the Support Center (https://console.aws.amazon.com/support/home?).
 	Provisioned *string `locationName:"provisioned" type:"string"`
 
 	// Reserved. If you need to sustain traffic greater than the documented limits
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html),
+	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html),
 	// contact us through the Support Center (https://console.aws.amazon.com/support/home?).
-	RequestTime *time.Time `locationName:"requestTime" type:"timestamp"`
+	RequestTime *time.Time `locationName:"requestTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Reserved. If you need to sustain traffic greater than the documented limits
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html),
+	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html),
 	// contact us through the Support Center (https://console.aws.amazon.com/support/home?).
 	Requested *string `locationName:"requested" type:"string"`
 
 	// Reserved. If you need to sustain traffic greater than the documented limits
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html),
+	// (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html),
 	// contact us through the Support Center (https://console.aws.amazon.com/support/home?).
 	Status *string `locationName:"status" type:"string"`
 }
@@ -7912,7 +6225,8 @@ func (s ProvisionedBandwidth) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes an IPv4 address pool.
+// Describes an address pool.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PublicIpv4Pool
 type PublicIpv4Pool struct {
 	_ struct{} `type:"structure"`
 
@@ -7922,7 +6236,7 @@ type PublicIpv4Pool struct {
 	// The address ranges.
 	PoolAddressRanges []PublicIpv4PoolRange `locationName:"poolAddressRangeSet" locationNameList:"item" type:"list"`
 
-	// The ID of the address pool.
+	// The ID of the IPv4 address pool.
 	PoolId *string `locationName:"poolId" type:"string"`
 
 	// The total number of addresses.
@@ -7938,6 +6252,7 @@ func (s PublicIpv4Pool) String() string {
 }
 
 // Describes an address range of an IPv4 address pool.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PublicIpv4PoolRange
 type PublicIpv4PoolRange struct {
 	_ struct{} `type:"structure"`
 
@@ -7960,6 +6275,7 @@ func (s PublicIpv4PoolRange) String() string {
 }
 
 // Describes the result of the purchase.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Purchase
 type Purchase struct {
 	_ struct{} `type:"structure"`
 
@@ -7996,6 +6312,7 @@ func (s Purchase) String() string {
 }
 
 // Describes a request to purchase Scheduled Instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/PurchaseRequest
 type PurchaseRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -8034,6 +6351,7 @@ func (s *PurchaseRequest) Validate() error {
 }
 
 // Describes a recurring charge.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RecurringCharge
 type RecurringCharge struct {
 	_ struct{} `type:"structure"`
 
@@ -8050,15 +6368,12 @@ func (s RecurringCharge) String() string {
 }
 
 // Describes a Region.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Region
 type Region struct {
 	_ struct{} `type:"structure"`
 
 	// The Region service endpoint.
 	Endpoint *string `locationName:"regionEndpoint" type:"string"`
-
-	// The Region opt-in status. The possible values are opt-in-not-required, opted-in,
-	// and not-opted-in.
-	OptInStatus *string `locationName:"optInStatus" type:"string"`
 
 	// The name of the Region.
 	RegionName *string `locationName:"regionName" type:"string"`
@@ -8070,10 +6385,17 @@ func (s Region) String() string {
 }
 
 // The information to include in the launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RequestLaunchTemplateData
 type RequestLaunchTemplateData struct {
 	_ struct{} `type:"structure"`
 
 	// The block device mapping.
+	//
+	// Supplying both a snapshot ID and an encryption value as arguments for block-device
+	// mapping results in an error. This is because only blank volumes can be encrypted
+	// on start, and these are not created from a snapshot. If a snapshot is the
+	// basis for the volume, it contains data by definition and its encryption status
+	// cannot be changed using this action.
 	BlockDeviceMappings []LaunchTemplateBlockDeviceMappingRequest `locationName:"BlockDeviceMapping" locationNameList:"BlockDeviceMapping" type:"list"`
 
 	// The Capacity Reservation targeting option. If you do not specify this parameter,
@@ -8113,7 +6435,8 @@ type RequestLaunchTemplateData struct {
 
 	// Indicates whether an instance is enabled for hibernation. This parameter
 	// is valid only if the instance meets the hibernation prerequisites (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites).
-	// For more information, see Hibernate Your Instance (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html)
+	// Hibernation is currently supported only for Amazon Linux. For more information,
+	// see Hibernate Your Instance (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	HibernationOptions *LaunchTemplateHibernationOptionsRequest `type:"structure"`
 
@@ -8153,16 +6476,11 @@ type RequestLaunchTemplateData struct {
 	// The license configurations.
 	LicenseSpecifications []LaunchTemplateLicenseConfigurationRequest `locationName:"LicenseSpecification" locationNameList:"item" type:"list"`
 
-	// The metadata options for the instance. For more information, see Instance
-	// Metadata and User Data (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	MetadataOptions *LaunchTemplateInstanceMetadataOptionsRequest `type:"structure"`
-
 	// The monitoring for the instance.
 	Monitoring *LaunchTemplatesMonitoringRequest `type:"structure"`
 
 	// One or more network interfaces. If you specify a network interface, you must
-	// specify any security groups and subnets as part of the network interface.
+	// specify any security groups as part of the network interface.
 	NetworkInterfaces []LaunchTemplateInstanceNetworkInterfaceSpecificationRequest `locationName:"NetworkInterface" locationNameList:"InstanceNetworkInterfaceSpecification" type:"list"`
 
 	// The placement for the instance.
@@ -8234,6 +6552,7 @@ func (s *RequestLaunchTemplateData) Validate() error {
 }
 
 // Describes the launch specification for an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RequestSpotLaunchSpecification
 type RequestSpotLaunchSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -8293,9 +6612,7 @@ type RequestSpotLaunchSpecification struct {
 	// you can specify the names or the IDs of the security groups.
 	SecurityGroups []string `locationName:"SecurityGroup" locationNameList:"item" type:"list"`
 
-	// The IDs of the subnets in which to launch the instance. To specify multiple
-	// subnets, separate them using commas; for example, "subnet-1234abcdeexample1,
-	// subnet-0987cdef6example2".
+	// The ID of the subnet in which to launch the instance.
 	SubnetId *string `locationName:"subnetId" type:"string"`
 
 	// The Base64-encoded user data for the instance. User data is limited to 16
@@ -8324,6 +6641,7 @@ func (s *RequestSpotLaunchSpecification) Validate() error {
 }
 
 // Describes a reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Reservation
 type Reservation struct {
 	_ struct{} `type:"structure"`
 
@@ -8350,6 +6668,7 @@ func (s Reservation) String() string {
 }
 
 // The cost associated with the Reserved Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservationValue
 type ReservationValue struct {
 	_ struct{} `type:"structure"`
 
@@ -8370,6 +6689,7 @@ func (s ReservationValue) String() string {
 }
 
 // Describes the limit price of a Reserved Instance offering.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstanceLimitPrice
 type ReservedInstanceLimitPrice struct {
 	_ struct{} `type:"structure"`
 
@@ -8388,6 +6708,7 @@ func (s ReservedInstanceLimitPrice) String() string {
 }
 
 // The total value of the Convertible Reserved Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstanceReservationValue
 type ReservedInstanceReservationValue struct {
 	_ struct{} `type:"structure"`
 
@@ -8404,6 +6725,7 @@ func (s ReservedInstanceReservationValue) String() string {
 }
 
 // Describes a Reserved Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstances
 type ReservedInstances struct {
 	_ struct{} `type:"structure"`
 
@@ -8418,7 +6740,7 @@ type ReservedInstances struct {
 	Duration *int64 `locationName:"duration" type:"long"`
 
 	// The time when the Reserved Instance expires.
-	End *time.Time `locationName:"end" type:"timestamp"`
+	End *time.Time `locationName:"end" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The purchase price of the Reserved Instance.
 	FixedPrice *float64 `locationName:"fixedPrice" type:"float"`
@@ -8451,7 +6773,7 @@ type ReservedInstances struct {
 	Scope Scope `locationName:"scope" type:"string" enum:"true"`
 
 	// The date and time the Reserved Instance started.
-	Start *time.Time `locationName:"start" type:"timestamp"`
+	Start *time.Time `locationName:"start" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The state of the Reserved Instance purchase.
 	State ReservedInstanceState `locationName:"state" type:"string" enum:"true"`
@@ -8469,6 +6791,7 @@ func (s ReservedInstances) String() string {
 }
 
 // Describes the configuration settings for the modified Reserved Instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstancesConfiguration
 type ReservedInstancesConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -8498,6 +6821,7 @@ func (s ReservedInstancesConfiguration) String() string {
 }
 
 // Describes the ID of a Reserved Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstancesId
 type ReservedInstancesId struct {
 	_ struct{} `type:"structure"`
 
@@ -8511,6 +6835,7 @@ func (s ReservedInstancesId) String() string {
 }
 
 // Describes a Reserved Instance listing.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstancesListing
 type ReservedInstancesListing struct {
 	_ struct{} `type:"structure"`
 
@@ -8519,7 +6844,7 @@ type ReservedInstancesListing struct {
 	ClientToken *string `locationName:"clientToken" type:"string"`
 
 	// The time the listing was created.
-	CreateDate *time.Time `locationName:"createDate" type:"timestamp"`
+	CreateDate *time.Time `locationName:"createDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The number of instances in this state.
 	InstanceCounts []InstanceCount `locationName:"instanceCounts" locationNameList:"item" type:"list"`
@@ -8544,7 +6869,7 @@ type ReservedInstancesListing struct {
 	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
 
 	// The last modified timestamp of the listing.
-	UpdateDate *time.Time `locationName:"updateDate" type:"timestamp"`
+	UpdateDate *time.Time `locationName:"updateDate" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -8553,6 +6878,7 @@ func (s ReservedInstancesListing) String() string {
 }
 
 // Describes a Reserved Instance modification.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstancesModification
 type ReservedInstancesModification struct {
 	_ struct{} `type:"structure"`
 
@@ -8561,10 +6887,10 @@ type ReservedInstancesModification struct {
 	ClientToken *string `locationName:"clientToken" type:"string"`
 
 	// The time when the modification request was created.
-	CreateDate *time.Time `locationName:"createDate" type:"timestamp"`
+	CreateDate *time.Time `locationName:"createDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The time for the modification to become effective.
-	EffectiveDate *time.Time `locationName:"effectiveDate" type:"timestamp"`
+	EffectiveDate *time.Time `locationName:"effectiveDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Contains target configurations along with their corresponding new Reserved
 	// Instance IDs.
@@ -8583,7 +6909,7 @@ type ReservedInstancesModification struct {
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
 
 	// The time when the modification request was last updated.
-	UpdateDate *time.Time `locationName:"updateDate" type:"timestamp"`
+	UpdateDate *time.Time `locationName:"updateDate" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -8592,6 +6918,7 @@ func (s ReservedInstancesModification) String() string {
 }
 
 // Describes the modification request/s.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstancesModificationResult
 type ReservedInstancesModificationResult struct {
 	_ struct{} `type:"structure"`
 
@@ -8610,6 +6937,7 @@ func (s ReservedInstancesModificationResult) String() string {
 }
 
 // Describes a Reserved Instance offering.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReservedInstancesOffering
 type ReservedInstancesOffering struct {
 	_ struct{} `type:"structure"`
 
@@ -8674,6 +7002,7 @@ func (s ReservedInstancesOffering) String() string {
 
 // Describes the error that's returned when you cannot delete a launch template
 // version.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ResponseError
 type ResponseError struct {
 	_ struct{} `type:"structure"`
 
@@ -8690,6 +7019,7 @@ func (s ResponseError) String() string {
 }
 
 // The information for a launch template.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ResponseLaunchTemplateData
 type ResponseLaunchTemplateData struct {
 	_ struct{} `type:"structure"`
 
@@ -8750,11 +7080,6 @@ type ResponseLaunchTemplateData struct {
 	// The license configurations.
 	LicenseSpecifications []LaunchTemplateLicenseConfiguration `locationName:"licenseSet" locationNameList:"item" type:"list"`
 
-	// The metadata options for the instance. For more information, see Instance
-	// Metadata and User Data (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html)
-	// in the Amazon Elastic Compute Cloud User Guide.
-	MetadataOptions *LaunchTemplateInstanceMetadataOptions `locationName:"metadataOptions" type:"structure"`
-
 	// The monitoring for the instance.
 	Monitoring *LaunchTemplatesMonitoring `locationName:"monitoring" type:"structure"`
 
@@ -8786,6 +7111,7 @@ func (s ResponseLaunchTemplateData) String() string {
 }
 
 // Describes a route in a route table.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Route
 type Route struct {
 	_ struct{} `type:"structure"`
 
@@ -8809,9 +7135,6 @@ type Route struct {
 
 	// The AWS account ID of the owner of the instance.
 	InstanceOwnerId *string `locationName:"instanceOwnerId" type:"string"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `locationName:"localGatewayId" type:"string"`
 
 	// The ID of a NAT gateway.
 	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
@@ -8847,10 +7170,11 @@ func (s Route) String() string {
 }
 
 // Describes a route table.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RouteTable
 type RouteTable struct {
 	_ struct{} `type:"structure"`
 
-	// The associations between the route table and one or more subnets or a gateway.
+	// The associations between the route table and one or more subnets.
 	Associations []RouteTableAssociation `locationName:"associationSet" locationNameList:"item" type:"list"`
 
 	// The ID of the AWS account that owns the route table.
@@ -8877,20 +7201,15 @@ func (s RouteTable) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes an association between a route table and a subnet or gateway.
+// Describes an association between a route table and a subnet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RouteTableAssociation
 type RouteTableAssociation struct {
 	_ struct{} `type:"structure"`
-
-	// The state of the association.
-	AssociationState *RouteTableAssociationState `locationName:"associationState" type:"structure"`
-
-	// The ID of the internet gateway or virtual private gateway.
-	GatewayId *string `locationName:"gatewayId" type:"string"`
 
 	// Indicates whether this is the main route table.
 	Main *bool `locationName:"main" type:"boolean"`
 
-	// The ID of the association.
+	// The ID of the association between a route table and a subnet.
 	RouteTableAssociationId *string `locationName:"routeTableAssociationId" type:"string"`
 
 	// The ID of the route table.
@@ -8905,24 +7224,8 @@ func (s RouteTableAssociation) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the state of an association between a route table and a subnet
-// or gateway.
-type RouteTableAssociationState struct {
-	_ struct{} `type:"structure"`
-
-	// The state of the association.
-	State RouteTableAssociationStateCode `locationName:"state" type:"string" enum:"true"`
-
-	// The status message, if applicable.
-	StatusMessage *string `locationName:"statusMessage" type:"string"`
-}
-
-// String returns the string representation
-func (s RouteTableAssociationState) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the monitoring of an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RunInstancesMonitoringEnabled
 type RunInstancesMonitoringEnabled struct {
 	_ struct{} `type:"structure"`
 
@@ -8954,6 +7257,7 @@ func (s *RunInstancesMonitoringEnabled) Validate() error {
 
 // Describes the storage parameters for S3 and S3 buckets for an instance store-backed
 // AMI.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/S3Storage
 type S3Storage struct {
 	_ struct{} `type:"structure"`
 
@@ -8986,6 +7290,7 @@ func (s S3Storage) String() string {
 }
 
 // Describes a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstance
 type ScheduledInstance struct {
 	_ struct{} `type:"structure"`
 
@@ -8993,7 +7298,7 @@ type ScheduledInstance struct {
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
 	// The date when the Scheduled Instance was purchased.
-	CreateDate *time.Time `locationName:"createDate" type:"timestamp"`
+	CreateDate *time.Time `locationName:"createDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The hourly price for a single instance.
 	HourlyPrice *string `locationName:"hourlyPrice" type:"string"`
@@ -9008,13 +7313,13 @@ type ScheduledInstance struct {
 	NetworkPlatform *string `locationName:"networkPlatform" type:"string"`
 
 	// The time for the next schedule to start.
-	NextSlotStartTime *time.Time `locationName:"nextSlotStartTime" type:"timestamp"`
+	NextSlotStartTime *time.Time `locationName:"nextSlotStartTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The platform (Linux/UNIX or Windows).
 	Platform *string `locationName:"platform" type:"string"`
 
 	// The time that the previous schedule ended or will end.
-	PreviousSlotEndTime *time.Time `locationName:"previousSlotEndTime" type:"timestamp"`
+	PreviousSlotEndTime *time.Time `locationName:"previousSlotEndTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The schedule recurrence.
 	Recurrence *ScheduledInstanceRecurrence `locationName:"recurrence" type:"structure"`
@@ -9026,10 +7331,10 @@ type ScheduledInstance struct {
 	SlotDurationInHours *int64 `locationName:"slotDurationInHours" type:"integer"`
 
 	// The end date for the Scheduled Instance.
-	TermEndDate *time.Time `locationName:"termEndDate" type:"timestamp"`
+	TermEndDate *time.Time `locationName:"termEndDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The start date for the Scheduled Instance.
-	TermStartDate *time.Time `locationName:"termStartDate" type:"timestamp"`
+	TermStartDate *time.Time `locationName:"termStartDate" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The total number of hours for a single instance for the entire term.
 	TotalScheduledInstanceHours *int64 `locationName:"totalScheduledInstanceHours" type:"integer"`
@@ -9041,6 +7346,7 @@ func (s ScheduledInstance) String() string {
 }
 
 // Describes a schedule that is available for your Scheduled Instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstanceAvailability
 type ScheduledInstanceAvailability struct {
 	_ struct{} `type:"structure"`
 
@@ -9051,7 +7357,7 @@ type ScheduledInstanceAvailability struct {
 	AvailableInstanceCount *int64 `locationName:"availableInstanceCount" type:"integer"`
 
 	// The time period for the first schedule to start.
-	FirstSlotStartTime *time.Time `locationName:"firstSlotStartTime" type:"timestamp"`
+	FirstSlotStartTime *time.Time `locationName:"firstSlotStartTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The hourly price for a single instance.
 	HourlyPrice *string `locationName:"hourlyPrice" type:"string"`
@@ -9091,6 +7397,7 @@ func (s ScheduledInstanceAvailability) String() string {
 }
 
 // Describes the recurring schedule for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstanceRecurrence
 type ScheduledInstanceRecurrence struct {
 	_ struct{} `type:"structure"`
 
@@ -9120,6 +7427,7 @@ func (s ScheduledInstanceRecurrence) String() string {
 }
 
 // Describes the recurring schedule for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstanceRecurrenceRequest
 type ScheduledInstanceRecurrenceRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -9152,6 +7460,7 @@ func (s ScheduledInstanceRecurrenceRequest) String() string {
 }
 
 // Describes a block device mapping for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesBlockDeviceMapping
 type ScheduledInstancesBlockDeviceMapping struct {
 	_ struct{} `type:"structure"`
 
@@ -9185,6 +7494,7 @@ func (s ScheduledInstancesBlockDeviceMapping) String() string {
 }
 
 // Describes an EBS volume for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesEbs
 type ScheduledInstancesEbs struct {
 	_ struct{} `type:"structure"`
 
@@ -9222,7 +7532,7 @@ type ScheduledInstancesEbs struct {
 	// The volume type. gp2 for General Purpose SSD, io1 for Provisioned IOPS SSD,
 	// Throughput Optimized HDD for st1, Cold HDD for sc1, or standard for Magnetic.
 	//
-	// Default: gp2
+	// Default: standard
 	VolumeType *string `type:"string"`
 }
 
@@ -9232,6 +7542,7 @@ func (s ScheduledInstancesEbs) String() string {
 }
 
 // Describes an IAM instance profile for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesIamInstanceProfile
 type ScheduledInstancesIamInstanceProfile struct {
 	_ struct{} `type:"structure"`
 
@@ -9248,6 +7559,7 @@ func (s ScheduledInstancesIamInstanceProfile) String() string {
 }
 
 // Describes an IPv6 address.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesIpv6Address
 type ScheduledInstancesIpv6Address struct {
 	_ struct{} `type:"structure"`
 
@@ -9265,6 +7577,7 @@ func (s ScheduledInstancesIpv6Address) String() string {
 // If you are launching the Scheduled Instance in EC2-VPC, you must specify
 // the ID of the subnet. You can specify the subnet using either SubnetId or
 // NetworkInterface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesLaunchSpecification
 type ScheduledInstancesLaunchSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -9339,6 +7652,7 @@ func (s *ScheduledInstancesLaunchSpecification) Validate() error {
 }
 
 // Describes whether monitoring is enabled for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesMonitoring
 type ScheduledInstancesMonitoring struct {
 	_ struct{} `type:"structure"`
 
@@ -9352,6 +7666,7 @@ func (s ScheduledInstancesMonitoring) String() string {
 }
 
 // Describes a network interface for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesNetworkInterface
 type ScheduledInstancesNetworkInterface struct {
 	_ struct{} `type:"structure"`
 
@@ -9403,6 +7718,7 @@ func (s ScheduledInstancesNetworkInterface) String() string {
 }
 
 // Describes the placement for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesPlacement
 type ScheduledInstancesPlacement struct {
 	_ struct{} `type:"structure"`
 
@@ -9419,6 +7735,7 @@ func (s ScheduledInstancesPlacement) String() string {
 }
 
 // Describes a private IPv4 address for a Scheduled Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ScheduledInstancesPrivateIpAddressConfig
 type ScheduledInstancesPrivateIpAddressConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -9436,6 +7753,7 @@ func (s ScheduledInstancesPrivateIpAddressConfig) String() string {
 }
 
 // Describes a security group
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SecurityGroup
 type SecurityGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -9470,6 +7788,7 @@ func (s SecurityGroup) String() string {
 }
 
 // Describes a security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SecurityGroupIdentifier
 type SecurityGroupIdentifier struct {
 	_ struct{} `type:"structure"`
 
@@ -9486,6 +7805,7 @@ func (s SecurityGroupIdentifier) String() string {
 }
 
 // Describes a VPC with a security group that references your security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SecurityGroupReference
 type SecurityGroupReference struct {
 	_ struct{} `type:"structure"`
 
@@ -9505,6 +7825,7 @@ func (s SecurityGroupReference) String() string {
 }
 
 // Describes a service configuration for a VPC endpoint service.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ServiceConfiguration
 type ServiceConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -9512,13 +7833,13 @@ type ServiceConfiguration struct {
 	// to the service must first be accepted.
 	AcceptanceRequired *bool `locationName:"acceptanceRequired" type:"boolean"`
 
-	// The Availability Zones in which the service is available.
+	// In the Availability Zones in which the service is available.
 	AvailabilityZones []string `locationName:"availabilityZoneSet" locationNameList:"item" type:"list"`
 
 	// The DNS names for the service.
 	BaseEndpointDnsNames []string `locationName:"baseEndpointDnsNameSet" locationNameList:"item" type:"list"`
 
-	// Indicates whether the service manages its VPC endpoints. Management of the
+	// Indicates whether the service manages it's VPC endpoints. Management of the
 	// service VPC endpoints using the VPC endpoint API is restricted.
 	ManagesVpcEndpoints *bool `locationName:"managesVpcEndpoints" type:"boolean"`
 
@@ -9527,9 +7848,6 @@ type ServiceConfiguration struct {
 
 	// The private DNS name for the service.
 	PrivateDnsName *string `locationName:"privateDnsName" type:"string"`
-
-	// Information about the endpoint service private DNS name configuration.
-	PrivateDnsNameConfiguration *PrivateDnsNameConfiguration `locationName:"privateDnsNameConfiguration" type:"structure"`
 
 	// The ID of the service.
 	ServiceId *string `locationName:"serviceId" type:"string"`
@@ -9553,6 +7871,7 @@ func (s ServiceConfiguration) String() string {
 }
 
 // Describes a VPC endpoint service.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ServiceDetail
 type ServiceDetail struct {
 	_ struct{} `type:"structure"`
 
@@ -9566,7 +7885,7 @@ type ServiceDetail struct {
 	// The DNS names for the service.
 	BaseEndpointDnsNames []string `locationName:"baseEndpointDnsNameSet" locationNameList:"item" type:"list"`
 
-	// Indicates whether the service manages its VPC endpoints. Management of the
+	// Indicates whether the service manages it's VPC endpoints. Management of the
 	// service VPC endpoints using the VPC endpoint API is restricted.
 	ManagesVpcEndpoints *bool `locationName:"managesVpcEndpoints" type:"boolean"`
 
@@ -9575,12 +7894,6 @@ type ServiceDetail struct {
 
 	// The private DNS name for the service.
 	PrivateDnsName *string `locationName:"privateDnsName" type:"string"`
-
-	// The verification state of the VPC endpoint service.
-	//
-	// Consumers of the endpoint service cannot use the private name when the state
-	// is not verified.
-	PrivateDnsNameVerificationState DnsNameState `locationName:"privateDnsNameVerificationState" type:"string" enum:"true"`
 
 	// The ID of the endpoint service.
 	ServiceId *string `locationName:"serviceId" type:"string"`
@@ -9604,6 +7917,7 @@ func (s ServiceDetail) String() string {
 }
 
 // Describes the type of service for a VPC endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ServiceTypeDetail
 type ServiceTypeDetail struct {
 	_ struct{} `type:"structure"`
 
@@ -9618,20 +7932,21 @@ func (s ServiceTypeDetail) String() string {
 
 // Describes the time period for a Scheduled Instance to start its first schedule.
 // The time period must span less than one day.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SlotDateTimeRangeRequest
 type SlotDateTimeRangeRequest struct {
 	_ struct{} `type:"structure"`
 
 	// The earliest date and time, in UTC, for the Scheduled Instance to start.
 	//
 	// EarliestTime is a required field
-	EarliestTime *time.Time `type:"timestamp" required:"true"`
+	EarliestTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 
 	// The latest date and time, in UTC, for the Scheduled Instance to start. This
 	// value must be later than or equal to the earliest date and at most three
 	// months in the future.
 	//
 	// LatestTime is a required field
-	LatestTime *time.Time `type:"timestamp" required:"true"`
+	LatestTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 }
 
 // String returns the string representation
@@ -9658,14 +7973,15 @@ func (s *SlotDateTimeRangeRequest) Validate() error {
 }
 
 // Describes the time period for a Scheduled Instance to start its first schedule.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SlotStartTimeRangeRequest
 type SlotStartTimeRangeRequest struct {
 	_ struct{} `type:"structure"`
 
 	// The earliest date and time, in UTC, for the Scheduled Instance to start.
-	EarliestTime *time.Time `type:"timestamp"`
+	EarliestTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
 	// The latest date and time, in UTC, for the Scheduled Instance to start.
-	LatestTime *time.Time `type:"timestamp"`
+	LatestTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -9674,6 +7990,7 @@ func (s SlotStartTimeRangeRequest) String() string {
 }
 
 // Describes a snapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Snapshot
 type Snapshot struct {
 	_ struct{} `type:"structure"`
 
@@ -9682,7 +7999,7 @@ type Snapshot struct {
 	// the original volume or snapshot copy. Because data encryption keys are inherited
 	// by volumes created from snapshots, and vice versa, if snapshots share the
 	// same data encryption key identifier, then they belong to the same volume/snapshot
-	// lineage. This parameter is only returned by DescribeSnapshots.
+	// lineage. This parameter is only returned by the DescribeSnapshots API operation.
 	DataEncryptionKeyId *string `locationName:"dataEncryptionKeyId" type:"string"`
 
 	// The description for the snapshot.
@@ -9691,9 +8008,9 @@ type Snapshot struct {
 	// Indicates whether the snapshot is encrypted.
 	Encrypted *bool `locationName:"encrypted" type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS)
-	// customer master key (CMK) that was used to protect the volume encryption
-	// key for the parent volume.
+	// The full ARN of the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) that was used to protect the volume encryption key for the parent
+	// volume.
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
 
 	// Value from an Amazon-maintained list (amazon | self | all | aws-marketplace
@@ -9712,7 +8029,7 @@ type Snapshot struct {
 	SnapshotId *string `locationName:"snapshotId" type:"string"`
 
 	// The time stamp when the snapshot was initiated.
-	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The snapshot state.
 	State SnapshotState `locationName:"status" type:"string" enum:"true"`
@@ -9721,7 +8038,7 @@ type Snapshot struct {
 	// operation fails (for example, if the proper AWS Key Management Service (AWS
 	// KMS) permissions are not obtained) this field displays error state details
 	// to help you diagnose why the error occurred. This parameter is only returned
-	// by DescribeSnapshots.
+	// by the DescribeSnapshots API operation.
 	StateMessage *string `locationName:"statusMessage" type:"string"`
 
 	// Any tags assigned to the snapshot.
@@ -9742,6 +8059,7 @@ func (s Snapshot) String() string {
 }
 
 // Describes the snapshot created from the imported disk.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SnapshotDetail
 type SnapshotDetail struct {
 	_ struct{} `type:"structure"`
 
@@ -9782,6 +8100,7 @@ func (s SnapshotDetail) String() string {
 }
 
 // The disk container object for the import snapshot request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SnapshotDiskContainer
 type SnapshotDiskContainer struct {
 	_ struct{} `type:"structure"`
 
@@ -9806,49 +8125,8 @@ func (s SnapshotDiskContainer) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Information about a snapshot.
-type SnapshotInfo struct {
-	_ struct{} `type:"structure"`
-
-	// Description specified by the CreateSnapshotRequest that has been applied
-	// to all snapshots.
-	Description *string `locationName:"description" type:"string"`
-
-	// Indicates whether the snapshot is encrypted.
-	Encrypted *bool `locationName:"encrypted" type:"boolean"`
-
-	// Account id used when creating this snapshot.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// Progress this snapshot has made towards completing.
-	Progress *string `locationName:"progress" type:"string"`
-
-	// Snapshot id that can be used to describe this snapshot.
-	SnapshotId *string `locationName:"snapshotId" type:"string"`
-
-	// Time this snapshot was started. This is the same for all snapshots initiated
-	// by the same request.
-	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
-
-	// Current state of the snapshot.
-	State SnapshotState `locationName:"state" type:"string" enum:"true"`
-
-	// Tags associated with this snapshot.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// Source volume from which this snapshot was created.
-	VolumeId *string `locationName:"volumeId" type:"string"`
-
-	// Size of the volume from which this snapshot was created.
-	VolumeSize *int64 `locationName:"volumeSize" type:"integer"`
-}
-
-// String returns the string representation
-func (s SnapshotInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Details about the import snapshot task.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SnapshotTaskDetail
 type SnapshotTaskDetail struct {
 	_ struct{} `type:"structure"`
 
@@ -9893,6 +8171,7 @@ func (s SnapshotTaskDetail) String() string {
 }
 
 // Describes the data feed for a Spot Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotDatafeedSubscription
 type SpotDatafeedSubscription struct {
 	_ struct{} `type:"structure"`
 
@@ -9920,13 +8199,14 @@ func (s SpotDatafeedSubscription) String() string {
 // Describes the launch specification for one or more Spot Instances. If you
 // include On-Demand capacity in your fleet request, you can't use SpotFleetLaunchSpecification;
 // you must use LaunchTemplateConfig (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_LaunchTemplateConfig.html).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotFleetLaunchSpecification
 type SpotFleetLaunchSpecification struct {
 	_ struct{} `type:"structure"`
 
 	// Deprecated.
 	AddressingType *string `locationName:"addressingType" type:"string"`
 
-	// One or more block devices that are mapped to the Spot Instances. You can't
+	// One or more block devices that are mapped to the Spot instances. You can't
 	// specify both a snapshot ID and an encryption value. This is because only
 	// blank volumes can be encrypted on creation. If a snapshot is the basis for
 	// a volume, it is not blank and its encryption status is used for the volume
@@ -9984,9 +8264,8 @@ type SpotFleetLaunchSpecification struct {
 	// by the value of WeightedCapacity.
 	SpotPrice *string `locationName:"spotPrice" type:"string"`
 
-	// The IDs of the subnets in which to launch the instances. To specify multiple
-	// subnets, separate them using commas; for example, "subnet-1234abcdeexample1,
-	// subnet-0987cdef6example2".
+	// The ID of the subnet in which to launch the instances. To specify multiple
+	// subnets, separate them using commas; for example, "subnet-a61dafcf, subnet-65ea5f08".
 	SubnetId *string `locationName:"subnetId" type:"string"`
 
 	// The tags to apply during creation.
@@ -10011,6 +8290,7 @@ func (s SpotFleetLaunchSpecification) String() string {
 }
 
 // Describes whether monitoring is enabled.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotFleetMonitoring
 type SpotFleetMonitoring struct {
 	_ struct{} `type:"structure"`
 
@@ -10026,6 +8306,7 @@ func (s SpotFleetMonitoring) String() string {
 }
 
 // Describes a Spot Fleet request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotFleetRequestConfig
 type SpotFleetRequestConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -10037,7 +8318,7 @@ type SpotFleetRequestConfig struct {
 	ActivityStatus ActivityStatus `locationName:"activityStatus" type:"string" enum:"true"`
 
 	// The creation date and time of the request.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The configuration of the Spot Fleet request.
 	SpotFleetRequestConfig *SpotFleetRequestConfigData `locationName:"spotFleetRequestConfig" type:"structure"`
@@ -10055,22 +8336,12 @@ func (s SpotFleetRequestConfig) String() string {
 }
 
 // Describes the configuration of a Spot Fleet request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotFleetRequestConfigData
 type SpotFleetRequestConfigData struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates how to allocate the target Spot Instance capacity across the Spot
-	// Instance pools specified by the Spot Fleet request.
-	//
-	// If the allocation strategy is lowestPrice, Spot Fleet launches instances
-	// from the Spot Instance pools with the lowest price. This is the default allocation
-	// strategy.
-	//
-	// If the allocation strategy is diversified, Spot Fleet launches instances
-	// from all the Spot Instance pools that you specify.
-	//
-	// If the allocation strategy is capacityOptimized, Spot Fleet launches instances
-	// from Spot Instance pools with optimal capacity for the number of instances
-	// that are launching.
+	// Indicates how to allocate the target capacity across the Spot pools specified
+	// by the Spot Fleet request. The default is lowestPrice.
 	AllocationStrategy AllocationStrategy `locationName:"allocationStrategy" type:"string" enum:"true"`
 
 	// A unique, case-sensitive identifier that you provide to ensure the idempotency
@@ -10139,16 +8410,6 @@ type SpotFleetRequestConfigData struct {
 	// target On-Demand capacity.
 	OnDemandFulfilledCapacity *float64 `locationName:"onDemandFulfilledCapacity" type:"double"`
 
-	// The maximum amount per hour for On-Demand Instances that you're willing to
-	// pay. You can use the onDemandMaxTotalPrice parameter, the spotMaxTotalPrice
-	// parameter, or both parameters to ensure that your fleet cost does not exceed
-	// your budget. If you set a maximum price per hour for the On-Demand Instances
-	// and Spot Instances in your request, Spot Fleet will launch instances until
-	// it reaches the maximum amount you're willing to pay. When the maximum amount
-	// you're willing to pay is reached, the fleet stops launching instances even
-	// if it hasn’t met the target capacity.
-	OnDemandMaxTotalPrice *string `locationName:"onDemandMaxTotalPrice" type:"string"`
-
 	// The number of On-Demand units to request. You can choose to set the target
 	// capacity in terms of instances or a performance characteristic that is important
 	// to your application workload, such as vCPUs, memory, or I/O. If the request
@@ -10158,16 +8419,6 @@ type SpotFleetRequestConfigData struct {
 
 	// Indicates whether Spot Fleet should replace unhealthy instances.
 	ReplaceUnhealthyInstances *bool `locationName:"replaceUnhealthyInstances" type:"boolean"`
-
-	// The maximum amount per hour for Spot Instances that you're willing to pay.
-	// You can use the spotdMaxTotalPrice parameter, the onDemandMaxTotalPrice parameter,
-	// or both parameters to ensure that your fleet cost does not exceed your budget.
-	// If you set a maximum price per hour for the On-Demand Instances and Spot
-	// Instances in your request, Spot Fleet will launch instances until it reaches
-	// the maximum amount you're willing to pay. When the maximum amount you're
-	// willing to pay is reached, the fleet stops launching instances even if it
-	// hasn’t met the target capacity.
-	SpotMaxTotalPrice *string `locationName:"spotMaxTotalPrice" type:"string"`
 
 	// The maximum price per unit hour that you are willing to pay for a Spot Instance.
 	// The default is the On-Demand price.
@@ -10198,13 +8449,13 @@ type SpotFleetRequestConfigData struct {
 
 	// The start date and time of the request, in UTC format (YYYY-MM-DDTHH:MM:SSZ).
 	// By default, Amazon EC2 starts fulfilling the request immediately.
-	ValidFrom *time.Time `locationName:"validFrom" type:"timestamp"`
+	ValidFrom *time.Time `locationName:"validFrom" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The end date and time of the request, in UTC format (YYYY-MM-DDTHH:MM:SSZ).
 	// After the end date and time, no new Spot Instance requests are placed or
 	// able to fulfill the request. If no value is specified, the Spot Fleet request
 	// remains until you cancel it.
-	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp"`
+	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -10243,6 +8494,7 @@ func (s *SpotFleetRequestConfigData) Validate() error {
 }
 
 // The tags for a Spot Fleet resource.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotFleetTagSpecification
 type SpotFleetTagSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -10260,6 +8512,7 @@ func (s SpotFleetTagSpecification) String() string {
 }
 
 // Describes a Spot Instance request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotInstanceRequest
 type SpotInstanceRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -10277,7 +8530,7 @@ type SpotInstanceRequest struct {
 
 	// The date and time when the Spot Instance request was created, in UTC format
 	// (for example, YYYY-MM-DDTHH:MM:SSZ).
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The fault codes for the Spot Instance request, if any.
 	Fault *SpotInstanceStateFault `locationName:"fault" type:"structure"`
@@ -10324,14 +8577,14 @@ type SpotInstanceRequest struct {
 
 	// The start date of the request, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	// The request becomes active at this date and time.
-	ValidFrom *time.Time `locationName:"validFrom" type:"timestamp"`
+	ValidFrom *time.Time `locationName:"validFrom" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The end date of the request, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	// If this is a one-time request, it remains active until all instances launch,
 	// the request is canceled, or this date is reached. If the request is persistent,
 	// it remains active until it is canceled or this date is reached. The default
 	// end date is 7 days from the current date.
-	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp"`
+	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -10340,6 +8593,7 @@ func (s SpotInstanceRequest) String() string {
 }
 
 // Describes a Spot Instance state change.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotInstanceStateFault
 type SpotInstanceStateFault struct {
 	_ struct{} `type:"structure"`
 
@@ -10356,6 +8610,7 @@ func (s SpotInstanceStateFault) String() string {
 }
 
 // Describes the status of a Spot Instance request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotInstanceStatus
 type SpotInstanceStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -10368,7 +8623,7 @@ type SpotInstanceStatus struct {
 
 	// The date and time of the most recent status update, in UTC format (for example,
 	// YYYY-MM-DDTHH:MM:SSZ).
-	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp"`
+	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -10377,6 +8632,7 @@ func (s SpotInstanceStatus) String() string {
 }
 
 // The options for Spot Instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotMarketOptions
 type SpotMarketOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -10402,7 +8658,7 @@ type SpotMarketOptions struct {
 	// is reached. If the request is persistent, it remains active until it is canceled
 	// or this date and time is reached. The default end date is 7 days from the
 	// current date.
-	ValidUntil *time.Time `type:"timestamp"`
+	ValidUntil *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -10411,46 +8667,33 @@ func (s SpotMarketOptions) String() string {
 }
 
 // Describes the configuration of Spot Instances in an EC2 Fleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotOptions
 type SpotOptions struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates how to allocate the target Spot Instance capacity across the Spot
-	// Instance pools specified by the EC2 Fleet.
-	//
-	// If the allocation strategy is lowest-price, EC2 Fleet launches instances
-	// from the Spot Instance pools with the lowest price. This is the default allocation
-	// strategy.
-	//
-	// If the allocation strategy is diversified, EC2 Fleet launches instances from
-	// all of the Spot Instance pools that you specify.
-	//
-	// If the allocation strategy is capacity-optimized, EC2 Fleet launches instances
-	// from Spot Instance pools with optimal capacity for the number of instances
-	// that are launching.
+	// Indicates how to allocate the target capacity across the Spot pools specified
+	// by the Spot Fleet request. The default is lowest-price.
 	AllocationStrategy SpotAllocationStrategy `locationName:"allocationStrategy" type:"string" enum:"true"`
 
 	// The behavior when a Spot Instance is interrupted. The default is terminate.
 	InstanceInterruptionBehavior SpotInstanceInterruptionBehavior `locationName:"instanceInterruptionBehavior" type:"string" enum:"true"`
 
 	// The number of Spot pools across which to allocate your target Spot capacity.
-	// Valid only when AllocationStrategy is set to lowest-price. EC2 Fleet selects
+	// Valid only when AllocationStrategy is set to lowestPrice. EC2 Fleet selects
 	// the cheapest Spot pools and evenly allocates your target Spot capacity across
 	// the number of Spot pools that you specify.
 	InstancePoolsToUseCount *int64 `locationName:"instancePoolsToUseCount" type:"integer"`
-
-	// The maximum amount per hour for Spot Instances that you're willing to pay.
-	MaxTotalPrice *string `locationName:"maxTotalPrice" type:"string"`
 
 	// The minimum target capacity for Spot Instances in the fleet. If the minimum
 	// target capacity is not reached, the fleet launches no instances.
 	MinTargetCapacity *int64 `locationName:"minTargetCapacity" type:"integer"`
 
 	// Indicates that the fleet launches all Spot Instances into a single Availability
-	// Zone. Supported only for fleets of type instant.
+	// Zone.
 	SingleAvailabilityZone *bool `locationName:"singleAvailabilityZone" type:"boolean"`
 
 	// Indicates that the fleet uses a single instance type to launch all Spot Instances
-	// in the fleet. Supported only for fleets of type instant.
+	// in the fleet.
 	SingleInstanceType *bool `locationName:"singleInstanceType" type:"boolean"`
 }
 
@@ -10460,22 +8703,12 @@ func (s SpotOptions) String() string {
 }
 
 // Describes the configuration of Spot Instances in an EC2 Fleet request.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotOptionsRequest
 type SpotOptionsRequest struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates how to allocate the target Spot Instance capacity across the Spot
-	// Instance pools specified by the EC2 Fleet.
-	//
-	// If the allocation strategy is lowest-price, EC2 Fleet launches instances
-	// from the Spot Instance pools with the lowest price. This is the default allocation
-	// strategy.
-	//
-	// If the allocation strategy is diversified, EC2 Fleet launches instances from
-	// all of the Spot Instance pools that you specify.
-	//
-	// If the allocation strategy is capacity-optimized, EC2 Fleet launches instances
-	// from Spot Instance pools with optimal capacity for the number of instances
-	// that are launching.
+	// Indicates how to allocate the target capacity across the Spot pools specified
+	// by the Spot Fleet request. The default is lowestPrice.
 	AllocationStrategy SpotAllocationStrategy `type:"string" enum:"true"`
 
 	// The behavior when a Spot Instance is interrupted. The default is terminate.
@@ -10487,19 +8720,16 @@ type SpotOptionsRequest struct {
 	// across the number of Spot pools that you specify.
 	InstancePoolsToUseCount *int64 `type:"integer"`
 
-	// The maximum amount per hour for Spot Instances that you're willing to pay.
-	MaxTotalPrice *string `type:"string"`
-
 	// The minimum target capacity for Spot Instances in the fleet. If the minimum
 	// target capacity is not reached, the fleet launches no instances.
 	MinTargetCapacity *int64 `type:"integer"`
 
 	// Indicates that the fleet launches all Spot Instances into a single Availability
-	// Zone. Supported only for fleets of type instant.
+	// Zone.
 	SingleAvailabilityZone *bool `type:"boolean"`
 
 	// Indicates that the fleet uses a single instance type to launch all Spot Instances
-	// in the fleet. Supported only for fleets of type instant.
+	// in the fleet.
 	SingleInstanceType *bool `type:"boolean"`
 }
 
@@ -10509,6 +8739,7 @@ func (s SpotOptionsRequest) String() string {
 }
 
 // Describes Spot Instance placement.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotPlacement
 type SpotPlacement struct {
 	_ struct{} `type:"structure"`
 
@@ -10534,6 +8765,7 @@ func (s SpotPlacement) String() string {
 
 // Describes the maximum price per hour that you are willing to pay for a Spot
 // Instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SpotPrice
 type SpotPrice struct {
 	_ struct{} `type:"structure"`
 
@@ -10550,7 +8782,7 @@ type SpotPrice struct {
 	SpotPrice *string `locationName:"spotPrice" type:"string"`
 
 	// The date and time the request was created, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
-	Timestamp *time.Time `locationName:"timestamp" type:"timestamp"`
+	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -10559,6 +8791,7 @@ func (s SpotPrice) String() string {
 }
 
 // Describes a stale rule in a security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/StaleIpPermission
 type StaleIpPermission struct {
 	_ struct{} `type:"structure"`
 
@@ -10592,6 +8825,7 @@ func (s StaleIpPermission) String() string {
 }
 
 // Describes a stale security group (a security group that contains stale rules).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/StaleSecurityGroup
 type StaleSecurityGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -10620,6 +8854,7 @@ func (s StaleSecurityGroup) String() string {
 }
 
 // Describes a state change.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/StateReason
 type StateReason struct {
 	_ struct{} `type:"structure"`
 
@@ -10674,6 +8909,7 @@ func (s StateReason) String() string {
 }
 
 // Describes the storage location for an instance store-backed AMI.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Storage
 type Storage struct {
 	_ struct{} `type:"structure"`
 
@@ -10687,6 +8923,7 @@ func (s Storage) String() string {
 }
 
 // Describes a storage location in Amazon S3.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/StorageLocation
 type StorageLocation struct {
 	_ struct{} `type:"structure"`
 
@@ -10703,6 +8940,7 @@ func (s StorageLocation) String() string {
 }
 
 // Describes a subnet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Subnet
 type Subnet struct {
 	_ struct{} `type:"structure"`
 
@@ -10733,9 +8971,6 @@ type Subnet struct {
 	// address.
 	MapPublicIpOnLaunch *bool `locationName:"mapPublicIpOnLaunch" type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
-
 	// The ID of the AWS account that owns the subnet.
 	OwnerId *string `locationName:"ownerId" type:"string"`
 
@@ -10760,23 +8995,8 @@ func (s Subnet) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the subnet association with the transit gateway multicast domain.
-type SubnetAssociation struct {
-	_ struct{} `type:"structure"`
-
-	// The state of the subnet association.
-	State TransitGatewayMulitcastDomainAssociationState `locationName:"state" type:"string" enum:"true"`
-
-	// The ID of the subnet.
-	SubnetId *string `locationName:"subnetId" type:"string"`
-}
-
-// String returns the string representation
-func (s SubnetAssociation) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the state of a CIDR block.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SubnetCidrBlockState
 type SubnetCidrBlockState struct {
 	_ struct{} `type:"structure"`
 
@@ -10793,6 +9013,7 @@ func (s SubnetCidrBlockState) String() string {
 }
 
 // Describes an IPv6 CIDR block associated with a subnet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SubnetIpv6CidrBlockAssociation
 type SubnetIpv6CidrBlockAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -10811,8 +9032,9 @@ func (s SubnetIpv6CidrBlockAssociation) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the burstable performance instance whose credit option for CPU
-// usage was successfully modified.
+// Describes the T2 or T3 instance whose credit option for CPU usage was successfully
+// modified.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SuccessfulInstanceCreditSpecificationItem
 type SuccessfulInstanceCreditSpecificationItem struct {
 	_ struct{} `type:"structure"`
 
@@ -10825,20 +9047,8 @@ func (s SuccessfulInstanceCreditSpecificationItem) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes a Reserved Instance whose queued purchase was successfully deleted.
-type SuccessfulQueuedPurchaseDeletion struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the Reserved Instance.
-	ReservedInstancesId *string `locationName:"reservedInstancesId" type:"string"`
-}
-
-// String returns the string representation
-func (s SuccessfulQueuedPurchaseDeletion) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a tag.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Tag
 type Tag struct {
 	_ struct{} `type:"structure"`
 
@@ -10861,6 +9071,7 @@ func (s Tag) String() string {
 }
 
 // Describes a tag.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TagDescription
 type TagDescription struct {
 	_ struct{} `type:"structure"`
 
@@ -10883,17 +9094,13 @@ func (s TagDescription) String() string {
 }
 
 // The tags to apply to a resource when the resource is being created.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TagSpecification
 type TagSpecification struct {
 	_ struct{} `type:"structure"`
 
 	// The type of resource to tag. Currently, the resource types that support tagging
-	// on creation are: capacity-reservation | client-vpn-endpoint | dedicated-host
-	// | fleet | fpga-image | instance | key-pair | launch-template | placement-group
-	// | snapshot | traffic-mirror-filter | traffic-mirror-session | traffic-mirror-target
-	// | transit-gateway | transit-gateway-attachment | transit-gateway-route-table
-	// | volume.
-	//
-	// To tag a resource after it has been created, see CreateTags (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTags.html).
+	// on creation are fleet, dedicated-host, instance, snapshot, and volume. To
+	// tag a resource after it has been created, see CreateTags.
 	ResourceType ResourceType `locationName:"resourceType" type:"string" enum:"true"`
 
 	// The tags to apply to the resource.
@@ -10910,27 +9117,17 @@ func (s TagSpecification) String() string {
 // your application workload, such as vCPUs, memory, or I/O. If the request
 // type is maintain, you can specify a target capacity of 0 and add capacity
 // later.
-//
-// You can use the On-Demand Instance MaxTotalPrice parameter, the Spot Instance
-// MaxTotalPrice, or both to ensure that your fleet cost does not exceed your
-// budget. If you set a maximum price per hour for the On-Demand Instances and
-// Spot Instances in your request, EC2 Fleet will launch instances until it
-// reaches the maximum amount that you're willing to pay. When the maximum amount
-// you're willing to pay is reached, the fleet stops launching instances even
-// if it hasn’t met the target capacity. The MaxTotalPrice parameters are
-// located in and
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetCapacitySpecification
 type TargetCapacitySpecification struct {
 	_ struct{} `type:"structure"`
 
 	// The default TotalTargetCapacity, which is either Spot or On-Demand.
 	DefaultTargetCapacityType DefaultTargetCapacityType `locationName:"defaultTargetCapacityType" type:"string" enum:"true"`
 
-	// The number of On-Demand units to request. If you specify a target capacity
-	// for Spot units, you cannot specify a target capacity for On-Demand units.
+	// The number of On-Demand units to request.
 	OnDemandTargetCapacity *int64 `locationName:"onDemandTargetCapacity" type:"integer"`
 
-	// The maximum number of Spot units to launch. If you specify a target capacity
-	// for On-Demand units, you cannot specify a target capacity for Spot units.
+	// The maximum number of Spot units to launch.
 	SpotTargetCapacity *int64 `locationName:"spotTargetCapacity" type:"integer"`
 
 	// The number of units to request, filled using DefaultTargetCapacityType.
@@ -10943,19 +9140,11 @@ func (s TargetCapacitySpecification) String() string {
 }
 
 // The number of units to request. You can choose to set the target capacity
-// as the number of instances. Or you can set the target capacity to a performance
-// characteristic that is important to your application workload, such as vCPUs,
-// memory, or I/O. If the request type is maintain, you can specify a target
-// capacity of 0 and add capacity later.
-//
-// You can use the On-Demand Instance MaxTotalPrice parameter, the Spot Instance
-// MaxTotalPrice parameter, or both parameters to ensure that your fleet cost
-// does not exceed your budget. If you set a maximum price per hour for the
-// On-Demand Instances and Spot Instances in your request, EC2 Fleet will launch
-// instances until it reaches the maximum amount that you're willing to pay.
-// When the maximum amount you're willing to pay is reached, the fleet stops
-// launching instances even if it hasn’t met the target capacity. The MaxTotalPrice
-// parameters are located in and .
+// in terms of instances or a performance characteristic that is important to
+// your application workload, such as vCPUs, memory, or I/O. If the request
+// type is maintain, you can specify a target capacity of 0 and add capacity
+// later.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetCapacitySpecificationRequest
 type TargetCapacitySpecificationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -10994,6 +9183,7 @@ func (s *TargetCapacitySpecificationRequest) Validate() error {
 }
 
 // Information about the Convertible Reserved Instance offering.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetConfiguration
 type TargetConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -11011,6 +9201,7 @@ func (s TargetConfiguration) String() string {
 }
 
 // Details about the target configuration.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetConfigurationRequest
 type TargetConfigurationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -11044,6 +9235,7 @@ func (s *TargetConfigurationRequest) Validate() error {
 }
 
 // Describes a load balancer target group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetGroup
 type TargetGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -11058,6 +9250,7 @@ func (s TargetGroup) String() string {
 
 // Describes the target groups to attach to a Spot Fleet. Spot Fleet registers
 // the running Spot Instances with these target groups.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetGroupsConfig
 type TargetGroupsConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -11084,6 +9277,7 @@ func (s *TargetGroupsConfig) Validate() error {
 }
 
 // Describes a target network associated with a Client VPN endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetNetwork
 type TargetNetwork struct {
 	_ struct{} `type:"structure"`
 
@@ -11112,6 +9306,7 @@ func (s TargetNetwork) String() string {
 }
 
 // The total value of the new Convertible Reserved Instances.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TargetReservationValue
 type TargetReservationValue struct {
 	_ struct{} `type:"structure"`
 
@@ -11131,6 +9326,7 @@ func (s TargetReservationValue) String() string {
 }
 
 // Information about a terminated Client VPN endpoint client connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TerminateConnectionStatus
 type TerminateConnectionStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -11149,200 +9345,13 @@ func (s TerminateConnectionStatus) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the Traffic Mirror filter.
-type TrafficMirrorFilter struct {
-	_ struct{} `type:"structure"`
-
-	// The description of the Traffic Mirror filter.
-	Description *string `locationName:"description" type:"string"`
-
-	// Information about the egress rules that are associated with the Traffic Mirror
-	// filter.
-	EgressFilterRules []TrafficMirrorFilterRule `locationName:"egressFilterRuleSet" locationNameList:"item" type:"list"`
-
-	// Information about the ingress rules that are associated with the Traffic
-	// Mirror filter.
-	IngressFilterRules []TrafficMirrorFilterRule `locationName:"ingressFilterRuleSet" locationNameList:"item" type:"list"`
-
-	// The network service traffic that is associated with the Traffic Mirror filter.
-	NetworkServices []TrafficMirrorNetworkService `locationName:"networkServiceSet" locationNameList:"item" type:"list"`
-
-	// The tags assigned to the Traffic Mirror filter.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// The ID of the Traffic Mirror filter.
-	TrafficMirrorFilterId *string `locationName:"trafficMirrorFilterId" type:"string"`
-}
-
-// String returns the string representation
-func (s TrafficMirrorFilter) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the Traffic Mirror rule.
-type TrafficMirrorFilterRule struct {
-	_ struct{} `type:"structure"`
-
-	// The description of the Traffic Mirror rule.
-	Description *string `locationName:"description" type:"string"`
-
-	// The destination CIDR block assigned to the Traffic Mirror rule.
-	DestinationCidrBlock *string `locationName:"destinationCidrBlock" type:"string"`
-
-	// The destination port range assigned to the Traffic Mirror rule.
-	DestinationPortRange *TrafficMirrorPortRange `locationName:"destinationPortRange" type:"structure"`
-
-	// The protocol assigned to the Traffic Mirror rule.
-	Protocol *int64 `locationName:"protocol" type:"integer"`
-
-	// The action assigned to the Traffic Mirror rule.
-	RuleAction TrafficMirrorRuleAction `locationName:"ruleAction" type:"string" enum:"true"`
-
-	// The rule number of the Traffic Mirror rule.
-	RuleNumber *int64 `locationName:"ruleNumber" type:"integer"`
-
-	// The source CIDR block assigned to the Traffic Mirror rule.
-	SourceCidrBlock *string `locationName:"sourceCidrBlock" type:"string"`
-
-	// The source port range assigned to the Traffic Mirror rule.
-	SourcePortRange *TrafficMirrorPortRange `locationName:"sourcePortRange" type:"structure"`
-
-	// The traffic direction assigned to the Traffic Mirror rule.
-	TrafficDirection TrafficDirection `locationName:"trafficDirection" type:"string" enum:"true"`
-
-	// The ID of the Traffic Mirror filter that the rule is associated with.
-	TrafficMirrorFilterId *string `locationName:"trafficMirrorFilterId" type:"string"`
-
-	// The ID of the Traffic Mirror rule.
-	TrafficMirrorFilterRuleId *string `locationName:"trafficMirrorFilterRuleId" type:"string"`
-}
-
-// String returns the string representation
-func (s TrafficMirrorFilterRule) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the Traffic Mirror port range.
-type TrafficMirrorPortRange struct {
-	_ struct{} `type:"structure"`
-
-	// The start of the Traffic Mirror port range. This applies to the TCP and UDP
-	// protocols.
-	FromPort *int64 `locationName:"fromPort" type:"integer"`
-
-	// The end of the Traffic Mirror port range. This applies to the TCP and UDP
-	// protocols.
-	ToPort *int64 `locationName:"toPort" type:"integer"`
-}
-
-// String returns the string representation
-func (s TrafficMirrorPortRange) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Information about the Traffic Mirror filter rule port range.
-type TrafficMirrorPortRangeRequest struct {
-	_ struct{} `type:"structure"`
-
-	// The first port in the Traffic Mirror port range. This applies to the TCP
-	// and UDP protocols.
-	FromPort *int64 `type:"integer"`
-
-	// The last port in the Traffic Mirror port range. This applies to the TCP and
-	// UDP protocols.
-	ToPort *int64 `type:"integer"`
-}
-
-// String returns the string representation
-func (s TrafficMirrorPortRangeRequest) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a Traffic Mirror session.
-type TrafficMirrorSession struct {
-	_ struct{} `type:"structure"`
-
-	// The description of the Traffic Mirror session.
-	Description *string `locationName:"description" type:"string"`
-
-	// The ID of the Traffic Mirror session's network interface.
-	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
-
-	// The ID of the account that owns the Traffic Mirror session.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// The number of bytes in each packet to mirror. These are the bytes after the
-	// VXLAN header. To mirror a subset, set this to the length (in bytes) to mirror.
-	// For example, if you set this value to 100, then the first 100 bytes that
-	// meet the filter criteria are copied to the target. Do not specify this parameter
-	// when you want to mirror the entire packet
-	PacketLength *int64 `locationName:"packetLength" type:"integer"`
-
-	// The session number determines the order in which sessions are evaluated when
-	// an interface is used by multiple sessions. The first session with a matching
-	// filter is the one that mirrors the packets.
-	//
-	// Valid values are 1-32766.
-	SessionNumber *int64 `locationName:"sessionNumber" type:"integer"`
-
-	// The tags assigned to the Traffic Mirror session.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// The ID of the Traffic Mirror filter.
-	TrafficMirrorFilterId *string `locationName:"trafficMirrorFilterId" type:"string"`
-
-	// The ID for the Traffic Mirror session.
-	TrafficMirrorSessionId *string `locationName:"trafficMirrorSessionId" type:"string"`
-
-	// The ID of the Traffic Mirror target.
-	TrafficMirrorTargetId *string `locationName:"trafficMirrorTargetId" type:"string"`
-
-	// The virtual network ID associated with the Traffic Mirror session.
-	VirtualNetworkId *int64 `locationName:"virtualNetworkId" type:"integer"`
-}
-
-// String returns the string representation
-func (s TrafficMirrorSession) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes a Traffic Mirror target.
-type TrafficMirrorTarget struct {
-	_ struct{} `type:"structure"`
-
-	// Information about the Traffic Mirror target.
-	Description *string `locationName:"description" type:"string"`
-
-	// The network interface ID that is attached to the target.
-	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Network Load Balancer.
-	NetworkLoadBalancerArn *string `locationName:"networkLoadBalancerArn" type:"string"`
-
-	// The ID of the account that owns the Traffic Mirror target.
-	OwnerId *string `locationName:"ownerId" type:"string"`
-
-	// The tags assigned to the Traffic Mirror target.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// The ID of the Traffic Mirror target.
-	TrafficMirrorTargetId *string `locationName:"trafficMirrorTargetId" type:"string"`
-
-	// The type of Traffic Mirror target.
-	Type TrafficMirrorTargetType `locationName:"type" type:"string" enum:"true"`
-}
-
-// String returns the string representation
-func (s TrafficMirrorTarget) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes a transit gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGateway
 type TransitGateway struct {
 	_ struct{} `type:"structure"`
 
 	// The creation time.
-	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+	CreationTime *time.Time `locationName:"creationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The description of the transit gateway.
 	Description *string `locationName:"description" type:"string"`
@@ -11373,6 +9382,7 @@ func (s TransitGateway) String() string {
 
 // Describes an association between a resource attachment and a transit gateway
 // route table.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayAssociation
 type TransitGatewayAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -11398,6 +9408,7 @@ func (s TransitGatewayAssociation) String() string {
 }
 
 // Describes an attachment between a resource and a transit gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayAttachment
 type TransitGatewayAttachment struct {
 	_ struct{} `type:"structure"`
 
@@ -11405,7 +9416,7 @@ type TransitGatewayAttachment struct {
 	Association *TransitGatewayAttachmentAssociation `locationName:"association" type:"structure"`
 
 	// The creation time.
-	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+	CreationTime *time.Time `locationName:"creationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The ID of the resource.
 	ResourceId *string `locationName:"resourceId" type:"string"`
@@ -11438,6 +9449,7 @@ func (s TransitGatewayAttachment) String() string {
 }
 
 // Describes an association.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayAttachmentAssociation
 type TransitGatewayAttachmentAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -11454,6 +9466,7 @@ func (s TransitGatewayAttachmentAssociation) String() string {
 }
 
 // Describes a propagation route table.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayAttachmentPropagation
 type TransitGatewayAttachmentPropagation struct {
 	_ struct{} `type:"structure"`
 
@@ -11469,196 +9482,8 @@ func (s TransitGatewayAttachmentPropagation) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the deregistered transit gateway multicast group members.
-type TransitGatewayMulticastDeregisteredGroupMembers struct {
-	_ struct{} `type:"structure"`
-
-	// The network interface IDs of the deregistered members.
-	DeregisteredNetworkInterfaceIds []string `locationName:"deregisteredNetworkInterfaceIds" locationNameList:"item" type:"list"`
-
-	// The IP address assigned to the transit gateway multicast group.
-	GroupIpAddress *string `locationName:"groupIpAddress" type:"string"`
-
-	// The ID of the transit gateway multicast domain.
-	TransitGatewayMulticastDomainId *string `locationName:"transitGatewayMulticastDomainId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastDeregisteredGroupMembers) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the deregistered transit gateway multicast group sources.
-type TransitGatewayMulticastDeregisteredGroupSources struct {
-	_ struct{} `type:"structure"`
-
-	// The network interface IDs of the non-registered members.
-	DeregisteredNetworkInterfaceIds []string `locationName:"deregisteredNetworkInterfaceIds" locationNameList:"item" type:"list"`
-
-	// The IP address assigned to the transit gateway multicast group.
-	GroupIpAddress *string `locationName:"groupIpAddress" type:"string"`
-
-	// The ID of the transit gateway multicast domain.
-	TransitGatewayMulticastDomainId *string `locationName:"transitGatewayMulticastDomainId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastDeregisteredGroupSources) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the transit gateway multicast domain.
-type TransitGatewayMulticastDomain struct {
-	_ struct{} `type:"structure"`
-
-	// The time the transit gateway multicast domain was created.
-	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
-
-	// The state of the transit gateway multicast domain.
-	State TransitGatewayMulticastDomainState `locationName:"state" type:"string" enum:"true"`
-
-	// The tags for the transit gateway multicast domain.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// The ID of the transit gateway.
-	TransitGatewayId *string `locationName:"transitGatewayId" type:"string"`
-
-	// The ID of the transit gateway multicast domain.
-	TransitGatewayMulticastDomainId *string `locationName:"transitGatewayMulticastDomainId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastDomain) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the resources associated with the transit gateway multicast domain.
-type TransitGatewayMulticastDomainAssociation struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the resource.
-	ResourceId *string `locationName:"resourceId" type:"string"`
-
-	// The type of resource, for example a VPC attachment.
-	ResourceType TransitGatewayAttachmentResourceType `locationName:"resourceType" type:"string" enum:"true"`
-
-	// The subnet associated with the transit gateway multicast domain.
-	Subnet *SubnetAssociation `locationName:"subnet" type:"structure"`
-
-	// The ID of the transit gateway attachment.
-	TransitGatewayAttachmentId *string `locationName:"transitGatewayAttachmentId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastDomainAssociation) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the multicast domain associations.
-type TransitGatewayMulticastDomainAssociations struct {
-	_ struct{} `type:"structure"`
-
-	// The ID of the resource.
-	ResourceId *string `locationName:"resourceId" type:"string"`
-
-	// The type of resource, for example a VPC attachment.
-	ResourceType TransitGatewayAttachmentResourceType `locationName:"resourceType" type:"string" enum:"true"`
-
-	// The subnets associated with the multicast domain.
-	Subnets []SubnetAssociation `locationName:"subnets" locationNameList:"item" type:"list"`
-
-	// The ID of the transit gateway attachment.
-	TransitGatewayAttachmentId *string `locationName:"transitGatewayAttachmentId" type:"string"`
-
-	// The ID of the transit gateway multicast domain.
-	TransitGatewayMulticastDomainId *string `locationName:"transitGatewayMulticastDomainId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastDomainAssociations) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the transit gateway multicast group resources.
-type TransitGatewayMulticastGroup struct {
-	_ struct{} `type:"structure"`
-
-	// The IP address assigned to the transit gateway multicast group.
-	GroupIpAddress *string `locationName:"groupIpAddress" type:"string"`
-
-	// Indicates that the resource is a transit gateway multicast group member.
-	GroupMember *bool `locationName:"groupMember" type:"boolean"`
-
-	// Indicates that the resource is a transit gateway multicast group member.
-	GroupSource *bool `locationName:"groupSource" type:"boolean"`
-
-	// The member type (for example, static).
-	MemberType MembershipType `locationName:"memberType" type:"string" enum:"true"`
-
-	// The ID of the transit gateway attachment.
-	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
-
-	// The ID of the resource.
-	ResourceId *string `locationName:"resourceId" type:"string"`
-
-	// The type of resource, for example a VPC attachment.
-	ResourceType TransitGatewayAttachmentResourceType `locationName:"resourceType" type:"string" enum:"true"`
-
-	// The source type.
-	SourceType MembershipType `locationName:"sourceType" type:"string" enum:"true"`
-
-	// The ID of the subnet.
-	SubnetId *string `locationName:"subnetId" type:"string"`
-
-	// The ID of the transit gateway attachment.
-	TransitGatewayAttachmentId *string `locationName:"transitGatewayAttachmentId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastGroup) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the registered transit gateway multicast group members.
-type TransitGatewayMulticastRegisteredGroupMembers struct {
-	_ struct{} `type:"structure"`
-
-	// The IP address assigned to the transit gateway multicast group.
-	GroupIpAddress *string `locationName:"groupIpAddress" type:"string"`
-
-	// The ID of the registered network interfaces.
-	RegisteredNetworkInterfaceIds []string `locationName:"registeredNetworkInterfaceIds" locationNameList:"item" type:"list"`
-
-	// The ID of the transit gateway multicast domain.
-	TransitGatewayMulticastDomainId *string `locationName:"transitGatewayMulticastDomainId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastRegisteredGroupMembers) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the members registered with the transit gateway multicast group.
-type TransitGatewayMulticastRegisteredGroupSources struct {
-	_ struct{} `type:"structure"`
-
-	// The IP address assigned to the transit gateway multicast group.
-	GroupIpAddress *string `locationName:"groupIpAddress" type:"string"`
-
-	// The IDs of the network interfaces members registered with the transit gateway
-	// multicast group.
-	RegisteredNetworkInterfaceIds []string `locationName:"registeredNetworkInterfaceIds" locationNameList:"item" type:"list"`
-
-	// The ID of the transit gateway multicast domain.
-	TransitGatewayMulticastDomainId *string `locationName:"transitGatewayMulticastDomainId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayMulticastRegisteredGroupSources) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes the options for a transit gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayOptions
 type TransitGatewayOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -11684,9 +9509,6 @@ type TransitGatewayOptions struct {
 	// Indicates whether DNS support is enabled.
 	DnsSupport DnsSupportValue `locationName:"dnsSupport" type:"string" enum:"true"`
 
-	// Indicates whether multicast is enabled on the transit gateway
-	MulticastSupport MulticastSupportValue `locationName:"multicastSupport" type:"string" enum:"true"`
-
 	// The ID of the default propagation route table.
 	PropagationDefaultRouteTableId *string `locationName:"propagationDefaultRouteTableId" type:"string"`
 
@@ -11699,38 +9521,8 @@ func (s TransitGatewayOptions) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the transit gateway peering attachment.
-type TransitGatewayPeeringAttachment struct {
-	_ struct{} `type:"structure"`
-
-	// Information about the accepter transit gateway.
-	AccepterTgwInfo *PeeringTgwInfo `locationName:"accepterTgwInfo" type:"structure"`
-
-	// The time the transit gateway peering attachment was created.
-	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
-
-	// Information about the requester transit gateway.
-	RequesterTgwInfo *PeeringTgwInfo `locationName:"requesterTgwInfo" type:"structure"`
-
-	// The state of the transit gateway peering attachment.
-	State TransitGatewayAttachmentState `locationName:"state" type:"string" enum:"true"`
-
-	// The status of the transit gateway peering attachment.
-	Status *PeeringAttachmentStatus `locationName:"status" type:"structure"`
-
-	// The tags for the transit gateway peering attachment.
-	Tags []Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	// The ID of the transit gateway peering attachment.
-	TransitGatewayAttachmentId *string `locationName:"transitGatewayAttachmentId" type:"string"`
-}
-
-// String returns the string representation
-func (s TransitGatewayPeeringAttachment) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes route propagation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayPropagation
 type TransitGatewayPropagation struct {
 	_ struct{} `type:"structure"`
 
@@ -11756,6 +9548,7 @@ func (s TransitGatewayPropagation) String() string {
 }
 
 // Describes the options for a transit gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayRequestOptions
 type TransitGatewayRequestOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -11779,9 +9572,6 @@ type TransitGatewayRequestOptions struct {
 	// Enable or disable DNS support.
 	DnsSupport DnsSupportValue `type:"string" enum:"true"`
 
-	// Indicates whether multicast is enabled on the transit gateway
-	MulticastSupport MulticastSupportValue `type:"string" enum:"true"`
-
 	// Enable or disable Equal Cost Multipath Protocol support.
 	VpnEcmpSupport VpnEcmpSupportValue `type:"string" enum:"true"`
 }
@@ -11792,6 +9582,7 @@ func (s TransitGatewayRequestOptions) String() string {
 }
 
 // Describes a route for a transit gateway route table.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayRoute
 type TransitGatewayRoute struct {
 	_ struct{} `type:"structure"`
 
@@ -11814,6 +9605,7 @@ func (s TransitGatewayRoute) String() string {
 }
 
 // Describes a route attachment.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayRouteAttachment
 type TransitGatewayRouteAttachment struct {
 	_ struct{} `type:"structure"`
 
@@ -11833,11 +9625,12 @@ func (s TransitGatewayRouteAttachment) String() string {
 }
 
 // Describes a transit gateway route table.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayRouteTable
 type TransitGatewayRouteTable struct {
 	_ struct{} `type:"structure"`
 
 	// The creation time.
-	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+	CreationTime *time.Time `locationName:"creationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Indicates whether this is the default association route table for the transit
 	// gateway.
@@ -11866,6 +9659,7 @@ func (s TransitGatewayRouteTable) String() string {
 }
 
 // Describes an association between a route table and a resource attachment.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayRouteTableAssociation
 type TransitGatewayRouteTableAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -11888,6 +9682,7 @@ func (s TransitGatewayRouteTableAssociation) String() string {
 }
 
 // Describes a route table propagation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayRouteTablePropagation
 type TransitGatewayRouteTablePropagation struct {
 	_ struct{} `type:"structure"`
 
@@ -11910,11 +9705,12 @@ func (s TransitGatewayRouteTablePropagation) String() string {
 }
 
 // Describes a VPC attachment.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayVpcAttachment
 type TransitGatewayVpcAttachment struct {
 	_ struct{} `type:"structure"`
 
 	// The creation time.
-	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+	CreationTime *time.Time `locationName:"creationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The VPC attachment options.
 	Options *TransitGatewayVpcAttachmentOptions `locationName:"options" type:"structure"`
@@ -11947,6 +9743,7 @@ func (s TransitGatewayVpcAttachment) String() string {
 }
 
 // Describes the VPC attachment options.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/TransitGatewayVpcAttachmentOptions
 type TransitGatewayVpcAttachmentOptions struct {
 	_ struct{} `type:"structure"`
 
@@ -11962,76 +9759,14 @@ func (s TransitGatewayVpcAttachmentOptions) String() string {
 	return awsutil.Prettify(s)
 }
 
-// The VPN tunnel options.
-type TunnelOption struct {
-	_ struct{} `type:"structure"`
-
-	// The number of seconds after which a DPD timeout occurs.
-	DpdTimeoutSeconds *int64 `locationName:"dpdTimeoutSeconds" type:"integer"`
-
-	// The IKE versions that are permitted for the VPN tunnel.
-	IkeVersions []IKEVersionsListValue `locationName:"ikeVersionSet" locationNameList:"item" type:"list"`
-
-	// The external IP address of the VPN tunnel.
-	OutsideIpAddress *string `locationName:"outsideIpAddress" type:"string"`
-
-	// The permitted Diffie-Hellman group numbers for the VPN tunnel for phase 1
-	// IKE negotiations.
-	Phase1DHGroupNumbers []Phase1DHGroupNumbersListValue `locationName:"phase1DHGroupNumberSet" locationNameList:"item" type:"list"`
-
-	// The permitted encryption algorithms for the VPN tunnel for phase 1 IKE negotiations.
-	Phase1EncryptionAlgorithms []Phase1EncryptionAlgorithmsListValue `locationName:"phase1EncryptionAlgorithmSet" locationNameList:"item" type:"list"`
-
-	// The permitted integrity algorithms for the VPN tunnel for phase 1 IKE negotiations.
-	Phase1IntegrityAlgorithms []Phase1IntegrityAlgorithmsListValue `locationName:"phase1IntegrityAlgorithmSet" locationNameList:"item" type:"list"`
-
-	// The lifetime for phase 1 of the IKE negotiation, in seconds.
-	Phase1LifetimeSeconds *int64 `locationName:"phase1LifetimeSeconds" type:"integer"`
-
-	// The permitted Diffie-Hellman group numbers for the VPN tunnel for phase 2
-	// IKE negotiations.
-	Phase2DHGroupNumbers []Phase2DHGroupNumbersListValue `locationName:"phase2DHGroupNumberSet" locationNameList:"item" type:"list"`
-
-	// The permitted encryption algorithms for the VPN tunnel for phase 2 IKE negotiations.
-	Phase2EncryptionAlgorithms []Phase2EncryptionAlgorithmsListValue `locationName:"phase2EncryptionAlgorithmSet" locationNameList:"item" type:"list"`
-
-	// The permitted integrity algorithms for the VPN tunnel for phase 2 IKE negotiations.
-	Phase2IntegrityAlgorithms []Phase2IntegrityAlgorithmsListValue `locationName:"phase2IntegrityAlgorithmSet" locationNameList:"item" type:"list"`
-
-	// The lifetime for phase 2 of the IKE negotiation, in seconds.
-	Phase2LifetimeSeconds *int64 `locationName:"phase2LifetimeSeconds" type:"integer"`
-
-	// The pre-shared key (PSK) to establish initial authentication between the
-	// virtual private gateway and the customer gateway.
-	PreSharedKey *string `locationName:"preSharedKey" type:"string"`
-
-	// The percentage of the rekey window determined by RekeyMarginTimeSeconds during
-	// which the rekey time is randomly selected.
-	RekeyFuzzPercentage *int64 `locationName:"rekeyFuzzPercentage" type:"integer"`
-
-	// The margin time, in seconds, before the phase 2 lifetime expires, during
-	// which the AWS side of the VPN connection performs an IKE rekey.
-	RekeyMarginTimeSeconds *int64 `locationName:"rekeyMarginTimeSeconds" type:"integer"`
-
-	// The number of packets in an IKE replay window.
-	ReplayWindowSize *int64 `locationName:"replayWindowSize" type:"integer"`
-
-	// The range of inside IP addresses for the tunnel.
-	TunnelInsideCidr *string `locationName:"tunnelInsideCidr" type:"string"`
-}
-
-// String returns the string representation
-func (s TunnelOption) String() string {
-	return awsutil.Prettify(s)
-}
-
-// Describes the burstable performance instance whose credit option for CPU
-// usage was not modified.
+// Describes the T2 or T3 instance whose credit option for CPU usage was not
+// modified.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UnsuccessfulInstanceCreditSpecificationItem
 type UnsuccessfulInstanceCreditSpecificationItem struct {
 	_ struct{} `type:"structure"`
 
-	// The applicable error for the burstable performance instance whose credit
-	// option for CPU usage was not modified.
+	// The applicable error for the T2 or T3 instance whose credit option for CPU
+	// usage was not modified.
 	Error *UnsuccessfulInstanceCreditSpecificationItemError `locationName:"error" type:"structure"`
 
 	// The ID of the instance.
@@ -12043,8 +9778,9 @@ func (s UnsuccessfulInstanceCreditSpecificationItem) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Information about the error for the burstable performance instance whose
-// credit option for CPU usage was not modified.
+// Information about the error for the T2 or T3 instance whose credit option
+// for CPU usage was not modified.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UnsuccessfulInstanceCreditSpecificationItemError
 type UnsuccessfulInstanceCreditSpecificationItemError struct {
 	_ struct{} `type:"structure"`
 
@@ -12061,6 +9797,7 @@ func (s UnsuccessfulInstanceCreditSpecificationItemError) String() string {
 }
 
 // Information about items that were not successfully processed in a batch call.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UnsuccessfulItem
 type UnsuccessfulItem struct {
 	_ struct{} `type:"structure"`
 
@@ -12078,6 +9815,7 @@ func (s UnsuccessfulItem) String() string {
 
 // Information about the error that occurred. For more information about errors,
 // see Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UnsuccessfulItemError
 type UnsuccessfulItemError struct {
 	_ struct{} `type:"structure"`
 
@@ -12094,6 +9832,7 @@ func (s UnsuccessfulItemError) String() string {
 }
 
 // Describes the S3 bucket for the disk image.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UserBucket
 type UserBucket struct {
 	_ struct{} `type:"structure"`
 
@@ -12110,6 +9849,7 @@ func (s UserBucket) String() string {
 }
 
 // Describes the S3 bucket for the disk image.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UserBucketDetails
 type UserBucketDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -12126,8 +9866,9 @@ func (s UserBucketDetails) String() string {
 }
 
 // Describes the user data for an instance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UserData
 type UserData struct {
-	_ struct{} `type:"structure" sensitive:"true"`
+	_ struct{} `type:"structure"`
 
 	// The user data. If you are using an AWS SDK or command line tool, Base64-encoding
 	// is performed for you, and you can load the text from a file. Otherwise, you
@@ -12141,6 +9882,7 @@ func (s UserData) String() string {
 }
 
 // Describes a security group and AWS account ID pair.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UserIdGroupPair
 type UserIdGroupPair struct {
 	_ struct{} `type:"structure"`
 
@@ -12187,45 +9929,16 @@ func (s UserIdGroupPair) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Describes the vCPU configurations for the instance type.
-type VCpuInfo struct {
-	_ struct{} `type:"structure"`
-
-	// The default number of cores for the instance type.
-	DefaultCores *int64 `locationName:"defaultCores" type:"integer"`
-
-	// The default number of threads per core for the instance type.
-	DefaultThreadsPerCore *int64 `locationName:"defaultThreadsPerCore" type:"integer"`
-
-	// The default number of vCPUs for the instance type.
-	DefaultVCpus *int64 `locationName:"defaultVCpus" type:"integer"`
-
-	// List of the valid number of cores that can be configured for the instance
-	// type.
-	ValidCores []int64 `locationName:"validCores" locationNameList:"item" type:"list"`
-
-	// List of the valid number of threads per core that can be configured for the
-	// instance type.
-	ValidThreadsPerCore []int64 `locationName:"validThreadsPerCore" locationNameList:"item" type:"list"`
-}
-
-// String returns the string representation
-func (s VCpuInfo) String() string {
-	return awsutil.Prettify(s)
-}
-
 // Describes telemetry for a VPN tunnel.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VgwTelemetry
 type VgwTelemetry struct {
 	_ struct{} `type:"structure"`
 
 	// The number of accepted routes.
 	AcceptedRouteCount *int64 `locationName:"acceptedRouteCount" type:"integer"`
 
-	// The Amazon Resource Name (ARN) of the VPN tunnel endpoint certificate.
-	CertificateArn *string `locationName:"certificateArn" type:"string"`
-
 	// The date and time of the last change in status.
-	LastStatusChange *time.Time `locationName:"lastStatusChange" type:"timestamp"`
+	LastStatusChange *time.Time `locationName:"lastStatusChange" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The Internet-routable IP address of the virtual private gateway's outside
 	// interface.
@@ -12244,6 +9957,7 @@ func (s VgwTelemetry) String() string {
 }
 
 // Describes a volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Volume
 type Volume struct {
 	_ struct{} `type:"structure"`
 
@@ -12254,13 +9968,10 @@ type Volume struct {
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
 	// The time stamp when volume creation was initiated.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
-	// Indicates whether the volume is encrypted.
+	// Indicates whether the volume will be encrypted.
 	Encrypted *bool `locationName:"encrypted" type:"boolean"`
-
-	// Indicates whether the volume was created using fast snapshot restore.
-	FastRestored *bool `locationName:"fastRestored" type:"boolean"`
 
 	// The number of I/O operations per second (IOPS) that the volume supports.
 	// For Provisioned IOPS SSD volumes, this represents the number of IOPS that
@@ -12279,13 +9990,9 @@ type Volume struct {
 	// it is not used in requests to create gp2, st1, sc1, or standard volumes.
 	Iops *int64 `locationName:"iops" type:"integer"`
 
-	// The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS)
-	// customer master key (CMK) that was used to protect the volume encryption
-	// key for the volume.
+	// The full ARN of the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) that was used to protect the volume encryption key for the volume.
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
 
 	// The size of the volume, in GiBs.
 	Size *int64 `locationName:"size" type:"integer"`
@@ -12314,11 +10021,12 @@ func (s Volume) String() string {
 }
 
 // Describes volume attachment details.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeAttachment
 type VolumeAttachment struct {
 	_ struct{} `type:"structure"`
 
 	// The time stamp when the attachment initiated.
-	AttachTime *time.Time `locationName:"attachTime" type:"timestamp"`
+	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Indicates whether the EBS volume is deleted on instance termination.
 	DeleteOnTermination *bool `locationName:"deleteOnTermination" type:"boolean"`
@@ -12342,6 +10050,7 @@ func (s VolumeAttachment) String() string {
 }
 
 // Describes an EBS volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeDetail
 type VolumeDetail struct {
 	_ struct{} `type:"structure"`
 
@@ -12373,11 +10082,12 @@ func (s *VolumeDetail) Validate() error {
 // Describes the modification status of an EBS volume.
 //
 // If the volume has never been modified, some element values will be null.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeModification
 type VolumeModification struct {
 	_ struct{} `type:"structure"`
 
 	// The modification completion or failure time.
-	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
+	EndTime *time.Time `locationName:"endTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The current modification state. The modification state is null for unmodified
 	// volumes.
@@ -12396,7 +10106,7 @@ type VolumeModification struct {
 	Progress *int64 `locationName:"progress" type:"long"`
 
 	// The modification start time.
-	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// A status message about the modification progress or failure.
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
@@ -12420,6 +10130,7 @@ func (s VolumeModification) String() string {
 }
 
 // Describes a volume status operation code.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeStatusAction
 type VolumeStatusAction struct {
 	_ struct{} `type:"structure"`
 
@@ -12442,6 +10153,7 @@ func (s VolumeStatusAction) String() string {
 }
 
 // Describes a volume status.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeStatusDetails
 type VolumeStatusDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -12458,6 +10170,7 @@ func (s VolumeStatusDetails) String() string {
 }
 
 // Describes a volume status event.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeStatusEvent
 type VolumeStatusEvent struct {
 	_ struct{} `type:"structure"`
 
@@ -12471,10 +10184,10 @@ type VolumeStatusEvent struct {
 	EventType *string `locationName:"eventType" type:"string"`
 
 	// The latest end time of the event.
-	NotAfter *time.Time `locationName:"notAfter" type:"timestamp"`
+	NotAfter *time.Time `locationName:"notAfter" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The earliest start time of the event.
-	NotBefore *time.Time `locationName:"notBefore" type:"timestamp"`
+	NotBefore *time.Time `locationName:"notBefore" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation
@@ -12483,6 +10196,7 @@ func (s VolumeStatusEvent) String() string {
 }
 
 // Describes the status of a volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeStatusInfo
 type VolumeStatusInfo struct {
 	_ struct{} `type:"structure"`
 
@@ -12499,6 +10213,7 @@ func (s VolumeStatusInfo) String() string {
 }
 
 // Describes the volume status.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VolumeStatusItem
 type VolumeStatusItem struct {
 	_ struct{} `type:"structure"`
 
@@ -12510,9 +10225,6 @@ type VolumeStatusItem struct {
 
 	// A list of events associated with the volume.
 	Events []VolumeStatusEvent `locationName:"eventsSet" locationNameList:"item" type:"list"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
 
 	// The volume ID.
 	VolumeId *string `locationName:"volumeId" type:"string"`
@@ -12527,6 +10239,7 @@ func (s VolumeStatusItem) String() string {
 }
 
 // Describes a VPC.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Vpc
 type Vpc struct {
 	_ struct{} `type:"structure"`
 
@@ -12568,6 +10281,7 @@ func (s Vpc) String() string {
 }
 
 // Describes an attachment between a virtual private gateway and a VPC.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcAttachment
 type VpcAttachment struct {
 	_ struct{} `type:"structure"`
 
@@ -12584,6 +10298,7 @@ func (s VpcAttachment) String() string {
 }
 
 // Describes an IPv4 CIDR block associated with a VPC.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcCidrBlockAssociation
 type VpcCidrBlockAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -12603,6 +10318,7 @@ func (s VpcCidrBlockAssociation) String() string {
 }
 
 // Describes the state of a CIDR block.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcCidrBlockState
 type VpcCidrBlockState struct {
 	_ struct{} `type:"structure"`
 
@@ -12619,6 +10335,7 @@ func (s VpcCidrBlockState) String() string {
 }
 
 // Describes whether a VPC is enabled for ClassicLink.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcClassicLink
 type VpcClassicLink struct {
 	_ struct{} `type:"structure"`
 
@@ -12638,27 +10355,22 @@ func (s VpcClassicLink) String() string {
 }
 
 // Describes a VPC endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcEndpoint
 type VpcEndpoint struct {
 	_ struct{} `type:"structure"`
 
-	// The date and time that the VPC endpoint was created.
-	CreationTimestamp *time.Time `locationName:"creationTimestamp" type:"timestamp"`
+	// The date and time the VPC endpoint was created.
+	CreationTimestamp *time.Time `locationName:"creationTimestamp" type:"timestamp" timestampFormat:"iso8601"`
 
 	// (Interface endpoint) The DNS entries for the endpoint.
 	DnsEntries []DnsEntry `locationName:"dnsEntrySet" locationNameList:"item" type:"list"`
 
-	// (Interface endpoint) Information about the security groups that are associated
-	// with the network interface.
+	// (Interface endpoint) Information about the security groups associated with
+	// the network interface.
 	Groups []SecurityGroupIdentifier `locationName:"groupSet" locationNameList:"item" type:"list"`
-
-	// The last error that occurred for VPC endpoint.
-	LastError *LastError `locationName:"lastError" type:"structure"`
 
 	// (Interface endpoint) One or more network interfaces for the endpoint.
 	NetworkInterfaceIds []string `locationName:"networkInterfaceIdSet" locationNameList:"item" type:"list"`
-
-	// The ID of the AWS account that owns the VPC endpoint.
-	OwnerId *string `locationName:"ownerId" type:"string"`
 
 	// The policy document associated with the endpoint, if applicable.
 	PolicyDocument *string `locationName:"policyDocument" type:"string"`
@@ -12701,17 +10413,12 @@ func (s VpcEndpoint) String() string {
 }
 
 // Describes a VPC endpoint connection to a service.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcEndpointConnection
 type VpcEndpointConnection struct {
 	_ struct{} `type:"structure"`
 
-	// The date and time that the VPC endpoint was created.
-	CreationTimestamp *time.Time `locationName:"creationTimestamp" type:"timestamp"`
-
-	// The DNS entries for the VPC endpoint.
-	DnsEntries []DnsEntry `locationName:"dnsEntrySet" locationNameList:"item" type:"list"`
-
-	// The Amazon Resource Names (ARNs) of the network load balancers for the service.
-	NetworkLoadBalancerArns []string `locationName:"networkLoadBalancerArnSet" locationNameList:"item" type:"list"`
+	// The date and time the VPC endpoint was created.
+	CreationTimestamp *time.Time `locationName:"creationTimestamp" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The ID of the service to which the endpoint is connected.
 	ServiceId *string `locationName:"serviceId" type:"string"`
@@ -12732,6 +10439,7 @@ func (s VpcEndpointConnection) String() string {
 }
 
 // Describes an IPv6 CIDR block associated with a VPC.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcIpv6CidrBlockAssociation
 type VpcIpv6CidrBlockAssociation struct {
 	_ struct{} `type:"structure"`
 
@@ -12743,12 +10451,6 @@ type VpcIpv6CidrBlockAssociation struct {
 
 	// Information about the state of the CIDR block.
 	Ipv6CidrBlockState *VpcCidrBlockState `locationName:"ipv6CidrBlockState" type:"structure"`
-
-	// The ID of the IPv6 address pool from which the IPv6 CIDR block is allocated.
-	Ipv6Pool *string `locationName:"ipv6Pool" type:"string"`
-
-	// The name of the location from which we advertise the IPV6 CIDR block.
-	NetworkBorderGroup *string `locationName:"networkBorderGroup" type:"string"`
 }
 
 // String returns the string representation
@@ -12757,6 +10459,7 @@ func (s VpcIpv6CidrBlockAssociation) String() string {
 }
 
 // Describes a VPC peering connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcPeeringConnection
 type VpcPeeringConnection struct {
 	_ struct{} `type:"structure"`
 
@@ -12765,7 +10468,7 @@ type VpcPeeringConnection struct {
 	AccepterVpcInfo *VpcPeeringConnectionVpcInfo `locationName:"accepterVpcInfo" type:"structure"`
 
 	// The time that an unaccepted VPC peering connection will expire.
-	ExpirationTime *time.Time `locationName:"expirationTime" type:"timestamp"`
+	ExpirationTime *time.Time `locationName:"expirationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Information about the requester VPC. CIDR block information is only returned
 	// when describing an active VPC peering connection.
@@ -12787,6 +10490,7 @@ func (s VpcPeeringConnection) String() string {
 }
 
 // Describes the VPC peering connection options.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcPeeringConnectionOptionsDescription
 type VpcPeeringConnectionOptionsDescription struct {
 	_ struct{} `type:"structure"`
 
@@ -12809,6 +10513,7 @@ func (s VpcPeeringConnectionOptionsDescription) String() string {
 }
 
 // Describes the status of a VPC peering connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcPeeringConnectionStateReason
 type VpcPeeringConnectionStateReason struct {
 	_ struct{} `type:"structure"`
 
@@ -12825,6 +10530,7 @@ func (s VpcPeeringConnectionStateReason) String() string {
 }
 
 // Describes a VPC in a VPC peering connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpcPeeringConnectionVpcInfo
 type VpcPeeringConnectionVpcInfo struct {
 	_ struct{} `type:"structure"`
 
@@ -12860,6 +10566,7 @@ func (s VpcPeeringConnectionVpcInfo) String() string {
 // VPN supports Active Directory and mutual authentication. For more information,
 // see Authentication (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication)
 // in the AWS Client VPN Administrator Guide.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnAuthentication
 type VpnAuthentication struct {
 	_ struct{} `type:"structure"`
 
@@ -12882,6 +10589,7 @@ func (s VpnAuthentication) String() string {
 // Client VPN supports Active Directory and mutual authentication. For more
 // information, see Authentication (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication)
 // in the AWS Client VPN Administrator Guide.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnAuthenticationRequest
 type VpnAuthenticationRequest struct {
 	_ struct{} `type:"structure"`
 
@@ -12905,6 +10613,7 @@ func (s VpnAuthenticationRequest) String() string {
 }
 
 // Describes the state of an authorization rule.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnAuthorizationRuleStatus
 type VpnAuthorizationRuleStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -12921,6 +10630,7 @@ func (s VpnAuthorizationRuleStatus) String() string {
 }
 
 // Describes a client connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnConnection
 type VpnConnection struct {
 	_ struct{} `type:"structure"`
 
@@ -12972,18 +10682,13 @@ func (s VpnConnection) String() string {
 }
 
 // Describes VPN connection options.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpnConnectionOptions
 type VpnConnectionOptions struct {
 	_ struct{} `type:"structure"`
-
-	// Indicates whether acceleration is enabled for the VPN connection.
-	EnableAcceleration *bool `locationName:"enableAcceleration" type:"boolean"`
 
 	// Indicates whether the VPN connection uses static routes only. Static routes
 	// must be used for devices that don't support BGP.
 	StaticRoutesOnly *bool `locationName:"staticRoutesOnly" type:"boolean"`
-
-	// Indicates the VPN tunnel options.
-	TunnelOptions []TunnelOption `locationName:"tunnelOptionSet" locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -12992,13 +10697,9 @@ func (s VpnConnectionOptions) String() string {
 }
 
 // Describes VPN connection options.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpnConnectionOptionsSpecification
 type VpnConnectionOptionsSpecification struct {
 	_ struct{} `type:"structure"`
-
-	// Indicate whether to enable acceleration for the VPN connection.
-	//
-	// Default: false
-	EnableAcceleration *bool `type:"boolean"`
 
 	// Indicate whether the VPN connection uses static routes only. If you are creating
 	// a VPN connection for a device that does not support BGP, you must specify
@@ -13008,7 +10709,7 @@ type VpnConnectionOptionsSpecification struct {
 	StaticRoutesOnly *bool `locationName:"staticRoutesOnly" type:"boolean"`
 
 	// The tunnel options for the VPN connection.
-	TunnelOptions []VpnTunnelOptionsSpecification `type:"list"`
+	TunnelOptions []VpnTunnelOptionsSpecification `locationNameList:"item" type:"list"`
 }
 
 // String returns the string representation
@@ -13017,6 +10718,7 @@ func (s VpnConnectionOptionsSpecification) String() string {
 }
 
 // Describes the status of a client connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnConnectionStatus
 type VpnConnectionStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -13033,6 +10735,7 @@ func (s VpnConnectionStatus) String() string {
 }
 
 // Describes a Client VPN endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnEndpoint
 type VpnEndpoint struct {
 	_ struct{} `type:"structure"`
 
@@ -13072,11 +10775,7 @@ type VpnEndpoint struct {
 	// The ARN of the server certificate.
 	ServerCertificateArn *string `locationName:"serverCertificateArn" type:"string"`
 
-	// Indicates whether split-tunnel is enabled in the AWS Client VPN endpoint.
-	//
-	// For information about split-tunnel VPN endpoints, see Split-Tunnel AWS Client
-	// VPN Endpoint (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html)
-	// in the AWS Client VPN Administrator Guide.
+	// Indicates whether VPN split tunneling is supported.
 	SplitTunnel *bool `locationName:"splitTunnel" type:"boolean"`
 
 	// The current state of the Client VPN endpoint.
@@ -13088,9 +10787,6 @@ type VpnEndpoint struct {
 	// The transport protocol used by the Client VPN endpoint.
 	TransportProtocol TransportProtocol `locationName:"transportProtocol" type:"string" enum:"true"`
 
-	// The port number for the Client VPN endpoint.
-	VpnPort *int64 `locationName:"vpnPort" type:"integer"`
-
 	// The protocol used by the VPN session.
 	VpnProtocol VpnProtocol `locationName:"vpnProtocol" type:"string" enum:"true"`
 }
@@ -13101,6 +10797,7 @@ func (s VpnEndpoint) String() string {
 }
 
 // Describes the state of a Client VPN endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnEndpointStatus
 type VpnEndpointStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -13130,6 +10827,7 @@ func (s VpnEndpointStatus) String() string {
 }
 
 // Describes a virtual private gateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpnGateway
 type VpnGateway struct {
 	_ struct{} `type:"structure"`
 
@@ -13162,6 +10860,7 @@ func (s VpnGateway) String() string {
 }
 
 // Information about a Client VPN endpoint route.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnRoute
 type VpnRoute struct {
 	_ struct{} `type:"structure"`
 
@@ -13196,6 +10895,7 @@ func (s VpnRoute) String() string {
 }
 
 // Describes the state of a Client VPN endpoint route.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ClientVpnRouteStatus
 type VpnRouteStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -13212,6 +10912,7 @@ func (s VpnRouteStatus) String() string {
 }
 
 // Describes a static route for a VPN connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpnStaticRoute
 type VpnStaticRoute struct {
 	_ struct{} `type:"structure"`
 
@@ -13231,103 +10932,16 @@ func (s VpnStaticRoute) String() string {
 }
 
 // The tunnel options for a VPN connection.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/VpnTunnelOptionsSpecification
 type VpnTunnelOptionsSpecification struct {
 	_ struct{} `type:"structure"`
-
-	// The number of seconds after which a DPD timeout occurs.
-	//
-	// Constraints: A value between 0 and 30.
-	//
-	// Default: 30
-	DPDTimeoutSeconds *int64 `type:"integer"`
-
-	// The IKE versions that are permitted for the VPN tunnel.
-	//
-	// Valid values: ikev1 | ikev2
-	IKEVersions []IKEVersionsRequestListValue `locationName:"IKEVersion" locationNameList:"item" type:"list"`
-
-	// One or more Diffie-Hellman group numbers that are permitted for the VPN tunnel
-	// for phase 1 IKE negotiations.
-	//
-	// Valid values: 2 | 14 | 15 | 16 | 17 | 18 | 22 | 23 | 24
-	Phase1DHGroupNumbers []Phase1DHGroupNumbersRequestListValue `locationName:"Phase1DHGroupNumber" locationNameList:"item" type:"list"`
-
-	// One or more encryption algorithms that are permitted for the VPN tunnel for
-	// phase 1 IKE negotiations.
-	//
-	// Valid values: AES128 | AES256
-	Phase1EncryptionAlgorithms []Phase1EncryptionAlgorithmsRequestListValue `locationName:"Phase1EncryptionAlgorithm" locationNameList:"item" type:"list"`
-
-	// One or more integrity algorithms that are permitted for the VPN tunnel for
-	// phase 1 IKE negotiations.
-	//
-	// Valid values: SHA1 | SHA2-256
-	Phase1IntegrityAlgorithms []Phase1IntegrityAlgorithmsRequestListValue `locationName:"Phase1IntegrityAlgorithm" locationNameList:"item" type:"list"`
-
-	// The lifetime for phase 1 of the IKE negotiation, in seconds.
-	//
-	// Constraints: A value between 900 and 28,800.
-	//
-	// Default: 28800
-	Phase1LifetimeSeconds *int64 `type:"integer"`
-
-	// One or more Diffie-Hellman group numbers that are permitted for the VPN tunnel
-	// for phase 2 IKE negotiations.
-	//
-	// Valid values: 2 | 5 | 14 | 15 | 16 | 17 | 18 | 22 | 23 | 24
-	Phase2DHGroupNumbers []Phase2DHGroupNumbersRequestListValue `locationName:"Phase2DHGroupNumber" locationNameList:"item" type:"list"`
-
-	// One or more encryption algorithms that are permitted for the VPN tunnel for
-	// phase 2 IKE negotiations.
-	//
-	// Valid values: AES128 | AES256
-	Phase2EncryptionAlgorithms []Phase2EncryptionAlgorithmsRequestListValue `locationName:"Phase2EncryptionAlgorithm" locationNameList:"item" type:"list"`
-
-	// One or more integrity algorithms that are permitted for the VPN tunnel for
-	// phase 2 IKE negotiations.
-	//
-	// Valid values: SHA1 | SHA2-256
-	Phase2IntegrityAlgorithms []Phase2IntegrityAlgorithmsRequestListValue `locationName:"Phase2IntegrityAlgorithm" locationNameList:"item" type:"list"`
-
-	// The lifetime for phase 2 of the IKE negotiation, in seconds.
-	//
-	// Constraints: A value between 900 and 3,600. The value must be less than the
-	// value for Phase1LifetimeSeconds.
-	//
-	// Default: 3600
-	Phase2LifetimeSeconds *int64 `type:"integer"`
 
 	// The pre-shared key (PSK) to establish initial authentication between the
 	// virtual private gateway and customer gateway.
 	//
-	// Constraints: Allowed characters are alphanumeric characters, periods (.),
-	// and underscores (_). Must be between 8 and 64 characters in length and cannot
-	// start with zero (0).
+	// Constraints: Allowed characters are alphanumeric characters and ._. Must
+	// be between 8 and 64 characters in length and cannot start with zero (0).
 	PreSharedKey *string `type:"string"`
-
-	// The percentage of the rekey window (determined by RekeyMarginTimeSeconds)
-	// during which the rekey time is randomly selected.
-	//
-	// Constraints: A value between 0 and 100.
-	//
-	// Default: 100
-	RekeyFuzzPercentage *int64 `type:"integer"`
-
-	// The margin time, in seconds, before the phase 2 lifetime expires, during
-	// which the AWS side of the VPN connection performs an IKE rekey. The exact
-	// time of the rekey is randomly selected based on the value for RekeyFuzzPercentage.
-	//
-	// Constraints: A value between 60 and half of Phase2LifetimeSeconds.
-	//
-	// Default: 540
-	RekeyMarginTimeSeconds *int64 `type:"integer"`
-
-	// The number of packets in an IKE replay window.
-	//
-	// Constraints: A value between 64 and 2048.
-	//
-	// Default: 1024
-	ReplayWindowSize *int64 `type:"integer"`
 
 	// The range of inside IP addresses for the tunnel. Any specified CIDR blocks
 	// must be unique across all VPN connections that use the same virtual private

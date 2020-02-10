@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SearchTransitGatewayRoutesRequest
 type SearchTransitGatewayRoutesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -40,9 +41,11 @@ type SearchTransitGatewayRoutesInput struct {
 	//    routes in your route table and you specify supernet-of-match as 10.0.1.0/30,
 	//    then the result returns 10.0.1.0/29.
 	//
-	//    * state - The state of the route (active | blackhole).
+	//    * state - The state of the attachment (available | deleted | deleting
+	//    | failed | modifying | pendingAcceptance | pending | rollingBack | rejected
+	//    | rejecting).
 	//
-	//    * type - The type of route (propagated | static).
+	//    * type - The type of roue (active | blackhole).
 	//
 	// Filters is a required field
 	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list" required:"true"`
@@ -82,6 +85,7 @@ func (s *SearchTransitGatewayRoutesInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/SearchTransitGatewayRoutesResult
 type SearchTransitGatewayRoutesOutput struct {
 	_ struct{} `type:"structure"`
 

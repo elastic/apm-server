@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReleaseAddressRequest
 type ReleaseAddressInput struct {
 	_ struct{} `type:"structure"`
 
@@ -23,16 +24,6 @@ type ReleaseAddressInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
-	// The location that the IP address is released from.
-	//
-	// If you provide an incorrect network border group, you will receive an InvalidAddress.NotFound
-	// error. For more information, see Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html).
-	//
-	// You cannot use a network border group with EC2 Classic. If you attempt this
-	// operation on EC2 classic, you will receive an InvalidParameterCombination
-	// error. For more information, see Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html).
-	NetworkBorderGroup *string `type:"string"`
-
 	// [EC2-Classic] The Elastic IP address. Required for EC2-Classic.
 	PublicIp *string `type:"string"`
 }
@@ -42,6 +33,7 @@ func (s ReleaseAddressInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReleaseAddressOutput
 type ReleaseAddressOutput struct {
 	_ struct{} `type:"structure"`
 }

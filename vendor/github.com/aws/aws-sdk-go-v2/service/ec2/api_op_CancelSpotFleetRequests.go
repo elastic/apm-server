@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for CancelSpotFleetRequests.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CancelSpotFleetRequestsRequest
 type CancelSpotFleetRequestsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -55,6 +56,7 @@ func (s *CancelSpotFleetRequestsInput) Validate() error {
 }
 
 // Contains the output of CancelSpotFleetRequests.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CancelSpotFleetRequestsResponse
 type CancelSpotFleetRequestsOutput struct {
 	_ struct{} `type:"structure"`
 

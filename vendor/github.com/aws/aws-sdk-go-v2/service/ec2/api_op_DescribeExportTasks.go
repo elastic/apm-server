@@ -9,14 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for DescribeExportTasks.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeExportTasksRequest
 type DescribeExportTasksInput struct {
 	_ struct{} `type:"structure"`
 
 	// The export task IDs.
 	ExportTaskIds []string `locationName:"exportTaskId" locationNameList:"ExportTaskId" type:"list"`
-
-	// the filters for the export tasks.
-	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 }
 
 // String returns the string representation
@@ -24,6 +23,8 @@ func (s DescribeExportTasksInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Contains the output for DescribeExportTasks.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeExportTasksResult
 type DescribeExportTasksOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -41,8 +42,7 @@ const opDescribeExportTasks = "DescribeExportTasks"
 // DescribeExportTasksRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Describes the specified export instance tasks or all your export instance
-// tasks.
+// Describes the specified export tasks or all your export tasks.
 //
 //    // Example sending a request using DescribeExportTasksRequest.
 //    req := client.DescribeExportTasksRequest(params)

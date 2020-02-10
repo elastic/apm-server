@@ -9,17 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AllocateAddressRequest
 type AllocateAddressInput struct {
 	_ struct{} `type:"structure"`
 
 	// [EC2-VPC] The Elastic IP address to recover or an IPv4 address from an address
 	// pool.
 	Address *string `type:"string"`
-
-	// The ID of a customer-owned address pool. Use this parameter to let Amazon
-	// EC2 select an address from the address pool. Alternatively, specify a specific
-	// address from the address pool.
-	CustomerOwnedIpv4Pool *string `type:"string"`
 
 	// Set to vpc to allocate the address for use with instances in a VPC.
 	//
@@ -32,17 +28,6 @@ type AllocateAddressInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
-	// The location from which the IP address is advertised. Use this parameter
-	// to limit the address to this location.
-	//
-	// Use DescribeVpcs (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVpcs.html)
-	// to view the network border groups.
-	//
-	// You cannot use a network border group with EC2 Classic. If you attempt this
-	// operation on EC2 classic, you will receive an InvalidParameterCombination
-	// error. For more information, see Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html).
-	NetworkBorderGroup *string `type:"string"`
-
 	// The ID of an address pool that you own. Use this parameter to let Amazon
 	// EC2 select an address from the address pool. To specify a specific address
 	// from the address pool, use the Address parameter instead.
@@ -54,6 +39,7 @@ func (s AllocateAddressInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AllocateAddressResult
 type AllocateAddressOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -61,18 +47,9 @@ type AllocateAddressOutput struct {
 	// IP address for use with instances in a VPC.
 	AllocationId *string `locationName:"allocationId" type:"string"`
 
-	// The customer-owned IP address.
-	CustomerOwnedIp *string `locationName:"customerOwnedIp" type:"string"`
-
-	// The ID of the customer-owned address pool.
-	CustomerOwnedIpv4Pool *string `locationName:"customerOwnedIpv4Pool" type:"string"`
-
 	// Indicates whether this Elastic IP address is for use with instances in EC2-Classic
 	// (standard) or instances in a VPC (vpc).
 	Domain DomainType `locationName:"domain" type:"string" enum:"true"`
-
-	// The location from which the IP address is advertised.
-	NetworkBorderGroup *string `locationName:"networkBorderGroup" type:"string"`
 
 	// The Elastic IP address.
 	PublicIp *string `locationName:"publicIp" type:"string"`

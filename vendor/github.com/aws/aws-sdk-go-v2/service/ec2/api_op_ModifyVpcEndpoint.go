@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for ModifyVpcEndpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVpcEndpointRequest
 type ModifyVpcEndpointInput struct {
 	_ struct{} `type:"structure"`
 
@@ -30,10 +31,11 @@ type ModifyVpcEndpointInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// A policy to attach to the endpoint that controls access to the service. The
-	// policy must be in valid JSON format.
+	// policy must be in valid JSON format. If this parameter is not specified,
+	// we attach a default policy that allows full access to the service.
 	PolicyDocument *string `type:"string"`
 
-	// (Interface endpoint) Indicates whether a private hosted zone is associated
+	// (Interface endpoint) Indicate whether a private hosted zone is associated
 	// with the VPC.
 	PrivateDnsEnabled *bool `type:"boolean"`
 
@@ -76,6 +78,7 @@ func (s *ModifyVpcEndpointInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyVpcEndpointResult
 type ModifyVpcEndpointOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -95,7 +98,7 @@ const opModifyVpcEndpoint = "ModifyVpcEndpoint"
 //
 // Modifies attributes of a specified VPC endpoint. The attributes that you
 // can modify depend on the type of VPC endpoint (interface or gateway). For
-// more information, see VPC Endpoints (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html)
+// more information, see VPC Endpoints (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-endpoints.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using ModifyVpcEndpointRequest.

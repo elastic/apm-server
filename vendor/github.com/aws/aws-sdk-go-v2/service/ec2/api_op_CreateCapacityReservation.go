@@ -10,14 +10,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateCapacityReservationRequest
 type CreateCapacityReservationInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Availability Zone in which to create the Capacity Reservation.
-	AvailabilityZone *string `type:"string"`
-
-	// The ID of the Availability Zone in which to create the Capacity Reservation.
-	AvailabilityZoneId *string `type:"string"`
+	//
+	// AvailabilityZone is a required field
+	AvailabilityZone *string `type:"string" required:"true"`
 
 	// Unique, case-sensitive identifier that you provide to ensure the idempotency
 	// of the request. For more information, see How to Ensure Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
@@ -50,7 +50,7 @@ type CreateCapacityReservationInput struct {
 	// an hour from the specified time. For example, if you specify 5/31/2019, 13:30:55,
 	// the Capacity Reservation is guaranteed to end between 13:30:55 and 14:30:55
 	// on 5/31/2019.
-	EndDate *time.Time `type:"timestamp"`
+	EndDate *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
 	// Indicates the way in which the Capacity Reservation ends. A Capacity Reservation
 	// can have one of the following end types:
@@ -123,6 +123,10 @@ func (s CreateCapacityReservationInput) String() string {
 func (s *CreateCapacityReservationInput) Validate() error {
 	invalidParams := aws.ErrInvalidParams{Context: "CreateCapacityReservationInput"}
 
+	if s.AvailabilityZone == nil {
+		invalidParams.Add(aws.NewErrParamRequired("AvailabilityZone"))
+	}
+
 	if s.InstanceCount == nil {
 		invalidParams.Add(aws.NewErrParamRequired("InstanceCount"))
 	}
@@ -140,6 +144,7 @@ func (s *CreateCapacityReservationInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateCapacityReservationResult
 type CreateCapacityReservationOutput struct {
 	_ struct{} `type:"structure"`
 

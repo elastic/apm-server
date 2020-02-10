@@ -199,30 +199,32 @@
 			"revisionTime": "2020-02-07T19:51:45Z"
 		},
 		{
-			"checksumSHA1": "sWhNrLE9VcDUIXT9b3SkisNuJxw=",
+			"checksumSHA1": "6P5rEa7z60Jtq4KsiO6fODPxGbI=",
 			"origin": "github.com/elastic/beats/vendor/github.com/aws/aws-sdk-go-v2/service/ec2",
 			"path": "github.com/aws/aws-sdk-go-v2/service/ec2",
-			"revision": "f22e9c941683ab78daf6ce81da46bde24a22bc18",
-			"revisionTime": "2020-02-05T23:32:52Z"
+			"revision": "990a5f76a3dc435bf783c1f44d9363abac211a0e",
+			"revisionTime": "2020-02-07T19:51:45Z"
 		},
 		{
-			"checksumSHA1": "q3+cFgQkfFEZ932tyncEwY7C2Dg=",
+			"checksumSHA1": "obRTk+sa6gOol9WUL2lGUy+KwPs=",
 			"origin": "github.com/elastic/beats/vendor/github.com/aws/aws-sdk-go-v2/service/ec2/ec2iface",
 			"path": "github.com/aws/aws-sdk-go-v2/service/ec2/ec2iface",
-			"revision": "f22e9c941683ab78daf6ce81da46bde24a22bc18",
-			"revisionTime": "2020-02-05T23:32:52Z"
+			"revision": "990a5f76a3dc435bf783c1f44d9363abac211a0e",
+			"revisionTime": "2020-02-07T19:51:45Z"
 		},
 		{
-			"checksumSHA1": "P3fwZGBhH8PYauHxLb8yWjunJKw=",
+			"checksumSHA1": "qUIf77TBORA1MZoNFNdiR5kFRjI=",
+			"origin": "github.com/elastic/beats/vendor/github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2",
 			"path": "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2",
-			"revision": "30227e279ed706a05f08ea688686c5764f465904",
-			"revisionTime": "2019-08-10T04:47:35Z"
+			"revision": "990a5f76a3dc435bf783c1f44d9363abac211a0e",
+			"revisionTime": "2020-02-07T19:51:45Z"
 		},
 		{
 			"checksumSHA1": "kCyrtNPVHzoajcxIYke+pHqWkR0=",
+			"origin": "github.com/elastic/beats/vendor/github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/elasticloadbalancingv2iface",
 			"path": "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/elasticloadbalancingv2iface",
-			"revision": "30227e279ed706a05f08ea688686c5764f465904",
-			"revisionTime": "2019-08-10T04:47:35Z"
+			"revision": "990a5f76a3dc435bf783c1f44d9363abac211a0e",
+			"revisionTime": "2020-02-07T19:51:45Z"
 		},
 		{
 			"checksumSHA1": "JXmr18oyPLd3LGIex8aAjeUxzGc=",

@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/GetConsoleOutputRequest
 type GetConsoleOutputInput struct {
 	_ struct{} `type:"structure"`
 
@@ -49,6 +50,7 @@ func (s *GetConsoleOutputInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/GetConsoleOutputResult
 type GetConsoleOutputOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -60,7 +62,7 @@ type GetConsoleOutputOutput struct {
 	Output *string `locationName:"output" type:"string"`
 
 	// The time at which the output was last updated.
-	Timestamp *time.Time `locationName:"timestamp" type:"timestamp"`
+	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation

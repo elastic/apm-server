@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeNetworkAclsRequest
 type DescribeNetworkAclsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -99,6 +100,7 @@ func (s *DescribeNetworkAclsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeNetworkAclsResult
 type DescribeNetworkAclsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -122,7 +124,7 @@ const opDescribeNetworkAcls = "DescribeNetworkAcls"
 //
 // Describes one or more of your network ACLs.
 //
-// For more information, see Network ACLs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html)
+// For more information, see Network ACLs (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using DescribeNetworkAclsRequest.

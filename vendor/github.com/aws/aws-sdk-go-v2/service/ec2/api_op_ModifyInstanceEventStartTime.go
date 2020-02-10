@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyInstanceEventStartTimeRequest
 type ModifyInstanceEventStartTimeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -32,7 +33,7 @@ type ModifyInstanceEventStartTimeInput struct {
 	// The new date and time when the event will take place.
 	//
 	// NotBefore is a required field
-	NotBefore *time.Time `type:"timestamp" required:"true"`
+	NotBefore *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 }
 
 // String returns the string representation
@@ -62,6 +63,7 @@ func (s *ModifyInstanceEventStartTimeInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyInstanceEventStartTimeResult
 type ModifyInstanceEventStartTimeOutput struct {
 	_ struct{} `type:"structure"`
 

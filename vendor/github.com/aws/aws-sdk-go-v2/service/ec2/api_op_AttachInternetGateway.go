@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AttachInternetGatewayRequest
 type AttachInternetGatewayInput struct {
 	_ struct{} `type:"structure"`
 
@@ -54,6 +55,7 @@ func (s *AttachInternetGatewayInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AttachInternetGatewayOutput
 type AttachInternetGatewayOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -68,10 +70,9 @@ const opAttachInternetGateway = "AttachInternetGateway"
 // AttachInternetGatewayRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Attaches an internet gateway or a virtual private gateway to a VPC, enabling
-// connectivity between the internet and the VPC. For more information about
-// your VPC and internet gateway, see the Amazon Virtual Private Cloud User
-// Guide (https://docs.aws.amazon.com/vpc/latest/userguide/).
+// Attaches an internet gateway to a VPC, enabling connectivity between the
+// internet and the VPC. For more information about your VPC and internet gateway,
+// see the Amazon Virtual Private Cloud User Guide (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/).
 //
 //    // Example sending a request using AttachInternetGatewayRequest.
 //    req := client.AttachInternetGatewayRequest(params)

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DisableEbsEncryptionByDefaultRequest
 type DisableEbsEncryptionByDefaultInput struct {
 	_ struct{} `type:"structure"`
 
@@ -24,10 +25,11 @@ func (s DisableEbsEncryptionByDefaultInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DisableEbsEncryptionByDefaultResult
 type DisableEbsEncryptionByDefaultOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The updated status of encryption by default.
+	// Account-level encryption status after performing the action.
 	EbsEncryptionByDefault *bool `locationName:"ebsEncryptionByDefault" type:"boolean"`
 }
 
@@ -41,16 +43,16 @@ const opDisableEbsEncryptionByDefault = "DisableEbsEncryptionByDefault"
 // DisableEbsEncryptionByDefaultRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Disables EBS encryption by default for your account in the current Region.
+// Disables default encryption for EBS volumes that are created in your account
+// in the current region.
 //
-// After you disable encryption by default, you can still create encrypted volumes
-// by enabling encryption when you create each volume.
+// Call this API if you have enabled default encryption using EnableEbsEncryptionByDefault
+// and want to disable default EBS encryption. Once default EBS encryption is
+// disabled, you can still create an encrypted volume by setting encrypted to
+// true in the API call that creates the volume.
 //
-// Disabling encryption by default does not change the encryption status of
-// your existing volumes.
-//
-// For more information, see Amazon EBS Encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
-// in the Amazon Elastic Compute Cloud User Guide.
+// Disabling default EBS encryption will not change the encryption status of
+// any of your existing volumes.
 //
 //    // Example sending a request using DisableEbsEncryptionByDefaultRequest.
 //    req := client.DisableEbsEncryptionByDefaultRequest(params)

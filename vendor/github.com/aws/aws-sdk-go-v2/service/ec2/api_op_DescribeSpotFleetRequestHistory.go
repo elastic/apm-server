@@ -11,6 +11,7 @@ import (
 )
 
 // Contains the parameters for DescribeSpotFleetRequestHistory.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotFleetRequestHistoryRequest
 type DescribeSpotFleetRequestHistoryInput struct {
 	_ struct{} `type:"structure"`
 
@@ -26,7 +27,7 @@ type DescribeSpotFleetRequestHistoryInput struct {
 	// The maximum number of results to return in a single call. Specify a value
 	// between 1 and 1000. The default value is 1000. To retrieve the remaining
 	// results, make another call with the returned NextToken value.
-	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+	MaxResults *int64 `locationName:"maxResults" type:"integer"`
 
 	// The token for the next set of results.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -39,7 +40,7 @@ type DescribeSpotFleetRequestHistoryInput struct {
 	// The starting date and time for the events, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	//
 	// StartTime is a required field
-	StartTime *time.Time `locationName:"startTime" type:"timestamp" required:"true"`
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601" required:"true"`
 }
 
 // String returns the string representation
@@ -50,9 +51,6 @@ func (s DescribeSpotFleetRequestHistoryInput) String() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *DescribeSpotFleetRequestHistoryInput) Validate() error {
 	invalidParams := aws.ErrInvalidParams{Context: "DescribeSpotFleetRequestHistoryInput"}
-	if s.MaxResults != nil && *s.MaxResults < 1 {
-		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 1))
-	}
 
 	if s.SpotFleetRequestId == nil {
 		invalidParams.Add(aws.NewErrParamRequired("SpotFleetRequestId"))
@@ -69,6 +67,7 @@ func (s *DescribeSpotFleetRequestHistoryInput) Validate() error {
 }
 
 // Contains the output of DescribeSpotFleetRequestHistory.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotFleetRequestHistoryResponse
 type DescribeSpotFleetRequestHistoryOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -79,7 +78,7 @@ type DescribeSpotFleetRequestHistoryOutput struct {
 	// All records up to this time were retrieved.
 	//
 	// If nextToken indicates that there are more results, this value is not present.
-	LastEvaluatedTime *time.Time `locationName:"lastEvaluatedTime" type:"timestamp"`
+	LastEvaluatedTime *time.Time `locationName:"lastEvaluatedTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The token required to retrieve the next set of results. This value is null
 	// when there are no more results to return.
@@ -89,7 +88,7 @@ type DescribeSpotFleetRequestHistoryOutput struct {
 	SpotFleetRequestId *string `locationName:"spotFleetRequestId" type:"string"`
 
 	// The starting date and time for the events, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
-	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601"`
 }
 
 // String returns the string representation

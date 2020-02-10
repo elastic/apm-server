@@ -10,13 +10,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RunInstancesRequest
 type RunInstancesInput struct {
 	_ struct{} `type:"structure"`
 
 	// Reserved.
 	AdditionalInfo *string `locationName:"additionalInfo" type:"string"`
 
-	// The block device mapping entries.
+	// The block device mapping entries. You can't specify both a snapshot ID and
+	// an encryption value. This is because only blank volumes can be encrypted
+	// on creation. If a snapshot is the basis for a volume, it is not blank and
+	// its encryption status is used for the volume encryption status.
 	BlockDeviceMappings []BlockDeviceMapping `locationName:"BlockDeviceMapping" locationNameList:"BlockDeviceMapping" type:"list"`
 
 	// Information about the Capacity Reservation targeting option. If you do not
@@ -36,13 +40,13 @@ type RunInstancesInput struct {
 	// in the Amazon Elastic Compute Cloud User Guide.
 	CpuOptions *CpuOptionsRequest `type:"structure"`
 
-	// The credit option for CPU usage of the burstable performance instance. Valid
-	// values are standard and unlimited. To change this attribute after launch,
-	// use ModifyInstanceCreditSpecification (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyInstanceCreditSpecification.html).
+	// The credit option for CPU usage of the T2 or T3 instance. Valid values are
+	// standard and unlimited. To change this attribute after launch, use ModifyInstanceCreditSpecification
+	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyInstanceCreditSpecification.html).
 	// For more information, see Burstable Performance Instances (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	//
-	// Default: standard (T2 instances) or unlimited (T3/T3a instances)
+	// Default: standard (T2 instances) or unlimited (T3 instances)
 	CreditSpecification *CreditSpecificationRequest `type:"structure"`
 
 	// If you set this parameter to true, you can't terminate the instance using
@@ -163,10 +167,6 @@ type RunInstancesInput struct {
 	// MaxCount is a required field
 	MaxCount *int64 `type:"integer" required:"true"`
 
-	// The metadata options for the instance. For more information, see Instance
-	// Metadata and User Data (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html).
-	MetadataOptions *InstanceMetadataOptionsRequest `type:"structure"`
-
 	// The minimum number of instances to launch. If you specify a minimum that
 	// is more instances than Amazon EC2 can launch in the target Availability Zone,
 	// Amazon EC2 launches no instances.
@@ -183,8 +183,7 @@ type RunInstancesInput struct {
 	Monitoring *RunInstancesMonitoringEnabled `type:"structure"`
 
 	// The network interfaces to associate with the instance. If you specify a network
-	// interface, you must specify any security groups and subnets as part of the
-	// network interface.
+	// interface, you must specify any security groups as part of the network interface.
 	NetworkInterfaces []InstanceNetworkInterfaceSpecification `locationName:"networkInterface" locationNameList:"item" type:"list"`
 
 	// The placement for the instance.
@@ -230,8 +229,8 @@ type RunInstancesInput struct {
 
 	// [EC2-VPC] The ID of the subnet to launch the instance into.
 	//
-	// If you specify a network interface, you must specify any subnets as part
-	// of the network interface.
+	// You cannot specify this option and the network interfaces option in the same
+	// request.
 	SubnetId *string `type:"string"`
 
 	// The tags to apply to the resources during launch. You can only tag instances
@@ -297,6 +296,7 @@ func (s *RunInstancesInput) Validate() error {
 }
 
 // Describes a reservation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Reservation
 type RunInstancesOutput struct {
 	_ struct{} `type:"structure"`
 

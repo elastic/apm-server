@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeScheduledInstanceAvailability.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeScheduledInstanceAvailabilityRequest
 type DescribeScheduledInstanceAvailabilityInput struct {
 	_ struct{} `type:"structure"`
 
@@ -38,7 +39,7 @@ type DescribeScheduledInstanceAvailabilityInput struct {
 	// The maximum number of results to return in a single call. This value can
 	// be between 5 and 300. The default value is 300. To retrieve the remaining
 	// results, make another call with the returned NextToken value.
-	MaxResults *int64 `min:"5" type:"integer"`
+	MaxResults *int64 `type:"integer"`
 
 	// The maximum available duration, in hours. This value must be greater than
 	// MinSlotDurationInHours and less than 1,720.
@@ -71,9 +72,6 @@ func (s *DescribeScheduledInstanceAvailabilityInput) Validate() error {
 	if s.FirstSlotStartTimeRange == nil {
 		invalidParams.Add(aws.NewErrParamRequired("FirstSlotStartTimeRange"))
 	}
-	if s.MaxResults != nil && *s.MaxResults < 5 {
-		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 5))
-	}
 
 	if s.Recurrence == nil {
 		invalidParams.Add(aws.NewErrParamRequired("Recurrence"))
@@ -91,6 +89,7 @@ func (s *DescribeScheduledInstanceAvailabilityInput) Validate() error {
 }
 
 // Contains the output of DescribeScheduledInstanceAvailability.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeScheduledInstanceAvailabilityResult
 type DescribeScheduledInstanceAvailabilityOutput struct {
 	_ struct{} `type:"structure"`
 

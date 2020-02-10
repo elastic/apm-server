@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReplaceRouteRequest
 type ReplaceRouteInput struct {
 	_ struct{} `type:"structure"`
 
@@ -36,12 +37,6 @@ type ReplaceRouteInput struct {
 
 	// The ID of a NAT instance in your VPC.
 	InstanceId *string `locationName:"instanceId" type:"string"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `type:"string"`
-
-	// Specifies whether to reset the local route to its default target (local).
-	LocalTarget *bool `type:"boolean"`
 
 	// [IPv4 traffic only] The ID of a NAT gateway.
 	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
@@ -80,6 +75,7 @@ func (s *ReplaceRouteInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReplaceRouteOutput
 type ReplaceRouteOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -95,11 +91,11 @@ const opReplaceRoute = "ReplaceRoute"
 // Amazon Elastic Compute Cloud.
 //
 // Replaces an existing route within a route table in a VPC. You must provide
-// only one of the following: internet gateway, virtual private gateway, NAT
-// instance, NAT gateway, VPC peering connection, network interface, egress-only
-// internet gateway, or transit gateway.
+// only one of the following: internet gateway or virtual private gateway, NAT
+// instance, NAT gateway, VPC peering connection, network interface, or egress-only
+// internet gateway.
 //
-// For more information, see Route Tables (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html)
+// For more information, see Route Tables (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using ReplaceRouteRequest.

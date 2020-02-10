@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateSubnetCidrBlockRequest
 type AssociateSubnetCidrBlockInput struct {
 	_ struct{} `type:"structure"`
 
@@ -46,6 +47,7 @@ func (s *AssociateSubnetCidrBlockInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateSubnetCidrBlockResult
 type AssociateSubnetCidrBlockOutput struct {
 	_ struct{} `type:"structure"`
 

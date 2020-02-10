@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateLaunchTemplateRequest
 type CreateLaunchTemplateInput struct {
 	_ struct{} `type:"structure"`
 
@@ -33,9 +34,6 @@ type CreateLaunchTemplateInput struct {
 	//
 	// LaunchTemplateName is a required field
 	LaunchTemplateName *string `min:"3" type:"string" required:"true"`
-
-	// The tags to apply to the launch template during creation.
-	TagSpecifications []TagSpecification `locationName:"TagSpecification" locationNameList:"item" type:"list"`
 
 	// A description for the first version of the launch template.
 	VersionDescription *string `type:"string"`
@@ -72,6 +70,7 @@ func (s *CreateLaunchTemplateInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateLaunchTemplateResult
 type CreateLaunchTemplateOutput struct {
 	_ struct{} `type:"structure"`
 

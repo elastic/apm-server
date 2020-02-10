@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for ImportSnapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportSnapshotRequest
 type ImportSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -37,10 +39,10 @@ type ImportSnapshotInput struct {
 	// in the Amazon Elastic Compute Cloud User Guide.
 	Encrypted *bool `type:"boolean"`
 
-	// An identifier for the symmetric AWS Key Management Service (AWS KMS) customer
-	// master key (CMK) to use when creating the encrypted snapshot. This parameter
-	// is only required if you want to use a non-default CMK; if this parameter
-	// is not specified, the default CMK for EBS is used. If a KmsKeyId is specified,
+	// An identifier for the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) to use when creating the encrypted snapshot. This parameter is
+	// only required if you want to use a non-default CMK; if this parameter is
+	// not specified, the default CMK for EBS is used. If a KmsKeyId is specified,
 	// the Encrypted flag must also be set.
 	//
 	// The CMK identifier may be provided in any of the following formats:
@@ -65,8 +67,6 @@ type ImportSnapshotInput struct {
 	//
 	// The specified CMK must exist in the Region that the snapshot is being copied
 	// to.
-	//
-	// Amazon EBS does not support asymmetric CMKs.
 	KmsKeyId *string `type:"string"`
 
 	// The name of the role to use when not using the default role, 'vmimport'.
@@ -78,6 +78,8 @@ func (s ImportSnapshotInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Contains the output for ImportSnapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportSnapshotResult
 type ImportSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 

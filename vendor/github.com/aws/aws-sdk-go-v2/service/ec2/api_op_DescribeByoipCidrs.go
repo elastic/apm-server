@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeByoipCidrsRequest
 type DescribeByoipCidrsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -22,10 +23,10 @@ type DescribeByoipCidrsInput struct {
 	// remaining results, make another call with the returned nextToken value.
 	//
 	// MaxResults is a required field
-	MaxResults *int64 `min:"1" type:"integer" required:"true"`
+	MaxResults *int64 `min:"5" type:"integer" required:"true"`
 
 	// The token for the next page of results.
-	NextToken *string `type:"string"`
+	NextToken *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -40,8 +41,11 @@ func (s *DescribeByoipCidrsInput) Validate() error {
 	if s.MaxResults == nil {
 		invalidParams.Add(aws.NewErrParamRequired("MaxResults"))
 	}
-	if s.MaxResults != nil && *s.MaxResults < 1 {
-		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 1))
+	if s.MaxResults != nil && *s.MaxResults < 5 {
+		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 5))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(aws.NewErrParamMinLen("NextToken", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -50,6 +54,7 @@ func (s *DescribeByoipCidrsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeByoipCidrsResult
 type DescribeByoipCidrsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -74,7 +79,7 @@ const opDescribeByoipCidrs = "DescribeByoipCidrs"
 // Describes the IP address ranges that were specified in calls to ProvisionByoipCidr.
 //
 // To describe the address pools that were created when you provisioned the
-// address ranges, use DescribePublicIpv4Pools or DescribeIpv6Pools.
+// address ranges, use DescribePublicIpv4Pools.
 //
 //    // Example sending a request using DescribeByoipCidrsRequest.
 //    req := client.DescribeByoipCidrsRequest(params)

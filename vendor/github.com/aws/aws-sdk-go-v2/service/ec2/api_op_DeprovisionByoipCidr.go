@@ -9,11 +9,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeprovisionByoipCidrRequest
 type DeprovisionByoipCidrInput struct {
 	_ struct{} `type:"structure"`
 
-	// The address range, in CIDR notation. The prefix must be the same prefix that
-	// you specified when you provisioned the address range.
+	// The public IPv4 address range, in CIDR notation. The prefix must be the same
+	// prefix that you specified when you provisioned the address range.
 	//
 	// Cidr is a required field
 	Cidr *string `type:"string" required:"true"`
@@ -44,6 +45,7 @@ func (s *DeprovisionByoipCidrInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeprovisionByoipCidrResult
 type DeprovisionByoipCidrOutput struct {
 	_ struct{} `type:"structure"`
 

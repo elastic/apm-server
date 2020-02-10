@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeEgressOnlyInternetGatewaysRequest
 type DescribeEgressOnlyInternetGatewaysInput struct {
 	_ struct{} `type:"structure"`
 
@@ -21,22 +22,9 @@ type DescribeEgressOnlyInternetGatewaysInput struct {
 	// One or more egress-only internet gateway IDs.
 	EgressOnlyInternetGatewayIds []string `locationName:"EgressOnlyInternetGatewayId" locationNameList:"item" type:"list"`
 
-	// One or more filters.
-	//
-	//    * tag:<key> - The key/value combination of a tag assigned to the resource.
-	//    Use the tag key in the filter name and the tag value as the filter value.
-	//    For example, to find all resources that have a tag with the key Owner
-	//    and the value TeamA, specify tag:Owner for the filter name and TeamA for
-	//    the filter value.
-	//
-	//    * tag-key - The key of a tag assigned to the resource. Use this filter
-	//    to find all resources assigned a tag with a specific key, regardless of
-	//    the tag value.
-	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
-
 	// The maximum number of results to return with a single call. To retrieve the
 	// remaining results, make another call with the returned nextToken value.
-	MaxResults *int64 `min:"5" type:"integer"`
+	MaxResults *int64 `type:"integer"`
 
 	// The token for the next page of results.
 	NextToken *string `type:"string"`
@@ -47,19 +35,7 @@ func (s DescribeEgressOnlyInternetGatewaysInput) String() string {
 	return awsutil.Prettify(s)
 }
 
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *DescribeEgressOnlyInternetGatewaysInput) Validate() error {
-	invalidParams := aws.ErrInvalidParams{Context: "DescribeEgressOnlyInternetGatewaysInput"}
-	if s.MaxResults != nil && *s.MaxResults < 5 {
-		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 5))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
-}
-
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeEgressOnlyInternetGatewaysResult
 type DescribeEgressOnlyInternetGatewaysOutput struct {
 	_ struct{} `type:"structure"`
 
