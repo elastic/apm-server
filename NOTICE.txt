@@ -587,7 +587,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 7aa2f7a8d6efcefd85918be6aa2724ad045d8dd7
+Revision: 990a5f76a3dc435bf783c1f44d9363abac211a0e
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -958,7 +958,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/gogo/protobuf
-Revision: 4c00d2f19fb91be5fecd8681fa83450a2a979e69
+Revision: 5628607bb4c51c3157aacc3a50f0ab707582b805
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/gogo/protobuf/LICENSE:
 --------------------------------------------------------------------
@@ -3959,7 +3959,6 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/grpc
-Version: v1.25
 Revision: 1a3960e4bd028ac0cec0a2afd27d7d8e67c11514
 License type (autodetected): Apache-2.0
 ./vendor/google.golang.org/grpc/LICENSE:

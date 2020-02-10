@@ -26,12 +26,8 @@ Godoc Documentation: https://godoc.org/github.com/klauspost/compress/zstd
 
 ### Status: 
 
-STABLE - there may always be subtle bugs, a wide variety of content has been tested and the library is actively 
-used by several projects. This library is being continuously [fuzz-tested](https://github.com/klauspost/compress-fuzz),
-kindly supplied by [fuzzit.dev](https://fuzzit.dev/).
-
-There may still be specific combinations of data types/size/settings that could lead to edge cases, 
-so as always, testing is recommended.  
+BETA - there may still be subtle bugs, but a wide variety of content has been tested. 
+There may still be implementation specific stuff in regards to error handling that could lead to edge cases. 
 
 For now, a high speed (fastest) and medium-fast (default) compressor has been implemented. 
 
@@ -255,12 +251,8 @@ The converter `s` can be reused to avoid allocations, even after errors.
 
 ## Decompressor
 
-Staus: STABLE - there may still be subtle bugs, but a wide variety of content has been tested.
+STATUS: Release Candidate - there may still be subtle bugs, but a wide variety of content has been tested.
 
-This library is being continuously [fuzz-tested](https://github.com/klauspost/compress-fuzz),
-kindly supplied by [fuzzit.dev](https://fuzzit.dev/). 
-The main purpose of the fuzz testing is to ensure that it is not possible to crash the decoder, 
-or run it past its limits with ANY input provided.  
  
 ### Usage
 
