@@ -539,35 +539,35 @@
 		},
 		{
 			"checksumSHA1": "tSXR3pIWOvVv0vd1HgciU6/xQZ4=",
-			"origin": "github.com/andrewkroh/goja",
+			"origin": "github.com/elastic/beats/vendor/github.com/dop251/goja",
 			"path": "github.com/dop251/goja",
 			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
 			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
 			"checksumSHA1": "M7PWqP2fxWLpKwoSTa9UEsjXO84=",
-			"origin": "github.com/andrewkroh/goja/ast",
+			"origin": "github.com/elastic/beats/vendor/github.com/dop251/goja/ast",
 			"path": "github.com/dop251/goja/ast",
 			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
 			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
 			"checksumSHA1": "YC5Zv9wxNXg5keMD1TaT1bxi7RM=",
-			"origin": "github.com/andrewkroh/goja/file",
+			"origin": "github.com/elastic/beats/vendor/github.com/dop251/goja/file",
 			"path": "github.com/dop251/goja/file",
 			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
 			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
 			"checksumSHA1": "oR98Abi3BZfT5dw02gDIWdZwvFc=",
-			"origin": "github.com/andrewkroh/goja/parser",
+			"origin": "github.com/elastic/beats/vendor/github.com/dop251/goja/parser",
 			"path": "github.com/dop251/goja/parser",
 			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
 			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
 			"checksumSHA1": "e5dVrjv6qkrLCwv6C849Em3a35I=",
-			"origin": "github.com/andrewkroh/goja/token",
+			"origin": "github.com/elastic/beats/vendor/github.com/dop251/goja/token",
 			"path": "github.com/dop251/goja/token",
 			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
 			"revisionTime": "2019-01-28T17:26:24Z"
