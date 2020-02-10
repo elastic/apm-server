@@ -32,10 +32,10 @@ import (
 
 func TestCORSMiddleware(t *testing.T) {
 
-	cors := func(origin string, allowedOrigins []string, m string) (*request.Context, *httptest.ResponseRecorder) {
+	cors := func(origin string, allowedOrigins, allowedHeaders []string, m string) (*request.Context, *httptest.ResponseRecorder) {
 		c, rec := beatertest.ContextWithResponseRecorder(m, "/")
 		c.Request.Header.Set(headers.Origin, origin)
-		Apply(CORSMiddleware(allowedOrigins), beatertest.Handler202)(c)
+		Apply(CORSMiddleware(allowedOrigins, allowedHeaders), beatertest.Handler202)(c)
 		return c, rec
 	}
 
@@ -50,19 +50,19 @@ func TestCORSMiddleware(t *testing.T) {
 	}
 
 	t.Run("OPTIONSValidOrigin", func(t *testing.T) {
-		_, rec := cors("wxyz", []string{"w*yz"}, http.MethodOptions)
+		_, rec := cors("wxyz", []string{"w*yz"}, nil, http.MethodOptions)
 		checkPreflightHeaders(t, rec)
 		assert.Equal(t, "wxyz", rec.Header().Get(headers.AccessControlAllowOrigin))
 	})
 	t.Run("OPTIONSInvalidOrigin", func(t *testing.T) {
-		_, rec := cors("xyz", []string{"xy.*i"}, http.MethodOptions)
+		_, rec := cors("xyz", []string{"xy.*i"}, nil, http.MethodOptions)
 		checkPreflightHeaders(t, rec)
 		assert.Empty(t, rec.Header().Get(headers.AccessControlAllowOrigin))
 	})
 
 	t.Run("GETAllowedOrigins", func(t *testing.T) {
 		for _, origin := range []string{"", "wxyz", "testingx"} {
-			_, rec := cors(origin, []string{"*", "testing.*"}, http.MethodPost)
+			_, rec := cors(origin, []string{"*", "testing.*"}, nil, http.MethodPost)
 
 			assert.Equal(t, http.StatusAccepted, rec.Code)
 			assert.Equal(t, origin, rec.Header().Get(headers.AccessControlAllowOrigin))
@@ -71,7 +71,7 @@ func TestCORSMiddleware(t *testing.T) {
 
 	t.Run("GETForbidden", func(t *testing.T) {
 		for _, origin := range []string{"", "wxyz", "test"} {
-			_, rec := cors(origin, []string{"xyz", "testing.*"}, http.MethodPost)
+			_, rec := cors(origin, []string{"xyz", "testing.*"}, nil, http.MethodPost)
 
 			assert.Equal(t, http.StatusForbidden, rec.Code)
 			assert.Equal(t,
@@ -81,4 +81,10 @@ func TestCORSMiddleware(t *testing.T) {
 				rec.Body.String())
 		}
 	})
+
+	t.Run("AllowedHeaders", func(t *testing.T) {
+		_, rec := cors("xyz", []string{"xyz"}, []string{"Authorization"}, http.MethodOptions)
+		assert.Contains(t, rec.Header().Get(headers.AccessControlAllowHeaders), "Authorization")
+	})
+
 }
