@@ -21,6 +21,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/elastic/apm-server/beater/config"
+
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
@@ -28,7 +30,9 @@ import (
 
 func metricsetProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}},
+		Proc: &intakeTestProcessor{
+			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
+		},
 		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
 		TemplatePaths: []string{
 			"../../../model/metricset/_meta/fields.yml",

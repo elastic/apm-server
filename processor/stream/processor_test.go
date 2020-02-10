@@ -27,6 +27,9 @@ import (
 	"testing/iotest"
 	"time"
 
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/transform"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
@@ -56,7 +59,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 	bodyReader := bytes.NewBuffer(b)
 	timeoutReader := iotest.TimeoutReader(bodyReader)
 
-	sp := Processor{MaxEventSize: 100 * 1024}
+	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 	actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, timeoutReader, report)
 	assertApproveResult(t, actualResult, "ReadError")
 }
@@ -83,7 +86,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 		require.NoError(t, err)
 		bodyReader := bytes.NewBuffer(b)
 
-		sp := Processor{MaxEventSize: 100 * 1024}
+		sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 		actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, bodyReader, test.report)
 		assertApproveResult(t, actualResult, test.name)
 	}
@@ -138,7 +141,8 @@ func TestIntegrationESOutput(t *testing.T) {
 				},
 			}
 
-			actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
+			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
+			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -182,7 +186,8 @@ func TestIntegrationRum(t *testing.T) {
 				},
 			}
 
-			actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
+			p := RUMProcessor(&config.Config{MaxEventSize: 100 * 1024}, &transform.Config{})
+			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -211,7 +216,7 @@ func TestRateLimiting(t *testing.T) {
 			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
 		}
 
-		actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(
+		actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
 			context.Background(), test.lim, map[string]interface{}{}, bytes.NewReader(b), report)
 		assertApproveResult(t, actualResult, test.name)
 	}
