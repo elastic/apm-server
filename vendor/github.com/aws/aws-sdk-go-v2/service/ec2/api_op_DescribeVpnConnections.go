@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeVpnConnections.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpnConnectionsRequest
 type DescribeVpnConnectionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -57,9 +58,6 @@ type DescribeVpnConnectionsInput struct {
 	//
 	//    * vpn-gateway-id - The ID of a virtual private gateway associated with
 	//    the VPN connection.
-	//
-	//    * transit-gateway-id - The ID of a transit gateway associated with the
-	//    VPN connection.
 	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// One or more VPN connection IDs.
@@ -74,6 +72,7 @@ func (s DescribeVpnConnectionsInput) String() string {
 }
 
 // Contains the output of DescribeVpnConnections.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpnConnectionsResult
 type DescribeVpnConnectionsOutput struct {
 	_ struct{} `type:"structure"`
 

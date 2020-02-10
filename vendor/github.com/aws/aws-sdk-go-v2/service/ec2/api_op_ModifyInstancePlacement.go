@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyInstancePlacementRequest
 type ModifyInstancePlacementInput struct {
 	_ struct{} `type:"structure"`
 
@@ -25,9 +26,6 @@ type ModifyInstancePlacementInput struct {
 
 	// The ID of the Dedicated Host with which to associate the instance.
 	HostId *string `locationName:"hostId" type:"string"`
-
-	// The ARN of the host resource group in which to place the instance.
-	HostResourceGroupArn *string `type:"string"`
 
 	// The ID of the instance that you are modifying.
 	//
@@ -60,6 +58,7 @@ func (s *ModifyInstancePlacementInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyInstancePlacementResult
 type ModifyInstancePlacementOutput struct {
 	_ struct{} `type:"structure"`
 

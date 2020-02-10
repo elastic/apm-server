@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for DescribeImportImageTasks.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeImportImageTasksRequest
 type DescribeImportImageTasksInput struct {
 	_ struct{} `type:"structure"`
 
@@ -19,13 +21,14 @@ type DescribeImportImageTasksInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// Filter tasks using the task-state filter and one of the following values:
-	// active, completed, deleting, or deleted.
+	// active, completed, deleting, deleted.
 	Filters []Filter `locationNameList:"Filter" type:"list"`
 
-	// The IDs of the import image tasks.
+	// A list of import image task IDs.
 	ImportTaskIds []string `locationName:"ImportTaskId" locationNameList:"ImportTaskId" type:"list"`
 
-	// The maximum number of results to return in a single call.
+	// The maximum number of results to return in a single call. To retrieve the
+	// remaining results, make another call with the returned NextToken value.
 	MaxResults *int64 `type:"integer"`
 
 	// A token that indicates the next page of results.
@@ -37,6 +40,8 @@ func (s DescribeImportImageTasksInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Contains the output for DescribeImportImageTasks.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeImportImageTasksResult
 type DescribeImportImageTasksOutput struct {
 	_ struct{} `type:"structure"`
 

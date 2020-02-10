@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateVpcRequest
 type CreateVpcInput struct {
 	_ struct{} `type:"structure"`
 
@@ -39,21 +40,6 @@ type CreateVpcInput struct {
 	//
 	// Default: default
 	InstanceTenancy Tenancy `locationName:"instanceTenancy" type:"string" enum:"true"`
-
-	// The IPv6 CIDR block from the IPv6 address pool. You must also specify Ipv6Pool
-	// in the request.
-	//
-	// To let Amazon choose the IPv6 CIDR block for you, omit this parameter.
-	Ipv6CidrBlock *string `type:"string"`
-
-	// The name of the location from which we advertise the IPV6 CIDR block. Use
-	// this parameter to limit the address to this location.
-	//
-	// You must set AmazonProvidedIpv6CidrBlock to true to use this parameter.
-	Ipv6CidrBlockNetworkBorderGroup *string `type:"string"`
-
-	// The ID of an IPv6 address pool from which to allocate the IPv6 CIDR block.
-	Ipv6Pool *string `type:"string"`
 }
 
 // String returns the string representation
@@ -75,6 +61,7 @@ func (s *CreateVpcInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateVpcResult
 type CreateVpcOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -95,17 +82,16 @@ const opCreateVpc = "CreateVpc"
 // Creates a VPC with the specified IPv4 CIDR block. The smallest VPC you can
 // create uses a /28 netmask (16 IPv4 addresses), and the largest uses a /16
 // netmask (65,536 IPv4 addresses). For more information about how large to
-// make your VPC, see Your VPC and Subnets (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html)
+// make your VPC, see Your VPC and Subnets (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
-// You can optionally request an IPv6 CIDR block for the VPC. You can request
-// an Amazon-provided IPv6 CIDR block from Amazon's pool of IPv6 addresses,
-// or an IPv6 CIDR block from an IPv6 address pool that you provisioned through
-// bring your own IP addresses (BYOIP (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html)).
+// You can optionally request an Amazon-provided IPv6 CIDR block for the VPC.
+// The IPv6 CIDR block uses a /56 prefix length, and is allocated from Amazon's
+// pool of IPv6 addresses. You cannot choose the IPv6 range for your VPC.
 //
 // By default, each instance you launch in the VPC has the default DHCP options,
 // which include only a default DNS server that we provide (AmazonProvidedDNS).
-// For more information, see DHCP Options Sets (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html)
+// For more information, see DHCP Options Sets (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 // You can specify the instance tenancy value for the VPC when you create it.

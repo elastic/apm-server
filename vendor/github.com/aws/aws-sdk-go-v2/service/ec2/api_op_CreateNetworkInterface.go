@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for CreateNetworkInterface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateNetworkInterfaceRequest
 type CreateNetworkInterfaceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -28,6 +29,8 @@ type CreateNetworkInterfaceInput struct {
 	// Indicates the type of network interface. To create an Elastic Fabric Adapter
 	// (EFA), specify efa. For more information, see Elastic Fabric Adapter (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)
 	// in the Amazon Elastic Compute Cloud User Guide.
+	//
+	// If you are not creating an EFA, specify interface or omit this parameter.
 	InterfaceType NetworkInterfaceCreationType `type:"string" enum:"true"`
 
 	// The number of IPv6 addresses to assign to a network interface. Amazon EC2
@@ -88,6 +91,7 @@ func (s *CreateNetworkInterfaceInput) Validate() error {
 }
 
 // Contains the output of CreateNetworkInterface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateNetworkInterfaceResult
 type CreateNetworkInterfaceOutput struct {
 	_ struct{} `type:"structure"`
 

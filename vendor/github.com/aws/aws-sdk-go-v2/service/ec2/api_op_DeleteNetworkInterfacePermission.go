@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DeleteNetworkInterfacePermission.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteNetworkInterfacePermissionRequest
 type DeleteNetworkInterfacePermissionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -49,6 +50,7 @@ func (s *DeleteNetworkInterfacePermissionInput) Validate() error {
 }
 
 // Contains the output for DeleteNetworkInterfacePermission.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteNetworkInterfacePermissionResult
 type DeleteNetworkInterfacePermissionOutput struct {
 	_ struct{} `type:"structure"`
 

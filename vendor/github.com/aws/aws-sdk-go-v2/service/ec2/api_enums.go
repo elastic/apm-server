@@ -64,7 +64,6 @@ const (
 	AllocationStatePermanentFailure         AllocationState = "permanent-failure"
 	AllocationStateReleased                 AllocationState = "released"
 	AllocationStateReleasedPermanentFailure AllocationState = "released-permanent-failure"
-	AllocationStatePending                  AllocationState = "pending"
 )
 
 func (enum AllocationState) MarshalValue() (string, error) {
@@ -80,9 +79,8 @@ type AllocationStrategy string
 
 // Enum values for AllocationStrategy
 const (
-	AllocationStrategyLowestPrice       AllocationStrategy = "lowestPrice"
-	AllocationStrategyDiversified       AllocationStrategy = "diversified"
-	AllocationStrategyCapacityOptimized AllocationStrategy = "capacityOptimized"
+	AllocationStrategyLowestPrice AllocationStrategy = "lowestPrice"
+	AllocationStrategyDiversified AllocationStrategy = "diversified"
 )
 
 func (enum AllocationStrategy) MarshalValue() (string, error) {
@@ -90,41 +88,6 @@ func (enum AllocationStrategy) MarshalValue() (string, error) {
 }
 
 func (enum AllocationStrategy) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type AllowsMultipleInstanceTypes string
-
-// Enum values for AllowsMultipleInstanceTypes
-const (
-	AllowsMultipleInstanceTypesOn  AllowsMultipleInstanceTypes = "on"
-	AllowsMultipleInstanceTypesOff AllowsMultipleInstanceTypes = "off"
-)
-
-func (enum AllowsMultipleInstanceTypes) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum AllowsMultipleInstanceTypes) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type ArchitectureType string
-
-// Enum values for ArchitectureType
-const (
-	ArchitectureTypeI386  ArchitectureType = "i386"
-	ArchitectureTypeX8664 ArchitectureType = "x86_64"
-	ArchitectureTypeArm64 ArchitectureType = "arm64"
-)
-
-func (enum ArchitectureType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum ArchitectureType) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -236,24 +199,6 @@ func (enum AutoPlacement) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type AvailabilityZoneOptInStatus string
-
-// Enum values for AvailabilityZoneOptInStatus
-const (
-	AvailabilityZoneOptInStatusOptInNotRequired AvailabilityZoneOptInStatus = "opt-in-not-required"
-	AvailabilityZoneOptInStatusOptedIn          AvailabilityZoneOptInStatus = "opted-in"
-	AvailabilityZoneOptInStatusNotOptedIn       AvailabilityZoneOptInStatus = "not-opted-in"
-)
-
-func (enum AvailabilityZoneOptInStatus) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum AvailabilityZoneOptInStatus) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type AvailabilityZoneState string
 
 // Enum values for AvailabilityZoneState
@@ -321,14 +266,13 @@ type ByoipCidrState string
 
 // Enum values for ByoipCidrState
 const (
-	ByoipCidrStateAdvertised                         ByoipCidrState = "advertised"
-	ByoipCidrStateDeprovisioned                      ByoipCidrState = "deprovisioned"
-	ByoipCidrStateFailedDeprovision                  ByoipCidrState = "failed-deprovision"
-	ByoipCidrStateFailedProvision                    ByoipCidrState = "failed-provision"
-	ByoipCidrStatePendingDeprovision                 ByoipCidrState = "pending-deprovision"
-	ByoipCidrStatePendingProvision                   ByoipCidrState = "pending-provision"
-	ByoipCidrStateProvisioned                        ByoipCidrState = "provisioned"
-	ByoipCidrStateProvisionedNotPubliclyAdvertisable ByoipCidrState = "provisioned-not-publicly-advertisable"
+	ByoipCidrStateAdvertised         ByoipCidrState = "advertised"
+	ByoipCidrStateDeprovisioned      ByoipCidrState = "deprovisioned"
+	ByoipCidrStateFailedDeprovision  ByoipCidrState = "failed-deprovision"
+	ByoipCidrStateFailedProvision    ByoipCidrState = "failed-provision"
+	ByoipCidrStatePendingDeprovision ByoipCidrState = "pending-deprovision"
+	ByoipCidrStatePendingProvision   ByoipCidrState = "pending-provision"
+	ByoipCidrStateProvisioned        ByoipCidrState = "provisioned"
 )
 
 func (enum ByoipCidrState) MarshalValue() (string, error) {
@@ -544,22 +488,6 @@ func (enum ConversionTaskState) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type CopyTagsFromSource string
-
-// Enum values for CopyTagsFromSource
-const (
-	CopyTagsFromSourceVolume CopyTagsFromSource = "volume"
-)
-
-func (enum CopyTagsFromSource) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum CopyTagsFromSource) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type CurrencyCodeValues string
 
 // Enum values for CurrencyCodeValues
@@ -663,24 +591,6 @@ func (enum DeleteFleetErrorCode) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type DeleteQueuedReservedInstancesErrorCode string
-
-// Enum values for DeleteQueuedReservedInstancesErrorCode
-const (
-	DeleteQueuedReservedInstancesErrorCodeReservedInstancesIdInvalid        DeleteQueuedReservedInstancesErrorCode = "reserved-instances-id-invalid"
-	DeleteQueuedReservedInstancesErrorCodeReservedInstancesNotInQueuedState DeleteQueuedReservedInstancesErrorCode = "reserved-instances-not-in-queued-state"
-	DeleteQueuedReservedInstancesErrorCodeUnexpectedError                   DeleteQueuedReservedInstancesErrorCode = "unexpected-error"
-)
-
-func (enum DeleteQueuedReservedInstancesErrorCode) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum DeleteQueuedReservedInstancesErrorCode) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type DeviceType string
 
 // Enum values for DeviceType
@@ -712,41 +622,6 @@ func (enum DiskImageFormat) MarshalValue() (string, error) {
 }
 
 func (enum DiskImageFormat) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type DiskType string
-
-// Enum values for DiskType
-const (
-	DiskTypeHdd DiskType = "hdd"
-	DiskTypeSsd DiskType = "ssd"
-)
-
-func (enum DiskType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum DiskType) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type DnsNameState string
-
-// Enum values for DnsNameState
-const (
-	DnsNameStatePendingVerification DnsNameState = "pendingVerification"
-	DnsNameStateVerified            DnsNameState = "verified"
-	DnsNameStateFailed              DnsNameState = "failed"
-)
-
-func (enum DnsNameState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum DnsNameState) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -785,41 +660,6 @@ func (enum DomainType) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type EbsEncryptionSupport string
-
-// Enum values for EbsEncryptionSupport
-const (
-	EbsEncryptionSupportUnsupported EbsEncryptionSupport = "unsupported"
-	EbsEncryptionSupportSupported   EbsEncryptionSupport = "supported"
-)
-
-func (enum EbsEncryptionSupport) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum EbsEncryptionSupport) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type EbsOptimizedSupport string
-
-// Enum values for EbsOptimizedSupport
-const (
-	EbsOptimizedSupportUnsupported EbsOptimizedSupport = "unsupported"
-	EbsOptimizedSupportSupported   EbsOptimizedSupport = "supported"
-	EbsOptimizedSupportDefault     EbsOptimizedSupport = "default"
-)
-
-func (enum EbsOptimizedSupport) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum EbsOptimizedSupport) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type ElasticGpuState string
 
 // Enum values for ElasticGpuState
@@ -849,24 +689,6 @@ func (enum ElasticGpuStatus) MarshalValue() (string, error) {
 }
 
 func (enum ElasticGpuStatus) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type EnaSupport string
-
-// Enum values for EnaSupport
-const (
-	EnaSupportUnsupported EnaSupport = "unsupported"
-	EnaSupportSupported   EnaSupport = "supported"
-	EnaSupportRequired    EnaSupport = "required"
-)
-
-func (enum EnaSupport) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum EnaSupport) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -915,7 +737,6 @@ const (
 	EventTypeInstanceChange     EventType = "instanceChange"
 	EventTypeFleetRequestChange EventType = "fleetRequestChange"
 	EventTypeError              EventType = "error"
-	EventTypeInformation        EventType = "information"
 )
 
 func (enum EventType) MarshalValue() (string, error) {
@@ -981,33 +802,13 @@ func (enum ExportTaskState) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type FastSnapshotRestoreStateCode string
-
-// Enum values for FastSnapshotRestoreStateCode
-const (
-	FastSnapshotRestoreStateCodeEnabling   FastSnapshotRestoreStateCode = "enabling"
-	FastSnapshotRestoreStateCodeOptimizing FastSnapshotRestoreStateCode = "optimizing"
-	FastSnapshotRestoreStateCodeEnabled    FastSnapshotRestoreStateCode = "enabled"
-	FastSnapshotRestoreStateCodeDisabling  FastSnapshotRestoreStateCode = "disabling"
-	FastSnapshotRestoreStateCodeDisabled   FastSnapshotRestoreStateCode = "disabled"
-)
-
-func (enum FastSnapshotRestoreStateCode) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum FastSnapshotRestoreStateCode) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type FleetActivityStatus string
 
 // Enum values for FleetActivityStatus
 const (
 	FleetActivityStatusError              FleetActivityStatus = "error"
-	FleetActivityStatusPendingFulfillment FleetActivityStatus = "pending_fulfillment"
-	FleetActivityStatusPendingTermination FleetActivityStatus = "pending_termination"
+	FleetActivityStatusPendingFulfillment FleetActivityStatus = "pending-fulfillment"
+	FleetActivityStatusPendingTermination FleetActivityStatus = "pending-termination"
 	FleetActivityStatusFulfilled          FleetActivityStatus = "fulfilled"
 )
 
@@ -1016,22 +817,6 @@ func (enum FleetActivityStatus) MarshalValue() (string, error) {
 }
 
 func (enum FleetActivityStatus) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type FleetCapacityReservationUsageStrategy string
-
-// Enum values for FleetCapacityReservationUsageStrategy
-const (
-	FleetCapacityReservationUsageStrategyUseCapacityReservationsFirst FleetCapacityReservationUsageStrategy = "use-capacity-reservations-first"
-)
-
-func (enum FleetCapacityReservationUsageStrategy) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum FleetCapacityReservationUsageStrategy) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -1096,8 +881,8 @@ const (
 	FleetStateCodeActive             FleetStateCode = "active"
 	FleetStateCodeDeleted            FleetStateCode = "deleted"
 	FleetStateCodeFailed             FleetStateCode = "failed"
-	FleetStateCodeDeletedRunning     FleetStateCode = "deleted_running"
-	FleetStateCodeDeletedTerminating FleetStateCode = "deleted_terminating"
+	FleetStateCodeDeletedRunning     FleetStateCode = "deleted-running"
+	FleetStateCodeDeletedTerminating FleetStateCode = "deleted-terminating"
 	FleetStateCodeModifying          FleetStateCode = "modifying"
 )
 
@@ -1200,23 +985,6 @@ func (enum GatewayType) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type HostRecovery string
-
-// Enum values for HostRecovery
-const (
-	HostRecoveryOn  HostRecovery = "on"
-	HostRecoveryOff HostRecovery = "off"
-)
-
-func (enum HostRecovery) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum HostRecovery) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type HostTenancy string
 
 // Enum values for HostTenancy
@@ -1230,23 +998,6 @@ func (enum HostTenancy) MarshalValue() (string, error) {
 }
 
 func (enum HostTenancy) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type HttpTokensState string
-
-// Enum values for HttpTokensState
-const (
-	HttpTokensStateOptional HttpTokensState = "optional"
-	HttpTokensStateRequired HttpTokensState = "required"
-)
-
-func (enum HttpTokensState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum HttpTokensState) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -1464,40 +1215,6 @@ func (enum InstanceMatchCriteria) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type InstanceMetadataEndpointState string
-
-// Enum values for InstanceMetadataEndpointState
-const (
-	InstanceMetadataEndpointStateDisabled InstanceMetadataEndpointState = "disabled"
-	InstanceMetadataEndpointStateEnabled  InstanceMetadataEndpointState = "enabled"
-)
-
-func (enum InstanceMetadataEndpointState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum InstanceMetadataEndpointState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type InstanceMetadataOptionsState string
-
-// Enum values for InstanceMetadataOptionsState
-const (
-	InstanceMetadataOptionsStatePending InstanceMetadataOptionsState = "pending"
-	InstanceMetadataOptionsStateApplied InstanceMetadataOptionsState = "applied"
-)
-
-func (enum InstanceMetadataOptionsState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum InstanceMetadataOptionsState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type InstanceStateName string
 
 // Enum values for InstanceStateName
@@ -1578,26 +1295,20 @@ const (
 	InstanceTypeR5Xlarge     InstanceType = "r5.xlarge"
 	InstanceTypeR52xlarge    InstanceType = "r5.2xlarge"
 	InstanceTypeR54xlarge    InstanceType = "r5.4xlarge"
-	InstanceTypeR58xlarge    InstanceType = "r5.8xlarge"
 	InstanceTypeR512xlarge   InstanceType = "r5.12xlarge"
-	InstanceTypeR516xlarge   InstanceType = "r5.16xlarge"
 	InstanceTypeR524xlarge   InstanceType = "r5.24xlarge"
 	InstanceTypeR5Metal      InstanceType = "r5.metal"
 	InstanceTypeR5aLarge     InstanceType = "r5a.large"
 	InstanceTypeR5aXlarge    InstanceType = "r5a.xlarge"
 	InstanceTypeR5a2xlarge   InstanceType = "r5a.2xlarge"
 	InstanceTypeR5a4xlarge   InstanceType = "r5a.4xlarge"
-	InstanceTypeR5a8xlarge   InstanceType = "r5a.8xlarge"
 	InstanceTypeR5a12xlarge  InstanceType = "r5a.12xlarge"
-	InstanceTypeR5a16xlarge  InstanceType = "r5a.16xlarge"
 	InstanceTypeR5a24xlarge  InstanceType = "r5a.24xlarge"
 	InstanceTypeR5dLarge     InstanceType = "r5d.large"
 	InstanceTypeR5dXlarge    InstanceType = "r5d.xlarge"
 	InstanceTypeR5d2xlarge   InstanceType = "r5d.2xlarge"
 	InstanceTypeR5d4xlarge   InstanceType = "r5d.4xlarge"
-	InstanceTypeR5d8xlarge   InstanceType = "r5d.8xlarge"
 	InstanceTypeR5d12xlarge  InstanceType = "r5d.12xlarge"
-	InstanceTypeR5d16xlarge  InstanceType = "r5d.16xlarge"
 	InstanceTypeR5d24xlarge  InstanceType = "r5d.24xlarge"
 	InstanceTypeR5dMetal     InstanceType = "r5d.metal"
 	InstanceTypeR5adLarge    InstanceType = "r5ad.large"
@@ -1627,14 +1338,6 @@ const (
 	InstanceTypeI38xlarge    InstanceType = "i3.8xlarge"
 	InstanceTypeI316xlarge   InstanceType = "i3.16xlarge"
 	InstanceTypeI3Metal      InstanceType = "i3.metal"
-	InstanceTypeI3enLarge    InstanceType = "i3en.large"
-	InstanceTypeI3enXlarge   InstanceType = "i3en.xlarge"
-	InstanceTypeI3en2xlarge  InstanceType = "i3en.2xlarge"
-	InstanceTypeI3en3xlarge  InstanceType = "i3en.3xlarge"
-	InstanceTypeI3en6xlarge  InstanceType = "i3en.6xlarge"
-	InstanceTypeI3en12xlarge InstanceType = "i3en.12xlarge"
-	InstanceTypeI3en24xlarge InstanceType = "i3en.24xlarge"
-	InstanceTypeI3enMetal    InstanceType = "i3en.metal"
 	InstanceTypeHi14xlarge   InstanceType = "hi1.4xlarge"
 	InstanceTypeHs18xlarge   InstanceType = "hs1.8xlarge"
 	InstanceTypeC1Medium     InstanceType = "c1.medium"
@@ -1654,19 +1357,13 @@ const (
 	InstanceTypeC52xlarge    InstanceType = "c5.2xlarge"
 	InstanceTypeC54xlarge    InstanceType = "c5.4xlarge"
 	InstanceTypeC59xlarge    InstanceType = "c5.9xlarge"
-	InstanceTypeC512xlarge   InstanceType = "c5.12xlarge"
 	InstanceTypeC518xlarge   InstanceType = "c5.18xlarge"
-	InstanceTypeC524xlarge   InstanceType = "c5.24xlarge"
-	InstanceTypeC5Metal      InstanceType = "c5.metal"
 	InstanceTypeC5dLarge     InstanceType = "c5d.large"
 	InstanceTypeC5dXlarge    InstanceType = "c5d.xlarge"
 	InstanceTypeC5d2xlarge   InstanceType = "c5d.2xlarge"
 	InstanceTypeC5d4xlarge   InstanceType = "c5d.4xlarge"
 	InstanceTypeC5d9xlarge   InstanceType = "c5d.9xlarge"
-	InstanceTypeC5d12xlarge  InstanceType = "c5d.12xlarge"
 	InstanceTypeC5d18xlarge  InstanceType = "c5d.18xlarge"
-	InstanceTypeC5d24xlarge  InstanceType = "c5d.24xlarge"
-	InstanceTypeC5dMetal     InstanceType = "c5d.metal"
 	InstanceTypeC5nLarge     InstanceType = "c5n.large"
 	InstanceTypeC5nXlarge    InstanceType = "c5n.xlarge"
 	InstanceTypeC5n2xlarge   InstanceType = "c5n.2xlarge"
@@ -1681,12 +1378,6 @@ const (
 	InstanceTypeG38xlarge    InstanceType = "g3.8xlarge"
 	InstanceTypeG316xlarge   InstanceType = "g3.16xlarge"
 	InstanceTypeG3sXlarge    InstanceType = "g3s.xlarge"
-	InstanceTypeG4dnXlarge   InstanceType = "g4dn.xlarge"
-	InstanceTypeG4dn2xlarge  InstanceType = "g4dn.2xlarge"
-	InstanceTypeG4dn4xlarge  InstanceType = "g4dn.4xlarge"
-	InstanceTypeG4dn8xlarge  InstanceType = "g4dn.8xlarge"
-	InstanceTypeG4dn12xlarge InstanceType = "g4dn.12xlarge"
-	InstanceTypeG4dn16xlarge InstanceType = "g4dn.16xlarge"
 	InstanceTypeCg14xlarge   InstanceType = "cg1.4xlarge"
 	InstanceTypeP2Xlarge     InstanceType = "p2.xlarge"
 	InstanceTypeP28xlarge    InstanceType = "p2.8xlarge"
@@ -1706,26 +1397,20 @@ const (
 	InstanceTypeM5Xlarge     InstanceType = "m5.xlarge"
 	InstanceTypeM52xlarge    InstanceType = "m5.2xlarge"
 	InstanceTypeM54xlarge    InstanceType = "m5.4xlarge"
-	InstanceTypeM58xlarge    InstanceType = "m5.8xlarge"
 	InstanceTypeM512xlarge   InstanceType = "m5.12xlarge"
-	InstanceTypeM516xlarge   InstanceType = "m5.16xlarge"
 	InstanceTypeM524xlarge   InstanceType = "m5.24xlarge"
 	InstanceTypeM5Metal      InstanceType = "m5.metal"
 	InstanceTypeM5aLarge     InstanceType = "m5a.large"
 	InstanceTypeM5aXlarge    InstanceType = "m5a.xlarge"
 	InstanceTypeM5a2xlarge   InstanceType = "m5a.2xlarge"
 	InstanceTypeM5a4xlarge   InstanceType = "m5a.4xlarge"
-	InstanceTypeM5a8xlarge   InstanceType = "m5a.8xlarge"
 	InstanceTypeM5a12xlarge  InstanceType = "m5a.12xlarge"
-	InstanceTypeM5a16xlarge  InstanceType = "m5a.16xlarge"
 	InstanceTypeM5a24xlarge  InstanceType = "m5a.24xlarge"
 	InstanceTypeM5dLarge     InstanceType = "m5d.large"
 	InstanceTypeM5dXlarge    InstanceType = "m5d.xlarge"
 	InstanceTypeM5d2xlarge   InstanceType = "m5d.2xlarge"
 	InstanceTypeM5d4xlarge   InstanceType = "m5d.4xlarge"
-	InstanceTypeM5d8xlarge   InstanceType = "m5d.8xlarge"
 	InstanceTypeM5d12xlarge  InstanceType = "m5d.12xlarge"
-	InstanceTypeM5d16xlarge  InstanceType = "m5d.16xlarge"
 	InstanceTypeM5d24xlarge  InstanceType = "m5d.24xlarge"
 	InstanceTypeM5dMetal     InstanceType = "m5d.metal"
 	InstanceTypeM5adLarge    InstanceType = "m5ad.large"
@@ -1750,50 +1435,11 @@ const (
 	InstanceTypeU6tb1Metal   InstanceType = "u-6tb1.metal"
 	InstanceTypeU9tb1Metal   InstanceType = "u-9tb1.metal"
 	InstanceTypeU12tb1Metal  InstanceType = "u-12tb1.metal"
-	InstanceTypeU18tb1Metal  InstanceType = "u-18tb1.metal"
-	InstanceTypeU24tb1Metal  InstanceType = "u-24tb1.metal"
 	InstanceTypeA1Medium     InstanceType = "a1.medium"
 	InstanceTypeA1Large      InstanceType = "a1.large"
 	InstanceTypeA1Xlarge     InstanceType = "a1.xlarge"
 	InstanceTypeA12xlarge    InstanceType = "a1.2xlarge"
 	InstanceTypeA14xlarge    InstanceType = "a1.4xlarge"
-	InstanceTypeA1Metal      InstanceType = "a1.metal"
-	InstanceTypeM5dnLarge    InstanceType = "m5dn.large"
-	InstanceTypeM5dnXlarge   InstanceType = "m5dn.xlarge"
-	InstanceTypeM5dn2xlarge  InstanceType = "m5dn.2xlarge"
-	InstanceTypeM5dn4xlarge  InstanceType = "m5dn.4xlarge"
-	InstanceTypeM5dn8xlarge  InstanceType = "m5dn.8xlarge"
-	InstanceTypeM5dn12xlarge InstanceType = "m5dn.12xlarge"
-	InstanceTypeM5dn16xlarge InstanceType = "m5dn.16xlarge"
-	InstanceTypeM5dn24xlarge InstanceType = "m5dn.24xlarge"
-	InstanceTypeM5nLarge     InstanceType = "m5n.large"
-	InstanceTypeM5nXlarge    InstanceType = "m5n.xlarge"
-	InstanceTypeM5n2xlarge   InstanceType = "m5n.2xlarge"
-	InstanceTypeM5n4xlarge   InstanceType = "m5n.4xlarge"
-	InstanceTypeM5n8xlarge   InstanceType = "m5n.8xlarge"
-	InstanceTypeM5n12xlarge  InstanceType = "m5n.12xlarge"
-	InstanceTypeM5n16xlarge  InstanceType = "m5n.16xlarge"
-	InstanceTypeM5n24xlarge  InstanceType = "m5n.24xlarge"
-	InstanceTypeR5dnLarge    InstanceType = "r5dn.large"
-	InstanceTypeR5dnXlarge   InstanceType = "r5dn.xlarge"
-	InstanceTypeR5dn2xlarge  InstanceType = "r5dn.2xlarge"
-	InstanceTypeR5dn4xlarge  InstanceType = "r5dn.4xlarge"
-	InstanceTypeR5dn8xlarge  InstanceType = "r5dn.8xlarge"
-	InstanceTypeR5dn12xlarge InstanceType = "r5dn.12xlarge"
-	InstanceTypeR5dn16xlarge InstanceType = "r5dn.16xlarge"
-	InstanceTypeR5dn24xlarge InstanceType = "r5dn.24xlarge"
-	InstanceTypeR5nLarge     InstanceType = "r5n.large"
-	InstanceTypeR5nXlarge    InstanceType = "r5n.xlarge"
-	InstanceTypeR5n2xlarge   InstanceType = "r5n.2xlarge"
-	InstanceTypeR5n4xlarge   InstanceType = "r5n.4xlarge"
-	InstanceTypeR5n8xlarge   InstanceType = "r5n.8xlarge"
-	InstanceTypeR5n12xlarge  InstanceType = "r5n.12xlarge"
-	InstanceTypeR5n16xlarge  InstanceType = "r5n.16xlarge"
-	InstanceTypeR5n24xlarge  InstanceType = "r5n.24xlarge"
-	InstanceTypeInf1Xlarge   InstanceType = "inf1.xlarge"
-	InstanceTypeInf12xlarge  InstanceType = "inf1.2xlarge"
-	InstanceTypeInf16xlarge  InstanceType = "inf1.6xlarge"
-	InstanceTypeInf124xlarge InstanceType = "inf1.24xlarge"
 )
 
 func (enum InstanceType) MarshalValue() (string, error) {
@@ -1801,23 +1447,6 @@ func (enum InstanceType) MarshalValue() (string, error) {
 }
 
 func (enum InstanceType) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type InstanceTypeHypervisor string
-
-// Enum values for InstanceTypeHypervisor
-const (
-	InstanceTypeHypervisorNitro InstanceTypeHypervisor = "nitro"
-	InstanceTypeHypervisorXen   InstanceTypeHypervisor = "xen"
-)
-
-func (enum InstanceTypeHypervisor) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum InstanceTypeHypervisor) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -1877,57 +1506,6 @@ func (enum LaunchTemplateErrorCode) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type LaunchTemplateHttpTokensState string
-
-// Enum values for LaunchTemplateHttpTokensState
-const (
-	LaunchTemplateHttpTokensStateOptional LaunchTemplateHttpTokensState = "optional"
-	LaunchTemplateHttpTokensStateRequired LaunchTemplateHttpTokensState = "required"
-)
-
-func (enum LaunchTemplateHttpTokensState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum LaunchTemplateHttpTokensState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type LaunchTemplateInstanceMetadataEndpointState string
-
-// Enum values for LaunchTemplateInstanceMetadataEndpointState
-const (
-	LaunchTemplateInstanceMetadataEndpointStateDisabled LaunchTemplateInstanceMetadataEndpointState = "disabled"
-	LaunchTemplateInstanceMetadataEndpointStateEnabled  LaunchTemplateInstanceMetadataEndpointState = "enabled"
-)
-
-func (enum LaunchTemplateInstanceMetadataEndpointState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum LaunchTemplateInstanceMetadataEndpointState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type LaunchTemplateInstanceMetadataOptionsState string
-
-// Enum values for LaunchTemplateInstanceMetadataOptionsState
-const (
-	LaunchTemplateInstanceMetadataOptionsStatePending LaunchTemplateInstanceMetadataOptionsState = "pending"
-	LaunchTemplateInstanceMetadataOptionsStateApplied LaunchTemplateInstanceMetadataOptionsState = "applied"
-)
-
-func (enum LaunchTemplateInstanceMetadataOptionsState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum LaunchTemplateInstanceMetadataOptionsState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type ListingState string
 
 // Enum values for ListingState
@@ -1966,61 +1544,6 @@ func (enum ListingStatus) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type LocalGatewayRouteState string
-
-// Enum values for LocalGatewayRouteState
-const (
-	LocalGatewayRouteStatePending   LocalGatewayRouteState = "pending"
-	LocalGatewayRouteStateActive    LocalGatewayRouteState = "active"
-	LocalGatewayRouteStateBlackhole LocalGatewayRouteState = "blackhole"
-	LocalGatewayRouteStateDeleting  LocalGatewayRouteState = "deleting"
-	LocalGatewayRouteStateDeleted   LocalGatewayRouteState = "deleted"
-)
-
-func (enum LocalGatewayRouteState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum LocalGatewayRouteState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type LocalGatewayRouteType string
-
-// Enum values for LocalGatewayRouteType
-const (
-	LocalGatewayRouteTypeStatic     LocalGatewayRouteType = "static"
-	LocalGatewayRouteTypePropagated LocalGatewayRouteType = "propagated"
-)
-
-func (enum LocalGatewayRouteType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum LocalGatewayRouteType) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type LocationType string
-
-// Enum values for LocationType
-const (
-	LocationTypeRegion             LocationType = "region"
-	LocationTypeAvailabilityZone   LocationType = "availability-zone"
-	LocationTypeAvailabilityZoneId LocationType = "availability-zone-id"
-)
-
-func (enum LocationType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum LocationType) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type LogDestinationType string
 
 // Enum values for LogDestinationType
@@ -2050,23 +1573,6 @@ func (enum MarketType) MarshalValue() (string, error) {
 }
 
 func (enum MarketType) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type MembershipType string
-
-// Enum values for MembershipType
-const (
-	MembershipTypeStatic MembershipType = "static"
-	MembershipTypeIgmp   MembershipType = "igmp"
-)
-
-func (enum MembershipType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum MembershipType) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -2103,23 +1609,6 @@ func (enum MoveStatus) MarshalValue() (string, error) {
 }
 
 func (enum MoveStatus) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type MulticastSupportValue string
-
-// Enum values for MulticastSupportValue
-const (
-	MulticastSupportValueEnable  MulticastSupportValue = "enable"
-	MulticastSupportValueDisable MulticastSupportValue = "disable"
-)
-
-func (enum MulticastSupportValue) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum MulticastSupportValue) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -2361,24 +1850,6 @@ func (enum PlacementGroupState) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type PlacementGroupStrategy string
-
-// Enum values for PlacementGroupStrategy
-const (
-	PlacementGroupStrategyCluster   PlacementGroupStrategy = "cluster"
-	PlacementGroupStrategyPartition PlacementGroupStrategy = "partition"
-	PlacementGroupStrategySpread    PlacementGroupStrategy = "spread"
-)
-
-func (enum PlacementGroupStrategy) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum PlacementGroupStrategy) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type PlacementStrategy string
 
 // Enum values for PlacementStrategy
@@ -2554,8 +2025,6 @@ const (
 	ReservedInstanceStateActive         ReservedInstanceState = "active"
 	ReservedInstanceStatePaymentFailed  ReservedInstanceState = "payment-failed"
 	ReservedInstanceStateRetired        ReservedInstanceState = "retired"
-	ReservedInstanceStateQueued         ReservedInstanceState = "queued"
-	ReservedInstanceStateQueuedDeleted  ReservedInstanceState = "queued-deleted"
 )
 
 func (enum ReservedInstanceState) MarshalValue() (string, error) {
@@ -2603,42 +2072,35 @@ type ResourceType string
 
 // Enum values for ResourceType
 const (
-	ResourceTypeClientVpnEndpoint             ResourceType = "client-vpn-endpoint"
-	ResourceTypeCustomerGateway               ResourceType = "customer-gateway"
-	ResourceTypeDedicatedHost                 ResourceType = "dedicated-host"
-	ResourceTypeDhcpOptions                   ResourceType = "dhcp-options"
-	ResourceTypeElasticIp                     ResourceType = "elastic-ip"
-	ResourceTypeFleet                         ResourceType = "fleet"
-	ResourceTypeFpgaImage                     ResourceType = "fpga-image"
-	ResourceTypeHostReservation               ResourceType = "host-reservation"
-	ResourceTypeImage                         ResourceType = "image"
-	ResourceTypeInstance                      ResourceType = "instance"
-	ResourceTypeInternetGateway               ResourceType = "internet-gateway"
-	ResourceTypeKeyPair                       ResourceType = "key-pair"
-	ResourceTypeLaunchTemplate                ResourceType = "launch-template"
-	ResourceTypeNatgateway                    ResourceType = "natgateway"
-	ResourceTypeNetworkAcl                    ResourceType = "network-acl"
-	ResourceTypeNetworkInterface              ResourceType = "network-interface"
-	ResourceTypePlacementGroup                ResourceType = "placement-group"
-	ResourceTypeReservedInstances             ResourceType = "reserved-instances"
-	ResourceTypeRouteTable                    ResourceType = "route-table"
-	ResourceTypeSecurityGroup                 ResourceType = "security-group"
-	ResourceTypeSnapshot                      ResourceType = "snapshot"
-	ResourceTypeSpotFleetRequest              ResourceType = "spot-fleet-request"
-	ResourceTypeSpotInstancesRequest          ResourceType = "spot-instances-request"
-	ResourceTypeSubnet                        ResourceType = "subnet"
-	ResourceTypeTrafficMirrorFilter           ResourceType = "traffic-mirror-filter"
-	ResourceTypeTrafficMirrorSession          ResourceType = "traffic-mirror-session"
-	ResourceTypeTrafficMirrorTarget           ResourceType = "traffic-mirror-target"
-	ResourceTypeTransitGateway                ResourceType = "transit-gateway"
-	ResourceTypeTransitGatewayAttachment      ResourceType = "transit-gateway-attachment"
-	ResourceTypeTransitGatewayMulticastDomain ResourceType = "transit-gateway-multicast-domain"
-	ResourceTypeTransitGatewayRouteTable      ResourceType = "transit-gateway-route-table"
-	ResourceTypeVolume                        ResourceType = "volume"
-	ResourceTypeVpc                           ResourceType = "vpc"
-	ResourceTypeVpcPeeringConnection          ResourceType = "vpc-peering-connection"
-	ResourceTypeVpnConnection                 ResourceType = "vpn-connection"
-	ResourceTypeVpnGateway                    ResourceType = "vpn-gateway"
+	ResourceTypeClientVpnEndpoint        ResourceType = "client-vpn-endpoint"
+	ResourceTypeCustomerGateway          ResourceType = "customer-gateway"
+	ResourceTypeDedicatedHost            ResourceType = "dedicated-host"
+	ResourceTypeDhcpOptions              ResourceType = "dhcp-options"
+	ResourceTypeElasticIp                ResourceType = "elastic-ip"
+	ResourceTypeFleet                    ResourceType = "fleet"
+	ResourceTypeFpgaImage                ResourceType = "fpga-image"
+	ResourceTypeHostReservation          ResourceType = "host-reservation"
+	ResourceTypeImage                    ResourceType = "image"
+	ResourceTypeInstance                 ResourceType = "instance"
+	ResourceTypeInternetGateway          ResourceType = "internet-gateway"
+	ResourceTypeLaunchTemplate           ResourceType = "launch-template"
+	ResourceTypeNatgateway               ResourceType = "natgateway"
+	ResourceTypeNetworkAcl               ResourceType = "network-acl"
+	ResourceTypeNetworkInterface         ResourceType = "network-interface"
+	ResourceTypeReservedInstances        ResourceType = "reserved-instances"
+	ResourceTypeRouteTable               ResourceType = "route-table"
+	ResourceTypeSecurityGroup            ResourceType = "security-group"
+	ResourceTypeSnapshot                 ResourceType = "snapshot"
+	ResourceTypeSpotInstancesRequest     ResourceType = "spot-instances-request"
+	ResourceTypeSubnet                   ResourceType = "subnet"
+	ResourceTypeTransitGateway           ResourceType = "transit-gateway"
+	ResourceTypeTransitGatewayAttachment ResourceType = "transit-gateway-attachment"
+	ResourceTypeTransitGatewayRouteTable ResourceType = "transit-gateway-route-table"
+	ResourceTypeVolume                   ResourceType = "volume"
+	ResourceTypeVpc                      ResourceType = "vpc"
+	ResourceTypeVpcPeeringConnection     ResourceType = "vpc-peering-connection"
+	ResourceTypeVpnConnection            ResourceType = "vpn-connection"
+	ResourceTypeVpnGateway               ResourceType = "vpn-gateway"
 )
 
 func (enum ResourceType) MarshalValue() (string, error) {
@@ -2646,23 +2108,6 @@ func (enum ResourceType) MarshalValue() (string, error) {
 }
 
 func (enum ResourceType) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type RootDeviceType string
-
-// Enum values for RootDeviceType
-const (
-	RootDeviceTypeEbs           RootDeviceType = "ebs"
-	RootDeviceTypeInstanceStore RootDeviceType = "instance-store"
-)
-
-func (enum RootDeviceType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum RootDeviceType) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -2702,26 +2147,6 @@ func (enum RouteState) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type RouteTableAssociationStateCode string
-
-// Enum values for RouteTableAssociationStateCode
-const (
-	RouteTableAssociationStateCodeAssociating    RouteTableAssociationStateCode = "associating"
-	RouteTableAssociationStateCodeAssociated     RouteTableAssociationStateCode = "associated"
-	RouteTableAssociationStateCodeDisassociating RouteTableAssociationStateCode = "disassociating"
-	RouteTableAssociationStateCodeDisassociated  RouteTableAssociationStateCode = "disassociated"
-	RouteTableAssociationStateCodeFailed         RouteTableAssociationStateCode = "failed"
-)
-
-func (enum RouteTableAssociationStateCode) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum RouteTableAssociationStateCode) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type RuleAction string
 
 // Enum values for RuleAction
@@ -2735,23 +2160,6 @@ func (enum RuleAction) MarshalValue() (string, error) {
 }
 
 func (enum RuleAction) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type Scope string
-
-// Enum values for Scope
-const (
-	ScopeAvailabilityZone Scope = "Availability Zone"
-	ScopeRegion           Scope = "Region"
-)
-
-func (enum Scope) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum Scope) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -2849,9 +2257,8 @@ type SpotAllocationStrategy string
 
 // Enum values for SpotAllocationStrategy
 const (
-	SpotAllocationStrategyLowestPrice       SpotAllocationStrategy = "lowest-price"
-	SpotAllocationStrategyDiversified       SpotAllocationStrategy = "diversified"
-	SpotAllocationStrategyCapacityOptimized SpotAllocationStrategy = "capacity-optimized"
+	SpotAllocationStrategyLowestPrice SpotAllocationStrategy = "lowest-price"
+	SpotAllocationStrategyDiversified SpotAllocationStrategy = "diversified"
 )
 
 func (enum SpotAllocationStrategy) MarshalValue() (string, error) {
@@ -3087,110 +2494,6 @@ func (enum Tenancy) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type TrafficDirection string
-
-// Enum values for TrafficDirection
-const (
-	TrafficDirectionIngress TrafficDirection = "ingress"
-	TrafficDirectionEgress  TrafficDirection = "egress"
-)
-
-func (enum TrafficDirection) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TrafficDirection) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type TrafficMirrorFilterRuleField string
-
-// Enum values for TrafficMirrorFilterRuleField
-const (
-	TrafficMirrorFilterRuleFieldDestinationPortRange TrafficMirrorFilterRuleField = "destination-port-range"
-	TrafficMirrorFilterRuleFieldSourcePortRange      TrafficMirrorFilterRuleField = "source-port-range"
-	TrafficMirrorFilterRuleFieldProtocol             TrafficMirrorFilterRuleField = "protocol"
-	TrafficMirrorFilterRuleFieldDescription          TrafficMirrorFilterRuleField = "description"
-)
-
-func (enum TrafficMirrorFilterRuleField) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TrafficMirrorFilterRuleField) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type TrafficMirrorNetworkService string
-
-// Enum values for TrafficMirrorNetworkService
-const (
-	TrafficMirrorNetworkServiceAmazonDns TrafficMirrorNetworkService = "amazon-dns"
-)
-
-func (enum TrafficMirrorNetworkService) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TrafficMirrorNetworkService) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type TrafficMirrorRuleAction string
-
-// Enum values for TrafficMirrorRuleAction
-const (
-	TrafficMirrorRuleActionAccept TrafficMirrorRuleAction = "accept"
-	TrafficMirrorRuleActionReject TrafficMirrorRuleAction = "reject"
-)
-
-func (enum TrafficMirrorRuleAction) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TrafficMirrorRuleAction) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type TrafficMirrorSessionField string
-
-// Enum values for TrafficMirrorSessionField
-const (
-	TrafficMirrorSessionFieldPacketLength     TrafficMirrorSessionField = "packet-length"
-	TrafficMirrorSessionFieldDescription      TrafficMirrorSessionField = "description"
-	TrafficMirrorSessionFieldVirtualNetworkId TrafficMirrorSessionField = "virtual-network-id"
-)
-
-func (enum TrafficMirrorSessionField) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TrafficMirrorSessionField) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type TrafficMirrorTargetType string
-
-// Enum values for TrafficMirrorTargetType
-const (
-	TrafficMirrorTargetTypeNetworkInterface    TrafficMirrorTargetType = "network-interface"
-	TrafficMirrorTargetTypeNetworkLoadBalancer TrafficMirrorTargetType = "network-load-balancer"
-)
-
-func (enum TrafficMirrorTargetType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TrafficMirrorTargetType) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type TrafficType string
 
 // Enum values for TrafficType
@@ -3232,10 +2535,8 @@ type TransitGatewayAttachmentResourceType string
 
 // Enum values for TransitGatewayAttachmentResourceType
 const (
-	TransitGatewayAttachmentResourceTypeVpc                  TransitGatewayAttachmentResourceType = "vpc"
-	TransitGatewayAttachmentResourceTypeVpn                  TransitGatewayAttachmentResourceType = "vpn"
-	TransitGatewayAttachmentResourceTypeDirectConnectGateway TransitGatewayAttachmentResourceType = "direct-connect-gateway"
-	TransitGatewayAttachmentResourceTypeTgwPeering           TransitGatewayAttachmentResourceType = "tgw-peering"
+	TransitGatewayAttachmentResourceTypeVpc TransitGatewayAttachmentResourceType = "vpc"
+	TransitGatewayAttachmentResourceTypeVpn TransitGatewayAttachmentResourceType = "vpn"
 )
 
 func (enum TransitGatewayAttachmentResourceType) MarshalValue() (string, error) {
@@ -3251,7 +2552,6 @@ type TransitGatewayAttachmentState string
 
 // Enum values for TransitGatewayAttachmentState
 const (
-	TransitGatewayAttachmentStateInitiating        TransitGatewayAttachmentState = "initiating"
 	TransitGatewayAttachmentStatePendingAcceptance TransitGatewayAttachmentState = "pendingAcceptance"
 	TransitGatewayAttachmentStateRollingBack       TransitGatewayAttachmentState = "rollingBack"
 	TransitGatewayAttachmentStatePending           TransitGatewayAttachmentState = "pending"
@@ -3270,44 +2570,6 @@ func (enum TransitGatewayAttachmentState) MarshalValue() (string, error) {
 }
 
 func (enum TransitGatewayAttachmentState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type TransitGatewayMulitcastDomainAssociationState string
-
-// Enum values for TransitGatewayMulitcastDomainAssociationState
-const (
-	TransitGatewayMulitcastDomainAssociationStateAssociating    TransitGatewayMulitcastDomainAssociationState = "associating"
-	TransitGatewayMulitcastDomainAssociationStateAssociated     TransitGatewayMulitcastDomainAssociationState = "associated"
-	TransitGatewayMulitcastDomainAssociationStateDisassociating TransitGatewayMulitcastDomainAssociationState = "disassociating"
-	TransitGatewayMulitcastDomainAssociationStateDisassociated  TransitGatewayMulitcastDomainAssociationState = "disassociated"
-)
-
-func (enum TransitGatewayMulitcastDomainAssociationState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TransitGatewayMulitcastDomainAssociationState) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type TransitGatewayMulticastDomainState string
-
-// Enum values for TransitGatewayMulticastDomainState
-const (
-	TransitGatewayMulticastDomainStatePending   TransitGatewayMulticastDomainState = "pending"
-	TransitGatewayMulticastDomainStateAvailable TransitGatewayMulticastDomainState = "available"
-	TransitGatewayMulticastDomainStateDeleting  TransitGatewayMulticastDomainState = "deleting"
-	TransitGatewayMulticastDomainStateDeleted   TransitGatewayMulticastDomainState = "deleted"
-)
-
-func (enum TransitGatewayMulticastDomainState) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum TransitGatewayMulticastDomainState) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -3424,24 +2686,6 @@ func (enum TransportProtocol) MarshalValueBuf(b []byte) ([]byte, error) {
 	return append(b, enum...), nil
 }
 
-type UnlimitedSupportedInstanceFamily string
-
-// Enum values for UnlimitedSupportedInstanceFamily
-const (
-	UnlimitedSupportedInstanceFamilyT2  UnlimitedSupportedInstanceFamily = "t2"
-	UnlimitedSupportedInstanceFamilyT3  UnlimitedSupportedInstanceFamily = "t3"
-	UnlimitedSupportedInstanceFamilyT3a UnlimitedSupportedInstanceFamily = "t3a"
-)
-
-func (enum UnlimitedSupportedInstanceFamily) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum UnlimitedSupportedInstanceFamily) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
 type UnsuccessfulInstanceCreditSpecificationErrorCode string
 
 // Enum values for UnsuccessfulInstanceCreditSpecificationErrorCode
@@ -3457,23 +2701,6 @@ func (enum UnsuccessfulInstanceCreditSpecificationErrorCode) MarshalValue() (str
 }
 
 func (enum UnsuccessfulInstanceCreditSpecificationErrorCode) MarshalValueBuf(b []byte) ([]byte, error) {
-	b = b[0:0]
-	return append(b, enum...), nil
-}
-
-type UsageClassType string
-
-// Enum values for UsageClassType
-const (
-	UsageClassTypeSpot     UsageClassType = "spot"
-	UsageClassTypeOnDemand UsageClassType = "on-demand"
-)
-
-func (enum UsageClassType) MarshalValue() (string, error) {
-	return string(enum), nil
-}
-
-func (enum UsageClassType) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }
@@ -3896,6 +3123,23 @@ func (enum VpnStaticRouteSource) MarshalValue() (string, error) {
 }
 
 func (enum VpnStaticRouteSource) MarshalValueBuf(b []byte) ([]byte, error) {
+	b = b[0:0]
+	return append(b, enum...), nil
+}
+
+type Scope string
+
+// Enum values for Scope
+const (
+	ScopeAvailabilityZone Scope = "Availability Zone"
+	ScopeRegion           Scope = "Region"
+)
+
+func (enum Scope) MarshalValue() (string, error) {
+	return string(enum), nil
+}
+
+func (enum Scope) MarshalValueBuf(b []byte) ([]byte, error) {
 	b = b[0:0]
 	return append(b, enum...), nil
 }

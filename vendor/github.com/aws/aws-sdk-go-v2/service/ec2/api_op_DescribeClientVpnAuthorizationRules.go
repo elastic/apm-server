@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeClientVpnAuthorizationRulesRequest
 type DescribeClientVpnAuthorizationRulesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -24,14 +25,6 @@ type DescribeClientVpnAuthorizationRulesInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// One or more filters. Filter names and values are case-sensitive.
-	//
-	//    * description - The description of the authorization rule.
-	//
-	//    * destination-cidr - The CIDR of the network to which the authorization
-	//    rule applies.
-	//
-	//    * group-id - The ID of the Active Directory group to which the authorization
-	//    rule grants access.
 	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// The maximum number of results to return for the request in a single page.
@@ -40,7 +33,7 @@ type DescribeClientVpnAuthorizationRulesInput struct {
 	MaxResults *int64 `min:"5" type:"integer"`
 
 	// The token to retrieve the next page of results.
-	NextToken *string `type:"string"`
+	NextToken *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -58,6 +51,9 @@ func (s *DescribeClientVpnAuthorizationRulesInput) Validate() error {
 	if s.MaxResults != nil && *s.MaxResults < 5 {
 		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 5))
 	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(aws.NewErrParamMinLen("NextToken", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -65,6 +61,7 @@ func (s *DescribeClientVpnAuthorizationRulesInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeClientVpnAuthorizationRulesResult
 type DescribeClientVpnAuthorizationRulesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -73,7 +70,7 @@ type DescribeClientVpnAuthorizationRulesOutput struct {
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
-	NextToken *string `locationName:"nextToken" type:"string"`
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 }
 
 // String returns the string representation

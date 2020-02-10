@@ -11,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Contains the parameters for DeleteVolume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteVolumeRequest
 type DeleteVolumeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -45,6 +47,7 @@ func (s *DeleteVolumeInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteVolumeOutput
 type DeleteVolumeOutput struct {
 	_ struct{} `type:"structure"`
 }

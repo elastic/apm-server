@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteVpcRequest
 type DeleteVpcInput struct {
 	_ struct{} `type:"structure"`
 
@@ -45,6 +46,7 @@ func (s *DeleteVpcInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteVpcOutput
 type DeleteVpcOutput struct {
 	_ struct{} `type:"structure"`
 }

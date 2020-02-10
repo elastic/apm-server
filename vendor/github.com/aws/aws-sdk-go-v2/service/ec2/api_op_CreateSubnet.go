@@ -9,21 +9,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateSubnetRequest
 type CreateSubnetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Availability Zone or Local Zone for the subnet.
+	// The Availability Zone for the subnet.
 	//
 	// Default: AWS selects one for you. If you create more than one subnet in your
-	// VPC, we do not necessarily select a different zone for each subnet.
-	//
-	// To create a subnet in a Local Zone, set this value to the Local Zone ID,
-	// for example us-west-2-lax-1a. For information about the Regions that support
-	// Local Zones, see Available Regions (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions)
-	// in the Amazon Elastic Compute Cloud User Guide.
+	// VPC, we may not necessarily select a different zone for each subnet.
 	AvailabilityZone *string `type:"string"`
 
-	// The AZ ID or the Local Zone ID of the subnet.
+	// The AZ ID of the subnet.
 	AvailabilityZoneId *string `type:"string"`
 
 	// The IPv4 network range for the subnet, in CIDR notation. For example, 10.0.0.0/24.
@@ -40,9 +36,6 @@ type CreateSubnetInput struct {
 	// The IPv6 network range for the subnet, in CIDR notation. The subnet size
 	// must use a /64 prefix length.
 	Ipv6CidrBlock *string `type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `type:"string"`
 
 	// The ID of the VPC.
 	//
@@ -73,6 +66,7 @@ func (s *CreateSubnetInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateSubnetResult
 type CreateSubnetOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -115,7 +109,7 @@ const opCreateSubnet = "CreateSubnet"
 // It's therefore possible to have a subnet with no running instances (they're
 // all stopped), but no remaining IP addresses available.
 //
-// For more information about subnets, see Your VPC and Subnets (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html)
+// For more information about subnets, see Your VPC and Subnets (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using CreateSubnetRequest.

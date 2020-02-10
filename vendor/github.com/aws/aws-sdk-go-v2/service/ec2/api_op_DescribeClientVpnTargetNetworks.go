@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeClientVpnTargetNetworksRequest
 type DescribeClientVpnTargetNetworksInput struct {
 	_ struct{} `type:"structure"`
 
@@ -27,12 +28,6 @@ type DescribeClientVpnTargetNetworksInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// One or more filters. Filter names and values are case-sensitive.
-	//
-	//    * association-id - The ID of the association.
-	//
-	//    * target-network-id - The ID of the subnet specified as the target network.
-	//
-	//    * vpc-id - The ID of the VPC in which the target network is located.
 	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// The maximum number of results to return for the request in a single page.
@@ -41,7 +36,7 @@ type DescribeClientVpnTargetNetworksInput struct {
 	MaxResults *int64 `min:"5" type:"integer"`
 
 	// The token to retrieve the next page of results.
-	NextToken *string `type:"string"`
+	NextToken *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -59,6 +54,9 @@ func (s *DescribeClientVpnTargetNetworksInput) Validate() error {
 	if s.MaxResults != nil && *s.MaxResults < 5 {
 		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 5))
 	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(aws.NewErrParamMinLen("NextToken", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -66,6 +64,7 @@ func (s *DescribeClientVpnTargetNetworksInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeClientVpnTargetNetworksResult
 type DescribeClientVpnTargetNetworksOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -74,7 +73,7 @@ type DescribeClientVpnTargetNetworksOutput struct {
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
-	NextToken *string `locationName:"nextToken" type:"string"`
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 }
 
 // String returns the string representation

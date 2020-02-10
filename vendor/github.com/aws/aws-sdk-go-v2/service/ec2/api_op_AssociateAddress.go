@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateAddressRequest
 type AssociateAddressInput struct {
 	_ struct{} `type:"structure"`
 
@@ -57,6 +58,7 @@ func (s AssociateAddressInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateAddressResult
 type AssociateAddressOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -95,9 +97,6 @@ const opAssociateAddress = "AssociateAddress"
 // interface, you get an error unless you allow reassociation. You cannot associate
 // an Elastic IP address with an instance or network interface that has an existing
 // Elastic IP address.
-//
-// You cannot associate an Elastic IP address with an interface in a different
-// network border group.
 //
 // This is an idempotent operation. If you perform the operation more than once,
 // Amazon EC2 doesn't return an error, and you may be charged for each time

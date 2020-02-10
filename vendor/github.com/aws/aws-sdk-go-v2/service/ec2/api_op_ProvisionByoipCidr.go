@@ -9,13 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ProvisionByoipCidrRequest
 type ProvisionByoipCidrInput struct {
 	_ struct{} `type:"structure"`
 
-	// The public IPv4 or IPv6 address range, in CIDR notation. The most specific
-	// IPv4 prefix that you can specify is /24. The most specific IPv6 prefix you
-	// can specify is /56. The address range cannot overlap with another address
-	// range that you've brought to this or another Region.
+	// The public IPv4 address range, in CIDR notation. The most specific prefix
+	// that you can specify is /24. The address range cannot overlap with another
+	// address range that you've brought to this or another Region.
 	//
 	// Cidr is a required field
 	Cidr *string `type:"string" required:"true"`
@@ -32,12 +32,6 @@ type ProvisionByoipCidrInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `type:"boolean"`
-
-	// (IPv6 only) Indicate whether the address range will be publicly advertised
-	// to the internet.
-	//
-	// Default: true
-	PubliclyAdvertisable *bool `type:"boolean"`
 }
 
 // String returns the string representation
@@ -64,10 +58,11 @@ func (s *ProvisionByoipCidrInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ProvisionByoipCidrResult
 type ProvisionByoipCidrOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the address range.
+	// Information about the address pool.
 	ByoipCidr *ByoipCidr `locationName:"byoipCidr" type:"structure"`
 }
 
@@ -81,10 +76,9 @@ const opProvisionByoipCidr = "ProvisionByoipCidr"
 // ProvisionByoipCidrRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Provisions an IPv4 or IPv6 address range for use with your AWS resources
-// through bring your own IP addresses (BYOIP) and creates a corresponding address
-// pool. After the address range is provisioned, it is ready to be advertised
-// using AdvertiseByoipCidr.
+// Provisions an address range for use with your AWS resources through bring
+// your own IP addresses (BYOIP) and creates a corresponding address pool. After
+// the address range is provisioned, it is ready to be advertised using AdvertiseByoipCidr.
 //
 // AWS verifies that you own the address range and are authorized to advertise
 // it. You must ensure that the address range is registered to you and that
@@ -97,8 +91,8 @@ const opProvisionByoipCidr = "ProvisionByoipCidr"
 // immediately, but the address range is not ready to use until its status changes
 // from pending-provision to provisioned. To monitor the status of an address
 // range, use DescribeByoipCidrs. To allocate an Elastic IP address from your
-// IPv4 address pool, use AllocateAddress with either the specific address from
-// the address pool or the ID of the address pool.
+// address pool, use AllocateAddress with either the specific address from the
+// address pool or the ID of the address pool.
 //
 //    // Example sending a request using ProvisionByoipCidrRequest.
 //    req := client.ProvisionByoipCidrRequest(params)

@@ -11,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Contains the parameters for ResetSnapshotAttribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ResetSnapshotAttributeRequest
 type ResetSnapshotAttributeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -54,6 +56,7 @@ func (s *ResetSnapshotAttributeInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ResetSnapshotAttributeOutput
 type ResetSnapshotAttributeOutput struct {
 	_ struct{} `type:"structure"`
 }

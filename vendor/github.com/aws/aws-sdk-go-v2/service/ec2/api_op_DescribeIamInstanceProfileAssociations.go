@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeIamInstanceProfileAssociationsRequest
 type DescribeIamInstanceProfileAssociationsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -28,7 +29,7 @@ type DescribeIamInstanceProfileAssociationsInput struct {
 	MaxResults *int64 `min:"5" type:"integer"`
 
 	// The token to request the next page of results.
-	NextToken *string `type:"string"`
+	NextToken *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -42,6 +43,9 @@ func (s *DescribeIamInstanceProfileAssociationsInput) Validate() error {
 	if s.MaxResults != nil && *s.MaxResults < 5 {
 		invalidParams.Add(aws.NewErrParamMinValue("MaxResults", 5))
 	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(aws.NewErrParamMinLen("NextToken", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -49,6 +53,7 @@ func (s *DescribeIamInstanceProfileAssociationsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeIamInstanceProfileAssociationsResult
 type DescribeIamInstanceProfileAssociationsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -57,7 +62,7 @@ type DescribeIamInstanceProfileAssociationsOutput struct {
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
-	NextToken *string `locationName:"nextToken" type:"string"`
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 }
 
 // String returns the string representation

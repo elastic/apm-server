@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for RequestSpotFleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RequestSpotFleetRequest
 type RequestSpotFleetInput struct {
 	_ struct{} `type:"structure"`
 
@@ -50,6 +51,7 @@ func (s *RequestSpotFleetInput) Validate() error {
 }
 
 // Contains the output of RequestSpotFleet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/RequestSpotFleetResponse
 type RequestSpotFleetOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -76,10 +78,10 @@ const opRequestSpotFleet = "RequestSpotFleet"
 // You can submit a single request that includes multiple launch specifications
 // that vary by instance type, AMI, Availability Zone, or subnet.
 //
-// By default, the Spot Fleet requests Spot Instances in the Spot Instance pool
-// where the price per unit is the lowest. Each launch specification can include
-// its own instance weighting that reflects the value of the instance type to
-// your application workload.
+// By default, the Spot Fleet requests Spot Instances in the Spot pool where
+// the price per unit is the lowest. Each launch specification can include its
+// own instance weighting that reflects the value of the instance type to your
+// application workload.
 //
 // Alternatively, you can specify that the Spot Fleet distribute the target
 // capacity across the Spot pools included in its launch specifications. By

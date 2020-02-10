@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribePlacementGroupsRequest
 type DescribePlacementGroupsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -28,9 +29,6 @@ type DescribePlacementGroupsInput struct {
 	//    * strategy - The strategy of the placement group (cluster | spread | partition).
 	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
-	// The IDs of the placement groups.
-	GroupIds []string `locationName:"GroupId" locationNameList:"GroupId" type:"list"`
-
 	// The names of the placement groups.
 	//
 	// Default: Describes all your placement groups, or only those otherwise specified.
@@ -42,6 +40,7 @@ func (s DescribePlacementGroupsInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribePlacementGroupsResult
 type DescribePlacementGroupsOutput struct {
 	_ struct{} `type:"structure"`
 

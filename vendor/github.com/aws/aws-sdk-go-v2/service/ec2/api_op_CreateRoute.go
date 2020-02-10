@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateRouteRequest
 type CreateRouteInput struct {
 	_ struct{} `type:"structure"`
 
@@ -36,9 +37,6 @@ type CreateRouteInput struct {
 	// The ID of a NAT instance in your VPC. The operation fails if you specify
 	// an instance ID unless exactly one network interface is attached.
 	InstanceId *string `locationName:"instanceId" type:"string"`
-
-	// The ID of the local gateway.
-	LocalGatewayId *string `type:"string"`
 
 	// [IPv4 traffic only] The ID of a NAT gateway.
 	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
@@ -77,6 +75,7 @@ func (s *CreateRouteInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateRouteResult
 type CreateRouteOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -98,7 +97,7 @@ const opCreateRoute = "CreateRoute"
 //
 // You must specify one of the following targets: internet gateway or virtual
 // private gateway, NAT instance, NAT gateway, VPC peering connection, network
-// interface, egress-only internet gateway, or transit gateway.
+// interface, or egress-only internet gateway.
 //
 // When determining how to route traffic, we use the route with the most specific
 // match. For example, traffic is destined for the IPv4 address 192.0.2.3, and
@@ -112,7 +111,7 @@ const opCreateRoute = "CreateRoute"
 // route in the list covers a smaller number of IP addresses and is therefore
 // more specific, so we use that route to determine where to target the traffic.
 //
-// For more information about route tables, see Route Tables (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html)
+// For more information about route tables, see Route Tables (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using CreateRouteRequest.

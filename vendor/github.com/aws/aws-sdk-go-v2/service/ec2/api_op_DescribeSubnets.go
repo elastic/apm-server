@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSubnetsRequest
 type DescribeSubnetsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -97,6 +98,7 @@ func (s *DescribeSubnetsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSubnetsResult
 type DescribeSubnetsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -120,7 +122,7 @@ const opDescribeSubnets = "DescribeSubnets"
 //
 // Describes one or more of your subnets.
 //
-// For more information, see Your VPC and Subnets (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html)
+// For more information, see Your VPC and Subnets (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using DescribeSubnetsRequest.

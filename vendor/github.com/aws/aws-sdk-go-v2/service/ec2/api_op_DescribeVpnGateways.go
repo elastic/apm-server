@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeVpnGateways.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpnGatewaysRequest
 type DescribeVpnGatewaysInput struct {
 	_ struct{} `type:"structure"`
 
@@ -63,6 +64,7 @@ func (s DescribeVpnGatewaysInput) String() string {
 }
 
 // Contains the output of DescribeVpnGateways.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeVpnGatewaysResult
 type DescribeVpnGatewaysOutput struct {
 	_ struct{} `type:"structure"`
 

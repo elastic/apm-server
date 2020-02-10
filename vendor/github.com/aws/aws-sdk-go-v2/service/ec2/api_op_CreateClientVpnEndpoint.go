@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateClientVpnEndpointRequest
 type CreateClientVpnEndpointInput struct {
 	_ struct{} `type:"structure"`
 
@@ -51,7 +52,8 @@ type CreateClientVpnEndpointInput struct {
 
 	// Information about the DNS servers to be used for DNS resolution. A Client
 	// VPN endpoint can have up to two DNS servers. If no DNS server is specified,
-	// the DNS address configured on the device is used for the DNS server.
+	// the DNS address of the VPC that is to be associated with Client VPN endpoint
+	// is used as the DNS server.
 	DnsServers []string `locationNameList:"item" type:"list"`
 
 	// Checks whether you have the required permissions for the action, without
@@ -66,15 +68,6 @@ type CreateClientVpnEndpointInput struct {
 	// ServerCertificateArn is a required field
 	ServerCertificateArn *string `type:"string" required:"true"`
 
-	// Indicates whether split-tunnel is enabled on the AWS Client VPN endpoint.
-	//
-	// By default, split-tunnel on a VPN endpoint is disabled.
-	//
-	// For information about split-tunnel VPN endpoints, see Split-Tunnel AWS Client
-	// VPN Endpoint (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html)
-	// in the AWS Client VPN Administrator Guide.
-	SplitTunnel *bool `type:"boolean"`
-
 	// The tags to apply to the Client VPN endpoint during creation.
 	TagSpecifications []TagSpecification `locationName:"TagSpecification" locationNameList:"item" type:"list"`
 
@@ -82,13 +75,6 @@ type CreateClientVpnEndpointInput struct {
 	//
 	// Default value: udp
 	TransportProtocol TransportProtocol `type:"string" enum:"true"`
-
-	// The port number to assign to the Client VPN endpoint for TCP and UDP traffic.
-	//
-	// Valid Values: 443 | 1194
-	//
-	// Default Value: 443
-	VpnPort *int64 `type:"integer"`
 }
 
 // String returns the string representation
@@ -122,6 +108,7 @@ func (s *CreateClientVpnEndpointInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateClientVpnEndpointResult
 type CreateClientVpnEndpointOutput struct {
 	_ struct{} `type:"structure"`
 

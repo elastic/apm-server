@@ -12,6 +12,7 @@ import (
 )
 
 // Contains the parameters for ModifyNetworkInterfaceAttribute.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyNetworkInterfaceAttributeRequest
 type ModifyNetworkInterfaceAttributeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -66,6 +67,7 @@ func (s *ModifyNetworkInterfaceAttributeInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyNetworkInterfaceAttributeOutput
 type ModifyNetworkInterfaceAttributeOutput struct {
 	_ struct{} `type:"structure"`
 }

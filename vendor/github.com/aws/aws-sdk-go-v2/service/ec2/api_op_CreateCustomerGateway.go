@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for CreateCustomerGateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateCustomerGatewayRequest
 type CreateCustomerGatewayInput struct {
 	_ struct{} `type:"structure"`
 
@@ -20,14 +21,6 @@ type CreateCustomerGatewayInput struct {
 	// BgpAsn is a required field
 	BgpAsn *int64 `type:"integer" required:"true"`
 
-	// The Amazon Resource Name (ARN) for the customer gateway certificate.
-	CertificateArn *string `type:"string"`
-
-	// A name for the customer gateway device.
-	//
-	// Length Constraints: Up to 255 characters.
-	DeviceName *string `type:"string"`
-
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -36,7 +29,9 @@ type CreateCustomerGatewayInput struct {
 
 	// The Internet-routable IP address for the customer gateway's outside interface.
 	// The address must be static.
-	PublicIp *string `locationName:"IpAddress" type:"string"`
+	//
+	// PublicIp is a required field
+	PublicIp *string `locationName:"IpAddress" type:"string" required:"true"`
 
 	// The type of VPN connection that this customer gateway supports (ipsec.1).
 	//
@@ -56,6 +51,10 @@ func (s *CreateCustomerGatewayInput) Validate() error {
 	if s.BgpAsn == nil {
 		invalidParams.Add(aws.NewErrParamRequired("BgpAsn"))
 	}
+
+	if s.PublicIp == nil {
+		invalidParams.Add(aws.NewErrParamRequired("PublicIp"))
+	}
 	if len(s.Type) == 0 {
 		invalidParams.Add(aws.NewErrParamRequired("Type"))
 	}
@@ -67,6 +66,7 @@ func (s *CreateCustomerGatewayInput) Validate() error {
 }
 
 // Contains the output of CreateCustomerGateway.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateCustomerGatewayResult
 type CreateCustomerGatewayOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -88,7 +88,7 @@ const opCreateCustomerGateway = "CreateCustomerGateway"
 // gateway is the appliance at your end of the VPN connection. (The device on
 // the AWS side of the VPN connection is the virtual private gateway.) You must
 // provide the Internet-routable IP address of the customer gateway's external
-// interface. The IP address must be static and can be behind a device performing
+// interface. The IP address must be static and may be behind a device performing
 // network address translation (NAT).
 //
 // For devices that use Border Gateway Protocol (BGP), you can also provide
@@ -103,10 +103,11 @@ const opCreateCustomerGateway = "CreateCustomerGateway"
 // For more information, see AWS Site-to-Site VPN (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html)
 // in the AWS Site-to-Site VPN User Guide.
 //
-// To create more than one customer gateway with the same VPN type, IP address,
-// and BGP ASN, specify a unique device name for each customer gateway. Identical
-// requests return information about the existing customer gateway and do not
-// create new customer gateways.
+// You cannot create more than one customer gateway with the same VPN type,
+// IP address, and BGP ASN parameter values. If you run an identical request
+// more than one time, the first request creates the customer gateway, and subsequent
+// requests return information about the existing customer gateway. The subsequent
+// requests do not create new customer gateway resources.
 //
 //    // Example sending a request using CreateCustomerGatewayRequest.
 //    req := client.CreateCustomerGatewayRequest(params)

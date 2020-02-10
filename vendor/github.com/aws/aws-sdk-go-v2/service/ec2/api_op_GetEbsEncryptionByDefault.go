@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/GetEbsEncryptionByDefaultRequest
 type GetEbsEncryptionByDefaultInput struct {
 	_ struct{} `type:"structure"`
 
@@ -24,10 +25,11 @@ func (s GetEbsEncryptionByDefaultInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/GetEbsEncryptionByDefaultResult
 type GetEbsEncryptionByDefaultOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates whether encryption by default is enabled.
+	// Indicates whether default encryption for EBS volumes is enabled or disabled.
 	EbsEncryptionByDefault *bool `locationName:"ebsEncryptionByDefault" type:"boolean"`
 }
 
@@ -41,11 +43,8 @@ const opGetEbsEncryptionByDefault = "GetEbsEncryptionByDefault"
 // GetEbsEncryptionByDefaultRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Describes whether EBS encryption by default is enabled for your account in
-// the current Region.
-//
-// For more information, see Amazon EBS Encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
-// in the Amazon Elastic Compute Cloud User Guide.
+// Describes whether default EBS encryption is enabled for your account in the
+// current region.
 //
 //    // Example sending a request using GetEbsEncryptionByDefaultRequest.
 //    req := client.GetEbsEncryptionByDefaultRequest(params)

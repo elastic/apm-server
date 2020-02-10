@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteClientVpnEndpointRequest
 type DeleteClientVpnEndpointInput struct {
 	_ struct{} `type:"structure"`
 
@@ -43,6 +44,7 @@ func (s *DeleteClientVpnEndpointInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteClientVpnEndpointResult
 type DeleteClientVpnEndpointOutput struct {
 	_ struct{} `type:"structure"`
 

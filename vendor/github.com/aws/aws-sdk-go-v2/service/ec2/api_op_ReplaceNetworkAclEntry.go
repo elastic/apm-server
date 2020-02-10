@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReplaceNetworkAclEntryRequest
 type ReplaceNetworkAclEntryInput struct {
 	_ struct{} `type:"structure"`
 
@@ -102,6 +103,7 @@ func (s *ReplaceNetworkAclEntryInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ReplaceNetworkAclEntryOutput
 type ReplaceNetworkAclEntryOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -117,8 +119,8 @@ const opReplaceNetworkAclEntry = "ReplaceNetworkAclEntry"
 // Amazon Elastic Compute Cloud.
 //
 // Replaces an entry (rule) in a network ACL. For more information, see Network
-// ACLs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in
-// the Amazon Virtual Private Cloud User Guide.
+// ACLs (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html)
+// in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using ReplaceNetworkAclEntryRequest.
 //    req := client.ReplaceNetworkAclEntryRequest(params)

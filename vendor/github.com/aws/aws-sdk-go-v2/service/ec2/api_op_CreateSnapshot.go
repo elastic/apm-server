@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for CreateSnapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateSnapshotRequest
 type CreateSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -51,6 +53,7 @@ func (s *CreateSnapshotInput) Validate() error {
 }
 
 // Describes a snapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Snapshot
 type CreateSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -59,7 +62,7 @@ type CreateSnapshotOutput struct {
 	// the original volume or snapshot copy. Because data encryption keys are inherited
 	// by volumes created from snapshots, and vice versa, if snapshots share the
 	// same data encryption key identifier, then they belong to the same volume/snapshot
-	// lineage. This parameter is only returned by DescribeSnapshots.
+	// lineage. This parameter is only returned by the DescribeSnapshots API operation.
 	DataEncryptionKeyId *string `locationName:"dataEncryptionKeyId" type:"string"`
 
 	// The description for the snapshot.
@@ -68,9 +71,9 @@ type CreateSnapshotOutput struct {
 	// Indicates whether the snapshot is encrypted.
 	Encrypted *bool `locationName:"encrypted" type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS)
-	// customer master key (CMK) that was used to protect the volume encryption
-	// key for the parent volume.
+	// The full ARN of the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) that was used to protect the volume encryption key for the parent
+	// volume.
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
 
 	// Value from an Amazon-maintained list (amazon | self | all | aws-marketplace
@@ -89,7 +92,7 @@ type CreateSnapshotOutput struct {
 	SnapshotId *string `locationName:"snapshotId" type:"string"`
 
 	// The time stamp when the snapshot was initiated.
-	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// The snapshot state.
 	State SnapshotState `locationName:"status" type:"string" enum:"true"`
@@ -98,7 +101,7 @@ type CreateSnapshotOutput struct {
 	// operation fails (for example, if the proper AWS Key Management Service (AWS
 	// KMS) permissions are not obtained) this field displays error state details
 	// to help you diagnose why the error occurred. This parameter is only returned
-	// by DescribeSnapshots.
+	// by the DescribeSnapshots API operation.
 	StateMessage *string `locationName:"statusMessage" type:"string"`
 
 	// Any tags assigned to the snapshot.

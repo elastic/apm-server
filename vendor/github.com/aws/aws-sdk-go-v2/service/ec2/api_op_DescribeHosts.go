@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeHostsRequest
 type DescribeHostsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -41,13 +42,11 @@ type DescribeHostsInput struct {
 	// The maximum number of results to return for the request in a single page.
 	// The remaining results can be seen by sending another request with the returned
 	// nextToken value. This value can be between 5 and 500. If maxResults is given
-	// a larger value than 500, you receive an error.
-	//
-	// You cannot specify this parameter and the host IDs parameter in the same
-	// request.
+	// a larger value than 500, you receive an error. You cannot specify this parameter
+	// and the host IDs parameter in the same request.
 	MaxResults *int64 `locationName:"maxResults" type:"integer"`
 
-	// The token to use to retrieve the next page of results.
+	// The token to retrieve the next page of results.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -56,6 +55,7 @@ func (s DescribeHostsInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeHostsResult
 type DescribeHostsOutput struct {
 	_ struct{} `type:"structure"`
 

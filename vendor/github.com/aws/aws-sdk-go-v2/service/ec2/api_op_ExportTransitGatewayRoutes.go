@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ExportTransitGatewayRoutesRequest
 type ExportTransitGatewayRoutesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -20,7 +21,7 @@ type ExportTransitGatewayRoutesInput struct {
 
 	// One or more filters. The possible values are:
 	//
-	//    * attachment.transit-gateway-attachment-id - The id of the transit gateway
+	//    * attachment.transit-gateway-attachment-id- The id of the transit gateway
 	//    attachment.
 	//
 	//    * attachment.resource-id - The resource id of the transit gateway attachment.
@@ -44,7 +45,7 @@ type ExportTransitGatewayRoutesInput struct {
 	//
 	//    * transit-gateway-route-destination-cidr-block - The CIDR range.
 	//
-	//    * type - The type of route (active | blackhole).
+	//    * type - The type of roue (active | blackhole).
 	Filters []Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// The name of the S3 bucket.
@@ -81,6 +82,7 @@ func (s *ExportTransitGatewayRoutesInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ExportTransitGatewayRoutesResult
 type ExportTransitGatewayRoutesOutput struct {
 	_ struct{} `type:"structure"`
 

@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for CreateVolume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateVolumeRequest
 type CreateVolumeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -24,14 +26,18 @@ type CreateVolumeInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
-	// Specifies whether the volume should be encrypted. The effect of setting the
-	// encryption state to true depends on the volume origin (new or from a snapshot),
-	// starting encryption state, ownership, and whether encryption by default is
-	// enabled. For more information, see Encryption by Default (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-by-default)
-	// in the Amazon Elastic Compute Cloud User Guide.
+	// Specifies the encryption state of the volume. The default effect of setting
+	// the Encrypted parameter to true through the console, API, or CLI depends
+	// on the volume's origin (new or from a snapshot), starting encryption state,
+	// ownership, and whether account-level encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/account-level-encryption.html)
+	// is enabled. Each default case can be overridden by specifying a customer
+	// master key (CMK) with the KmsKeyId parameter in addition to setting Encrypted
+	// to true. For a complete list of possible encryption cases, see Amazon EBS
+	// Encryption (AWSEC2/latest/UserGuide/EBSEncryption.htm).
 	//
-	// Encrypted Amazon EBS volumes must be attached to instances that support Amazon
-	// EBS encryption. For more information, see Supported Instance Types (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances).
+	// Encrypted Amazon EBS volumes may only be attached to instances that support
+	// Amazon EBS encryption. For more information, see Supported Instance Types
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances).
 	Encrypted *bool `locationName:"encrypted" type:"boolean"`
 
 	// The number of I/O operations per second (IOPS) to provision for the volume,
@@ -45,28 +51,32 @@ type CreateVolumeInput struct {
 	// This parameter is valid only for Provisioned IOPS SSD (io1) volumes.
 	Iops *int64 `type:"integer"`
 
-	// The identifier of the AWS Key Management Service (AWS KMS) customer master
-	// key (CMK) to use for Amazon EBS encryption. If this parameter is not specified,
-	// your AWS managed CMK for EBS is used. If KmsKeyId is specified, the encrypted
-	// state must be true.
+	// An identifier for the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) to use to encrypt the volume. This parameter is only required if
+	// you want to use a non-default CMK; if this parameter is not specified, the
+	// default CMK for EBS is used. If a KmsKeyId is specified, the Encrypted flag
+	// must also be set.
 	//
-	// You can specify the CMK using any of the following:
+	// The CMK identifier may be provided in any of the following formats:
 	//
-	//    * Key ID. For example, key/1234abcd-12ab-34cd-56ef-1234567890ab.
+	//    * Key ID
 	//
-	//    * Key alias. For example, alias/ExampleAlias.
+	//    * Key alias. The alias ARN contains the arn:aws:kms namespace, followed
+	//    by the Region of the CMK, the AWS account ID of the CMK owner, the alias
+	//    namespace, and then the CMK alias. For example, arn:aws:kms:us-east-1:012345678910:alias/ExampleAlias.
 	//
-	//    * Key ARN. For example, arn:aws:kms:us-east-1:012345678910:key/abcd1234-a123-456a-a12b-a123b4cd56ef.
+	//    * ARN using key ID. The ID ARN contains the arn:aws:kms namespace, followed
+	//    by the Region of the CMK, the AWS account ID of the CMK owner, the key
+	//    namespace, and then the CMK ID. For example, arn:aws:kms:us-east-1:012345678910:key/abcd1234-a123-456a-a12b-a123b4cd56ef.
 	//
-	//    * Alias ARN. For example, arn:aws:kms:us-east-1:012345678910:alias/ExampleAlias.
+	//    * ARN using key alias. The alias ARN contains the arn:aws:kms namespace,
+	//    followed by the Region of the CMK, the AWS account ID of the CMK owner,
+	//    the alias namespace, and then the CMK alias. For example, arn:aws:kms:us-east-1:012345678910:alias/ExampleAlias.
 	//
-	// AWS authenticates the CMK asynchronously. Therefore, if you specify an ID,
-	// alias, or ARN that is not valid, the action can appear to complete, but eventually
-	// fails.
+	// AWS parses KmsKeyId asynchronously, meaning that the action you call may
+	// appear to complete even though you provided an invalid identifier. The action
+	// will eventually fail.
 	KmsKeyId *string `type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `type:"string"`
 
 	// The size of the volume, in GiBs.
 	//
@@ -92,7 +102,10 @@ type CreateVolumeInput struct {
 	// IOPS SSD, st1 for Throughput Optimized HDD, sc1 for Cold HDD, or standard
 	// for Magnetic volumes.
 	//
-	// Default: gp2
+	// Defaults: If no volume type is specified, the default is standard in us-east-1,
+	// eu-west-1, eu-central-1, us-west-2, us-west-1, sa-east-1, ap-northeast-1,
+	// ap-northeast-2, ap-southeast-1, ap-southeast-2, ap-south-1, us-gov-west-1,
+	// and cn-north-1. In all other Regions, EBS defaults to gp2.
 	VolumeType VolumeType `type:"string" enum:"true"`
 }
 
@@ -116,6 +129,7 @@ func (s *CreateVolumeInput) Validate() error {
 }
 
 // Describes a volume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/Volume
 type CreateVolumeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -126,13 +140,10 @@ type CreateVolumeOutput struct {
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
 	// The time stamp when volume creation was initiated.
-	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
 
-	// Indicates whether the volume is encrypted.
+	// Indicates whether the volume will be encrypted.
 	Encrypted *bool `locationName:"encrypted" type:"boolean"`
-
-	// Indicates whether the volume was created using fast snapshot restore.
-	FastRestored *bool `locationName:"fastRestored" type:"boolean"`
 
 	// The number of I/O operations per second (IOPS) that the volume supports.
 	// For Provisioned IOPS SSD volumes, this represents the number of IOPS that
@@ -151,13 +162,9 @@ type CreateVolumeOutput struct {
 	// it is not used in requests to create gp2, st1, sc1, or standard volumes.
 	Iops *int64 `locationName:"iops" type:"integer"`
 
-	// The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS)
-	// customer master key (CMK) that was used to protect the volume encryption
-	// key for the volume.
+	// The full ARN of the AWS Key Management Service (AWS KMS) customer master
+	// key (CMK) that was used to protect the volume encryption key for the volume.
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
-
-	// The Amazon Resource Name (ARN) of the Outpost.
-	OutpostArn *string `locationName:"outpostArn" type:"string"`
 
 	// The size of the volume, in GiBs.
 	Size *int64 `locationName:"size" type:"integer"`
@@ -198,10 +205,10 @@ const opCreateVolume = "CreateVolume"
 // Any AWS Marketplace product codes from the snapshot are propagated to the
 // volume.
 //
-// You can create encrypted volumes. Encrypted volumes must be attached to instances
-// that support Amazon EBS encryption. Volumes that are created from encrypted
-// snapshots are also automatically encrypted. For more information, see Amazon
-// EBS Encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
+// You can create encrypted volumes with the Encrypted parameter. Encrypted
+// volumes may only be attached to instances that support Amazon EBS encryption.
+// Volumes that are created from encrypted snapshots are also automatically
+// encrypted. For more information, see Amazon EBS Encryption (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
 // in the Amazon Elastic Compute Cloud User Guide.
 //
 // You can tag your volumes during creation. For more information, see Tagging

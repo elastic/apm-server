@@ -12,6 +12,7 @@ import (
 )
 
 // Contains the parameters for DeleteNetworkInterface.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteNetworkInterfaceRequest
 type DeleteNetworkInterfaceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -46,6 +47,7 @@ func (s *DeleteNetworkInterfaceInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DeleteNetworkInterfaceOutput
 type DeleteNetworkInterfaceOutput struct {
 	_ struct{} `type:"structure"`
 }

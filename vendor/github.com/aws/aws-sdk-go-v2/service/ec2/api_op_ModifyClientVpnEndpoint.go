@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyClientVpnEndpointRequest
 type ModifyClientVpnEndpointInput struct {
 	_ struct{} `type:"structure"`
 
@@ -47,20 +48,6 @@ type ModifyClientVpnEndpointInput struct {
 	// The ARN of the server certificate to be used. The server certificate must
 	// be provisioned in AWS Certificate Manager (ACM).
 	ServerCertificateArn *string `type:"string"`
-
-	// Indicates whether the VPN is split-tunnel.
-	//
-	// For information about split-tunnel VPN endpoints, see Split-Tunnel AWS Client
-	// VPN Endpoint (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html)
-	// in the AWS Client VPN Administrator Guide.
-	SplitTunnel *bool `type:"boolean"`
-
-	// The port number to assign to the Client VPN endpoint for TCP and UDP traffic.
-	//
-	// Valid Values: 443 | 1194
-	//
-	// Default Value: 443
-	VpnPort *int64 `type:"integer"`
 }
 
 // String returns the string representation
@@ -82,6 +69,7 @@ func (s *ModifyClientVpnEndpointInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ModifyClientVpnEndpointResult
 type ModifyClientVpnEndpointOutput struct {
 	_ struct{} `type:"structure"`
 

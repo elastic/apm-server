@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeNetworkInterfaces.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeNetworkInterfacesRequest
 type DescribeNetworkInterfacesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -50,7 +51,7 @@ type DescribeNetworkInterfacesInput struct {
 	//
 	//    * attachment.attachment-id - The ID of the interface attachment.
 	//
-	//    * attachment.attach-time - The time that the network interface was attached
+	//    * attachment.attach.time - The time that the network interface was attached
 	//    to an instance.
 	//
 	//    * attachment.delete-on-termination - Indicates whether the attachment
@@ -128,8 +129,7 @@ type DescribeNetworkInterfacesInput struct {
 
 	// The maximum number of items to return for this request. The request returns
 	// a token that you can specify in a subsequent call to get the next set of
-	// results. You cannot specify this parameter and the network interface IDs
-	// parameter in the same request.
+	// results.
 	MaxResults *int64 `min:"5" type:"integer"`
 
 	// One or more network interface IDs.
@@ -160,6 +160,7 @@ func (s *DescribeNetworkInterfacesInput) Validate() error {
 }
 
 // Contains the output of DescribeNetworkInterfaces.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeNetworkInterfacesResult
 type DescribeNetworkInterfacesOutput struct {
 	_ struct{} `type:"structure"`
 

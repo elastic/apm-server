@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AcceptVpcEndpointConnectionsRequest
 type AcceptVpcEndpointConnectionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -18,7 +19,7 @@ type AcceptVpcEndpointConnectionsInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `type:"boolean"`
 
-	// The ID of the VPC endpoint service.
+	// The ID of the endpoint service.
 	//
 	// ServiceId is a required field
 	ServiceId *string `type:"string" required:"true"`
@@ -52,6 +53,7 @@ func (s *AcceptVpcEndpointConnectionsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AcceptVpcEndpointConnectionsResult
 type AcceptVpcEndpointConnectionsOutput struct {
 	_ struct{} `type:"structure"`
 

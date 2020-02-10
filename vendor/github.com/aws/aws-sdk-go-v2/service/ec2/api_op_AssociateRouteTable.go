@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateRouteTableRequest
 type AssociateRouteTableInput struct {
 	_ struct{} `type:"structure"`
 
@@ -18,16 +19,15 @@ type AssociateRouteTableInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
-	// The ID of the internet gateway or virtual private gateway.
-	GatewayId *string `type:"string"`
-
 	// The ID of the route table.
 	//
 	// RouteTableId is a required field
 	RouteTableId *string `locationName:"routeTableId" type:"string" required:"true"`
 
 	// The ID of the subnet.
-	SubnetId *string `locationName:"subnetId" type:"string"`
+	//
+	// SubnetId is a required field
+	SubnetId *string `locationName:"subnetId" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -43,21 +43,23 @@ func (s *AssociateRouteTableInput) Validate() error {
 		invalidParams.Add(aws.NewErrParamRequired("RouteTableId"))
 	}
 
+	if s.SubnetId == nil {
+		invalidParams.Add(aws.NewErrParamRequired("SubnetId"))
+	}
+
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateRouteTableResult
 type AssociateRouteTableOutput struct {
 	_ struct{} `type:"structure"`
 
 	// The route table association ID. This ID is required for disassociating the
 	// route table.
 	AssociationId *string `locationName:"associationId" type:"string"`
-
-	// The state of the association.
-	AssociationState *RouteTableAssociationState `locationName:"associationState" type:"structure"`
 }
 
 // String returns the string representation
@@ -70,14 +72,13 @@ const opAssociateRouteTable = "AssociateRouteTable"
 // AssociateRouteTableRequest returns a request value for making API operation for
 // Amazon Elastic Compute Cloud.
 //
-// Associates a subnet in your VPC or an internet gateway or virtual private
-// gateway attached to your VPC with a route table in your VPC. This association
-// causes traffic from the subnet or gateway to be routed according to the routes
-// in the route table. The action returns an association ID, which you need
-// in order to disassociate the route table later. A route table can be associated
-// with multiple subnets.
+// Associates a subnet with a route table. The subnet and route table must be
+// in the same VPC. This association causes traffic originating from the subnet
+// to be routed according to the routes in the route table. The action returns
+// an association ID, which you need in order to disassociate the route table
+// from the subnet later. A route table can be associated with multiple subnets.
 //
-// For more information, see Route Tables (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html)
+// For more information, see Route Tables (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using AssociateRouteTableRequest.

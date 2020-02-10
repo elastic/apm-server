@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeSpotFleetRequests.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotFleetRequestsRequest
 type DescribeSpotFleetRequestsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -37,6 +38,7 @@ func (s DescribeSpotFleetRequestsInput) String() string {
 }
 
 // Contains the output of DescribeSpotFleetRequests.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotFleetRequestsResponse
 type DescribeSpotFleetRequestsOutput struct {
 	_ struct{} `type:"structure"`
 

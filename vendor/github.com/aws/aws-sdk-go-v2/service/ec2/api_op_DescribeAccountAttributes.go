@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeAccountAttributesRequest
 type DescribeAccountAttributesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -27,6 +28,7 @@ func (s DescribeAccountAttributesInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeAccountAttributesResult
 type DescribeAccountAttributesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -52,10 +54,8 @@ const opDescribeAccountAttributes = "DescribeAccountAttributes"
 //
 //    * default-vpc: The ID of the default VPC for your account, or none.
 //
-//    * max-instances: This attribute is no longer supported. The returned value
-//    does not reflect your actual vCPU limit for running On-Demand Instances.
-//    For more information, see On-Demand Instance Limits (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html#ec2-on-demand-instances-limits)
-//    in the Amazon Elastic Compute Cloud User Guide.
+//    * max-instances: The maximum number of On-Demand Instances that you can
+//    run.
 //
 //    * vpc-max-security-groups-per-interface: The maximum number of security
 //    groups that you can assign to a network interface.

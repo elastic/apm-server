@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateInternetGatewayRequest
 type CreateInternetGatewayInput struct {
 	_ struct{} `type:"structure"`
 
@@ -24,6 +25,7 @@ func (s CreateInternetGatewayInput) String() string {
 	return awsutil.Prettify(s)
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateInternetGatewayResult
 type CreateInternetGatewayOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -45,7 +47,7 @@ const opCreateInternetGateway = "CreateInternetGateway"
 // gateway, you attach it to a VPC using AttachInternetGateway.
 //
 // For more information about your VPC and internet gateway, see the Amazon
-// Virtual Private Cloud User Guide (https://docs.aws.amazon.com/vpc/latest/userguide/).
+// Virtual Private Cloud User Guide (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/).
 //
 //    // Example sending a request using CreateInternetGatewayRequest.
 //    req := client.CreateInternetGatewayRequest(params)

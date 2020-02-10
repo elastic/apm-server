@@ -10,6 +10,7 @@ import (
 )
 
 // Contains the parameters for DescribeSpotDatafeedSubscription.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotDatafeedSubscriptionRequest
 type DescribeSpotDatafeedSubscriptionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -26,6 +27,7 @@ func (s DescribeSpotDatafeedSubscriptionInput) String() string {
 }
 
 // Contains the output of DescribeSpotDatafeedSubscription.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeSpotDatafeedSubscriptionResult
 type DescribeSpotDatafeedSubscriptionOutput struct {
 	_ struct{} `type:"structure"`
 

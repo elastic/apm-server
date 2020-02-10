@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeRouteTablesRequest
 type DescribeRouteTablesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -118,6 +119,7 @@ func (s *DescribeRouteTablesInput) Validate() error {
 }
 
 // Contains the output of DescribeRouteTables.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeRouteTablesResult
 type DescribeRouteTablesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -146,7 +148,7 @@ const opDescribeRouteTables = "DescribeRouteTables"
 // with the main route table. This command does not return the subnet ID for
 // implicit associations.
 //
-// For more information, see Route Tables (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html)
+// For more information, see Route Tables (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using DescribeRouteTablesRequest.

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeTransitGatewayVpcAttachmentsRequest
 type DescribeTransitGatewayVpcAttachmentsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -60,6 +61,7 @@ func (s *DescribeTransitGatewayVpcAttachmentsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/DescribeTransitGatewayVpcAttachmentsResult
 type DescribeTransitGatewayVpcAttachmentsOutput struct {
 	_ struct{} `type:"structure"`
 

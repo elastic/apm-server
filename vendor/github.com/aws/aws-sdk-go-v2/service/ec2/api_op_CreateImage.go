@@ -9,10 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateImageRequest
 type CreateImageInput struct {
 	_ struct{} `type:"structure"`
 
-	// The block device mappings. This parameter cannot be used to modify the encryption
+	// Tthe block device mappings. This parameter cannot be used to modify the encryption
 	// status of existing volumes or snapshots. To create an AMI with encrypted
 	// snapshots, use the CopyImage action.
 	BlockDeviceMappings []BlockDeviceMapping `locationName:"blockDeviceMapping" locationNameList:"BlockDeviceMapping" type:"list"`
@@ -70,6 +71,7 @@ func (s *CreateImageInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateImageResult
 type CreateImageOutput struct {
 	_ struct{} `type:"structure"`
 

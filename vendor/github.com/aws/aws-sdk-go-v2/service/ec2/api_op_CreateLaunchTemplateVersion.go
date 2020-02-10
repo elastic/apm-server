@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateLaunchTemplateVersionRequest
 type CreateLaunchTemplateVersionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -39,9 +40,7 @@ type CreateLaunchTemplateVersionInput struct {
 
 	// The version number of the launch template version on which to base the new
 	// version. The new version inherits the same launch parameters as the source
-	// version, except for parameters that you specify in LaunchTemplateData. Snapshots
-	// applied to the block device mapping are ignored when creating a new version
-	// unless they are explicitly included.
+	// version, except for parameters that you specify in LaunchTemplateData.
 	SourceVersion *string `type:"string"`
 
 	// A description for the version of the launch template.
@@ -75,6 +74,7 @@ func (s *CreateLaunchTemplateVersionInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/CreateLaunchTemplateVersionResult
 type CreateLaunchTemplateVersionOutput struct {
 	_ struct{} `type:"structure"`
 

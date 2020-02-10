@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for ImportInstance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportInstanceRequest
 type ImportInstanceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -59,6 +61,8 @@ func (s *ImportInstanceInput) Validate() error {
 	return nil
 }
 
+// Contains the output for ImportInstance.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportInstanceResult
 type ImportInstanceOutput struct {
 	_ struct{} `type:"structure"`
 

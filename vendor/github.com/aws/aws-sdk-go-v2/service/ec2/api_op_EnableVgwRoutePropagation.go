@@ -12,6 +12,7 @@ import (
 )
 
 // Contains the parameters for EnableVgwRoutePropagation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/EnableVgwRoutePropagationRequest
 type EnableVgwRoutePropagationInput struct {
 	_ struct{} `type:"structure"`
 
@@ -52,6 +53,7 @@ func (s *EnableVgwRoutePropagationInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/EnableVgwRoutePropagationOutput
 type EnableVgwRoutePropagationOutput struct {
 	_ struct{} `type:"structure"`
 }

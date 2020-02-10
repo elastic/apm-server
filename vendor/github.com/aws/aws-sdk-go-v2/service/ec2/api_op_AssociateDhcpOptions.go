@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/private/protocol/ec2query"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateDhcpOptionsRequest
 type AssociateDhcpOptionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -55,6 +56,7 @@ func (s *AssociateDhcpOptionsInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/AssociateDhcpOptionsOutput
 type AssociateDhcpOptionsOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -79,7 +81,7 @@ const opAssociateDhcpOptions = "AssociateDhcpOptions"
 // its DHCP lease. You can explicitly renew the lease using the operating system
 // on the instance.
 //
-// For more information, see DHCP Options Sets (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html)
+// For more information, see DHCP Options Sets (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html)
 // in the Amazon Virtual Private Cloud User Guide.
 //
 //    // Example sending a request using AssociateDhcpOptionsRequest.

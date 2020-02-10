@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Contains the parameters for ImportVolume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportVolumeRequest
 type ImportVolumeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -74,6 +76,8 @@ func (s *ImportVolumeInput) Validate() error {
 	return nil
 }
 
+// Contains the output for ImportVolume.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/ImportVolumeResult
 type ImportVolumeOutput struct {
 	_ struct{} `type:"structure"`
 

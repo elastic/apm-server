@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
 )
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UpdateSecurityGroupRuleDescriptionsIngressRequest
 type UpdateSecurityGroupRuleDescriptionsIngressInput struct {
 	_ struct{} `type:"structure"`
 
@@ -52,6 +53,7 @@ func (s *UpdateSecurityGroupRuleDescriptionsIngressInput) Validate() error {
 	return nil
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/ec2-2016-11-15/UpdateSecurityGroupRuleDescriptionsIngressResult
 type UpdateSecurityGroupRuleDescriptionsIngressOutput struct {
 	_ struct{} `type:"structure"`
 
