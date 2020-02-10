@@ -239,6 +239,10 @@ apm-server:
     # If an item in the list is a single '*', everything will be allowed.
     #allow_origins : ['*']
 
+    # A list of Access-Control-Allow-Headers to allow RUM requests, in addition to "Content-Type",
+    # "Content-Encoding", and "Accept"
+    #allow_headers : []
+
     # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
     # If the regexp matches, the stacktrace frame is considered to be a library frame.
     #library_pattern: "node_modules|bower_components|~"
