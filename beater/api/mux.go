@@ -217,7 +217,7 @@ func rumMiddleware(cfg *config.Config, _ *authorization.Handler, m map[request.R
 	return append(apmMiddleware(m),
 		middleware.SetRumFlagMiddleware(),
 		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
-		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins),
+		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled(), msg))
 }
 
