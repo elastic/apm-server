@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/apm-server/beater/config"
+
 	"github.com/elastic/apm-server/model"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -82,41 +84,72 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 	return v, err
 }
 
+type processorModel struct {
+	schema       *jsonschema.Schema
+	modelDecoder func(input interface{}, cfg model.Config, err error) (transform.Transformable, error)
+}
+
 type Processor struct {
 	Tconfig      transform.Config
 	Mconfig      model.Config
 	MaxEventSize int
 	bufferPool   sync.Pool
+	models       map[string]processorModel
+}
+
+func BackendProcessor(cfg *config.Config) *Processor {
+	return &Processor{
+		Tconfig:      transform.Config{},
+		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize: cfg.MaxEventSize,
+		models: map[string]processorModel{
+			"transaction": {
+				schema:       transaction.ModelSchema(),
+				modelDecoder: transaction.DecodeEvent,
+			},
+			"span": {
+				schema:       span.ModelSchema(),
+				modelDecoder: span.DecodeEvent,
+			},
+			"metricset": {
+				schema:       metricset.ModelSchema(),
+				modelDecoder: metricset.DecodeEvent,
+			},
+			"error": {
+				er.ModelSchema(),
+				er.DecodeEvent,
+			},
+		},
+	}
+}
+
+func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
+	return &Processor{
+		Tconfig:      *tcfg,
+		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize: cfg.MaxEventSize,
+		models: map[string]processorModel{
+			"transaction": {
+				schema:       transaction.ModelSchema(),
+				modelDecoder: transaction.DecodeEvent,
+			},
+			"span": {
+				schema:       span.ModelSchema(),
+				modelDecoder: span.DecodeEvent,
+			},
+			"metricset": {
+				schema:       metricset.ModelSchema(),
+				modelDecoder: metricset.DecodeEvent,
+			},
+			"error": {
+				er.ModelSchema(),
+				er.DecodeEvent,
+			},
+		},
+	}
 }
 
 const batchSize = 10
-
-var models = []struct {
-	key          string
-	schema       *jsonschema.Schema
-	modelDecoder func(interface{}, model.Config, error) (transform.Transformable, error)
-}{
-	{
-		"transaction",
-		transaction.ModelSchema(),
-		transaction.DecodeEvent,
-	},
-	{
-		"span",
-		span.ModelSchema(),
-		span.DecodeEvent,
-	},
-	{
-		"metricset",
-		metricset.ModelSchema(),
-		metricset.DecodeEvent,
-	},
-	{
-		"error",
-		er.ModelSchema(),
-		er.DecodeEvent,
-	},
-}
 
 func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
 	// first item is the metadata object
@@ -166,8 +199,8 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamRe
 
 // HandleRawModel validates and decodes a single json object into its struct form
 func (p *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
-	for _, model := range models {
-		if entry, ok := rawModel[model.key]; ok {
+	for key, model := range p.models {
+		if entry, ok := rawModel[key]; ok {
 			err := validation.Validate(entry, model.schema)
 			if err != nil {
 				return nil, err
