@@ -8,7 +8,7 @@ https://github.com/elastic/apm-server/compare/7.5\...7.6[View commits]
 [[release-notes-7.6.0]]
 === APM Server version 7.6.0
 
-https://github.com/elastic/apm-server/compare/v7.5.1\...v7.6.0[View commits]
+https://github.com/elastic/apm-server/compare/v7.5.2\...v7.6.0[View commits]
 
 [float]
 ==== Breaking Changes
