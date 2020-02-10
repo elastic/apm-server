@@ -10,6 +10,7 @@ A few suggestions about filling out this PR:
 3. Please label this PR with at least one of the following labels, depending on the scope of your change:
 - bug fix
 - breaking change
+- enhancement
 4. Remove those recommended/optional sections if you don't need them.
 5. Submit the pull request: Push your local changes to your forked copy of the repository and submit a pull request (https://help.github.com/articles/using-pull-requests).
 6. Please be patient. We might not be able to review your code as fast as we would like to, but we'll do our best to dedicate to it the attention it deserves. Your effort is much appreciated!
