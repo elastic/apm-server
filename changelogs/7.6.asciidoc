@@ -23,15 +23,15 @@ https://github.com/elastic/apm-server/compare/v7.5.2\...v7.6.0[View commits]
 [float]
 ==== Added
 - Adds support for global labels in spans {pull}2806[2806].
-- Updated `go.elastic.co/apm` to v1.6.0, enabling central config {pull}2913[2913]
+- Updated `go.elastic.co/apm` to v1.6.0, enabling central config {pull}2913[2913].
 - Use go-elasticsearch client for fetching sourcemaps from Elasticsearch {pull}2897[2897].
 - Try to extract IP address from headers before using socket remote_address for `client.ip` and `source.ip` {pull}2935[2935].
 - Only use extracted hostname when valid IP for enriching events {pull}2935[2935].
-- Added experimental support for continuous profiling of the server {pull}2839[2839]
+- Added experimental support for continuous profiling of the server {pull}2839[2839].
 - Build UBI based images also {pull}2994[2994].
-- Adds support for API Key authorization for incoming requests {pull}3004[3004]
-- Add experimental support for receiving Jaeger trace data {pull}3129[3129]
-- Upgrade APM Go agent to 1.7.0, and add support for API Key auth for self-instrumentation {pull}3134[3134]
-- Add correlation for server trace/log data {pull}3136[3136]
-- Add subcommand to create API Keys {pull}3063[3063]
+- Adds support for API Key authorization for incoming requests {pull}3004[3004].
+- Add experimental support for receiving Jaeger trace data {pull}3129[3129].
+- Upgrade APM Go agent to 1.7.0, and add support for API Key auth for self-instrumentation {pull}3134[3134].
+- Add correlation for server trace/log data {pull}3136[3136].
+- Add subcommand to create API Keys {pull}3063[3063].
 - Upgrade Go to 1.13.7 {pull}3264[3264].
