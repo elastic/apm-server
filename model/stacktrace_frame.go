@@ -18,6 +18,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
@@ -172,7 +173,7 @@ func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.LibraryFrame = &libraryFrame
 }
 
-func (s *StacktraceFrame) applySourcemap(store *sourcemap.Store, service *metadata.Service, prevFunction string) (function string, errMsg string) {
+func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.Store, service *metadata.Service, prevFunction string) (function string, errMsg string) {
 	function = prevFunction
 
 	var valid bool
@@ -184,7 +185,7 @@ func (s *StacktraceFrame) applySourcemap(store *sourcemap.Store, service *metada
 	s.setOriginalSourcemapData()
 
 	path := utility.CleanUrlPath(*s.Original.AbsPath)
-	mapper, err := store.Fetch(*service.Name, *service.Version, path)
+	mapper, err := store.Fetch(ctx, *service.Name, *service.Version, path)
 	if err != nil {
 		errMsg = err.Error()
 		return

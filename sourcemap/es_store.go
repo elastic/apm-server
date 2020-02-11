@@ -19,6 +19,7 @@ package sourcemap
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -64,8 +65,8 @@ type esSourcemapResponse struct {
 	} `json:"hits"`
 }
 
-func (s *esStore) fetch(name, version, path string) (string, error) {
-	statusCode, body, err := s.runSearchQuery(name, version, path)
+func (s *esStore) fetch(ctx context.Context, name, version, path string) (string, error) {
+	statusCode, body, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
 		return "", errors.Wrap(err, errMsgESFailure)
 	}
@@ -86,14 +87,14 @@ func (s *esStore) fetch(name, version, path string) (string, error) {
 	return parse(body, name, version, path, s.logger)
 }
 
-func (s *esStore) runSearchQuery(name, version, path string) (int, io.ReadCloser, error) {
+func (s *esStore) runSearchQuery(ctx context.Context, name, version, path string) (int, io.ReadCloser, error) {
 	// build and encode the query
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {
 		return 0, nil, err
 	}
 	// Perform the runSearchQuery request.
-	return s.client.SearchQuery(s.index, &buf)
+	return s.client.SearchQuery(ctx, s.index, &buf)
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {

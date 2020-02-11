@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -64,7 +65,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 			}
 			client, err := estest.NewElasticsearchClient(estest.NewTransport(t, statusCode, tc.esBody))
 			require.NoError(t, err)
-			consumer, err := testESStore(client).fetch("abc", "1.0", "/tmp")
+			consumer, err := testESStore(client).fetch(context.Background(), "abc", "1.0", "/tmp")
 			require.Error(t, err)
 			if tc.temporary {
 				assert.Contains(t, err.Error(), errMsgESFailure)
@@ -85,7 +86,7 @@ func Test_esFetcher_fetch(t *testing.T) {
 		"valid sourcemap found": {client: test.ESClientWithValidSourcemap(t), filePath: "bundle.js"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			sourcemapStr, err := testESStore(tc.client).fetch("abc", "1.0", "/tmp")
+			sourcemapStr, err := testESStore(tc.client).fetch(context.Background(), "abc", "1.0", "/tmp")
 			require.NoError(t, err)
 
 			if tc.filePath == "" {

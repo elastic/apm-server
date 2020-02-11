@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -51,7 +52,7 @@ func TestStore_Fetch(t *testing.T) {
 			store := testStore(t, test.ESClientWithValidSourcemap(t)) //if ES was queried, it would return a valid sourcemap
 			store.add(key, nilConsumer)
 
-			mapper, err := store.Fetch(serviceName, serviceVersion, path)
+			mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 			assert.Nil(t, mapper)
 			assert.Nil(t, err)
 		})
@@ -61,7 +62,7 @@ func TestStore_Fetch(t *testing.T) {
 			store := testStore(t, test.ESClientUnavailable(t)) //if ES was queried, it would return a server error
 			store.add(key, consumer)
 
-			mapper, err := store.Fetch(serviceName, serviceVersion, path)
+			mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 			require.NoError(t, err)
 			assert.Equal(t, consumer, mapper)
 
@@ -70,7 +71,7 @@ func TestStore_Fetch(t *testing.T) {
 
 	t.Run("validFromES", func(t *testing.T) {
 		store := testStore(t, test.ESClientWithValidSourcemap(t))
-		mapper, err := store.Fetch(serviceName, serviceVersion, path)
+		mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 		require.NoError(t, err)
 		require.NotNil(t, mapper)
 
@@ -89,7 +90,7 @@ func TestStore_Fetch(t *testing.T) {
 		require.Nil(t, cached)
 
 		//fetch nil value, leading to error
-		mapper, err := store.Fetch(serviceName, serviceVersion, path)
+		mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 		require.Nil(t, err)
 		require.Nil(t, mapper)
 
@@ -112,7 +113,7 @@ func TestStore_Fetch(t *testing.T) {
 				require.Nil(t, cached)
 
 				//fetch nil value, leading to error
-				mapper, err := store.Fetch(serviceName, serviceVersion, path)
+				mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 				require.Error(t, err)
 				require.Nil(t, mapper)
 
@@ -131,7 +132,7 @@ func TestStore_Fetch(t *testing.T) {
 		require.False(t, found)
 
 		//fetch nil value, leading to error
-		mapper, err := store.Fetch(serviceName, serviceVersion, path)
+		mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 		require.Error(t, err)
 		require.Nil(t, mapper)
 
@@ -150,14 +151,14 @@ func TestStore_Added(t *testing.T) {
 	store := testStore(t, test.ESClientWithValidSourcemap(t))
 	store.add(key, &sourcemap.Consumer{})
 
-	mapper, err := store.Fetch(name, version, path)
+	mapper, err := store.Fetch(context.Background(), name, version, path)
 	require.NoError(t, err)
 	assert.Equal(t, &sourcemap.Consumer{}, mapper)
 	assert.Equal(t, "", mapper.File())
 
 	// remove from cache, afterwards sourcemap should be fetched from ES
 	store.Added(name, version, path)
-	mapper, err = store.Fetch(name, version, path)
+	mapper, err = store.Fetch(context.Background(), name, version, path)
 	require.NoError(t, err)
 	assert.NotNil(t, &sourcemap.Consumer{}, mapper)
 	assert.Equal(t, "bundle.js", mapper.File())
@@ -170,13 +171,13 @@ func TestExpiration(t *testing.T) {
 	name, version, path := "foo", "1.0.1", "/tmp"
 
 	// sourcemap is cached
-	mapper, err := store.Fetch(name, version, path)
+	mapper, err := store.Fetch(context.Background(), name, version, path)
 	require.NoError(t, err)
 	assert.Equal(t, &sourcemap.Consumer{}, mapper)
 
 	time.Sleep(25 * time.Millisecond)
 	// cache is cleared, sourcemap is fetched from ES leading to an error
-	mapper, err = store.Fetch(name, version, path)
+	mapper, err = store.Fetch(context.Background(), name, version, path)
 	require.Error(t, err)
 	assert.Nil(t, mapper)
 }

@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -270,7 +271,7 @@ func createAPIKey(client es.Client, keyName, expiry string, privileges []es.Priv
 	// Elasticsearch will allow a user without the right apm privileges to create API keys, but the keys won't validate
 	// check first whether the user has the right privileges, and bail out early if not
 	// is not possible to always do it automatically, because file-based users and roles are not queryable
-	hasPrivileges, err := es.HasPrivileges(client, es.HasPrivilegesRequest{
+	hasPrivileges, err := es.HasPrivileges(context.Background(), client, es.HasPrivilegesRequest{
 		Applications: []es.Application{
 			{
 				Name:       auth.Application,
@@ -324,7 +325,7 @@ PUT /_security/role/my_role {
 		apikeyRequest.Expiration = &expiry
 	}
 
-	response, err := es.CreateAPIKey(client, apikeyRequest)
+	response, err := es.CreateAPIKey(context.Background(), client, apikeyRequest)
 	if err != nil {
 		return err
 	}
@@ -363,7 +364,7 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 		},
 	}
 
-	apikeys, err := es.GetAPIKeys(client, request)
+	apikeys, err := es.GetAPIKeys(context.Background(), client, request)
 	if err != nil {
 		return err
 	}
@@ -404,7 +405,7 @@ func invalidateAPIKey(client es.Client, id, name *string, asJSON bool) error {
 			Name: name,
 		},
 	}
-	invalidation, err := es.InvalidateAPIKey(client, invalidateKeysRequest)
+	invalidation, err := es.InvalidateAPIKey(context.Background(), client, invalidateKeysRequest)
 	if err != nil {
 		return err
 	}
@@ -427,7 +428,7 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 		authorized, err := builder.
 			ForPrivilege(privilege).
 			AuthorizationFor(headers.APIKey, credentials).
-			AuthorizedFor(auth.ResourceInternal)
+			AuthorizedFor(context.Background(), auth.ResourceInternal)
 		if err != nil {
 			return err
 		}

@@ -3257,6 +3257,14 @@
 			"versionExact": "v1.7.0"
 		},
 		{
+			"checksumSHA1": "FyG1g3C40xoWKUFrXLBCAn7vGDg=",
+			"path": "go.elastic.co/apm/module/apmelasticsearch",
+			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",
+			"revisionTime": "2020-01-10T03:30:49Z",
+			"version": "v1.7.0",
+			"versionExact": "v1.7.0"
+		},
+		{
 			"checksumSHA1": "yiRK1c/AtxATWwHKEiZCpJZ6hc0=",
 			"path": "go.elastic.co/apm/module/apmgrpc",
 			"revision": "bd04e1a7f15b96a6756b235a76645d7e10da5f99",

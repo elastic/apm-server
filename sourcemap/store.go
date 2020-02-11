@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"context"
 	"math"
 	"strings"
 	"time"
@@ -63,7 +64,7 @@ func NewStore(client elasticsearch.Client, index string, expiration time.Duratio
 }
 
 // Fetch a sourcemap from the store.
-func (s *Store) Fetch(name string, version string, path string) (*sourcemap.Consumer, error) {
+func (s *Store) Fetch(ctx context.Context, name string, version string, path string) (*sourcemap.Consumer, error) {
 	key := key([]string{name, version, path})
 
 	// fetch from cache
@@ -73,7 +74,7 @@ func (s *Store) Fetch(name string, version string, path string) (*sourcemap.Cons
 	}
 
 	// fetch from Elasticsearch and ensure caching for all non-temporary results
-	sourcemapStr, err := s.esStore.fetch(name, version, path)
+	sourcemapStr, err := s.esStore.fetch(ctx, name, version, path)
 	if err != nil {
 		if !strings.Contains(err.Error(), errMsgESFailure) {
 			s.add(key, nil)
@@ -97,7 +98,7 @@ func (s *Store) Fetch(name string, version string, path string) (*sourcemap.Cons
 
 // Added ensures the internal cache is cleared for the given parameters. This should be called when a sourcemap is uploaded.
 func (s *Store) Added(name string, version string, path string) {
-	if sourcemap, err := s.Fetch(name, version, path); err == nil && sourcemap != nil {
+	if sourcemap, err := s.Fetch(context.TODO(), name, version, path); err == nil && sourcemap != nil {
 		s.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
 			name, version, path)
 	}

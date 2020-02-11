@@ -18,6 +18,7 @@
 package elasticsearch
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -25,15 +26,15 @@ import (
 )
 
 // CreateAPIKey requires manage_api_key cluster privilege
-func CreateAPIKey(client Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
+func CreateAPIKey(ctx context.Context, client Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
 	var apikey CreateAPIKeyResponse
 	req := esapi.SecurityCreateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
-	err := doRequest(client, req, &apikey)
+	err := doRequest(ctx, client, req, &apikey)
 	return apikey, err
 }
 
 // GetAPIKeys requires manage_api_key cluster privilege
-func GetAPIKeys(client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
+func GetAPIKeys(ctx context.Context, client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
 	req := esapi.SecurityGetAPIKeyRequest{}
 	if apikeyReq.ID != nil {
 		req.ID = *apikeyReq.ID
@@ -41,19 +42,19 @@ func GetAPIKeys(client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, e
 		req.Name = *apikeyReq.Name
 	}
 	var apikey GetAPIKeyResponse
-	err := doRequest(client, req, &apikey)
+	err := doRequest(ctx, client, req, &apikey)
 	return apikey, err
 }
 
 // InvalidateAPIKey requires manage_api_key cluster privilege
-func InvalidateAPIKey(client Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
+func InvalidateAPIKey(ctx context.Context, client Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
 	var confirmation InvalidateAPIKeyResponse
 	req := esapi.SecurityInvalidateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
-	err := doRequest(client, req, &confirmation)
+	err := doRequest(ctx, client, req, &confirmation)
 	return confirmation, err
 }
 
-func HasPrivileges(client Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
+func HasPrivileges(ctx context.Context, client Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
 	var info HasPrivilegesResponse
 	req := esapi.SecurityHasPrivilegesRequest{Body: esutil.NewJSONReader(privileges)}
 	if credentials != "" {
@@ -61,7 +62,7 @@ func HasPrivileges(client Client, privileges HasPrivilegesRequest, credentials s
 		header.Set("Authorization", "ApiKey "+credentials)
 		req.Header = header
 	}
-	err := doRequest(client, req, &info)
+	err := doRequest(ctx, client, req, &info)
 	return info, err
 }
 
