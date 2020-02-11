@@ -25,12 +25,13 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"go.elastic.co/apm/module/apmelasticsearch"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/version"
 	esv7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
-	"go.elastic.co/apm/module/apmelasticsearch"
 )
 
 // Client is an interface designed to abstract away version differences between elasticsearch clients

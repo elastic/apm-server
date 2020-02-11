@@ -37,7 +37,6 @@ const (
 )
 
 var (
-	errInvalidHosts     = errors.New("`Hosts` must at least contain one hostname")
 	errConfigMissing    = errors.New("config missing")
 	esConnectionTimeout = 5 * time.Second
 )
@@ -63,14 +62,6 @@ func DefaultConfig() *Config {
 
 // Hosts is an array of host strings and needs to have at least one entry
 type Hosts []string
-
-// Validate ensures Hosts instance has at least one entry
-func (h Hosts) Validate() error {
-	if len(h) == 0 {
-		return errInvalidHosts
-	}
-	return nil
-}
 
 func connectionConfig(config *Config) (http.RoundTripper, []string, error) {
 	addrs, err := addresses(config)
