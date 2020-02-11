@@ -77,6 +77,7 @@ func Test_UnpackConfig(t *testing.T) {
 						"lru_size": 2000,
 					},
 					"allow_origins": []string{"example*"},
+					"allow_headers": []string{"Authorization"},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 8 * time.Minute,
@@ -135,6 +136,7 @@ func Test_UnpackConfig(t *testing.T) {
 						LruSize: 2000,
 					},
 					AllowOrigins: []string{"example*"},
+					AllowHeaders: []string{"Authorization"},
 					SourceMapping: &SourceMapping{
 						Cache:        &Cache{Expiration: 8 * time.Minute},
 						IndexPattern: "apm-test*",
@@ -239,6 +241,7 @@ func Test_UnpackConfig(t *testing.T) {
 						LruSize: 1000,
 					},
 					AllowOrigins: []string{"*"},
+					AllowHeaders: []string{},
 					SourceMapping: &SourceMapping{
 						Cache: &Cache{
 							Expiration: 7 * time.Second,
