@@ -158,7 +158,7 @@ func TestHTTPMux_ConsumerError(t *testing.T) {
 
 func newRequestContext(method, path string, body io.Reader) (*request.Context, *httptest.ResponseRecorder) {
 	rr := httptest.NewRecorder()
-	c := &request.Context{}
+	c := request.NewContext()
 	req := httptest.NewRequest(method, path, body)
 	req.Header.Set("Content-Type", "application/x-thrift")
 	c.Reset(rr, req)

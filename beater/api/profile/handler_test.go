@@ -40,7 +40,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -198,7 +197,7 @@ func TestHandler(t *testing.T) {
 			if tc.rateLimit != nil {
 				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
 			}
-			Handler(tc.dec, transform.Config{}, tc.reporter(t))(tc.c)
+			Handler(transform.Config{}, tc.reporter(t))(tc.c)
 
 			assert.Equal(t, string(tc.id), string(tc.c.Result.ID))
 			resultStatus := request.MapResultIDToStatus[tc.id]
@@ -221,7 +220,6 @@ type testcaseIntakeHandler struct {
 	c         *request.Context
 	w         *httptest.ResponseRecorder
 	r         *http.Request
-	dec       decoder.ReqDecoder
 	rateLimit *ratelimit.Store
 	reporter  func(t *testing.T) publish.Reporter
 	reports   int
@@ -232,9 +230,6 @@ type testcaseIntakeHandler struct {
 }
 
 func (tc *testcaseIntakeHandler) setup(t *testing.T) {
-	if tc.dec == nil {
-		tc.dec = emptyDec
-	}
 	if tc.reporter == nil {
 		tc.reporter = func(t *testing.T) publish.Reporter {
 			return beatertest.NilReporter
@@ -270,7 +265,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	}
 	tc.r.Header.Add("Accept", "application/json")
 	tc.w = httptest.NewRecorder()
-	tc.c = &request.Context{}
+	tc.c = request.NewContext()
 	tc.c.Reset(tc.w, tc.r)
 }
 

@@ -175,7 +175,7 @@ func TestAgentConfigHandler(t *testing.T) {
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
 			}
-			ctx := &request.Context{}
+			ctx := request.NewContext()
 			ctx.Reset(w, r)
 			ctx.Authorization = auth
 			h(ctx)
@@ -205,7 +205,7 @@ func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 	h := Handler(nil, &cfg)
 
 	w := httptest.NewRecorder()
-	ctx := &request.Context{}
+	ctx := request.NewContext()
 	ctx.Reset(w, httptest.NewRequest(http.MethodGet, "/config", nil))
 	h(ctx)
 
@@ -229,7 +229,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}}))
-	ctx := &request.Context{}
+	ctx := request.NewContext()
 	ctx.Reset(w, r)
 	h(ctx)
 
@@ -241,7 +241,7 @@ func TestAgentConfigRum(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := &request.Context{}
+	ctx := request.NewContext()
 	ctx.Reset(w, r)
 	ctx.IsRum = true
 	h(ctx)
@@ -256,7 +256,7 @@ func TestAgentConfigRumEtag(t *testing.T) {
 	h := getHandler("rum-js")
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/rum?ifnonematch=123&service.name=opbeans", nil)
-	ctx := &request.Context{}
+	ctx := request.NewContext()
 	ctx.Reset(w, r)
 	ctx.IsRum = true
 	h(ctx)
@@ -268,7 +268,7 @@ func TestAgentConfigNotRum(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := &request.Context{}
+	ctx := request.NewContext()
 	ctx.Reset(w, r)
 	h(ctx)
 	var actual map[string]string
@@ -282,7 +282,7 @@ func TestAgentConfigNoLeak(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := &request.Context{}
+	ctx := request.NewContext()
 	ctx.Reset(w, r)
 	ctx.IsRum = true
 	h(ctx)
@@ -297,7 +297,7 @@ func TestAgentConfigRateLimit(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := &request.Context{}
+	ctx := request.NewContext()
 	ctx.Reset(w, r)
 	ctx.IsRum = true
 	ctx.RateLimiter = rate.NewLimiter(rate.Limit(0), 0)

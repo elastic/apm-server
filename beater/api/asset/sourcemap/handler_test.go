@@ -133,7 +133,7 @@ func (tc *testcaseT) setup() {
 	if tc.reporter == nil {
 		tc.reporter = beatertest.NilReporter
 	}
-	c := &request.Context{}
+	c := request.NewContext()
 	c.Reset(tc.w, tc.r)
 	h := Handler(tc.dec, tc.processor, transform.Config{}, tc.reporter)
 	h(c)
