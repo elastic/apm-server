@@ -18,6 +18,7 @@
 package authorization
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -65,7 +66,7 @@ func (a *apikeyAuth) IsAuthorizationConfigured() bool {
 // AuthorizedFor checks if the configured api key is authorized.
 // An api key is considered to be authorized when the api key has the configured privileges for the requested resource.
 // Permissions are fetched from Elasticsearch and then cached in a global cache.
-func (a *apikeyAuth) AuthorizedFor(resource es.Resource) (bool, error) {
+func (a *apikeyAuth) AuthorizedFor(ctx context.Context, resource es.Resource) (bool, error) {
 	privileges := a.cache.get(id(a.key, resource))
 	if privileges != nil {
 		return a.allowed(privileges), nil
@@ -77,7 +78,7 @@ func (a *apikeyAuth) AuthorizedFor(resource es.Resource) (bool, error) {
 			"or consider increasing config option `apm-server.api_key.limit`")
 	}
 
-	privileges, err := a.queryES(resource)
+	privileges, err := a.queryES(ctx, resource)
 	if err != nil {
 		return false, err
 	}
@@ -98,7 +99,7 @@ func (a *apikeyAuth) allowed(permissions es.Permissions) bool {
 	return allowed
 }
 
-func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
+func (a *apikeyAuth) queryES(ctx context.Context, resource es.Resource) (es.Permissions, error) {
 	request := es.HasPrivilegesRequest{
 		Applications: []es.Application{
 			{
@@ -110,7 +111,7 @@ func (a *apikeyAuth) queryES(resource es.Resource) (es.Permissions, error) {
 			},
 		},
 	}
-	info, err := es.HasPrivileges(a.esClient, request, a.key)
+	info, err := es.HasPrivileges(ctx, a.esClient, request, a.key)
 	if err != nil {
 		var eserr *es.Error
 		if errors.As(err, &eserr) && eserr.StatusCode == http.StatusUnauthorized {

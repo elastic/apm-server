@@ -18,6 +18,7 @@
 package authorization
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func TestDenyAuth(t *testing.T) {
 	})
 
 	t.Run("AuthorizedFor", func(t *testing.T) {
-		authorized, err := handler.AuthorizedFor("")
+		authorized, err := handler.AuthorizedFor(context.Background(), "")
 		assert.False(t, authorized)
 		assert.NoError(t, err)
 	})

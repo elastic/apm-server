@@ -53,7 +53,7 @@ func Handler() request.Handler {
 		}
 
 		c.Result.SetDefault(request.IDResponseValidOK)
-		authorized, err := c.Authorization.AuthorizedFor(authorization.ResourceInternal)
+		authorized, err := c.Authorization.AuthorizedFor(c.Request.Context(), authorization.ResourceInternal)
 		if err != nil {
 			c.Result.Err = err
 		}
