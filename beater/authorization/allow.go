@@ -17,13 +17,17 @@
 
 package authorization
 
-import "github.com/elastic/apm-server/elasticsearch"
+import (
+	"context"
+
+	"github.com/elastic/apm-server/elasticsearch"
+)
 
 // AllowAuth implements the Authorization interface. It allows all authorization requests.
 type AllowAuth struct{}
 
 // AuthorizedFor always returns true
-func (AllowAuth) AuthorizedFor(_ elasticsearch.Resource) (bool, error) {
+func (AllowAuth) AuthorizedFor(context.Context, elasticsearch.Resource) (bool, error) {
 	return true, nil
 }
 

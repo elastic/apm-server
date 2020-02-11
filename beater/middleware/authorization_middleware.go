@@ -33,7 +33,7 @@ func AuthorizationMiddleware(auth *authorization.Handler, apply bool) Middleware
 			c.Authorization = auth.AuthorizationFor(fetchAuthHeader(c.Request))
 
 			if apply {
-				authorized, err := c.Authorization.AuthorizedFor(authorization.ResourceInternal)
+				authorized, err := c.Authorization.AuthorizedFor(c.Request.Context(), authorization.ResourceInternal)
 				if !authorized {
 					c.Result.SetDeniedAuthorization(err)
 					c.Write()
