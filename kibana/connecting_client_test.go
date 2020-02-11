@@ -113,7 +113,9 @@ type rt struct {
 }
 
 var (
-	mockCfg     = common.MustNewConfigFrom(`{"enabled": "false", "host": "non-existing"}`)
+	mockCfg = &kibana.ClientConfig{
+		Host: "non-existing",
+	}
 	mockBody    = ioutil.NopCloser(convert.ToReader(`{"response": "ok"}`))
 	mockStatus  = http.StatusOK
 	mockVersion = *common.MustNewVersion("7.3.0")

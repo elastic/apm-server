@@ -25,8 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/common"
-
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
@@ -99,7 +97,8 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 
 func configEnabledConfigAgent() *config.Config {
 	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
-	cfg.Kibana = common.MustNewConfigFrom(map[string]interface{}{"enabled": "true", "host": "localhost:foo"})
+	cfg.Kibana.Enabled = true
+	cfg.Kibana.Host = "localhost:foo"
 	return cfg
 }
 
