@@ -62,16 +62,7 @@ func (k *KibanaConfig) Unpack(cfg *common.Config) error {
 func defaultKibanaConfig() KibanaConfig {
 	return KibanaConfig{
 		Enabled: false,
-		ClientConfig: kibana.ClientConfig{
-			Protocol: "http",
-			Host:     "localhost:5601",
-			Path:     "",
-			SpaceID:  "",
-			Username: "",
-			Password: "",
-			Timeout:  90 * time.Second,
-			TLS:      nil,
-		},
+		ClientConfig: kibana. DefaultClientConfig(),
 	}
 }
 
