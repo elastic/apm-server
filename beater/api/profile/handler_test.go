@@ -269,10 +269,6 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	tc.c.Reset(tc.w, tc.r)
 }
 
-func emptyDec(_ *http.Request) (map[string]interface{}, error) {
-	return map[string]interface{}{}, nil
-}
-
 func heapProfilePart() part {
 	return part{name: "profile", contentType: pprofContentType, body: heapProfileBody()}
 }

@@ -216,7 +216,3 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	req.Header.Set(headers.ContentEncoding, compressionType)
 	return req
 }
-
-func emptyDec(_ *http.Request) (map[string]interface{}, error) {
-	return map[string]interface{}{}, nil
-}

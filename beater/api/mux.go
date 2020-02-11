@@ -66,10 +66,6 @@ const (
 	IntakeRUMPath = "/intake/v2/rum/events"
 )
 
-var (
-	emptyDecoder = func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil }
-)
-
 type route struct {
 	path      string
 	handlerFn func(*config.Config, *authorization.Builder, publish.Reporter) (request.Handler, error)
