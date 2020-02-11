@@ -29,8 +29,6 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-type ReqReader func(req *http.Request) (io.ReadCloser, error)
-
 var (
 	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)
 	missingContentLengthCounter   = monitoring.NewInt(decoderMetrics, "missing-content-length.count")
