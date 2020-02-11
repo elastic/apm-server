@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
@@ -148,7 +147,7 @@ func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, report
 	if err != nil {
 		return nil, err
 	}
-	h := sourcemap.Handler(decoder.DecodeSourcemapFormData, psourcemap.Processor, *tcfg, reporter)
+	h := sourcemap.Handler(sourcemap.DecodeSourcemapFormData, psourcemap.Processor, *tcfg, reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
 	return middleware.Wrap(h, sourcemapMiddleware(cfg, authHandler)...)
 }
