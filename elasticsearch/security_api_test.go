@@ -18,6 +18,7 @@
 package elasticsearch
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,7 +39,7 @@ func TestHasPrivilegesError(t *testing.T) {
 	client, err := NewClient(&Config{Hosts: Hosts{server.Listener.Addr().String()}})
 	require.NoError(t, err)
 
-	resp, err := HasPrivileges(client, HasPrivilegesRequest{}, "foo")
+	resp, err := HasPrivileges(context.Background(), client, HasPrivilegesRequest{}, "foo")
 	require.Error(t, err)
 	assert.Zero(t, resp)
 

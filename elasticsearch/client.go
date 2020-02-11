@@ -25,12 +25,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"go.elastic.co/apm/module/apmelasticsearch"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/version"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-
 	esv7 "github.com/elastic/go-elasticsearch/v7"
-
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
 )
 
@@ -39,16 +39,16 @@ type Client interface {
 	// Perform satisfies esapi.Transport
 	Perform(*http.Request) (*http.Response, error)
 	// TODO: deprecate
-	SearchQuery(index string, body io.Reader) (int, io.ReadCloser, error)
+	SearchQuery(ctx context.Context, index string, body io.Reader) (int, io.ReadCloser, error)
 }
 
 type clientV8 struct {
 	*esv8.Client
 }
 
-func (c clientV8) SearchQuery(index string, body io.Reader) (int, io.ReadCloser, error) {
+func (c clientV8) SearchQuery(ctx context.Context, index string, body io.Reader) (int, io.ReadCloser, error) {
 	response, err := c.Search(
-		c.Search.WithContext(context.Background()),
+		c.Search.WithContext(ctx),
 		c.Search.WithIndex(index),
 		c.Search.WithBody(body),
 		c.Search.WithTrackTotalHits(true),
@@ -64,9 +64,9 @@ type clientV7 struct {
 	*esv7.Client
 }
 
-func (c clientV7) SearchQuery(index string, body io.Reader) (int, io.ReadCloser, error) {
+func (c clientV7) SearchQuery(ctx context.Context, index string, body io.Reader) (int, io.ReadCloser, error) {
 	response, err := c.Search(
-		c.Search.WithContext(context.Background()),
+		c.Search.WithContext(ctx),
 		c.Search.WithIndex(index),
 		c.Search.WithBody(body),
 		c.Search.WithTrackTotalHits(true),
@@ -95,6 +95,7 @@ func NewVersionedClient(apikey, user, pwd string, addresses []string, transport 
 	if apikey != "" {
 		apikey = base64.StdEncoding.EncodeToString([]byte(apikey))
 	}
+	transport = apmelasticsearch.WrapRoundTripper(transport)
 	version := common.MustNewVersion(version.GetDefaultVersion())
 	if version.IsMajor(8) {
 		c, err := newV8Client(apikey, user, pwd, addresses, transport)
@@ -124,8 +125,8 @@ func newV8Client(apikey, user, pwd string, addresses []string, transport http.Ro
 	})
 }
 
-func doRequest(transport esapi.Transport, req esapi.Request, out interface{}) error {
-	resp, err := req.Do(context.TODO(), transport)
+func doRequest(ctx context.Context, transport esapi.Transport, req esapi.Request, out interface{}) error {
+	resp, err := req.Do(ctx, transport)
 	if err != nil {
 		return err
 	}

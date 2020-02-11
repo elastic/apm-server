@@ -18,6 +18,7 @@
 package authorization
 
 import (
+	"context"
 	"time"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -37,7 +38,7 @@ type Handler Builder
 
 // Authorization interface to be implemented by different auth types
 type Authorization interface {
-	AuthorizedFor(elasticsearch.Resource) (bool, error)
+	AuthorizedFor(context.Context, elasticsearch.Resource) (bool, error)
 	IsAuthorizationConfigured() bool
 }
 
@@ -69,7 +70,6 @@ func NewBuilder(cfg *config.Config) (*Builder, error) {
 		b.bearer = &bearerBuilder{cfg.SecretToken}
 		b.fallback = DenyAuth{}
 	}
-	b.fallback.IsAuthorizationConfigured()
 	return &b, nil
 }
 

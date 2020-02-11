@@ -72,13 +72,16 @@ func (h Hosts) Validate() error {
 	return nil
 }
 
-func connectionConfig(config *Config) (*http.Transport, []string, error) {
+func connectionConfig(config *Config) (http.RoundTripper, []string, error) {
 	addrs, err := addresses(config)
 	if err != nil {
 		return nil, nil, err
 	}
 	transp, err := httpTransport(config)
-	return transp, addrs, err
+	if err != nil {
+		return nil, nil, err
+	}
+	return transp, addrs, nil
 }
 
 func httpProxyURL(cfg *Config) (func(*http.Request) (*url.URL, error), error) {

@@ -29,13 +29,13 @@ import (
 )
 
 var (
-	supportedHeaders = strings.Join([]string{headers.ContentType, headers.ContentEncoding, headers.Accept}, ", ")
+	supportedHeaders = []string{headers.ContentType, headers.ContentEncoding, headers.Accept}
 	supportedMethods = strings.Join([]string{http.MethodPost, http.MethodOptions}, ", ")
 )
 
 // CORSMiddleware returns a middleware serving preflight OPTION requests and terminating requests if they do not
 // match the required valid origin.
-func CORSMiddleware(allowedOrigins []string) Middleware {
+func CORSMiddleware(allowedOrigins, allowedHeaders []string) Middleware {
 	var isAllowed = func(origin string) bool {
 		for _, allowed := range allowedOrigins {
 			if glob.Glob(allowed, origin) {
@@ -65,7 +65,8 @@ func CORSMiddleware(allowedOrigins []string) Middleware {
 
 				// required if Access-Control-Request-Method and Access-Control-Request-Headers are in the requestHeaders
 				c.Header().Set(headers.AccessControlAllowMethods, supportedMethods)
-				c.Header().Set(headers.AccessControlAllowHeaders, supportedHeaders)
+				h := append(allowedHeaders, supportedHeaders...)
+				c.Header().Set(headers.AccessControlAllowHeaders, strings.Join(h, ", "))
 
 				c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
 
