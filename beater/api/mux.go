@@ -38,7 +38,6 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
 	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
@@ -131,11 +130,7 @@ func profileHandler(cfg *config.Config, builder *authorization.Builder, reporter
 
 func backendIntakeHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
 	h := intake.Handler(systemMetadataDecoder(cfg, emptyDecoder),
-		&stream.Processor{
-			Tconfig:      transform.Config{},
-			Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
-			MaxEventSize: cfg.MaxEventSize,
-		},
+		stream.BackendProcessor(cfg),
 		reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, intake.MonitoringMap)...)
@@ -147,11 +142,7 @@ func rumIntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter pub
 		return nil, err
 	}
 	h := intake.Handler(userMetaDataDecoder(cfg, emptyDecoder),
-		&stream.Processor{
-			Tconfig:      *tcfg,
-			Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
-			MaxEventSize: cfg.MaxEventSize,
-		},
+		stream.RUMProcessor(cfg, tcfg),
 		reporter)
 	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
