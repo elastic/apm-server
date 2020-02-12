@@ -59,7 +59,6 @@ const (
 
 // Handler returns a request.Handler for managing profile requests.
 func Handler(
-	dec decoder.ReqDecoder,
 	transformConfig transform.Config,
 	report publish.Reporter,
 ) request.Handler {
@@ -82,15 +81,6 @@ func Handler(
 			return nil, requestError{
 				id:  request.IDResponseErrorsRateLimit,
 				err: errors.New("rate limit exceeded"),
-			}
-		}
-
-		// Extract metadata from the request, such as the remote address.
-		reqMeta, err := dec(c.Request)
-		if err != nil {
-			return nil, requestError{
-				id:  request.IDResponseErrorsDecode,
-				err: errors.Wrap(err, "failed to decode request metadata"),
 			}
 		}
 
@@ -135,7 +125,7 @@ func Handler(
 						err: errors.Wrap(err, "failed to decode metadata JSON"),
 					}
 				}
-				for k, v := range reqMeta {
+				for k, v := range c.RequestMetadata {
 					utility.InsertInMap(raw, k, v.(map[string]interface{}))
 				}
 				if err := validation.Validate(raw, metadata.ModelSchema()); err != nil {

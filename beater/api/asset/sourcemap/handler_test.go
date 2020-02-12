@@ -18,8 +18,11 @@
 package sourcemap
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,10 +32,10 @@ import (
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -107,7 +110,7 @@ func TestAssetHandler(t *testing.T) {
 type testcaseT struct {
 	w         *httptest.ResponseRecorder
 	r         *http.Request
-	dec       decoder.ReqDecoder
+	dec       RequestDecoder
 	processor asset.Processor
 	reporter  func(ctx context.Context, p publish.PendingReq) error
 
@@ -133,7 +136,7 @@ func (tc *testcaseT) setup() {
 	if tc.reporter == nil {
 		tc.reporter = beatertest.NilReporter
 	}
-	c := &request.Context{}
+	c := request.NewContext()
 	c.Reset(tc.w, tc.r)
 	h := Handler(tc.dec, tc.processor, transform.Config{}, tc.reporter)
 	h(c)
@@ -155,4 +158,39 @@ func (p *mockProcessor) Decode(m map[string]interface{}) (*metadata.Metadata, []
 }
 func (p *mockProcessor) Name() string {
 	return "mockProcessor"
+}
+
+func TestDecodeSourcemapFormData(t *testing.T) {
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	fileBytes, err := loader.LoadDataAsBytes("../testdata/sourcemap/bundle.js.map")
+	assert.NoError(t, err)
+	part, err := writer.CreateFormFile("sourcemap", "bundle_no_mapping.js.map")
+	assert.NoError(t, err)
+	_, err = io.Copy(part, bytes.NewReader(fileBytes))
+	assert.NoError(t, err)
+
+	writer.WriteField("bundle_filepath", "js/./test/../bundle_no_mapping.js.map")
+	writer.WriteField("service_name", "My service")
+	writer.WriteField("service_version", "0.1")
+
+	err = writer.Close()
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("POST", "_", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	data, err := DecodeSourcemapFormData(req)
+	assert.NoError(t, err)
+
+	assert.Len(t, data, 4)
+	assert.Equal(t, "js/bundle_no_mapping.js.map", data["bundle_filepath"])
+	assert.Equal(t, "My service", data["service_name"])
+	assert.Equal(t, "0.1", data["service_version"])
+	assert.NotNil(t, data["sourcemap"].(string))
+	assert.Equal(t, len(fileBytes), len(data["sourcemap"].(string)))
 }
