@@ -18,6 +18,9 @@
 package sourcemap
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
 
 	"go.elastic.co/apm"
@@ -25,7 +28,6 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -38,8 +40,11 @@ var (
 	registry      = monitoring.Default.NewRegistry("apm-server.sourcemap", monitoring.PublishExpvar)
 )
 
+// RequestDecoder is the type for a function that decodes sourcemap data from an http.Request.
+type RequestDecoder func(req *http.Request) (map[string]interface{}, error)
+
 // Handler returns a request.Handler for managing asset requests.
-func Handler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Config, report publish.Reporter) request.Handler {
+func Handler(dec RequestDecoder, processor asset.Processor, cfg transform.Config, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
 		if c.Request.Method != "POST" {
 			c.Result.SetDefault(request.IDResponseErrorsMethodNotAllowed)
@@ -93,4 +98,30 @@ func Handler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Co
 		c.Result.SetDefault(request.IDResponseValidAccepted)
 		c.Write()
 	}
+}
+
+func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) {
+	contentType := req.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "multipart/form-data") {
+		return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
+	}
+
+	file, _, err := req.FormFile("sourcemap")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	sourcemapBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	payload := map[string]interface{}{
+		"sourcemap":       string(sourcemapBytes),
+		"service_name":    req.FormValue("service_name"),
+		"service_version": req.FormValue("service_version"),
+		"bundle_filepath": utility.CleanUrlPath(req.FormValue("bundle_filepath")),
+	}
+
+	return payload, nil
 }

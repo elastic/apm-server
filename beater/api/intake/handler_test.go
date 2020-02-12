@@ -29,7 +29,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/api/ratelimit"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,7 +36,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/approvals"
@@ -96,13 +94,6 @@ func TestIntakeHandler(t *testing.T) {
 			r:    compressedRequest(t, "gzip", true),
 			code: http.StatusAccepted, id: request.IDResponseValidAccepted,
 		},
-		"Decoder": {
-			path: "errors.ndjson",
-			dec: func(*http.Request) (map[string]interface{}, error) {
-				return nil, errors.New("cannot decode `xyz`")
-			},
-			code: http.StatusInternalServerError, id: request.IDResponseErrorsInternal,
-		},
 		"TooLarge": {
 			path: "errors.ndjson", processor: &stream.Processor{},
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
@@ -143,7 +134,7 @@ func TestIntakeHandler(t *testing.T) {
 				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
 			}
 			// call handler
-			h := Handler(tc.dec, tc.processor, tc.reporter)
+			h := Handler(tc.processor, tc.reporter)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -166,7 +157,6 @@ type testcaseIntakeHandler struct {
 	c         *request.Context
 	w         *httptest.ResponseRecorder
 	r         *http.Request
-	dec       decoder.ReqDecoder
 	processor *stream.Processor
 	rateLimit *ratelimit.Store
 	reporter  func(ctx context.Context, p publish.PendingReq) error
@@ -177,9 +167,6 @@ type testcaseIntakeHandler struct {
 }
 
 func (tc *testcaseIntakeHandler) setup(t *testing.T) {
-	if tc.dec == nil {
-		tc.dec = emptyDec
-	}
 	if tc.processor == nil {
 		cfg := config.DefaultConfig("7.0.0")
 		tc.processor = stream.BackendProcessor(cfg)
@@ -201,7 +188,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	tc.r.Header.Add("Accept", "application/json")
 
 	tc.w = httptest.NewRecorder()
-	tc.c = &request.Context{}
+	tc.c = request.NewContext()
 	tc.c.Reset(tc.w, tc.r)
 }
 
@@ -228,8 +215,4 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	req.Header.Set(headers.ContentType, "application/x-ndjson")
 	req.Header.Set(headers.ContentEncoding, compressionType)
 	return req
-}
-
-func emptyDec(_ *http.Request) (map[string]interface{}, error) {
-	return map[string]interface{}{}, nil
 }

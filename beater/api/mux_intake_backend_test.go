@@ -59,7 +59,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
 	h := testHandler(t, backendIntakeHandler)
 	rec := &beatertest.WriterPanicOnce{}
-	c := &request.Context{}
+	c := request.NewContext()
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)

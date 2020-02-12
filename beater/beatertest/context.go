@@ -36,7 +36,7 @@ func DefaultContextWithResponseRecorder() (*request.Context, *httptest.ResponseR
 // It is set to use the passed in request method and path
 func ContextWithResponseRecorder(m string, target string) (*request.Context, *httptest.ResponseRecorder) {
 	w := httptest.NewRecorder()
-	c := &request.Context{}
+	c := request.NewContext()
 	c.Reset(w, httptest.NewRequest(m, target, nil))
 	return c, w
 }

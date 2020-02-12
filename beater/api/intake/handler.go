@@ -41,7 +41,7 @@ var (
 )
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish.Reporter) request.Handler {
+func Handler(processor *stream.Processor, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
 
 		serr := validateRequest(c.Request)
@@ -63,16 +63,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish
 			return
 		}
 
-		// extract metadata information from the request, like user-agent or remote address
-		reqMeta, err := dec(c.Request)
-		if err != nil {
-			sr := stream.Result{}
-			sr.Add(err)
-			sendResponse(c, &sr)
-			return
-		}
-		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, reqMeta, reader, report)
-
+		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, c.RequestMetadata, reader, report)
 		sendResponse(c, res)
 	}
 }

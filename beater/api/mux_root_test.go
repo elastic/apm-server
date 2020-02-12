@@ -56,7 +56,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 func TestRootHandler_PanicMiddleware(t *testing.T) {
 	h := testHandler(t, rootHandler)
 	rec := &beatertest.WriterPanicOnce{}
-	c := &request.Context{}
+	c := request.NewContext()
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 

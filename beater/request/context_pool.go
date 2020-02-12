@@ -32,7 +32,7 @@ type ContextPool struct {
 func NewContextPool() *ContextPool {
 	pool := ContextPool{}
 	pool.p.New = func() interface{} {
-		return &Context{}
+		return NewContext()
 	}
 	return &pool
 }
