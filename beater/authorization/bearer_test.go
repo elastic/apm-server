@@ -18,6 +18,7 @@
 package authorization
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,7 +38,7 @@ func TestBearerAuth(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			bearer := tc.builder.forToken(tc.token)
-			authorized, err := bearer.AuthorizedFor("")
+			authorized, err := bearer.AuthorizedFor(context.Background(), "")
 			assert.NoError(t, err)
 			assert.Equal(t, tc.authorized, authorized)
 			assert.Equal(t, tc.configured, bearer.IsAuthorizationConfigured())

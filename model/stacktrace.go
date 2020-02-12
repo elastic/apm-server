@@ -18,6 +18,7 @@
 package model
 
 import (
+	"context"
 	"errors"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -84,7 +85,7 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 	logger := logp.NewLogger(logs.Stacktrace)
 	fct := "<anonymous>"
 	return st.transform(tctx, func(frame *StacktraceFrame) {
-		fct, errMsg = frame.applySourcemap(tctx.Config.SourcemapStore, tctx.Metadata.Service, fct)
+		fct, errMsg = frame.applySourcemap(context.TODO(), tctx.Config.SourcemapStore, tctx.Metadata.Service, fct)
 		if errMsg != "" {
 			if _, ok := sourcemapErrorSet[errMsg]; !ok {
 				logger.Warn(errMsg)

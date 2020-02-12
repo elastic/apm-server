@@ -15,36 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package elasticsearch
+// +build !go1.10
+
+package apmelasticsearch
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"strings"
 )
 
-func TestHasPrivilegesError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(401)
-		fmt.Fprint(w, "oh noes")
-	}))
-	defer server.Close()
-
-	client, err := NewClient(&Config{Hosts: Hosts{server.Listener.Addr().String()}})
-	require.NoError(t, err)
-
-	resp, err := HasPrivileges(context.Background(), client, HasPrivilegesRequest{}, "foo")
-	require.Error(t, err)
-	assert.Zero(t, resp)
-
-	var eserr *Error
-	require.True(t, errors.As(err, &eserr))
-	assert.Equal(t, 401, eserr.StatusCode)
-	assert.Equal(t, "oh noes", eserr.Error())
+func requestName(req *http.Request) string {
+	return fmt.Sprintf("Elasticsearch: %s %s", req.Method, strings.TrimLeft(req.URL.Path, "/"))
 }

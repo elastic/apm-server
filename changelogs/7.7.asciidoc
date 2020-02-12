@@ -19,3 +19,4 @@ https://github.com/elastic/apm-server/compare/v7.6.0\...v7.7.0[View commits]
 
 [float]
 ==== Added
+* Instrumentation for go-elasticsearch {pull}3305[3305]

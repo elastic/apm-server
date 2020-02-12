@@ -15,36 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package elasticsearch
+// +build go1.10
+
+package apmelasticsearch
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"strings"
 )
 
-func TestHasPrivilegesError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(401)
-		fmt.Fprint(w, "oh noes")
-	}))
-	defer server.Close()
+func requestName(req *http.Request) string {
+	const prefix = "Elasticsearch:"
+	path := strings.TrimLeft(req.URL.Path, "/")
 
-	client, err := NewClient(&Config{Hosts: Hosts{server.Listener.Addr().String()}})
-	require.NoError(t, err)
-
-	resp, err := HasPrivileges(context.Background(), client, HasPrivilegesRequest{}, "foo")
-	require.Error(t, err)
-	assert.Zero(t, resp)
-
-	var eserr *Error
-	require.True(t, errors.As(err, &eserr))
-	assert.Equal(t, 401, eserr.StatusCode)
-	assert.Equal(t, "oh noes", eserr.Error())
+	var b strings.Builder
+	b.Grow(len(prefix) + 1 + len(req.Method) + 1 + len(path))
+	b.WriteString(prefix)
+	b.WriteRune(' ')
+	b.WriteString(req.Method)
+	b.WriteRune(' ')
+	b.WriteString(path)
+	return b.String()
 }
