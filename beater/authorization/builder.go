@@ -70,7 +70,6 @@ func NewBuilder(cfg *config.Config) (*Builder, error) {
 		b.bearer = &bearerBuilder{cfg.SecretToken}
 		b.fallback = DenyAuth{}
 	}
-	b.fallback.IsAuthorizationConfigured()
 	return &b, nil
 }
 
