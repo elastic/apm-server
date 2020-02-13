@@ -193,6 +193,52 @@ func TestIntegrationRum(t *testing.T) {
 	}
 }
 
+func TestRUMV3(t *testing.T) {
+
+	reporter := func(name string) publish.Reporter {
+		return func(_ context.Context, p publish.PendingReq) error {
+			var events []beat.Event
+			for _, transformable := range p.Transformables {
+				events = append(events, transformable.Transform(p.Tcontext)...)
+			}
+			verifyErr := approvals.ApproveEvents(events, name)
+			if verifyErr != nil {
+				assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+			}
+			return nil
+		}
+	}
+
+	for _, test := range []struct {
+		path string
+		name string
+	}{
+		{path: "rum_errors.ndjson", name: "RUMV3Errors"},
+		{path: "rum_transactions_spans.ndjson", name: "RUMV3Transactions"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v3/", test.path))
+			require.NoError(t, err)
+			bodyReader := bytes.NewBuffer(b)
+
+			name := fmt.Sprintf("test_approved_es_documents/testIntake%s", test.name)
+			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
+			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
+
+			reqDecoderMeta := map[string]interface{}{
+				"user": map[string]interface{}{
+					"user-agent": "rum-2.0",
+					"ip":         "192.0.0.1",
+				},
+			}
+
+			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024}, &transform.Config{})
+			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bodyReader, reporter(name))
+			assertApproveResult(t, actualResult, test.name)
+		})
+	}
+}
+
 func TestRateLimiting(t *testing.T) {
 	report := func(ctx context.Context, p publish.PendingReq) error {
 		return nil

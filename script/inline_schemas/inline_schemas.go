@@ -39,6 +39,9 @@ func main() {
 		{"transactions/transaction.json", "model/transaction/generated/schema/transaction.go", "ModelSchema"},
 		{"spans/span.json", "model/span/generated/schema/span.go", "ModelSchema"},
 		{"metricsets/metricset.json", "model/metricset/generated/schema/metricset.go", "ModelSchema"},
+		{"errors/rum_v3_error.json", "model/error/generated/schema/rum_v3_error.go", "RUMV3Schema"},
+		{"transactions/rum_v3_transaction.json", "model/transaction/generated/schema/rum_v3_transaction.go", "RUMV3Schema"},
+		{"spans/rum_v3_span.json", "model/span/generated/schema/rum_v3_span.go", "RUMV3Schema"},
 	}
 	for _, schemaInfo := range schemaPaths {
 		file := filepath.Join(filepath.Dir(basePath), schemaInfo.path)
