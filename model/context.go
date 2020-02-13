@@ -336,7 +336,7 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 			Finished:    decoder.BoolPtr(inpResp, "finished"),
 			HeadersSent: decoder.BoolPtr(inpResp, "headers_sent"),
 		}
-		minimalResp, err := DecodeMinimalHttpResp(raw, decoder.Err)
+		minimalResp, err := DecodeMinimalHTTPResponse(raw, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
@@ -347,7 +347,7 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 	return h, decoder.Err
 }
 
-func DecodeMinimalHttpResp(raw common.MapStr, err error) (*MinimalResp, error) {
+func DecodeMinimalHTTPResponse(raw common.MapStr, err error) (*MinimalResp, error) {
 	if err != nil {
 		return nil, err
 	}

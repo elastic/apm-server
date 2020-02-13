@@ -176,7 +176,7 @@ func decodeHTTP(input interface{}, err error) (*HTTP, error) {
 	if method != nil {
 		*method = strings.ToLower(*method)
 	}
-	minimalResp, err := m.DecodeMinimalHttpResp(httpInput, decoder.Err)
+	minimalResp, err := m.DecodeMinimalHTTPResponse(httpInput, decoder.Err)
 	if err != nil {
 		return nil, err
 	}
