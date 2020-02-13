@@ -32,15 +32,14 @@ import (
 	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/dev-tools/mage"
+	"github.com/elastic/beats/v7/dev-tools/mage"
 
 	"github.com/elastic/apm-server/beater/config"
 )
 
 func init() {
-
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
-		BeatVersion: "vendor/github.com/elastic/beats/libbeat/version/version.go",
+		BeatVersion: mage.DefaultBeatBuildVariableSources.BeatVersion,
 		GoVersion:   ".go-version",
 		DocBranch:   "docs/version.asciidoc",
 	})
@@ -50,7 +49,7 @@ func init() {
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
-	mage.GoImportsImportPath = "./vendor/golang.org/x/tools/cmd/goimports"
+	mage.UseVendor = false
 }
 
 // Build builds the Beat binary.

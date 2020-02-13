@@ -34,7 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beat"
 
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"

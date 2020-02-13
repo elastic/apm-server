@@ -31,8 +31,8 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"

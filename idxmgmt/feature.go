@@ -18,7 +18,7 @@
 package idxmgmt
 
 import (
-	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
+	libidxmgmt "github.com/elastic/beats/v7/libbeat/idxmgmt"
 )
 
 type feature struct {

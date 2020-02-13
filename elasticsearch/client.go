@@ -27,8 +27,8 @@ import (
 
 	"go.elastic.co/apm/module/apmelasticsearch"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/version"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/version"
 	esv7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	esv8 "github.com/elastic/go-elasticsearch/v8"

@@ -23,7 +23,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

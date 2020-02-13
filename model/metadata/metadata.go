@@ -22,7 +22,7 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/utility"

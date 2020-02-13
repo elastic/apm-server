@@ -29,8 +29,8 @@ import (
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/transport"
 
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"

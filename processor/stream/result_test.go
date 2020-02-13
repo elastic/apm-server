@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 func TestStreamResponseSimple(t *testing.T) {

@@ -40,7 +40,7 @@ import (
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func baseException() *Exception {

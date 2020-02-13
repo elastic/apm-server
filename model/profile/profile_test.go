@@ -29,8 +29,8 @@ import (
 	"github.com/elastic/apm-server/model/profile"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestPprofProfileTransform(t *testing.T) {

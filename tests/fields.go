@@ -26,8 +26,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/mapping"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/mapping"
 
 	"github.com/elastic/apm-server/tests/loader"
 )

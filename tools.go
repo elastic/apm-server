@@ -15,38 +15,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+// This file creates dependencies on build/test tools, so we can
+// track them in go.mod. See:
+//     https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
+
+//+build tools
+
+package main
 
 import (
-	"errors"
+	_ "github.com/jstemmer/go-junit-report"
+	_ "github.com/reviewdog/reviewdog"
+	_ "github.com/t-yuki/gocover-cobertura"
 
-	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/v7/libbeat/common"
+	_ "github.com/elastic/go-licenser"
 )
-
-type Container struct {
-	ID string
-}
-
-func DecodeContainer(input interface{}, err error) (*Container, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for container")
-	}
-	decoder := utility.ManualDecoder{}
-	return &Container{
-		ID: decoder.String(raw, "id"),
-	}, decoder.Err
-}
-
-func (k *Container) fields() common.MapStr {
-	if k == nil {
-		return nil
-	}
-	container := common.MapStr{}
-	utility.Set(container, "id", k.ID)
-	return container
-}

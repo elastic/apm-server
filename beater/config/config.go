@@ -25,10 +25,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/libbeat/kibana"
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/v7/libbeat/kibana"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	logs "github.com/elastic/apm-server/log"
 )

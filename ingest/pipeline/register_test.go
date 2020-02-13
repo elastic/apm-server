@@ -26,8 +26,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/beats/libbeat/common"
-	es "github.com/elastic/beats/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/common"
+	es "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 )
 
 func TestRegisterPipelines(t *testing.T) {

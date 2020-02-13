@@ -28,8 +28,8 @@ import (
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/version"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/jaeger"
