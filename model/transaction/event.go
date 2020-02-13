@@ -46,6 +46,7 @@ var (
 	transformations   = monitoring.NewInt(Metrics, "transformations")
 	processorEntry    = common.MapStr{"name": processorName, "event": transactionDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
+	RUMV3Schema       = validation.CreateSchema(schema.RUMV3Schema, "transaction")
 
 	errMissingInput = errors.New("input missing for decoding transaction event")
 	errInvalidType  = errors.New("invalid type for transaction event")
@@ -85,6 +86,10 @@ type Event struct {
 type SpanCount struct {
 	Dropped *int
 	Started *int
+}
+
+func DecodeRUMV3Event(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
+	return DecodeEvent(input, cfg, err)
 }
 
 func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
