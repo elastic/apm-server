@@ -24,7 +24,6 @@ import (
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
 	sm "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/transform"
@@ -45,7 +44,6 @@ var (
 
 type sourcemapProcessor struct {
 	PayloadKey    string
-	EventDecoder  decoder.EventDecoder
 	PayloadSchema *jsonschema.Schema
 	DecodingCount *monitoring.Int
 	DecodingError *monitoring.Int
