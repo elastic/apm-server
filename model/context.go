@@ -95,9 +95,16 @@ type Socket struct {
 // Resp bundles information related to an http requests response
 type Resp struct {
 	Finished    *bool
-	StatusCode  *int
 	HeadersSent *bool
-	Headers     http.Header
+	MinimalResp
+}
+
+type MinimalResp struct {
+	StatusCode      *int
+	Headers         http.Header
+	TransferSize    *float64
+	EncodedBodySize *float64
+	DecodedBodySize *float64
 }
 
 // Client holds information about the client.ip of the event.
@@ -321,20 +328,42 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 		}
 	}
 
-	inpResp := decoder.MapStr(raw, "response")
-	if inpResp != nil {
+	if inpResp := decoder.MapStr(raw, "response"); inpResp != nil {
 		if h == nil {
 			h = &Http{}
 		}
-		headers := decoder.Headers(inpResp)
 		h.Response = &Resp{
 			Finished:    decoder.BoolPtr(inpResp, "finished"),
-			StatusCode:  decoder.IntPtr(inpResp, "status_code"),
 			HeadersSent: decoder.BoolPtr(inpResp, "headers_sent"),
-			Headers:     headers,
+		}
+		minimalResp, err := DecodeMinimalHttpResp(raw, decoder.Err)
+		if err != nil {
+			return nil, err
+		}
+		if minimalResp != nil {
+			h.Response.MinimalResp = *minimalResp
 		}
 	}
 	return h, decoder.Err
+}
+
+func DecodeMinimalHttpResp(raw common.MapStr, err error) (*MinimalResp, error) {
+	if err != nil {
+		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	inpResp := decoder.MapStr(raw, "response")
+	if inpResp == nil {
+		return nil, nil
+	}
+	headers := decoder.Headers(inpResp)
+	return &MinimalResp{
+		StatusCode:      decoder.IntPtr(inpResp, "status_code"),
+		Headers:         headers,
+		DecodedBodySize: decoder.Float64Ptr(inpResp, "decoded_body_size"),
+		EncodedBodySize: decoder.Float64Ptr(inpResp, "encoded_body_size"),
+		TransferSize:    decoder.Float64Ptr(inpResp, "transfer_size"),
+	}, decoder.Err
 }
 
 func decodePage(raw common.MapStr, err error) (*Page, error) {
@@ -395,11 +424,25 @@ func (resp *Resp) fields() common.MapStr {
 	if resp == nil {
 		return nil
 	}
-	fields := common.MapStr{}
-	utility.Set(fields, "headers", headerToFields(resp.Headers))
+	fields := resp.MinimalResp.Fields()
+	if fields == nil {
+		fields = common.MapStr{}
+	}
 	utility.Set(fields, "headers_sent", resp.HeadersSent)
 	utility.Set(fields, "finished", resp.Finished)
-	utility.Set(fields, "status_code", resp.StatusCode)
+	return fields
+}
+
+func (m *MinimalResp) Fields() common.MapStr {
+	if m == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Set(fields, "headers", headerToFields(m.Headers))
+	utility.Set(fields, "status_code", m.StatusCode)
+	utility.Set(fields, "transfer_size", m.TransferSize)
+	utility.Set(fields, "encoded_body_size", m.EncodedBodySize)
+	utility.Set(fields, "decoded_body_size", m.DecodedBodySize)
 	return fields
 }
 

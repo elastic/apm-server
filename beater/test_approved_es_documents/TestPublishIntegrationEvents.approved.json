@@ -352,7 +352,10 @@
                 "http": {
                     "method": "get",
                     "response": {
-                        "status_code": 200
+                        "decoded_body_size": 401,
+                        "encoded_body_size": 356,
+                        "status_code": 200,
+                        "transfer_size": 300.12
                     },
                     "url": {
                         "original": "http://localhost:8000"
@@ -471,6 +474,8 @@
                     }
                 },
                 "response": {
+                    "decoded_body_size": 401.9,
+                    "encoded_body_size": 356.9,
                     "finished": true,
                     "headers": {
                         "Content-Type": [
@@ -478,7 +483,8 @@
                         ]
                     },
                     "headers_sent": true,
-                    "status_code": 200
+                    "status_code": 200,
+                    "transfer_size": 300
                 },
                 "version": "1.1"
             },
