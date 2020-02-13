@@ -16,3 +16,4 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 
 * Instrumentation for go-elasticsearch {pull}3305[3305]
 * Make configurable the list of Access-Control-Allow-Headers for RUM preflight requests {pull}3299[3299]
+* Upgrade Go to 1.13.8 {pull}3326[3326]
