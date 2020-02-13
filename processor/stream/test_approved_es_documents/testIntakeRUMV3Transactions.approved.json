@@ -1,0 +1,110 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "rum-js",
+                "version": "0.0.0"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "apm-agent-js",
+                "version": "1.0.0"
+            },
+            "timestamp": {
+                "us": 1533117600000000
+            },
+            "trace": {
+                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 643000
+                },
+                "id": "611f4fa950f04631",
+                "page": {
+                    "referer": "http://localhost:8000/test/e2e/",
+                    "url": "http://localhost:8000/test/e2e/general-usecase/"
+                },
+                "sampled": true,
+                "span_count": {
+                    "started": 1
+                },
+                "type": "page-load"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "rum-js",
+                "version": "0.0.0"
+            },
+            "parent": {
+                "id": "611f4fa950f04631"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "apm-agent-js"
+            },
+            "span": {
+                "duration": {
+                    "us": 643000
+                },
+                "http": {
+                    "url": {
+                        "original": "http://localhost:8000/test/e2e/general-usecase/span"
+                    }
+                },
+                "id": "aaaaaaaaaaaaaaaa",
+                "name": "transaction",
+                "stacktrace": [
+                    {
+                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                        "exclude_from_grouping": false,
+                        "filename": "test/e2e/general-usecase/bundle.js.map",
+                        "function": "\u003canonymous\u003e",
+                        "line": {
+                            "column": 18,
+                            "number": 1
+                        }
+                    },
+                    {
+                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                        "exclude_from_grouping": false,
+                        "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                        "function": "\u003canonymous\u003e",
+                        "line": {
+                            "column": 18,
+                            "number": 1
+                        }
+                    }
+                ],
+                "start": {
+                    "us": 0
+                },
+                "type": "transaction"
+            },
+            "timestamp": {
+                "us": 1533117600000000
+            },
+            "trace": {
+                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
+            },
+            "transaction": {
+                "id": "611f4fa950f04631"
+            }
+        }
+    ]
+}
