@@ -50,6 +50,7 @@ var (
 
 	processorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
+	RUMV3Schema       = validation.CreateSchema(schema.RUMV3Schema, "span")
 
 	errMissingInput = errors.New("input missing for decoding span event")
 	errInvalidType  = errors.New("invalid type for span event")
@@ -266,6 +267,10 @@ func (d *DestinationService) fields() common.MapStr {
 	utility.Set(fields, "name", d.Name)
 	utility.Set(fields, "resource", d.Resource)
 	return fields
+}
+
+func DecodeRUMV3Event(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
+	return DecodeEvent(input, cfg, err)
 }
 
 // DecodeEvent decodes a span event.
