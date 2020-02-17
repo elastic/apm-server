@@ -327,7 +327,7 @@
                         "context": {
                             "post": [
                                 "    ins.currentTransaction = prev",
-                                "}"
+                                "{}"
                             ]
                         },
                         "exclude_from_grouping": false,
