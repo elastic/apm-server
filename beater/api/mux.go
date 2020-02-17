@@ -64,6 +64,8 @@ const (
 	AgentConfigRUMPath = "/config/v1/rum/agents"
 	// IntakeRUMPath defines the path to ingest monitored RUM events
 	IntakeRUMPath = "/intake/v2/rum/events"
+
+	IntakeRUMV3Path = "/intake/v3/rum/events"
 )
 
 type route struct {
@@ -88,6 +90,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		{AgentConfigPath, backendAgentConfigHandler},
 		{AgentConfigRUMPath, rumAgentConfigHandler},
 		{IntakeRUMPath, rumIntakeHandler},
+		{IntakeRUMV3Path, rumV3IntakeHandler},
 		{IntakePath, backendIntakeHandler},
 	}
 
@@ -135,6 +138,15 @@ func rumIntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter pub
 		return nil, err
 	}
 	h := intake.Handler(stream.RUMProcessor(cfg, tcfg), reporter)
+	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
+}
+
+func rumV3IntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
+	tcfg, err := rumTransformConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	h := intake.Handler(stream.RUMV3Processor(cfg, tcfg), reporter)
 	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
 

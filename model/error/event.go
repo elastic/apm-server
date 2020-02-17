@@ -59,7 +59,10 @@ const (
 	emptyString   = ""
 )
 
-var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
+var (
+	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
+	RUMV3Schema       = validation.CreateSchema(schema.RUMV3Schema, processorName)
+)
 
 func ModelSchema() *jsonschema.Schema {
 	return cachedModelSchema
@@ -111,6 +114,10 @@ type Log struct {
 	ParamMessage *string
 	LoggerName   *string
 	Stacktrace   m.Stacktrace
+}
+
+func DecodeRUMV3Event(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
+	return DecodeEvent(input, cfg, err)
 }
 
 func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {

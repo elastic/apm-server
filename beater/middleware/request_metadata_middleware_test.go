@@ -21,8 +21,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/beater/beatertest"
 )
 
 func TestUserMetadataMiddleware(t *testing.T) {
