@@ -95,7 +95,7 @@ func TestErrorEventDecode(t *testing.T) {
 	page := m.Page{Url: &pUrl, Referer: &referer}
 	custom := m.Custom{"a": "b"}
 	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}
-	response := m.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
+	response := m.Resp{Finished: new(bool), MinimalResp: m.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := m.Http{Request: &request, Response: &response}
 	ctxUrl := m.Url{Original: &origUrl}
 
