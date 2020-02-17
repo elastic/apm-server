@@ -354,6 +354,11 @@
                     "response": {
                         "decoded_body_size": 401,
                         "encoded_body_size": 356,
+                        "headers": {
+                            "Content-Type": [
+                                "application/json"
+                            ]
+                        },
                         "status_code": 200,
                         "transfer_size": 300.12
                     },
