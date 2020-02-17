@@ -121,7 +121,13 @@ class BaseTest(TestCase):
         )
 
     def get_payload_path(self, name):
-        return self.get_testdata_path('intake-v2', name)
+        path = self.get_testdata_path('intake-v2/python', name)
+        try:
+            with open(path):
+                pass
+            return path
+        except IOError:
+            return self.get_testdata_path('intake-v2', name)
 
     @nottest
     def get_testdata_path(self, *names):
