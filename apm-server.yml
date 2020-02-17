@@ -171,7 +171,7 @@ apm-server:
       #proxy_disable: false
 
       # Configure http request timeout before failing an request to Elasticsearch.
-      #timeout: 10s
+      #timeout: 5s
 
       # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
       #ssl.enabled: true

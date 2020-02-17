@@ -187,7 +187,11 @@ func Test_UnpackConfig(t *testing.T) {
 				APIKeyConfig: &APIKeyConfig{
 					Enabled:     true,
 					LimitPerMin: 200,
-					ESConfig:    &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}},
+					ESConfig: &elasticsearch.Config{
+						Hosts:    elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
+						Protocol: "http",
+						Timeout:  5 * time.Second},
+					esConfigured: true,
 				},
 			},
 		},
