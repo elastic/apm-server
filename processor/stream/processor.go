@@ -149,6 +149,28 @@ func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	}
 }
 
+func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
+	return &Processor{
+		Tconfig:      *tcfg,
+		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize: cfg.MaxEventSize,
+		models: map[string]processorModel{
+			"transaction": {
+				schema:       transaction.RUMV3Schema,
+				modelDecoder: transaction.DecodeRUMV3Event,
+			},
+			"span": {
+				schema:       span.RUMV3Schema,
+				modelDecoder: span.DecodeRUMV3Event,
+			},
+			"error": {
+				schema:       er.RUMV3Schema,
+				modelDecoder: er.DecodeRUMV3Event,
+			},
+		},
+	}
+}
+
 const batchSize = 10
 
 func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {

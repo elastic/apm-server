@@ -1,0 +1,112 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-12-08T12:18:50.291Z",
+            "agent": {
+                "name": "rum-js",
+                "version": "0.0.0"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "error": {
+                "culprit": "test/e2e/general-usecase/bundle.js.map",
+                "exception": [
+                    {
+                        "message": "Uncaught Error: timeout test error",
+                        "stacktrace": [
+                            {
+                                "abs_path": "http://localhost:8000/test/../test/e2e/general-usecase/bundle.js.map",
+                                "exclude_from_grouping": false,
+                                "filename": "test/e2e/general-usecase/bundle.js.map",
+                                "function": "\u003canonymous\u003e",
+                                "library_frame": true,
+                                "line": {
+                                    "column": 18,
+                                    "number": 1
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/./e2e/general-usecase/bundle.js.map",
+                                "exclude_from_grouping": false,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "invokeTask",
+                                "library_frame": false,
+                                "line": {
+                                    "column": 181,
+                                    "number": 1
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "exclude_from_grouping": false,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "runTask",
+                                "line": {
+                                    "column": 15,
+                                    "number": 1
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "exclude_from_grouping": false,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "invoke",
+                                "line": {
+                                    "column": 199,
+                                    "number": 1
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "exclude_from_grouping": false,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "timer",
+                                "line": {
+                                    "column": 33,
+                                    "number": 1
+                                }
+                            }
+                        ],
+                        "type": "Error"
+                    }
+                ],
+                "grouping_key": "52fbc9c2d1a61bf905b4a11c708006fd",
+                "id": "aba2688e033848ce9c4e4005f1caa534",
+                "log": {
+                    "message": "Uncaught Error: log timeout test error",
+                    "stacktrace": [
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
+                            "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                            "function": "\u003canonymous\u003e",
+                            "line": {
+                                "column": 18,
+                                "number": 1
+                            }
+                        }
+                    ]
+                },
+                "page": {
+                    "referer": "http://localhost:8000/test/e2e/",
+                    "url": "http://localhost:8000/test/e2e/general-usecase/"
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "name": "apm-agent-js",
+                "version": "1.0.1"
+            },
+            "timestamp": {
+                "us": 1512735530291000
+            },
+            "user_agent": {
+                "original": "rum-2.0"
+            }
+        }
+    ]
+}
