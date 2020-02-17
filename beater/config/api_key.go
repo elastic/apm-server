@@ -60,7 +60,7 @@ func defaultAPIKeyConfig() *APIKeyConfig {
 }
 
 func (c *APIKeyConfig) Unpack(inp *common.Config) error {
-	cfg := tmpApiKeyConfig(*defaultAPIKeyConfig())
+	cfg := tmpAPIKeyConfig(*defaultAPIKeyConfig())
 	if err := inp.Unpack(&cfg); err != nil {
 		return errors.Errorf("error unpacking api_key config: %w", err)
 	}
@@ -71,4 +71,4 @@ func (c *APIKeyConfig) Unpack(inp *common.Config) error {
 	return nil
 }
 
-type tmpApiKeyConfig APIKeyConfig
+type tmpAPIKeyConfig APIKeyConfig
