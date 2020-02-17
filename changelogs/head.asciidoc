@@ -10,6 +10,9 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 
 [float]
 ==== Intake API Changes
+* Add `transfer_size`, `encoded_body_size`  and `decoded_body_size` to `transaction.context.http.response` {pull}3327[3327]
+* Add `transfer_size`, `encoded_body_size`, `decoded_body_size` and `headers` to `span.context.http.response` {pull}3327[3327]
+* Deprecate `span.context.http.status_code` in favor of newly introduced `span.context.http.response.status_code` {pull}3327[3327]
 
 [float]
 ==== Added
@@ -17,4 +20,3 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 * Instrumentation for go-elasticsearch {pull}3305[3305]
 * Make configurable the list of Access-Control-Allow-Headers for RUM preflight requests {pull}3299[3299]
 * Initial RUM V3 endpoint {pull}3328[3328]
-* Add new fields to `context.http.response` for spans and transactions {pull}3327[3327]

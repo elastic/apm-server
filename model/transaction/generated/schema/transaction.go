@@ -132,8 +132,7 @@ const ModelSchema = `{
                         "type": ["string"]
                     }
                 }
-            },
-            "additionalProperties": false
+            }
         }
     } },
                 {

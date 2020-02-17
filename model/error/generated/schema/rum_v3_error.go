@@ -116,8 +116,7 @@ const RUMV3Schema = `{
                         "type": ["string"]
                     }
                 }
-            },
-            "additionalProperties": false
+            }
         }
     } },
                 {
