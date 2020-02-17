@@ -54,7 +54,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 	var pendingReqs []publish.PendingReq
 	report := tests.TestReporter(&pendingReqs)
 
-	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+	b, err := loader.LoadNDJSON("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 	bodyReader := bytes.NewBuffer(b)
 	timeoutReader := iotest.TimeoutReader(bodyReader)
@@ -82,7 +82,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 		},
 	} {
 
-		b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+		b, err := loader.LoadNDJSON("../testdata/intake-v2/transactions.ndjson")
 		require.NoError(t, err)
 		bodyReader := bytes.NewBuffer(b)
 
@@ -126,7 +126,7 @@ func TestIntegrationESOutput(t *testing.T) {
 		{path: "optional-timestamps.ndjson", name: "OptionalTimestamps"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
+			b, err := loader.LoadNDJSON(filepath.Join("../testdata/intake-v2/", test.path))
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
@@ -170,7 +170,7 @@ func TestIntegrationRum(t *testing.T) {
 		{path: "transactions_spans_rum.ndjson", name: "RumTransactions"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
+			b, err := loader.LoadNDJSON(filepath.Join("../testdata/intake-v2/", test.path))
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
@@ -217,7 +217,7 @@ func TestRUMV3(t *testing.T) {
 		{path: "rum_transactions_spans.ndjson", name: "RUMV3Transactions"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v3/", test.path))
+			b, err := loader.LoadNDJSON(filepath.Join("../testdata/intake-v3/", test.path))
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
@@ -244,7 +244,7 @@ func TestRateLimiting(t *testing.T) {
 		return nil
 	}
 
-	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/ratelimit.ndjson")
+	b, err := loader.LoadNDJSON("../testdata/intake-v2/ratelimit.ndjson")
 	require.NoError(t, err)
 	for _, test := range []struct {
 		name string

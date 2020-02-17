@@ -31,7 +31,7 @@ type TestProcessor struct {
 }
 
 func (p *TestProcessor) LoadPayload(path string) (interface{}, error) {
-	return loader.LoadData(path)
+	return loader.LoadJSON(path)
 }
 
 func (p *TestProcessor) Decode(input interface{}) error {

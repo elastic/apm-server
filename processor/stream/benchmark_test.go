@@ -52,7 +52,7 @@ func BenchmarkStreamProcessor(b *testing.B) {
 
 	benchmark := func(filename string, rl *rate.Limiter) func(b *testing.B) {
 		return func(b *testing.B) {
-			data, err := loader.LoadDataAsBytes(filepath.Join(dir, filename))
+			data, err := loader.LoadNDJSON(filepath.Join(dir, filename))
 			if err != nil {
 				b.Error(err)
 			}

@@ -47,7 +47,7 @@ type intakeTestProcessor struct {
 const lrSize = 100 * 1024
 
 func (v *intakeTestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, error) {
-	reader, err := loader.LoadDataAsStream(path)
+	reader, err := loader.NDJSONFileReader(path)
 	if err != nil {
 		return nil, err
 	}

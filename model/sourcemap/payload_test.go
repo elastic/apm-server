@@ -46,7 +46,7 @@ func getStr(data common.MapStr, key string) string {
 }
 
 func TestDecode(t *testing.T) {
-	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
+	data, err := loader.LoadJSON("../testdata/sourcemap/payload.json")
 	assert.NoError(t, err)
 
 	sourcemap, err := DecodeSourcemap(data)
@@ -91,7 +91,7 @@ func TestTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := loader.LoadDataAsBytes("../testdata/sourcemap/bundle.js.map")
+	fileBytes, err := loader.LoadNDJSON("../testdata/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)
@@ -103,7 +103,7 @@ func TestParseSourcemaps(t *testing.T) {
 
 func TestInvalidateCache(t *testing.T) {
 	// load sourcemap from file and decode
-	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
+	data, err := loader.LoadJSON("../testdata/sourcemap/payload.json")
 	assert.NoError(t, err)
 	decoded, err := DecodeSourcemap(data)
 	require.NoError(t, err)

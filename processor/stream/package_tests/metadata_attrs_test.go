@@ -81,7 +81,7 @@ func metadataProcSetup() *tests.ProcessorSetup {
 }
 
 func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
-	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/only-metadata.ndjson")
+	payloadStream, err := loader.NDJSONFileReader("../testdata/intake-v2/only-metadata.ndjson")
 	require.NoError(t, err)
 
 	lr := decoder.NewLineReader(bufio.NewReader(payloadStream), lrSize)

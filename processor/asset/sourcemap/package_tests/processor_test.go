@@ -58,7 +58,7 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		p := sourcemap.Processor
 		tctx := transform.Context{}
 
-		data, err := loader.LoadData(info.Path)
+		data, err := loader.LoadJSON(info.Path)
 		require.NoError(t, err)
 
 		err = p.Validate(data)

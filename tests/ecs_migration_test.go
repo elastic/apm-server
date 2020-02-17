@@ -28,7 +28,7 @@ import (
 )
 
 func TestECSMapping(t *testing.T) {
-	b, err := loader.LoadDataAsBytes("../_meta/ecs-migration.yml")
+	b, err := loader.LoadNDJSON("../_meta/ecs-migration.yml")
 	require.NoError(t, err)
 
 	type ECSFieldMigration struct {

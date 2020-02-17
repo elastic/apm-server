@@ -161,7 +161,7 @@ func TestPublishIntegration(t *testing.T) {
 			require.NoError(t, err)
 			defer teardown()
 
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", tc.payload))
+			b, err := loader.LoadNDJSON(filepath.Join("../testdata/intake-v2/", tc.payload))
 			require.NoError(t, err)
 			docs := testPublishIntake(t, apm, events, bytes.NewReader(b))
 			approvals.AssertApproveResult(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
@@ -216,11 +216,11 @@ func TestPublishIntegrationProfile(t *testing.T) {
 
 			var metadata io.Reader
 			if tc.metadata != "" {
-				b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/profile/", tc.metadata))
+				b, err := loader.LoadData(filepath.Join("../testdata/profile/", tc.metadata))
 				require.NoError(t, err)
 				metadata = bytes.NewReader(b)
 			}
-			profileBytes, err := loader.LoadDataAsBytes(filepath.Join("../testdata/profile/", tc.profile))
+			profileBytes, err := loader.LoadData(filepath.Join("../testdata/profile/", tc.profile))
 			require.NoError(t, err)
 
 			docs := testPublishProfile(t, apm, events, metadata, bytes.NewReader(profileBytes))

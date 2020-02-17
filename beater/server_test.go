@@ -541,7 +541,7 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, 
 }
 
 var testData = func() []byte {
-	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+	b, err := loader.LoadNDJSON("../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
 		panic(err)
 	}

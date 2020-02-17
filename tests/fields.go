@@ -116,7 +116,7 @@ func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields,
 }
 
 func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *Set {
-	buf, err := loader.LoadDataAsBytes(path)
+	buf, err := loader.LoadNDJSON(path)
 	require.NoError(t, err)
 	events, err := p.Process(buf)
 	require.NoError(t, err)
