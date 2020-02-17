@@ -101,31 +101,58 @@ const ModelSchema = `{
         },
         "response": {
             "type": ["object", "null"],
-            "properties": {
-                "finished": {
-                    "description": "A boolean indicating whether the response was finished or not",
-                    "type": ["boolean", "null"]
-                },
-                "headers": {
-                    "description": "A mapping of HTTP headers of the response object",
-                    "type": ["object", "null"],
-                    "patternProperties": {
-                        "[.*]*$": {
-                            "type": ["string", "array", "null"],
-                            "items": {
-                                "type": ["string"]
-                            }
-                        }
+            "allOf": [
+                {     "$id": "doc/spec/http_response.json",
+    "title": "HTTP response object",
+    "description": "HTTP response object, used by error, span and transction documents",
+    "type": ["object", "null"],
+    "properties": {
+        "status_code": {
+            "type": ["integer", "null"],
+            "description": "The status code of the http request."
+        },
+        "transfer_size": {
+            "type": ["number", "null"],
+            "description": "Total size of the payload."
+        },
+        "encoded_body_size": {
+            "type": ["number", "null"],
+            "description": "The encoded size of the payload."
+        },
+        "decoded_body_size":  {
+            "type": ["number", "null"],
+            "description": "The decoded size of the payload."
+        },
+        "headers": {
+            "type": ["object", "null"],
+            "patternProperties": {
+                "[.*]*$": {
+                    "type": ["string", "array", "null"],
+                    "items": {
+                        "type": ["string"]
                     }
-                },
-                "headers_sent": {
-                    "type": ["boolean", "null"]
-                },
-                "status_code": {
-                    "description": "The HTTP status code of the response.",
-                    "type": ["integer", "null"]
                 }
             }
+        }
+    } },
+                {
+                    "properties": {
+                        "finished": {
+                            "description": "A boolean indicating whether the response was finished or not",
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        },
+                        "headers_sent": {
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         "request": {
                 "$id": "docs/spec/http.json",

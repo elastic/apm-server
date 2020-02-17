@@ -104,6 +104,7 @@ type HTTP struct {
 	URL        *string
 	StatusCode *int
 	Method     *string
+	Response   *m.MinimalResp
 }
 
 // Destination contains contextual data about the destination of a span, such as address and port
@@ -176,11 +177,16 @@ func decodeHTTP(input interface{}, err error) (*HTTP, error) {
 	if method != nil {
 		*method = strings.ToLower(*method)
 	}
+	minimalResp, err := m.DecodeMinimalHTTPResponse(httpInput, decoder.Err)
+	if err != nil {
+		return nil, err
+	}
 	return &HTTP{
 		decoder.StringPtr(httpInput, "url"),
 		decoder.IntPtr(httpInput, "status_code"),
 		method,
-	}, decoder.Err
+		minimalResp,
+	}, nil
 }
 
 func (http *HTTP) fields() common.MapStr {
@@ -191,9 +197,15 @@ func (http *HTTP) fields() common.MapStr {
 	if http.URL != nil {
 		utility.Set(fields, "url", common.MapStr{"original": http.URL})
 	}
+	response := http.Response.Fields()
 	if http.StatusCode != nil {
-		utility.Set(fields, "response", common.MapStr{"status_code": http.StatusCode})
+		if response == nil {
+			response = common.MapStr{"status_code": *http.StatusCode}
+		} else if http.Response.StatusCode == nil {
+			response["status_code"] = *http.StatusCode
+		}
 	}
+	utility.Set(fields, "response", response)
 	utility.Set(fields, "method", http.Method)
 	return fields
 }

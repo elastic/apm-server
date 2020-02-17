@@ -88,6 +88,7 @@ func spanPayloadAttrsNotInJsonSchema() *tests.Set {
 		"span",
 		"span.stacktrace.vars.key",
 		tests.Group("span.context.tags"),
+		"span.context.http.response.headers.content-type",
 		"span.context.service.environment", //used to check that only defined service fields are set on spans
 	)
 }
