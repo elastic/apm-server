@@ -49,7 +49,7 @@ func TestOPTIONS(t *testing.T) {
 
 	// use this to block the single allowed concurrent requests
 	go func() {
-		c := &request.Context{}
+		c := request.NewContext()
 		c.Reset(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/", nil))
 		h(c)
 	}()
@@ -57,7 +57,7 @@ func TestOPTIONS(t *testing.T) {
 	<-requestTaken
 
 	// send a new request which should be allowed through
-	c := &request.Context{}
+	c := request.NewContext()
 	w := httptest.NewRecorder()
 	c.Reset(w, httptest.NewRequest(http.MethodOptions, "/", nil))
 	h(c)
@@ -107,7 +107,7 @@ func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
 	h, err := rumIntakeHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	rec := &beatertest.WriterPanicOnce{}
-	c := &request.Context{}
+	c := request.NewContext()
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)

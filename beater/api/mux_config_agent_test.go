@@ -74,7 +74,7 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 	h := testHandler(t, backendAgentConfigHandler)
 	rec := &beatertest.WriterPanicOnce{}
-	c := &request.Context{}
+	c := request.NewContext()
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	require.Equal(t, http.StatusInternalServerError, rec.StatusCode)

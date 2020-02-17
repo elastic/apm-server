@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
@@ -65,10 +64,6 @@ const (
 	AgentConfigRUMPath = "/config/v1/rum/agents"
 	// IntakeRUMPath defines the path to ingest monitored RUM events
 	IntakeRUMPath = "/intake/v2/rum/events"
-)
-
-var (
-	emptyDecoder = func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil }
 )
 
 type route struct {
@@ -123,15 +118,13 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 }
 
 func profileHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := profile.Handler(systemMetadataDecoder(cfg, emptyDecoder), transform.Config{}, reporter)
+	h := profile.Handler(transform.Config{}, reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, profile.MonitoringMap)...)
 }
 
 func backendIntakeHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := intake.Handler(systemMetadataDecoder(cfg, emptyDecoder),
-		stream.BackendProcessor(cfg),
-		reporter)
+	h := intake.Handler(stream.BackendProcessor(cfg), reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, intake.MonitoringMap)...)
 }
@@ -141,9 +134,7 @@ func rumIntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter pub
 	if err != nil {
 		return nil, err
 	}
-	h := intake.Handler(userMetaDataDecoder(cfg, emptyDecoder),
-		stream.RUMProcessor(cfg, tcfg),
-		reporter)
+	h := intake.Handler(stream.RUMProcessor(cfg, tcfg), reporter)
 	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
 
@@ -152,7 +143,7 @@ func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, report
 	if err != nil {
 		return nil, err
 	}
-	h := sourcemap.Handler(systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData), psourcemap.Processor, *tcfg, reporter)
+	h := sourcemap.Handler(sourcemap.DecodeSourcemapFormData, psourcemap.Processor, *tcfg, reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
 	return middleware.Wrap(h, sourcemapMiddleware(cfg, authHandler)...)
 }
@@ -196,20 +187,30 @@ func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middlewa
 	}
 }
 
-func backendMiddleware(_ *config.Config, auth *authorization.Handler, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
-	return append(apmMiddleware(m),
-		middleware.AuthorizationMiddleware(auth, true))
+func backendMiddleware(cfg *config.Config, auth *authorization.Handler, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	backendMiddleware := append(apmMiddleware(m),
+		middleware.AuthorizationMiddleware(auth, true),
+	)
+	if cfg.AugmentEnabled {
+		backendMiddleware = append(backendMiddleware, middleware.SystemMetadataMiddleware())
+	}
+	return backendMiddleware
 }
 
 func rumMiddleware(cfg *config.Config, _ *authorization.Handler, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	msg := "RUM endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
-	return append(apmMiddleware(m),
+	rumMiddleware := append(apmMiddleware(m),
 		middleware.SetRumFlagMiddleware(),
 		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
-		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled(), msg))
+		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled(), msg),
+	)
+	if cfg.AugmentEnabled {
+		rumMiddleware = append(rumMiddleware, middleware.UserMetadataMiddleware())
+	}
+	return rumMiddleware
 }
 
 func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []middleware.Middleware {
@@ -224,14 +225,6 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []midd
 func rootMiddleware(_ *config.Config, auth *authorization.Handler) []middleware.Middleware {
 	return append(apmMiddleware(root.MonitoringMap),
 		middleware.AuthorizationMiddleware(auth, false))
-}
-
-func systemMetadataDecoder(beaterConfig *config.Config, d decoder.ReqDecoder) decoder.ReqDecoder {
-	return decoder.DecodeSystemData(d, beaterConfig.AugmentEnabled)
-}
-
-func userMetaDataDecoder(beaterConfig *config.Config, d decoder.ReqDecoder) decoder.ReqDecoder {
-	return decoder.DecodeUserData(d, beaterConfig.AugmentEnabled)
 }
 
 func rumTransformConfig(beaterConfig *config.Config) (*transform.Config, error) {

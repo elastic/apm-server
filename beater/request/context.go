@@ -49,8 +49,16 @@ type Context struct {
 	IsRum         bool
 	Result        Result
 
+	// RequestMetadata contains metadata extracted from the request
+	// by middleware, and should be merged into event metadata.
+	RequestMetadata map[string]interface{}
+
 	w             http.ResponseWriter
 	writeAttempts int
+}
+
+func NewContext() *Context {
+	return &Context{RequestMetadata: make(map[string]interface{})}
 }
 
 // Reset allows to reuse a context by removing all request specific information
@@ -61,6 +69,9 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Authorization = &authorization.AllowAuth{}
 	c.IsRum = false
 	c.Result.Reset()
+	for k := range c.RequestMetadata {
+		delete(c.RequestMetadata, k)
+	}
 
 	c.w = w
 	c.writeAttempts = 0
