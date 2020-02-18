@@ -41,13 +41,12 @@ in the same directory with the name apm-server.
 make
 ```
 
-You also need to create all files needed by the APM Server by running the additional command below. 
+You also need to create all files needed by the APM Server by running the additional command below.
 
 ```
 make update
 ```
-Note that this requires to have `virtualenv` installed. Make sure that `virtualenv` creates Python2
-environment, otherwise specify `PYTHON_EXE` variable pointed at Python2 executable.
+Note that this requires to have `python >= 3.7` and `venv` installed.
 
 ### Run
 
@@ -97,7 +96,7 @@ See [releases](RELEASES.md) for an APM Server release checklist.
 
 ## Update Dependencies
 
-The `apm-server` has two types of dependencies, 
+The `apm-server` has two types of dependencies,
 the Golang packages managed with *Govendor* and a dependency to the *Beats Framework*.
 
 ### Govendor
@@ -127,9 +126,9 @@ BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
 ```
 ### Go-elasticsearch client Update
 
-It is important to keep the used [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync with the according major version. 
+It is important to keep the used [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync with the according major version.
 We also recommend to use the latest available client for minor versions.
-Since APM Server does not yet support go modules, you can update the dependency using govendor, e.g. by running: 
+Since APM Server does not yet support go modules, you can update the dependency using govendor, e.g. by running:
 ```
 git clone --branch v7.4.1 https://github.com/elastic/go-elasticsearch.git $GOPATH/src/github.com/elastic/go-elasticsearch/v7
 govendor add github.com/elastic/go-elasticsearch/v7/^
