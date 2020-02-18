@@ -1,6 +1,4 @@
 import json
-import unittest
-
 import requests
 
 from apmserver import ElasticTest, integration_test
