@@ -77,7 +77,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIp), Id: &userId, UserAgent: &ua}
 	page := model.Page{Url: &url, Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
-	response := model.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
+	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := model.Http{Request: &request, Response: &response}
 	ctxUrl := model.Url{Original: &origUrl}
 	custom := model.Custom{"abc": 1}
@@ -388,7 +388,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}
 
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{}}
-	response := model.Resp{Finished: new(bool), Headers: http.Header{"content-type": []string{"text/html"}}}
+	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
 	txWithContext := Event{
 		Timestamp: timestamp,
 		User:      &user,
