@@ -59,7 +59,7 @@ are available in the relevant agent documentation:
 
 Similarly to dropped spans, transactions may have missing spans.
 This can happen because spans are streamed from the APM Agent to the APM Server separately from their transaction.
-Unforseen errors may cause spans to go missing.
+Unforeseen errors may cause spans to go missing.
 Because the agent notifies the server about how many spans there should be,
 the number of missing spans is able to be calculated and shown in the UI.
 
