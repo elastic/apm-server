@@ -48,10 +48,10 @@ rsync -crpv --delete \
     --include="libbeat/processors/testing/***" \
     --include="libbeat/scripts/***" \
     --include="libbeat/testing/***" \
-    --exclude="libbeat/tests/system/beat/***" \
     --include="libbeat/tests/" \
     --include="libbeat/tests/system" \
     --include=libbeat/tests/system/requirements.txt \
+    --include="libbeat/tests/system/beat/***" \
     --exclude="libbeat/*" \
     --include=.go-version \
     --include=reviewdog.yml \
