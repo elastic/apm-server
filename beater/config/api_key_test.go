@@ -21,6 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/stretchr/testify/assert"
@@ -38,39 +40,42 @@ func TestAPIKeyConfig_IsEnabled(t *testing.T) {
 
 func TestAPIKeyConfig_ESConfig(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg   *APIKeyConfig
+		cfg   *common.Config
 		esCfg *common.Config
 
 		expectedConfig *APIKeyConfig
 		expectedErr    error
 	}{
 		"default": {
-			cfg:            defaultAPIKeyConfig(),
+			cfg:            common.NewConfig(),
 			expectedConfig: defaultAPIKeyConfig(),
 		},
 		"ES config missing": {
-			cfg: &APIKeyConfig{Enabled: true, LimitPerMin: apiKeyLimit},
+			cfg: common.MustNewConfigFrom(`{"enabled": true}`),
 			expectedConfig: &APIKeyConfig{
 				Enabled:     true,
 				LimitPerMin: apiKeyLimit,
 				ESConfig:    elasticsearch.DefaultConfig()},
 		},
 		"ES configured": {
-			cfg: &APIKeyConfig{
-				Enabled:  true,
-				ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"192.0.0.1:9200"}}},
+			cfg:   common.MustNewConfigFrom(`{"enabled": true, "elasticsearch.timeout":"7s"}`),
 			esCfg: common.MustNewConfigFrom(`{"hosts":["186.0.0.168:9200"]}`),
 			expectedConfig: &APIKeyConfig{
-				Enabled:  true,
-				ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"192.0.0.1:9200"}}},
+				Enabled:     true,
+				LimitPerMin: apiKeyLimit,
+				ESConfig: &elasticsearch.Config{
+					Hosts:    elasticsearch.Hosts{"localhost:9200"},
+					Protocol: "http",
+					Timeout:  7 * time.Second},
+				esConfigured: true},
 		},
 		"disabled with ES from output": {
-			cfg:            defaultAPIKeyConfig(),
+			cfg:            common.NewConfig(),
 			esCfg:          common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`),
 			expectedConfig: defaultAPIKeyConfig(),
 		},
 		"ES from output": {
-			cfg:   &APIKeyConfig{Enabled: true, LimitPerMin: 20},
+			cfg:   common.MustNewConfigFrom(`{"enabled": true, "limit": 20}`),
 			esCfg: common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"],"username":"foo","password":"bar"}`),
 			expectedConfig: &APIKeyConfig{
 				Enabled:     true,
@@ -84,13 +89,15 @@ func TestAPIKeyConfig_ESConfig(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			err := tc.cfg.setup(logp.NewLogger("api_key"), tc.esCfg)
+			var apiKeyConfig APIKeyConfig
+			require.NoError(t, tc.cfg.Unpack(&apiKeyConfig))
+			err := apiKeyConfig.setup(logp.NewLogger("api_key"), tc.esCfg)
 			if tc.expectedErr == nil {
 				assert.NoError(t, err)
 			} else {
 				assert.Error(t, err)
 			}
-			assert.Equal(t, tc.expectedConfig, tc.cfg)
+			assert.Equal(t, tc.expectedConfig, &apiKeyConfig)
 
 		})
 	}

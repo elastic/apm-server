@@ -3,7 +3,17 @@
 
 https://github.com/elastic/apm-server/compare/7.5\...7.6[View commits]
 
+* <<release-notes-7.6.1>>
 * <<release-notes-7.6.0>>
+
+[[release-notes-7.6.1]]
+=== APM Server version 7.6.1
+
+https://github.com/elastic/apm-server/compare/v7.6.0\...v7.6.1[View commits]
+
+[float]
+==== Bug fixes
+* Merge default values with custom Elasticsearch config for API Keys and add `required` tag for `host` {pull}3342[3342]
 
 [[release-notes-7.6.0]]
 === APM Server version 7.6.0
