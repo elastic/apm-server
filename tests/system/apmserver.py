@@ -2,13 +2,12 @@ from datetime import datetime, timedelta
 import json
 import os
 import re
-import sets
 import shutil
 import sys
 import threading
 import time
 import unittest
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import nottest
@@ -272,7 +271,7 @@ class ElasticTest(ServerBaseTest):
         wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
-                                query_index=None, max_timeout=10, extra_headers=None):
+                                query_index=None, max_timeout=10, extra_headers=None, file_mode="r"):
 
         if query_index is None:
             query_index = apm_prefix
@@ -281,7 +280,7 @@ class ElasticTest(ServerBaseTest):
         if extra_headers:
             headers.update(extra_headers)
 
-        with open(data_path) as f:
+        with open(data_path, file_mode) as f:
             r = requests.post(url, data=f, headers=headers)
         assert r.status_code == 202, r.status_code
 
@@ -388,7 +387,7 @@ class ElasticTest(ServerBaseTest):
                 # as they are dependent on the environment.
                 rec_id = get_doc_id(rec)
                 rec_observer = rec['observer']
-                self.assertEqual(sets.Set(rec_observer.keys()), sets.Set(
+                self.assertEqual(set(rec_observer.keys()), set(
                     ["hostname", "version", "id", "ephemeral_id", "type", "version_major"]))
                 assert rec_observer["version"].startswith(str(rec_observer["version_major"]) + ".")
                 for appr in approved:
@@ -409,12 +408,12 @@ class ElasticTest(ServerBaseTest):
             # Create a dynamic Exception subclass so we can fake its name to look like the original exception.
             class ApprovalException(Exception):
                 def __init__(self, cause):
-                    super(ApprovalException, self).__init__(cause.message)
+                    super(ApprovalException, self).__init__(cause.args)
 
                 def __str__(self):
-                    return self.message + "\n\nReceived data differs from approved data. Run 'make update' and then 'approvals' to verify the diff."
+                    return "{}\n\nReceived data differs from approved data. Run 'make update' and then 'approvals' to verify the diff.".format(self.args)
             ApprovalException.__name__ = type(exc).__name__
-            raise ApprovalException, exc, sys.exc_info()[2]
+            raise ApprovalException(exc).with_traceback(sys.exc_info()[2])
 
 
 class ClientSideBaseTest(ServerBaseTest):
