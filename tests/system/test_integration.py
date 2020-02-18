@@ -188,7 +188,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
         if "stacktrace" not in doc:
             return
         for frame in doc["stacktrace"]:
-            if frame.has_key("library_frame"):
+            if "library_frame" in frame:
                 k = "true" if frame["library_frame"] else "false"
                 lf[k] += 1
             else:
