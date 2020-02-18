@@ -1,4 +1,4 @@
-# python renamed_fields.py > ../docs/field-name-changes.asciidoc
+# python3 renamed_fields.py > ../docs/field-name-changes.asciidoc
 import yaml
 
 

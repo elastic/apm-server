@@ -4,10 +4,13 @@ MAINTAINER Nicolas Ruflin <ruflin@elastic.co>
 RUN set -x && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-         netcat python-pip virtualenv && \
+         netcat python3 python3-pip python3-venv && \
     apt-get clean
 
-RUN pip install --upgrade setuptools
+ENV PYTHON_ENV=/tmp/python-env
+
+RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade setuptools
 
 # Setup work environment
 ENV APMSERVER_PATH /go/src/github.com/elastic/apm-server

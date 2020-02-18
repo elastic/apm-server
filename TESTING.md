@@ -22,7 +22,7 @@ While developing new tests or troubleshooting test failures, it is handy to run 
 example from within an editor, while still allowing all dependencies to run in containers.  To accomplish this:
 
 * Run `make build-image start-environment` to start docker containers for the Elastic Stack.
-* Run `PYTHON_EXE=python2.7 make python-env` to build a python virtualenv
+* Run `PYTHON_EXE=python3 make python-env` to build a python virtualenv
 * Run `make apm-server.test` to (re)build the executable used to run the apm-server
 * Run tests using the `run-system-tests` target, eg:
  ```
@@ -39,9 +39,9 @@ For insights about test-coverage, run `make coverage-report`. The test coverage 
 ## Snapshot-Testing
 Some tests make use of the concept of _snapshot_ or _approvals testing_. If running tests leads to changed snapshots, you can use the `approvals` tool to update the snapshots.
 Following workflow is intended:
-* Run `make update` to create the `approvals` binary that supports reviewing changes. 
+* Run `make update` to create the `approvals` binary that supports reviewing changes.
 * Run `make unit` to create a `*.received.json` file for every newly created or changed snapshot.
-* Run `./approvals` to review and interactively accept the changes. 
+* Run `./approvals` to review and interactively accept the changes.
 
 ## Benchmarking
 
@@ -55,7 +55,7 @@ A good way to present your results is by using `benchcmp`.
 With your changes in the current working tree, do:
 
 ```
-$ go get -u golang.org/x/tools/cmd/benchcmp 
+$ go get -u golang.org/x/tools/cmd/benchcmp
 $ make bench > new.txt
 $ git checkout master
 $ make bench > old.txt
