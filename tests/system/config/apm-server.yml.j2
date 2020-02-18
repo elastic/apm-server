@@ -76,6 +76,19 @@ apm-server:
   rum.source_mapping.index_pattern: {{ smap_index_pattern}}
   {% endif %}
 
+  {% if smap_es_host %}
+  rum.source_mapping.elasticsearch.hosts: [{{ smap_es_host }}]
+  {% endif %}
+  {% if smap_es_username %}
+  rum.source_mapping.elasticsearch.username: {{ smap_es_username }}
+  {% endif %}
+  {% if smap_es_password %}
+  rum.source_mapping.elasticsearch.password: {{ smap_es_password }}
+  {% endif %}
+  {% if smap_es_apikey %}
+  rum.source_mapping.elasticsearch.api_key: {{ smap_es_apikey }}
+  {% endif %}
+
   {% if expvar_enabled %}
   expvar.enabled: {{ expvar_enabled }}
   {% endif %}
