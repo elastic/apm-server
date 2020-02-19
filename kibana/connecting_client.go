@@ -18,11 +18,14 @@
 package kibana
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
+
+	"go.elastic.co/apm"
 
 	"github.com/pkg/errors"
 
@@ -44,13 +47,11 @@ var errNotConnected = errors.New("unable to retrieve connection to Kibana")
 // Client provides an interface for Kibana Clients
 type Client interface {
 	// Send tries to send request to Kibana and returns unparsed response
-	Send(string, string, url.Values, http.Header, io.Reader) (*http.Response, error)
+	Send(context.Context, string, string, url.Values, http.Header, io.Reader) (*http.Response, error)
 	// GetVersion returns Kibana version or an error
-	GetVersion() (common.Version, error)
-	// Connected indicates whether or not a connection to Kibana has been established
-	Connected() bool
+	GetVersion(context.Context) (common.Version, error)
 	// SupportsVersion compares given version to version of connected Kibana instance
-	SupportsVersion(*common.Version, bool) (bool, error)
+	SupportsVersion(context.Context, *common.Version, bool) (bool, error)
 }
 
 // ConnectingClient implements Client interface
@@ -84,19 +85,24 @@ func NewConnectingClient(cfg *kibana.ClientConfig) Client {
 
 // Send tries to send a request to Kibana via established connection and returns unparsed response
 // If no connection is established an error is returned
-func (c *ConnectingClient) Send(method, extraPath string, params url.Values,
+func (c *ConnectingClient) Send(ctx context.Context, method, extraPath string, params url.Values,
 	headers http.Header, body io.Reader) (*http.Response, error) {
+	span, _ := apm.StartSpan(ctx, "Send", "custom")
+	defer span.End()
 	c.m.RLock()
 	defer c.m.RUnlock()
 	if c.client == nil {
 		return nil, errNotConnected
 	}
+
 	return c.client.Send(method, extraPath, params, headers, body)
 }
 
 // GetVersion returns Kibana version or an error
 // If no connection is established an error is returned
-func (c *ConnectingClient) GetVersion() (common.Version, error) {
+func (c *ConnectingClient) GetVersion(ctx context.Context) (common.Version, error) {
+	span, _ := apm.StartSpan(ctx, "GetVersion", "custom")
+	defer span.End()
 	c.m.RLock()
 	defer c.m.RUnlock()
 	if c.client == nil {
@@ -105,16 +111,11 @@ func (c *ConnectingClient) GetVersion() (common.Version, error) {
 	return c.client.GetVersion(), nil
 }
 
-// Connected checks if a connection has been established
-func (c *ConnectingClient) Connected() bool {
-	c.m.RLock()
-	defer c.m.RUnlock()
-	return c.client != nil
-}
-
 // SupportsVersion checks if connected Kibana instance is compatible to given version
 // If no connection is established an error is returned
-func (c *ConnectingClient) SupportsVersion(v *common.Version, retry bool) (bool, error) {
+func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *common.Version, retry bool) (bool, error) {
+	span, ctx := apm.StartSpan(ctx, "SupportsVersion", "custom")
+	defer span.End()
 	log := logp.NewLogger(logs.Kibana)
 	c.m.RLock()
 	if c.client == nil && !retry {
@@ -134,7 +135,7 @@ func (c *ConnectingClient) SupportsVersion(v *common.Version, retry bool) (bool,
 	c.m.Lock()
 	c.client = client
 	c.m.Unlock()
-	return c.SupportsVersion(v, false)
+	return c.SupportsVersion(ctx, v, false)
 }
 
 func (c *ConnectingClient) connect() error {
