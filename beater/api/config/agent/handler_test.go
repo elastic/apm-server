@@ -344,14 +344,12 @@ func TestIfNoneMatch(t *testing.T) {
 
 func TestAgetCofigTraceContext(t *testing.T) {
 	kibanaCfg := libkibana.DefaultClientConfig()
+	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
 	handler := Handler(client, &config.AgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}})
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
 		// When the handler is called with a context containing
-		// a transaction, the underlying Kibana query should create
-		// a span for the `SupportsVersion` check and one for
-		// a span for the `Send` method
-
+		// a transaction, the underlying Kibana query should create a span
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
 			"service": m{"name": "opbeans"}}))
@@ -360,7 +358,7 @@ func TestAgetCofigTraceContext(t *testing.T) {
 		c.Reset(w, r)
 		handler(c)
 	})
-	require.Len(t, spans, 2)
+	require.Len(t, spans, 1)
 	assert.Equal(t, "custom", spans[0].Type)
 }
 
