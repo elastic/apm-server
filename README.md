@@ -17,7 +17,7 @@ To get started with APM please see our [Getting Started Guide](https://www.elast
 
 ### Requirements
 
-* [Golang](https://golang.org/dl/) 1.13.7
+* [Golang](https://golang.org/dl/) 1.13.8
 
 ### Install
 
