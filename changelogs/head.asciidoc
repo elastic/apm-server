@@ -9,7 +9,14 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 * Remove enroll subcommand {pull}3270[3270].
 
 [float]
+==== Bugfixes
+* Merge default values with custom Elasticsearch config for API Keys and add `required` tag for `host` {pull}3342[3342]
+
+[float]
 ==== Intake API Changes
+* Add `transfer_size`, `encoded_body_size`  and `decoded_body_size` to `transaction.context.http.response` {pull}3327[3327]
+* Add `transfer_size`, `encoded_body_size`, `decoded_body_size` and `headers` to `span.context.http.response` {pull}3327[3327]
+* Deprecate `span.context.http.status_code` in favor of newly introduced `span.context.http.response.status_code` {pull}3327[3327]
 
 [float]
 ==== Added

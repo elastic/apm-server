@@ -57,5 +57,11 @@ echo "System testing $env:beat"
 $packages = $(go list ./... | select-string -Pattern "/vendor/" -NotMatch | select-string -Pattern "/scripts/cmd/" -NotMatch)
 $packages = ($packages|group|Select -ExpandProperty Name) -join ","
 exec { go test -race -c -cover -covermode=atomic -coverpkg $packages } "go test FAILURE"
-Set-Location -Path tests/system
-exec { nosetests --with-timer --with-xunit --xunit-file=../../build/TEST-system.xml } "System test FAILURE"
+
+echo "Running python tests"
+choco install python -y -r --no-progress --version 3.8.1.20200110
+refreshenv
+$env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
+$env:PYTHON_ENV = "$env:TEMP\python-env"
+python --version
+exec { mage pythonUnitTest } "System test FAILURE"

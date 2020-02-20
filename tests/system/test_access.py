@@ -87,7 +87,7 @@ class BaseAPIKey(ElasticTest):
             "event": self.privilege_event,
             "sourcemap": self.privilege_sourcemap
         }
-        self.privileges_all = self.privileges.values()
+        self.privileges_all = list(self.privileges.values())
         self.privilege_any = "*"
 
         # resources
@@ -148,7 +148,8 @@ class BaseAPIKey(ElasticTest):
         assert resp.status_code == 200, resp.status_code
         id = resp.json()["id"]
         wait_until(lambda: self.api_key_exists(id), name="create api key")
-        return base64.b64encode("{}:{}".format(id, resp.json()["api_key"]))
+        enc = "utf-8"
+        return str(base64.b64encode("{}:{}".format(id, resp.json()["api_key"]).encode(enc)), enc)
 
     def create_api_key_header(self, privileges, resources, application="apm"):
         return "ApiKey {}".format(self.create_api_key(privileges, resources, application=application))
@@ -265,7 +266,7 @@ class TestAccessWithAuthorization(BaseAPIKey):
         for token in self.unauthorized_keys:
             resp = requests.get(url, headers=headers(token))
             assert resp.status_code == 200, "token: {}, status_code: {}".format(token, resp.status_code)
-            assert resp.content == '', "token: {}, response: {}".format(token, resp.content)
+            assert resp.text == '', "token: {}, response: {}".format(token, resp.content)
 
         keys_one_privilege = [self.api_key_privilege_config,
                               self.api_key_privilege_sourcemap, self.api_key_privilege_event]
@@ -412,20 +413,15 @@ class TestSecureServerBaseTest(ServerBaseTest):
         cfg.update(self.ssl_overrides())
         return cfg
 
-    def send_http_request(self, cert=None, verify=False, protocol='https'):
-        # verify decides whether or not the client should verify the servers certificate
-        return requests.post("{}://localhost:8200/intake/v2/events".format(protocol),
-                             headers={'content-type': 'application/x-ndjson'},
-                             data=self.get_event_payload(),
-                             cert=cert,
-                             verify=verify)
-
-    def ssl_connect(self, protocol=ssl.PROTOCOL_TLSv1_2, ciphers=None):
+    def ssl_connect(self, protocol=ssl.PROTOCOL_TLSv1_2, ciphers=None, cert=None, key=None, ca_cert=None):
         context = ssl.SSLContext(protocol)
         if ciphers:
             context.set_ciphers(ciphers)
-        context.load_verify_locations(self.ca_cert)
-        context.load_cert_chain(certfile=self.server_cert, keyfile=self.server_key, password=self.password)
+        if not ca_cert:
+            ca_cert = self.ca_cert
+        context.load_verify_locations(ca_cert)
+        if cert and key:
+            context.load_cert_chain(certfile=cert, keyfile=key, password=self.password)
         s = context.wrap_socket(ssl.socket())
         s.connect((self.host, self.port))
 
@@ -445,17 +441,13 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
         return {"ssl_client_authentication": "none"}
 
     def test_https_no_cert_ok(self):
-        r = self.send_http_request(verify=self.ca_cert)
-        assert r.status_code == 202, r.status_code
+        self.ssl_connect()
 
     def test_http_fails(self):
         with self.assertRaises(Exception):
-            self.send_http_request(protocol='http')
-
-    @raises(SSLError)
-    def test_https_server_validation_fails(self):
-        r = self.send_http_request(verify=True)
-        assert r.status_code == 202, r.status_code
+            return requests.post("http://localhost:8200/intake/v2/events",
+                                 headers={'content-type': 'application/x-ndjson'},
+                                 data=self.get_event_payload())
 
 
 @integration_test
@@ -463,20 +455,16 @@ class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
     # no ssl_overrides necessary as `optional` is default
 
     def test_https_no_certificate_ok(self):
-        r = self.send_http_request(verify=self.ca_cert)
-        assert r.status_code == 202, r.status_code
+        self.ssl_connect()
 
-    @raises(SSLError)
+    @raises(ssl.SSLError)
     def test_https_verify_cert_if_given(self):
-        self.send_http_request(verify=self.ca_cert,
-                               cert=(self.simple_cert, self.simple_key))
+        self.ssl_connect(cert=self.simple_cert, key=self.simple_key)
 
-    @raises(SSLError)
+    @raises(ssl.SSLError)
     def test_https_self_signed_cert(self):
         # CA is not configured server side, so self signed certs are not valid
-        r = self.send_http_request(verify=self.ca_cert,
-                                   cert=(self.client_cert, self.client_key))
-        assert r.status_code == 202, r.status_code
+        self.ssl_connect(cert=self.client_cert, key=self.client_key)
 
 
 @integration_test
@@ -484,22 +472,18 @@ class TestSSLEnabledOptionalClientVerificationWithCATest(TestSecureServerBaseTes
     def ssl_overrides(self):
         return {"ssl_certificate_authorities": self.ca_cert}
 
-    @raises(SSLError)
+    @raises(ssl.SSLError)
     def test_https_no_certificate(self):
         # since CA is configured, client auth is required
-        r = self.send_http_request(verify=self.ca_cert)
-        assert r.status_code == 202, r.status_code
+        self.ssl_connect()
 
-    @raises(SSLError)
+    @raises(ssl.SSLError)
     def test_https_verify_cert_if_given(self):
         # invalid certificate
-        self.send_http_request(verify=self.ca_cert,
-                               cert=(self.simple_cert, self.simple_key))
+        self.ssl_connect(cert=self.simple_cert, key=self.simple_key)
 
     def test_https_auth_cert_ok(self):
-        r = self.send_http_request(verify=self.ca_cert,
-                                   cert=(self.client_cert, self.client_key))
-        assert r.status_code == 202, r.status_code
+        self.ssl_connect(cert=self.client_cert, key=self.client_key)
 
 
 @integration_test
@@ -508,19 +492,16 @@ class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
         return {"ssl_client_authentication": "required",
                 "ssl_certificate_authorities": self.ca_cert}
 
-    @raises(SSLError)
+    @raises(ssl.SSLError)
     def test_https_no_cert_fails(self):
-        self.send_http_request(verify=self.ca_cert)
+        self.ssl_connect()
 
-    @raises(SSLError)
+    @raises(ssl.SSLError)
     def test_https_invalid_cert_fails(self):
-        self.send_http_request(verify=self.ca_cert,
-                               cert=(self.simple_cert, self.simple_key))
+        self.ssl_connect(cert=self.simple_cert, key=self.simple_key)
 
     def test_https_auth_cert_ok(self):
-        r = self.send_http_request(verify=self.ca_cert,
-                                   cert=(self.client_cert, self.client_key))
-        assert r.status_code == 202, r.status_code
+        self.ssl_connect(cert=self.client_cert, key=self.client_key)
 
 
 @integration_test
@@ -530,13 +511,13 @@ class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
 
     @raises(ssl.SSLError)
     def test_tls_v1_0(self):
-        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1)
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1, cert=self.server_cert, key=self.server_key)
 
     def test_tls_v1_1(self):
-        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1)
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1, cert=self.server_cert, key=self.server_key)
 
     def test_tls_v1_2(self):
-        self.ssl_connect()
+        self.ssl_connect(cert=self.server_cert, key=self.server_key)
 
 
 @integration_test
@@ -547,10 +528,10 @@ class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
 
     @raises(ssl.SSLError)
     def test_tls_v1_1(self):
-        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1)
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1, cert=self.server_cert, key=self.server_key)
 
     def test_tls_v1_2(self):
-        self.ssl_connect()
+        self.ssl_connect(cert=self.server_cert, key=self.server_key)
 
 
 @integration_test
@@ -560,18 +541,18 @@ class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
                 "ssl_certificate_authorities": self.ca_cert}
 
     def test_https_no_cipher_set(self):
-        self.ssl_connect()
+        self.ssl_connect(cert=self.server_cert, key=self.server_key)
 
     def test_https_supports_cipher(self):
         # set the same cipher in the client as set in the server
-        self.ssl_connect(ciphers='ECDHE-RSA-AES128-GCM-SHA256')
+        self.ssl_connect(ciphers='ECDHE-RSA-AES128-GCM-SHA256', cert=self.server_cert, key=self.server_key)
 
     def test_https_unsupported_cipher(self):
         # client only offers unsupported cipher
         with self.assertRaisesRegexp(ssl.SSLError, 'SSLV3_ALERT_HANDSHAKE_FAILURE'):
-            self.ssl_connect(ciphers='ECDHE-RSA-AES256-SHA384')
+            self.ssl_connect(ciphers='ECDHE-RSA-AES256-SHA384', cert=self.server_cert, key=self.server_key)
 
     def test_https_no_cipher_selected(self):
         # client provides invalid cipher
         with self.assertRaisesRegexp(ssl.SSLError, 'No cipher can be selected'):
-            self.ssl_connect(ciphers='AES1sd28-CCM8')
+            self.ssl_connect(ciphers='AES1sd28-CCM8', cert=self.server_cert, key=self.server_key)

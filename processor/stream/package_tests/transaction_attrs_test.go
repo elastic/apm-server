@@ -50,6 +50,7 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("transaction.page"),
 		tests.Group("http.request.cookies"),
 		"transaction.message.body", "transaction.message.headers",
+		"http.response.decoded_body_size", "http.response.encoded_body_size", "http.response.transfer_size",
 	)
 }
 

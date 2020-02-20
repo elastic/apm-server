@@ -7,6 +7,7 @@
     "Experimental": null,
     "HTTP": {
         "Method": "get",
+        "Response": null,
         "StatusCode": 202,
         "URL": "http://foo.bar.com?a=12"
     },

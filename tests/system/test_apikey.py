@@ -129,7 +129,7 @@ class APIKeyTest(APIKeyBaseTest):
         for privilege in ["ingest", "sourcemap", "agent-config"]:
             result = self.subcommand_output("verify", "--credentials", apikey["credentials"], "--" + privilege)
             assert len(result) == 1, result
-            assert result.values()[0] is True
+            assert list(result.values())[0] is True
 
     def test_verify_each(self):
         apikey = self.create("--ingest")

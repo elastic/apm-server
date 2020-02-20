@@ -37,7 +37,8 @@ class Test(ElasticTest):
         """
         jaeger_span_thrift = self.get_testdata_path('jaeger', 'span.thrift')
         self.load_docs_with_template(jaeger_span_thrift, self.jaeger_http_url, 'transaction', 1,
-                                     extra_headers={"content-type": "application/vnd.apache.thrift.binary"})
+                                     extra_headers={"content-type": "application/vnd.apache.thrift.binary"},
+                                     file_mode="rb")
 
         self.assert_no_logged_warnings()
         transaction_docs = self.wait_for_events('transaction', 1)

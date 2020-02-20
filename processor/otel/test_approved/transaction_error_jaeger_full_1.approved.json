@@ -24,10 +24,13 @@
             "Socket": null
         },
         "Response": {
+            "DecodedBodySize": null,
+            "EncodedBodySize": null,
             "Finished": null,
             "Headers": null,
             "HeadersSent": null,
-            "StatusCode": 400
+            "StatusCode": 400,
+            "TransferSize": null
         },
         "Version": "1.1"
     },

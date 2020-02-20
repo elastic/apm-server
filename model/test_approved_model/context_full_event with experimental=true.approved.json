@@ -37,6 +37,8 @@
             }
         },
         "Response": {
+            "DecodedBodySize": null,
+            "EncodedBodySize": null,
             "Finished": false,
             "Headers": {
                 "Content-Type": [
@@ -44,7 +46,8 @@
                 ]
             },
             "HeadersSent": true,
-            "StatusCode": 202
+            "StatusCode": 202,
+            "TransferSize": null
         },
         "Version": "2.0"
     },
