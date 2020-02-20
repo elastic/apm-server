@@ -415,3 +415,16 @@ pipeline {
     }
   }
 }
+
+def golang(Closure body){
+  def golangDocker
+  retry(3) { // Retry in case there are any errors when building the docker images (to avoid temporary glitches)
+    sleep randomNumber(min: 2, max: 5)
+    golangDocker = docker.build('golang-mage', "--build-arg GO_VERSION=${GO_VERSION} ${BASE_DIR}/.ci/docker/golang-mage")
+  }
+  withEnv(["HOME=${WORKSPACE}", "GOPATH=${WORKSPACE}", "SHELL=/bin/bash"]) {
+     golangDocker.inside('-v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock'){
+       body()
+     }
+   }
+}
