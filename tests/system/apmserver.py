@@ -87,7 +87,7 @@ class BaseTest(TestCase):
         host = os.getenv("ES_HOST", "localhost")
 
         if not user:
-            user = os.getenv("ES_USER", "admin")
+            user = os.getenv("ES_USER", "apm_server_user")
         if not password:
             password = os.getenv("ES_PASS", "changeme")
 
@@ -107,7 +107,7 @@ class BaseTest(TestCase):
         host = os.getenv("KIBANA_HOST", "localhost")
 
         if not user:
-            user = os.getenv("KIBANA_USER", "admin")
+            user = os.getenv("KIBANA_USER", "apm_user_ro")
         if not password:
             password = os.getenv("KIBANA_PASS", "changeme")
 
