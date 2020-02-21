@@ -141,6 +141,9 @@ func replaceVersion(pattern, version string) string {
 }
 
 func (s *SourceMapping) Unpack(inp *common.Config) error {
+	// this type is needed to avoid a custom Unpack method
+	type tmpSourceMapping SourceMapping
+
 	cfg := tmpSourceMapping(*defaultSourcemapping())
 	if err := inp.Unpack(&cfg); err != nil {
 		return errors.Errorf("error unpacking sourcemapping config: %w", err)
@@ -151,8 +154,6 @@ func (s *SourceMapping) Unpack(inp *common.Config) error {
 	}
 	return nil
 }
-
-type tmpSourceMapping SourceMapping
 
 func defaultSourcemapping() *SourceMapping {
 	return &SourceMapping{
