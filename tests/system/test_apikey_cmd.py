@@ -1,8 +1,57 @@
 import json
 import os
 import random
+import requests
 
 from apmserver import BaseTest, integration_test
+from helper import wait_until
+
+
+class APIKeyBase(object):
+    def __init__(self, es_url):
+        # api_key related urls for configured user (default: apm_server_user)
+        self.api_key_url = "{}/_security/api_key".format(es_url)
+        self.privileges_url = "{}/_security/privilege".format(es_url)
+
+    def wait_until_invalidated(self, name=None, id=None):
+        if not name and not id:
+            raise Exception("Either name or id must be given")
+
+        def invalidated():
+            keys = self.fetch_by_name(name) if name else self.fetch_by_id(id)
+            for entry in keys:
+                if not entry["invalidated"]:
+                    return False
+            return True
+        wait_until(lambda: invalidated(), name="api keys invalidated")
+
+    def wait_until_created(self, id):
+        wait_until(lambda: len(self.fetch_by_id(id)) == 1, name="create api key")
+
+    def fetch_by_name(self, name):
+        resp = requests.get("{}?name={}".format(self.api_key_url, name))
+        assert resp.status_code == 200
+        assert "api_keys" in resp.json(), resp.json()
+        return resp.json()["api_keys"]
+
+    def fetch_by_id(self, id):
+        resp = requests.get("{}?id={}".format(self.api_key_url, id))
+        assert resp.status_code == 200, resp.status_code
+        assert "api_keys" in resp.json(), resp.json()
+        return resp.json()["api_keys"]
+
+    def create(self, payload):
+        resp = requests.post(self.api_key_url,
+                             data=payload,
+                             headers={'content-type': 'application/json'})
+        assert resp.status_code == 200, resp.status_code
+        self.wait_until_created(resp.json()["id"])
+        return resp.json()
+
+    def invalidate(self, name):
+        requests.delete(self.api_key_url,
+                        data=json.dumps({'name': name}),
+                        headers={'content-type': 'application/json'})
 
 
 class APIKeyCommandBaseTest(BaseTest):

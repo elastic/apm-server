@@ -1,21 +1,12 @@
-from apmserver import ServerBaseTest, ElasticTest
-from apmserver import TimeoutError, integration_test
-from helper import wait_until
-
 import base64
 import json
 import os
 import requests
-import shutil
-import ssl
-import subprocess
 
-from nose.tools import raises
-from requests.exceptions import SSLError, ChunkedEncodingError
-from requests.packages.urllib3.exceptions import SubjectAltNameWarning
-requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
-
-INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
+from apmserver import ServerBaseTest, ElasticTest
+from apmserver import TimeoutError, integration_test
+from test_apikey_cmd import APIKeyBase
+from helper import wait_until
 
 
 def headers(auth=None, content_type='application/x-ndjson'):
@@ -72,8 +63,7 @@ class TestAccessWithSecretToken(ServerBaseTest):
 
 
 @integration_test
-class BaseAPIKey(ElasticTest):
-
+class APIKeyBaseTest(ElasticTest):
     def setUp(self):
         # application
         self.application = "apm"
@@ -94,69 +84,39 @@ class BaseAPIKey(ElasticTest):
         self.resource_any = ["*"]
         self.resource_backend = ["-"]
 
-        self.api_key_name = "apm-systemtest"
-        content_type = 'application/json'
-
-        # api_key related urls for configured user (default: apm_server_user)
         user = os.getenv("ES_USER", "apm_server_user")
         password = os.getenv("ES_PASS", "changeme")
-        self.es_url_apm_server_user = self.get_elasticsearch_url(user, password)
-        self.api_key_url = "{}/_security/api_key".format(self.es_url_apm_server_user)
-        self.privileges_url = "{}/_security/privilege".format(self.es_url_apm_server_user)
+        self.apikey_name = "apm-systemtest"
+        self.apikey = APIKeyBase(self.get_elasticsearch_url(user, password))
 
-        # clean setup:
         # delete all existing api_keys with defined name of current user
-        requests.delete(self.api_key_url,
-                        data=json.dumps({'name': self.api_key_name}),
-                        headers=headers(content_type='application/json'))
-        wait_until(lambda: self.api_keys_invalidated(), name="delete former api keys")
+        self.apikey.invalidate(self.apikey_name)
+        self.apikey.wait_until_invalidated(name=self.apikey_name)
         # delete all existing application privileges to ensure they can be created for current user
-        for name in self.privileges.keys():
-            url = "{}/{}/{}".format(self.privileges_url, self.application, name)
+        for p in self.privileges.keys():
+            url = "{}/{}/{}".format(self.apikey.privileges_url, self.application, p)
             requests.delete(url)
             wait_until(lambda: requests.get(url).status_code == 404)
 
-        super(BaseAPIKey, self).setUp()
-
-    def fetch_api_keys(self):
-        resp = requests.get("{}?name={}".format(self.api_key_url, self.api_key_name))
-        assert resp.status_code == 200
-        assert "api_keys" in resp.json(), resp.json()
-        return resp.json()["api_keys"]
-
-    def api_keys_invalidated(self):
-        for entry in self.fetch_api_keys():
-            if not entry["invalidated"]:
-                return False
-        return True
-
-    def api_key_exists(self, id):
-        resp = requests.get("{}?id={}".format(self.api_key_url, id))
-        assert resp.status_code == 200, resp.status_code
-        return len(resp.json()["api_keys"]) == 1
-
-    def create_api_key(self, privileges, resources, application="apm"):
-        payload = json.dumps({
-            "name": self.api_key_name,
-            "role_descriptors": {
-                self.api_key_name + "role_desc": {
-                    "applications": [
-                        {"application": application, "privileges": privileges, "resources": resources}]}}})
-        resp = requests.post(self.api_key_url,
-                             data=payload,
-                             headers=headers(content_type='application/json'))
-        assert resp.status_code == 200, resp.status_code
-        id = resp.json()["id"]
-        wait_until(lambda: self.api_key_exists(id), name="create api key")
-        enc = "utf-8"
-        return str(base64.b64encode("{}:{}".format(id, resp.json()["api_key"]).encode(enc)), enc)
+        super(APIKeyBaseTest, self).setUp()
 
     def create_api_key_header(self, privileges, resources, application="apm"):
-        return "ApiKey {}".format(self.create_api_key(privileges, resources, application=application))
+        return "ApiKey {}".format(self.create_apm_api_key(privileges, resources, application=application))
+
+    def create_apm_api_key(self, privileges, resources, application="apm"):
+        payload = json.dumps({
+            "name": self.apikey_name,
+            "role_descriptors": {
+                self.apikey_name + "role_desc": {
+                    "applications": [
+                        {"application": application, "privileges": privileges, "resources": resources}]}}})
+        resp = self.apikey.create(payload)
+        enc = "utf-8"
+        return str(base64.b64encode("{}:{}".format(resp["id"], resp["api_key"]).encode(enc)), enc)
 
 
 @integration_test
-class TestAPIKeyCache(BaseAPIKey):
+class TestAPIKeyCache(APIKeyBaseTest):
     def config(self):
         cfg = super(TestAPIKeyCache, self).config()
         cfg.update({"api_key_enabled": True, "api_key_limit": 5})
@@ -167,7 +127,6 @@ class TestAPIKeyCache(BaseAPIKey):
         Test that authorized API Key is not accepted when cache is full
         api_key.limit: number of unique API Keys per minute => cache size
         """
-
         key1 = self.create_api_key_header([self.privilege_event], self.resource_any)
         key2 = self.create_api_key_header([self.privilege_event], self.resource_any)
 
@@ -191,7 +150,7 @@ class TestAPIKeyCache(BaseAPIKey):
 
 
 @integration_test
-class TestAPIKeyWithInvalidESConfig(BaseAPIKey):
+class TestAPIKeyWithInvalidESConfig(APIKeyBaseTest):
     def config(self):
         cfg = super(TestAPIKeyWithInvalidESConfig, self).config()
         cfg.update({"api_key_enabled": True, "api_key_es": "localhost:9999"})
@@ -201,13 +160,14 @@ class TestAPIKeyWithInvalidESConfig(BaseAPIKey):
         """
         API Key cannot be verified when invalid Elasticsearch instance configured
         """
+        name = "system_test_invalid_es"
         key = self.create_api_key_header([self.privilege_event], self.resource_any)
         resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
         assert resp.status_code == 401,  "token: {}, status_code: {}".format(key, resp.status_code)
 
 
 @integration_test
-class TestAPIKeyWithESConfig(BaseAPIKey):
+class TestAPIKeyWithESConfig(APIKeyBaseTest):
     def config(self):
         cfg = super(TestAPIKeyWithESConfig, self).config()
         cfg.update({"api_key_enabled": True, "api_key_es": self.get_elasticsearch_url()})
@@ -223,7 +183,7 @@ class TestAPIKeyWithESConfig(BaseAPIKey):
 
 
 @integration_test
-class TestAccessWithAuthorization(BaseAPIKey):
+class TestAccessWithAuthorization(APIKeyBaseTest):
 
     def setUp(self):
         super(TestAccessWithAuthorization, self).setUp()
