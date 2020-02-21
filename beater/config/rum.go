@@ -65,7 +65,9 @@ type SourceMapping struct {
 	Enabled      *bool                 `config:"enabled"`
 	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
+
 	store        *sourcemap.Store
+	esConfigured bool
 }
 
 // IsEnabled indicates whether RUM endpoint is enabled or not
@@ -114,7 +116,7 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
-	if c.SourceMapping == nil || c.SourceMapping.ESConfig != nil {
+	if c.SourceMapping == nil || c.SourceMapping.esConfigured {
 		return nil
 	}
 
@@ -124,11 +126,9 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 		return nil
 	}
 	log.Info("Falling back to elasticsearch output for sourcemap storage")
-	esCfg := elasticsearch.DefaultConfig()
-	if err := outputESCfg.Unpack(esCfg); err != nil {
+	if err := outputESCfg.Unpack(c.SourceMapping.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into Sourcemap config")
 	}
-	c.SourceMapping.ESConfig = esCfg
 	return nil
 }
 
@@ -140,20 +140,38 @@ func replaceVersion(pattern, version string) string {
 	return regexObserverVersion.ReplaceAllLiteralString(pattern, version)
 }
 
+func (s *SourceMapping) Unpack(inp *common.Config) error {
+	// this type is needed to avoid a custom Unpack method
+	type tmpSourceMapping SourceMapping
+
+	cfg := tmpSourceMapping(*defaultSourcemapping())
+	if err := inp.Unpack(&cfg); err != nil {
+		return errors.Errorf("error unpacking sourcemapping config: %w", err)
+	}
+	*s = SourceMapping(cfg)
+	if inp.HasField("elasticsearch") {
+		s.esConfigured = true
+	}
+	return nil
+}
+
+func defaultSourcemapping() *SourceMapping {
+	return &SourceMapping{
+		Cache:        &Cache{Expiration: defaultSourcemapCacheExpiration},
+		IndexPattern: defaultSourcemapIndexPattern,
+		ESConfig:     elasticsearch.DefaultConfig(),
+	}
+}
+
 func defaultRum(beatVersion string) *RumConfig {
 	return &RumConfig{
 		EventRate: &EventRate{
 			Limit:   defaultEventRateLimit,
 			LruSize: defaultEventRateLRUSize,
 		},
-		AllowOrigins: []string{allowAllOrigins},
-		AllowHeaders: []string{},
-		SourceMapping: &SourceMapping{
-			Cache: &Cache{
-				Expiration: defaultSourcemapCacheExpiration,
-			},
-			IndexPattern: defaultSourcemapIndexPattern,
-		},
+		AllowOrigins:        []string{allowAllOrigins},
+		AllowHeaders:        []string{},
+		SourceMapping:       defaultSourcemapping(),
 		LibraryPattern:      defaultLibraryPattern,
 		ExcludeFromGrouping: defaultExcludeFromGrouping,
 		BeatVersion:         beatVersion,

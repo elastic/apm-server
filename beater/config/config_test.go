@@ -85,7 +85,8 @@ func Test_UnpackConfig(t *testing.T) {
 						"cache": map[string]interface{}{
 							"expiration": 8 * time.Minute,
 						},
-						"index_pattern": "apm-test*",
+						"index_pattern":       "apm-test*",
+						"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 					},
 					"library_pattern":       "^custom",
 					"exclude_from_grouping": "^grouping",
@@ -143,6 +144,11 @@ func Test_UnpackConfig(t *testing.T) {
 					SourceMapping: &SourceMapping{
 						Cache:        &Cache{Expiration: 8 * time.Minute},
 						IndexPattern: "apm-test*",
+						ESConfig: &elasticsearch.Config{
+							Hosts:    elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
+							Protocol: "http",
+							Timeout:  5 * time.Second},
+						esConfigured: true,
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
@@ -256,6 +262,7 @@ func Test_UnpackConfig(t *testing.T) {
 							Expiration: 7 * time.Second,
 						},
 						IndexPattern: "apm-*-sourcemap*",
+						ESConfig:     elasticsearch.DefaultConfig(),
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
@@ -478,7 +485,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	// no es config given
 	cfg, err := NewConfig(version, ucfg, nil)
 	require.NoError(t, err)
-	assert.Nil(t, cfg.RumConfig.SourceMapping.ESConfig)
+	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.APIKeyConfig.ESConfig)
 
 	// with es config
