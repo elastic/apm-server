@@ -5,7 +5,7 @@ import requests
 
 from apmserver import integration_test
 from apmserver import ElasticTest
-from test_access import BaseAPIKey
+from test_auth import BaseAPIKey
 from helper import wait_until
 from es_helper import index_profile, index_transaction
 
