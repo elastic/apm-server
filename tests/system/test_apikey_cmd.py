@@ -70,6 +70,7 @@ class APIKeyCommandBaseTest(BaseTest):
         password = os.getenv("ES_PASS", "changeme")
         self.es_url = self.get_elasticsearch_url(self.user, password)
         self.kibana_url = self.get_kibana_url()
+        self.base = APIKeyBase(self.es_url)
         self.render_config_template(**self.config())
 
     def subcommand_output(self, *args, **kwargs):
@@ -100,7 +101,19 @@ class APIKeyCommandBaseTest(BaseTest):
         return log
 
     def create(self, *args):
-        return self.subcommand_output("create", "--name", self.apikey_name, *args)
+        apikey = self.subcommand_output("create", "--name", self.apikey_name, *args)
+        self.base.wait_until_created(apikey.get("id"))
+        return apikey
+
+    def invalidate_by_id(self, id):
+        invalidated = self.subcommand_output("invalidate", "--id", id)
+        self.base.wait_until_invalidated(id=id)
+        return invalidated
+
+    def invalidate_by_name(self, name):
+        invalidated = self.subcommand_output("invalidate", "--name", name)
+        self.base.wait_until_invalidated(name=name)
+        return invalidated
 
 
 @integration_test
@@ -111,7 +124,7 @@ class APIKeyCommandTest(APIKeyCommandBaseTest):
 
     def setUp(self):
         super(APIKeyCommandTest, self).setUp()
-        invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
+        invalidated = self.invalidate_by_name(self.apikey_name)
         assert invalidated.get("error_count") == 0
 
     def test_create(self):
@@ -135,14 +148,14 @@ class APIKeyCommandTest(APIKeyCommandBaseTest):
 
     def test_invalidate_by_id(self):
         apikey = self.create()
-        invalidated = self.subcommand_output("invalidate", "--id", apikey["id"])
+        invalidated = self.invalidate_by_id(apikey["id"])
         assert invalidated.get("invalidated_api_keys") == [apikey["id"]], invalidated
         assert invalidated.get("error_count") == 0, invalidated
 
     def test_invalidate_by_name(self):
         self.create()
         self.create()
-        invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
+        invalidated = self.invalidate_by_name(self.apikey_name)
         assert len(invalidated.get("invalidated_api_keys")) == 2, invalidated
         assert invalidated.get("error_count") == 0, invalidated
 
@@ -158,7 +171,7 @@ class APIKeyCommandTest(APIKeyCommandBaseTest):
 
     def test_info_by_name(self):
         apikey = self.create()
-        invalidated = self.subcommand_output("invalidate", "--id", apikey["id"])
+        invalidated = self.invalidate_by_id(apikey["id"])
         assert invalidated.get("error_count") == 0
         self.create()
         self.create()
