@@ -81,8 +81,7 @@ class BaseTest(TestCase):
     @staticmethod
     def get_elasticsearch_url(user="", password=""):
         """
-        Returns an elasticsearch.Elasticsearch instance built from the
-        env variables like the integration tests.
+        Returns an elasticsearch URL including username and password
         """
         host = os.getenv("ES_HOST", "localhost")
 
@@ -102,7 +101,7 @@ class BaseTest(TestCase):
     @staticmethod
     def get_kibana_url(user="", password=""):
         """
-        Returns kibana host URL
+        Returns kibana URL including username and password
         """
         host = os.getenv("KIBANA_HOST", "localhost")
 
@@ -442,23 +441,8 @@ class ClientSideBaseTest(ServerBaseTest):
     def get_transaction_payload_path(self, name="transactions_spans_rum_2.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
 
-    def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',
-                         service_name='apm-agent-js',
-                         service_version='1.0.1',
-                         bundle_filepath='bundle_no_mapping.js.map'):
-        path = self._beat_path_join('testdata', 'sourcemap', file_name)
-        with open(path) as f:
-            return requests.post(self.sourcemap_url,
-                                 files={'sourcemap': f},
-                                 data={'service_version': service_version,
-                                       'bundle_filepath': bundle_filepath,
-                                       'service_name': service_name})
-
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
-    def wait_for_sourcemaps(self, expected_ct=1):
-        self.wait_for_events('sourcemap', expected_ct, index=index_smap)
-
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
         rs = self.es.search(index=index_error, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
