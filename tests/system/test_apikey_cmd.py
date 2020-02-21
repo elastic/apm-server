@@ -5,7 +5,7 @@ import random
 from apmserver import BaseTest, integration_test
 
 
-class APIKeyBaseTest(BaseTest):
+class APIKeyCommandBaseTest(BaseTest):
     apikey_name = "apm_integration_key"
 
     def config(self):
@@ -16,7 +16,7 @@ class APIKeyBaseTest(BaseTest):
         }
 
     def setUp(self):
-        super(APIKeyBaseTest, self).setUp()
+        super(APIKeyCommandBaseTest, self).setUp()
         self.user = os.getenv("ES_USER", "apm_server_user")
         password = os.getenv("ES_PASS", "changeme")
         self.es_url = self.get_elasticsearch_url(self.user, password)
@@ -55,13 +55,13 @@ class APIKeyBaseTest(BaseTest):
 
 
 @integration_test
-class APIKeyTest(APIKeyBaseTest):
+class APIKeyCommandTest(APIKeyCommandBaseTest):
     """
     Tests the apikey subcommand.
     """
 
     def setUp(self):
-        super(APIKeyTest, self).setUp()
+        super(APIKeyCommandTest, self).setUp()
         invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
         assert invalidated.get("error_count") == 0
 
@@ -146,7 +146,7 @@ class APIKeyTest(APIKeyBaseTest):
 
 
 @integration_test
-class APIKeyBadUserTest(APIKeyBaseTest):
+class APIKeyCommandBadUserTest(APIKeyCommandBaseTest):
 
     def config(self):
         return {
@@ -162,7 +162,7 @@ class APIKeyBadUserTest(APIKeyBaseTest):
 
 
 @integration_test
-class APIKeyBadUser2Test(APIKeyBaseTest):
+class APIKeyCommandBadUser2Test(APIKeyCommandBaseTest):
 
     def config(self):
         return {
