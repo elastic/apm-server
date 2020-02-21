@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Generate data used to put the correct revision information in NOTICE.TXT.
 """

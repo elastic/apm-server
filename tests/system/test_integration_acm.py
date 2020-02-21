@@ -1,8 +1,6 @@
 import time
-import unittest
-from urlparse import urljoin
+from urllib.parse import urljoin
 import uuid
-
 import requests
 
 from apmserver import ElasticTest, integration_test

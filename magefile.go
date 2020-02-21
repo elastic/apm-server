@@ -230,6 +230,11 @@ func GoTestIntegration(ctx context.Context) error {
 	return mage.GoTest(ctx, mage.DefaultGoTestIntegrationArgs())
 }
 
+// PythonUnitTest executes the python system tests.
+func PythonUnitTest() error {
+	return mage.PythonNoseTest(mage.DefaultPythonTestUnitArgs())
+}
+
 // -----------------------------------------------------------------------------
 
 // Customizations specific to apm-server.
