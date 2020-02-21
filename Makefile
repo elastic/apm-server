@@ -44,7 +44,7 @@ ES_SUPERUSER_PASS?=changeme
 
 # updates beats updates the framework part and go parts of beats
 .PHONY: update-beats
-update-beats: govendor
+update-beats: python-env govendor
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
 	@govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION)
@@ -140,7 +140,7 @@ staticcheck:
 check-deps: test-deps golint staticcheck
 
 .PHONY: check-full
-check-full: check-deps check
+check-full: python-env check-deps check
 	@# Validate that all updates were committed
 	@$(MAKE) update
 	@$(MAKE) check
@@ -164,7 +164,7 @@ apm-docs:  ## @build Builds the documentation for APM Server and APM Overview
 
 
 .PHONY: update-beats-docs
-update-beats-docs:
+update-beats-docs: python-env
 	@python script/copy-docs.py
 	@$(MAKE) docs
 
@@ -198,7 +198,7 @@ import-dashboards:
 	echo "APM loads dashboards via Kibana, not the APM Server"
 
 .PHONY: check-changelogs
-check-changelogs: ## @testing Checks the changelogs for certain branches.
+check-changelogs: python-env ## @testing Checks the changelogs for certain branches.
 	@python script/check_changelogs.py
 
 .PHONY: rm-empty-folders

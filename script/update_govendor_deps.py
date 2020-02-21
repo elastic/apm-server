@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Update dependencies of the given govendor'd package.  For https://github.com/elastic/apm-server/issues/450.
 
