@@ -1,5 +1,5 @@
 import time
-import urlparse
+from urllib.parse import urlparse, urlunparse
 import requests
 import json
 
@@ -29,10 +29,10 @@ class BaseSourcemapTest(ClientSideElasticTest):
             self.wait_for_events('sourcemap', expected_ct, index=index_smap)
 
     def split_url(self, cfg):
-        url = urlparse.urlparse(cfg["elasticsearch_host"])
+        url = urlparse(cfg["elasticsearch_host"])
         url_parts = list(url)
         url_parts[1] = url.netloc.split('@')[-1]
-        return {"host": urlparse.urlunparse(url_parts), "username": url.username, "password": url.password}
+        return {"host": urlunparse(url_parts), "username": url.username, "password": url.password}
 
 
 @integration_test
