@@ -9,6 +9,10 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 * Remove enroll subcommand {pull}3270[3270].
 
 [float]
+==== Bugfixes
+* Merge default values with custom Elasticsearch config for API Keys and add `required` tag for `host` {pull}3342[3342]
+
+[float]
 ==== Intake API Changes
 * Add `transfer_size`, `encoded_body_size`  and `decoded_body_size` to `transaction.context.http.response` {pull}3327[3327]
 * Add `transfer_size`, `encoded_body_size`, `decoded_body_size` and `headers` to `span.context.http.response` {pull}3327[3327]
@@ -20,3 +24,4 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 * Instrumentation for go-elasticsearch {pull}3305[3305]
 * Make configurable the list of Access-Control-Allow-Headers for RUM preflight requests {pull}3299[3299]
 * Initial RUM V3 endpoint {pull}3328[3328]
+* Upgrade Go to 1.13.8 {pull}3326[3326]
