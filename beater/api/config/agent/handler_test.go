@@ -342,7 +342,7 @@ func TestIfNoneMatch(t *testing.T) {
 	assert.Equal(t, "123", ifNoneMatch(fromQueryArg("123")))
 }
 
-func TestAgetCofigTraceContext(t *testing.T) {
+func TestAgentConfigTraceContext(t *testing.T) {
 	kibanaCfg := libkibana.DefaultClientConfig()
 	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
