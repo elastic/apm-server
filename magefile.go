@@ -216,7 +216,10 @@ func Update() error {
 }
 
 func Fields() error {
-	return mage.GenerateFieldsYAML("model")
+	if err := mage.GenerateFieldsYAML("model"); err != nil {
+		return err
+	}
+	return mage.GenerateAllInOneFieldsGo()
 }
 
 // Use RACE_DETECTOR=true to enable the race detector.
