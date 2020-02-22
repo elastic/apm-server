@@ -3,6 +3,7 @@
 /.ci/docker/target
 **/*.idea
 /build
+/bin
 /data
 /logs
 /beater/test_certs
@@ -26,3 +27,4 @@
 html_docs
 /x-pack/apm-server/apm-server
 /x-pack/apm-server/build
+/config.mk
