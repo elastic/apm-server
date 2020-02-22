@@ -9,7 +9,7 @@ ARG UID=1000
 RUN useradd -m -u $UID apm-server
 USER $UID
 ENV HOME=/home/apm-server
-ENV GOPATH=$HOME/go
+ENV GOPATH=$HOME/go:/go
 
 # Add healthcheck for docker/healthcheck metricset to check during testing
 HEALTHCHECK CMD exit 0
