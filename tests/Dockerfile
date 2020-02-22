@@ -11,7 +11,9 @@ USER $UID
 ENV HOME=/home/apm-server
 ENV GOPATH=$HOME/go:/go
 
-ENV PYTHON_ENV=/tmp/python-env
+# Install the Python venv separately from the host, as otherwise the
+# shebang paths will be incorrect in one or the other.
+ENV PYTHON_ENV /tmp/python-env
 
 # Add healthcheck for docker/healthcheck metricset to check during testing
 HEALTHCHECK CMD exit 0

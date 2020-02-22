@@ -12,7 +12,6 @@
 *.swp
 /apm-server.iml
 /apm-server.keystore
-/approvals
 /apm-server
 /apm-server.test
 /apm-server.dev.yml
@@ -27,3 +26,4 @@ html_docs
 /x-pack/apm-server/apm-server
 /x-pack/apm-server/build
 /docker-compose.override.yml
+/config.mk
