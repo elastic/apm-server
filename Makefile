@@ -83,17 +83,29 @@ check: $(MAGE) check-headers
 bench:
 	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
 
-.PHONY: docker-system-tests
-docker-system-tests:
-	docker-compose build
-	docker-compose run --rm -T beat make system-tests
+# test-deps is used by the CI scripts for building tools required for running tests.
+test-deps: $(BENCHCMP) $(GOCOVER_COBERTURA) $(GO_JUNIT_REPORT)
 
 .PHONY: system-tests
 system-tests: $(PYTHON_ENV) apm-server.test
 	INTEGRATION_TESTS=1 TZ=UTC $(PYTHON_ENV)/bin/nosetests $(NOSETESTS_OPTIONS) $(SYSTEM_TEST_TARGET)
 
-# test-deps is used by the CI scripts for building tools required for running tests.
-test-deps: $(BENCHCMP) $(GOCOVER_COBERTURA) $(GO_JUNIT_REPORT)
+.PHONY: docker-system-tests
+docker-system-tests: docker-compose.override.yml
+	docker-compose build
+	docker-compose run --rm -T beat make system-tests
+
+# docker-compose.override.yml holds overrides for docker-compose.yml.
+#
+# Create this to ensure the UID used inside docker-compose is the same
+# as the current user on the host, so files are created with the same
+# privileges.
+#
+# Note that this target is intentionally non-.PHONY, so that users can
+# modify the resulting file without it being overwritten. To recreate
+# the file, remove it.
+docker-compose.override.yml:
+	echo "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=$(shell id -u)]" > $@
 
 ##############################################################################
 # Rules for updating config files, fields.yml, etc.
@@ -277,7 +289,8 @@ $(REVIEWDOG): vendor/vendor.json
 
 PYTHON_EXE?=python3
 
-$(PYTHON): $(PYTHON_ENV)/.created
+$(PYTHON): $(PYTHON_ENV)
+$(PYTHON_ENV): $(PYTHON_ENV)/.created
 $(PYTHON_ENV)/.created: _beats/libbeat/tests/system/requirements.txt
 	@rm -fr $(PYTHON_ENV)
 	$(PYTHON_EXE) -m venv $(VENV_PARAMS) $(PYTHON_ENV)

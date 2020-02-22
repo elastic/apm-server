@@ -1,12 +1,13 @@
 version: '2.3'
 services:
   beat:
-    build: tests
+    build:
+      context: tests
     depends_on:
       - proxy_dep
     volumes:
-      - .:/go/src/github.com/elastic/apm-server/
-    working_dir: /go/src/github.com/elastic/apm-server
+      - .:/home/apm-server/go/src/github.com/elastic/apm-server
+    working_dir: /home/apm-server/go/src/github.com/elastic/apm-server
     command: make
     environment:
       BEAT_STRICT_PERMS: "${BEAT_STRICT_PERMS:-false}"

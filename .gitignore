@@ -28,3 +28,4 @@ html_docs
 /x-pack/apm-server/apm-server
 /x-pack/apm-server/build
 /config.mk
+/docker-compose.override.yml
