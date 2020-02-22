@@ -210,13 +210,20 @@ func TestPackagesInstall() error {
 	return nil
 }
 
-// Update updates the generated files (aka make update).
+// Update updates the generated files.
 func Update() error {
-	return sh.Run("make", "update")
+	mg.Deps(Fields, Config)
+	return nil
 }
 
 func Fields() error {
-	return mage.GenerateFieldsYAML("model")
+	if err := mage.GenerateFieldsYAML("model"); err != nil {
+		return err
+	}
+	if err := mage.GenerateAllInOneFieldsGo(); err != nil {
+		return err
+	}
+	return mage.Docs.FieldDocs("fields.yml")
 }
 
 // Use RACE_DETECTOR=true to enable the race detector.
