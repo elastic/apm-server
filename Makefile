@@ -159,11 +159,13 @@ docs_data_files=\
   docs/data/elasticsearch/generated/errors.json \
   docs/data/elasticsearch/generated/spans.json \
   docs/data/elasticsearch/generated/transactions.json \
-  docs/data/elasticsearch/generated/metricsets.json
+  docs/data/elasticsearch/generated/metricsets.json \
+  docs/data/elasticsearch/generated/rum_v3_transactions.json \
+  docs/data/elasticsearch/generated/rum_v3_errors.json
 
 docs_data: $(docs_data_files)
 $(docs_data_files):
-	install -D -m 0400 $^ $@
+	install -D -m 0644 $^ $@
 docs/data/intake-api/generated/events.ndjson: testdata/intake-v2/events.ndjson
 docs/data/intake-api/generated/rum_v3_events.ndjson: testdata/intake-v3/rum_events.ndjson
 docs/data/intake-api/generated/sourcemap/bundle.js.map: testdata/sourcemap/bundle.js.map
