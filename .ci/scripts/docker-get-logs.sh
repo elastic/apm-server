@@ -5,7 +5,7 @@ STEP=${1:-""}
 
 DOCKER_INFO_DIR="docker-info/${STEP}"
 mkdir -p ${DOCKER_INFO_DIR}
-cp docker-compose.yml ${DOCKER_INFO_DIR}
+cp docker-compose*.yml ${DOCKER_INFO_DIR}
 cd ${DOCKER_INFO_DIR}
 
 docker ps -a &> docker-containers.txt
