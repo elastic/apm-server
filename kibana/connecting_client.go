@@ -25,14 +25,14 @@ import (
 	"sync"
 	"time"
 
-	"go.elastic.co/apm"
-
-	"github.com/pkg/errors"
-
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/backoff"
 	"github.com/elastic/beats/libbeat/kibana"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/pkg/errors"
+
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmhttp"
 
 	logs "github.com/elastic/apm-server/log"
 )
@@ -87,15 +87,13 @@ func NewConnectingClient(cfg *kibana.ClientConfig) Client {
 // If no connection is established an error is returned
 func (c *ConnectingClient) Send(ctx context.Context, method, extraPath string, params url.Values,
 	headers http.Header, body io.Reader) (*http.Response, error) {
-	span, _ := apm.StartSpan(ctx, "Send", "custom")
-	defer span.End()
 	c.m.RLock()
 	defer c.m.RUnlock()
 	if c.client == nil {
 		return nil, errNotConnected
 	}
 
-	return c.client.Send(method, extraPath, params, headers, body)
+	return c.client.Send(ctx, method, extraPath, params, headers, body)
 }
 
 // GetVersion returns Kibana version or an error
@@ -132,6 +130,7 @@ func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *common.Versio
 		log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
 		return upToDate, err
 	}
+	client.HTTP = apmhttp.WrapClient(client.HTTP)
 	c.m.Lock()
 	c.client = client
 	c.m.Unlock()
@@ -151,6 +150,7 @@ func (c *ConnectingClient) connect() error {
 	if err != nil {
 		return err
 	}
+	client.HTTP = apmhttp.WrapClient(client.HTTP)
 	c.client = client
 	return nil
 }
