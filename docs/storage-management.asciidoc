@@ -14,17 +14,23 @@
 [[sizing-guide]]
 == Storage and sizing guide
 
-APM Server handles a few different kinds of {apm-overview-ref-v}/apm-data-model.html[events].
-Since processing and storage costs are largely dominated by
-{apm-overview-ref-v}/transactions.html[transactions] and
-{apm-overview-ref-v}/transaction-spans.html[spans],
-only those will be covered here.
+APM processing and storage costs are largely dominated by transactions, spans, and frames.
 
-NOTE: When the sampling rate is very small, transactions will be the dominate storage cost.
+* {apm-overview-ref-v}/transactions.html[*Transactions*] describe an event captured by an Elastic APM agent instrumenting a service.
+They are the highest level of work being measuring within a service.
+* {apm-overview-ref-v}/transaction-spans.html[*Spans*] belong to transactions. They measure from the start to end of an activity,
+and contain information about a specific code path that has been executed.
+* *Frames* belong to spans. Stack frames represent a function call on the call stack,
+and include attributes like function name, file name and path, line number, etc.
+Frames can heavily influence the size of a span.
 
 [float]
 [[typical-transactions]]
 === Typical transactions
+
+Due to the high variability of APM data, it's difficult to classify a transaction as typical.
+Regardless, this guide will attempt to classify Transactions as _Small_, _Medium_, or _Large_,
+and make recommendations based on those classifications.
 
 The size of a transaction depends on the language, agent settings, and what services the agent instruments.
 For instance, an agent auto-instrumenting a service with a popular tech stack
@@ -33,8 +39,9 @@ For instance, an agent auto-instrumenting a service with a popular tech stack
 In addition, all agents support manual instrumentation.
 How little or much you use these APIs will also impact what a typical transaction looks like.
 
-Due to the high variability of transactions, it's difficult to classify a transaction as typical.
-Regardless, here's a speculative reference: 
+If your sampling rate is very small, transactions will be the dominate storage cost.
+
+Here's a speculative reference: 
 
 [options="header"]
 |=======================================================================
