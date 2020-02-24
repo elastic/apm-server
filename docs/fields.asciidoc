@@ -1512,6 +1512,17 @@ type: long
 
 --
 
+
+*`span.servicemap.fingerprint`*::
++
+--
+Base64 encoded fingerprint for servicemaps.
+
+
+type: keyword
+
+--
+
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 

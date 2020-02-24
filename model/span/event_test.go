@@ -18,6 +18,7 @@
 package span
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -359,6 +360,9 @@ func TestSpanTransform(t *testing.T) {
 						},
 					},
 					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
+					"servicemap": common.MapStr{
+						"fingerprint": "MTI3LjAuMC4xfG15c3BhbnR5cGV8YW1xcHxteVNlcnZpY2V8c3RhZ2luZw==",
+					},
 				},
 				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
@@ -393,4 +397,58 @@ func TestEventTransformUseReqTimePlusStart(t *testing.T) {
 
 	adjustedParsed := time.Date(2017, 5, 30, 18, 53, 28, 388.8*1e6, time.UTC)
 	assert.Equal(t, adjustedParsed, beatEvent[0].Timestamp)
+}
+
+func TestServicemapFingerprint(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		event       Event
+		ctx         transform.Context
+		fingerprint string
+	}{
+		{name: "none"},
+		{name: "minimal",
+			event: Event{Type: "request",
+				Destination: &Destination{Address: tests.StringPtr("internal.login.service")}},
+			fingerprint: "internal.login.service|request"},
+		{name: "withService",
+			event: Event{
+				Type:        "request",
+				Subtype:     tests.StringPtr("http"),
+				Destination: &Destination{Address: tests.StringPtr("internal.login.service")},
+				Service: &metadata.Service{
+					Name:        tests.StringPtr("service-go"),
+					Environment: tests.StringPtr("staging")}},
+			ctx: transform.Context{Metadata: metadata.Metadata{Service: &metadata.Service{
+				Name:        tests.StringPtr("serviceA"),
+				Environment: tests.StringPtr("production")}}},
+			fingerprint: "internal.login.service|request|http|service-go|staging"},
+		{name: "withCtxService",
+			event: Event{Type: "request",
+				Destination: &Destination{Address: tests.StringPtr("internal.login.service")}},
+			ctx: transform.Context{Metadata: metadata.Metadata{Service: &metadata.Service{
+				Name:        tests.StringPtr("serviceA"),
+				Environment: tests.StringPtr("production")}}},
+			fingerprint: "internal.login.service|request|serviceA|production"},
+		{name: "mixedService",
+			event: Event{Type: "request",
+				Destination: &Destination{Address: tests.StringPtr("internal.login.service")},
+				Service:     &metadata.Service{Name: tests.StringPtr("service-go")}},
+			ctx: transform.Context{Metadata: metadata.Metadata{Service: &metadata.Service{
+				Name:        tests.StringPtr("serviceA"),
+				Environment: tests.StringPtr("production")}}},
+			fingerprint: "internal.login.service|request|service-go|production"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			events := tc.event.Transform(&tc.ctx)
+			require.Equal(t, 1, len(events))
+			servicemap := events[0].Fields["span"].(common.MapStr)["servicemap"]
+			if tc.fingerprint == "" {
+				assert.Nil(t, servicemap)
+			} else {
+				expected := base64.StdEncoding.EncodeToString([]byte(tc.fingerprint))
+				assert.Equal(t, expected, servicemap.(common.MapStr)["fingerprint"])
+			}
+		})
+	}
 }

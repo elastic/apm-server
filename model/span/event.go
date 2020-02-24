@@ -18,6 +18,8 @@
 package span
 
 import (
+	"bytes"
+	"encoding/base64"
 	"net"
 	"strings"
 	"time"
@@ -401,12 +403,10 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	if timestamp.IsZero() {
 		timestamp = tctx.RequestTime
 	}
-
 	// adjust timestamp to be reqTime + start
 	if e.Timestamp.IsZero() && e.Start != nil {
 		timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
 	}
-
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(timestamp))
 
 	return []beat.Event{
@@ -447,5 +447,37 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 	st := e.Stacktrace.Transform(tctx)
 	utility.Set(fields, "stacktrace", st)
+
+	if fingerprint := e.servicemapFingerprint(tctx); fingerprint != "" {
+		utility.Set(fields, "servicemap", common.MapStr{"fingerprint": fingerprint})
+	}
 	return fields
+}
+
+func (e *Event) servicemapFingerprint(tctx *transform.Context) string {
+	if e.Destination == nil || e.Destination.Address == nil || *e.Destination.Address == "" {
+		return ""
+	}
+	var buf bytes.Buffer
+	buf.WriteString(*e.Destination.Address)
+
+	add := func(s string) {
+		buf.WriteString("|")
+		buf.WriteString(s)
+	}
+	add(e.Type)
+	if e.Subtype != nil {
+		add(*e.Subtype)
+	}
+	if e.Service != nil && e.Service.Name != nil {
+		add(*e.Service.Name)
+	} else if tctx.Metadata.Service != nil && tctx.Metadata.Service.Name != nil {
+		add(*tctx.Metadata.Service.Name)
+	}
+	if e.Service != nil && e.Service.Environment != nil {
+		add(*e.Service.Environment)
+	} else if tctx.Metadata.Service != nil && tctx.Metadata.Service.Environment != nil {
+		add(*tctx.Metadata.Service.Environment)
+	}
+	return base64.StdEncoding.EncodeToString(buf.Bytes())
 }

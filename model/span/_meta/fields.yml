@@ -115,3 +115,12 @@
                 type: long
                 description: >
                   Age of a message in milliseconds.
+
+        - name: servicemap
+          type: group
+          fields:
+
+            - name: fingerprint
+              type: keyword
+              description: >
+                Base64 encoded fingerprint for servicemaps.
