@@ -92,8 +92,7 @@ func (c *ConnectingClient) Send(ctx context.Context, method, extraPath string, p
 	if c.client == nil {
 		return nil, errNotConnected
 	}
-
-	return c.client.Send(ctx, method, extraPath, params, headers, body)
+	return c.client.SendWithContext(ctx, method, extraPath, params, headers, body)
 }
 
 // GetVersion returns Kibana version or an error
