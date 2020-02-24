@@ -13,5 +13,10 @@ ENV GOPATH=$HOME/go:/go
 
 ENV PYTHON_ENV=/tmp/python-env
 
+# XXX remove me
+RUN id
+RUN ls -l /go/src/github.com/elastic
+RUN ls -l /go/src/github.com/elastic/apm-server
+
 # Add healthcheck for docker/healthcheck metricset to check during testing
 HEALTHCHECK CMD exit 0
