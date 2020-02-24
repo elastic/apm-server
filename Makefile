@@ -212,3 +212,4 @@ run-system-test: python-env
 docker-compose.override.yml:
 	echo "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=$(shell id -u)]" > $@
 system-tests-environment: docker-compose.override.yml
+build-image: docker-compose.override.yml
