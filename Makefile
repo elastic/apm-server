@@ -211,4 +211,4 @@ run-system-test: python-env
 # the file, remove it.
 docker-compose.override.yml:
 	echo "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=$(shell id -u)]" > $@
-start-tests-environment: docker-compose.override.yml
+system-tests-environment: docker-compose.override.yml
