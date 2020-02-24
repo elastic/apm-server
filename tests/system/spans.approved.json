@@ -136,6 +136,9 @@
             },
             "id": "15aaaaaaaaaaaaaa",
             "subtype": "postgresql",
+            "servicemap": {
+                "fingerprint": "MDowOjowOjF8ZGIucG9zdGdyZXNxbC5xdWVyeXxwb3N0Z3Jlc3FsfHNlcnZpY2VhYmN8c3RhZ2luZw=="
+            },
             "duration": {
                 "us": 3781
             },
