@@ -262,7 +262,7 @@ image::images/apm-highlight-rum-maps.png[APM sample rate configuration in Kibana
 * Added support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]:
 ILM enables you to automate how you want to manage your indices over time,
 by automating rollovers to a new index when the existing index reaches a specified size or age.
-* Added Geo-IP processing to the default ingest pipeline:
+* Added {ref}/geoip-processor.html[Geo-IP] processing to the default ingest pipeline:
 Pipelines are still disabled by default, but activation now includes a new Geo-IP pipeline.
 The Geo-IP pipeline takes an extracted IP address from RUM events and stores it in the `client.geo` field.
 This makes it much easier to use location data in Kibana's Visualize maps and Maps app directly:
