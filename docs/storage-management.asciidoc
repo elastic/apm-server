@@ -14,17 +14,23 @@
 [[sizing-guide]]
 == Storage and sizing guide
 
-APM Server handles a few different kinds of {apm-overview-ref-v}/apm-data-model.html[events].
-Since processing and storage costs are largely dominated by
-{apm-overview-ref-v}/transactions.html[transactions] and
-{apm-overview-ref-v}/transaction-spans.html[spans],
-only those will be covered here.
+APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
-NOTE: When the sampling rate is very small, transactions will be the dominate storage cost.
+* {apm-overview-ref-v}/transactions.html[*Transactions*] describe an event captured by an Elastic APM agent instrumenting a service.
+They are the highest level of work being measuring within a service.
+* {apm-overview-ref-v}/transaction-spans.html[*Spans*] belong to transactions. They measure from the start to end of an activity,
+and contain information about a specific code path that has been executed.
+* *Stack frames* belong to spans. Stack frames represent a function call on the call stack,
+and include attributes like function name, file name and path, line number, etc.
+Stack frames can heavily influence the size of a span.
 
 [float]
 [[typical-transactions]]
 === Typical transactions
+
+Due to the high variability of APM data, it's difficult to classify a transaction as typical.
+Regardless, this guide will attempt to classify Transactions as _Small_, _Medium_, or _Large_,
+and make recommendations based on those classifications.
 
 The size of a transaction depends on the language, agent settings, and what services the agent instruments.
 For instance, an agent auto-instrumenting a service with a popular tech stack
@@ -33,18 +39,19 @@ For instance, an agent auto-instrumenting a service with a popular tech stack
 In addition, all agents support manual instrumentation.
 How little or much you use these APIs will also impact what a typical transaction looks like.
 
-Due to the high variability of transactions, it's difficult to classify a transaction as typical.
-Regardless, here's a speculative reference: 
+If your sampling rate is very small, transactions will be the dominate storage cost.
+
+Here's a speculative reference: 
 
 [options="header"]
 |=======================================================================
-|Transaction size |Number of Spans |Number of Frames
+|Transaction size |Number of Spans |Number of stack frames
 |_Small_ |5-10 |5-10
 |_Medium_ |15-20 |15-20
 |_Large_ |30-40 |30-40
 |=======================================================================
 
-There will always be transaction outliers with hundreds of spans or frames, but those are very rare.
+There will always be transaction outliers with hundreds of spans or stack frames, but those are very rare.
 Small transactions are the most common.
 
 [float]
@@ -55,17 +62,17 @@ Consider the following typical storage reference.
 These numbers do not account for Elasticsearch compression.
 
 * 1 unsampled transaction is **~1 Kb**
-* 1 span with 10 frames is **~4 Kb**
-* 1 span with 50 frames is **~20 Kb**
-* 1 transaction with 10 spans, each with 10 frames is **~50 Kb**
+* 1 span with 10 stack frames is **~4 Kb**
+* 1 span with 50 stack frames is **~20 Kb**
+* 1 transaction with 10 spans, each with 10 stack frames is **~50 Kb**
 * 1 transaction with 25 spans, each with 25 spans is **250-300 Kb**
-* 100 transactions with 10 spans, each with 10 frames, sampled at 90% is **600 Kb**
+* 100 transactions with 10 spans, each with 10 stack frames, sampled at 90% is **600 Kb**
 
 APM data compresses quite well, so the storage cost in Elasticsearch will be considerably less:
 
 * Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 Mb** of disk space.   
-* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 frames, results in 396,000 documents. These documents use around **200 Mb** of disk space. 
-* Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 frames, results in 2,340,000 documents. These documents use around **1.2 Gb** of disk space.
+* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 stack frames, results in 396,000 documents. These documents use around **200 Mb** of disk space. 
+* Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 stack frames, results in 2,340,000 documents. These documents use around **1.2 Gb** of disk space.
 
 NOTE: These examples were indexing the same data over and over with minimal variation. Because of that, the compression ratios observed of 80-90% are somewhat optimistic.
 
@@ -93,13 +100,13 @@ As a reminder, events are
 |Transaction/Instance |512Mb Instance |2Gb Instance |8Gb Instance
 |Small transactions
 
-_5 spans with 5 frames each_ |600 events/second |1200 events/second |4800 events/second 
+_5 spans with 5 stack frames each_ |600 events/second |1200 events/second |4800 events/second 
 |Medium transactions
 
-_15 spans with 15 frames each_ |300 events/second |600 events/second |2400 events/second
+_15 spans with 15 stack frames each_ |300 events/second |600 events/second |2400 events/second
 |Large transactions
 
-_30 spans with 30 frames each_ |150 events/second |300 events/second |1400 events/second
+_30 spans with 30 stack frames each_ |150 events/second |300 events/second |1400 events/second
 |=======================================================================
 
 In other words, a 512 Mb instance can process \~3 Mbs per second,

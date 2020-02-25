@@ -28,7 +28,9 @@ A span contains:
 * start time and duration
 * name
 * type
-* `stack trace` (optional)
+* An optional `stack trace`. Stack traces consist of stack frames,
+which represent a function call on the call stack.
+They include attributes like function name, file name and path, line number, etc.
 
 TIP: Most agents limit keyword fields (e.g. `span.id`) to 1024 characters,
 and non-keyword fields (e.g. `span.start.us`) to 10,000 characters.
