@@ -7,7 +7,9 @@ from apmserver import BaseTest, integration_test
 from helper import wait_until
 
 
-class APIKeyBase(object):
+class APIKeyHelper(object):
+    # APIKeyHelper contains functions related to creating and invalidating API Keys and
+    # waiting until the actions are completed.
     def __init__(self, es_url):
         # api_key related urls for configured user (default: apm_server_user)
         self.api_key_url = "{}/_security/api_key".format(es_url)
@@ -49,9 +51,11 @@ class APIKeyBase(object):
         return resp.json()
 
     def invalidate(self, name):
-        requests.delete(self.api_key_url,
-                        data=json.dumps({'name': name}),
-                        headers={'content-type': 'application/json'})
+        resp = requests.delete(self.api_key_url,
+                               data=json.dumps({'name': name}),
+                               headers={'content-type': 'application/json'})
+        self.wait_until_invalidated(name=name)
+        return resp.json()
 
 
 class APIKeyCommandBaseTest(BaseTest):
@@ -70,7 +74,8 @@ class APIKeyCommandBaseTest(BaseTest):
         password = os.getenv("ES_PASS", "changeme")
         self.es_url = self.get_elasticsearch_url(self.user, password)
         self.kibana_url = self.get_kibana_url()
-        self.base = APIKeyBase(self.es_url)
+        # apikey_helper contains helper functions for base actions related to creating and invalidating api keys
+        self.apikey_helper = APIKeyHelper(self.es_url)
         self.render_config_template(**self.config())
 
     def subcommand_output(self, *args, **kwargs):
@@ -102,17 +107,17 @@ class APIKeyCommandBaseTest(BaseTest):
 
     def create(self, *args):
         apikey = self.subcommand_output("create", "--name", self.apikey_name, *args)
-        self.base.wait_until_created(apikey.get("id"))
+        self.apikey_helper.wait_until_created(apikey.get("id"))
         return apikey
 
     def invalidate_by_id(self, id):
         invalidated = self.subcommand_output("invalidate", "--id", id)
-        self.base.wait_until_invalidated(id=id)
+        self.apikey_helper.wait_until_invalidated(id=id)
         return invalidated
 
     def invalidate_by_name(self, name):
         invalidated = self.subcommand_output("invalidate", "--name", name)
-        self.base.wait_until_invalidated(name=name)
+        self.apikey_helper.wait_until_invalidated(name=name)
         return invalidated
 
 

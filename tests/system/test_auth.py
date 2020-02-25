@@ -5,7 +5,7 @@ import requests
 
 from apmserver import ServerBaseTest, ElasticTest
 from apmserver import TimeoutError, integration_test
-from test_apikey_cmd import APIKeyBase
+from test_apikey_cmd import APIKeyHelper
 from helper import wait_until
 
 
@@ -87,11 +87,10 @@ class APIKeyBaseTest(ElasticTest):
         user = os.getenv("ES_USER", "apm_server_user")
         password = os.getenv("ES_PASS", "changeme")
         self.apikey_name = "apm-systemtest"
-        self.apikey = APIKeyBase(self.get_elasticsearch_url(user, password))
+        self.apikey = APIKeyHelper(self.get_elasticsearch_url(user, password))
 
         # delete all existing api_keys with defined name of current user
         self.apikey.invalidate(self.apikey_name)
-        self.apikey.wait_until_invalidated(name=self.apikey_name)
         # delete all existing application privileges to ensure they can be created for current user
         for p in self.privileges.keys():
             url = "{}/{}/{}".format(self.apikey.privileges_url, self.application, p)
