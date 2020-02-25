@@ -30,8 +30,9 @@ const (
 
 // JaegerConfig holds configuration for Jaeger span collection.
 type JaegerConfig struct {
-	GRPC JaegerGRPCConfig `config:"grpc"`
-	HTTP JaegerHTTPConfig `config:"http"`
+	AuthTag string           `config:"auth_tag"`
+	GRPC    JaegerGRPCConfig `config:"grpc"`
+	HTTP    JaegerHTTPConfig `config:"http"`
 }
 
 // JaegerGRPCConfig holds configuration for the Jaeger gRPC server.

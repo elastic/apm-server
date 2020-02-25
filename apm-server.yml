@@ -421,12 +421,21 @@ apm-server:
       # Defines the gRPC host and port the server is listening on.
       # Defaults to the standard Jaeger gRPC collector port 14250.
       #host: "localhost:14250"
+
     #http:
       # Set to true to enable the Jaeger HTTP collector endpoint.
       #enabled: false
       # Defines the HTTP host and port the server is listening on.
       # Defaults to the standard Jaeger HTTP collector port 14268.
       #host: "localhost:14268"
+
+    # Set to the name of a process tag to use for authorizing Jaeger agents.
+    # The tag value should have the same format as an HTTP Authorization header,
+    # i.e. "Bearer <secret_token>" or "ApiKey <base64(id:key)>".
+    #
+    # By default (if the auth_tag value is empty), authorization
+    # does not apply to Jaeger agents.
+    #auth_tag: ""
 
 #================================= General =================================
 

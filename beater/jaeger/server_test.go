@@ -211,6 +211,50 @@ func TestServerIntegration(t *testing.T) {
 				return []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{}))}
 			}(),
 		},
+		"secret token set but no auth_tag": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.SecretToken = "hunter2"
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.HTTP.Enabled = true
+				cfg.JaegerConfig.HTTP.Host = "localhost:0"
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+		},
+		"secret token and auth_tag set, but no auth_tag sent by agent": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.SecretToken = "hunter2"
+				cfg.JaegerConfig.AuthTag = "authorization"
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.HTTP.Enabled = true
+				cfg.JaegerConfig.HTTP.Host = "localhost:0"
+				return cfg
+			}(),
+			grpcDialOpts:       []grpc.DialOption{grpc.WithInsecure()},
+			grpcSendShouldFail: true, // unauthorized
+			httpStatusCode:     http.StatusUnauthorized,
+		},
+		"secret token and auth_tag set, auth_tag sent by agent": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.SecretToken = "hunter2"
+				cfg.JaegerConfig.AuthTag = "authorization"
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.HTTP.Enabled = true
+				cfg.JaegerConfig.HTTP.Host = "localhost:0"
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			processTags: map[string]string{
+				"authorization": "Bearer hunter2",
+				"not":           "hotdog",
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			tc.setup(t)
@@ -228,9 +272,10 @@ func TestServerIntegration(t *testing.T) {
 				err := tc.sendSpanGRPC()
 				if tc.grpcSendShouldFail {
 					require.Error(t, err)
+					require.Len(t, tc.events, nevents)
 				} else {
 					require.NoError(t, err)
-					assert.Equal(t, nevents+1, len(tc.events))
+					require.Len(t, tc.events, nevents+1)
 					nevents++
 					tc.tracer.Flush(nil)
 					transactions := tc.tracer.Payloads().Transactions
@@ -242,12 +287,29 @@ func TestServerIntegration(t *testing.T) {
 				err := tc.sendSpanHTTP()
 				require.NoError(t, err)
 
-				assert.Equal(t, nevents+1, len(tc.events))
-				nevents++
-				tc.tracer.Flush(nil)
-				transactions := tc.tracer.Payloads().Transactions
-				require.Len(t, transactions, nevents)
-				assert.Equal(t, "POST /api/traces", transactions[nevents-1].Name)
+				if tc.httpStatusCode == http.StatusAccepted {
+					require.Len(t, tc.events, nevents+1)
+					nevents++
+					tc.tracer.Flush(nil)
+					transactions := tc.tracer.Payloads().Transactions
+					require.Len(t, transactions, nevents)
+					assert.Equal(t, "POST /api/traces", transactions[nevents-1].Name)
+				} else {
+					require.Len(t, tc.events, nevents)
+				}
+			}
+
+			for _, event := range tc.events {
+				for k := range tc.processTags {
+					field := "labels." + k
+					ok, err := event.Fields.HasKey(field)
+					require.NoError(t, err)
+					if k == tc.cfg.JaegerConfig.AuthTag {
+						assert.False(t, ok, field)
+					} else {
+						assert.True(t, ok, field)
+					}
+				}
 			}
 		})
 	}
@@ -258,6 +320,8 @@ type testcase struct {
 	grpcDialOpts       []grpc.DialOption
 	grpcDialShouldFail bool
 	grpcSendShouldFail bool
+	httpStatusCode     int
+	processTags        map[string]string
 
 	events     []beat.Event
 	server     *Server
@@ -288,6 +352,9 @@ func (tc *testcase) setup(t *testing.T) {
 			Scheme: "http",
 			Host:   tc.server.http.listener.Addr().String(),
 			Path:   "/api/traces",
+		}
+		if tc.httpStatusCode == 0 {
+			tc.httpStatusCode = http.StatusAccepted
 		}
 	} else {
 		require.Nil(t, tc.server.http.server)
@@ -337,7 +404,16 @@ func (tc *testcase) teardown(t *testing.T) {
 }
 
 func (tc *testcase) sendSpanGRPC() error {
+	var tags []jaegermodel.KeyValue
+	for k, v := range tc.processTags {
+		tags = append(tags, jaegermodel.KeyValue{
+			Key:   k,
+			VStr:  v,
+			VType: jaegermodel.ValueType_STRING,
+		})
+	}
 	return tc.sendBatchGRPC(jaegermodel.Batch{
+		Process: &jaegermodel.Process{Tags: tags},
 		Spans: []*jaegermodel.Span{{
 			TraceID: jaegermodel.NewTraceID(123, 456),
 			SpanID:  jaegermodel.NewSpanID(789),
@@ -352,8 +428,17 @@ func (tc *testcase) sendBatchGRPC(batch jaegermodel.Batch) error {
 }
 
 func (tc *testcase) sendSpanHTTP() error {
+	var tags []*jaegerthrift.Tag
+	for k, v := range tc.processTags {
+		v := v
+		tags = append(tags, &jaegerthrift.Tag{
+			Key:   k,
+			VStr:  &v,
+			VType: jaegerthrift.TagType_STRING,
+		})
+	}
 	return tc.sendBatchHTTP(&jaegerthrift.Batch{
-		Process: &jaegerthrift.Process{ServiceName: "whatever"},
+		Process: &jaegerthrift.Process{ServiceName: "whatever", Tags: tags},
 		Spans:   []*jaegerthrift.Span{{TraceIdHigh: 123, TraceIdLow: 456, SpanId: 789}},
 	})
 }
@@ -365,8 +450,8 @@ func (tc *testcase) sendBatchHTTP(batch *jaegerthrift.Batch) error {
 		return err
 	}
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("expected status %d, got %d", http.StatusAccepted, resp.StatusCode)
+	if resp.StatusCode != tc.httpStatusCode {
+		return fmt.Errorf("expected status %d, got %d", tc.httpStatusCode, resp.StatusCode)
 	}
 	return nil
 }

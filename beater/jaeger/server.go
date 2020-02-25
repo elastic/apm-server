@@ -32,6 +32,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/logp"
 
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/publish"
@@ -61,6 +62,20 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		TransformConfig: transform.Config{},
 	}
 
+	// By default auth is not required for Jaeger - users must explicitly specify which tag to use.
+	auth := noAuth
+	if cfg.JaegerConfig.AuthTag != "" {
+		// TODO(axw) share auth builder with beater/api.
+		authBuilder, err := authorization.NewBuilder(cfg)
+		if err != nil {
+			return nil, err
+		}
+		auth = makeAuthFunc(
+			cfg.JaegerConfig.AuthTag,
+			authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action),
+		)
+	}
+
 	srv := &Server{logger: logger}
 	if cfg.JaegerConfig.GRPC.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?
@@ -79,7 +94,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		srv.grpc.server = grpc.NewServer(grpcOptions...)
 		srv.grpc.listener = grpcListener
 		// TODO(simi) to add support for sampling: api_v2.RegisterSamplingManagerServer
-		api_v2.RegisterCollectorServiceServer(srv.grpc.server, grpcCollector{traceConsumer})
+		api_v2.RegisterCollectorServiceServer(srv.grpc.server, grpcCollector{auth, traceConsumer})
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?
@@ -87,7 +102,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		if err != nil {
 			return nil, err
 		}
-		httpMux, err := newHTTPMux(traceConsumer)
+		httpMux, err := newHTTPMux(auth, traceConsumer)
 		if err != nil {
 			return nil, err
 		}

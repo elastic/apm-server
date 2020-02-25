@@ -18,9 +18,6 @@
 package middleware
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -30,7 +27,8 @@ import (
 func AuthorizationMiddleware(auth *authorization.Handler, apply bool) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			c.Authorization = auth.AuthorizationFor(fetchAuthHeader(c.Request))
+			header := c.Request.Header.Get(headers.Authorization)
+			c.Authorization = auth.AuthorizationFor(authorization.ParseAuthorizationHeader(header))
 
 			if apply {
 				authorized, err := c.Authorization.AuthorizedFor(c.Request.Context(), authorization.ResourceInternal)
@@ -44,13 +42,4 @@ func AuthorizationMiddleware(auth *authorization.Handler, apply bool) Middleware
 			h(c)
 		}, nil
 	}
-}
-
-func fetchAuthHeader(req *http.Request) (string, string) {
-	header := req.Header.Get(headers.Authorization)
-	parts := strings.Split(header, " ")
-	if len(parts) != 2 {
-		return "", ""
-	}
-	return parts[0], parts[1]
 }

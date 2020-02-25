@@ -20,6 +20,7 @@ package jaeger
 import (
 	"context"
 
+	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer"
 
@@ -35,6 +36,7 @@ var (
 
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
+	auth     authFunc
 	consumer consumer.TraceConsumer
 }
 
@@ -44,12 +46,20 @@ type grpcCollector struct {
 // https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
 func (c grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
 	gRPCMonitoringMap.inc(request.IDRequestCount)
-	err := consumeBatch(ctx, r.Batch, c.consumer, gRPCMonitoringMap)
-	gRPCMonitoringMap.inc(request.IDResponseCount)
-	if err != nil {
+	defer gRPCMonitoringMap.inc(request.IDResponseCount)
+
+	if err := c.postSpans(ctx, r.Batch); err != nil {
 		gRPCMonitoringMap.inc(request.IDResponseErrorsCount)
 		return nil, err
 	}
 	gRPCMonitoringMap.inc(request.IDResponseValidCount)
 	return &api_v2.PostSpansResponse{}, nil
+}
+
+func (c grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
+	if err := c.auth(ctx, batch); err != nil {
+		gRPCMonitoringMap.inc(request.IDResponseErrorsUnauthorized)
+		return err
+	}
+	return consumeBatch(ctx, batch, c.consumer, gRPCMonitoringMap)
 }
