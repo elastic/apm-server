@@ -119,8 +119,11 @@
         - name: servicemap
           type: group
           fields:
+            - name: hash
+              type: group
+              fields:
 
-            - name: fingerprint
-              type: keyword
-              description: >
-                Base64 encoded fingerprint for servicemaps.
+              - name: xxhash
+                type: keyword
+                description: >
+                  Hex encoded hash for servicemaps using the XXH64 hash algorithm.

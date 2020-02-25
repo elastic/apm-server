@@ -18,11 +18,13 @@
 package span
 
 import (
-	"bytes"
-	"encoding/base64"
+	"encoding/hex"
+	"fmt"
 	"net"
 	"strings"
 	"time"
+
+	"github.com/cespare/xxhash"
 
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
@@ -448,36 +450,30 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	st := e.Stacktrace.Transform(tctx)
 	utility.Set(fields, "stacktrace", st)
 
-	if fingerprint := e.servicemapFingerprint(tctx); fingerprint != "" {
-		utility.Set(fields, "servicemap", common.MapStr{"fingerprint": fingerprint})
+	if h := e.servicemapHash(tctx); h != "" {
+		utility.Set(fields, "servicemap", common.MapStr{"hash": common.MapStr{"xxhash": h}})
 	}
 	return fields
 }
 
-func (e *Event) servicemapFingerprint(tctx *transform.Context) string {
+func (e *Event) servicemapHash(tctx *transform.Context) string {
 	if e.Destination == nil || e.Destination.Address == nil || *e.Destination.Address == "" {
 		return ""
 	}
-	var buf bytes.Buffer
-	buf.WriteString(*e.Destination.Address)
-
-	add := func(s string) {
-		buf.WriteString("|")
-		buf.WriteString(s)
-	}
-	add(e.Type)
+	h := xxhash.New()
+	fmt.Fprintf(h, "%s|%s", *e.Destination.Address, e.Type)
 	if e.Subtype != nil {
-		add(*e.Subtype)
+		fmt.Fprintf(h, "|%s", *e.Subtype)
 	}
 	if e.Service != nil && e.Service.Name != nil {
-		add(*e.Service.Name)
+		fmt.Fprintf(h, "|%s", *e.Service.Name)
 	} else if tctx.Metadata.Service != nil && tctx.Metadata.Service.Name != nil {
-		add(*tctx.Metadata.Service.Name)
+		fmt.Fprintf(h, "|%s", *tctx.Metadata.Service.Name)
 	}
 	if e.Service != nil && e.Service.Environment != nil {
-		add(*e.Service.Environment)
+		fmt.Fprintf(h, "|%s", *e.Service.Environment)
 	} else if tctx.Metadata.Service != nil && tctx.Metadata.Service.Environment != nil {
-		add(*tctx.Metadata.Service.Environment)
+		fmt.Fprintf(h, "|%s", *tctx.Metadata.Service.Environment)
 	}
-	return base64.StdEncoding.EncodeToString(buf.Bytes())
+	return hex.EncodeToString(h.Sum(nil))
 }

@@ -150,7 +150,7 @@ func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
 		"processor.event", "processor.name",
 		"context.tags", "transaction.type", "transaction.name",
-		"span.servicemap.fingerprint",
+		"span.servicemap.hash.xxhash",
 		tests.Group("observer"),
 
 		// metadata fields
