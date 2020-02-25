@@ -18,6 +18,7 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -27,17 +28,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/agentcfg"
-
-	"golang.org/x/time/rate"
-
-	"github.com/elastic/apm-server/beater/authorization"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/apmtest"
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/libbeat/common"
+	libkibana "github.com/elastic/beats/libbeat/kibana"
 
+	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -340,6 +340,26 @@ func TestIfNoneMatch(t *testing.T) {
 	assert.Equal(t, "123", ifNoneMatch(fromHeader("123")))
 	assert.Equal(t, "123", ifNoneMatch(fromHeader(`"123"`)))
 	assert.Equal(t, "123", ifNoneMatch(fromQueryArg("123")))
+}
+
+func TestAgentConfigTraceContext(t *testing.T) {
+	kibanaCfg := libkibana.DefaultClientConfig()
+	kibanaCfg.Host = "testKibana:12345"
+	client := kibana.NewConnectingClient(&kibanaCfg)
+	handler := Handler(client, &config.AgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}})
+	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
+		// When the handler is called with a context containing
+		// a transaction, the underlying Kibana query should create a span
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
+			"service": m{"name": "opbeans"}}))
+		r = r.WithContext(ctx)
+		c := request.NewContext()
+		c.Reset(w, r)
+		handler(c)
+	})
+	require.Len(t, spans, 1)
+	assert.Equal(t, "app", spans[0].Type)
 }
 
 func target(params map[string]string) string {

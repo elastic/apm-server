@@ -210,13 +210,20 @@ func TestPackagesInstall() error {
 	return nil
 }
 
-// Update updates the generated files (aka make update).
+// Update updates the generated files.
 func Update() error {
-	return sh.Run("make", "update")
+	mg.Deps(Fields, Config)
+	return nil
 }
 
 func Fields() error {
-	return mage.GenerateFieldsYAML("model")
+	if err := mage.GenerateFieldsYAML("model"); err != nil {
+		return err
+	}
+	if err := mage.GenerateAllInOneFieldsGo(); err != nil {
+		return err
+	}
+	return mage.Docs.FieldDocs("fields.yml")
 }
 
 // Use RACE_DETECTOR=true to enable the race detector.
@@ -264,9 +271,8 @@ func customizePackaging() {
 	)
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := &mage.Packages[idx]
-		pkgType := args.Types[0]
-		switch pkgType {
 
+		switch pkgType := args.Types[0]; pkgType {
 		case mage.Zip, mage.TarGz:
 			// Remove the reference config file from packages.
 			delete(args.Spec.Files, "{{.BeatName}}.reference.yml")
@@ -300,11 +306,19 @@ func customizePackaging() {
 			}
 
 		case mage.DMG:
+			// We do not build macOS packages.
 			mage.Packages = append(mage.Packages[:idx], mage.Packages[idx+1:]...)
+			continue
 
 		default:
 			panic(errors.Errorf("unhandled package type: %v", pkgType))
+		}
 
+		// Remove Kibana dashboard files.
+		for filename, filespec := range args.Spec.Files {
+			if strings.HasPrefix(filespec.Source, "_meta/kibana") {
+				delete(args.Spec.Files, filename)
+			}
 		}
 	}
 }

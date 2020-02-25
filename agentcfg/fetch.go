@@ -18,6 +18,7 @@
 package agentcfg
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -59,16 +60,16 @@ func NewFetcher(client kibana.Client, cacheExpiration time.Duration) *Fetcher {
 }
 
 // Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
-func (f *Fetcher) Fetch(query Query) (Result, error) {
+func (f *Fetcher) Fetch(ctx context.Context, query Query) (Result, error) {
 	req := func() (Result, error) {
-		return newResult(f.request(convert.ToReader(query)))
+		return newResult(f.request(ctx, convert.ToReader(query)))
 	}
 	result, err := f.fetch(query, req)
 	return sanitize(query.IsRum, result), err
 }
 
-func (f *Fetcher) request(r io.Reader) ([]byte, error) {
-	resp, err := f.client.Send(http.MethodPost, endpoint, nil, nil, r)
+func (f *Fetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
+	resp, err := f.client.Send(ctx, http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrMsgSendToKibanaFailed)
 	}

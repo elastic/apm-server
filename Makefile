@@ -25,6 +25,7 @@ NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
+EXCLUDE_COMMON_UPDATE_TARGET=true
 
 ES_USER?=apm_server_user
 ES_PASS?=changeme
@@ -85,9 +86,9 @@ endif
 is-beats-updated: python-env
 	@$(PYTHON_ENV)/bin/python ./script/is_beats_updated.py ${BEATS_VERSION}
 
-# Collects all dependencies and then calls update
-.PHONY: collect
-collect: fields go-generate add-headers create-docs notice
+.PHONY: update
+update: go-generate add-headers create-docs notice mage
+	@mage update
 
 .PHONY: go-generate
 go-generate:
@@ -107,17 +108,6 @@ create-docs:
 	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationMetricsets.approved.json docs/data/elasticsearch/generated/metricsets.json
 	@cp processor/stream/test_approved_es_documents/testIntakeRUMV3Transactions.approved.json docs/data/elasticsearch/generated/rum_v3_transactions.json
 	@cp processor/stream/test_approved_es_documents/testIntakeRUMV3Errors.approved.json docs/data/elasticsearch/generated/rum_v3_spans.json
-
-# Start manual testing environment with agents
-.PHONY: start-env
-start-env:
-	@docker-compose -f tests/docker-compose.yml build
-	@docker-compose -f tests/docker-compose.yml up -d
-
-# Stop manual testing environment with agents
-.PHONY: stop-env
-stop-env:
-	@docker-compose -f tests/docker-compose.yml down -v
 
 .PHONY: golint-install
 golint-install:
@@ -160,7 +150,7 @@ notice: python-env
 .PHONY: apm-docs
 apm-docs:  ## @build Builds the documentation for APM Server and APM Overview
 	@rm -rf build/html_docs
-	sh script/build_apm_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR}
+	sh script/build_apm_docs.sh ${BEAT_NAME} docs/index.asciidoc ${BUILD_DIR}
 
 
 .PHONY: update-beats-docs
@@ -210,3 +200,21 @@ run-system-test: python-env
 	INTEGRATION_TESTS=1 TZ=UTC \
 	ES_USER=$(ES_USER) ES_PASS=$(ES_PASS) KIBANA_USER=$(BEAT_KIBANA_USER) KIBANA_PASS=$(BEAT_KIBANA_PASS) \
 	$(PYTHON_ENV)/bin/nosetests --with-timer -x -v $(SYSTEM_TEST_TARGET)
+
+# docker-compose.override.yml holds overrides for docker-compose.yml.
+#
+# Create this to ensure the UID used inside docker-compose is the same
+# as the current user on the host, so files are created with the same
+# privileges.
+#
+# Note that this target is intentionally non-.PHONY, so that users can
+# modify the resulting file without it being overwritten. To recreate
+# the file, remove it.
+docker-compose.override.yml:
+	printf "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=%d]" $(shell id -u) > $@
+system-tests-environment: docker-compose.override.yml
+build-image: docker-compose.override.yml
+
+# We override the DOCKER_COMPOSE variable to not explicitly specify "-f docker-compose.yml",
+# so that "docker-compose.override.yml" is also read if it exists.
+DOCKER_COMPOSE=TESTING_ENVIRONMENT=${TESTING_ENVIRONMENT} docker-compose -p ${DOCKER_COMPOSE_PROJECT_NAME}
