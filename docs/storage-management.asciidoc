@@ -14,7 +14,7 @@
 [[sizing-guide]]
 == Storage and sizing guide
 
-APM processing and storage costs are largely dominated by transactions, spans, and frames.
+APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
 * {apm-overview-ref-v}/transactions.html[*Transactions*] describe an event captured by an Elastic APM agent instrumenting a service.
 They are the highest level of work being measuring within a service.
