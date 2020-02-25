@@ -1,15 +1,24 @@
 version: '2.3'
 services:
   beat:
-    build: ${PWD}/tests/.
+    build: tests
     depends_on:
       - proxy_dep
-    env_file:
-      - ${PWD}/build/test.env
-    working_dir: /go/src/github.com/elastic/apm-server
     volumes:
-      - ${PWD}:/go/src/github.com/elastic/apm-server/
+      - .:/go/src/github.com/elastic/apm-server/
+    working_dir: /go/src/github.com/elastic/apm-server
     command: make
+    environment:
+      BEAT_STRICT_PERMS: "${BEAT_STRICT_PERMS:-false}"
+      ES_HOST: elasticsearch
+      ES_PORT: "9200"
+      ES_USER: "${ES_USER:-apm_server_user}"
+      ES_SUPERUSER_USER: "${ES_SUPERUSER_USER:-admin}"
+      ES_SUPERUSER_PASS: "${ES_SUPERUSER_PASS:-changeme}"
+      KIBANA_HOST: kibana
+      KIBANA_PORT: "5601"
+      KIBANA_USER: "${BEAT_KIBANA_USER:-apm_user_ro}"
+      KIBANA_PASS: "${BEAT_KIBANA_PASS:-changeme}"
 
   # This is a proxy used to block beats until all services are healthy.
   # See: https://github.com/docker/compose/issues/4369
@@ -23,7 +32,7 @@ services:
     ports:
       - 9200:9200
     extends:
-      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
+      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
       service: elasticsearch
     environment:
       - "cluster.routing.allocation.disk.threshold_enabled=false"
@@ -35,7 +44,7 @@ services:
       - "xpack.license.self_generated.type=trial"
       - "xpack.security.authc.token.enabled=true"
       - "xpack.security.authc.api_key.enabled=true"
-      - "logger.org.elasticsearch=${ES_LOG_LEVEL}"
+      - "logger.org.elasticsearch=${ES_LOG_LEVEL:-error}"
     volumes:
       - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
       - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
@@ -45,9 +54,10 @@ services:
     ports:
       - 5601:5601
     extends:
-      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
+      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
       service: kibana
-    env_file:
-      - ${PWD}/build/kibana.test.env
     environment:
       STATUS_ALLOWANONYMOUS: "true"
+      ELASTICSEARCH_URL: elasticsearch:9200
+      ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-kibana_system_user}"
+      ELASTICSEARCH_PASSWORD: "${KIBANA_ES_PASS:-changeme}"
