@@ -18,6 +18,7 @@
 package tests
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -40,7 +41,7 @@ type MockKibanaClient struct {
 }
 
 // Send returns a mock http.Response based on parameters used to init the MockKibanaClient instance
-func (c *MockKibanaClient) Send(method, extraPath string, params url.Values,
+func (c *MockKibanaClient) Send(_ context.Context, method, extraPath string, params url.Values,
 	headers http.Header, body io.Reader) (*http.Response, error) {
 	resp := http.Response{StatusCode: c.code, Body: ioutil.NopCloser(convert.ToReader(c.body))}
 	if resp.StatusCode == http.StatusBadGateway {
@@ -50,15 +51,12 @@ func (c *MockKibanaClient) Send(method, extraPath string, params url.Values,
 }
 
 // GetVersion returns a mock version based on parameters used to init the MockKibanaClient instance
-func (c *MockKibanaClient) GetVersion() (common.Version, error) {
+func (c *MockKibanaClient) GetVersion(context.Context) (common.Version, error) {
 	return c.v, nil
 }
 
-// Connected returns whether or not mock client is connected
-func (c *MockKibanaClient) Connected() bool { return c.connected }
-
 // SupportsVersion returns whether or not mock client is compatible with given version
-func (c *MockKibanaClient) SupportsVersion(v *common.Version, _ bool) (bool, error) {
+func (c *MockKibanaClient) SupportsVersion(_ context.Context, v *common.Version, _ bool) (bool, error) {
 	if !c.connected {
 		return false, errors.New("unable to retrieve connection to Kibana")
 	}

@@ -18,6 +18,7 @@
 package agentcfg
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -43,14 +44,14 @@ func TestFetcher_Fetch(t *testing.T) {
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
-		_, err := NewFetcher(kb, testExpiration).Fetch(query(t.Name()))
+		_, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
-		result, err := NewFetcher(kb, testExpiration).Fetch(query(t.Name()))
+		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, zeroResult(), result)
 	})
@@ -60,7 +61,7 @@ func TestFetcher_Fetch(t *testing.T) {
 		b, err := json.Marshal(mockDoc(0.5))
 		expectedResult, err := newResult(b, err)
 		require.NoError(t, err)
-		result, err := NewFetcher(kb, testExpiration).Fetch(query(t.Name()))
+		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 	})
@@ -79,7 +80,7 @@ func TestFetcher_Fetch(t *testing.T) {
 			expectedResult, err := newResult(b, err)
 			require.NoError(t, err)
 
-			result, err := f.Fetch(query(t.Name()))
+			result, err := f.Fetch(context.Background(), query(t.Name()))
 			require.NoError(t, err)
 			assert.Equal(t, expectedResult, result)
 		}

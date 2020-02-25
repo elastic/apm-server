@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"go.elastic.co/apm"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -87,8 +89,9 @@ func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
 			return
 		}
 
-		result, err := fetcher.Fetch(query)
+		result, err := fetcher.Fetch(c.Request.Context(), query)
 		if err != nil {
+			apm.CaptureError(c.Request.Context(), err).Send()
 			extractInternalError(c, err, c.Authorization.IsAuthorizationConfigured())
 			c.Write()
 			return
@@ -118,7 +121,7 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 		return false
 	}
 
-	if supported, err := client.SupportsVersion(minKibanaVersion, true); !supported {
+	if supported, err := client.SupportsVersion(c.Request.Context(), minKibanaVersion, true); !supported {
 		if err != nil {
 			c.Result.Set(request.IDResponseErrorsServiceUnavailable,
 				http.StatusServiceUnavailable,
@@ -128,7 +131,7 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 			return false
 		}
 
-		version, _ := client.GetVersion()
+		version, _ := client.GetVersion(c.Request.Context())
 
 		errMsg := fmt.Sprintf("%s: min version %+v, configured version %+v",
 			msgKibanaVersionNotCompatible, minKibanaVersion, version.String())
