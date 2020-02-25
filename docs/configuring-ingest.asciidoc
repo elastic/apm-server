@@ -19,7 +19,7 @@ For example, a pipeline can define one processor to remove a field, and another 
 By default, <<register.ingest.pipeline.enabled,`register.ingest.pipeline.enabled`>> is set to `true`.
 This loads the default pipeline definition to Elasticsearch on APM Server startup.
 
-The default pipeline is `apm`. It adds user agent information to events and processes Geo-IP data,
+The default pipeline is `apm`. It adds user agent information to events and processes {ref}/geoip-processor.html[Geo-IP data],
 which is especially useful for Elastic's {apm-rum-ref-v}/index.html[JavaScript RUM Agent].
 You can view the pipeline configuration by navigating to the APM Server's home directory and then
 viewing `ingest/pipeline/definition.json`.
