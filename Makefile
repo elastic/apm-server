@@ -25,6 +25,7 @@ NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
+EXCLUDE_COMMON_UPDATE_TARGET=true
 
 ES_USER?=apm_server_user
 ES_PASS?=changeme
@@ -85,9 +86,9 @@ endif
 is-beats-updated: python-env
 	@$(PYTHON_ENV)/bin/python ./script/is_beats_updated.py ${BEATS_VERSION}
 
-# Collects all dependencies and then calls update
-.PHONY: collect
-collect: fields go-generate add-headers create-docs notice
+.PHONY: update
+update: go-generate add-headers create-docs notice mage
+	@mage update
 
 .PHONY: go-generate
 go-generate:
