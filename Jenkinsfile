@@ -298,29 +298,6 @@ pipeline {
             }
           }
         }
-        /**
-        updates beats updates the framework part and go parts of beats.
-        Then build and test.
-        Finally archive the results.
-        */
-        /*
-        stage('Update Beats') {
-            agent { label 'linux' }
-
-            steps {
-              ansiColor('xterm') {
-                  deleteDir()
-                  dir("${BASE_DIR}"){
-                    unstash 'source'
-                    sh """
-                    #!
-                    ./script/jenkins/update-beats.sh
-                    """
-                    archiveArtifacts allowEmptyArchive: true, artifacts: "${BASE_DIR}/build", onlyIfSuccessful: false
-                  }
-                }
-              }
-        }*/
       }
     }
     /**

@@ -160,7 +160,7 @@ notice: python-env
 .PHONY: apm-docs
 apm-docs:  ## @build Builds the APM documents
 	@rm -rf build/html_docs
-	sh script/build_apm_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR}
+	sh script/build_apm_docs.sh ${BEAT_NAME} docs/index.asciidoc ${BUILD_DIR}
 
 
 .PHONY: update-beats-docs
