@@ -27,6 +27,13 @@ $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
 # each run starts from a clean slate.
 $env:MAGEFILE_CACHE = "$env:WORKSPACE\.magefile"
 
+# Setup Python.
+choco install python -y -r --no-progress --version 3.8.1.20200110
+refreshenv
+$env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
+$env:PYTHON_ENV = "$env:TEMP\python-env"
+python --version
+
 # Configure testing parameters.
 $env:TEST_COVERAGE = "true"
 $env:RACE_DETECTOR = "true"
@@ -59,9 +66,4 @@ $packages = ($packages|group|Select -ExpandProperty Name) -join ","
 exec { go test -race -c -cover -covermode=atomic -coverpkg $packages } "go test FAILURE"
 
 echo "Running python tests"
-choco install python -y -r --no-progress --version 3.8.1.20200110
-refreshenv
-$env:PATH = "C:\Python38;C:\Python38\Scripts;$env:PATH"
-$env:PYTHON_ENV = "$env:TEMP\python-env"
-python --version
 exec { mage pythonUnitTest } "System test FAILURE"
