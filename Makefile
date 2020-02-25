@@ -213,3 +213,7 @@ docker-compose.override.yml:
 	echo "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=$(shell id -u)]" > $@
 system-tests-environment: docker-compose.override.yml
 build-image: docker-compose.override.yml
+
+# We override the DOCKER_COMPOSE variable to not explicitly specify "-f docker-compose.yml",
+# so that "docker-compose.override.yml" is also read if it exists.
+DOCKER_COMPOSE=TESTING_ENVIRONMENT=${TESTING_ENVIRONMENT} docker-compose -p ${DOCKER_COMPOSE_PROJECT_NAME}
