@@ -5,7 +5,7 @@ import json
 
 from apmserver import integration_test
 from apmserver import ClientSideElasticTest
-from test_auth import APIKeyBase
+from test_auth import APIKeyHelper
 from helper import wait_until
 from es_helper import index_smap, index_metric, index_transaction, index_error, index_span, index_onboarding, index_name
 
@@ -280,7 +280,7 @@ class SourcemapESConfigAPIKey(BaseSourcemapTest):
         cfg = super(SourcemapESConfigAPIKey, self).config()
 
         # create API Key that is valid for fetching source maps
-        apikey = APIKeyBase(self.get_elasticsearch_url())
+        apikey = APIKeyHelper(self.get_elasticsearch_url())
         payload = json.dumps({
             'name': 'test_sourcemap_apikey',
             'role_descriptors': {
