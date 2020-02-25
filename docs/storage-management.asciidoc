@@ -20,7 +20,7 @@ APM processing and storage costs are largely dominated by transactions, spans, a
 They are the highest level of work being measuring within a service.
 * {apm-overview-ref-v}/transaction-spans.html[*Spans*] belong to transactions. They measure from the start to end of an activity,
 and contain information about a specific code path that has been executed.
-* *Frames* belong to spans. Stack frames represent a function call on the call stack,
+* *Stack frames* belong to spans. Stack frames represent a function call on the call stack,
 and include attributes like function name, file name and path, line number, etc.
 Frames can heavily influence the size of a span.
 
