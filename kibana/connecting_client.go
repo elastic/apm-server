@@ -98,7 +98,7 @@ func (c *ConnectingClient) Send(ctx context.Context, method, extraPath string, p
 // GetVersion returns Kibana version or an error
 // If no connection is established an error is returned
 func (c *ConnectingClient) GetVersion(ctx context.Context) (common.Version, error) {
-	span, _ := apm.StartSpan(ctx, "GetVersion", "custom")
+	span, _ := apm.StartSpan(ctx, "GetVersion", "app")
 	defer span.End()
 	c.m.RLock()
 	defer c.m.RUnlock()
@@ -111,7 +111,7 @@ func (c *ConnectingClient) GetVersion(ctx context.Context) (common.Version, erro
 // SupportsVersion checks if connected Kibana instance is compatible to given version
 // If no connection is established an error is returned
 func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *common.Version, retry bool) (bool, error) {
-	span, ctx := apm.StartSpan(ctx, "SupportsVersion", "custom")
+	span, ctx := apm.StartSpan(ctx, "SupportsVersion", "app")
 	defer span.End()
 	log := logp.NewLogger(logs.Kibana)
 	c.m.RLock()

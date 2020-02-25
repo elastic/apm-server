@@ -359,7 +359,7 @@ func TestAgentConfigTraceContext(t *testing.T) {
 		handler(c)
 	})
 	require.Len(t, spans, 1)
-	assert.Equal(t, "custom", spans[0].Type)
+	assert.Equal(t, "app", spans[0].Type)
 }
 
 func target(params map[string]string) string {
