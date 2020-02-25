@@ -25,11 +25,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/backoff"
 	"github.com/elastic/beats/libbeat/kibana"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/pkg/errors"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
