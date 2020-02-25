@@ -210,7 +210,7 @@ run-system-test: python-env
 # modify the resulting file without it being overwritten. To recreate
 # the file, remove it.
 docker-compose.override.yml:
-	echo "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=$(shell id -u)]" > $@
+	printf "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=%d]" $(shell id -u) > $@
 system-tests-environment: docker-compose.override.yml
 build-image: docker-compose.override.yml
 
