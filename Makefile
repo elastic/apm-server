@@ -2,13 +2,14 @@
 # Variables used for various build targets.
 ##############################################################################
 
-APPROVALS=./build/approvals
-GOIMPORTS=./build/goimports
-GOLICENSER=./build/go-licenser
-GOLINT=./build/golint
-MAGE=./build/mage
-REVIEWDOG=./build/reviewdog
-STATICCHECK=./build/staticcheck
+GOOSBUILD=./build/$(shell go env GOOS)
+APPROVALS=$(GOOSBUILD)/approvals
+GOIMPORTS=$(GOOSBUILD)/goimports
+GOLICENSER=$(GOOSBUILD)/go-licenser
+GOLINT=$(GOOSBUILD)/golint
+MAGE=$(GOOSBUILD)/mage
+REVIEWDOG=$(GOOSBUILD)/reviewdog
+STATICCHECK=$(GOOSBUILD)/staticcheck
 
 PYTHON_ENV?=.
 PYTHON_BIN=$(PYTHON_ENV)/build/ve/$(shell go env GOOS)/bin
