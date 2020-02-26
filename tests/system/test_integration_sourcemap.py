@@ -5,6 +5,7 @@ import json
 
 from apmserver import integration_test
 from apmserver import ClientSideElasticTest
+from test_auth import APIKeyHelper
 from helper import wait_until
 from es_helper import index_smap, index_metric, index_transaction, index_error, index_span, index_onboarding, index_name
 
@@ -279,6 +280,7 @@ class SourcemapESConfigAPIKey(BaseSourcemapTest):
         cfg = super(SourcemapESConfigAPIKey, self).config()
 
         # create API Key that is valid for fetching source maps
+        apikey = APIKeyHelper(self.get_elasticsearch_url())
         payload = json.dumps({
             'name': 'test_sourcemap_apikey',
             'role_descriptors': {
@@ -292,20 +294,10 @@ class SourcemapESConfigAPIKey(BaseSourcemapTest):
                 }
             }
         })
-        api_key_url = "{}/_security/api_key".format(self.get_elasticsearch_url())
-        api_key_info = requests.post(api_key_url,
-                                     data=payload,
-                                     headers={'content-type': 'application/json'}).json()
-
-        def api_key_exists(id):
-            resp = requests.get("{}?id={}".format(api_key_url, id))
-            assert resp.status_code == 200, resp.status_code
-            return len(resp.json()["api_keys"]) == 1
-        wait_until(lambda: api_key_exists(api_key_info["id"]), name="create api key")
-
+        resp = apikey.create(payload)
         cfg.update({
             "smap_es_host": self.split_url(cfg)["host"],
-            "smap_es_apikey": "{}:{}".format(api_key_info["id"], api_key_info["api_key"]),
+            "smap_es_apikey": "{}:{}".format(resp["id"], resp["api_key"]),
         })
         return cfg
 

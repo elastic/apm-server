@@ -1,11 +1,64 @@
 import json
 import os
 import random
+import requests
 
 from apmserver import BaseTest, integration_test
+from helper import wait_until
 
 
-class APIKeyBaseTest(BaseTest):
+class APIKeyHelper(object):
+    # APIKeyHelper contains functions related to creating and invalidating API Keys and
+    # waiting until the actions are completed.
+    def __init__(self, es_url):
+        # api_key related urls for configured user (default: apm_server_user)
+        self.api_key_url = "{}/_security/api_key".format(es_url)
+        self.privileges_url = "{}/_security/privilege".format(es_url)
+
+    def wait_until_invalidated(self, name=None, id=None):
+        if not name and not id:
+            raise Exception("Either name or id must be given")
+
+        def invalidated():
+            keys = self.fetch_by_name(name) if name else self.fetch_by_id(id)
+            for entry in keys:
+                if not entry["invalidated"]:
+                    return False
+            return True
+        wait_until(lambda: invalidated(), name="api keys invalidated")
+
+    def wait_until_created(self, id):
+        wait_until(lambda: len(self.fetch_by_id(id)) == 1, name="create api key")
+
+    def fetch_by_name(self, name):
+        resp = requests.get("{}?name={}".format(self.api_key_url, name))
+        assert resp.status_code == 200
+        assert "api_keys" in resp.json(), resp.json()
+        return resp.json()["api_keys"]
+
+    def fetch_by_id(self, id):
+        resp = requests.get("{}?id={}".format(self.api_key_url, id))
+        assert resp.status_code == 200, resp.status_code
+        assert "api_keys" in resp.json(), resp.json()
+        return resp.json()["api_keys"]
+
+    def create(self, payload):
+        resp = requests.post(self.api_key_url,
+                             data=payload,
+                             headers={'content-type': 'application/json'})
+        assert resp.status_code == 200, resp.status_code
+        self.wait_until_created(resp.json()["id"])
+        return resp.json()
+
+    def invalidate(self, name):
+        resp = requests.delete(self.api_key_url,
+                               data=json.dumps({'name': name}),
+                               headers={'content-type': 'application/json'})
+        self.wait_until_invalidated(name=name)
+        return resp.json()
+
+
+class APIKeyCommandBaseTest(BaseTest):
     apikey_name = "apm_integration_key"
 
     def config(self):
@@ -16,11 +69,13 @@ class APIKeyBaseTest(BaseTest):
         }
 
     def setUp(self):
-        super(APIKeyBaseTest, self).setUp()
+        super(APIKeyCommandBaseTest, self).setUp()
         self.user = os.getenv("ES_USER", "apm_server_user")
         password = os.getenv("ES_PASS", "changeme")
         self.es_url = self.get_elasticsearch_url(self.user, password)
         self.kibana_url = self.get_kibana_url()
+        # apikey_helper contains helper functions for base actions related to creating and invalidating api keys
+        self.apikey_helper = APIKeyHelper(self.es_url)
         self.render_config_template(**self.config())
 
     def subcommand_output(self, *args, **kwargs):
@@ -51,18 +106,30 @@ class APIKeyBaseTest(BaseTest):
         return log
 
     def create(self, *args):
-        return self.subcommand_output("create", "--name", self.apikey_name, *args)
+        apikey = self.subcommand_output("create", "--name", self.apikey_name, *args)
+        self.apikey_helper.wait_until_created(apikey.get("id"))
+        return apikey
+
+    def invalidate_by_id(self, id):
+        invalidated = self.subcommand_output("invalidate", "--id", id)
+        self.apikey_helper.wait_until_invalidated(id=id)
+        return invalidated
+
+    def invalidate_by_name(self, name):
+        invalidated = self.subcommand_output("invalidate", "--name", name)
+        self.apikey_helper.wait_until_invalidated(name=name)
+        return invalidated
 
 
 @integration_test
-class APIKeyTest(APIKeyBaseTest):
+class APIKeyCommandTest(APIKeyCommandBaseTest):
     """
     Tests the apikey subcommand.
     """
 
     def setUp(self):
-        super(APIKeyTest, self).setUp()
-        invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
+        super(APIKeyCommandTest, self).setUp()
+        invalidated = self.invalidate_by_name(self.apikey_name)
         assert invalidated.get("error_count") == 0
 
     def test_create(self):
@@ -86,14 +153,14 @@ class APIKeyTest(APIKeyBaseTest):
 
     def test_invalidate_by_id(self):
         apikey = self.create()
-        invalidated = self.subcommand_output("invalidate", "--id", apikey["id"])
+        invalidated = self.invalidate_by_id(apikey["id"])
         assert invalidated.get("invalidated_api_keys") == [apikey["id"]], invalidated
         assert invalidated.get("error_count") == 0, invalidated
 
     def test_invalidate_by_name(self):
         self.create()
         self.create()
-        invalidated = self.subcommand_output("invalidate", "--name", self.apikey_name)
+        invalidated = self.invalidate_by_name(self.apikey_name)
         assert len(invalidated.get("invalidated_api_keys")) == 2, invalidated
         assert invalidated.get("error_count") == 0, invalidated
 
@@ -109,7 +176,7 @@ class APIKeyTest(APIKeyBaseTest):
 
     def test_info_by_name(self):
         apikey = self.create()
-        invalidated = self.subcommand_output("invalidate", "--id", apikey["id"])
+        invalidated = self.invalidate_by_id(apikey["id"])
         assert invalidated.get("error_count") == 0
         self.create()
         self.create()
@@ -146,7 +213,7 @@ class APIKeyTest(APIKeyBaseTest):
 
 
 @integration_test
-class APIKeyBadUserTest(APIKeyBaseTest):
+class APIKeyCommandBadUserTest(APIKeyCommandBaseTest):
 
     def config(self):
         return {
@@ -162,7 +229,7 @@ class APIKeyBadUserTest(APIKeyBaseTest):
 
 
 @integration_test
-class APIKeyBadUser2Test(APIKeyBaseTest):
+class APIKeyCommandBadUser2Test(APIKeyCommandBaseTest):
 
     def config(self):
         return {
