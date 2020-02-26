@@ -18,6 +18,7 @@
 package kibana
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -41,7 +42,7 @@ func TestNewConnectingClientFrom(t *testing.T) {
 func TestConnectingClient_Send(t *testing.T) {
 	t.Run("Send", func(t *testing.T) {
 		c := mockClient()
-		r, err := c.Send(http.MethodGet, "", nil, nil, nil)
+		r, err := c.Send(context.Background(), http.MethodGet, "", nil, nil, nil)
 		require.NoError(t, err)
 		assert.Equal(t, mockBody, r.Body)
 		assert.Equal(t, mockStatus, r.StatusCode)
@@ -49,7 +50,7 @@ func TestConnectingClient_Send(t *testing.T) {
 
 	t.Run("SendError", func(t *testing.T) {
 		c := NewConnectingClient(mockCfg)
-		r, err := c.Send(http.MethodGet, "", nil, nil, nil)
+		r, err := c.Send(context.Background(), http.MethodGet, "", nil, nil, nil)
 		require.Error(t, err)
 		assert.Equal(t, err, errNotConnected)
 		assert.Nil(t, r)
@@ -59,14 +60,14 @@ func TestConnectingClient_Send(t *testing.T) {
 func TestConnectingClient_GetVersion(t *testing.T) {
 	t.Run("GetVersion", func(t *testing.T) {
 		c := mockClient()
-		v, err := c.GetVersion()
+		v, err := c.GetVersion(context.Background())
 		require.NoError(t, err)
 		assert.Equal(t, mockVersion, v)
 	})
 
 	t.Run("GetVersionError", func(t *testing.T) {
 		c := NewConnectingClient(mockCfg)
-		v, err := c.GetVersion()
+		v, err := c.GetVersion(context.Background())
 		require.Error(t, err)
 		assert.Equal(t, err, errNotConnected)
 		assert.Equal(t, common.Version{}, v)
@@ -76,35 +77,23 @@ func TestConnectingClient_GetVersion(t *testing.T) {
 func TestConnectingClient_SupportsVersion(t *testing.T) {
 	t.Run("SupportsVersionTrue", func(t *testing.T) {
 		c := mockClient()
-		s, err := c.SupportsVersion(common.MustNewVersion("7.3.0"), false)
+		s, err := c.SupportsVersion(context.Background(), common.MustNewVersion("7.3.0"), false)
 		require.NoError(t, err)
 		assert.True(t, s)
 	})
 	t.Run("SupportsVersionFalse", func(t *testing.T) {
 		c := mockClient()
-		s, err := c.SupportsVersion(common.MustNewVersion("7.4.0"), false)
+		s, err := c.SupportsVersion(context.Background(), common.MustNewVersion("7.4.0"), false)
 		require.NoError(t, err)
 		assert.False(t, s)
 	})
 
 	t.Run("SupportsVersionError", func(t *testing.T) {
 		c := NewConnectingClient(mockCfg)
-		s, err := c.SupportsVersion(common.MustNewVersion("7.3.0"), false)
+		s, err := c.SupportsVersion(context.Background(), common.MustNewVersion("7.3.0"), false)
 		require.Error(t, err)
 		assert.Equal(t, err, errNotConnected)
 		assert.False(t, s)
-	})
-}
-
-func TestConnectingClient_Connected(t *testing.T) {
-	t.Run("Connected", func(t *testing.T) {
-		c := mockClient()
-		require.True(t, c.Connected())
-	})
-
-	t.Run("NotConnected", func(t *testing.T) {
-		c := NewConnectingClient(mockCfg)
-		require.False(t, c.Connected())
 	})
 }
 
