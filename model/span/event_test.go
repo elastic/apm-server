@@ -363,9 +363,7 @@ func TestSpanTransform(t *testing.T) {
 					},
 					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
 					"servicemap": common.MapStr{
-						"hash": common.MapStr{
-							"xxhash": "1c1170b87d7ffcd7",
-						},
+						"fingerprint": "1c1170b87d7ffcd7",
 					},
 				},
 				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
@@ -446,7 +444,7 @@ func TestServicemapFingerprint(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			events := tc.event.Transform(&tc.ctx)
 			require.Equal(t, 1, len(events))
-			out, err := events[0].Fields["span"].(common.MapStr).GetValue("servicemap.hash.xxhash")
+			out, err := events[0].Fields["span"].(common.MapStr).GetValue("servicemap.fingerprint")
 			if tc.hashInput == "" {
 				require.Error(t, err)
 			} else {

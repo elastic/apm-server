@@ -451,7 +451,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Set(fields, "stacktrace", st)
 
 	if h := e.servicemapHash(tctx); h != "" {
-		utility.Set(fields, "servicemap", common.MapStr{"hash": common.MapStr{"xxhash": h}})
+		utility.Set(fields, "servicemap", common.MapStr{"fingerprint": h})
 	}
 	return fields
 }

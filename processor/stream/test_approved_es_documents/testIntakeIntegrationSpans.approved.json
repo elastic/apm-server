@@ -230,9 +230,7 @@
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
                 "servicemap": {
-                    "hash": {
-                        "xxhash": "f7e848ffef65bc5a"
-                    }
+                    "fingerprint": "f7e848ffef65bc5a"
                 },
                 "stacktrace": [
                     {
@@ -337,9 +335,7 @@
                 },
                 "name": "Rabbitmq receive",
                 "servicemap": {
-                    "hash": {
-                        "xxhash": "124649ffb7419238"
-                    }
+                    "fingerprint": "124649ffb7419238"
                 },
                 "subtype": "JMS",
                 "type": "messaging"

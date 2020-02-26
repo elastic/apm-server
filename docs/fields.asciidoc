@@ -1513,11 +1513,10 @@ type: long
 --
 
 
-
-*`span.servicemap.hash.xxhash`*::
+*`span.servicemap.fingerprint`*::
 +
 --
-Hex encoded hash for servicemaps using the XXH64 hash algorithm.
+Hex encoded fingerprint for servicemaps using the XXH64 hash algorithm.
 
 
 type: keyword

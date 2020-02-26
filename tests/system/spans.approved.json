@@ -137,9 +137,7 @@
             "id": "15aaaaaaaaaaaaaa",
             "subtype": "postgresql",
             "servicemap": {
-                "hash": {
-                    "xxhash": "911abd94082625fa"
-                }
+                "fingerprint": "911abd94082625fa"
             },
             "duration": {
                 "us": 3781
