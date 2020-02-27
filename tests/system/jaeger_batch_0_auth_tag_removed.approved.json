@@ -1,0 +1,258 @@
+[
+    {
+        "agent": {
+            "name": "Jaeger/Go",
+            "ephemeral_id": "624386e9c81d2980",
+            "version": "2.20.1"
+        },
+        "processor": {
+            "name": "transaction",
+            "event": "transaction"
+        },
+        "labels": {
+            "peer_service": "driver-client",
+            "as": "thrift",
+            "peer_ipv4": 2130706433,
+            "sampler_type": "const",
+            "peer_port": 50535,
+            "sampler_param": true
+        },
+        "observer": {
+            "hostname": "alloy",
+            "id": "b220b72b-ff8d-4701-9504-f2b351fc1e1d",
+            "ephemeral_id": "ac12c30a-25c5-49d9-ae82-b80afb99b810",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "@timestamp": "2019-12-20T07:41:44.953Z",
+        "ecs": {
+            "version": "1.4.0"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "host": {
+            "hostname": "host01",
+            "ip": "10.0.0.13",
+            "name": "host01"
+        },
+        "event": {
+            "ingested": "2020-02-26T07:25:03.320773Z"
+        },
+        "transaction": {
+            "duration": {
+                "us": 243417
+            },
+            "result": "Success",
+            "name": "Driver::findNearest",
+            "id": "7be2fd98d0973be3",
+            "type": "custom",
+            "sampled": true
+        },
+        "timestamp": {
+            "us": 1576827704953864
+        }
+    },
+    {
+        "parent": {
+            "id": "7be2fd98d0973be3"
+        },
+        "agent": {
+            "name": "Jaeger/Go",
+            "ephemeral_id": "624386e9c81d2980",
+            "version": "2.20.1"
+        },
+        "error": {
+            "exception": [
+                {
+                    "message": "redis timeout"
+                }
+            ],
+            "log": {
+                "message": "Retrying GetDriver after error"
+            },
+            "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de"
+        },
+        "processor": {
+            "name": "error",
+            "event": "error"
+        },
+        "observer": {
+            "hostname": "alloy",
+            "id": "b220b72b-ff8d-4701-9504-f2b351fc1e1d",
+            "type": "apm-server",
+            "ephemeral_id": "ac12c30a-25c5-49d9-ae82-b80afb99b810",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "@timestamp": "2019-12-20T07:41:45.007Z",
+        "ecs": {
+            "version": "1.4.0"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "host": {
+            "hostname": "host01",
+            "ip": "10.0.0.13",
+            "name": "host01"
+        },
+        "event": {
+            "ingested": "2020-02-26T07:25:03.363110Z"
+        },
+        "transaction": {
+            "id": "7be2fd98d0973be3",
+            "type": "custom"
+        },
+        "timestamp": {
+            "us": 1576827705007552
+        }
+    },
+    {
+        "parent": {
+            "id": "7be2fd98d0973be3"
+        },
+        "agent": {
+            "name": "Jaeger/Go",
+            "ephemeral_id": "624386e9c81d2980",
+            "version": "2.20.1"
+        },
+        "error": {
+            "exception": [
+                {
+                    "message": "redis timeout"
+                }
+            ],
+            "log": {
+                "message": "Retrying GetDriver after error"
+            },
+            "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de"
+        },
+        "processor": {
+            "name": "error",
+            "event": "error"
+        },
+        "observer": {
+            "hostname": "alloy",
+            "id": "b220b72b-ff8d-4701-9504-f2b351fc1e1d",
+            "ephemeral_id": "ac12c30a-25c5-49d9-ae82-b80afb99b810",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "@timestamp": "2019-12-20T07:41:45.089Z",
+        "ecs": {
+            "version": "1.4.0"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "host": {
+            "hostname": "host01",
+            "ip": "10.0.0.13",
+            "name": "host01"
+        },
+        "event": {
+            "ingested": "2020-02-26T07:25:03.363378Z"
+        },
+        "transaction": {
+            "id": "7be2fd98d0973be3",
+            "type": "custom"
+        },
+        "timestamp": {
+            "us": 1576827705089431
+        }
+    },
+    {
+        "parent": {
+            "id": "7be2fd98d0973be3"
+        },
+        "agent": {
+            "name": "Jaeger/Go",
+            "ephemeral_id": "624386e9c81d2980",
+            "version": "2.20.1"
+        },
+        "error": {
+            "exception": [
+                {
+                    "message": "redis timeout"
+                }
+            ],
+            "log": {
+                "message": "Retrying GetDriver after error"
+            },
+            "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de"
+        },
+        "processor": {
+            "name": "error",
+            "event": "error"
+        },
+        "observer": {
+            "hostname": "alloy",
+            "id": "b220b72b-ff8d-4701-9504-f2b351fc1e1d",
+            "ephemeral_id": "ac12c30a-25c5-49d9-ae82-b80afb99b810",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "trace": {
+            "id": "00000000000000007be2fd98d0973be3"
+        },
+        "@timestamp": "2019-12-20T07:41:45.172Z",
+        "ecs": {
+            "version": "1.4.0"
+        },
+        "service": {
+            "node": {
+                "name": "host01"
+            },
+            "name": "driver",
+            "language": {
+                "name": "Go"
+            }
+        },
+        "host": {
+            "hostname": "host01",
+            "ip": "10.0.0.13",
+            "name": "host01"
+        },
+        "event": {
+            "ingested": "2020-02-26T07:25:03.369642Z"
+        },
+        "transaction": {
+            "id": "7be2fd98d0973be3",
+            "type": "custom"
+        },
+        "timestamp": {
+            "us": 1576827705172530
+        }
+    }
+]
