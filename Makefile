@@ -245,7 +245,7 @@ autopep8: $(MAGE)
 
 # $GOBIN must be set to use "go get" below. Once we move to modules we
 # can just use "go build" and it'll resolve all dependencies using modules.
-export GOBIN=$(CURDIR)/build
+export GOBIN=$(abspath $(GOOSBUILD))
 
 $(MAGE): vendor/vendor.json
 	go get ./vendor/github.com/magefile/mage
