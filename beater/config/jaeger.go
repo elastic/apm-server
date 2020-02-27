@@ -30,13 +30,13 @@ const (
 
 // JaegerConfig holds configuration for Jaeger span collection.
 type JaegerConfig struct {
-	AuthTag string           `config:"auth_tag"`
-	GRPC    JaegerGRPCConfig `config:"grpc"`
-	HTTP    JaegerHTTPConfig `config:"http"`
+	GRPC JaegerGRPCConfig `config:"grpc"`
+	HTTP JaegerHTTPConfig `config:"http"`
 }
 
 // JaegerGRPCConfig holds configuration for the Jaeger gRPC server.
 type JaegerGRPCConfig struct {
+	AuthTag string      `config:"auth_tag"`
 	Enabled bool        `config:"enabled"`
 	Host    string      `config:"host"`
 	TLS     *tls.Config `config:"-"`

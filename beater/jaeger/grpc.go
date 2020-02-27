@@ -23,6 +23,8 @@ import (
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
@@ -59,7 +61,7 @@ func (c grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest
 func (c grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
 	if err := c.auth(ctx, batch); err != nil {
 		gRPCMonitoringMap.inc(request.IDResponseErrorsUnauthorized)
-		return err
+		return status.Error(codes.Unauthenticated, err.Error())
 	}
 	return consumeBatch(ctx, batch, c.consumer, gRPCMonitoringMap)
 }

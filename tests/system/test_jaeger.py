@@ -27,10 +27,10 @@ class JaegerBaseTest(ElasticTest):
             # Listen on dynamic ports
             "jaeger_grpc_host": "localhost:0",
             "jaeger_http_host": "localhost:0",
-            # jaeger_auth_tag is set in the base suite so we can
+            # jaeger_grpc_auth_tag is set in the base suite so we can
             # check that the authorization tag is always removed,
             # even if there's no secret token / API Key auth.
-            "jaeger_auth_tag": "authorization",
+            "jaeger_grpc_auth_tag": "authorization",
         })
         return cfg
 

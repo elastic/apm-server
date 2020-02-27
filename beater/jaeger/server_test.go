@@ -36,7 +36,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/apmtest"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -227,26 +229,21 @@ func TestServerIntegration(t *testing.T) {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.SecretToken = "hunter2"
-				cfg.JaegerConfig.AuthTag = "authorization"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
-				cfg.JaegerConfig.HTTP.Enabled = true
-				cfg.JaegerConfig.HTTP.Host = "localhost:0"
+				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
 				return cfg
 			}(),
 			grpcDialOpts:       []grpc.DialOption{grpc.WithInsecure()},
 			grpcSendShouldFail: true, // unauthorized
-			httpStatusCode:     http.StatusUnauthorized,
 		},
 		"secret token and auth_tag set, auth_tag sent by agent": {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.SecretToken = "hunter2"
-				cfg.JaegerConfig.AuthTag = "authorization"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
-				cfg.JaegerConfig.HTTP.Enabled = true
-				cfg.JaegerConfig.HTTP.Host = "localhost:0"
+				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
 				return cfg
 			}(),
 			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
@@ -267,7 +264,7 @@ func TestServerIntegration(t *testing.T) {
 				return
 			}
 
-			var nevents int
+			var nevents, ntransactions int
 			if tc.grpcClient != nil {
 				err := tc.sendSpanGRPC()
 				if tc.grpcSendShouldFail {
@@ -276,40 +273,38 @@ func TestServerIntegration(t *testing.T) {
 				} else {
 					require.NoError(t, err)
 					require.Len(t, tc.events, nevents+1)
+					event := tc.events[nevents]
+					for k := range tc.processTags {
+						field := "labels." + k
+						ok, err := event.Fields.HasKey(field)
+						require.NoError(t, err)
+						if k == tc.cfg.JaegerConfig.GRPC.AuthTag {
+							assert.False(t, ok, field)
+						} else {
+							assert.True(t, ok, field)
+						}
+					}
 					nevents++
+				}
+				if status.Code(err) != codes.Unavailable {
 					tc.tracer.Flush(nil)
 					transactions := tc.tracer.Payloads().Transactions
-					require.Len(t, transactions, nevents)
-					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[nevents-1].Name)
+					require.Len(t, transactions, ntransactions+1)
+					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[ntransactions].Name)
+					ntransactions++
 				}
 			}
 			if tc.httpURL != nil {
 				err := tc.sendSpanHTTP()
 				require.NoError(t, err)
+				require.Len(t, tc.events, nevents+1)
+				nevents++
 
-				if tc.httpStatusCode == http.StatusAccepted {
-					require.Len(t, tc.events, nevents+1)
-					nevents++
-					tc.tracer.Flush(nil)
-					transactions := tc.tracer.Payloads().Transactions
-					require.Len(t, transactions, nevents)
-					assert.Equal(t, "POST /api/traces", transactions[nevents-1].Name)
-				} else {
-					require.Len(t, tc.events, nevents)
-				}
-			}
-
-			for _, event := range tc.events {
-				for k := range tc.processTags {
-					field := "labels." + k
-					ok, err := event.Fields.HasKey(field)
-					require.NoError(t, err)
-					if k == tc.cfg.JaegerConfig.AuthTag {
-						assert.False(t, ok, field)
-					} else {
-						assert.True(t, ok, field)
-					}
-				}
+				tc.tracer.Flush(nil)
+				transactions := tc.tracer.Payloads().Transactions
+				require.Len(t, transactions, ntransactions+1)
+				assert.Equal(t, "POST /api/traces", transactions[ntransactions].Name)
+				ntransactions++
 			}
 		})
 	}
@@ -320,7 +315,6 @@ type testcase struct {
 	grpcDialOpts       []grpc.DialOption
 	grpcDialShouldFail bool
 	grpcSendShouldFail bool
-	httpStatusCode     int
 	processTags        map[string]string
 
 	events     []beat.Event
@@ -352,9 +346,6 @@ func (tc *testcase) setup(t *testing.T) {
 			Scheme: "http",
 			Host:   tc.server.http.listener.Addr().String(),
 			Path:   "/api/traces",
-		}
-		if tc.httpStatusCode == 0 {
-			tc.httpStatusCode = http.StatusAccepted
 		}
 	} else {
 		require.Nil(t, tc.server.http.server)
@@ -450,8 +441,8 @@ func (tc *testcase) sendBatchHTTP(batch *jaegerthrift.Batch) error {
 		return err
 	}
 	resp.Body.Close()
-	if resp.StatusCode != tc.httpStatusCode {
-		return fmt.Errorf("expected status %d, got %d", tc.httpStatusCode, resp.StatusCode)
+	if resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("expected status %d, got %d", http.StatusAccepted, resp.StatusCode)
 	}
 	return nil
 }

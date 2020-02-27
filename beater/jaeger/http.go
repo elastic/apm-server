@@ -46,9 +46,9 @@ var (
 )
 
 // newHTTPMux returns a new http.ServeMux which accepts Thrift-encoded spans.
-func newHTTPMux(auth authFunc, consumer consumer.TraceConsumer) (*http.ServeMux, error) {
+func newHTTPMux(consumer consumer.TraceConsumer) (*http.ServeMux, error) {
 	handler, err := middleware.Wrap(
-		newHTTPHandler(auth, consumer),
+		newHTTPHandler(consumer),
 		middleware.LogMiddleware(),
 		middleware.RecoverPanicMiddleware(),
 		middleware.MonitoringMiddleware(httpMonitoringMap),
@@ -65,12 +65,11 @@ func newHTTPMux(auth authFunc, consumer consumer.TraceConsumer) (*http.ServeMux,
 }
 
 type httpHandler struct {
-	auth     authFunc
 	consumer consumer.TraceConsumer
 }
 
-func newHTTPHandler(auth authFunc, consumer consumer.TraceConsumer) request.Handler {
-	h := &httpHandler{auth, consumer}
+func newHTTPHandler(consumer consumer.TraceConsumer) request.Handler {
+	h := &httpHandler{consumer}
 	return h.handle
 }
 
@@ -82,7 +81,6 @@ func (h *httpHandler) handle(c *request.Context) {
 		c.Result.SetWithError(request.IDResponseErrorsNotFound, errors.New("unknown route"))
 	}
 	c.Write()
-
 }
 
 func (h *httpHandler) handleTraces(c *request.Context) {
@@ -120,10 +118,6 @@ func (h *httpHandler) handleTraces(c *request.Context) {
 	modelBatch := model.Batch{
 		Process: converter.ToDomainProcess(batch.Process),
 		Spans:   converter.ToDomain(batch.Spans, batch.Process),
-	}
-	if err := h.auth(c.Request.Context(), modelBatch); err != nil {
-		c.Result.SetDeniedAuthorization(err)
-		return
 	}
 	if err := consumeBatch(c.Request.Context(), modelBatch, h.consumer, httpMonitoringMap); err != nil {
 		// TODO(axw) map errors from the consumer back to appropriate error codes?

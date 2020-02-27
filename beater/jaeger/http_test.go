@@ -28,7 +28,6 @@ import (
 	"testing"
 
 	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/jaegertracing/jaeger/model"
 	jaegerthrift "github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +39,6 @@ import (
 
 type httpMuxTest struct {
 	spans         []*jaegerthrift.Span
-	authError     error
 	consumerError error
 
 	expectedStatusCode    int
@@ -79,17 +77,6 @@ func TestHTTPMux(t *testing.T) {
 				request.IDEventReceivedCount:  2,
 			},
 		},
-		"auth fails": {
-			spans:              []*jaegerthrift.Span{{}, {}},
-			authError:          errors.New("oh noes"),
-			expectedStatusCode: http.StatusUnauthorized,
-			expectedMonitoringMap: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsUnauthorized: 1,
-			},
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			testHTTPMux(t, test)
@@ -102,9 +89,7 @@ func testHTTPMux(t *testing.T, test httpMuxTest) {
 	beatertest.ClearRegistry(httpMonitoringMap)
 
 	var consumed bool
-	mux, err := newHTTPMux(authFunc(func(ctx context.Context, batch model.Batch) error {
-		return test.authError
-	}), traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
+	mux, err := newHTTPMux(traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
 		consumed = true
 		return test.consumerError
 	}))
@@ -117,24 +102,20 @@ func testHTTPMux(t *testing.T, test httpMuxTest) {
 	recorder := httptest.NewRecorder()
 	mux.ServeHTTP(recorder, req)
 	assert.Equal(t, test.expectedStatusCode, recorder.Code)
-	if test.authError != nil {
-		assert.False(t, consumed)
-	} else {
-		assert.True(t, consumed)
-	}
+	assert.True(t, consumed)
 	assertMonitoring(t, test.expectedMonitoringMap, httpMonitoringMap)
 }
 
 func TestHTTPHandler_UnknownRoute(t *testing.T) {
 	c, recorder := newRequestContext("POST", "/foo", nil)
-	newHTTPHandler(noAuth, nopConsumer())(c)
+	newHTTPHandler(nopConsumer())(c)
 	assert.Equal(t, http.StatusNotFound, recorder.Code)
 	assert.Equal(t, `{"error":"404 page not found: unknown route"}`+"\n", recorder.Body.String())
 }
 
 func TestHTTPMux_MethodNotAllowed(t *testing.T) {
 	c, recorder := newRequestContext("GET", "/api/traces", nil)
-	newHTTPHandler(noAuth, nopConsumer())(c)
+	newHTTPHandler(nopConsumer())(c)
 	assert.Equal(t, http.StatusMethodNotAllowed, recorder.Code)
 	assert.Equal(t, `{"error":"method not supported: only POST requests are allowed"}`+"\n", recorder.Body.String())
 }
@@ -142,7 +123,7 @@ func TestHTTPMux_MethodNotAllowed(t *testing.T) {
 func TestHTTPMux_InvalidContentType(t *testing.T) {
 	c, recorder := newRequestContext("POST", "/api/traces", nil)
 	c.Request.Header.Set("Content-Type", "application/json")
-	newHTTPHandler(noAuth, nopConsumer())(c)
+	newHTTPHandler(nopConsumer())(c)
 	assert.Equal(t, http.StatusBadRequest, recorder.Code)
 	assert.Equal(t, `{"error":"data validation error: unsupported content-type \"application/json\""}`+"\n", recorder.Body.String())
 }
@@ -152,7 +133,7 @@ func TestHTTPMux_ValidContentTypes(t *testing.T) {
 		body := encodeThriftSpans(&jaegerthrift.Span{})
 		c, recorder := newRequestContext("POST", "/api/traces", body)
 		c.Request.Header.Set("Content-Type", contentType)
-		newHTTPHandler(noAuth, nopConsumer())(c)
+		newHTTPHandler(nopConsumer())(c)
 		assert.Equal(t, http.StatusAccepted, recorder.Code)
 		assert.Equal(t, ``, recorder.Body.String())
 	}
@@ -160,7 +141,7 @@ func TestHTTPMux_ValidContentTypes(t *testing.T) {
 
 func TestHTTPMux_InvalidBody(t *testing.T) {
 	c, recorder := newRequestContext("POST", "/api/traces", strings.NewReader(`¯\_(ツ)_/¯`))
-	newHTTPHandler(noAuth, nopConsumer())(c)
+	newHTTPHandler(nopConsumer())(c)
 	assert.Equal(t, http.StatusBadRequest, recorder.Code)
 	assert.Regexp(t, `{"error":"data decoding error: .*"}`+"\n", recorder.Body.String())
 }
@@ -170,7 +151,7 @@ func TestHTTPMux_ConsumerError(t *testing.T) {
 		return errors.New("bauch tut weh")
 	}
 	c, recorder := newRequestContext("POST", "/api/traces", encodeThriftSpans(&jaegerthrift.Span{}))
-	newHTTPHandler(noAuth, consumer)(c)
+	newHTTPHandler(consumer)(c)
 	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
 	assert.Regexp(t, `{"error":"internal error: bauch tut weh"}`+"\n", recorder.Body.String())
 }

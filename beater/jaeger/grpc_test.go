@@ -29,6 +29,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
@@ -74,8 +76,10 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.setup(t)
 
-			expectedErr := tc.authError
-			if expectedErr == nil {
+			var expectedErr error
+			if tc.authError != nil {
+				expectedErr = status.Error(codes.Unauthenticated, tc.authError.Error())
+			} else {
 				expectedErr = tc.consumerErr
 			}
 			resp, err := tc.collector.PostSpans(context.Background(), tc.request)
