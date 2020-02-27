@@ -27,11 +27,8 @@ class Test(ElasticTest):
 
         # Set a password for the built-in apm_system user, and use that for monitoring.
         monitoring_password = "changeme"
-        admin_user = os.getenv("ES_SUPERUSER_USER", "admin")
-        admin_password = os.getenv("ES_SUPERUSER_PASS", "changeme")
-        admin_es = Elasticsearch([self.get_elasticsearch_url(admin_user, admin_password)])
-        admin_es.xpack.security.change_password(username="apm_system",
-                                                body='{"password":"%s"}' % monitoring_password)
+        self.admin_es.xpack.security.change_password(username="apm_system",
+                                                     body='{"password":"%s"}' % monitoring_password)
         cfg.update({
             "elasticsearch_host": urlunparse(url),
             "monitoring_enabled": "true",
