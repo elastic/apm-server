@@ -5,7 +5,7 @@ import requests
 
 from apmserver import integration_test
 from apmserver import ElasticTest
-from test_access import BaseAPIKey
+from test_auth import APIKeyBaseTest
 from helper import wait_until
 from es_helper import index_profile, index_transaction
 
@@ -21,7 +21,7 @@ def get_instrumentation_event(es, index):
 
 
 @integration_test
-class TestInMemoryTracingAPIKey(BaseAPIKey):
+class TestInMemoryTracingAPIKey(APIKeyBaseTest):
     def config(self):
         cfg = super(TestInMemoryTracingAPIKey, self).config()
         cfg.update({
@@ -45,10 +45,10 @@ class TestInMemoryTracingAPIKey(BaseAPIKey):
 
 
 @integration_test
-class TestExternalTracingAPIKey(BaseAPIKey):
+class TestExternalTracingAPIKey(APIKeyBaseTest):
     def config(self):
         cfg = super(TestExternalTracingAPIKey, self).config()
-        api_key = self.create_api_key([self.privilege_event], self.resource_any)
+        api_key = self.create_apm_api_key([self.privilege_event], self.resource_any)
         cfg.update({
             "api_key_enabled": True,
             "instrumentation_enabled": "true",
@@ -58,7 +58,7 @@ class TestExternalTracingAPIKey(BaseAPIKey):
             # Explicitly specifying hosts configures the tracer to
             # behave as if it's sending to an external server, rather
             # than using the in-memory transport that bypasses auth.
-            "instrumentation_host": BaseAPIKey.host,
+            "instrumentation_host": APIKeyBaseTest.host,
         })
         return cfg
 
