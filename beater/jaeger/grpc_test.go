@@ -23,11 +23,14 @@ import (
 	"testing"
 
 	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
+	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
@@ -60,15 +63,30 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 				request.IDEventReceivedCount:  2,
 			},
 		},
+		"auth fails": {
+			authError: errors.New("oh noes"),
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:               1,
+				request.IDResponseCount:              1,
+				request.IDResponseErrorsCount:        1,
+				request.IDResponseErrorsUnauthorized: 1,
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			tc.setup(t)
 
+			var expectedErr error
+			if tc.authError != nil {
+				expectedErr = status.Error(codes.Unauthenticated, tc.authError.Error())
+			} else {
+				expectedErr = tc.consumerErr
+			}
 			resp, err := tc.collector.PostSpans(context.Background(), tc.request)
-			if tc.consumerErr != nil {
+			if expectedErr != nil {
 				require.Nil(t, resp)
 				require.Error(t, err)
-				assert.Equal(t, tc.consumerErr, err)
+				assert.Equal(t, expectedErr, err)
 			} else {
 				require.NotNil(t, resp)
 				require.NoError(t, err)
@@ -80,6 +98,7 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 
 type testGRPCCollector struct {
 	request     *api_v2.PostSpansRequest
+	authError   error
 	consumerErr error
 	collector   grpcCollector
 
@@ -100,7 +119,9 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 		tc.request = &api_v2.PostSpansRequest{Batch: *batch}
 	}
 
-	tc.collector = grpcCollector{traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
+	tc.collector = grpcCollector{authFunc(func(context.Context, model.Batch) error {
+		return tc.authError
+	}), traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
 		return tc.consumerErr
 	})}
 }
