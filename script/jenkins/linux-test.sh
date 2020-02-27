@@ -11,4 +11,4 @@ cleanup() {
 }
 trap cleanup EXIT
 
-make docker-system-tests
+make update docker-system-tests
