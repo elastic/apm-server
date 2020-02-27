@@ -26,11 +26,11 @@ PYTHON=$(PYTHON_BIN)/python
 .DEFAULT_GOAL := apm-server
 
 .PHONY: apm-server
-apm-server: update
+apm-server:
 	go build
 
 .PHONY: apm-server.test
-apm-server.test: update
+apm-server.test:
 	go test -c -coverpkg=github.com/elastic/apm-server/...
 
 .PHONY: apm-server.x-pack x-pack/apm-server/apm-server
@@ -247,8 +247,8 @@ autopep8: $(MAGE)
 # can just use "go build" and it'll resolve all dependencies using modules.
 export GOBIN=$(abspath $(GOOSBUILD))
 
-$(MAGE): vendor/vendor.json
-	go get ./vendor/github.com/magefile/mage
+$(MAGE): magefile.go vendor/vendor.json
+	go run ./vendor/github.com/magefile/mage -compile=$@
 
 $(STATICCHECK): vendor/vendor.json
 	go get ./vendor/honnef.co/go/tools/cmd/staticcheck
@@ -266,7 +266,9 @@ $(GOLICENSER):
 $(REVIEWDOG): vendor/vendor.json
 	go get ./vendor/github.com/reviewdog/reviewdog/cmd/reviewdog
 
-$(PYTHON_BIN) $(PYTHON) $(PYTHON_BIN)/activate: _beats/libbeat/tests/system/requirements.txt $(MAGE)
+$(PYTHON): $(PYTHON_BIN)
+$(PYTHON_BIN): $(PYTHON_BIN)/activate
+$(PYTHON_BIN)/activate: _beats/libbeat/tests/system/requirements.txt $(MAGE)
 	@$(MAGE) pythonEnv
 
 .PHONY: $(APPROVALS)
