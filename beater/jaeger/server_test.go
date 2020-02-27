@@ -36,7 +36,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/apmtest"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -211,6 +213,45 @@ func TestServerIntegration(t *testing.T) {
 				return []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{}))}
 			}(),
 		},
+		"secret token set but no auth_tag": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.SecretToken = "hunter2"
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.HTTP.Enabled = true
+				cfg.JaegerConfig.HTTP.Host = "localhost:0"
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+		},
+		"secret token and auth_tag set, but no auth_tag sent by agent": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.SecretToken = "hunter2"
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
+				return cfg
+			}(),
+			grpcDialOpts:       []grpc.DialOption{grpc.WithInsecure()},
+			grpcSendShouldFail: true, // unauthorized
+		},
+		"secret token and auth_tag set, auth_tag sent by agent": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.SecretToken = "hunter2"
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+			processTags: map[string]string{
+				"authorization": "Bearer hunter2",
+				"not":           "hotdog",
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			tc.setup(t)
@@ -223,31 +264,47 @@ func TestServerIntegration(t *testing.T) {
 				return
 			}
 
-			var nevents int
+			var nevents, ntransactions int
 			if tc.grpcClient != nil {
 				err := tc.sendSpanGRPC()
 				if tc.grpcSendShouldFail {
 					require.Error(t, err)
+					require.Len(t, tc.events, nevents)
 				} else {
 					require.NoError(t, err)
-					assert.Equal(t, nevents+1, len(tc.events))
+					require.Len(t, tc.events, nevents+1)
+					event := tc.events[nevents]
+					for k := range tc.processTags {
+						field := "labels." + k
+						ok, err := event.Fields.HasKey(field)
+						require.NoError(t, err)
+						if k == tc.cfg.JaegerConfig.GRPC.AuthTag {
+							assert.False(t, ok, field)
+						} else {
+							assert.True(t, ok, field)
+						}
+					}
 					nevents++
+				}
+				if status.Code(err) != codes.Unavailable {
 					tc.tracer.Flush(nil)
 					transactions := tc.tracer.Payloads().Transactions
-					require.Len(t, transactions, nevents)
-					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[nevents-1].Name)
+					require.Len(t, transactions, ntransactions+1)
+					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[ntransactions].Name)
+					ntransactions++
 				}
 			}
 			if tc.httpURL != nil {
 				err := tc.sendSpanHTTP()
 				require.NoError(t, err)
-
-				assert.Equal(t, nevents+1, len(tc.events))
+				require.Len(t, tc.events, nevents+1)
 				nevents++
+
 				tc.tracer.Flush(nil)
 				transactions := tc.tracer.Payloads().Transactions
-				require.Len(t, transactions, nevents)
-				assert.Equal(t, "POST /api/traces", transactions[nevents-1].Name)
+				require.Len(t, transactions, ntransactions+1)
+				assert.Equal(t, "POST /api/traces", transactions[ntransactions].Name)
+				ntransactions++
 			}
 		})
 	}
@@ -258,6 +315,7 @@ type testcase struct {
 	grpcDialOpts       []grpc.DialOption
 	grpcDialShouldFail bool
 	grpcSendShouldFail bool
+	processTags        map[string]string
 
 	events     []beat.Event
 	server     *Server
@@ -337,7 +395,16 @@ func (tc *testcase) teardown(t *testing.T) {
 }
 
 func (tc *testcase) sendSpanGRPC() error {
+	var tags []jaegermodel.KeyValue
+	for k, v := range tc.processTags {
+		tags = append(tags, jaegermodel.KeyValue{
+			Key:   k,
+			VStr:  v,
+			VType: jaegermodel.ValueType_STRING,
+		})
+	}
 	return tc.sendBatchGRPC(jaegermodel.Batch{
+		Process: &jaegermodel.Process{Tags: tags},
 		Spans: []*jaegermodel.Span{{
 			TraceID: jaegermodel.NewTraceID(123, 456),
 			SpanID:  jaegermodel.NewSpanID(789),
@@ -352,8 +419,17 @@ func (tc *testcase) sendBatchGRPC(batch jaegermodel.Batch) error {
 }
 
 func (tc *testcase) sendSpanHTTP() error {
+	var tags []*jaegerthrift.Tag
+	for k, v := range tc.processTags {
+		v := v
+		tags = append(tags, &jaegerthrift.Tag{
+			Key:   k,
+			VStr:  &v,
+			VType: jaegerthrift.TagType_STRING,
+		})
+	}
 	return tc.sendBatchHTTP(&jaegerthrift.Batch{
-		Process: &jaegerthrift.Process{ServiceName: "whatever"},
+		Process: &jaegerthrift.Process{ServiceName: "whatever", Tags: tags},
 		Spans:   []*jaegerthrift.Span{{TraceIdHigh: 123, TraceIdLow: 456, SpanId: 789}},
 	})
 }

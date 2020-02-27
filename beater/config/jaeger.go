@@ -36,6 +36,7 @@ type JaegerConfig struct {
 
 // JaegerGRPCConfig holds configuration for the Jaeger gRPC server.
 type JaegerGRPCConfig struct {
+	AuthTag string      `config:"auth_tag"`
 	Enabled bool        `config:"enabled"`
 	Host    string      `config:"host"`
 	TLS     *tls.Config `config:"-"`

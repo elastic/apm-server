@@ -12,6 +12,9 @@ apm-server:
   jaeger.grpc.enabled: {{ jaeger_grpc_enabled }}
   jaeger.grpc.host: {{ jaeger_grpc_host }}
   {% endif %}
+  {% if jaeger_grpc_auth_tag %}
+  jaeger.grpc.auth_tag: {{ jaeger_grpc_auth_tag }}
+  {% endif %}
 
   {% if api_key_enabled %}
   api_key.enabled: {{ api_key_enabled }}
