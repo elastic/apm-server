@@ -54,7 +54,6 @@ clean: $(MAGE)
 #
 # This may be overridden to specify which tests to run.
 SYSTEM_TEST_TARGET?=./tests/system
->>>>>>> 28268169... Makefile: rewrite all the things (#3393)
 
 # NOSETESTS_OPTIONS is passed to nosetests in "system-tests".
 NOSETESTS_OPTIONS?=--process-timeout=90 --with-timer -v --with-xunit --xunit-file=build/TEST-system.xml
