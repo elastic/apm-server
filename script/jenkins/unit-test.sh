@@ -10,7 +10,9 @@ export COV_DIR="build/coverage"
 
 mkdir -p ${COV_DIR}
 
-make update prepare-tests test-deps
+make update
+go install ./vendor/github.com/jstemmer/go-junit-report
+go install ./vendor/github.com/t-yuki/gocover-cobertura
 
 (go test -race -covermode=atomic -coverprofile=${COV_DIR}/unit.cov -v ./... 2>&1 | tee ${OUT_FILE}) || echo -e "\033[31;49mTests FAILED\033[0m"
 

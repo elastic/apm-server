@@ -50,6 +50,7 @@ func init() {
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
+	mage.GoImportsImportPath = "./vendor/golang.org/x/tools/cmd/goimports"
 }
 
 // Build builds the Beat binary.
@@ -363,6 +364,13 @@ func Check() error {
 	return nil
 }
 
-func Fmt() {
-	mg.Deps(mage.Format)
+// PythonEnv ensures the Python venv is up-to-date with the beats requrements.txt.
+func PythonEnv() error {
+	_, err := mage.PythonVirtualenv()
+	return err
+}
+
+// PythonAutopep8 executes autopep8 on all .py files.
+func PythonAutopep8() error {
+	return mage.PythonAutopep8()
 }
