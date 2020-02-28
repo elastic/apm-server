@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash"
-
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -377,6 +376,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
+
 	if frames := len(e.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
@@ -465,15 +465,30 @@ func (e *Event) servicemapHash(tctx *transform.Context) string {
 	if e.Subtype != nil {
 		fmt.Fprintf(h, "|%s", *e.Subtype)
 	}
-	if e.Service != nil && e.Service.Name != nil {
-		fmt.Fprintf(h, "|%s", *e.Service.Name)
-	} else if tctx.Metadata.Service != nil && tctx.Metadata.Service.Name != nil {
-		fmt.Fprintf(h, "|%s", *tctx.Metadata.Service.Name)
+	if name := serviceVal("name", e.Service, tctx.Metadata.Service); name != "" {
+		fmt.Fprintf(h, "|%s", name)
 	}
-	if e.Service != nil && e.Service.Environment != nil {
-		fmt.Fprintf(h, "|%s", *e.Service.Environment)
-	} else if tctx.Metadata.Service != nil && tctx.Metadata.Service.Environment != nil {
-		fmt.Fprintf(h, "|%s", *tctx.Metadata.Service.Environment)
+	if env := serviceVal("env", e.Service, tctx.Metadata.Service); env != "" {
+		fmt.Fprintf(h, "|%s", env)
 	}
+
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func serviceVal(key string, services ...*metadata.Service) string {
+	for _, s := range services {
+		if s != nil {
+			switch key {
+			case "name":
+				if s.Name != nil {
+					return *s.Name
+				}
+			case "env":
+				if s.Environment != nil {
+					return *s.Environment
+				}
+			}
+		}
+	}
+	return ""
 }
