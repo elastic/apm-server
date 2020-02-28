@@ -411,7 +411,7 @@ func TestServicemapFingerprint(t *testing.T) {
 		{name: "minimal",
 			event: Event{Type: "request",
 				Destination: &Destination{Address: tests.StringPtr("internal.login.service")}},
-			hashInput: "internal.login.service|request"},
+			hashInput: "internal.login.service|request|||"},
 		{name: "withService",
 			event: Event{
 				Type:        "request",
@@ -430,7 +430,7 @@ func TestServicemapFingerprint(t *testing.T) {
 			ctx: transform.Context{Metadata: metadata.Metadata{Service: &metadata.Service{
 				Name:        tests.StringPtr("serviceA"),
 				Environment: tests.StringPtr("production")}}},
-			hashInput: "internal.login.service|request|serviceA|production"},
+			hashInput: "internal.login.service|request||serviceA|production"},
 		{name: "mixedService",
 			event: Event{Type: "request",
 				Destination: &Destination{Address: tests.StringPtr("internal.login.service")},
@@ -438,7 +438,7 @@ func TestServicemapFingerprint(t *testing.T) {
 			ctx: transform.Context{Metadata: metadata.Metadata{Service: &metadata.Service{
 				Name:        tests.StringPtr("serviceA"),
 				Environment: tests.StringPtr("production")}}},
-			hashInput: "internal.login.service|request|service-go|production"},
+			hashInput: "internal.login.service|request||service-go|production"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			events := tc.event.Transform(&tc.ctx)

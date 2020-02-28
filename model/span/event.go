@@ -460,34 +460,30 @@ func (e *Event) servicemapHash(tctx *transform.Context) string {
 	if e.Destination == nil || e.Destination.Address == nil || *e.Destination.Address == "" {
 		return ""
 	}
-	h := xxhash.New()
-	fmt.Fprintf(h, "%s|%s", *e.Destination.Address, e.Type)
+	var subtype string
 	if e.Subtype != nil {
-		fmt.Fprintf(h, "|%s", *e.Subtype)
+		subtype = *e.Subtype
 	}
-	if name := serviceVal("name", e.Service, tctx.Metadata.Service); name != "" {
-		fmt.Fprintf(h, "|%s", name)
-	}
-	if env := serviceVal("env", e.Service, tctx.Metadata.Service); env != "" {
-		fmt.Fprintf(h, "|%s", env)
-	}
-
+	name := serviceName(e.Service, tctx.Metadata.Service)
+	env := serviceEnv(e.Service, tctx.Metadata.Service)
+	h := xxhash.New()
+	fmt.Fprintf(h, "%s|%s|%s|%s|%s", *e.Destination.Address, e.Type, subtype, name, env)
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func serviceVal(key string, services ...*metadata.Service) string {
+func serviceName(services ...*metadata.Service) string {
 	for _, s := range services {
-		if s != nil {
-			switch key {
-			case "name":
-				if s.Name != nil {
-					return *s.Name
-				}
-			case "env":
-				if s.Environment != nil {
-					return *s.Environment
-				}
-			}
+		if s != nil && s.Name != nil {
+			return *s.Name
+		}
+	}
+	return ""
+}
+
+func serviceEnv(services ...*metadata.Service) string {
+	for _, s := range services {
+		if s != nil && s.Environment != nil {
+			return *s.Environment
 		}
 	}
 	return ""
