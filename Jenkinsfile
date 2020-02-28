@@ -337,7 +337,7 @@ pipeline {
         beforeAgent true
         allOf {
           anyOf {
-            environment name: 'GIT_BUILD_CAUSE', value: 'pr'
+            changeRequest()
             expression { return !params.Run_As_Master_Branch }
           }
           expression { return params.its_ci }
@@ -345,9 +345,8 @@ pipeline {
         }
       }
       steps {
-        log(level: 'INFO', text: "Launching Async ${env.GITHUB_CHECK_ITS_NAME}")
         build(job: env.ITS_PIPELINE, propagate: false, wait: false,
-              parameters: [string(name: 'AGENT_INTEGRATION_TEST', value: 'All'),
+              parameters: [string(name: 'INTEGRATION_TEST', value: 'All'),
                            string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}"),
                            string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
                            string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
