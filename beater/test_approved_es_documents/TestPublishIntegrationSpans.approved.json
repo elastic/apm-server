@@ -314,6 +314,9 @@
                 },
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
+                "servicemap": {
+                    "fingerprint": "f7e848ffef65bc5a"
+                },
                 "stacktrace": [
                     {
                         "classname": "Core.js",
@@ -389,6 +392,10 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1"
+            },
             "ecs": {
                 "version": "1.4.0"
             },
@@ -429,6 +436,9 @@
                     }
                 },
                 "name": "Rabbitmq receive",
+                "servicemap": {
+                    "fingerprint": "124649ffb7419238"
+                },
                 "subtype": "JMS",
                 "type": "messaging"
             },
