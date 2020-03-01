@@ -1512,6 +1512,17 @@ type: long
 
 --
 
+
+*`span.servicemap.fingerprint`*::
++
+--
+Hex encoded fingerprint for servicemaps using the XXH64 hash algorithm.
+
+
+type: keyword
+
+--
+
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 

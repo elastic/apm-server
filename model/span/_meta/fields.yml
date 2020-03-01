@@ -115,3 +115,11 @@
                 type: long
                 description: >
                   Age of a message in milliseconds.
+
+        - name: servicemap
+          type: group
+          fields:
+            - name: fingerprint
+              type: keyword
+              description: >
+                Hex encoded fingerprint for servicemaps using the XXH64 hash algorithm.
