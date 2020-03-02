@@ -286,7 +286,7 @@ func TestSpanTransform(t *testing.T) {
 			Event: Event{Timestamp: timestamp},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": serviceName, "environment": env},
+				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
@@ -367,7 +367,7 @@ func TestSpanTransform(t *testing.T) {
 				},
 				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
-				"service":     common.MapStr{"name": serviceName, "environment": env},
+				"service":     common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"timestamp":   common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
 				"trace":       common.MapStr{"id": traceId},
 				"parent":      common.MapStr{"id": parentId},

@@ -7,6 +7,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_location": "728,326"
             },
@@ -18,7 +23,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -42,6 +53,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "error": true,
                 "param_driverID": "T762465C"
@@ -54,7 +70,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -124,6 +146,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T762465C"
             },
@@ -135,7 +162,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -159,6 +192,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T712515C"
             },
@@ -170,7 +208,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -194,6 +238,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T752110C"
             },
@@ -205,7 +254,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -229,6 +284,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T757670C"
             },
@@ -240,7 +300,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -264,6 +330,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "error": true,
                 "param_driverID": "T781861C"
@@ -276,7 +347,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -346,6 +423,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T781861C"
             },
@@ -357,7 +439,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -381,6 +469,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T705860C"
             },
@@ -392,7 +485,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -416,6 +515,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T708771C"
             },
@@ -427,7 +531,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -451,6 +561,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T710624C"
             },
@@ -462,7 +577,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -486,6 +607,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "error": true,
                 "param_driverID": "T752547C"
@@ -498,7 +624,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -568,6 +700,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T752547C"
             },
@@ -579,7 +716,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -603,6 +746,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "host": {
+                "hostname": "host01",
+                "ip": "10.0.0.13",
+                "name": "host01"
+            },
             "labels": {
                 "param_driverID": "T757338C"
             },
@@ -614,7 +762,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
