@@ -78,8 +78,26 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "name": "prod1.example.com",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
             "parent": {
                 "id": "012345654321123"
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
             },
             "processor": {
                 "event": "span",
@@ -87,7 +105,23 @@
             },
             "service": {
                 "environment": "staging",
-                "name": "backendspans"
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "backendspans",
+                "node": {
+                    "name": "prod1.example.com"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "span": {
                 "duration": {
@@ -108,6 +142,11 @@
             },
             "transaction": {
                 "id": "fedcba0123456789"
+            },
+            "user": {
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {

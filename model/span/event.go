@@ -384,10 +384,10 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	// first set the generic metadata
-	tctx.Metadata.SetMinimal(fields)
+	tctx.Metadata.Set(fields)
 
 	// then add event specific information
-	utility.DeepUpdate(fields, "service", e.Service.MinimalFields())
+	utility.DeepUpdate(fields, "service", e.Service.Fields("", ""))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels)

@@ -48,6 +48,9 @@
                 "name": "rum-js",
                 "version": "0.0.0"
             },
+            "client": {
+                "ip": "192.0.0.1"
+            },
             "parent": {
                 "id": "611f4fa950f04631"
             },
@@ -56,7 +59,8 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "apm-agent-js"
+                "name": "apm-agent-js",
+                "version": "1.0.0"
             },
             "span": {
                 "duration": {
@@ -104,6 +108,9 @@
             },
             "transaction": {
                 "id": "611f4fa950f04631"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         }
     ]
