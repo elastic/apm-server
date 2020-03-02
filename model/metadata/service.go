@@ -104,23 +104,14 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	return &service, decoder.Err
 }
 
-//MinimalFields transforms a defined subset of a service instance into a common.MapStr
-func (s *Service) MinimalFields() common.MapStr {
+//Fields transforms a service instance into a common.MapStr
+func (s *Service) Fields(containerID, hostName string) common.MapStr {
 	if s == nil {
 		return nil
 	}
 	svc := common.MapStr{}
 	utility.Set(svc, "name", s.Name)
 	utility.Set(svc, "environment", s.Environment)
-	return svc
-}
-
-//Fields transforms a service instance into a common.MapStr
-func (s *Service) Fields(containerID, hostName string) common.MapStr {
-	if s == nil {
-		return nil
-	}
-	svc := s.MinimalFields()
 	utility.Set(svc, "node", s.node.fields(containerID, hostName))
 	utility.Set(svc, "version", s.Version)
 

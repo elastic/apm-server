@@ -9,11 +9,17 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "pid": 1234
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
                 "name": "1234_service-12a3"
             },
             "span": {
