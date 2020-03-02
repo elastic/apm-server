@@ -247,11 +247,14 @@ class ElasticTest(ServerBaseTest):
         return cfg
 
     def setUp(self):
+        admin_user = os.getenv("ES_SUPERUSER_USER", "admin")
+        admin_password = os.getenv("ES_SUPERUSER_PASS", "changeme")
+        self.admin_es = Elasticsearch([self.get_elasticsearch_url(admin_user, admin_password)])
         self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.kibana_url = self.get_kibana_url()
 
         delete_pipelines = [] if self.skip_clean_pipelines else default_pipelines
-        cleanup(self.es, delete_pipelines=delete_pipelines)
+        cleanup(self.admin_es, delete_pipelines=delete_pipelines)
 
         super(ElasticTest, self).setUp()
 

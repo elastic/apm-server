@@ -19,7 +19,7 @@ class AgentConfigurationTest(ElasticTest):
         cfg.update(self.config_overrides)
         return cfg
 
-    def _upsert_service_config(self, settings, name, agent="python", env=None, _id="new"):
+    def _upsert_service_config(self, settings, name, agent="python", env=None, overwrite=False):
         data = {
             "agent_name": agent,
             "service": {"name": name},
@@ -28,9 +28,9 @@ class AgentConfigurationTest(ElasticTest):
         if env is not None:
             data["service"]["environment"] = env
 
-        method = requests.post if _id == "new" else requests.put
-        return method(
-            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration/{}".format(_id)),
+        return requests.put(
+            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration"),
+            params={"overwrite": "true" if overwrite else "false"},
             headers={
                 "Accept": "*/*",
                 "Content-Type": "application/json",
@@ -44,10 +44,9 @@ class AgentConfigurationTest(ElasticTest):
         config.raise_for_status()
         assert config.status_code == 200, config.status_code
         assert config.json()["result"] == "created"
-        return config.json()["_id"]
 
-    def update_service_config(self, config_id, settings, name, env=None):
-        config = self._upsert_service_config(settings, name, env=env, _id=config_id)
+    def update_service_config(self, settings, name, env=None):
+        config = self._upsert_service_config(settings, name, env=env, overwrite=True)
         assert config.status_code == 200, config.status_code
         assert config.json()["result"] == "updated"
 
@@ -115,7 +114,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
             "response_code": 304,
         })
 
-        config_id = self.create_service_config(
+        self.create_service_config(
             {"transaction_sample_rate": 0.15}, service_name, env=service_env)
 
         # yes configuration for service+environment
@@ -151,7 +150,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         })
 
         self.update_service_config(
-            config_id, {"transaction_sample_rate": 0.99}, service_name, env=service_env)
+            {"transaction_sample_rate": 0.99}, service_name, env=service_env)
 
         # TODO (gr): remove when cache can be disabled via config
         # wait for cache to purge
