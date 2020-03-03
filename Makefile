@@ -98,7 +98,7 @@ docker-compose.override.yml:
 # Rules for updating config files, fields.yml, etc.
 ##############################################################################
 
-update: fields go-generate add-headers docs_data notice $(MAGE)
+update: fields go-generate add-headers copy-docs notice $(MAGE)
 	@$(MAGE) update
 
 fields: include/fields.go fields.yml
@@ -132,7 +132,7 @@ endif
 ##############################################################################
 
 .PHONY: docs
-docs: $(docs_data_files)
+docs:
 	@rm -rf build/html_docs
 	sh script/build_apm_docs.sh apm-server docs/index.asciidoc build
 
@@ -140,29 +140,17 @@ docs: $(docs_data_files)
 update-beats-docs: $(PYTHON)
 	@$(PYTHON) script/copy-docs.py
 
-docs_data_files=\
-  docs/data/intake-api/generated/events.ndjson \
-  docs/data/intake-api/generated/rum_v3_events.ndjson \
-  docs/data/intake-api/generated/sourcemap/bundle.js.map \
-  docs/data/elasticsearch/generated/errors.json \
-  docs/data/elasticsearch/generated/spans.json \
-  docs/data/elasticsearch/generated/transactions.json \
-  docs/data/elasticsearch/generated/metricsets.json \
-  docs/data/elasticsearch/generated/rum_v3_transactions.json \
-  docs/data/elasticsearch/generated/rum_v3_errors.json
-
-docs_data: $(docs_data_files)
-$(docs_data_files):
-	install -D -m 0644 $^ $@
-docs/data/intake-api/generated/events.ndjson: testdata/intake-v2/events.ndjson
-docs/data/intake-api/generated/rum_v3_events.ndjson: testdata/intake-v3/rum_events.ndjson
-docs/data/intake-api/generated/sourcemap/bundle.js.map: testdata/sourcemap/bundle.js.map
-docs/data/elasticsearch/generated/errors.json: processor/stream/test_approved_es_documents/testIntakeIntegrationErrors.approved.json
-docs/data/elasticsearch/generated/spans.json: processor/stream/test_approved_es_documents/testIntakeIntegrationSpans.approved.json
-docs/data/elasticsearch/generated/transactions.json: processor/stream/test_approved_es_documents/testIntakeIntegrationTransactions.approved.json
-docs/data/elasticsearch/generated/metricsets.json: processor/stream/test_approved_es_documents/testIntakeIntegrationMetricsets.approved.json
-docs/data/elasticsearch/generated/rum_v3_transactions.json: processor/stream/test_approved_es_documents/testIntakeRUMV3Transactions.approved.json
-docs/data/elasticsearch/generated/rum_v3_errors.json: processor/stream/test_approved_es_documents/testIntakeRUMV3Errors.approved.json
+.PHONY: copy-docs
+copy-docs: 
+	@mkdir -p docs/data/intake-api/generated/sourcemap
+	@cp testdata/intake-v2/events.ndjson docs/data/intake-api/generated/
+	@cp testdata/intake-v3/rum_events.ndjson docs/data/intake-api/generated/rum_v3_events.ndjson
+	@cp testdata/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
+	@mkdir -p docs/data/elasticsearch/generated/
+	@cp tests/system/error.approved.json docs/data/elasticsearch/generated/errors.json
+	@cp tests/system/transaction.approved.json docs/data/elasticsearch/generated/transactions.json
+	@cp tests/system/spans.approved.json docs/data/elasticsearch/generated/spans.json
+	@cp tests/system/metricset.approved.json docs/data/elasticsearch/generated/metricsets.json
 
 ##############################################################################
 # Beats synchronisation.

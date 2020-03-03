@@ -135,7 +135,7 @@ class BaseTest(TestCase):
     def get_transaction_payload_path(self):
         return self.get_payload_path("transactions.ndjson")
 
-    def get_metricset_payload_payload_path(self):
+    def get_metricset_payload_path(self):
         return self.get_payload_path("metricsets.ndjson")
 
     def get_event_payload(self, name="events.ndjson"):
@@ -355,7 +355,6 @@ class ElasticTest(ServerBaseTest):
         base_path = self._beat_path_join(os.path.dirname(__file__), base_path)
         approved_path = base_path + '.approved.json'
         received_path = base_path + '.received.json'
-
         try:
             with open(approved_path) as f:
                 approved = json.load(f)
@@ -372,6 +371,8 @@ class ElasticTest(ServerBaseTest):
         # The first tuple element exists to sort IDs before timestamps.
         def get_doc_id(doc):
             doc_type = doc['processor']['event']
+            if doc_type == 'metric':
+                return len(doc)
             if 'id' in doc[doc_type]:
                 return (0, doc[doc_type]['id'])
             return (1, doc['@timestamp'])
@@ -401,6 +402,8 @@ class ElasticTest(ServerBaseTest):
                         # as they are dependent on the environment.
                         if 'event' in rec:
                             rec['event'] = appr['event']
+                        if rec["processor"]["name"] == "metric":
+                            rec['@timestamp'] = appr['@timestamp']
                         break
             assert len(received) == len(approved)
             for i, rec in enumerate(received):
