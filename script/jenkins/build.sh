@@ -7,7 +7,6 @@ jenkins_setup
 
 cleanup() {
   rm -rf $TEMP_PYTHON_ENV
-  make stop-environment fix-permissions
 }
 trap cleanup EXIT
 
