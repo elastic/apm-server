@@ -63,6 +63,9 @@ pipeline {
         stage('windows build') {
           agent { label 'windows-2019-immutable' }
           options { skipDefaultCheckout() }
+          environment {
+            PATH = "C:\Python27\;C:\Python27\Scripts\;${env.PATH}"
+          }
           when {
             beforeAgent true
             expression { return params.windows_ci }
@@ -124,11 +127,15 @@ pipeline {
         stage('windows test') {
           agent { label 'windows-2019-immutable' }
           options { skipDefaultCheckout() }
+          environment {
+            PATH = "C:\Python27\;C:\Python27\Scripts\;${env.PATH}"
+          }
           when {
             beforeAgent true
             expression { return params.windows_ci }
           }
           steps {
+            installTools([ [tool: 'python2', version: '2.7.17' ] ])
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
