@@ -458,10 +458,10 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 	p, err := pipeline.New(
 		info,
 		pipeline.Monitors{},
-		func(e queue.Eventer) (queue.Queue, error) {
-			return memqueue.NewBroker(nil, memqueue.Settings{
-				Eventer: e,
-				Events:  20,
+		func(lis queue.ACKListener) (queue.Queue, error) {
+			return memqueue.NewQueue(nil, memqueue.Settings{
+				ACKListener: lis,
+				Events:      20,
 			}), nil
 		},
 		outputs.Group{
