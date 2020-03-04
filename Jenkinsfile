@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.6') _
+@Library('apm@current') _
 
 pipeline {
   agent { label 'linux && immutable' }
@@ -68,6 +68,7 @@ pipeline {
             expression { return params.windows_ci }
           }
           steps {
+            installTools([ [tool: 'python2', version: '2.7.17' ] ])
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
