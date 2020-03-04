@@ -247,8 +247,15 @@ autopep8: $(MAGE)
 # can just use "go build" and it'll resolve all dependencies using modules.
 export GOBIN=$(abspath $(GOOSBUILD))
 
-$(MAGE): magefile.go vendor/vendor.json
-	go run ./vendor/github.com/magefile/mage -compile=$@
+BIN_MAGE=$(GOOSBUILD)/bin/mage
+
+# BIN_MAGE is the standard "mage" binary.
+$(BIN_MAGE): vendor/vendor.json
+	go build -o $@ ./vendor/github.com/magefile/mage
+
+# MAGE is the compiled magefile.
+$(MAGE): magefile.go $(BIN_MAGE)
+	$(BIN_MAGE) -compile=$@
 
 $(STATICCHECK): vendor/vendor.json
 	go get ./vendor/honnef.co/go/tools/cmd/staticcheck
@@ -291,5 +298,6 @@ release-manager-release:
 	_beats/dev-tools/run_with_go_ver $(MAKE) release
 
 .PHONY: release
+release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
 release: $(MAGE)
 	$(MAGE) package
