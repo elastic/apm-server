@@ -33,7 +33,7 @@ example from within an editor, while still allowing all dependencies to run in c
 make system-tests SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error
 ```
 
-* Or run the dockerised version of thes tests with `make docker-system-tests`, e.g.:
+* Or run the dockerised version of the tests with `make docker-system-tests`, e.g.:
 
 ```
 make docker-system-tests SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error
