@@ -1,205 +1,86 @@
-BEAT_NAME=apm-server
-BEAT_INDEX_PREFIX=apm
-BEAT_PATH=github.com/elastic/apm-server
-BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
-BEAT_URL=https://${BEAT_PATH}
-BEAT_DOC_URL=https://www.elastic.co/guide/en/apm/server/
-BEAT_REF_YAML=false
-BENCHCMP_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/benchcmp
-COBERTURA_REPO?=github.com/elastic/apm-server/vendor/github.com/t-yuki/gocover-cobertura
-COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gotestcover
-GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
-GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
-GOLINT_TARGETS?=$(shell go list ./... | grep -v /vendor/)
-GOLINT_UPSTREAM?=origin/7.x
-GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) -f=golint -diff="git diff $(GOLINT_UPSTREAM)")
-GOVENDOR_REPO?=github.com/elastic/apm-server/vendor/github.com/kardianos/govendor
-JUNIT_REPORT_REPO?=github.com/elastic/apm-server/vendor/github.com/jstemmer/go-junit-report
-REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
-TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
-SYSTEM_TESTS=true
-TEST_ENVIRONMENT=true
-ES_BEATS?=./_beats
-BEATS_VERSION?=7.x
-NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
-GOBUILD_FLAGS=-ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
-MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
-STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
-EXCLUDE_COMMON_UPDATE_TARGET=true
+##############################################################################
+# Variables used for various build targets.
+##############################################################################
 
-ES_USER?=apm_server_user
-ES_PASS?=changeme
-ES_LOG_LEVEL?=debug
-KIBANA_ES_USER?=kibana_system_user
-KIBANA_ES_PASS?=changeme
-BEAT_KIBANA_USER?=apm_user_ro
-BEAT_KIBANA_PASS?=changeme
-ES_SUPERUSER_USER?=admin
-ES_SUPERUSER_PASS?=changeme
+GOOSBUILD=./build/$(shell go env GOOS)
+APPROVALS=$(GOOSBUILD)/approvals
+GOIMPORTS=$(GOOSBUILD)/goimports
+GOLICENSER=$(GOOSBUILD)/go-licenser
+GOLINT=$(GOOSBUILD)/golint
+MAGE=$(GOOSBUILD)/mage
+REVIEWDOG=$(GOOSBUILD)/reviewdog
+STATICCHECK=$(GOOSBUILD)/staticcheck
 
-# overwrite some beats targets cleanly
-.OVER := original-
+PYTHON_ENV?=.
+PYTHON_BIN=$(PYTHON_ENV)/build/ve/$(shell go env GOOS)/bin
+PYTHON=$(PYTHON_BIN)/python
 
-# Path to the libbeat Makefile
--include $(ES_BEATS)/libbeat/scripts/Makefile
+# Create a local config.mk file to override configuration,
+# e.g. for setting "GOLINT_UPSTREAM".
+-include config.mk
 
-# updates beats updates the framework part and go parts of beats
-.PHONY: update-beats
-update-beats: python-env govendor
-	rm -rf vendor/github.com/elastic/beats
-	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/libbeat/kibana@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/libbeat/outputs/transport/transptest@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/libbeat/scripts/cmd/global_fields@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/licenses@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/x-pack/libbeat/cmd@$(BEATS_VERSION)
-	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
-	@$(MAKE) rm-empty-folders
-	@$(MAKE) update
-	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
+##############################################################################
+# Rules for building and unit-testing apm-server.
+##############################################################################
 
+.DEFAULT_GOAL := apm-server
 
-.PHONY: ${BEAT_NAME}.x-pack
-${BEAT_NAME}.x-pack: $(GOFILES_ALL) ## @build build the x-pack enabled version
-	go build -o ./x-pack/${BEAT_NAME}/${BEAT_NAME} $(GOBUILD_FLAGS) ./x-pack/${BEAT_NAME}
+.PHONY: apm-server
+apm-server:
+	go build
 
+.PHONY: apm-server.test
+apm-server.test:
+	go test -c -coverpkg=github.com/elastic/apm-server/...
 
-.PHONY: check-headers
-check-headers:
-ifndef CHECK_HEADERS_DISABLED
-	@go get -u github.com/elastic/go-licenser
-	@go-licenser -d -exclude x-pack
-	@go-licenser -d -license Elastic x-pack
-endif
+.PHONY: apm-server.x-pack x-pack/apm-server/apm-server
+apm-server.x-pack: x-pack/apm-server/apm-server
+x-pack/apm-server/apm-server:
+	@go build -o $@ ./x-pack/apm-server
 
-.PHONY: add-headers
-add-headers:
-ifndef CHECK_HEADERS_DISABLED
-	@go get github.com/elastic/go-licenser
-	@go-licenser -exclude x-pack
-	@go-licenser -license Elastic x-pack
-endif
+.PHONY: test
+test:
+	go test -v ./...
 
+.PHONY:
+clean: $(MAGE)
+	@$(MAGE) clean
 
-.PHONY: is-beats-updated
-is-beats-updated: python-env
-	@$(PYTHON_ENV)/bin/python ./script/is_beats_updated.py ${BEATS_VERSION}
+##############################################################################
+# Checks/tests.
+##############################################################################
 
-.PHONY: update
-update: go-generate add-headers create-docs notice mage
-	@mage update
+# SYSTEM_TEST_TARGET is passed to nosetests in "system-tests".
+#
+# This may be overridden to specify which tests to run.
+SYSTEM_TEST_TARGET?=./tests/system
 
-.PHONY: go-generate
-go-generate:
-	@go generate
-	@go build tests/scripts/approvals.go
-
-.PHONY: create-docs
-create-docs:
-	@mkdir -p docs/data/intake-api/generated/sourcemap
-	@cp testdata/intake-v2/events.ndjson docs/data/intake-api/generated/
-	@cp testdata/intake-v3/rum_events.ndjson docs/data/intake-api/generated/rum_v3_events.ndjson
-	@cp testdata/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
-	@mkdir -p docs/data/elasticsearch/generated/
-	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationErrors.approved.json docs/data/elasticsearch/generated/errors.json
-	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationTransactions.approved.json docs/data/elasticsearch/generated/transactions.json
-	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationSpans.approved.json docs/data/elasticsearch/generated/spans.json
-	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationMetricsets.approved.json docs/data/elasticsearch/generated/metricsets.json
-	@cp processor/stream/test_approved_es_documents/testIntakeRUMV3Transactions.approved.json docs/data/elasticsearch/generated/rum_v3_transactions.json
-	@cp processor/stream/test_approved_es_documents/testIntakeRUMV3Errors.approved.json docs/data/elasticsearch/generated/rum_v3_spans.json
-
-.PHONY: golint-install
-golint-install:
-	go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
-
-.PHONY: golint
-golint: golint-install
-	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
-
-.PHONY: govendor
-govendor:
-	go get $(GOVENDOR_REPO)
-
-.PHONY: staticcheck
-staticcheck:
-	go get $(STATICCHECK_REPO)
-	staticcheck $(BEAT_PATH)/...
-
-.PHONY: check-deps
-check-deps: test-deps golint staticcheck
+# NOSETESTS_OPTIONS is passed to nosetests in "system-tests".
+NOSETESTS_OPTIONS?=--process-timeout=90 --with-timer -v --with-xunit --xunit-file=build/TEST-system.xml
 
 .PHONY: check-full
-check-full: python-env check-deps check
-	@# Validate that all updates were committed
-	@$(MAKE) update
-	@$(MAKE) check
-	@git diff | cat
-	@git update-index --refresh
-	@git diff-index --exit-code HEAD --
+check-full: update check golint staticcheck
 
-.PHONY: test-deps
-test-deps:
-	go get $(BENCHCMP_REPO) $(COBERTURA_REPO) $(JUNIT_REPORT_REPO) $(MAGE_IMPORT_PATH)
+.PHONY: check-approvals
+check-approvals: $(APPROVALS)
+	@$(APPROVALS)
 
-.PHONY: notice
-notice: python-env
-	@echo "Generating NOTICE"
-	@$(PYTHON_ENV)/bin/python ${ES_BEATS}/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server" --beats-origin <($(PYTHON_ENV)/bin/python script/generate_notice_overrides.py)
-
-.PHONY: apm-docs
-apm-docs:  ## @build Builds the APM documents
-	@rm -rf build/html_docs
-	sh script/build_apm_docs.sh ${BEAT_NAME} docs/index.asciidoc ${BUILD_DIR}
-
-
-.PHONY: update-beats-docs
-update-beats-docs: python-env
-	@python script/copy-docs.py
-	@$(MAKE) docs
-
-# Builds a snapshot release. The Go version defined in .go-version will be
-# installed and used for the build.
-.PHONY: release-manager-snapshot
-release-manager-snapshot:
-	@$(MAKE) SNAPSHOT=true release-manager-release
-
-# Builds a snapshot release. The Go version defined in .go-version will be
-# installed and used for the build.
-.PHONY: release-manager-release
-release-manager-release:
-	./_beats/dev-tools/run_with_go_ver $(MAKE) release
+.PHONY: check
+check: $(MAGE) check-headers
+	@$(MAGE) check
 
 .PHONY: bench
 bench:
 	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
 
-.PHONY: are-kibana-objects-updated
-are-kibana-objects-updated: python-env
-	@$(MAKE) clean update apm-server
-	@$(PYTHON_ENV)/bin/python ./script/are_kibana_saved_objects_updated.py --branch ${BEATS_VERSION} <(./apm-server export index-pattern)
+.PHONY: system-tests
+system-tests: $(PYTHON_BIN) apm-server.test
+	INTEGRATION_TESTS=1 TZ=UTC $(PYTHON_BIN)/nosetests $(NOSETESTS_OPTIONS) $(SYSTEM_TEST_TARGET)
 
-.PHONY: register-pipelines
-register-pipelines: update ${BEAT_NAME}
-	${BEAT_GOPATH}/src/${BEAT_PATH}/${BEAT_NAME} setup --pipelines
-
-.PHONY: import-dashboards
-import-dashboards:
-	echo "APM loads dashboards via Kibana, not the APM Server"
-
-.PHONY: check-changelogs
-check-changelogs: python-env ## @testing Checks the changelogs for certain branches.
-	@python script/check_changelogs.py
-
-.PHONY: rm-empty-folders
-rm-empty-folders:
-	find vendor/ -type d -empty -delete
-
-.PHONY: run-system-test
-run-system-test: python-env
-	INTEGRATION_TESTS=1 TZ=UTC \
-	ES_USER=$(ES_USER) ES_PASS=$(ES_PASS) KIBANA_USER=$(BEAT_KIBANA_USER) KIBANA_PASS=$(BEAT_KIBANA_PASS) \
-	$(PYTHON_ENV)/bin/nosetests --with-timer -x -v $(SYSTEM_TEST_TARGET)
+.PHONY: docker-system-tests
+docker-system-tests: docker-compose.override.yml
+	docker-compose build
+	docker-compose run --rm -T beat make system-tests
 
 # docker-compose.override.yml holds overrides for docker-compose.yml.
 #
@@ -212,9 +93,211 @@ run-system-test: python-env
 # the file, remove it.
 docker-compose.override.yml:
 	printf "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=%d]" $(shell id -u) > $@
-system-tests-environment: docker-compose.override.yml
-build-image: docker-compose.override.yml
 
-# We override the DOCKER_COMPOSE variable to not explicitly specify "-f docker-compose.yml",
-# so that "docker-compose.override.yml" is also read if it exists.
-DOCKER_COMPOSE=TESTING_ENVIRONMENT=${TESTING_ENVIRONMENT} docker-compose -p ${DOCKER_COMPOSE_PROJECT_NAME}
+##############################################################################
+# Rules for updating config files, fields.yml, etc.
+##############################################################################
+
+update: fields go-generate add-headers docs_data notice $(MAGE)
+	@$(MAGE) update
+
+fields: include/fields.go fields.yml
+include/fields.go fields.yml: $(MAGE) magefile.go _meta/fields.common.yml $(shell find model -name fields.yml)
+	@$(MAGE) fields
+
+config: apm-server.yml apm-server.docker.yml
+apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
+	@$(MAGE) config
+
+.PHONY: go-generate
+go-generate:
+	@go generate
+
+notice: NOTICE.txt
+NOTICE.txt: $(PYTHON) vendor/vendor.json build/notice_overrides.json
+	@$(PYTHON) _beats/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server" --beats-origin build/notice_overrides.json
+build/notice_overrides.json: $(PYTHON) _beats/vendor/vendor.json
+	mkdir -p build
+	$(PYTHON) script/generate_notice_overrides.py -o $@
+
+.PHONY: add-headers
+add-headers: $(GOLICENSER)
+ifndef CHECK_HEADERS_DISABLED
+	@$(GOLICENSER) -exclude x-pack
+	@$(GOLICENSER) -license Elastic x-pack
+endif
+
+##############################################################################
+# Documentation.
+##############################################################################
+
+.PHONY: docs
+docs: $(docs_data_files)
+	@rm -rf build/html_docs
+	sh script/build_apm_docs.sh apm-server docs/index.asciidoc build
+
+.PHONY: update-beats-docs
+update-beats-docs: $(PYTHON)
+	@$(PYTHON) script/copy-docs.py
+
+docs_data_files=\
+  docs/data/intake-api/generated/events.ndjson \
+  docs/data/intake-api/generated/rum_v3_events.ndjson \
+  docs/data/intake-api/generated/sourcemap/bundle.js.map \
+  docs/data/elasticsearch/generated/errors.json \
+  docs/data/elasticsearch/generated/spans.json \
+  docs/data/elasticsearch/generated/transactions.json \
+  docs/data/elasticsearch/generated/metricsets.json \
+  docs/data/elasticsearch/generated/rum_v3_transactions.json \
+  docs/data/elasticsearch/generated/rum_v3_errors.json
+
+docs_data: $(docs_data_files)
+$(docs_data_files):
+	install -D -m 0644 $^ $@
+docs/data/intake-api/generated/events.ndjson: testdata/intake-v2/events.ndjson
+docs/data/intake-api/generated/rum_v3_events.ndjson: testdata/intake-v3/rum_events.ndjson
+docs/data/intake-api/generated/sourcemap/bundle.js.map: testdata/sourcemap/bundle.js.map
+docs/data/elasticsearch/generated/errors.json: processor/stream/test_approved_es_documents/testIntakeIntegrationErrors.approved.json
+docs/data/elasticsearch/generated/spans.json: processor/stream/test_approved_es_documents/testIntakeIntegrationSpans.approved.json
+docs/data/elasticsearch/generated/transactions.json: processor/stream/test_approved_es_documents/testIntakeIntegrationTransactions.approved.json
+docs/data/elasticsearch/generated/metricsets.json: processor/stream/test_approved_es_documents/testIntakeIntegrationMetricsets.approved.json
+docs/data/elasticsearch/generated/rum_v3_transactions.json: processor/stream/test_approved_es_documents/testIntakeRUMV3Transactions.approved.json
+docs/data/elasticsearch/generated/rum_v3_errors.json: processor/stream/test_approved_es_documents/testIntakeRUMV3Errors.approved.json
+
+##############################################################################
+# Beats synchronisation.
+##############################################################################
+
+BEATS_VERSION?=7.x
+
+.PHONY: is-beats-updated
+is-beats-updated: $(PYTHON)
+	@$(PYTHON) ./script/is_beats_updated.py ${BEATS_VERSION}
+
+.PHONY: update-beats
+update-beats: vendor-beats update
+	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json;print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
+
+.PHONY: vendor-beats
+vendor-beats:
+	rm -rf vendor/github.com/elastic/beats
+	govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
+	govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION)
+	govendor fetch github.com/elastic/beats/libbeat/kibana@$(BEATS_VERSION)
+	govendor fetch github.com/elastic/beats/libbeat/outputs/transport/transptest@$(BEATS_VERSION)
+	govendor fetch github.com/elastic/beats/libbeat/scripts/cmd/global_fields@$(BEATS_VERSION)
+	govendor fetch github.com/elastic/beats/licenses@$(BEATS_VERSION)
+	govendor fetch github.com/elastic/beats/x-pack/libbeat/cmd@$(BEATS_VERSION)
+	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
+	@find vendor/github.com/elastic/beats -type d -empty -delete
+
+##############################################################################
+# Kibana synchronisation.
+##############################################################################
+
+.PHONY: are-kibana-objects-updated
+are-kibana-objects-updated: $(PYTHON) build/index-pattern.json
+	@$(PYTHON) ./script/are_kibana_saved_objects_updated.py --branch ${BEATS_VERSION} build/index-pattern.json
+build/index-pattern.json: $(PYTHON) apm-server
+	@./apm-server --strict.perms=false export index-pattern > $@
+
+##############################################################################
+# Linting, style-checking, license header checks, etc.
+##############################################################################
+
+GOLINT_TARGETS?=$(shell go list ./...)
+GOLINT_UPSTREAM?=origin/7.x
+REVIEWDOG_FLAGS?=-conf=_beats/reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
+GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS))
+
+.PHONY: golint
+golint: $(GOLINT) $(REVIEWDOG)
+	@test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
+
+.PHONY: staticcheck
+staticcheck: $(STATICCHECK)
+	$(STATICCHECK) github.com/elastic/apm-server/...
+
+.PHONY: check-changelogs
+check-changelogs: $(PYTHON)
+	$(PYTHON) script/check_changelogs.py
+
+.PHONY: check-headers
+check-headers: $(GOLICENSER)
+ifndef CHECK_HEADERS_DISABLED
+	@$(GOLICENSER) -d -exclude build -exclude x-pack
+	@$(GOLICENSER) -d -exclude build -license Elastic x-pack
+endif
+
+# TODO(axw) once we move to modules, start using "mage fmt" instead.
+.PHONY: gofmt autopep8
+fmt: gofmt autopep8
+gofmt: $(GOIMPORTS) add-headers
+	@echo "fmt - goimports: Formatting Go code"
+	@$(GOIMPORTS) -local github.com/elastic -l -w \
+		$(shell find . -type f -name '*.go' -not -path "*/vendor/*" 2>/dev/null)
+autopep8: $(MAGE)
+	@$(MAGE) pythonAutopep8
+
+##############################################################################
+# Rules for creating and installing build tools.
+##############################################################################
+
+# $GOBIN must be set to use "go get" below. Once we move to modules we
+# can just use "go build" and it'll resolve all dependencies using modules.
+export GOBIN=$(abspath $(GOOSBUILD))
+
+BIN_MAGE=$(GOOSBUILD)/bin/mage
+
+# BIN_MAGE is the standard "mage" binary.
+$(BIN_MAGE): vendor/vendor.json
+	go build -o $@ ./vendor/github.com/magefile/mage
+
+# MAGE is the compiled magefile.
+$(MAGE): magefile.go $(BIN_MAGE)
+	$(BIN_MAGE) -compile=$@
+
+$(STATICCHECK): vendor/vendor.json
+	go get ./vendor/honnef.co/go/tools/cmd/staticcheck
+
+$(GOLINT): vendor/vendor.json
+	go get ./vendor/golang.org/x/lint/golint
+
+$(GOIMPORTS): vendor/vendor.json
+	go get ./vendor/golang.org/x/tools/cmd/goimports
+
+$(GOLICENSER):
+	# go-licenser is not vendored, so we install it from network here.
+	go get -u github.com/elastic/go-licenser
+
+$(REVIEWDOG): vendor/vendor.json
+	go get ./vendor/github.com/reviewdog/reviewdog/cmd/reviewdog
+
+$(PYTHON): $(PYTHON_BIN)
+$(PYTHON_BIN): $(PYTHON_BIN)/activate
+$(PYTHON_BIN)/activate: _beats/libbeat/tests/system/requirements.txt $(MAGE)
+	@$(MAGE) pythonEnv
+
+.PHONY: $(APPROVALS)
+$(APPROVALS):
+	@go build -o $@ tests/scripts/approvals.go
+
+##############################################################################
+# Release manager.
+##############################################################################
+
+# Builds a snapshot release. The Go version defined in .go-version will be
+# installed and used for the build.
+release-manager-snapshot: export SNAPSHOT=true
+release-manager-snapshot: release-manager-release
+
+# Builds a snapshot release. The Go version defined in .go-version will be
+# installed and used for the build.
+.PHONY: release-manager-release
+release-manager-release:
+	_beats/dev-tools/run_with_go_ver $(MAKE) release
+
+.PHONY: release
+release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
+release: $(MAGE)
+	$(MAGE) package

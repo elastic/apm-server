@@ -4,16 +4,21 @@
 The tests are built on top of the [Beats Test Framework](https://github.com/elastic/beats/blob/master/docs/devguide/testing.asciidoc), where you can find a detailed description on how to run the test suite.
 
 ### Quick Overview
-Run the full test suite of APM Server, which needs all dependencies to run locally or in a Docker environment:
+
+To run the unit tests, you can use `make test` or simply `go test ./...`. The unit tests do not require any external services.
+
+The APM Server "system tests" run the APM Server in various scenarios, and require an Elastic Stack to be running.
+To run the system tests locally, first start Elasticsearch and Kibana, e.g.:
 
 ```
-make testsuite
+docker-compose up -d
+make system-tests
 ```
 
-Only run unit tests without external dependencies:
+You can alternatively run the system tests entirely within Docker:
 
 ```
-make unit
+make docker-system-tests
 ```
 
 ### Developing Tests
@@ -21,27 +26,23 @@ make unit
 While developing new tests or troubleshooting test failures, it is handy to run tests from outside of docker, for
 example from within an editor, while still allowing all dependencies to run in containers.  To accomplish this:
 
-* Run `make build-image start-environment` to start docker containers for the Elastic Stack.
-* Run `PYTHON_EXE=python3 make python-env` to build a python virtualenv
-* Run `make apm-server.test` to (re)build the executable used to run the apm-server
-* Run tests using the `run-system-tests` target, eg:
- ```
- SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error make run-system-test
+* Run `docker-compose up -d` to start docker containers for the Elastic Stack.
+* Run tests with `make system-tests`, e.g.:
+
+```
+make system-tests SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error
 ```
 
 Elasticsearch diagnostics may be enabled by setting `DIAGNOSTIC_INTERVAL`.
 `DIAGNOSTIC_INTERVAL=1` will dump hot threads and task lists every second while tests are running
 to `build/system-tests/run/$test_name/diagnostics/`.
 
-## Coverage Report
-For insights about test-coverage, run `make coverage-report`. The test coverage is reported in the folder `./build/coverage/`
-
 ## Snapshot-Testing
 Some tests make use of the concept of _snapshot_ or _approvals testing_. If running tests leads to changed snapshots, you can use the `approvals` tool to update the snapshots.
 Following workflow is intended:
 * Run `make update` to create the `approvals` binary that supports reviewing changes.
-* Run `make unit` to create a `*.received.json` file for every newly created or changed snapshot.
-* Run `./approvals` to review and interactively accept the changes.
+* Run `make test`, which will create a `*.received.json` file for every newly created or changed snapshot.
+* Run `make check-approvals` to review and interactively accept the changes.
 
 ## Benchmarking
 
