@@ -14,13 +14,13 @@ it to `true`. The default value is `false`.
 ==== `certificate`
 
 The path to the file containing the certificate for Server authentication.
-Required if `apm-server.enabled` is `true`.
+Required if `apm-server.ssl.enabled` is `true`.
 
 [float]
 ==== `key`
 
 The path to the file containing the Server certificate key.
-Required if `apm-server.enabled` is `true`.
+Required if `apm-server.ssl.enabled` is `true`.
 
 [float]
 ==== `certificate_authorities`
