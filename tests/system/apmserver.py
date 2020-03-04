@@ -3,6 +3,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -13,8 +14,12 @@ from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import nottest
 import requests
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..',
-                             '..', '_beats', 'libbeat', 'tests', 'system'))
+# Add libbeat/tests/system to the import path.
+output = subprocess.check_output(["go", "list", "-m", "-f", "{{.Path}} {{.Dir}}", "all"]).decode("utf-8")
+beats_line = [line for line in output.splitlines() if line.startswith("github.com/elastic/beats/")][0]
+beats_dir = beats_line.split(" ", 2)[1]
+sys.path.append(os.path.join(beats_dir, 'libbeat', 'tests', 'system'))
+
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 from helper import wait_until
 from es_helper import cleanup, default_pipelines
