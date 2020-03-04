@@ -2,7 +2,7 @@
 @Library('apm@v1.0.6') _
 
 pipeline {
-  agent any
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR = "src/github.com/elastic/apm-server"
     NOTIFY_TO = credentials('notify-to')
@@ -33,7 +33,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout') {
-      agent { label 'linux && immutable' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
@@ -55,59 +54,9 @@ pipeline {
         }
       }
     }
-    /**
-    Updating generated files for Beat.
-    Checks the GO environment.
-    Checks the Python environment.
-    Checks YAML files are generated.
-    Validate that all updates were committed.
-    */
-    stage('Intake') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        expression { return params.intake_ci }
-      }
-      steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/intake.sh'
-        }
-      }
-    }
     stage('Build'){
       failFast true
       parallel {
-        /**
-        Build on a linux environment.
-        */
-        stage('linux build') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            expression { return params.linux_ci }
-          }
-          steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/build.sh'
-            }
-          }
-        }
         /**
         Build on a windows environment.
         */
@@ -132,41 +81,10 @@ pipeline {
       failFast true
       parallel {
         /**
-          Run unit tests and report junit results.
-        */
-        stage('Unit Test') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            expression { return params.test_ci }
-          }
-          steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/unit-test.sh'
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml")
-            }
-          }
-        }
-        /**
         Runs System and Environment Tests, then generate coverage and unit test reports.
         Finally archive the results.
         */
         stage('System and Environment Tests') {
-          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -224,185 +142,7 @@ pipeline {
             }
           }
         }
-        /**
-        Runs benchmarks on the current version and compare it with the previous ones.
-        Finally archive the results.
-        */
-        stage('Benchmarking') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              anyOf {
-                not {
-                  changeRequest()
-                }
-                branch 'master'
-                branch "\\d+\\.\\d+"
-                branch "v\\d?"
-                tag "v\\d+\\.\\d+\\.\\d+*"
-                expression { return params.Run_As_Master_Branch }
-              }
-              expression { return params.bench_ci }
-            }
-          }
-          steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/bench.sh'
-              sendBenchmarks(file: 'bench.out', index: "benchmark-server")
-            }
-          }
-        }
-        /**
-        updates beats updates the framework part and go parts of beats.
-        Then build and test.
-        Finally archive the results.
-        */
-        /*
-        stage('Update Beats') {
-            agent { label 'linux' }
-
-            steps {
-              ansiColor('xterm') {
-                  deleteDir()
-                  dir("${BASE_DIR}"){
-                    unstash 'source'
-                    sh """
-                    #!
-                    ./script/jenkins/update-beats.sh
-                    """
-                    archiveArtifacts allowEmptyArchive: true, artifacts: "${BASE_DIR}/build", onlyIfSuccessful: false
-                  }
-                }
-              }
-        }*/
       }
-    }
-    /**
-    Build the documentation and archive it.
-    Finally archive the results.
-    */
-    stage('Documentation') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            branch 'master'
-            expression { return params.Run_As_Master_Branch }
-          }
-          expression { return params.doc_ci }
-        }
-      }
-      steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh """#!/bin/bash
-          set -euxo pipefail
-          make docs
-          """
-        }
-      }
-      post{
-        success {
-          tar(file: "doc-files.tgz", archive: true, dir: "html_docs", pathPrefix: "${BASE_DIR}/build")
-        }
-      }
-    }
-    /**
-    Checks if kibana objects are updated.
-    */
-    stage('Check kibana Obj. Updated') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/sync.sh'
-        }
-      }
-    }
-    /**
-      build release packages.
-    */
-    stage('Release') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            not {
-              changeRequest()
-            }
-            branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
-            expression { return params.Run_As_Master_Branch }
-            expression { return env.BEATS_UPDATED != "0" }
-          }
-          expression { return params.releaser_ci }
-        }
-      }
-      steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/package.sh'
-        }
-      }
-      post {
-        success {
-          googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
-            credentialsId: "${JOB_GCS_CREDENTIALS}",
-            pathPrefix: "${BASE_DIR}/build/distributions/",
-            pattern: "${BASE_DIR}/build/distributions/**/*",
-            sharedPublicly: true,
-            showInline: true)
-        }
-      }
-    }
-  }
-  post {
-    success {
-      echoColor(text: '[SUCCESS]', colorfg: 'green', colorbg: 'default')
-    }
-    aborted {
-      echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
-    }
-    failure {
-      echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
-    }
-    unstable {
-      echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
     }
   }
 }
