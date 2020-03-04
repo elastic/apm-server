@@ -22,8 +22,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
 func TestCreateSchemaInvalidResource(t *testing.T) {
@@ -79,12 +77,3 @@ var validSchema = `{
   },
 	"required": ["name"]
 }`
-
-type Person struct {
-	Name string `json:"name"`
-	Age  int    `json:"age"`
-}
-
-func (p Person) Transform() []beat.Event {
-	return nil
-}
