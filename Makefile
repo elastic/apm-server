@@ -167,6 +167,7 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	go get -d -u $(BEATS_MODULE)@$(BEATS_VERSION)
+	rsync -crpv --delete $(shell go list -m -f {{.Dir}} $(BEATS_MODULE))/testing/environments testing/
 
 ##############################################################################
 # Kibana synchronisation.

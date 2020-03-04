@@ -108,16 +108,7 @@ Govendor will automatically pick the files needed.
 
 ### Beats Framework Update
 
-To update the beats framework run `make update-beats`. This will fetch the most recent version of beats from master and copy
-the files which are needed for the framework part to the `_beats` directory. These are files like libbeat config files and
-scripts which are used for testing or packaging.
-
-It is recommended to keep the version of the beats framework and libbeat in sync.
-To make an update of both, run:
-
-```
-make update-beats
-```
+To update the beats framework run `make update-beats`. This will update the Go module to the the most recent version of beats from the master branch.
 
 To update the dependency to a specific commit or branch run command as following:
 
@@ -127,13 +118,8 @@ BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
 ### Go-elasticsearch client Update
 
 It is important to keep the used [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync with the according major version.
-We also recommend to use the latest available client for minor versions.
-Since APM Server does not yet support go modules, you can update the dependency using govendor, e.g. by running:
-```
-git clone --branch v7.4.1 https://github.com/elastic/go-elasticsearch.git $GOPATH/src/github.com/elastic/go-elasticsearch/v7
-govendor add github.com/elastic/go-elasticsearch/v7/^
-mv ./vendor/github.com/elastic/go-elasticsearch/v7/LICENSE ./vendor/github.com/elastic/go-elasticsearch/
-```
+We also recommend to use the latest available client for minor versions. You can use
+`go get -u -m github.com/elastic/go-elasticsearch/v7@7.x` to update to the latest commit on the 7.x branch.
 
 ## Packaging
 

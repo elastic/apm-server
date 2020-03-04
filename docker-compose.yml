@@ -1,12 +1,14 @@
 version: '2.3'
 services:
   beat:
-    build: tests
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
     depends_on:
       - proxy_dep
     volumes:
-      - .:/go/src/github.com/elastic/apm-server/
-    working_dir: /go/src/github.com/elastic/apm-server
+      - .:/src/apm-server/
+    working_dir: /src/apm-server
     command: make
     environment:
       BEAT_STRICT_PERMS: "${BEAT_STRICT_PERMS:-false}"
@@ -33,7 +35,7 @@ services:
     ports:
       - 9200:9200
     extends:
-      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
+      file: ./testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
       service: elasticsearch
     environment:
       - "cluster.routing.allocation.disk.threshold_enabled=false"
@@ -55,7 +57,7 @@ services:
     ports:
       - 5601:5601
     extends:
-      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
+      file: ./testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
       service: kibana
     environment:
       STATUS_ALLOWANONYMOUS: "true"
