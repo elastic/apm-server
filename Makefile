@@ -114,11 +114,9 @@ go-generate:
 	@go generate
 
 notice: NOTICE.txt
-NOTICE.txt: $(PYTHON) vendor/vendor.json build/notice_overrides.json
-	@$(PYTHON) _beats/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server" --beats-origin build/notice_overrides.json
-build/notice_overrides.json: $(PYTHON) _beats/vendor/vendor.json
-	mkdir -p build
-	$(PYTHON) script/generate_notice_overrides.py -o $@
+NOTICE.txt: $(PYTHON) go.mod
+	@echo "Generating NOTICE"
+	@$(PYTHON) script/generate_notice.py -b "Elastic APM Server" -s "github.com/elastic/beats*"
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
@@ -263,8 +261,9 @@ $(REVIEWDOG): vendor/vendor.json
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
-$(PYTHON_BIN)/activate: _beats/libbeat/tests/system/requirements.txt $(MAGE)
+$(PYTHON_BIN)/activate: $(MAGE)
 	@$(MAGE) pythonEnv
+	@touch $@
 
 .PHONY: $(APPROVALS)
 $(APPROVALS):
