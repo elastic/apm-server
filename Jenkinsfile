@@ -58,12 +58,14 @@ pipeline {
             beforeAgent true
             expression { return params.windows_ci }
           }
+          environment {
+            PYTHON_EXE = 'C:\Python27\python.exe'
+          }
           steps {
             bat("set")
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              powershell(script: 'choco uninstall python3')
               powershell(script: '.\\script\\jenkins\\windows-build.ps1')
               powershell(script: '.\\script\\jenkins\\windows-test.ps1')
             }
