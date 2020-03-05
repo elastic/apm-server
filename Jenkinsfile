@@ -54,7 +54,9 @@ pipeline {
           agent { label 'windows-2019-immutable' }
           options { skipDefaultCheckout() }
           environment {
-            PATH = "C:\\Python27\\;C:\\Python27\\Scripts\\;${env.PATH}"
+            PYTHON2_PATH = "C:\\Python27"
+            PATH = "${env.PYTHON2_PATH};${env.PYTHON2_PATH}\\Scripts;${env.PATH}"
+            PYTHONPATH = "${env.PYTHON2_PATH}\\lib;${env.PYTHONPATH}"
           }
           when {
             beforeAgent true
@@ -81,7 +83,9 @@ pipeline {
           agent { label 'windows-2019-immutable' }
           options { skipDefaultCheckout() }
           environment {
-            PATH = "C:\\Python27\\;C:\\Python27\\Scripts\\;${env.PATH}"
+            PYTHON2_PATH = "C:\\Python27"
+            PATH = "${env.PYTHON2_PATH};${env.PYTHON2_PATH}\\Scripts;${env.PATH}"
+            PYTHONPATH = "${env.PYTHON2_PATH}\\lib;${env.PYTHONPATH}"
           }
           when {
             beforeAgent true
