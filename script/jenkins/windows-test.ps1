@@ -18,11 +18,6 @@ function Exec {
     }
 }
 
-# Setup python2.
-& py -2 -m pip install --user virtualenv
-& py -2 -m virtualenv venv-2
-& venv-2\Scripts\activate.bat
-
 # Setup Go.
 $env:GOPATH = $env:WORKSPACE
 $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"

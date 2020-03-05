@@ -63,6 +63,7 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
+              powershell(script: 'choco uninstall python3')
               powershell(script: '.\\script\\jenkins\\windows-build.ps1')
               powershell(script: '.\\script\\jenkins\\windows-test.ps1')
             }
