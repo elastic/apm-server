@@ -65,7 +65,7 @@ pipeline {
             expression { return params.windows_ci }
           }
           steps {
-            bat("env")
+            bat("set")
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
