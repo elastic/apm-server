@@ -73,6 +73,15 @@ pipeline {
               py -3 --version || echo ''
               '''
               powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+              bat script: '''
+              set
+              python --version || echo ''
+              where python.exe || echo ''
+              where python2.exe || echo ''
+              where python3.exe || echo ''
+              py -2 --version || echo ''
+              py -3 --version || echo ''
+              '''
               powershell(script: '.\\script\\jenkins\\windows-test.ps1')
             }
           }
