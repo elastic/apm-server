@@ -19,6 +19,7 @@ function Exec {
 }
 
 # Setup python2.
+& pip install virtualenv
 & py -2 -m virtualenv venv-2
 
 # Setup Go.
