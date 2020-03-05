@@ -104,9 +104,13 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
 
     def test_http_fails(self):
         with self.assertRaises(Exception):
-            return requests.post("http://localhost:8200/intake/v2/events",
-                                 headers={'content-type': 'application/x-ndjson'},
-                                 data=self.get_event_payload())
+            with requests.Session() as session:
+                try:
+                    return session.post("http://localhost:8200/intake/v2/events",
+                                        headers={'content-type': 'application/x-ndjson'},
+                                        data=self.get_event_payload())
+                finally:
+                    session.close()
 
 
 @integration_test
