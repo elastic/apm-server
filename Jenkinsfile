@@ -44,35 +44,6 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-    stage('Build'){
-      failFast true
-      parallel {
-        /**
-        Build on a windows environment.
-        */
-        stage('windows build') {
-          agent { label 'windows-2019-immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PYTHON2_PATH = "C:\\Python27"
-            PATH = "${env.PYTHON2_PATH};${env.PYTHON2_PATH}\\Scripts;${env.PATH}"
-            PYTHONPATH = "${env.PYTHON2_PATH}\\lib;${env.PYTHONPATH}"
-          }
-          when {
-            beforeAgent true
-            expression { return params.windows_ci }
-          }
-          steps {
-            bat("env")
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              powershell(script: '.\\script\\jenkins\\windows-build.ps1')
-            }
-          }
-        }
-      }
-    }
     stage('Test') {
       failFast true
       parallel {
@@ -85,8 +56,9 @@ pipeline {
           options { skipDefaultCheckout() }
           environment {
             PYTHON2_PATH = "C:\\Python27"
-            PATH = "${env.PYTHON2_PATH};${env.PYTHON2_PATH}\\Scripts;${env.PATH}"
-            PYTHONPATH = "${env.PYTHON2_PATH}\\lib;${env.PYTHONPATH}"
+            PYTHONHOME = "${env.PYTHON2_PATH}"
+            PATH = "${env.PYTHONHOME};${env.PYTHONHOME}\\Scripts;${env.PATH}"
+            PYTHONPATH = "${env.PYTHONHOME}\\lib"
           }
           when {
             beforeAgent true
@@ -97,6 +69,7 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
+              powershell(script: '.\\script\\jenkins\\windows-build.ps1')
               powershell(script: '.\\script\\jenkins\\windows-test.ps1')
             }
           }
