@@ -27,6 +27,13 @@ $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
 # each run starts from a clean slate.
 $env:MAGEFILE_CACHE = "$env:WORKSPACE\.magefile"
 
+# Setup Python.
+choco install2 python -y -r --no-progress --version 2.7.17
+refreshenv
+$env:PATH = "C:\Python27;C:\Python27\Scripts;$env:PATH"
+$env:PYTHON_ENV = "$env:TEMP\python-env"
+python --version
+
 # Configure testing parameters.
 $env:TEST_COVERAGE = "true"
 $env:RACE_DETECTOR = "true"
