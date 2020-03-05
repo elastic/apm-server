@@ -21,8 +21,7 @@ function Exec {
 # Setup python2.
 & py -2 -m pip install --user virtualenv
 & py -2 -m virtualenv venv-2
-& .\env\Scripts\activate
-& .../env/bin/python.exe
+& venv-2\Scripts\activate
 
 # Setup Go.
 $env:GOPATH = $env:WORKSPACE
