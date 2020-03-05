@@ -64,6 +64,7 @@ pipeline {
             unstash 'source'
             dir("${BASE_DIR}"){
               bat script: '''
+              set
               python --version || echo ''
               where python.exe || echo ''
               where python2.exe || echo ''
@@ -75,6 +76,7 @@ pipeline {
               powershell(script: 'choco uninstall python3')
               installTools([ [tool: 'python2', version: '2.7.17' ] ])
               bat script: '''
+              set
               python --version || echo ''
               where python.exe || echo ''
               where python2.exe || echo ''
