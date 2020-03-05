@@ -63,6 +63,7 @@ pipeline {
             expression { return params.windows_ci }
           }
           steps {
+            bat("env")
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
@@ -92,6 +93,7 @@ pipeline {
             expression { return params.windows_ci }
           }
           steps {
+            bat("env")
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
