@@ -33,6 +33,7 @@ refreshenv
 $env:PATH = "C:\Python27;C:\Python27\Scripts;$env:PATH"
 $env:PYTHON_ENV = "$env:TEMP\python-env"
 python --version
+pip install virtualenv
 
 # Configure testing parameters.
 $env:TEST_COVERAGE = "true"
