@@ -8,7 +8,7 @@ function Exec {
 
     try {
         $global:lastexitcode = 0
-        & $cmd
+        & $cmd 2>&1 | %{ "$_" }
         if ($lastexitcode -ne 0) {
             throw $errorMessage
         }
