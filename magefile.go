@@ -227,3 +227,8 @@ func prepareIngestPackaging() error {
 func DumpVariables() error {
 	return mage.DumpVariables()
 }
+
+// PythonUnitTest executes the python system tests.
+func PythonUnitTest() error {
+	return mage.PythonNoseTest(mage.DefaultPythonTestUnitArgs())
+}
