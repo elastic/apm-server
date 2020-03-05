@@ -33,6 +33,12 @@ example from within an editor, while still allowing all dependencies to run in c
 make system-tests SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error
 ```
 
+* Or run the dockerised version of the tests with `make docker-system-tests`, e.g.:
+
+```
+make docker-system-tests SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error
+```
+
 Elasticsearch diagnostics may be enabled by setting `DIAGNOSTIC_INTERVAL`.
 `DIAGNOSTIC_INTERVAL=1` will dump hot threads and task lists every second while tests are running
 to `build/system-tests/run/$test_name/diagnostics/`.
