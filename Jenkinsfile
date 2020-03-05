@@ -54,12 +54,6 @@ pipeline {
         stage('windows test') {
           agent { label 'windows-2019-immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PYTHON2_PATH = "C:\\Python27"
-            PYTHONHOME = "${env.PYTHON2_PATH}"
-            PATH = "${env.PYTHONHOME};${env.PYTHONHOME}\\Scripts;${env.PATH}"
-            PYTHONPATH = "${env.PYTHONHOME}\\lib"
-          }
           when {
             beforeAgent true
             expression { return params.windows_ci }

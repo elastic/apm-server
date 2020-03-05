@@ -18,6 +18,9 @@ function Exec {
     }
 }
 
+# Setup python2.
+& py -2 -m virtualenv venv-2
+
 # Setup Go.
 $env:GOPATH = $env:WORKSPACE
 $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
