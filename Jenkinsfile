@@ -59,7 +59,7 @@ pipeline {
             expression { return params.windows_ci }
           }
           environment {
-            PYTHON_EXE = 'C:\Python27\python.exe'
+            PYTHON_EXE = 'C:\\Python27\\python.exe'
           }
           steps {
             bat("set")
