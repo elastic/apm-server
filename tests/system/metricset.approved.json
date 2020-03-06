@@ -26,13 +26,13 @@
         },
         "observer": {
             "hostname": "x1",
-            "id": "25313d9a-83ff-4ada-bdbf-8c8e931381bd",
-            "ephemeral_id": "574a368a-cb6f-44dc-92ef-b032975083e0",
+            "id": "a7c0ce59-daf8-49ba-860f-ef1b52246c2b",
+            "ephemeral_id": "94e0ca6d-6394-4185-a101-98cb24aaf19b",
             "type": "apm-server",
-            "version": "8.0.0",
-            "version_major": 8
+            "version": "7.7.0",
+            "version_major": 7
         },
-        "@timestamp": "2020-03-03T13:27:56.234Z",
+        "@timestamp": "2017-05-30T18:53:41.364Z",
         "ecs": {
             "version": "1.4.0"
         },
@@ -44,9 +44,6 @@
             "language": {
                 "name": "ecmascript"
             }
-        },
-        "event": {
-            "ingested": "2020-03-03T13:05:05.077498Z"
         },
         "user": {
             "name": "logged-in-user",
@@ -113,9 +110,6 @@
         },
         "short_counter": 227,
         "float_gauge": 9.16,
-        "event": {
-            "ingested": "2020-03-03T13:03:45.940935Z"
-        },
         "dotted": {
             "float": {
                 "gauge": 6.12

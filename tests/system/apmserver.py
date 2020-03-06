@@ -285,7 +285,6 @@ class ElasticTest(ServerBaseTest):
         with open(data_path, file_mode) as f:
             r = requests.post(url, data=f, headers=headers)
         assert r.status_code == 202, r.status_code
-
         # Wait to give documents some time to be sent to the index
         self.wait_for_events(endpoint, expected_events_count, index=query_index, max_timeout=max_timeout)
 
@@ -371,7 +370,7 @@ class ElasticTest(ServerBaseTest):
         # The first tuple element exists to sort IDs before timestamps.
         def get_doc_id(doc):
             doc_type = doc['processor']['event']
-            if 'id' in doc[doc_type]:
+            if 'id' in doc.get(doc_type, {}):
                 return (0, doc[doc_type]['id'])
             return (1, doc['@timestamp'])
 
