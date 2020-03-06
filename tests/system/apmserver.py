@@ -135,7 +135,7 @@ class BaseTest(TestCase):
     def get_transaction_payload_path(self):
         return self.get_payload_path("transactions.ndjson")
 
-    def get_metricset_payload_payload_path(self):
+    def get_metricset_payload_path(self):
         return self.get_payload_path("metricsets.ndjson")
 
     def get_event_payload(self, name="events.ndjson"):
@@ -355,7 +355,6 @@ class ElasticTest(ServerBaseTest):
         base_path = self._beat_path_join(os.path.dirname(__file__), base_path)
         approved_path = base_path + '.approved.json'
         received_path = base_path + '.received.json'
-
         try:
             with open(approved_path) as f:
                 approved = json.load(f)
