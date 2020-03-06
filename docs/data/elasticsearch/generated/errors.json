@@ -3,6 +3,14 @@
         "container": {
             "id": "container-id"
         },
+        "observer": {
+            "ephemeral_id": "e48a9b6e-4abd-440e-b2da-1bfaa738051d",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "d1489414-7cce-4bb7-aacc-7ce48818de2f"
+        },
         "kubernetes": {
             "pod": {
                 "uid": "pod-uid",
@@ -10,34 +18,83 @@
             },
             "namespace": "namespace1"
         },
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
         "process": {
+            "ppid": 7788,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
-            "title": "node",
-            "ppid": 7788
+            "title": "node"
         },
-        "error": {
-            "log": {
-                "level": "custom log level",
-                "message": "Cannot read property 'baz' of undefined"
-            },
-            "id": "0f0e9d67c1854d21a6f44673ed561ec8",
-            "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb"
+        "timestamp": {
+            "us": 1494342245999000
         },
-        "processor": {
-            "name": "error",
-            "event": "error"
+        "@timestamp": "2017-05-09T15:04:05.999Z",
+        "event": {
+            "ingested": "2017-05-09T15:04:05.998Z"
         },
         "labels": {
             "tag1": "one",
             "tag2": 2
+        },
+        "agent": {
+            "version": "3.14.0",
+            "name": "elastic-node"
+        },
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
+        },
+        "service": {
+            "node": {
+                "name": "myservice-node"
+            },
+            "name": "1234_service-12a3",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
+            "environment": "staging",
+            "framework": {
+                "version": "1.2.3",
+                "name": "Express"
+            },
+            "version": "5.1.3",
+            "runtime": {
+                "version": "8.0.0",
+                "name": "node"
+            }
+        },
+        "ecs": {
+            "version": "1.4.0"
+        },
+        "error": {
+            "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+            "log": {
+                "message": "Cannot read property 'baz' of undefined",
+                "level": "custom log level"
+            },
+            "id": "0f0e9d67c1854d21a6f44673ed561ec8"
+        },
+        "processor": {
+            "name": "error",
+            "event": "error"
+        }
+    },
+    {
+        "user_agent": {
+            "device": {
+                "name": "Other"
+            },
+            "original": "Mozilla Chrome Edge",
+            "name": "Other"
+        },
+        "container": {
+            "id": "container-id"
         },
         "observer": {
             "ephemeral_id": "e48a9b6e-4abd-440e-b2da-1bfaa738051d",
@@ -47,48 +104,6 @@
             "type": "apm-server",
             "id": "d1489414-7cce-4bb7-aacc-7ce48818de2f"
         },
-        "@timestamp": "2017-05-09T15:04:05.999Z",
-        "ecs": {
-            "version": "1.4.0"
-        },
-        "service": {
-            "node": {
-                "name": "myservice-node"
-            },
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "name": "1234_service-12a3",
-            "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
-        },
-        "host": {
-            "os": {
-                "platform": "darwin"
-            },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
-        },
-        "event": {
-            "ingested": "2017-05-09T15:04:05.998Z"
-        },
-        "timestamp": {
-            "us": 1494342245999000
-        }
-    },
-    {
-        "container": {
-            "id": "container-id"
-        },
         "kubernetes": {
             "pod": {
                 "uid": "pod-uid",
@@ -97,38 +112,98 @@
             "namespace": "namespace1"
         },
         "process": {
+            "ppid": 7788,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
-            "title": "node",
-            "ppid": 7788
+            "title": "node"
+        },
+        "timestamp": {
+            "us": 1494342245999999
+        },
+        "@timestamp": "2017-05-09T15:04:05.999Z",
+        "event": {
+            "ingested": "2017-05-09T15:04:05.998Z"
+        },
+        "labels": {
+            "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+            "tag1": "one",
+            "tag2": 2
         },
         "agent": {
-            "name": "python",
-            "version": "4.3"
+            "version": "4.3",
+            "name": "python"
+        },
+        "client": {
+            "ip": "8.8.8.8",
+            "geo": {
+                "continent_name": "North America",
+                "country_iso_code": "US",
+                "location": {
+                    "lat": 37.751,
+                    "lon": -97.822
+                }
+            }
         },
         "source": {
             "ip": "8.8.8.8"
         },
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
+        },
+        "service": {
+            "node": {
+                "name": "myservice-xz"
+            },
+            "name": "abc",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
+            "environment": "staging",
+            "framework": {
+                "version": "1.2.3",
+                "name": "Express"
+            },
+            "version": "5.1.3",
+            "runtime": {
+                "version": "1.2",
+                "name": "node"
+            }
+        },
+        "ecs": {
+            "version": "1.4.0"
+        },
+        "url": {
+            "domain": "www.example.com",
+            "full": "https://www.example.com/p/a/t/h?query=string#hash",
+            "fragment": "#hash",
+            "port": 8080,
+            "query": "?query=string",
+            "path": "/p/a/t/h",
+            "scheme": "https",
+            "original": "/p/a/t/h?query=string#hash"
+        },
         "error": {
             "exception": [
                 {
-                    "code": "42",
                     "stacktrace": [
                         {
-                            "exclude_from_grouping": false,
-                            "library_frame": true,
+                            "function": "foo",
                             "abs_path": "/real/file/name.py",
-                            "filename": "file/name.py",
-                            "line": {
-                                "number": 3,
-                                "column": 4,
-                                "context": "line3"
+                            "library_frame": true,
+                            "vars": {
+                                "key": "value"
                             },
                             "module": "App::MyModule",
-                            "function": "foo",
+                            "filename": "file/name.py",
+                            "exclude_from_grouping": false,
                             "context": {
                                 "pre": [
                                     "line1",
@@ -139,19 +214,20 @@
                                     "line5"
                                 ]
                             },
-                            "vars": {
-                                "key": "value"
+                            "line": {
+                                "column": 4,
+                                "number": 3,
+                                "context": "line3"
                             }
                         },
                         {
+                            "function": "instrumented",
+                            "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
+                            "vars": {
+                                "key": "value"
+                            },
                             "exclude_from_grouping": false,
                             "filename": "lib/instrumentation/index.js",
-                            "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
-                            "line": {
-                                "number": 102,
-                                "context": "    var result = original.apply(this, arguments)"
-                            },
-                            "function": "instrumented",
                             "context": {
                                 "pre": [
                                     "  var trans = this.currentTransaction",
@@ -172,35 +248,34 @@
                                     "  if (this.currentTransaction === trans) return"
                                 ]
                             },
-                            "vars": {
-                                "key": "value"
+                            "line": {
+                                "number": 102,
+                                "context": "    var result = original.apply(this, arguments)"
                             }
                         }
                     ],
-                    "module": "__builtins__",
+                    "code": "42",
                     "handled": false,
+                    "module": "__builtins__",
                     "attributes": {
                         "foo": "bar"
                     },
-                    "type": "DbError",
-                    "message": "The username root is unknown"
+                    "message": "The username root is unknown",
+                    "type": "DbError"
                 }
             ],
-            "culprit": "my.module.function_name",
             "log": {
                 "stacktrace": [
                     {
-                        "library_frame": false,
-                        "exclude_from_grouping": false,
+                        "function": "foo",
                         "abs_path": "/real/file/name.py",
-                        "filename": "/webpack/file/name.py",
-                        "line": {
-                            "number": 3,
-                            "column": 4,
-                            "context": "line3"
+                        "library_frame": false,
+                        "vars": {
+                            "key": "value"
                         },
                         "module": "App::MyModule",
-                        "function": "foo",
+                        "filename": "/webpack/file/name.py",
+                        "exclude_from_grouping": false,
                         "context": {
                             "pre": [
                                 "line1",
@@ -211,19 +286,20 @@
                                 "line5"
                             ]
                         },
-                        "vars": {
-                            "key": "value"
+                        "line": {
+                            "column": 4,
+                            "number": 3,
+                            "context": "line3"
                         }
                     },
                     {
+                        "function": "instrumented",
+                        "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
+                        "vars": {
+                            "key": "value"
+                        },
                         "exclude_from_grouping": false,
                         "filename": "lib/instrumentation/index.js",
-                        "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
-                        "line": {
-                            "number": 102,
-                            "context": "    var result = original.apply(this, arguments)"
-                        },
-                        "function": "instrumented",
                         "context": {
                             "pre": [
                                 "  var trans = this.currentTransaction",
@@ -244,15 +320,22 @@
                                 "  if (this.currentTransaction === trans) return"
                             ]
                         },
-                        "vars": {
-                            "key": "value"
+                        "line": {
+                            "number": 102,
+                            "context": "    var result = original.apply(this, arguments)"
                         }
                     }
                 ],
-                "level": "warning",
-                "logger_name": "my.logger.name",
                 "message": "My service could not talk to the database named foobar",
-                "param_message": "My service could not talk to the database named %s"
+                "logger_name": "my.logger.name",
+                "param_message": "My service could not talk to the database named %s",
+                "level": "warning"
+            },
+            "culprit": "my.module.function_name",
+            "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
+            "page": {
+                "url": "http://localhost:8000/test/e2e/general-usecase/",
+                "referer": "http://localhost:8000/test/e2e/"
             },
             "custom": {
                 "and_objects": {
@@ -264,85 +347,29 @@
                 "my_key": 1,
                 "some_other_value": "foo bar"
             },
-            "page": {
-                "referer": "http://localhost:8000/test/e2e/",
-                "url": "http://localhost:8000/test/e2e/general-usecase/"
-            },
-            "id": "5f0e9d64c1854d21a6f44673ed561ec8",
-            "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46"
-        },
-        "processor": {
-            "name": "error",
-            "event": "error"
-        },
-        "url": {
-            "path": "/p/a/t/h",
-            "fragment": "#hash",
-            "original": "/p/a/t/h?query=string#hash",
-            "scheme": "https",
-            "port": 8080,
-            "query": "?query=string",
-            "domain": "www.example.com",
-            "full": "https://www.example.com/p/a/t/h?query=string#hash"
-        },
-        "labels": {
-            "tag1": "one",
-            "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-            "tag2": 2
-        },
-        "observer": {
-            "ephemeral_id": "e48a9b6e-4abd-440e-b2da-1bfaa738051d",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "d1489414-7cce-4bb7-aacc-7ce48818de2f"
-        },
-        "@timestamp": "2017-05-09T15:04:05.999Z",
-        "ecs": {
-            "version": "1.4.0"
-        },
-        "service": {
-            "node": {
-                "name": "myservice-xz"
-            },
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "name": "abc",
-            "runtime": {
-                "name": "node",
-                "version": "1.2"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
-        },
-        "host": {
-            "os": {
-                "platform": "darwin"
-            },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
-        },
-        "client": {
-            "geo": {
-                "continent_name": "North America",
-                "country_iso_code": "US",
-                "location": {
-                    "lon": -97.822,
-                    "lat": 37.751
-                }
-            },
-            "ip": "8.8.8.8"
+            "id": "5f0e9d64c1854d21a6f44673ed561ec8"
         },
         "http": {
+            "version": "1.1",
             "request": {
+                "body": {
+                    "original": "Hello World"
+                },
+                "cookies": {
+                    "c2": "v2",
+                    "c1": "v1"
+                },
+                "socket": {
+                    "encrypted": true,
+                    "remote_address": "8.8.8.8"
+                },
                 "headers": {
+                    "Some-Other-Header": [
+                        "foo"
+                    ],
+                    "Content-Type": [
+                        "text/html"
+                    ],
                     "Array": [
                         "foo",
                         "bar",
@@ -353,30 +380,13 @@
                     ],
                     "User-Agent": [
                         "Mozilla Chrome Edge"
-                    ],
-                    "Some-Other-Header": [
-                        "foo"
-                    ],
-                    "Content-Type": [
-                        "text/html"
                     ]
                 },
-                "method": "post",
-                "socket": {
-                    "encrypted": true,
-                    "remote_address": "8.8.8.8"
-                },
                 "env": {
-                    "GATEWAY_INTERFACE": "CGI/1.1",
-                    "SERVER_SOFTWARE": "nginx"
+                    "SERVER_SOFTWARE": "nginx",
+                    "GATEWAY_INTERFACE": "CGI/1.1"
                 },
-                "body": {
-                    "original": "Hello World"
-                },
-                "cookies": {
-                    "c1": "v1",
-                    "c2": "v2"
-                }
+                "method": "post"
             },
             "response": {
                 "headers": {
@@ -384,34 +394,32 @@
                         "application/json"
                     ]
                 },
-                "status_code": 200,
                 "finished": true,
-                "headers_sent": true
-            },
-            "version": "1.1"
-        },
-        "event": {
-            "ingested": "2017-05-09T15:04:05.998Z"
-        },
-        "user": {
-            "name": "foo",
-            "id": "99",
-            "email": "foo@example.com"
-        },
-        "user_agent": {
-            "original": "Mozilla Chrome Edge",
-            "name": "Other",
-            "device": {
-                "name": "Other"
+                "headers_sent": true,
+                "status_code": 200
             }
         },
-        "timestamp": {
-            "us": 1494342245999999
+        "processor": {
+            "name": "error",
+            "event": "error"
+        },
+        "user": {
+            "email": "foo@example.com",
+            "name": "foo",
+            "id": "99"
         }
     },
     {
         "container": {
             "id": "container-id"
+        },
+        "observer": {
+            "ephemeral_id": "e48a9b6e-4abd-440e-b2da-1bfaa738051d",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "d1489414-7cce-4bb7-aacc-7ce48818de2f"
         },
         "kubernetes": {
             "pod": {
@@ -421,17 +429,58 @@
             "namespace": "namespace1"
         },
         "process": {
+            "ppid": 7788,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
-            "title": "node",
-            "ppid": 7788
+            "title": "node"
+        },
+        "timestamp": {
+            "us": 1494342245000000
+        },
+        "@timestamp": "2017-05-09T15:04:05.000Z",
+        "event": {
+            "ingested": "2017-05-09T15:04:05.001Z"
+        },
+        "labels": {
+            "tag1": "one",
+            "tag2": 2
         },
         "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
+            "version": "3.14.0",
+            "name": "elastic-node"
+        },
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
+        },
+        "service": {
+            "node": {
+                "name": "myservice-node"
+            },
+            "name": "1234_service-12a3",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
+            "environment": "staging",
+            "framework": {
+                "version": "1.2.3",
+                "name": "Express"
+            },
+            "version": "5.1.3",
+            "runtime": {
+                "version": "8.0.0",
+                "name": "node"
+            }
+        },
+        "ecs": {
+            "version": "1.4.0"
         },
         "error": {
             "exception": [
@@ -439,16 +488,17 @@
                     "type": "connection error"
                 }
             ],
-            "id": "7f0e9d68c1854d21a6f44673ed561ec8",
-            "grouping_key": "18f82051862e494727fa20e0adc15711"
+            "grouping_key": "18f82051862e494727fa20e0adc15711",
+            "id": "7f0e9d68c1854d21a6f44673ed561ec8"
         },
         "processor": {
             "name": "error",
             "event": "error"
-        },
-        "labels": {
-            "tag1": "one",
-            "tag2": 2
+        }
+    },
+    {
+        "container": {
+            "id": "container-id"
         },
         "observer": {
             "ephemeral_id": "e48a9b6e-4abd-440e-b2da-1bfaa738051d",
@@ -457,48 +507,6 @@
             "version": "8.0.0",
             "type": "apm-server",
             "id": "d1489414-7cce-4bb7-aacc-7ce48818de2f"
-        },
-        "@timestamp": "2017-05-09T15:04:05.000Z",
-        "ecs": {
-            "version": "1.4.0"
-        },
-        "service": {
-            "node": {
-                "name": "myservice-node"
-            },
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "name": "1234_service-12a3",
-            "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
-        },
-        "host": {
-            "os": {
-                "platform": "darwin"
-            },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
-        },
-        "event": {
-            "ingested": "2017-05-09T15:04:05.001Z"
-        },
-        "timestamp": {
-            "us": 1494342245000000
-        }
-    },
-    {
-        "container": {
-            "id": "container-id"
         },
         "kubernetes": {
             "pod": {
@@ -507,81 +515,73 @@
             },
             "namespace": "namespace1"
         },
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
         "process": {
+            "ppid": 7788,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
-            "title": "node",
-            "ppid": 7788
+            "title": "node"
         },
-        "error": {
-            "exception": [
-                {
-                    "code": "35",
-                    "message": "foo is not defined"
-                }
-            ],
-            "id": "8f0e9d68c1854d21a6f44673ed561ec8",
-            "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11"
+        "timestamp": {
+            "us": 1494342245000000
         },
-        "processor": {
-            "name": "error",
-            "event": "error"
+        "@timestamp": "2017-05-09T15:04:05.000Z",
+        "event": {
+            "ingested": "2017-05-09T15:04:05.001Z"
         },
         "labels": {
             "tag1": "one",
             "tag2": 2
         },
-        "observer": {
-            "ephemeral_id": "e48a9b6e-4abd-440e-b2da-1bfaa738051d",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "d1489414-7cce-4bb7-aacc-7ce48818de2f"
+        "agent": {
+            "version": "3.14.0",
+            "name": "elastic-node"
         },
-        "@timestamp": "2017-05-09T15:04:05.000Z",
-        "ecs": {
-            "version": "1.4.0"
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
         },
         "service": {
             "node": {
                 "name": "myservice-node"
             },
+            "name": "1234_service-12a3",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
             "environment": "staging",
             "framework": {
-                "name": "Express",
-                "version": "1.2.3"
+                "version": "1.2.3",
+                "name": "Express"
             },
-            "name": "1234_service-12a3",
+            "version": "5.1.3",
             "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
+                "version": "8.0.0",
+                "name": "node"
+            }
         },
-        "host": {
-            "os": {
-                "platform": "darwin"
-            },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
+        "ecs": {
+            "version": "1.4.0"
         },
-        "event": {
-            "ingested": "2017-05-09T15:04:05.001Z"
+        "error": {
+            "exception": [
+                {
+                    "message": "foo is not defined",
+                    "code": "35"
+                }
+            ],
+            "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
+            "id": "8f0e9d68c1854d21a6f44673ed561ec8"
         },
-        "timestamp": {
-            "us": 1494342245000000
+        "processor": {
+            "name": "error",
+            "event": "error"
         }
     }
 ]

@@ -132,7 +132,7 @@ endif
 ##############################################################################
 
 .PHONY: docs
-docs:
+docs: copy-docs
 	@rm -rf build/html_docs
 	sh script/build_apm_docs.sh apm-server docs/index.asciidoc build
 

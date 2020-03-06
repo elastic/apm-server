@@ -96,6 +96,7 @@ class Test(ElasticTest):
         metricset_docs = self.wait_for_events('metric', 2, index=index_metric)
         self.approve_docs('metricset', metricset_docs)
 
+
 @integration_test
 class EnrichEventIntegrationTest(ClientSideElasticTest):
     def test_backend_error(self):

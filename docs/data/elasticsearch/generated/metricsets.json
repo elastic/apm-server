@@ -1,11 +1,11 @@
 [
     {
-        "process": {
-            "pid": 1234
-        },
         "agent": {
             "name": "elastic-node",
             "version": "3.14.0"
+        },
+        "process": {
+            "pid": 1234
         },
         "go": {
             "memstats": {
@@ -32,7 +32,7 @@
             "version": "8.0.0",
             "version_major": 8
         },
-        "@timestamp": "2020-03-03T13:22:27.145Z",
+        "@timestamp": "2020-03-03T13:27:56.234Z",
         "ecs": {
             "version": "1.4.0"
         },
@@ -55,6 +55,7 @@
         }
     },
     {
+        "byte_counter": 1,
         "process": {
             "pid": 1234
         },
@@ -62,7 +63,6 @@
             "name": "elastic-node",
             "version": "3.14.0"
         },
-        "byte_counter": 1,
         "processor": {
             "name": "metric",
             "event": "metric"
@@ -74,8 +74,8 @@
             "success": true,
             "tag2": 2
         },
-        "double_gauge": 3.141592653589793,
         "integer_gauge": 42767,
+        "double_gauge": 3.141592653589793,
         "observer": {
             "hostname": "x1",
             "id": "a00b6162-de73-41c8-a75a-00a28c3ecf7d",
@@ -111,8 +111,8 @@
                 "name": "ecmascript"
             }
         },
-        "float_gauge": 9.16,
         "short_counter": 227,
+        "float_gauge": 9.16,
         "event": {
             "ingested": "2020-03-03T13:03:45.940935Z"
         },

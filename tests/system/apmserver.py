@@ -371,8 +371,6 @@ class ElasticTest(ServerBaseTest):
         # The first tuple element exists to sort IDs before timestamps.
         def get_doc_id(doc):
             doc_type = doc['processor']['event']
-            if doc_type == 'metric':
-                return len(doc)
             if 'id' in doc[doc_type]:
                 return (0, doc[doc_type]['id'])
             return (1, doc['@timestamp'])
@@ -402,8 +400,6 @@ class ElasticTest(ServerBaseTest):
                         # as they are dependent on the environment.
                         if 'event' in rec:
                             rec['event'] = appr['event']
-                        if rec["processor"]["name"] == "metric":
-                            rec['@timestamp'] = appr['@timestamp']
                         break
             assert len(received) == len(approved)
             for i, rec in enumerate(received):
