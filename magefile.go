@@ -50,6 +50,7 @@ func init() {
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
 	mage.UseVendor = false
+	mage.CrossBuildMountModcache = true
 }
 
 // Build builds the Beat binary.

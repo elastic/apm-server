@@ -230,6 +230,8 @@ github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200304020317-1fc1cb97090d h1:zHotE
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200304020317-1fc1cb97090d/go.mod h1:5umFFi6KGcItk/YlvuvNZ9P6mnrQ4nMvbqK8ebUTHFc=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200305204646-9718fa246a26 h1:5eBqAzQv4n0uYWnKT3QCzLZMltHtetGVPhVkDj9wuwc=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200305204646-9718fa246a26/go.mod h1:gqyHy9MhZDNKUQQzYW3FA20TkU8GOQZVZnDOZcPhD+w=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200306124118-bbf9d6697f4a h1:NutfEt7niKja2x1T/H9/RXdn/MCuCIdUgRjHgj5gCtw=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200306124118-bbf9d6697f4a/go.mod h1:gqyHy9MhZDNKUQQzYW3FA20TkU8GOQZVZnDOZcPhD+w=
 github.com/elastic/ecs v1.4.0 h1:BGIUwWJhThRO2IQxzm7ekV9TMUGwZoYyevT5/1xmMf0=
 github.com/elastic/ecs v1.4.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270/go.mod h1:Msl1pdboCbArMF/nSCDUXgQuWTeoMmE/z8607X+k7ng=

@@ -8,10 +8,10 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
-	github.com/dop251/goja v0.0.0-20200302213548-ebfbf88ae3f7 // indirect
+	github.com/dop251/goja v0.0.0-20200306114808-3d3261579167 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200128125109-2d688c7e0ac4 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200305204646-9718fa246a26
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200306124118-bbf9d6697f4a
 	github.com/elastic/go-elasticsearch/v7 v7.5.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
 	github.com/elastic/go-licenser v0.2.1
