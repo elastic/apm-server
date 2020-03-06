@@ -80,7 +80,7 @@ system-tests: $(PYTHON_BIN) apm-server.test
 .PHONY: docker-system-tests
 docker-system-tests: docker-compose.override.yml
 	docker-compose build
-	docker-compose run --rm -T beat make system-tests
+	SYSTEM_TEST_TARGET=$(SYSTEM_TEST_TARGET) docker-compose run --rm -T beat make system-tests
 
 # docker-compose.override.yml holds overrides for docker-compose.yml.
 #
