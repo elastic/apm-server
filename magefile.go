@@ -347,3 +347,8 @@ func Check() error {
 func Fmt() {
 	mg.Deps(mage.Format)
 }
+
+// PythonUnitTest executes the python system tests.
+func PythonUnitTest() error {
+	return mage.PythonNoseTest(mage.DefaultPythonTestUnitArgs())
+}
