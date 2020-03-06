@@ -4,15 +4,16 @@
 pipeline {
   agent { label 'linux && immutable' }
   environment {
-    BASE_DIR = "src/github.com/elastic/apm-server"
+    REPO = 'apm-server'
+    BASE_DIR = "src/github.com/elastic/${env.REPO}"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
-    DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     GITHUB_CHECK_ITS_NAME = 'APM Integration Tests'
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
+    ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -25,7 +26,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -35,11 +36,12 @@ pipeline {
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
-    booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
     string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
+    string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
+
   }
   stages {
     /**
@@ -101,10 +103,12 @@ pipeline {
         }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/intake.sh'
+        withGithubNotify(context: 'Intake') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh(label: 'Run intake', script: './script/jenkins/intake.sh')
+          }
         }
       }
     }
@@ -128,8 +132,11 @@ pipeline {
               deleteDir()
               unstash 'source'
               golang(){
-                dir("${BASE_DIR}"){
-                  sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                dir(BASE_DIR){
+                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                    sleep randomNumber(min: 5, max: 10)
+                    sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                  }
                 }
               }
             }
@@ -191,17 +198,25 @@ pipeline {
             }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/unit-test.sh'
+            withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
+              }
             }
           }
           post {
             always {
+              coverageReport("${BASE_DIR}/build/coverage")
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml")
+                testResults: "${BASE_DIR}/build/junit-*.xml"
+              )
+              catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
+                tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
+              }
+              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -225,10 +240,12 @@ pipeline {
             }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/linux-test.sh'
+            withGithubNotify(context: 'System Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
+              }
             }
           }
           post {
@@ -245,7 +262,6 @@ pipeline {
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                 tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               }
-              codecov(repo: 'apm-server', basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -256,11 +272,6 @@ pipeline {
         stage('Benchmarking') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
           when {
             beforeAgent true
             allOf {
@@ -276,12 +287,14 @@ pipeline {
             }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            golang(){
-              dir("${BASE_DIR}"){
-                sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
-                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+            withGithubNotify(context: 'Benchmarking') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                  sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+                }
               }
             }
           }
@@ -292,6 +305,11 @@ pipeline {
         stage('Check kibana Obj. Updated') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+          }
           when {
             beforeAgent true
             allOf {
@@ -356,7 +374,7 @@ pipeline {
             branch pattern: 'v\\d?', comparator: 'REGEXP'
             tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
             expression { return params.Run_As_Master_Branch }
-            expression { return env.BEATS_UPDATED != "0" }
+            expression { return env.BEATS_UPDATED != "false" }
           }
           expression { return params.release_ci }
           expression { return env.ONLY_DOCS == "false" }
