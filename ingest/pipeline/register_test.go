@@ -27,11 +27,11 @@ import (
 
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/v7/libbeat/common"
-	es "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 )
 
 func TestRegisterPipelines(t *testing.T) {
-	esClients, err := es.NewElasticsearchClients(getFakeESConfig(9200))
+	esClients, err := eslegclient.NewClients(getFakeESConfig(9200))
 	require.NoError(t, err)
 	esClient := &esClients[0]
 	path, err := loader.FindFile("..", "ingest", "pipeline", "definition.json")
@@ -49,7 +49,7 @@ func TestRegisterPipelines(t *testing.T) {
 	assert.NoError(t, err)
 
 	// invalid esClient
-	invalidClients, err := es.NewElasticsearchClients(getFakeESConfig(1234))
+	invalidClients, err := eslegclient.NewClients(getFakeESConfig(1234))
 	require.NoError(t, err)
 	err = RegisterPipelines(&invalidClients[0], true, path)
 	assert.Error(t, err)

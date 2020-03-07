@@ -23,12 +23,12 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 
+	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/logp"
-	es "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/paths"
 )
 
-func RegisterPipelines(esClient *es.Client, overwrite bool, path string) error {
+func RegisterPipelines(conn *eslegclient.Connection, overwrite bool, path string) error {
 	logger := logp.NewLogger(logs.Pipelines)
 	pipelines, err := loadPipelinesFromJSON(path)
 	if err != nil {
@@ -37,13 +37,13 @@ func RegisterPipelines(esClient *es.Client, overwrite bool, path string) error {
 	var exists bool
 	for _, p := range pipelines {
 		if !overwrite {
-			exists, err = esClient.Connection.PipelineExists(p.Id)
+			exists, err = conn.PipelineExists(p.Id)
 			if err != nil {
 				return err
 			}
 		}
 		if overwrite || !exists {
-			_, _, err := esClient.Connection.CreatePipeline(p.Id, nil, p.Body)
+			_, _, err := conn.CreatePipeline(p.Id, nil, p.Body)
 			if err != nil {
 				logger.Errorf("Pipeline registration failed for %s.", p.Id)
 				return err
