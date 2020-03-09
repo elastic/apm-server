@@ -374,8 +374,3 @@ func PythonEnv() error {
 func PythonAutopep8() error {
 	return mage.PythonAutopep8()
 }
-
-// PythonUnitTest executes the python system tests.
-func PythonUnitTest() error {
-	return mage.PythonNoseTest(mage.DefaultPythonTestUnitArgs())
-}
