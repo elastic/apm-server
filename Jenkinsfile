@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.6') _
+@Library('apm@current') _
 
 pipeline {
   agent any
