@@ -558,12 +558,6 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-<<<<<<< HEAD
-=======
-            "destination": {
-                "address": "0:0::0:1",
-                "ip": "0:0::0:1"
-            },
             "container": {
                 "id": "container-id"
             },
@@ -586,7 +580,6 @@
                     "uid": "pod-uid"
                 }
             },
->>>>>>> d5a0c465... Add a pipeline definition to remove spans fields.
             "labels": {
                 "tag1": "label1"
             },
