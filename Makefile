@@ -141,7 +141,7 @@ update-beats-docs: $(PYTHON)
 	@$(PYTHON) script/copy-docs.py
 
 .PHONY: copy-docs
-copy-docs: 
+copy-docs:
 	@mkdir -p docs/data/intake-api/generated/sourcemap
 	@cp testdata/intake-v2/events.ndjson docs/data/intake-api/generated/
 	@cp testdata/intake-v3/rum_events.ndjson docs/data/intake-api/generated/rum_v3_events.ndjson

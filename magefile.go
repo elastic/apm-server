@@ -201,7 +201,7 @@ func TestPackagesInstall() error {
 	args = append(args, "-tags=package")
 
 	if out, err := goTest(args...); err != nil {
-		if !mg.Verbose() {
+		if mg.Verbose() {
 			fmt.Println(out)
 		}
 		return err
@@ -373,4 +373,9 @@ func PythonEnv() error {
 // PythonAutopep8 executes autopep8 on all .py files.
 func PythonAutopep8() error {
 	return mage.PythonAutopep8()
+}
+
+// PythonUnitTest executes the python system tests.
+func PythonUnitTest() error {
+	return mage.PythonNoseTest(mage.DefaultPythonTestUnitArgs())
 }
