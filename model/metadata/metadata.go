@@ -97,14 +97,6 @@ func (m *Metadata) Set(fields common.MapStr) common.MapStr {
 	return fields
 }
 
-func (m *Metadata) SetMinimal(fields common.MapStr) common.MapStr {
-	utility.Set(fields, "agent", m.Service.AgentFields())
-	utility.Set(fields, "service", m.Service.MinimalFields())
-	// to be merged with specific event labels, these should be overwritten in case of conflict
-	utility.Set(fields, "labels", m.Labels)
-	return fields
-}
-
 func get(m common.MapStr, key string) string {
 	if val, ok := m[key].(string); ok {
 		return val

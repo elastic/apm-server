@@ -44,6 +44,9 @@
                 "name": "transaction"
             },
             "service": {
+                "language": {
+                    "name": "unknown"
+                },
                 "name": "unknown"
             },
             "span": {
