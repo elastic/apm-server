@@ -8,7 +8,7 @@ function Exec {
 
     try {
         $global:lastexitcode = 0
-        & $cmd
+        & $cmd 2>&1 | %{ "$_" }
         if ($lastexitcode -ne 0) {
             throw $errorMessage
         }
@@ -26,6 +26,13 @@ $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
 # Write cached magefile binaries to workspace to ensure
 # each run starts from a clean slate.
 $env:MAGEFILE_CACHE = "$env:WORKSPACE\.magefile"
+
+# Setup Python.
+exec { choco install python2 -y -r --no-progress --version 2.7.17 }
+refreshenv
+$env:PATH = "C:\Python27;C:\Python27\Scripts;$env:PATH"
+$env:PYTHON_ENV = "$env:TEMP\python-env"
+exec { python --version }
 
 # Configure testing parameters.
 $env:TEST_COVERAGE = "true"

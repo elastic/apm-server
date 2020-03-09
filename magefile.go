@@ -200,7 +200,7 @@ func TestPackagesInstall() error {
 	args = append(args, "-tags=package")
 
 	if out, err := goTest(args...); err != nil {
-		if !mg.Verbose() {
+		if mg.Verbose() {
 			fmt.Println(out)
 		}
 		return err
@@ -346,4 +346,9 @@ func Check() error {
 
 func Fmt() {
 	mg.Deps(mage.Format)
+}
+
+// PythonUnitTest executes the python system tests.
+func PythonUnitTest() error {
+	return mage.PythonNoseTest(mage.DefaultPythonTestUnitArgs())
 }
