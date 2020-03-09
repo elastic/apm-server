@@ -40,5 +40,5 @@ The chart below outlines the compatibility between different versions of the APM
 .3+|**JavaScript RUM Agent**
 |`0.x` |`6.3`-`6.4`
 |`1.x` |`6.4`
-|`2.x`, `3.x`, `4.x` |>= `6.5`
+|`2.x`, `3.x`, `4.x`, `5.x` |>= `6.5`
 |====
