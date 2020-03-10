@@ -1,8 +1,12 @@
 [[configuring-howto-apm-server]]
-= Configuring APM Server
+= Configure APM Server
 
 [partintro]
 --
+++++
+<titleabbrev>Configure</titleabbrev>
+++++
+
 include::{libbeat-dir}/shared-configuring.asciidoc[]
 
 * <<configuration-process>>

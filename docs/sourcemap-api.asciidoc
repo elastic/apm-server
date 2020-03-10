@@ -1,5 +1,9 @@
 [[sourcemap-api]]
-== Sourcemap Upload API
+== Sourcemap upload API
+
+++++
+<titleabbrev>Sourcemap upload</titleabbrev>
+++++
 
 IMPORTANT: You must <<configuration-rum,enable RUM support>> in the APM Server for this endpoint to work.
 

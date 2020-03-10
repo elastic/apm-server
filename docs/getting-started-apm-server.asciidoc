@@ -1,5 +1,9 @@
 [[getting-started-apm-server]]
-== Getting Started With APM Server
+== Getting started with APM Server
+
+++++
+<titleabbrev>Get started</titleabbrev>
+++++
 
 // This section was copied from the APM Overview
 // Switch to tagged regions when available
