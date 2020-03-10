@@ -23,8 +23,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/common"
-	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
+	"github.com/elastic/beats/v7/libbeat/common"
+	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 )
 
 func TestConfig_Default(t *testing.T) {

@@ -22,7 +22,7 @@ import (
 
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/open-telemetry/opentelemetry-collector/consumer"

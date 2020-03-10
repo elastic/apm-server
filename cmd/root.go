@@ -20,18 +20,18 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/elastic/beats/libbeat/cfgfile"
+	"github.com/elastic/beats/v7/libbeat/cfgfile"
 
 	"github.com/spf13/pflag"
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/idxmgmt"
 	_ "github.com/elastic/apm-server/include"
-	"github.com/elastic/beats/libbeat/cmd"
-	"github.com/elastic/beats/libbeat/cmd/instance"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring/report"
-	"github.com/elastic/beats/libbeat/publisher/processing"
+	"github.com/elastic/beats/v7/libbeat/cmd"
+	"github.com/elastic/beats/v7/libbeat/cmd/instance"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/monitoring/report"
+	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 )
 
 // Name of the beat (apm-server).

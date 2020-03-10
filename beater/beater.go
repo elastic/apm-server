@@ -25,11 +25,12 @@ import (
 
 	"go.elastic.co/apm"
 
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/cfgfile"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/cfgfile"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/ingest/pipeline"
@@ -207,15 +208,15 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 
 	// ensure setup cmd is working properly
 	b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-		esClient, err := elasticsearch.NewConnectedClient(esConfig)
+		conn, err := eslegclient.NewConnectedClient(esConfig)
 		if err != nil {
 			return err
 		}
-		return pipeline.RegisterPipelines(esClient, overwrite, path)
+		return pipeline.RegisterPipelines(conn, overwrite, path)
 	}
 	// ensure pipelines are registered when new ES connection is established.
-	_, err := elasticsearch.RegisterConnectCallback(func(esClient *elasticsearch.Client) error {
-		return pipeline.RegisterPipelines(esClient, overwrite, path)
+	_, err := elasticsearch.RegisterConnectCallback(func(conn *eslegclient.Connection) error {
+		return pipeline.RegisterPipelines(conn, overwrite, path)
 	})
 	return err
 }

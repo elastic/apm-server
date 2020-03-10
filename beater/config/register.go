@@ -20,7 +20,7 @@ package config
 import (
 	"path/filepath"
 
-	"github.com/elastic/beats/libbeat/paths"
+	"github.com/elastic/beats/v7/libbeat/paths"
 )
 
 const (

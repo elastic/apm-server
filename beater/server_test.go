@@ -32,16 +32,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/outputs"
-	pubs "github.com/elastic/beats/libbeat/publisher"
-	"github.com/elastic/beats/libbeat/publisher/pipeline"
-	"github.com/elastic/beats/libbeat/publisher/processing"
-	"github.com/elastic/beats/libbeat/publisher/queue"
-	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
-	"github.com/elastic/beats/libbeat/version"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/outputs"
+	pubs "github.com/elastic/beats/v7/libbeat/publisher"
+	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
+	"github.com/elastic/beats/v7/libbeat/publisher/processing"
+	"github.com/elastic/beats/v7/libbeat/publisher/queue"
+	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
+	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
@@ -458,10 +458,10 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 	p, err := pipeline.New(
 		info,
 		pipeline.Monitors{},
-		func(e queue.Eventer) (queue.Queue, error) {
-			return memqueue.NewBroker(nil, memqueue.Settings{
-				Eventer: e,
-				Events:  20,
+		func(lis queue.ACKListener) (queue.Queue, error) {
+			return memqueue.NewQueue(nil, memqueue.Settings{
+				ACKListener: lis,
+				Events:      20,
 			}), nil
 		},
 		outputs.Group{

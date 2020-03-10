@@ -20,8 +20,11 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -32,15 +35,15 @@ import (
 	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/dev-tools/mage"
+	"github.com/elastic/beats/v7/dev-tools/mage"
+	"github.com/elastic/beats/v7/libbeat/generator/fields"
 
 	"github.com/elastic/apm-server/beater/config"
 )
 
 func init() {
-
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
-		BeatVersion: "vendor/github.com/elastic/beats/libbeat/version/version.go",
+		BeatVersion: mage.DefaultBeatBuildVariableSources.BeatVersion,
 		GoVersion:   ".go-version",
 		DocBranch:   "docs/version.asciidoc",
 	})
@@ -50,7 +53,8 @@ func init() {
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
-	mage.GoImportsImportPath = "./vendor/golang.org/x/tools/cmd/goimports"
+	mage.UseVendor = false
+	mage.CrossBuildMountModcache = true
 }
 
 // Build builds the Beat binary.
@@ -217,13 +221,63 @@ func Update() error {
 }
 
 func Fields() error {
-	if err := mage.GenerateFieldsYAML("model"); err != nil {
+	if err := generateFieldsYAML(); err != nil {
 		return err
 	}
 	if err := mage.GenerateAllInOneFieldsGo(); err != nil {
 		return err
 	}
 	return mage.Docs.FieldDocs("fields.yml")
+}
+
+func generateFieldsYAML() error {
+	if err := mage.GenerateFieldsYAML("model"); err != nil {
+		return err
+	}
+	contents, err := ioutil.ReadFile("fields.yml")
+	if err != nil {
+		return err
+	}
+
+	// We don't use autodiscover at all, so we can remove those modules from our fields.
+	//
+	// TODO(axw) modify libbeat to make the "common" modules configurable.
+	beatsdir, err := mage.ElasticBeatsDir()
+	if err != nil {
+		return err
+	}
+	files, err := fields.CollectModuleFiles(filepath.Join(beatsdir, "libbeat", "autodiscover", "providers"))
+	if err != nil {
+		return err
+	}
+	var buf bytes.Buffer
+	for _, ymlfile := range files {
+		file, err := os.Open(ymlfile.Path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		buf.Reset()
+		prefix := strings.Repeat(" ", ymlfile.Indent)
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			buf.WriteString(prefix)
+			buf.WriteString(scanner.Text())
+			buf.WriteRune('\n')
+		}
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+
+		// Remove the contents from the combined file.
+		if i := bytes.Index(contents, buf.Bytes()); i == -1 {
+			return fmt.Errorf("could not find contents of %s in fields.yml", ymlfile.Path)
+		} else {
+			contents = append(contents[:i], contents[i+buf.Len():]...)
+		}
+	}
+	return ioutil.WriteFile("fields.yml", contents, 0644)
 }
 
 // Use RACE_DETECTOR=true to enable the race detector.

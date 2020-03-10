@@ -21,7 +21,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/utility"
 )
