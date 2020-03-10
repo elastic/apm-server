@@ -99,6 +99,10 @@ jenkins_setup() {
   # Write cached magefile binaries to workspace to ensure
   # each run starts from a clean slate.
   export MAGEFILE_CACHE="${WORKSPACE}/.magefile"
+
+  # Enable verbose output for Mage,
+  # to help diagnose build failures.
+  export MAGEFILE_VERBOSE=1
 }
 
 docker_setup() {
