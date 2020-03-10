@@ -20,7 +20,7 @@ package metadata
 import (
 	"errors"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func DecodeLabels(input interface{}, err error) (common.MapStr, error) {

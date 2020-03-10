@@ -21,16 +21,20 @@ To get started with APM please see our [Getting Started Guide](https://www.elast
 
 ### Install
 
-+ Fork the repo with the Github interface and clone it:
+* Fork the repo with the GitHub interface and clone it:
 
 ```
 cd ${GOPATH}/src/github.com/elastic/
 git clone git@github.com:[USER]/apm-server.git
 ```
-Note that it should be cloned from the fork (replace [USER] with your Github user), not from origin.
 
-+ Add the upstream remote:
-```git remote add elastic git@github.com:elastic/apm-server.git```
+Note that it should be cloned from the fork (replace [USER] with your GitHub user), not from origin.
+
+* Add the upstream remote:
+
+```
+git remote add elastic git@github.com:elastic/apm-server.git
+```
 
 ### Build
 
@@ -46,6 +50,7 @@ You also need to create all files needed by the APM Server by running the additi
 ```
 make update
 ```
+
 Note that this requires to have `python >= 3.7` and `venv` installed.
 
 ### Run
@@ -67,7 +72,7 @@ which is automatically generated based on `fields.yml`.
 To generate required configuration files and templates run:
 
 ```
-make index-template update
+make update
 ```
 
 ### Cleanup
@@ -94,46 +99,33 @@ See [contributing](CONTRIBUTING.md) for details about reporting bugs or requesti
 
 See [releases](RELEASES.md) for an APM Server release checklist.
 
-## Update Dependencies
+## Updating dependencies
 
-The `apm-server` has two types of dependencies,
-the Golang packages managed with *Govendor* and a dependency to the *Beats Framework*.
+APM Server uses Go Modules for dependency management, without any vendoring.
 
-### Govendor
+In general, you should use standard `go get` commands to add and update modules. The one exception to this
+is the dependency on `libbeat`, for which there exists a special Make target: `make update-beats`, described
+below.
 
-Checkout the [govendor tool](https://github.com/kardianos/govendor).
+### Updating libbeat
 
-To update beats to the most recent version from your go path for example use: `govendor fetch github.com/elastic/beats/...`.
-Govendor will automatically pick the files needed.
+By running `make update-beats` the `github.com/elastic/beats/vN` module will be updated to the most recent
+commit from the master branch, and a minimal set of files will be copied into the apm-server tree.
 
-### Beats Framework Update
-
-To update the beats framework run `make update-beats`. This will fetch the most recent version of beats from master and copy
-the files which are needed for the framework part to the `_beats` directory. These are files like libbeat config files and
-scripts which are used for testing or packaging.
-
-It is recommended to keep the version of the beats framework and libbeat in sync.
-To make an update of both, run:
+You can specify an alternative branch or commit by specifying the `BEATS_VERSION` variable, such as:
 
 ```
-make update-beats
+make update-beats BEATS_VERSION=7.x
+make update-beats BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27
 ```
 
-To update the dependency to a specific commit or branch run command as following:
+### Updating go-elasticsearch
 
-```
-BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
-```
-### Go-elasticsearch client Update
+It is important to keep the [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync
+with the according major version. We also recommend to use the latest available client for minor versions.
 
-It is important to keep the used [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync with the according major version.
-We also recommend to use the latest available client for minor versions.
-Since APM Server does not yet support go modules, you can update the dependency using govendor, e.g. by running:
-```
-git clone --branch v7.4.1 https://github.com/elastic/go-elasticsearch.git $GOPATH/src/github.com/elastic/go-elasticsearch/v7
-govendor add github.com/elastic/go-elasticsearch/v7/^
-mv ./vendor/github.com/elastic/go-elasticsearch/v7/LICENSE ./vendor/github.com/elastic/go-elasticsearch/
-```
+You can use `go get -u -m github.com/elastic/go-elasticsearch/v7@7.x` to update to the latest commit on the
+7.x branch.
 
 ## Packaging
 
@@ -141,7 +133,7 @@ The beats framework provides tools to cross-compile and package apm-server for d
 This requires [docker](https://www.docker.com/), [mage](magefile.org), and vendoring as described above.
 To build all apm-server packages from source, run:
 
-```bash
+```
 mage package
 ```
 
@@ -155,7 +147,7 @@ To customize image configuration, see [the docs](https://www.elastic.co/guide/en
 
 To build docker images from source, run:
 
-```bash
+```
 PLATFORMS=linux/amd64 mage -v package
 ```
 
@@ -165,8 +157,5 @@ When building images for testing pre-release versions, we recommend setting `SNA
  clearly indicate the packages are not for a specific release.
 
 ## Documentation
+
 The [Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.
-
-## Help
-
-`make help`

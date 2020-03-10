@@ -32,9 +32,9 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
-	"github.com/elastic/beats/libbeat/cfgfile"
-	"github.com/elastic/beats/libbeat/cmd/instance"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/cfgfile"
+	"github.com/elastic/beats/v7/libbeat/cmd/instance"
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"

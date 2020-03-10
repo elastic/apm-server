@@ -25,11 +25,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cespare/xxhash"
+	"github.com/cespare/xxhash/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"

@@ -22,7 +22,7 @@ import (
 
 	"go.elastic.co/apm"
 
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"

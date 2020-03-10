@@ -26,11 +26,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
-	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
-	"github.com/elastic/beats/libbeat/template"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
+	libidxmgmt "github.com/elastic/beats/v7/libbeat/idxmgmt"
+	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
+	"github.com/elastic/beats/v7/libbeat/template"
 )
 
 func TestManager_VerifySetup(t *testing.T) {

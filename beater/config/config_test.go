@@ -28,9 +28,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/libbeat/outputs"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 
 	"github.com/elastic/apm-server/elasticsearch"
 )
@@ -122,7 +121,7 @@ func Test_UnpackConfig(t *testing.T) {
 				SecretToken:     "1234random",
 				TLS: &tlscommon.ServerConfig{
 					Enabled: &truthy,
-					Certificate: outputs.CertificateConfig{
+					Certificate: tlscommon.CertificateConfig{
 						Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
 						Key:         path.Join("../..", "testdata", "tls", "key.pem")},
 					ClientAuth: 0,
@@ -176,7 +175,7 @@ func Test_UnpackConfig(t *testing.T) {
 						TLS: func() *tls.Config {
 							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
 								Enabled: &truthy,
-								Certificate: outputs.CertificateConfig{
+								Certificate: tlscommon.CertificateConfig{
 									Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
 									Key:         path.Join("../..", "testdata", "tls", "key.pem")},
 								ClientAuth: 0,
@@ -242,7 +241,7 @@ func Test_UnpackConfig(t *testing.T) {
 				SecretToken:     "1234random",
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
-					Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
+					Certificate: tlscommon.CertificateConfig{Certificate: "", Key: ""},
 					ClientAuth:  3},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
@@ -286,7 +285,7 @@ func Test_UnpackConfig(t *testing.T) {
 						TLS: func() *tls.Config {
 							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
 								Enabled:     &truthy,
-								Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
+								Certificate: tlscommon.CertificateConfig{Certificate: "", Key: ""},
 								ClientAuth:  3})
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:14250")
@@ -440,9 +439,9 @@ func TestTLSSettings(t *testing.T) {
 		}{
 			"NoConfig":          {tlsServerCfg: nil, expected: false},
 			"SSL":               {tlsServerCfg: &tlscommon.ServerConfig{Enabled: nil}, expected: true},
-			"WithCert":          {tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert"}}, expected: true},
-			"WithCertAndKey":    {tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
-			"ConfiguredToFalse": {tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: &falsy}, expected: false},
+			"WithCert":          {tlsServerCfg: &tlscommon.ServerConfig{Certificate: tlscommon.CertificateConfig{Certificate: "Cert"}}, expected: true},
+			"WithCertAndKey":    {tlsServerCfg: &tlscommon.ServerConfig{Certificate: tlscommon.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
+			"ConfiguredToFalse": {tlsServerCfg: &tlscommon.ServerConfig{Certificate: tlscommon.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: &falsy}, expected: false},
 			"ConfiguredToTrue":  {tlsServerCfg: &tlscommon.ServerConfig{Enabled: &truthy}, expected: true},
 		} {
 			t.Run(name, func(t *testing.T) {

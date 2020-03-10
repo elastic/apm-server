@@ -30,7 +30,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"

@@ -33,7 +33,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beat"
 
 	model_error "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/span"

@@ -2,6 +2,9 @@
 # Variables used for various build targets.
 ##############################################################################
 
+# Enforce use of modules.
+export GO111MODULE=on
+
 GOOSBUILD=./build/$(shell go env GOOS)
 APPROVALS=$(GOOSBUILD)/approvals
 GOIMPORTS=$(GOOSBUILD)/goimports
@@ -115,11 +118,8 @@ go-generate:
 	@go generate
 
 notice: NOTICE.txt
-NOTICE.txt: $(PYTHON) vendor/vendor.json build/notice_overrides.json
-	@$(PYTHON) _beats/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server" --beats-origin build/notice_overrides.json
-build/notice_overrides.json: $(PYTHON) _beats/vendor/vendor.json
-	mkdir -p build
-	$(PYTHON) script/generate_notice_overrides.py -o $@
+NOTICE.txt: $(PYTHON) go.mod
+	@$(PYTHON) script/generate_notice.py -b "Elastic APM Server" -s "github.com/elastic/beats*"
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
@@ -158,27 +158,17 @@ copy-docs:
 ##############################################################################
 
 BEATS_VERSION?=master
-
-.PHONY: is-beats-updated
-is-beats-updated: $(PYTHON)
-	@$(PYTHON) ./script/is_beats_updated.py ${BEATS_VERSION}
+BEATS_MODULE=$(shell go list -m -f {{.Path}} all | grep github.com/elastic/beats)
 
 .PHONY: update-beats
-update-beats: vendor-beats update
-	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json;print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
+update-beats: update-beats-module update
+	@echo --- Use this commit message: Update beats framework to \
+		$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
 
-.PHONY: vendor-beats
-vendor-beats:
-	rm -rf vendor/github.com/elastic/beats
-	govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
-	govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION)
-	govendor fetch github.com/elastic/beats/libbeat/kibana@$(BEATS_VERSION)
-	govendor fetch github.com/elastic/beats/libbeat/outputs/transport/transptest@$(BEATS_VERSION)
-	govendor fetch github.com/elastic/beats/libbeat/scripts/cmd/global_fields@$(BEATS_VERSION)
-	govendor fetch github.com/elastic/beats/licenses@$(BEATS_VERSION)
-	govendor fetch github.com/elastic/beats/x-pack/libbeat/cmd@$(BEATS_VERSION)
-	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
-	@find vendor/github.com/elastic/beats -type d -empty -delete
+.PHONY: update-beats-module
+update-beats-module:
+	go get -d -u $(BEATS_MODULE)@$(BEATS_VERSION)
+	rsync -crpv --delete $(shell go list -m -f {{.Dir}} $(BEATS_MODULE))/testing/environments testing/
 
 ##############################################################################
 # Kibana synchronisation.
@@ -196,7 +186,7 @@ build/index-pattern.json: $(PYTHON) apm-server
 
 GOLINT_TARGETS?=$(shell go list ./...)
 GOLINT_UPSTREAM?=origin/master
-REVIEWDOG_FLAGS?=-conf=_beats/reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
+REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
 GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS))
 
 .PHONY: golint
@@ -223,8 +213,7 @@ endif
 fmt: gofmt autopep8
 gofmt: $(GOIMPORTS) add-headers
 	@echo "fmt - goimports: Formatting Go code"
-	@$(GOIMPORTS) -local github.com/elastic -l -w \
-		$(shell find . -type f -name '*.go' -not -path "*/vendor/*" 2>/dev/null)
+	@$(GOIMPORTS) -local github.com/elastic -l -w $(shell find . -type f -name '*.go' 2>/dev/null)
 autopep8: $(MAGE)
 	@$(MAGE) pythonAutopep8
 
@@ -232,40 +221,36 @@ autopep8: $(MAGE)
 # Rules for creating and installing build tools.
 ##############################################################################
 
-# $GOBIN must be set to use "go get" below. Once we move to modules we
-# can just use "go build" and it'll resolve all dependencies using modules.
-export GOBIN=$(abspath $(GOOSBUILD))
-
 BIN_MAGE=$(GOOSBUILD)/bin/mage
 
 # BIN_MAGE is the standard "mage" binary.
-$(BIN_MAGE): vendor/vendor.json
-	go build -o $@ ./vendor/github.com/magefile/mage
+$(BIN_MAGE): go.mod
+	go build -o $@ github.com/magefile/mage
 
 # MAGE is the compiled magefile.
 $(MAGE): magefile.go $(BIN_MAGE)
 	$(BIN_MAGE) -compile=$@
 
-$(STATICCHECK): vendor/vendor.json
-	go get ./vendor/honnef.co/go/tools/cmd/staticcheck
+$(STATICCHECK): go.mod
+	go build -o $@ honnef.co/go/tools/cmd/staticcheck
 
-$(GOLINT): vendor/vendor.json
-	go get ./vendor/golang.org/x/lint/golint
+$(GOLINT): go.mod
+	go build -o $@ golang.org/x/lint/golint
 
-$(GOIMPORTS): vendor/vendor.json
-	go get ./vendor/golang.org/x/tools/cmd/goimports
+$(GOIMPORTS): go.mod
+	go build -o $@ golang.org/x/tools/cmd/goimports
 
-$(GOLICENSER):
-	# go-licenser is not vendored, so we install it from network here.
-	go get -u github.com/elastic/go-licenser
+$(GOLICENSER): go.mod
+	go build -o $@ github.com/elastic/go-licenser
 
-$(REVIEWDOG): vendor/vendor.json
-	go get ./vendor/github.com/reviewdog/reviewdog/cmd/reviewdog
+$(REVIEWDOG): go.mod
+	go build -o $@ github.com/reviewdog/reviewdog/cmd/reviewdog
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
-$(PYTHON_BIN)/activate: _beats/libbeat/tests/system/requirements.txt $(MAGE)
+$(PYTHON_BIN)/activate: $(MAGE)
 	@$(MAGE) pythonEnv
+	@touch $@
 
 .PHONY: $(APPROVALS)
 $(APPROVALS):
@@ -284,7 +269,7 @@ release-manager-snapshot: release-manager-release
 # installed and used for the build.
 .PHONY: release-manager-release
 release-manager-release:
-	_beats/dev-tools/run_with_go_ver $(MAKE) release
+	script/run_with_go_ver $(MAKE) release
 
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)

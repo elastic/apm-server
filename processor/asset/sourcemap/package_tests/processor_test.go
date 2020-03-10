@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beat"
 
 	"github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/tests"

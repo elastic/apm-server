@@ -29,7 +29,7 @@ import (
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 // MockKibanaClient implements the kibana.Client interface for testing purposes

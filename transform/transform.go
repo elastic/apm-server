@@ -21,7 +21,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beat"
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"

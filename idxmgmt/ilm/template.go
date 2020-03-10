@@ -20,7 +20,7 @@ package ilm
 import (
 	"fmt"
 
-	libtemplate "github.com/elastic/beats/libbeat/template"
+	libtemplate "github.com/elastic/beats/v7/libbeat/template"
 )
 
 //Template returns a template configuration with appropriate ILM settings
