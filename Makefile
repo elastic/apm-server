@@ -81,6 +81,7 @@ system-tests: $(PYTHON_BIN) apm-server.test
 	INTEGRATION_TESTS=1 TZ=UTC $(PYTHON_BIN)/nosetests $(NOSETESTS_OPTIONS) $(SYSTEM_TEST_TARGET)
 
 .PHONY: docker-system-tests
+docker-system-tests: export SYSTEM_TEST_TARGET:=$(SYSTEM_TEST_TARGET)
 docker-system-tests: docker-compose.override.yml
 	docker-compose build
 	docker-compose run --rm -T beat make system-tests

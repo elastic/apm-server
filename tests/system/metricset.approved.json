@@ -26,13 +26,13 @@
         },
         "observer": {
             "hostname": "x1",
-            "id": "25313d9a-83ff-4ada-bdbf-8c8e931381bd",
-            "ephemeral_id": "574a368a-cb6f-44dc-92ef-b032975083e0",
+            "id": "2a16cfc2-2c05-43ff-8197-929fd9a16d81",
             "type": "apm-server",
+            "ephemeral_id": "0798242b-b20b-47a1-b187-3b686b82339c",
             "version": "8.0.0",
             "version_major": 8
         },
-        "@timestamp": "2020-03-03T13:27:56.234Z",
+        "@timestamp": "2017-05-30T18:53:41.364Z",
         "ecs": {
             "version": "1.4.0"
         },
@@ -46,7 +46,7 @@
             }
         },
         "event": {
-            "ingested": "2020-03-03T13:05:05.077498Z"
+            "ingested": "2020-03-06T17:01:56.625552Z"
         },
         "user": {
             "name": "logged-in-user",
@@ -56,25 +56,10 @@
     },
     {
         "byte_counter": 1,
-        "process": {
-            "pid": 1234
-        },
         "agent": {
             "name": "elastic-node",
             "version": "3.14.0"
         },
-        "processor": {
-            "name": "metric",
-            "event": "metric"
-        },
-        "labels": {
-            "some": "abc",
-            "tag1": "one",
-            "code": 200,
-            "success": true,
-            "tag2": 2
-        },
-        "integer_gauge": 42767,
         "double_gauge": 3.141592653589793,
         "observer": {
             "hostname": "x1",
@@ -97,10 +82,33 @@
                 }
             }
         },
-        "@timestamp": "2017-05-30T18:53:42.281Z",
         "ecs": {
             "version": "1.4.0"
         },
+        "event": {
+            "ingested": "2020-03-03T13:03:45.940935Z"
+        },
+        "dotted": {
+            "float": {
+                "gauge": 6.12
+            }
+        },
+        "process": {
+            "pid": 1234
+        },
+        "processor": {
+            "name": "metric",
+            "event": "metric"
+        },
+        "labels": {
+            "tag1": "one",
+            "some": "abc",
+            "code": 200,
+            "success": true,
+            "tag2": 2
+        },
+        "integer_gauge": 42767,
+        "@timestamp": "2017-05-30T18:53:42.281Z",
         "long_gauge": 3147483648.0,
         "service": {
             "node": {
@@ -113,14 +121,6 @@
         },
         "short_counter": 227,
         "float_gauge": 9.16,
-        "event": {
-            "ingested": "2020-03-03T13:03:45.940935Z"
-        },
-        "dotted": {
-            "float": {
-                "gauge": 6.12
-            }
-        },
         "user": {
             "name": "logged-in-user",
             "id": "axb123hg",
