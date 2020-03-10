@@ -2,9 +2,10 @@
 @Library('apm@current') _
 
 pipeline {
-  agent any
+  agent { label 'linux && immutable' }
   environment {
-    BASE_DIR = "src/github.com/elastic/apm-server"
+    REPO = 'apm-server'
+    BASE_DIR = "src/github.com/elastic/${env.REPO}"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
@@ -14,7 +15,7 @@ pipeline {
   }
   options {
     timeout(time: 2, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -23,7 +24,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -33,7 +34,6 @@ pipeline {
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
-    booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
@@ -44,7 +44,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout') {
-      agent { label 'master || immutable' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
@@ -54,28 +53,26 @@ pipeline {
       steps {
         pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}")
+        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
+                    shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
-            env.GO_VERSION = readFile(".go-version")
-            if(env.CHANGE_TARGET){
-              def regexps =[
-                "^_beats",
-                "^apm-server.yml",
-                "^apm-server.docker.yml",
-                "^magefile.go",
-                "^ingest",
-                "^packaging",
-                "^tests/packaging",
-                "^vendor/github.com/elastic/beats"
-              ]
-              def changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA} > git-diff.txt",returnStdout: true)
-              def match = regexps.find{ regexp ->
-                  sh(script: "grep '${regexp}' git-diff.txt",returnStatus: true) == 0
-              }
-              env.BEATS_UPDATED = (match != null)
-            }
+            env.GO_VERSION = readFile(".go-version").trim()
+            def regexps =[
+              "^_beats.*",
+              "^apm-server.yml",
+              "^apm-server.docker.yml",
+              "^magefile.go",
+              "^ingest.*",
+              "^packaging.*",
+              "^tests/packaging.*",
+              "^vendor/github.com/elastic/beats.*"
+            ]
+            env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
+
+            // Skip all the stages except docs for PR's with asciidoc changes only
+            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true)
           }
         }
       }
@@ -88,7 +85,6 @@ pipeline {
     Validate that all updates were committed.
     */
     stage('Intake') {
-      agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -97,65 +93,88 @@ pipeline {
       }
       when {
         beforeAgent true
-        expression { return params.intake_ci }
+        allOf {
+          expression { return params.intake_ci }
+          expression { return env.ONLY_DOCS == "false" }
+        }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/intake.sh'
+        withGithubNotify(context: 'Intake') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh(label: 'Run intake', script: './script/jenkins/intake.sh')
+          }
         }
       }
     }
-    stage('Build'){
+    stage('Build and Test'){
       failFast false
       parallel {
         /**
         Build on a linux environment.
         */
         stage('linux build') {
-          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
           when {
             beforeAgent true
-            expression { return params.linux_ci }
+            allOf {
+              expression { return params.linux_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/build.sh'
+            withGithubNotify(context: 'Build - Linux') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dir(BASE_DIR){
+                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                    sleep randomNumber(min: 5, max: 10)
+                    sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                  }
+                }
+              }
             }
           }
         }
         /**
-        Build on a windows environment.
+        Build and Test on a windows environment.
         */
-        stage('windows build') {
+        stage('windows build-test') {
           agent { label 'windows-2019-immutable' }
-          options { skipDefaultCheckout() }
+          options {
+            skipDefaultCheckout()
+            warnError('Windows execution failed')
+          }
           when {
             beforeAgent true
-            expression { return params.windows_ci }
+            allOf {
+              expression { return params.windows_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+            withGithubNotify(context: 'Build-Test - Windows') {
+              deleteDir()
+              unstash 'source'
+              dir(BASE_DIR){
+                retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                  sleep randomNumber(min: 5, max: 10)
+                  powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
+                  powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
+                }
+              }
+            }
+          }
+          post {
+            always {
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/build/junit-report.xml,${BASE_DIR}/build/TEST-*.xml")
             }
           }
         }
-      }
-    }
-    stage('Test') {
-      failFast false
-      parallel {
         /**
           Run unit tests and report junit results.
         */
@@ -169,20 +188,31 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_ci }
+            allOf {
+              expression { return params.test_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/unit-test.sh'
+            withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
+              }
             }
           }
           post {
             always {
+              coverageReport("${BASE_DIR}/build/coverage")
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml")
+                testResults: "${BASE_DIR}/build/junit-*.xml"
+              )
+              catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
+                tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
+              }
+              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -200,18 +230,22 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_sys_env_ci }
+            allOf {
+              expression { return params.test_sys_env_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/linux-test.sh'
+            withGithubNotify(context: 'System Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
+              }
             }
           }
           post {
             always {
-              coverageReport("${BASE_DIR}/build/coverage")
               dir("${BASE_DIR}"){
                 archiveArtifacts(allowEmptyArchive: true,
                   artifacts: "docker-info/**",
@@ -224,16 +258,15 @@ pipeline {
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                 tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               }
-              codecov(repo: 'apm-server', basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
         /**
-        Run tests on a windows environment.
+        Runs benchmarks on the current version and compare it with the previous ones.
         Finally archive the results.
         */
-        stage('windows test') {
-          agent { label 'windows-2019-immutable' }
+        stage('Benchmarking') {
+          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
@@ -250,25 +283,22 @@ pipeline {
             }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              powershell(script: '.\\script\\jenkins\\windows-test.ps1')
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-report.xml,${BASE_DIR}/build/TEST-*.xml")
+            withGithubNotify(context: 'Benchmarking') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                  sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+                }
+              }
             }
           }
         }
         /**
-        Runs benchmarks on the current version and compare it with the previous ones.
-        Finally archive the results.
+        Checks if kibana objects are updated.
         */
-        stage('Benchmarking') {
+        stage('Check kibana Obj. Updated') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
@@ -279,77 +309,21 @@ pipeline {
           when {
             beforeAgent true
             allOf {
-              anyOf {
-                branch 'master'
-                branch "\\d+\\.\\d+"
-                branch "v\\d?"
-                tag "v\\d+\\.\\d+\\.\\d+*"
-                expression { return params.Run_As_Master_Branch }
-              }
-              expression { return params.bench_ci }
+              expression { return params.kibana_update_ci }
+              expression { return env.ONLY_DOCS == "false" }
             }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/bench.sh'
-              sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+            withGithubNotify(context: 'Sync Kibana') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
+                  sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
+                }
+              }
             }
           }
-        }
-      }
-    }
-    /**
-    Build the documentation and archive it.
-    Finally archive the results.
-    */
-    stage('Documentation') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            branch 'master'
-            expression { return params.Run_As_Master_Branch }
-          }
-          expression { return params.doc_ci }
-        }
-      }
-      steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          buildDocs(docsDir: "docs", archive: true)
-        }
-      }
-    }
-    /**
-    Checks if kibana objects are updated.
-    */
-    stage('Check kibana Obj. Updated') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        expression { return params.kibana_update_ci }
-      }
-      steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/sync.sh'
         }
       }
     }
@@ -357,12 +331,12 @@ pipeline {
       build release packages.
     */
     stage('Release') {
-      agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
+        SNAPSHOT="true"
       }
       when {
         beforeAgent true
@@ -373,16 +347,25 @@ pipeline {
             branch pattern: 'v\\d?', comparator: 'REGEXP'
             tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
             expression { return params.Run_As_Master_Branch }
-            expression { return env.BEATS_UPDATED != "0" }
+            expression { return env.BEATS_UPDATED != "false" }
           }
           expression { return params.release_ci }
+          expression { return env.ONLY_DOCS == "false" }
         }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/package.sh'
+        withGithubNotify(context: 'Release') {
+          deleteDir()
+          unstash 'source'
+          /**
+            The package build needs mage and docker
+          */
+          golang(){
+            dir("${BASE_DIR}"){
+              sh(label: 'Build packages', script: './script/jenkins/package.sh')
+              sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
+            }
+          }
         }
       }
       post {
@@ -403,4 +386,17 @@ pipeline {
       notifyBuildResult()
     }
   }
+}
+
+def golang(Closure body){
+  def golangDocker
+  retry(3) { // Retry in case there are any errors when building the docker images (to avoid temporary glitches)
+    sleep randomNumber(min: 2, max: 5)
+    golangDocker = docker.build('golang-mage', "--build-arg GO_VERSION=${GO_VERSION} ${BASE_DIR}/.ci/docker/golang-mage")
+  }
+  withEnv(["HOME=${WORKSPACE}", "GOPATH=${WORKSPACE}", "SHELL=/bin/bash"]) {
+     golangDocker.inside('-v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock'){
+       body()
+     }
+   }
 }
