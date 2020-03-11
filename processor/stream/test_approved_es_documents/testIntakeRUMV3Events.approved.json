@@ -1,0 +1,546 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "http": {
+                "response": {
+                    "decoded_body_size": 690,
+                    "encoded_body_size": 690,
+                    "transfer_size": 983
+                }
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "timestamp": {
+                "us": 1533117600000000
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "custom": {
+                    "testContext": "testContext"
+                },
+                "duration": {
+                    "us": 295000
+                },
+                "id": "ec2e280be8345240",
+                "marks": {
+                    "a": {
+                        "dc": 138,
+                        "di": 120,
+                        "fb": 5,
+                        "fp": 70.825,
+                        "lp": 131.03
+                    },
+                    "nt": {
+                        "ce": 0,
+                        "cs": 0,
+                        "dc": 138,
+                        "de": 122,
+                        "di": 120,
+                        "dl": 14,
+                        "ds": 120,
+                        "ee": 138,
+                        "es": 138,
+                        "fs": 0,
+                        "le": 0,
+                        "ls": 0,
+                        "qs": 4,
+                        "re": 6,
+                        "rs": 5
+                    }
+                },
+                "name": "general-usecase-initial-p-load",
+                "page": {
+                    "referer": "http://localhost:8000/test/e2e/",
+                    "url": "http://localhost:8000/test/e2e/general-usecase/"
+                },
+                "sampled": true,
+                "span_count": {
+                    "started": 8
+                },
+                "type": "p-load"
+            },
+            "user": {
+                "email": "em",
+                "id": "uId",
+                "name": "un"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.004Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "duration": {
+                    "us": 2000
+                },
+                "id": "bbd8bcc3be14d814",
+                "name": "Requesting and receiving the document",
+                "start": {
+                    "us": 4000
+                },
+                "type": "hard-navigation"
+            },
+            "timestamp": {
+                "us": 1533117600004000
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.014Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "duration": {
+                    "us": 106000
+                },
+                "id": "fc546e87a90a774f",
+                "name": "Parsing the document, executing sy. scripts",
+                "start": {
+                    "us": 14000
+                },
+                "type": "hard-navigation"
+            },
+            "timestamp": {
+                "us": 1533117600014000
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.022534999Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "destination": {
+                "address": "localhost",
+                "port": 8000
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "name": "http://localhost:8000",
+                        "resource": "localhost:8000",
+                        "type": "rc"
+                    }
+                },
+                "duration": {
+                    "us": 35060
+                },
+                "http": {
+                    "response": {
+                        "decoded_body_size": 676864,
+                        "encoded_body_size": 676864,
+                        "transfer_size": 677175
+                    },
+                    "url": {
+                        "original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
+                    }
+                },
+                "id": "fb8f717930697299",
+                "name": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                "start": {
+                    "us": 22534
+                },
+                "type": "rc"
+            },
+            "timestamp": {
+                "us": 1533117600022534
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.096929999Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "duration": {
+                    "us": 198070
+                },
+                "id": "9b80535c4403c9fb",
+                "name": "OpenTracing y",
+                "start": {
+                    "us": 96929
+                },
+                "type": "cu"
+            },
+            "timestamp": {
+                "us": 1533117600096929
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.09894Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "destination": {
+                "address": "localhost",
+                "port": 8000
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "name": "http://localhost:8000",
+                        "resource": "localhost:8000",
+                        "type": "external"
+                    }
+                },
+                "duration": {
+                    "us": 6724
+                },
+                "http": {
+                    "method": "get",
+                    "response": {
+                        "status_code": 200
+                    },
+                    "url": {
+                        "original": "http://localhost:8000/test/e2e/common/data.json?test=hamid"
+                    }
+                },
+                "id": "5ecb8ee030749715",
+                "name": "GET /test/e2e/common/data.json",
+                "start": {
+                    "us": 98940
+                },
+                "sync": true,
+                "type": "external"
+            },
+            "timestamp": {
+                "us": 1533117600098940
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.10652Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "destination": {
+                "address": "localhost",
+                "port": 8003
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "name": "http://localhost:8003",
+                        "resource": "localhost:8003",
+                        "type": "external"
+                    }
+                },
+                "duration": {
+                    "us": 11584
+                },
+                "http": {
+                    "method": "post",
+                    "response": {
+                        "status_code": 200
+                    },
+                    "url": {
+                        "original": "http://localhost:8003/data"
+                    }
+                },
+                "id": "27f45fd274f976d4",
+                "name": "POST http://localhost:8003/data",
+                "start": {
+                    "us": 106520
+                },
+                "sync": true,
+                "type": "external"
+            },
+            "timestamp": {
+                "us": 1533117600106520
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.119935Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "destination": {
+                "address": "localhost",
+                "port": 8003
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "name": "http://localhost:8003",
+                        "resource": "localhost:8003",
+                        "type": "external"
+                    }
+                },
+                "duration": {
+                    "us": 15949
+                },
+                "http": {
+                    "method": "post",
+                    "response": {
+                        "status_code": 200
+                    },
+                    "url": {
+                        "original": "http://localhost:8003/fetch"
+                    }
+                },
+                "id": "a3c043330bc2015e",
+                "name": "POST http://localhost:8003/fetch",
+                "start": {
+                    "us": 119935
+                },
+                "sync": false,
+                "type": "external"
+            },
+            "timestamp": {
+                "us": 1533117600119935
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.12Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "ec2e280be8345240"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "duration": {
+                    "us": 2000
+                },
+                "id": "bc7665dc25629379",
+                "name": "Fire \"DOMContentLoaded\" event",
+                "stacktrace": [
+                    {
+                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                        "exclude_from_grouping": false,
+                        "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                        "function": "generateError",
+                        "line": {
+                            "column": 9,
+                            "number": 7662
+                        }
+                    },
+                    {
+                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                        "exclude_from_grouping": false,
+                        "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                        "function": "\u003canonymous\u003e",
+                        "line": {
+                            "column": 3,
+                            "number": 7666
+                        }
+                    }
+                ],
+                "start": {
+                    "us": 120000
+                },
+                "type": "hard-navigation"
+            },
+            "timestamp": {
+                "us": 1533117600120000
+            },
+            "trace": {
+                "id": "286ac3ad697892c406528f13c82e0ce1"
+            },
+            "transaction": {
+                "id": "ec2e280be8345240"
+            }
+        }
+    ]
+}

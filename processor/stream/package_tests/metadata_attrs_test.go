@@ -92,7 +92,7 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 
 	eventFields := tests.NewSet()
 	tests.FlattenMapStr(contextMetadata, prefix, nil, eventFields)
-	t.Logf("Event fields: %s", eventFields)
+	t.Logf("Event field: %s", eventFields)
 	return eventFields
 }
 

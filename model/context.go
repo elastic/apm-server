@@ -24,6 +24,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/elastic/apm-server/model/metadata"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -123,24 +125,26 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	}
 
 	decoder := utility.ManualDecoder{}
-	ctxInp := decoder.MapStr(raw, "context")
+	fieldName := field.Mapper(cfg.HasShortFieldNames)
+
+	ctxInp := decoder.MapStr(raw, fieldName("context"))
 	if ctxInp == nil {
 		return &Context{}, decoder.Err
 	}
 
-	userInp := decoder.Interface(ctxInp, "user")
-	serviceInp := decoder.Interface(ctxInp, "service")
+	userInp := decoder.Interface(ctxInp, fieldName("user"))
+	serviceInp := decoder.Interface(ctxInp, fieldName("service"))
 	var experimental interface{}
 	if cfg.Experimental {
 		experimental = decoder.Interface(ctxInp, "experimental")
 	}
-	http, err := decodeHttp(ctxInp, decoder.Err)
+	http, err := decodeHTTP(ctxInp, cfg.HasShortFieldNames, decoder.Err)
 	url, err := decodeUrl(ctxInp, err)
-	labels, err := decodeLabels(ctxInp, err)
-	custom, err := decodeCustom(ctxInp, err)
-	page, err := decodePage(ctxInp, err)
-	service, err := metadata.DecodeService(serviceInp, err)
-	user, err := metadata.DecodeUser(userInp, err)
+	labels, err := decodeLabels(ctxInp, cfg.HasShortFieldNames, err)
+	custom, err := decodeCustom(ctxInp, cfg.HasShortFieldNames, err)
+	page, err := decodePage(ctxInp, cfg.HasShortFieldNames, err)
+	service, err := metadata.DecodeService(serviceInp, cfg.HasShortFieldNames, err)
+	user, err := metadata.DecodeUser(userInp, cfg.HasShortFieldNames, err)
 	user = addUserAgent(user, http)
 	client, err := decodeClient(user, http, err)
 	message, err := DecodeMessage(ctxInp, err)
@@ -304,31 +308,33 @@ func decodeClient(user *metadata.User, http *Http, err error) (*Client, error) {
 	return nil, nil
 }
 
-func decodeHttp(raw common.MapStr, err error) (*Http, error) {
+func decodeHTTP(raw common.MapStr, hasShortFieldNames bool, err error) (*Http, error) {
 	if err != nil {
 		return nil, err
 	}
 	var h *Http
 	decoder := utility.ManualDecoder{}
-	inpReq := decoder.MapStr(raw, "request")
+	fieldName := field.Mapper(hasShortFieldNames)
+
+	inpReq := decoder.MapStr(raw, fieldName("request"))
 	if inpReq != nil {
 		h = &Http{
-			Version: decoder.StringPtr(inpReq, "http_version"),
+			Version: decoder.StringPtr(inpReq, fieldName("http_version")),
 			Request: &Req{
-				Method: strings.ToLower(decoder.String(inpReq, "method")),
-				Env:    decoder.Interface(inpReq, "env"),
+				Method: strings.ToLower(decoder.String(inpReq, fieldName("method"))),
+				Env:    decoder.Interface(inpReq, fieldName("env")),
 				Socket: &Socket{
 					RemoteAddress: decoder.StringPtr(inpReq, "remote_address", "socket"),
 					Encrypted:     decoder.BoolPtr(inpReq, "encrypted", "socket"),
 				},
 				Body:    decoder.Interface(inpReq, "body"),
 				Cookies: decoder.Interface(inpReq, "cookies"),
-				Headers: decoder.Headers(inpReq),
+				Headers: decoder.Headers(inpReq, fieldName("headers")),
 			},
 		}
 	}
 
-	if inpResp := decoder.MapStr(raw, "response"); inpResp != nil {
+	if inpResp := decoder.MapStr(raw, fieldName("response")); inpResp != nil {
 		if h == nil {
 			h = &Http{}
 		}
@@ -336,7 +342,7 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 			Finished:    decoder.BoolPtr(inpResp, "finished"),
 			HeadersSent: decoder.BoolPtr(inpResp, "headers_sent"),
 		}
-		minimalResp, err := DecodeMinimalHTTPResponse(raw, decoder.Err)
+		minimalResp, err := DecodeMinimalHTTPResponse(raw, hasShortFieldNames, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
@@ -347,58 +353,63 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 	return h, decoder.Err
 }
 
-func DecodeMinimalHTTPResponse(raw common.MapStr, err error) (*MinimalResp, error) {
+func DecodeMinimalHTTPResponse(raw common.MapStr, hasShortFieldNames bool, err error) (*MinimalResp, error) {
 	if err != nil {
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	inpResp := decoder.MapStr(raw, "response")
+	fieldName := field.Mapper(hasShortFieldNames)
+
+	inpResp := decoder.MapStr(raw, fieldName("response"))
 	if inpResp == nil {
 		return nil, nil
 	}
-	headers := decoder.Headers(inpResp)
+	headers := decoder.Headers(inpResp, fieldName("headers"))
 	return &MinimalResp{
-		StatusCode:      decoder.IntPtr(inpResp, "status_code"),
+		StatusCode:      decoder.IntPtr(inpResp, fieldName("status_code")),
 		Headers:         headers,
-		DecodedBodySize: decoder.Float64Ptr(inpResp, "decoded_body_size"),
-		EncodedBodySize: decoder.Float64Ptr(inpResp, "encoded_body_size"),
-		TransferSize:    decoder.Float64Ptr(inpResp, "transfer_size"),
+		DecodedBodySize: decoder.Float64Ptr(inpResp, fieldName("decoded_body_size")),
+		EncodedBodySize: decoder.Float64Ptr(inpResp, fieldName("encoded_body_size")),
+		TransferSize:    decoder.Float64Ptr(inpResp, fieldName("transfer_size")),
 	}, decoder.Err
 }
 
-func decodePage(raw common.MapStr, err error) (*Page, error) {
+func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	pageInput, ok := raw["page"].(map[string]interface{})
+	fieldName := field.Mapper(hasShortFieldNames)
+	pageInput, ok := raw[fieldName("page")].(map[string]interface{})
 	if !ok {
 		return nil, nil
 	}
 	decoder := utility.ManualDecoder{}
 	return &Page{
-		Url:     decoder.StringPtr(pageInput, "url"),
-		Referer: decoder.StringPtr(pageInput, "referer"),
+		Url:     decoder.StringPtr(pageInput, fieldName("url")),
+		Referer: decoder.StringPtr(pageInput, fieldName("referer")),
 	}, decoder.Err
 }
 
-func decodeLabels(raw common.MapStr, err error) (*Labels, error) {
+func decodeLabels(raw common.MapStr, hasShortFieldNames bool, err error) (*Labels, error) {
 	if err != nil {
 		return nil, err
 	}
+	fieldName := field.Mapper(hasShortFieldNames)
 	decoder := utility.ManualDecoder{}
-	if l := decoder.MapStr(raw, "tags"); decoder.Err == nil && l != nil {
+	if l := decoder.MapStr(raw, fieldName("tags")); decoder.Err == nil && l != nil {
 		labels := Labels(l)
 		return &labels, nil
 	}
 	return nil, decoder.Err
 }
 
-func decodeCustom(raw common.MapStr, err error) (*Custom, error) {
+func decodeCustom(raw common.MapStr, hasShortFieldNames bool, err error) (*Custom, error) {
 	if err != nil {
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	if c := decoder.MapStr(raw, "custom"); decoder.Err == nil && c != nil {
+	fieldName := field.Mapper(hasShortFieldNames)
+	if c := decoder.MapStr(raw, fieldName("custom")); decoder.Err == nil && c != nil {
 		custom := Custom(c)
 		return &custom, nil
 	}

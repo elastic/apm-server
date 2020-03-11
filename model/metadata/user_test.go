@@ -149,7 +149,7 @@ func TestUserDecode(t *testing.T) {
 			},
 		},
 	} {
-		user, err := DecodeUser(test.input, test.inputErr)
+		user, err := DecodeUser(test.input, false, test.inputErr)
 		assert.Equal(t, test.u, user)
 		assert.Equal(t, test.err, err)
 	}

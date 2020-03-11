@@ -20,6 +20,8 @@ package metadata
 import (
 	"errors"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/utility"
@@ -67,7 +69,7 @@ type node struct {
 }
 
 //DecodeService decodes a given input into a Service instance
-func DecodeService(input interface{}, err error) (*Service, error) {
+func DecodeService(input interface{}, hasShortFieldNames bool, err error) (*Service, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -75,27 +77,28 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	if !ok {
 		return nil, errors.New("invalid type for service")
 	}
+	fieldName := field.Mapper(hasShortFieldNames)
 	decoder := utility.ManualDecoder{}
 	service := Service{
-		Name:        decoder.StringPtr(raw, "name"),
-		Version:     decoder.StringPtr(raw, "version"),
-		Environment: decoder.StringPtr(raw, "environment"),
+		Name:        decoder.StringPtr(raw, fieldName("name")),
+		Version:     decoder.StringPtr(raw, fieldName("version")),
+		Environment: decoder.StringPtr(raw, fieldName("environment")),
 		Agent: Agent{
-			Name:        decoder.StringPtr(raw, "name", "agent"),
-			Version:     decoder.StringPtr(raw, "version", "agent"),
+			Name:        decoder.StringPtr(raw, fieldName("name"), fieldName("agent")),
+			Version:     decoder.StringPtr(raw, fieldName("version"), fieldName("agent")),
 			EphemeralId: decoder.StringPtr(raw, "ephemeral_id", "agent"),
 		},
 		Framework: Framework{
-			Name:    decoder.StringPtr(raw, "name", "framework"),
-			Version: decoder.StringPtr(raw, "version", "framework"),
+			Name:    decoder.StringPtr(raw, fieldName("name"), fieldName("framework")),
+			Version: decoder.StringPtr(raw, fieldName("version"), fieldName("framework")),
 		},
 		Language: Language{
-			Name:    decoder.StringPtr(raw, "name", "language"),
-			Version: decoder.StringPtr(raw, "version", "language"),
+			Name:    decoder.StringPtr(raw, fieldName("name"), fieldName("language")),
+			Version: decoder.StringPtr(raw, fieldName("version"), fieldName("language")),
 		},
 		Runtime: Runtime{
-			Name:    decoder.StringPtr(raw, "name", "runtime"),
-			Version: decoder.StringPtr(raw, "version", "runtime"),
+			Name:    decoder.StringPtr(raw, fieldName("name"), fieldName("runtime")),
+			Version: decoder.StringPtr(raw, fieldName("version"), fieldName("runtime")),
 		},
 		node: node{
 			name: decoder.StringPtr(raw, "configured_name", "node"),

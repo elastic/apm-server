@@ -54,7 +54,7 @@ func TestStacktraceDecode(t *testing.T) {
 			},
 		},
 	} {
-		s, err := DecodeStacktrace(test.input, test.inpErr)
+		s, err := DecodeStacktrace(test.input, false, test.inpErr)
 		assert.Equal(t, test.s, s)
 		assert.Equal(t, test.err, err)
 	}

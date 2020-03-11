@@ -103,7 +103,7 @@ func TestDecodeMetadata(t *testing.T) {
 			),
 		},
 	} {
-		metadata, err := DecodeMetadata(test.input)
+		metadata, err := DecodeMetadata(test.input, false)
 		assert.Equal(t, test.err, err)
 		assert.Equal(t, test.output, metadata)
 	}
