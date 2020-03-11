@@ -20,6 +20,8 @@ package metadata
 import (
 	"errors"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -31,8 +33,14 @@ import (
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metadata")
 
+var rumV3ModelSchema = validation.CreateSchema(schema.RUMV3Schema, "metadata")
+
 func ModelSchema() *jsonschema.Schema {
 	return cachedModelSchema
+}
+
+func RUMV3ModelSchema() *jsonschema.Schema {
+	return rumV3ModelSchema
 }
 
 type Metadata struct {
@@ -43,7 +51,7 @@ type Metadata struct {
 	Labels  common.MapStr
 }
 
-func DecodeMetadata(input interface{}) (*Metadata, error) {
+func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*Metadata, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -52,17 +60,19 @@ func DecodeMetadata(input interface{}) (*Metadata, error) {
 		return nil, errors.New("invalid type for metadata")
 	}
 
+	fieldName := field.Mapper(hasShortFieldNames)
+
 	var err error
 	var service *Service
 	var system *System
 	var process *Process
 	var user *User
 	var labels common.MapStr
-	service, err = DecodeService(raw["service"], err)
+	service, err = DecodeService(raw[fieldName("service")], hasShortFieldNames, err)
 	system, err = DecodeSystem(raw["system"], err)
 	process, err = DecodeProcess(raw["process"], err)
-	user, err = DecodeUser(raw["user"], err)
-	labels, err = DecodeLabels(raw["labels"], err)
+	user, err = DecodeUser(raw[fieldName("user")], hasShortFieldNames, err)
+	labels, err = DecodeLabels(raw[fieldName("labels")], err)
 
 	if err != nil {
 		return nil, err

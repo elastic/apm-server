@@ -3,9 +3,6 @@
     "type": "object",
     "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
-        { "$ref": "../timestamp_epoch.json" },
-        { "$ref": "../span_type.json" },
-        { "$ref": "../span_subtype.json" },
         {
             "properties": {
                 "id": {
@@ -14,7 +11,10 @@
                     "maxLength": 1024
                 },
                 "transaction_id": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "description": "Hex encoded 64 random bits ID of the correlated transaction.",
                     "maxLength": 1024
                 },
@@ -28,120 +28,148 @@
                     "type": "string",
                     "maxLength": 1024
                 },
-                "start": {
-                    "type": ["number", "null"],
+                "s": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 },
-                "action": {
-                    "type": ["string", "null"],
+                "t": {
+                    "type": "string",
+                    "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+                    "maxLength": 1024
+                },
+                "su": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+                    "maxLength": 1024
+                },
+                "ac": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
                     "maxLength": 1024
                 },
-                "context": {
-                    "type": ["object", "null"],
+                "c": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
                     "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
                     "properties": {
-                        "destination": {
-                            "type": ["object", "null"],
+                        "dt": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
                             "description": "An object containing contextual data about the destination for spans",
                             "properties": {
-                                "address": {
-                                    "type": ["string", "null"],
+                                "ad": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "Destination network address: hostname (e.g. 'localhost'), FQDN (e.g. 'elastic.co'), IPv4 (e.g. '127.0.0.1') or IPv6 (e.g. '::1')",
                                     "maxLength": 1024
                                 },
-                                "port": {
-                                    "type": ["integer", "null"],
+                                "po": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
                                     "description": "Destination network port (e.g. 443)"
                                 },
-                                "service": {
+                                "se": {
                                     "description": "Destination service context",
-                                    "type": ["object", "null"],
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
                                     "properties": {
-                                        "type": {
+                                        "t": {
                                             "description": "Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.",
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "maxLength": 1024
                                         },
-                                        "name": {
+                                        "n": {
                                             "description": "Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')",
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "maxLength": 1024
                                         },
-                                        "resource": {
+                                        "rc": {
                                             "description": "Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')",
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "maxLength": 1024
                                         }
                                     },
-                                    "required": ["type", "name", "resource"]
+                                    "required": [
+                                        "t",
+                                        "n",
+                                        "rc"
+                                    ]
                                 }
                             }
                         },
-                        "db": {
-                            "type": ["object", "null"],
-                            "description": "An object containing contextual data for database spans",
-                            "properties": {
-                                "instance": {
-                                    "type": ["string", "null"],
-                                    "description": "Database instance name"
-                                },
-                                "link": {
-                                    "type": ["string", "null"],
-                                    "maxLength": 1024,
-                                    "description": "Database link"
-                                },
-                                "statement": {
-                                    "type": ["string", "null"],
-                                    "description": "A database statement (e.g. query) for the given database type"
-                                },
-                                "type": {
-                                    "type": ["string", "null"],
-                                    "description": "Database type. For any SQL database, \"sql\". For others, the lower-case database category, e.g. \"cassandra\", \"hbase\", or \"redis\""
-                                },
-                                "user": {
-                                    "type": ["string", "null"],
-                                    "description": "Username for accessing database"
-                                },
-                                "rows_affected": {
-                                    "type": ["integer", "null"],
-                                    "description": "Number of rows affected by the SQL statement (if applicable)"
-                                }
-                            }
-                        },
-                        "http": {
-                            "type": ["object", "null"],
+                        "h": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
                             "description": "An object containing contextual data of the related http request.",
                             "properties": {
                                 "url": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "The raw url of the correlating http request."
                                 },
-                                "status_code": {
-                                    "type": ["integer", "null"],
+                                "sc": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
                                     "description": "The status code of the http request."
                                 },
-                                "method": {
-                                    "type": ["string", "null"],
+                                "mt": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "maxLength": 1024,
                                     "description": "The method of the http request."
                                 }
                             }
                         },
-                        "tags": {
+                        "g": {
                             "$ref": "../tags.json"
                         },
-                        "service": {
+                        "se": {
                             "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
                             "properties": {
-                                "agent": {
+                                "a": {
                                     "description": "Name and version of the Elastic APM agent",
                                     "type": [
                                         "object",
                                         "null"
                                     ],
                                     "properties": {
-                                        "name": {
+                                        "n": {
                                             "description": "Name of the Elastic APM agent, e.g. \"Python\"",
                                             "type": [
                                                 "string",
@@ -149,22 +177,17 @@
                                             ],
                                             "maxLength": 1024
                                         },
-                                        "version": {
+                                        "ve": {
                                             "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
                                             "type": [
                                                 "string",
                                                 "null"
                                             ],
                                             "maxLength": 1024
-                                        },
-                                        "ephemeral_id": {
-                                            "description": "Free format ID used for metrics correlation by some agents",
-                                            "type": ["string", "null"],
-                                            "maxLength": 1024
                                         }
                                     }
                                 },
-                                "name": {
+                                "n": {
                                     "description": "Immutable name of the service emitting this event",
                                     "type": [
                                         "string",
@@ -174,40 +197,55 @@
                                     "maxLength": 1024
                                 }
                             }
-                        },
-                        "message": {
-                            "$ref": "../message.json"
                         }
                     }
                 },
-                "duration": {
+                "d": {
                     "type": "number",
                     "description": "Duration of the span in milliseconds"
                 },
-                "name": {
+                "n": {
                     "type": "string",
                     "description": "Generic designation of a span in the scope of a transaction",
                     "maxLength": 1024
                 },
-                "stacktrace": {
-                    "type": ["array", "null"],
+                "st": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
                     "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
                     "items": {
-                        "$ref": "../stacktrace_frame.json"
+                        "$ref": "../rum_v3_stacktrace_frame.json"
                     },
                     "minItems": 0
                 },
-                "sync": {
-                    "type": ["boolean", "null"],
+                "sy": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
                     "description": "Indicates whether the span was executed synchronously or asynchronously."
                 }
             },
-            "required": ["duration", "name", "type", "id","trace_id", "parent_id"]
+            "required": [
+                "d",
+                "n",
+                "t",
+                "id",
+                "trace_id",
+                "parent_id"
+            ]
         },
-        { "anyOf":[
-            {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}},
-            {"required": ["start"], "properties": {"start": { "type": "number" }}}
-        ]
+        {
+            "required": [
+                "s"
+            ],
+            "properties": {
+                "s": {
+                    "type": "number"
+                }
+            }
         }
     ]
 }

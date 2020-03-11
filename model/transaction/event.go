@@ -20,6 +20,8 @@ package transaction
 import (
 	"time"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -109,12 +111,13 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	fieldName := field.Mapper(cfg.HasShortFieldNames)
 	e := Event{
 		Id:           decoder.String(raw, "id"),
-		Type:         decoder.String(raw, "type"),
-		Name:         decoder.StringPtr(raw, "name"),
-		Result:       decoder.StringPtr(raw, "result"),
-		Duration:     decoder.Float64(raw, "duration"),
+		Type:         decoder.String(raw, fieldName("type")),
+		Name:         decoder.StringPtr(raw, fieldName("name")),
+		Result:       decoder.StringPtr(raw, fieldName("result")),
+		Duration:     decoder.Float64(raw, fieldName("duration")),
 		Labels:       ctx.Labels,
 		Page:         ctx.Page,
 		Http:         ctx.Http,
@@ -125,12 +128,12 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Client:       ctx.Client,
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,
-		Sampled:      decoder.BoolPtr(raw, "sampled"),
-		Marks:        decoder.MapStr(raw, "marks"),
-		Timestamp:    decoder.TimeEpochMicro(raw, "timestamp"),
+		Sampled:      decoder.BoolPtr(raw, fieldName("sampled")),
+		Marks:        decoder.MapStr(raw, fieldName("marks")),
+		Timestamp:    decoder.TimeEpochMicro(raw, fieldName("timestamp")),
 		SpanCount: SpanCount{
-			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
-			Started: decoder.IntPtr(raw, "started", "span_count")},
+			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
+			Started: decoder.IntPtr(raw, fieldName("started"), fieldName("span_count"))},
 		ParentId: decoder.StringPtr(raw, "parent_id"),
 		TraceId:  decoder.String(raw, "trace_id"),
 	}

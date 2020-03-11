@@ -183,7 +183,7 @@ func TestServiceDecode(t *testing.T) {
 			},
 		},
 	} {
-		service, out := DecodeService(test.input, test.inpErr)
+		service, out := DecodeService(test.input, false, test.inpErr)
 		assert.Equal(t, test.s, service)
 		assert.Equal(t, test.err, out)
 	}

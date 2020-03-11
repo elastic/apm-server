@@ -502,7 +502,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 					s, err := metadata.DecodeService(map[string]interface{}{
 						"name":    "m-name",
 						"version": "m-version",
-						"node":    map[string]interface{}{"configured_name": serviceNodeName}}, nil)
+						"node":    map[string]interface{}{"configured_name": serviceNodeName}}, false, nil)
 					require.NoError(t, err)
 					return s
 				}(),

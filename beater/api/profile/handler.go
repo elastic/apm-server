@@ -134,7 +134,7 @@ func Handler(
 						err: errors.Wrap(err, "invalid metadata"),
 					}
 				}
-				metadata, err := metadata.DecodeMetadata(raw)
+				metadata, err := metadata.DecodeMetadata(raw, false)
 				if err != nil {
 					return nil, requestError{
 						id:  request.IDResponseErrorsDecode,
