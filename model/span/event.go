@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -160,7 +161,7 @@ func (db *DB) fields() common.MapStr {
 	return fields
 }
 
-func decodeHTTP(input interface{}, err error) (*HTTP, error) {
+func decodeHTTP(input interface{}, hasShortFieldNames bool, err error) (*HTTP, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -169,21 +170,22 @@ func decodeHTTP(input interface{}, err error) (*HTTP, error) {
 		return nil, errors.New("invalid type for http")
 	}
 	decoder := utility.ManualDecoder{}
-	httpInput := decoder.MapStr(raw, "http")
+	fieldName := field.Mapper(hasShortFieldNames)
+	httpInput := decoder.MapStr(raw, fieldName("http"))
 	if decoder.Err != nil || httpInput == nil {
 		return nil, decoder.Err
 	}
-	method := decoder.StringPtr(httpInput, "method")
+	method := decoder.StringPtr(httpInput, fieldName("method"))
 	if method != nil {
 		*method = strings.ToLower(*method)
 	}
-	minimalResp, err := m.DecodeMinimalHTTPResponse(httpInput, decoder.Err)
+	minimalResp, err := m.DecodeMinimalHTTPResponse(httpInput, hasShortFieldNames, decoder.Err)
 	if err != nil {
 		return nil, err
 	}
 	return &HTTP{
-		decoder.StringPtr(httpInput, "url"),
-		decoder.IntPtr(httpInput, "status_code"),
+		decoder.StringPtr(httpInput, fieldName("url")),
+		decoder.IntPtr(httpInput, fieldName("status_code")),
 		method,
 		minimalResp,
 	}, nil
@@ -210,7 +212,7 @@ func (http *HTTP) fields() common.MapStr {
 	return fields
 }
 
-func decodeDestination(input interface{}, err error) (*Destination, *DestinationService, error) {
+func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*Destination, *DestinationService, error) {
 	if input == nil || err != nil {
 		return nil, nil, err
 	}
@@ -218,26 +220,27 @@ func decodeDestination(input interface{}, err error) (*Destination, *Destination
 	if !ok {
 		return nil, nil, errors.New("invalid type for destination")
 	}
+	fieldName := field.Mapper(hasShortFieldNames)
 	decoder := utility.ManualDecoder{}
-	destinationInput := decoder.MapStr(raw, "destination")
+	destinationInput := decoder.MapStr(raw, fieldName("destination"))
 	if decoder.Err != nil || destinationInput == nil {
 		return nil, nil, decoder.Err
 	}
-	serviceInput := decoder.MapStr(destinationInput, "service")
+	serviceInput := decoder.MapStr(destinationInput, fieldName("service"))
 	if decoder.Err != nil {
 		return nil, nil, decoder.Err
 	}
 	var service *DestinationService
 	if serviceInput != nil {
 		service = &DestinationService{
-			Type:     decoder.StringPtr(serviceInput, "type"),
-			Name:     decoder.StringPtr(serviceInput, "name"),
-			Resource: decoder.StringPtr(serviceInput, "resource"),
+			Type:     decoder.StringPtr(serviceInput, fieldName("type")),
+			Name:     decoder.StringPtr(serviceInput, fieldName("name")),
+			Resource: decoder.StringPtr(serviceInput, fieldName("resource")),
 		}
 	}
 	dest := Destination{
-		Address: decoder.StringPtr(destinationInput, "address"),
-		Port:    decoder.IntPtr(destinationInput, "port"),
+		Address: decoder.StringPtr(destinationInput, fieldName("address")),
+		Port:    decoder.IntPtr(destinationInput, fieldName("port")),
 	}
 	return &dest, service, decoder.Err
 }
@@ -285,26 +288,26 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	if !ok {
 		return nil, errInvalidType
 	}
-
+	fieldName := field.Mapper(cfg.HasShortFieldNames)
 	decoder := utility.ManualDecoder{}
 	event := Event{
-		Name:          decoder.String(raw, "name"),
-		Start:         decoder.Float64Ptr(raw, "start"),
-		Duration:      decoder.Float64(raw, "duration"),
-		Sync:          decoder.BoolPtr(raw, "sync"),
-		Timestamp:     decoder.TimeEpochMicro(raw, "timestamp"),
-		Id:            decoder.String(raw, "id"),
+		Name:          decoder.String(raw, fieldName("name")),
+		Start:         decoder.Float64Ptr(raw, fieldName("start")),
+		Duration:      decoder.Float64(raw, fieldName("duration")),
+		Sync:          decoder.BoolPtr(raw, fieldName("sync")),
+		Timestamp:     decoder.TimeEpochMicro(raw, fieldName("timestamp")),
+		Id:            decoder.String(raw, fieldName("id")),
 		ParentId:      decoder.String(raw, "parent_id"),
 		TraceId:       decoder.String(raw, "trace_id"),
 		TransactionId: decoder.StringPtr(raw, "transaction_id"),
-		Type:          decoder.String(raw, "type"),
-		Subtype:       decoder.StringPtr(raw, "subtype"),
-		Action:        decoder.StringPtr(raw, "action"),
+		Type:          decoder.String(raw, fieldName("type")),
+		Subtype:       decoder.StringPtr(raw, fieldName("subtype")),
+		Action:        decoder.StringPtr(raw, fieldName("action")),
 	}
 
-	ctx := decoder.MapStr(raw, "context")
+	ctx := decoder.MapStr(raw, fieldName("context"))
 	if ctx != nil {
-		if labels, ok := ctx["tags"].(map[string]interface{}); ok {
+		if labels, ok := ctx[fieldName("tags")].(map[string]interface{}); ok {
 			event.Labels = labels
 		}
 
@@ -314,13 +317,13 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		}
 		event.DB = db
 
-		http, err := decodeHTTP(ctx, decoder.Err)
+		http, err := decodeHTTP(ctx, cfg.HasShortFieldNames, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
 		event.HTTP = http
 
-		dest, destService, err := decodeDestination(ctx, decoder.Err)
+		dest, destService, err := decodeDestination(ctx, cfg.HasShortFieldNames, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
@@ -328,7 +331,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		event.DestinationService = destService
 
 		if s, set := ctx["service"]; set {
-			service, err := metadata.DecodeService(s, decoder.Err)
+			service, err := metadata.DecodeService(s, cfg.HasShortFieldNames, decoder.Err)
 			if err != nil {
 				return nil, err
 			}
@@ -347,7 +350,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	}
 
 	var stacktr *m.Stacktrace
-	stacktr, decoder.Err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
+	stacktr, decoder.Err = m.DecodeStacktrace(raw[fieldName("stacktrace")], cfg.HasShortFieldNames, decoder.Err)
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}

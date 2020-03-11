@@ -1,111 +1,72 @@
 {
     "events": [
         {
-            "@timestamp": "2017-12-08T12:18:50.291Z",
+            "@timestamp": "2018-08-01T10:00:00Z",
             "agent": {
-                "name": "rum-js",
-                "version": "0.0.0"
-            },
-            "client": {
-                "ip": "192.0.0.1"
+                "name": "js-base",
+                "version": "4.8.1"
             },
             "error": {
-                "culprit": "test/e2e/general-usecase/bundle.js.map",
+                "culprit": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                "custom": {
+                    "testContext": "testContext"
+                },
                 "exception": [
                     {
-                        "message": "Uncaught Error: timeout test error",
+                        "message": "Uncaught Error: timeout test e with a [REDACTED]",
                         "stacktrace": [
                             {
-                                "abs_path": "http://localhost:8000/test/../test/e2e/general-usecase/bundle.js.map",
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
                                 "exclude_from_grouping": false,
-                                "filename": "test/e2e/general-usecase/bundle.js.map",
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                                "function": "generateError",
+                                "line": {
+                                    "column": 9,
+                                    "number": 7662
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                                "exclude_from_grouping": false,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
                                 "function": "\u003canonymous\u003e",
-                                "library_frame": true,
                                 "line": {
-                                    "column": 18,
-                                    "number": 1
-                                }
-                            },
-                            {
-                                "abs_path": "http://localhost:8000/test/./e2e/general-usecase/bundle.js.map",
-                                "exclude_from_grouping": false,
-                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
-                                "function": "invokeTask",
-                                "library_frame": false,
-                                "line": {
-                                    "column": 181,
-                                    "number": 1
-                                }
-                            },
-                            {
-                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                                "exclude_from_grouping": false,
-                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
-                                "function": "runTask",
-                                "line": {
-                                    "column": 15,
-                                    "number": 1
-                                }
-                            },
-                            {
-                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                                "exclude_from_grouping": false,
-                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
-                                "function": "invoke",
-                                "line": {
-                                    "column": 199,
-                                    "number": 1
-                                }
-                            },
-                            {
-                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                                "exclude_from_grouping": false,
-                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
-                                "function": "timer",
-                                "line": {
-                                    "column": 33,
-                                    "number": 1
+                                    "column": 3,
+                                    "number": 7666
                                 }
                             }
                         ],
                         "type": "Error"
                     }
                 ],
-                "grouping_key": "52fbc9c2d1a61bf905b4a11c708006fd",
-                "id": "aba2688e033848ce9c4e4005f1caa534",
-                "log": {
-                    "message": "Uncaught Error: log timeout test error",
-                    "stacktrace": [
-                        {
-                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                            "exclude_from_grouping": false,
-                            "filename": "~/test/e2e/general-usecase/bundle.js.map",
-                            "function": "\u003canonymous\u003e",
-                            "line": {
-                                "column": 18,
-                                "number": 1
-                            }
-                        }
-                    ]
-                },
+                "grouping_key": "e5fa86c0df837d142aa0520eb2661d8d",
+                "id": "3661352868c17c78b773d2f1beae6d41",
                 "page": {
                     "referer": "http://localhost:8000/test/e2e/",
                     "url": "http://localhost:8000/test/e2e/general-usecase/"
                 }
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
             },
             "processor": {
                 "event": "error",
                 "name": "error"
             },
             "service": {
-                "name": "apm-agent-js",
-                "version": "1.0.1"
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
             },
             "timestamp": {
-                "us": 1512735530291000
+                "us": 1533117600000000
             },
-            "user_agent": {
-                "original": "rum-2.0"
+            "user": {
+                "email": "em",
+                "id": "uId",
+                "name": "un"
             }
         }
     ]

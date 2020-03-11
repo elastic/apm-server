@@ -22,6 +22,8 @@ import (
 	"errors"
 	"net"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/utility"
@@ -35,7 +37,7 @@ type User struct {
 	UserAgent *string
 }
 
-func DecodeUser(input interface{}, err error) (*User, error) {
+func DecodeUser(input interface{}, hasShortFieldNames bool, err error) (*User, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -44,10 +46,11 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 		return nil, errors.New("invalid type for user")
 	}
 	decoder := utility.ManualDecoder{}
+	fieldName := field.Mapper(hasShortFieldNames)
 	user := User{
 		UserAgent: decoder.StringPtr(raw, "user-agent"),
-		Name:      decoder.StringPtr(raw, "username"),
-		Email:     decoder.StringPtr(raw, "email"),
+		Name:      decoder.StringPtr(raw, fieldName("username")),
+		Email:     decoder.StringPtr(raw, fieldName("email")),
 		IP:        decoder.NetIP(raw, "ip"),
 	}
 

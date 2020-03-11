@@ -137,7 +137,7 @@ func errorKeywordExceptionKeys() *tests.Set {
 		tests.Group("url"),
 		tests.Group("http"),
 		tests.Group("destination"),
-		// metadata fields
+		// metadata field
 		tests.Group("agent"),
 		tests.Group("container"),
 		tests.Group("host"),

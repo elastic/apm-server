@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/elastic/apm-server/beater/config"
 
 	"github.com/elastic/apm-server/model"
@@ -90,11 +92,12 @@ type processorModel struct {
 }
 
 type Processor struct {
-	Tconfig      transform.Config
-	Mconfig      model.Config
-	MaxEventSize int
-	bufferPool   sync.Pool
-	models       map[string]processorModel
+	Tconfig        transform.Config
+	Mconfig        model.Config
+	MaxEventSize   int
+	bufferPool     sync.Pool
+	models         map[string]processorModel
+	metadataSchema *jsonschema.Schema
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
@@ -116,10 +119,11 @@ func BackendProcessor(cfg *config.Config) *Processor {
 				modelDecoder: metricset.DecodeEvent,
 			},
 			"error": {
-				er.ModelSchema(),
-				er.DecodeEvent,
+				schema:       er.ModelSchema(),
+				modelDecoder: er.DecodeEvent,
 			},
 		},
+		metadataSchema: metadata.ModelSchema(),
 	}
 }
 
@@ -142,32 +146,34 @@ func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
 				modelDecoder: metricset.DecodeEvent,
 			},
 			"error": {
-				er.ModelSchema(),
-				er.DecodeEvent,
+				schema:       er.ModelSchema(),
+				modelDecoder: er.DecodeEvent,
 			},
 		},
+		metadataSchema: metadata.ModelSchema(),
 	}
 }
 
 func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	return &Processor{
 		Tconfig:      *tcfg,
-		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
 		MaxEventSize: cfg.MaxEventSize,
 		models: map[string]processorModel{
-			"transaction": {
+			"x": {
 				schema:       transaction.RUMV3Schema,
 				modelDecoder: transaction.DecodeRUMV3Event,
 			},
-			"span": {
+			"y": {
 				schema:       span.RUMV3Schema,
 				modelDecoder: span.DecodeRUMV3Event,
 			},
-			"error": {
+			"e": {
 				schema:       er.RUMV3Schema,
 				modelDecoder: er.DecodeRUMV3Event,
 			},
 		},
+		metadataSchema: metadata.RUMV3ModelSchema(),
 	}
 }
 
@@ -187,7 +193,8 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamRe
 		return nil, err
 	}
 
-	rawMetadata, ok := rawModel["metadata"].(map[string]interface{})
+	fieldName := field.Mapper(p.Mconfig.HasShortFieldNames)
+	rawMetadata, ok := rawModel[fieldName("metadata")].(map[string]interface{})
 	if !ok {
 		return nil, &Error{
 			Type:     InvalidInputErrType,
@@ -201,7 +208,7 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamRe
 	}
 
 	// validate the metadata object against our jsonschema
-	err = validation.Validate(rawMetadata, metadata.ModelSchema())
+	err = validation.Validate(rawMetadata, p.metadataSchema)
 	if err != nil {
 		return nil, &Error{
 			Type:     InvalidInputErrType,
@@ -211,7 +218,7 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamRe
 	}
 
 	// create a metadata struct
-	metadata, err := metadata.DecodeMetadata(rawMetadata)
+	metadata, err := metadata.DecodeMetadata(rawMetadata, p.Mconfig.HasShortFieldNames)
 	if err != nil {
 		return nil, err
 	}

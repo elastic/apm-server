@@ -28,6 +28,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -138,9 +140,10 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	fieldName := field.Mapper(cfg.HasShortFieldNames)
 	e := Event{
 		Id:                 decoder.StringPtr(raw, "id"),
-		Culprit:            decoder.StringPtr(raw, "culprit"),
+		Culprit:            decoder.StringPtr(raw, fieldName("culprit")),
 		Labels:             ctx.Labels,
 		Page:               ctx.Page,
 		Http:               ctx.Http,
@@ -154,25 +157,25 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
 		TraceId:            decoder.StringPtr(raw, "trace_id"),
-		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
-		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
+		TransactionSampled: decoder.BoolPtr(raw, fieldName("sampled"), fieldName("transaction")),
+		TransactionType:    decoder.StringPtr(raw, fieldName("type"), fieldName("transaction")),
 	}
 
-	ex := decoder.MapStr(raw, "exception")
-	e.Exception = decodeException(&decoder)(ex)
+	ex := decoder.MapStr(raw, fieldName("exception"))
+	e.Exception = decodeException(&decoder, cfg.HasShortFieldNames)(ex)
 
-	log := decoder.MapStr(raw, "log")
-	logMsg := decoder.StringPtr(log, "message")
+	log := decoder.MapStr(raw, fieldName("log"))
+	logMsg := decoder.StringPtr(log, fieldName("message"))
 	if logMsg != nil {
 		e.Log = &Log{
 			Message:      *logMsg,
-			ParamMessage: decoder.StringPtr(log, "param_message"),
-			Level:        decoder.StringPtr(log, "level"),
-			LoggerName:   decoder.StringPtr(log, "logger_name"),
+			ParamMessage: decoder.StringPtr(log, fieldName("param_message")),
+			Level:        decoder.StringPtr(log, fieldName("level")),
+			LoggerName:   decoder.StringPtr(log, fieldName("logger_name")),
 			Stacktrace:   m.Stacktrace{},
 		}
 		var stacktrace *m.Stacktrace
-		stacktrace, decoder.Err = m.DecodeStacktrace(log["stacktrace"], decoder.Err)
+		stacktrace, decoder.Err = m.DecodeStacktrace(log[fieldName("stacktrace")], cfg.HasShortFieldNames, decoder.Err)
 		if stacktrace != nil {
 			e.Log.Stacktrace = *stacktrace
 		}
@@ -423,29 +426,30 @@ func addStacktraceCounter(st m.Stacktrace) {
 
 type exceptionDecoder func(map[string]interface{}) *Exception
 
-func decodeException(decoder *utility.ManualDecoder) exceptionDecoder {
+func decodeException(decoder *utility.ManualDecoder, hasShortFieldNames bool) exceptionDecoder {
 	var decode exceptionDecoder
+	fieldName := field.Mapper(hasShortFieldNames)
 	decode = func(exceptionTree map[string]interface{}) *Exception {
-		exMsg := decoder.StringPtr(exceptionTree, "message")
-		exType := decoder.StringPtr(exceptionTree, "type")
+		exMsg := decoder.StringPtr(exceptionTree, fieldName("message"))
+		exType := decoder.StringPtr(exceptionTree, fieldName("type"))
 		if decoder.Err != nil || (exMsg == nil && exType == nil) {
 			return nil
 		}
 		ex := Exception{
 			Message:    exMsg,
 			Type:       exType,
-			Code:       decoder.Interface(exceptionTree, "code"),
-			Module:     decoder.StringPtr(exceptionTree, "module"),
-			Attributes: decoder.Interface(exceptionTree, "attributes"),
-			Handled:    decoder.BoolPtr(exceptionTree, "handled"),
+			Code:       decoder.Interface(exceptionTree, fieldName("code")),
+			Module:     decoder.StringPtr(exceptionTree, fieldName("module")),
+			Attributes: decoder.Interface(exceptionTree, fieldName("attributes")),
+			Handled:    decoder.BoolPtr(exceptionTree, fieldName("handled")),
 			Stacktrace: m.Stacktrace{},
 		}
 		var stacktrace *m.Stacktrace
-		stacktrace, decoder.Err = m.DecodeStacktrace(exceptionTree["stacktrace"], decoder.Err)
+		stacktrace, decoder.Err = m.DecodeStacktrace(exceptionTree[fieldName("stacktrace")], hasShortFieldNames, decoder.Err)
 		if stacktrace != nil {
 			ex.Stacktrace = *stacktrace
 		}
-		for _, cause := range decoder.InterfaceArr(exceptionTree, "cause") {
+		for _, cause := range decoder.InterfaceArr(exceptionTree, fieldName("cause")) {
 			e, ok := cause.(map[string]interface{})
 			if !ok {
 				decoder.Err = errors.New("cause must be an exception")

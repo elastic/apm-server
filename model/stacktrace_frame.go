@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/elastic/apm-server/model/field"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -79,7 +81,7 @@ type Original struct {
 	sourcemapCopied bool
 }
 
-func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, error) {
+func DecodeStacktraceFrame(input interface{}, hasShortFieldNames bool, err error) (*StacktraceFrame, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -88,19 +90,20 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 		return nil, errInvalidStacktraceFrameType
 	}
 	decoder := utility.ManualDecoder{}
+	fieldName := field.Mapper(hasShortFieldNames)
 	frame := StacktraceFrame{
-		AbsPath:      decoder.StringPtr(raw, "abs_path"),
-		Filename:     decoder.StringPtr(raw, "filename"),
-		Classname:    decoder.StringPtr(raw, "classname"),
-		Lineno:       decoder.IntPtr(raw, "lineno"),
-		Colno:        decoder.IntPtr(raw, "colno"),
-		ContextLine:  decoder.StringPtr(raw, "context_line"),
-		Module:       decoder.StringPtr(raw, "module"),
-		Function:     decoder.StringPtr(raw, "function"),
+		AbsPath:      decoder.StringPtr(raw, fieldName("abs_path")),
+		Filename:     decoder.StringPtr(raw, fieldName("filename")),
+		Classname:    decoder.StringPtr(raw, fieldName("classname")),
+		Lineno:       decoder.IntPtr(raw, fieldName("lineno")),
+		Colno:        decoder.IntPtr(raw, fieldName("colno")),
+		ContextLine:  decoder.StringPtr(raw, fieldName("context_line")),
+		Module:       decoder.StringPtr(raw, fieldName("module")),
+		Function:     decoder.StringPtr(raw, fieldName("function")),
 		LibraryFrame: decoder.BoolPtr(raw, "library_frame"),
 		Vars:         decoder.MapStr(raw, "vars"),
-		PreContext:   decoder.StringArr(raw, "pre_context"),
-		PostContext:  decoder.StringArr(raw, "post_context"),
+		PreContext:   decoder.StringArr(raw, fieldName("pre_context")),
+		PostContext:  decoder.StringArr(raw, fieldName("post_context")),
 	}
 	return &frame, decoder.Err
 }
