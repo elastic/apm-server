@@ -52,7 +52,7 @@ func DecodeMessage(input interface{}, err error) (*Message, error) {
 	m := Message{
 		QueueName: decoder.StringPtr(messageInp, "name", "queue"),
 		Body:      decoder.StringPtr(messageInp, "body"),
-		Headers:   decoder.Headers(messageInp),
+		Headers:   decoder.Headers(messageInp, "headers"),
 		AgeMillis: decoder.IntPtr(messageInp, "ms", "age"),
 	}
 	if decoder.Err != nil {

@@ -44,7 +44,7 @@ const RUMV3Schema = `{
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
-                "transaction_id": {
+                "xid": {
                     "type": ["string", "null"],
                     "description": "Hex encoded 64 random bits ID of the correlated transaction. Must be present if trace_id and parent_id are set.",
                     "maxLength": 1024
@@ -54,194 +54,151 @@ const RUMV3Schema = `{
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
-                "transaction": {
+                "x": {
                     "type": ["object", "null"],
                     "description": "Data for correlating errors with transactions",
                     "properties": {
-                        "sampled": {
+                        "sm": {
                             "type": ["boolean", "null"],
                             "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
                         },
-                        "type": {
+                        "t": {
                             "type": ["string", "null"],
                             "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
                             "maxLength": 1024
                         }
                     }
                 },
-                "context": {
-                        "$id": "doc/spec/context.json",
+                "c": {
+                        "$id": "doc/spec/rum_v3_context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
-    "type": ["object", "null"],
+    "type": [
+        "object",
+        "null"
+    ],
     "properties": {
-        "custom": {
+        "cu": {
             "description": "An arbitrary mapping of additional metadata to store with the event.",
-            "type": ["object", "null"],
+            "type": [
+                "object",
+                "null"
+            ],
             "patternProperties": {
                 "^[^.*\"]*$": {}
             },
             "additionalProperties": false
         },
-        "response": {
-            "type": ["object", "null"],
+        "r": {
+            "type": [
+                "object",
+                "null"
+            ],
             "allOf": [
-                {     "$id": "doc/spec/http_response.json",
-    "title": "HTTP response object",
-    "description": "HTTP response object, used by error, span and transction documents",
-    "type": ["object", "null"],
-    "properties": {
-        "status_code": {
-            "type": ["integer", "null"],
-            "description": "The status code of the http request."
-        },
-        "transfer_size": {
-            "type": ["number", "null"],
-            "description": "Total size of the payload."
-        },
-        "encoded_body_size": {
-            "type": ["number", "null"],
-            "description": "The encoded size of the payload."
-        },
-        "decoded_body_size":  {
-            "type": ["number", "null"],
-            "description": "The decoded size of the payload."
-        },
-        "headers": {
-            "type": ["object", "null"],
-            "patternProperties": {
-                "[.*]*$": {
-                    "type": ["string", "array", "null"],
-                    "items": {
-                        "type": ["string"]
-                    }
-                }
-            }
-        }
-    } },
                 {
                     "properties": {
-                        "finished": {
-                            "description": "A boolean indicating whether the response was finished or not",
+                        "sc": {
                             "type": [
-                                "boolean",
+                                "integer",
                                 "null"
-                            ]
+                            ],
+                            "description": "The status code of the http request."
                         },
-                        "headers_sent": {
+                        "ts": {
                             "type": [
-                                "boolean",
+                                "number",
                                 "null"
-                            ]
+                            ],
+                            "description": "Total size of the payload."
+                        },
+                        "ebs": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "description": "The encoded size of the payload."
+                        },
+                        "dbs": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "description": "The decoded size of the payload."
+                        },
+                        "he": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "patternProperties": {
+                                "[.*]*$": {
+                                    "type": [
+                                        "string",
+                                        "array",
+                                        "null"
+                                    ],
+                                    "items": {
+                                        "type": [
+                                            "string"
+                                        ]
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             ]
         },
-        "request": {
-                "$id": "docs/spec/http.json",
-    "title": "Request",
-    "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
-    "type": ["object", "null"],
-    "properties": {
-        "body": {
-            "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
-            "type": ["object", "string", "null"]
-        },
-        "env": {
-            "description": "The env variable is a compounded of environment information passed from the webserver.",
-            "type": ["object", "null"],
-            "properties": {}
-        },
-        "headers": {
-            "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
-            "type": ["object", "null"],
-            "patternProperties": {
-                "[.*]*$": {
-                    "type": ["string", "array", "null"],
-                    "items": {
-                        "type": ["string"]
+        "q": {
+            "properties": {
+                "en": {
+                    "description": "The env variable is a compounded of environment information passed from the webserver.",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {}
+                },
+                "he": {
+                    "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "patternProperties": {
+                        "[.*]*$": {
+                            "type": [
+                                "string",
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": [
+                                    "string"
+                                ]
+                            }
+                        }
                     }
-                }
-            }
-        },
-        "http_version": {
-            "description": "HTTP version.",
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
-        "method": {
-            "description": "HTTP method.",
-            "type": "string",
-            "maxLength": 1024
-        },
-        "socket": {
-            "type": ["object", "null"],
-            "properties": {
-                "encrypted": {
-                    "description": "Indicates whether request was sent as SSL/HTTPS request.",
-                    "type": ["boolean", "null"]
                 },
-                "remote_address": {
-                    "description": "The network address sending the request. Should be obtained through standard APIs and not parsed from any headers like 'Forwarded'.",
-                    "type": ["string", "null"]
-                }
-            }
-        },
-        "url": {
-            "description": "A complete Url, with scheme, host and path.",
-            "type": "object",
-            "properties": {
-                "raw": {
-                    "type": ["string", "null"],
-                    "description": "The raw, unparsed URL of the HTTP request line, e.g https://example.com:443/search?q=elasticsearch. This URL may be absolute or relative. For more details, see https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2.",
+                "hve": {
+                    "description": "HTTP version.",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "protocol": {
-                    "type": ["string", "null"],
-                    "description": "The protocol of the request, e.g. 'https:'.",
-                    "maxLength": 1024
-                },
-                "full": {
-                    "type": ["string", "null"],
-                    "description": "The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.",
-                    "maxLength": 1024
-                },
-                "hostname": {
-                    "type": ["string", "null"],
-                    "description": "The hostname of the request, e.g. 'example.com'.",
-                    "maxLength": 1024
-                },
-                "port": {
-                    "type": ["string", "integer","null"],
-                    "description": "The port of the request, e.g. '443'",
-                    "maxLength": 1024
-                },
-                "pathname": {
-                    "type": ["string", "null"],
-                    "description": "The path of the request, e.g. '/search'",
-                    "maxLength": 1024
-                },
-                "search": {
-                    "description": "The search describes the query string of the request. It is expected to have values delimited by ampersands.",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "hash": {
-                    "type": ["string", "null"],
-                    "description": "The hash of the request URL, e.g. 'top'",
+                "mt": {
+                    "description": "HTTP method.",
+                    "type": "string",
                     "maxLength": 1024
                 }
-            }
+            },
+            "required": [
+                "mt"
+            ]
         },
-        "cookies": {
-            "description": "A parsed key-value object of cookies",
-            "type": ["object", "null"]
-        }
-    },
-    "required": ["url", "method"]
-        },
-        "tags": {
+        "g": {
                 "$id": "doc/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
@@ -254,293 +211,324 @@ const RUMV3Schema = `{
     },
     "additionalProperties": false
         },
-        "user": {
-            "description": "Describes the correlated user for this event. If user data are provided here, all user related information from metadata is ignored, otherwise the metadata's user information will be stored with the event.",
-                "$id": "docs/spec/user.json",
+        "u": {
+                "$id": "docs/spec/rum_v3_user.json",
     "title": "User",
-    "type": ["object", "null"],
+    "type": [
+        "object",
+        "null"
+    ],
     "properties": {
         "id": {
             "description": "Identifier of the logged in user, e.g. the primary key of the user",
-            "type": ["string", "integer", "null"],
+            "type": [
+                "string",
+                "integer",
+                "null"
+            ],
             "maxLength": 1024
         },
-        "email": {
+        "em": {
             "description": "Email of the logged in user",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         },
-        "username": {
+        "un": {
             "description": "The username of the logged in user",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         }
     }
         },
-        "page": {
+        "p": {
             "description": "",
-            "type": ["object", "null"],
+            "type": [
+                "object",
+                "null"
+            ],
             "properties": {
-                "referer": {
+                "rf": {
                     "description": "RUM specific field that stores the URL of the page that 'linked' to the current page.",
-                    "type": ["string", "null"]
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 },
                 "url": {
                     "description": "RUM specific field that stores the URL of the current page",
-                    "type": ["string", "null"]
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 }
             }
         },
-        "service": {
+        "se": {
             "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
-                "$id": "doc/spec/service.json",
+                "$id": "doc/spec/rum_v3_service.json",
     "title": "Service",
-    "type": ["object", "null"],
+    "type": [
+        "object",
+        "null"
+    ],
     "properties": {
-        "agent": {
+        "a": {
             "description": "Name and version of the Elastic APM agent",
-            "type": ["object", "null"],
+            "type": [
+                "object",
+                "null"
+            ],
             "properties": {
-                "name": {
+                "n": {
                     "description": "Name of the Elastic APM agent, e.g. \"Python\"",
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "version": {
+                "ve": {
                     "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "ephemeral_id": {
-                    "description": "Free format ID used for metrics correlation by some agents",
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
-        "framework": {
+        "fw": {
             "description": "Name and version of the web framework used",
-            "type": ["object", "null"],
+            "type": [
+                "object",
+                "null"
+            ],
             "properties": {
-                "name": {
-                    "type": ["string", "null"],
+                "n": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "version": {
-                    "type": ["string", "null"],
+                "ve": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
-        "language": {
+        "la": {
             "description": "Name and version of the programming language used",
-            "type": ["object", "null"],
+            "type": [
+                "object",
+                "null"
+            ],
             "properties": {
-                "name": {
-                    "type": ["string", "null"],
+                "n": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "version": {
-                    "type": ["string", "null"],
+                "ve": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
-        "name": {
+        "n": {
             "description": "Immutable name of the service emitting this event",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
-        "environment": {
+        "en": {
             "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         },
-        "runtime": {
+        "ru": {
             "description": "Name and version of the language runtime running this service",
-            "type": ["object", "null"],
+            "type": [
+                "object",
+                "null"
+            ],
             "properties": {
-                "name": {
-                    "type": ["string", "null"],
+                "n": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "version": {
-                    "type": ["string", "null"],
+                "ve": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
-        "version": {
+        "ve": {
             "description": "Version of the service emitting this event",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
-        },
-        "node": {
-            "description": "Unique meaningful name of the service node.",
-            "type": ["object", "null"],
-            "properties": {
-                "configured_name": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                }
-            }
-        }
-    }
-        },
-        "message": {
-                "$id": "doc/spec/message.json",
-    "title": "Message",
-    "description": "Details related to message receiving and publishing if the captured event integrates with a messaging system",
-    "type": ["object", "null"],
-    "properties": {
-        "queue": {
-            "type": ["object", "null"],
-            "properties": {
-                "name": {
-                    "description": "Name of the message queue where the message is received.",
-                    "type": ["string","null"],
-                    "maxLength": 1024
-                }
-            }
-        },
-        "age": {
-            "type": ["object", "null"],
-            "properties": {
-                "ms": {
-                    "description": "The age of the message in milliseconds. If the instrumented messaging framework provides a timestamp for the message, agents may use it. Otherwise, the sending agent can add a timestamp in milliseconds since the Unix epoch to the message's metadata to be retrieved by the receiving agent. If a timestamp is not available, agents should omit this field.",
-                    "type": ["integer", "null"]
-                }
-            }
-        },
-        "body": {
-            "description": "messsage body, similar to an http request body",
-            "type": ["string", "null"]
-        },
-        "headers": {
-            "description": "messsage headers, similar to http request headers",
-            "type": ["object", "null"],
-            "patternProperties": {
-                "[.*]*$": {
-                    "type": ["string", "array", "null"],
-                    "items": {
-                        "type": ["string"]
-                    }
-                }
-            }
         }
     }
         }
     }
                 },
-                "culprit": {
+                "cu": {
                     "description": "Function call which was the primary perpetrator of this event.",
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
-                "exception": {
+                "ex": {
                     "description": "Information about the originally thrown error.",
                     "type": ["object", "null"],
                     "properties": {
-                        "code": {
+                        "cd": {
                             "type": ["string", "integer", "null"],
                             "maxLength": 1024,
                             "description": "The error code set when the error happened, e.g. database error code."
                         },
-                        "message": {
+                        "mg": {
                             "description": "The original error message.",
                             "type": ["string", "null"]
                         },
-                        "module": {
+                        "mo": {
                             "description": "Describes the exception type's module namespace.",
                             "type": ["string", "null"],
                             "maxLength": 1024
                         },
-                        "attributes": {
+                        "at": {
                             "type": ["object", "null"]
                         },
-                        "stacktrace": {
+                        "st": {
                             "type": ["array", "null"],
                             "items": {
-                                    "$id": "docs/spec/stacktrace_frame.json",
+                                    "$id": "docs/spec/rum_v3_stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
     "properties": {
-        "abs_path": {
+        "ap": {
             "description": "The absolute path of the file involved in the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "colno": {
+        "co": {
             "description": "Column number",
-            "type": ["integer", "null"]
+            "type": [
+                "integer",
+                "null"
+            ]
         },
-        "context_line": {
+        "cli": {
             "description": "The line of code part of the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "filename": {
+        "f": {
             "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "classname": {
+        "cn": {
             "description": "The classname of the code involved in the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "function": {
+        "fn": {
             "description": "The function involved in the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "library_frame": {
-            "description": "A boolean, indicating if this frame is from a library or user code",
-            "type": ["boolean", "null"]
-        },
-        "lineno": {
+        "li": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": ["integer", "null"]
+            "type": [
+                "integer",
+                "null"
+            ]
         },
-        "module": {
+        "mo": {
             "description": "The module to which frame belongs to",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "post_context": {
+        "poc": {
             "description": "The lines of code after the stack frame",
-            "type": ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "minItems": 0,
             "items": {
                 "type": "string"
             }
         },
-        "pre_context": {
+        "prc": {
             "description": "The lines of code before the stack frame",
-            "type": ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "minItems": 0,
             "items": {
                 "type": "string"
             }
-        },
-        "vars": {
-            "description": "Local variables for this stack frame",
-            "type": ["object", "null"],
-            "properties": {}
         }
     },
-    "anyOf": [
-        { "required": ["filename"], "properties": {"filename": { "type": "string" }} },
-        { "required": ["classname"], "properties": {"classname": { "type": "string" }} }
+    "required": [
+        "f"
     ]
                             },
                             "minItems": 0
                         },
-                        "type": {
+                        "t": {
                             "type": ["string", "null"],
                             "maxLength": 1024
                         },
-                        "handled": {
+                        "hd": {
                             "type": ["boolean", "null"],
                             "description": "Indicator whether the error was caught somewhere in the code or not."
                         },
-                        "cause": {
+                        "ca": {
                             "type": ["array", "null"],
                             "items": {
                                 "type": ["object", "null"],
@@ -551,115 +539,135 @@ const RUMV3Schema = `{
                         }
                     },
                     "anyOf": [
-                        {"required": ["message"], "properties": {"message": {"type": "string"}}},
-                        {"required": ["type"], "properties": {"type": {"type": "string"}}}
+                        {"required": ["mg"], "properties": {"mg": {"type": "string"}}},
+                        {"required": ["t"], "properties": {"t": {"type": "string"}}}
                     ]
                 },
                 "log": {
                     "type": ["object", "null"],
                     "description": "Additional information added when logging the error.",
                     "properties": {
-                        "level": {
+                        "lv": {
                             "description": "The severity of the record.",
                             "type": ["string", "null"],
                             "maxLength": 1024
                         },
-                        "logger_name": {
+                        "ln": {
                             "description": "The name of the logger instance used.",
                             "type": ["string", "null"],
                             "default": "default",
                             "maxLength": 1024
                         },
-                        "message": {
+                        "mg": {
                             "description": "The additionally logged error message.",
                             "type": "string"
                         },
-                        "param_message": {
+                        "pmg": {
                             "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
                             "type": ["string", "null"],
                             "maxLength": 1024
 
                         },
-                        "stacktrace": {
+                        "st": {
                             "type": ["array", "null"],
                             "items": {
-                                    "$id": "docs/spec/stacktrace_frame.json",
+                                    "$id": "docs/spec/rum_v3_stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
     "properties": {
-        "abs_path": {
+        "ap": {
             "description": "The absolute path of the file involved in the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "colno": {
+        "co": {
             "description": "Column number",
-            "type": ["integer", "null"]
+            "type": [
+                "integer",
+                "null"
+            ]
         },
-        "context_line": {
+        "cli": {
             "description": "The line of code part of the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "filename": {
+        "f": {
             "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "classname": {
+        "cn": {
             "description": "The classname of the code involved in the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "function": {
+        "fn": {
             "description": "The function involved in the stack frame",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "library_frame": {
-            "description": "A boolean, indicating if this frame is from a library or user code",
-            "type": ["boolean", "null"]
-        },
-        "lineno": {
+        "li": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": ["integer", "null"]
+            "type": [
+                "integer",
+                "null"
+            ]
         },
-        "module": {
+        "mo": {
             "description": "The module to which frame belongs to",
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         },
-        "post_context": {
+        "poc": {
             "description": "The lines of code after the stack frame",
-            "type": ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "minItems": 0,
             "items": {
                 "type": "string"
             }
         },
-        "pre_context": {
+        "prc": {
             "description": "The lines of code before the stack frame",
-            "type": ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "minItems": 0,
             "items": {
                 "type": "string"
             }
-        },
-        "vars": {
-            "description": "Local variables for this stack frame",
-            "type": ["object", "null"],
-            "properties": {}
         }
     },
-    "anyOf": [
-        { "required": ["filename"], "properties": {"filename": { "type": "string" }} },
-        { "required": ["classname"], "properties": {"classname": { "type": "string" }} }
+    "required": [
+        "f"
     ]
                             },
                             "minItems": 0
                         }
                     },
-                    "required": ["message"]
+                    "required": ["mg"]
                 }
             },
             "allOf": [
                 { "required": ["id"] },
-                { "if": {"required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}},
+                { "if": {"required": ["xid"], "properties": {"xid": { "type": "string" }}},
                     "then": { "required": ["trace_id", "parent_id"], "properties": {"trace_id": { "type": "string" }, "parent_id": {"type": "string"}}}},
                 { "if": {"required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}},
                     "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
@@ -667,7 +675,7 @@ const RUMV3Schema = `{
                     "then": { "required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}} }
             ],
             "anyOf": [
-                { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
+                { "required": ["ex"], "properties": {"ex": { "type": "object" }} },
                 { "required": ["log"], "properties": {"log": { "type": "object" }} }
             ]
         }

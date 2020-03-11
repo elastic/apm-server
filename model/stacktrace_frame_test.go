@@ -92,7 +92,7 @@ func TestStacktraceFrameDecode(t *testing.T) {
 			},
 		},
 	} {
-		frame, err := DecodeStacktraceFrame(test.input, test.inpErr)
+		frame, err := DecodeStacktraceFrame(test.input, false, test.inpErr)
 		assert.Equal(t, test.s, frame)
 		assert.Equal(t, test.err, err)
 	}

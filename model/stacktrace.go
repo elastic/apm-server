@@ -36,7 +36,7 @@ var (
 
 type Stacktrace []*StacktraceFrame
 
-func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
+func DecodeStacktrace(input interface{}, hasShortFieldNames bool, err error) (*Stacktrace, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	}
 	st := make(Stacktrace, len(raw))
 	for idx, fr := range raw {
-		st[idx], err = DecodeStacktraceFrame(fr, err)
+		st[idx], err = DecodeStacktraceFrame(fr, hasShortFieldNames, err)
 	}
 	return &st, err
 }
