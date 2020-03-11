@@ -1,12 +1,9 @@
 import os
-import requests
 import shutil
 import ssl
 import subprocess
 
 from nose.tools import raises
-from requests.packages.urllib3.exceptions import SubjectAltNameWarning
-requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
 from apmserver import ServerBaseTest
 from apmserver import TimeoutError, integration_test
@@ -103,14 +100,10 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
         self.ssl_connect()
 
     def test_http_fails(self):
-        with self.assertRaises(Exception):
-            with requests.Session() as session:
-                try:
-                    return session.post("http://localhost:8200/intake/v2/events",
-                                        headers={'content-type': 'application/x-ndjson'},
-                                        data=self.get_event_payload())
-                finally:
-                    session.close()
+        try:
+            subprocess.check_call(['curl', '-I', '--fail', "http://localhost:8200/intake/v2/events"])
+        except subprocess.CalledProcessError as e:
+            assert e.returncode == 22
 
 
 @integration_test
