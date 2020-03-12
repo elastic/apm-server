@@ -420,11 +420,8 @@ class TestSecureServerBaseTest(ServerBaseTest):
                              cert=cert,
                              verify=verify)
 
-    def ssl_connect(self, min_version=ssl.TLSVersion.TLSv1_1,
-                    max_version=ssl.TLSVersion.TLSv1_2, ciphers=None):
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        context.minimum_version = min_version
-        context.maximum_version = max_version
+    def ssl_connect(self, protocol=ssl.PROTOCOL_TLS, ciphers=None):
+        context = ssl.SSLContext(protocol)
         if ciphers:
             context.set_ciphers(ciphers)
         context.load_verify_locations(self.ca_cert)
@@ -462,7 +459,7 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
 
 
 @integration_test
-class TestSSLEnabledOptionalClientAuthenticationTest(TestSecureServerBaseTest):
+class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
     # no ssl_overrides necessary as `optional` is default
 
     def test_https_no_certificate_ok(self):
@@ -483,7 +480,7 @@ class TestSSLEnabledOptionalClientAuthenticationTest(TestSecureServerBaseTest):
 
 
 @integration_test
-class TestSSLEnabledOptionalClientAuthenticationWithCATest(TestSecureServerBaseTest):
+class TestSSLEnabledOptionalClientVerificationWithCATest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_certificate_authorities": self.ca_cert}
 
@@ -506,7 +503,7 @@ class TestSSLEnabledOptionalClientAuthenticationWithCATest(TestSecureServerBaseT
 
 
 @integration_test
-class TestSSLEnabledRequiredClientAuthenticationTest(TestSecureServerBaseTest):
+class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "required",
                 "ssl_certificate_authorities": self.ca_cert}
@@ -533,21 +530,16 @@ class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
 
     @raises(ssl.SSLError)
     def test_tls_v1_0(self):
-        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1,
-                         max_version=ssl.TLSVersion.TLSv1)
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1)
 
     def test_tls_v1_1(self):
-        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_1,
-                         max_version=ssl.TLSVersion.TLSv1_1)
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1)
 
     def test_tls_v1_2(self):
-        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_2,
-                         max_version=ssl.TLSVersion.TLSv1_2)
+        self.ssl_connect()
 
     def test_tls_v1_3(self):
-        if ssl.HAS_TLSv1_3:
-            self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_3,
-                             max_version=ssl.TLSVersion.TLSv1_3)
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLS)
 
 
 @integration_test
@@ -558,14 +550,7 @@ class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
 
     @raises(ssl.SSLError)
     def test_tls_v1_1(self):
-        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1,
-                         max_version=ssl.TLSVersion.TLSv1)
-
-    @raises(ssl.SSLError)
-    def test_tls_v1_3(self):
-        if ssl.HAS_TLSv1_3:
-            self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_3,
-                             max_version=ssl.TLSVersion.TLSv1_3)
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1)
 
     def test_tls_v1_2(self):
         self.ssl_connect()
@@ -578,18 +563,18 @@ class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
                 "ssl_certificate_authorities": self.ca_cert}
 
     def test_https_no_cipher_set(self):
-        self.ssl_connect()
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_2, )
 
     def test_https_supports_cipher(self):
         # set the same cipher in the client as set in the server
-        self.ssl_connect(ciphers='ECDHE-RSA-AES128-GCM-SHA256')
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_2, ciphers='ECDHE-RSA-AES128-GCM-SHA256')
 
     def test_https_unsupported_cipher(self):
         # client only offers unsupported cipher
         with self.assertRaisesRegexp(ssl.SSLError, 'SSLV3_ALERT_HANDSHAKE_FAILURE'):
-            self.ssl_connect(ciphers='ECDHE-RSA-AES256-SHA384')
+            self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_2, ciphers='ECDHE-RSA-AES256-SHA384')
 
     def test_https_no_cipher_selected(self):
         # client provides invalid cipher
         with self.assertRaisesRegexp(ssl.SSLError, 'No cipher can be selected'):
-            self.ssl_connect(ciphers='AES1sd28-CCM8')
+            self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_2, ciphers='AES1sd28-CCM8')
