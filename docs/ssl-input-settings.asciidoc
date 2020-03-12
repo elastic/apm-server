@@ -38,8 +38,8 @@ We recommend saving the `key_passphrase` in the APM Server <<keystore>>.
 ==== `supported_protocols`
 
 This setting is a list of allowed protocol versions:
-`SSLv3`, `TLSv1.0`, `TLSv1.1` and `TLSv1.2`. We do not recommend using `SSLv3` or `TLSv1.0`.
-The default value is `[TLSv1.1, TLSv1.2]`.
+`SSLv3`, `TLSv1.0`, `TLSv1.1`, `TLSv1.2` and `TLSv1.3`. We do not recommend using `SSLv3` or `TLSv1.0`.
+The default value is `[TLSv1.1, TLSv1.2, TLSv1.3]`.
 
 [float]
 ==== `cipher_suites`
