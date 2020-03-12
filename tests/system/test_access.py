@@ -563,7 +563,7 @@ class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
                 "ssl_certificate_authorities": self.ca_cert}
 
     def test_https_no_cipher_set(self):
-        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_2, )
+        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_2)
 
     def test_https_supports_cipher(self):
         # set the same cipher in the client as set in the server
