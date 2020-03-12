@@ -29,7 +29,7 @@ import (
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/apmtest"
 
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"

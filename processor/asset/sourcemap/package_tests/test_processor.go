@@ -23,7 +23,7 @@ import (
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
 type TestProcessor struct {

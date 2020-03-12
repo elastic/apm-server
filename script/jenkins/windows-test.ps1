@@ -38,8 +38,8 @@ python --version
 $env:TEST_COVERAGE = "true"
 $env:RACE_DETECTOR = "true"
 
-# Install mage from vendor.
-exec { go install github.com/elastic/apm-server/vendor/github.com/magefile/mage }
+# Install mage.
+exec { go install github.com/magefile/mage }
 
 echo "Fetching testing dependencies"
 # TODO (elastic/beats#5050): Use a vendored copy of this.

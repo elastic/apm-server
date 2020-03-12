@@ -21,13 +21,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cespare/xxhash"
+	"github.com/cespare/xxhash/v2"
 	"github.com/google/pprof/profile"
 
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 const (

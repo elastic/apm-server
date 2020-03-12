@@ -7,7 +7,7 @@ package cmd
 import (
 	"github.com/elastic/apm-server/cmd"
 
-	xpackcmd "github.com/elastic/beats/x-pack/libbeat/cmd"
+	xpackcmd "github.com/elastic/beats/v7/x-pack/libbeat/cmd"
 )
 
 // RootCmd to handle beats cli

@@ -24,7 +24,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
@@ -37,7 +37,7 @@ import (
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func getStr(data common.MapStr, key string) string {

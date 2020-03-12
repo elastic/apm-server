@@ -23,12 +23,12 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 
-	"github.com/elastic/beats/libbeat/logp"
-	es "github.com/elastic/beats/libbeat/outputs/elasticsearch"
-	"github.com/elastic/beats/libbeat/paths"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/paths"
 )
 
-func RegisterPipelines(esClient *es.Client, overwrite bool, path string) error {
+func RegisterPipelines(esClient *elasticsearch.Client, overwrite bool, path string) error {
 	logger := logp.NewLogger(logs.Pipelines)
 	pipelines, err := loadPipelinesFromJSON(path)
 	if err != nil {

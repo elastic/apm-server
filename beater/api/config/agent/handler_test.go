@@ -33,8 +33,8 @@ import (
 	"go.elastic.co/apm/apmtest"
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/beats/libbeat/common"
-	libkibana "github.com/elastic/beats/libbeat/kibana"
+	"github.com/elastic/beats/v7/libbeat/common"
+	libkibana "github.com/elastic/beats/v7/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/authorization"

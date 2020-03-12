@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -exuo pipefail
 
-source ./_beats/dev-tools/common.bash
+source ./script/common.bash
 
 jenkins_setup
 
