@@ -25,6 +25,9 @@
             "us": 1576827704953864
         },
         "@timestamp": "2019-12-20T07:41:44.953Z",
+        "event": {
+            "ingested": "2019-12-20T07:41:45.954Z"
+        },
         "labels": {
             "peer_port": 50535,
             "as": "thrift",
@@ -83,6 +86,9 @@
             "us": 1576827705007552
         },
         "@timestamp": "2019-12-20T07:41:45.007Z",
+        "event": {
+            "ingested": "2019-12-20T07:41:45.008Z"
+        },
         "agent": {
             "ephemeral_id": "624386e9c81d2980",
             "name": "Jaeger/Go",
@@ -144,6 +150,9 @@
             "us": 1576827705089431
         },
         "@timestamp": "2019-12-20T07:41:45.089Z",
+        "event": {
+            "ingested": "2019-12-20T07:41:45.090Z"
+        },
         "agent": {
             "ephemeral_id": "624386e9c81d2980",
             "name": "Jaeger/Go",
@@ -205,6 +214,9 @@
             "us": 1576827705172530
         },
         "@timestamp": "2019-12-20T07:41:45.172Z",
+        "event": {
+            "ingested": "2019-12-20T07:41:45.173Z"
+        },
         "agent": {
             "ephemeral_id": "624386e9c81d2980",
             "name": "Jaeger/Go",
