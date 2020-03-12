@@ -355,7 +355,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: bbf9d6697f4a
+Revision: 9735c6d51540
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -497,7 +497,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/go-sourcemap/sourcemap
-Version: v2.1.2
+Version: v2.1.3
 License type (autodetected): BSD-2-Clause
 Contents of "LICENSE":
 
@@ -2223,16 +2223,6 @@ Contents of "LICENSE.md":
 --------------------------------------------------------------------
 Dependency: github.com/urso/go-bin
 Revision: 781c575c9f0e
-License type (autodetected): Apache-2.0
-
---------------------------------------------------------------------
-Dependency: github.com/xdg/scram
-Revision: 7eeb5667e42c
-License type (autodetected): Apache-2.0
-
---------------------------------------------------------------------
-Dependency: github.com/xdg/stringprep
-Version: v1.0.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
