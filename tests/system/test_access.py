@@ -424,7 +424,7 @@ class TestSecureServerBaseTest(ServerBaseTest):
                     max_version=ssl.TLSVersion.TLSv1_2, ciphers=None):
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         context.minimum_version = min_version
-        context.maximum_version= max_version
+        context.maximum_version = max_version
         if ciphers:
             context.set_ciphers(ciphers)
         context.load_verify_locations(self.ca_cert)
@@ -548,6 +548,7 @@ class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
         if ssl.HAS_TLSv1_3:
             self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_3,
                              max_version=ssl.TLSVersion.TLSv1_3)
+
 
 @integration_test
 class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
