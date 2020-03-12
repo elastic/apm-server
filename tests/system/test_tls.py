@@ -3,6 +3,7 @@ import requests
 import shutil
 import ssl
 import subprocess
+import socket
 
 from nose.tools import raises
 from requests.packages.urllib3.exceptions import SubjectAltNameWarning
@@ -72,7 +73,7 @@ class TestSecureServerBaseTest(ServerBaseTest):
         cfg.update(self.ssl_overrides())
         return cfg
 
-    def ssl_connect(self, min_version=ssl.TLSVersion.TLSv1_1, max_version=ssl.TLSVersion.TLSv1_2,
+    def ssl_connect(self, min_version=ssl.TLSVersion.TLSv1_1, max_version=ssl.TLSVersion.TLSv1_3,
                     ciphers=None, cert=None, key=None, ca_cert=None):
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         context.minimum_version = min_version
@@ -84,8 +85,21 @@ class TestSecureServerBaseTest(ServerBaseTest):
         context.load_verify_locations(ca_cert)
         if cert and key:
             context.load_cert_chain(certfile=cert, keyfile=key, password=self.password)
-        s = context.wrap_socket(ssl.socket())
-        s.connect((self.host, self.port))
+        with context.wrap_socket(ssl.socket()) as s:
+            # For TLS 1.3 the client certificate authentication happens after the handshake,
+            # leading to s.connect not failing for invalid or missing client certs.
+            # The authentication happens when the client performs the first read.
+            # Setting a timeout helps speed up the tests, as `s.recv` is blocking.
+            # Timeout errors only happen when the cient can read from the socket,
+            # otherwise a SSLError occurs.
+            s.connect((self.host, self.port))
+            s.sendall(str.encode("sending TLS data"))
+            s.settimeout(0.5)
+            try:
+                s.recv(8)
+            except socket.timeout:
+                pass
+            s.close()
 
 
 class TestSSLBadPassphraseTest(TestSecureServerBaseTest):
@@ -98,7 +112,7 @@ class TestSSLBadPassphraseTest(TestSecureServerBaseTest):
 
 
 @integration_test
-class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
+class TestSSLEnabledNoClientAuthenticationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "none"}
 
@@ -125,6 +139,7 @@ class TestSSLEnabledOptionalClientAuthenticationTest(TestSecureServerBaseTest):
 
     @raises(ssl.SSLError)
     def test_https_verify_cert_if_given(self):
+        # invalid certificate
         self.ssl_connect(cert=self.simple_cert, key=self.simple_key)
 
     @raises(ssl.SSLError)
@@ -223,23 +238,31 @@ class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
 
 @integration_test
 class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
+    # Tests explicitly set TLS 1.2 as cipher suites are not configurable for TLS 1.3
     def ssl_overrides(self):
         return {"ssl_cipher_suites": ['ECDHE-RSA-AES-128-GCM-SHA256'],
                 "ssl_certificate_authorities": self.ca_cert}
 
     def test_https_no_cipher_set(self):
-        self.ssl_connect(cert=self.server_cert, key=self.server_key)
+        self.ssl_connect(max_version=ssl.TLSVersion.TLSv1_2,
+                         cert=self.server_cert, key=self.server_key)
 
     def test_https_supports_cipher(self):
         # set the same cipher in the client as set in the server
-        self.ssl_connect(ciphers='ECDHE-RSA-AES128-GCM-SHA256', cert=self.server_cert, key=self.server_key)
+        self.ssl_connect(max_version=ssl.TLSVersion.TLSv1_2,
+                         ciphers='ECDHE-RSA-AES128-GCM-SHA256',
+                         cert=self.server_cert, key=self.server_key)
 
     def test_https_unsupported_cipher(self):
         # client only offers unsupported cipher
         with self.assertRaisesRegexp(ssl.SSLError, 'SSLV3_ALERT_HANDSHAKE_FAILURE'):
-            self.ssl_connect(ciphers='ECDHE-RSA-AES256-SHA384', cert=self.server_cert, key=self.server_key)
+            self.ssl_connect(max_version=ssl.TLSVersion.TLSv1_2,
+                             ciphers='ECDHE-RSA-AES256-SHA384',
+                             cert=self.server_cert, key=self.server_key)
 
     def test_https_no_cipher_selected(self):
         # client provides invalid cipher
         with self.assertRaisesRegexp(ssl.SSLError, 'No cipher can be selected'):
-            self.ssl_connect(ciphers='AES1sd28-CCM8', cert=self.server_cert, key=self.server_key)
+            self.ssl_connect(max_version=ssl.TLSVersion.TLSv1_2,
+                             ciphers='AES1sd28-CCM8',
+                             cert=self.server_cert, key=self.server_key)
