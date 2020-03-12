@@ -22,13 +22,8 @@ def read_file(filename):
     if not os.path.isfile(filename):
         print("File not found {}".format(filename))
         return ""
-    try:
-        with open(filename, 'r') as f:
-            return f.read()
-    except UnicodeDecodeError:
-        # try latin-1
-        with open(filename, 'r', encoding="ISO-8859-1") as f:
-            return f.read()
+    with open(filename, 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 def read_go_deps(main_packages, build_tags):
