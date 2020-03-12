@@ -69,8 +69,11 @@ class TestSecureServerBaseTest(ServerBaseTest):
         cfg.update(self.ssl_overrides())
         return cfg
 
-    def ssl_connect(self, protocol=ssl.PROTOCOL_TLSv1_2, ciphers=None, cert=None, key=None, ca_cert=None):
-        context = ssl.SSLContext(protocol)
+    def ssl_connect(self, min_version=ssl.TLSVersion.TLSv1_1, max_version=ssl.TLSVersion.TLSv1_2,
+                    ciphers=None, cert=None, key=None, ca_cert=None):
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        context.minimum_version = min_version
+        context.maximum_version = max_version
         if ciphers:
             context.set_ciphers(ciphers)
         if not ca_cert:
@@ -107,7 +110,7 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
 
 
 @integration_test
-class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
+class TestSSLEnabledOptionalClientAuthenticationTest(TestSecureServerBaseTest):
     # no ssl_overrides necessary as `optional` is default
 
     def test_https_no_certificate_ok(self):
@@ -124,7 +127,7 @@ class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
 
 
 @integration_test
-class TestSSLEnabledOptionalClientVerificationWithCATest(TestSecureServerBaseTest):
+class TestSSLEnabledOptionalClientAuthenticationWithCATest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_certificate_authorities": self.ca_cert}
 
@@ -143,7 +146,7 @@ class TestSSLEnabledOptionalClientVerificationWithCATest(TestSecureServerBaseTes
 
 
 @integration_test
-class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
+class TestSSLEnabledRequiredClientAuthenticationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "required",
                 "ssl_certificate_authorities": self.ca_cert}
@@ -167,13 +170,25 @@ class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
 
     @raises(ssl.SSLError)
     def test_tls_v1_0(self):
-        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1, cert=self.server_cert, key=self.server_key)
+        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1,
+                         max_version=ssl.TLSVersion.TLSv1,
+                         cert=self.server_cert, key=self.server_key)
 
     def test_tls_v1_1(self):
-        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1, cert=self.server_cert, key=self.server_key)
+        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_1,
+                         max_version=ssl.TLSVersion.TLSv1_1,
+                         cert=self.server_cert, key=self.server_key)
 
     def test_tls_v1_2(self):
-        self.ssl_connect(cert=self.server_cert, key=self.server_key)
+        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_2,
+                         max_version=ssl.TLSVersion.TLSv1_2,
+                         cert=self.server_cert, key=self.server_key)
+
+    def test_tls_v1_3(self):
+        if ssl.HAS_TLSv1_3:
+            self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_3,
+                             max_version=ssl.TLSVersion.TLSv1_3,
+                             cert=self.server_cert, key=self.server_key)
 
 
 @integration_test
@@ -184,7 +199,16 @@ class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
 
     @raises(ssl.SSLError)
     def test_tls_v1_1(self):
-        self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1_1, cert=self.server_cert, key=self.server_key)
+        self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_1,
+                         max_version=ssl.TLSVersion.TLSv1_1,
+                         cert=self.server_cert, key=self.server_key)
+
+    @raises(ssl.SSLError)
+    def test_tls_v1_3(self):
+        if ssl.HAS_TLSv1_3:
+            self.ssl_connect(min_version=ssl.TLSVersion.TLSv1_3,
+                             max_version=ssl.TLSVersion.TLSv1_3,
+                             cert=self.server_cert, key=self.server_key)
 
     def test_tls_v1_2(self):
         self.ssl_connect(cert=self.server_cert, key=self.server_key)
