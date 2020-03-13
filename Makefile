@@ -98,6 +98,10 @@ docker-system-tests: docker-compose.override.yml
 docker-compose.override.yml:
 	printf "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=%d]" $(shell id -u) > $@
 
+.PHONY: test-packages-install
+test-packages-install:
+	@$(MAGE) -v testPackagesInstall
+
 ##############################################################################
 # Rules for updating config files, fields.yml, etc.
 ##############################################################################
@@ -142,7 +146,7 @@ update-beats-docs: $(PYTHON)
 	@$(PYTHON) script/copy-docs.py
 
 .PHONY: copy-docs
-copy-docs: 
+copy-docs:
 	@mkdir -p docs/data/intake-api/generated/sourcemap
 	@cp testdata/intake-v2/events.ndjson docs/data/intake-api/generated/
 	@cp testdata/intake-v3/rum_events.ndjson docs/data/intake-api/generated/rum_v3_events.ndjson
