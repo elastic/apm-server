@@ -120,12 +120,12 @@ class TestSSLEnabledNoClientAuthenticationTest(TestSecureServerBaseTest):
         self.ssl_connect()
 
     def test_http_fails(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(requests.exceptions.HTTPError):
             with requests.Session() as session:
                 try:
-                    return session.post("http://localhost:8200/intake/v2/events",
-                                        headers={'content-type': 'application/x-ndjson'},
-                                        data=self.get_event_payload())
+                    session.headers.update({"Connection": "close"})
+                    resp = session.get("http://localhost:8200")
+                    resp.raise_for_status()
                 finally:
                     session.close()
 
