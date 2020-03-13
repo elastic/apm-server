@@ -18,13 +18,10 @@
 package span
 
 import (
-	"encoding/hex"
-	"fmt"
 	"net"
 	"strings"
 	"time"
 
-	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -376,7 +373,6 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
-
 	if frames := len(e.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
@@ -405,10 +401,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	if timestamp.IsZero() {
 		timestamp = tctx.RequestTime
 	}
+
 	// adjust timestamp to be reqTime + start
 	if e.Timestamp.IsZero() && e.Start != nil {
 		timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
 	}
+
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(timestamp))
 
 	return []beat.Event{
@@ -449,42 +447,5 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 	st := e.Stacktrace.Transform(tctx)
 	utility.Set(fields, "stacktrace", st)
-
-	if h := e.servicemapHash(tctx); h != "" {
-		utility.Set(fields, "servicemap", common.MapStr{"fingerprint": h})
-	}
 	return fields
-}
-
-func (e *Event) servicemapHash(tctx *transform.Context) string {
-	if e.Destination == nil || e.Destination.Address == nil || *e.Destination.Address == "" {
-		return ""
-	}
-	var subtype string
-	if e.Subtype != nil {
-		subtype = *e.Subtype
-	}
-	name := serviceName(e.Service, tctx.Metadata.Service)
-	env := serviceEnv(e.Service, tctx.Metadata.Service)
-	h := xxhash.New()
-	fmt.Fprintf(h, "%s|%s|%s|%s|%s", *e.Destination.Address, e.Type, subtype, name, env)
-	return hex.EncodeToString(h.Sum(nil))
-}
-
-func serviceName(services ...*metadata.Service) string {
-	for _, s := range services {
-		if s != nil && s.Name != nil {
-			return *s.Name
-		}
-	}
-	return ""
-}
-
-func serviceEnv(services ...*metadata.Service) string {
-	for _, s := range services {
-		if s != nil && s.Environment != nil {
-			return *s.Environment
-		}
-	}
-	return ""
 }

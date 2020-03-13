@@ -19,21 +19,20 @@ package kibana
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmhttp"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/backoff"
 	"github.com/elastic/beats/v7/libbeat/kibana"
 	"github.com/elastic/beats/v7/libbeat/logp"
-
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmhttp"
 
 	logs "github.com/elastic/apm-server/log"
 )
