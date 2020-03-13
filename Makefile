@@ -98,10 +98,6 @@ docker-system-tests: docker-compose.override.yml
 docker-compose.override.yml:
 	printf "version: '2.3'\nservices:\n beat:\n  build:\n   args: [UID=%d]" $(shell id -u) > $@
 
-.PHONY: test-packages-install
-test-packages-install:
-	@$(MAGE) -v testPackagesInstall
-
 ##############################################################################
 # Rules for updating config files, fields.yml, etc.
 ##############################################################################
