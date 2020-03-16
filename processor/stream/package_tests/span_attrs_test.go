@@ -60,7 +60,6 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			"transaction.sampled",
 			"transaction.type",
 			"transaction.name",
-			tests.Group("span.servicemap"),
 			tests.Group("container"),
 			tests.Group("host"),
 			tests.Group("kubernetes"),
@@ -150,7 +149,6 @@ func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
 		"processor.event", "processor.name",
 		"context.tags", "transaction.type", "transaction.name",
-		"span.servicemap.fingerprint",
 		tests.Group("observer"),
 
 		// metadata fields
