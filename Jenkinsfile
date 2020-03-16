@@ -26,7 +26,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:performance\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:hey-apm\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -333,7 +333,7 @@ pipeline {
           agent none
           when {
             beforeAgent true
-            expression { return env.GITHUB_COMMENT?.contains('performance tests') }
+            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
           }
           steps {
             withGithubNotify(context: 'Hey-Apm') {
