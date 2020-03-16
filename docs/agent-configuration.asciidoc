@@ -8,7 +8,13 @@ More information on this feature is available in {kibana-ref}/agent-configuratio
 [float]
 === Agent configuration endpoint
 
-Send an `HTTP GET` request to the agent configuration endpoint.
+The Agent configuration endpoint accepts both `HTTP GET` and `HTTP POST` requests.
+If an <<api-key>> or <<secret-token>> has been configured, it will also apply to this endpoint.
+
+[[agent-config-api-get]]
+[float]
+==== HTTP GET
+
 `service.name` is a required query string parameter.
 
 [source,bash]
@@ -16,7 +22,24 @@ Send an `HTTP GET` request to the agent configuration endpoint.
 http(s)://{hostname}:{port}/config/v1/agents?service.name=SERVICE_NAME
 ------------------------------------------------------------
 
-If an <<api-key>> or <<secret-token>> has been configured, it will also apply to this endpoint.
+[[agent-config-api-post]]
+[float]
+==== HTTP POST
+
+Encode parameters as a JSON object in the body.
+`service.name` is a required parameter.
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/config/v1/agents
+{
+  "service": {
+      "name": "test-service",
+      "environment": "all"
+  },
+  "CAPTURE_BODY": "off"
+}
+------------------------------------------------------------
 
 [[agent-config-api-response]]
 [float]
@@ -28,27 +51,41 @@ If an <<api-key>> or <<secret-token>> has been configured, it will also apply to
 
 [[agent-config-api-example]]
 [float]
-==== Example
+==== Example request
 
-Example Agent configuration request including the service name "test-service":
+Example Agent configuration `GET` request including the service name "test-service":
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
 curl -i http://127.0.0.1:8200/config/v1/agents?service.name=test-service
 ---------------------------------------------------------------------------
 
-A sample response to the above curl request:
+Example Agent configuration `POST` request including the service name "test-service":
+
+["source","sh",subs="attributes"]
+---------------------------------------------------------------------------
+curl -X POST http://127.0.0.1:8200/config/v1/agents \
+  -H "Authorization: Bearer secret_token" \
+  -H 'content-type: application/json' \
+  -d '{"service": {"name": "test-service"}}'
+---------------------------------------------------------------------------
+
+[[agent-config-api-ex-response]]
+[float]
+==== Example response
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
 HTTP/1.1 200 OK
 Cache-Control: max-age=30, must-revalidate
 Content-Type: application/json
-Etag: "5"
-Date: Fri, 05 Jul 2019 21:47:35 GMT
-Content-Length: 30
+Etag: "7b23d63c448a863fa"
+Date: Mon, 24 Feb 2020 20:53:07 GMT
+Content-Length: 98
 
 {
-  "sampling_rate": "0.12"
+    "capture_body": "off",
+    "transaction_max_spans": "500",
+    "transaction_sample_rate": "0.3"
 }
 ---------------------------------------------------------------------------
