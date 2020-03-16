@@ -61,11 +61,11 @@ include::{libbeat-dir}/shared-securing-beat.asciidoc[]
 
 include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[]
 
-include::./rum.asciidoc[]
+include::./howto.asciidoc[]
 
-include::./data-ingestion.asciidoc[]
 
-include::./storage-management.asciidoc[]
+
+
 
 include::./intake-api.asciidoc[]
 

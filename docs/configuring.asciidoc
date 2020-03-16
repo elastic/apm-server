@@ -28,8 +28,6 @@ include::./configuration-process.asciidoc[]
 :no-redis-output:
 include::{libbeat-dir}/outputconfig.asciidoc[]
 
-include::./configuring-ingest.asciidoc[]
-
 [[configuration-ssl-landing]]
 == SSL/TLS settings
 
@@ -55,17 +53,10 @@ See <<securing-apm-server,Securing APM Server>> for more information.
 
 include::./template-config.asciidoc[]
 
-include::./ilm.asciidoc[]
-
 include::{libbeat-dir}/loggingconfig.asciidoc[]
 
 include::./configure-kibana-endpoint.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
-
-include::./jaeger-support.asciidoc[]
-
-:standalone:
-include::{libbeat-dir}/shared-env-vars.asciidoc[]
 
 include::{libbeat-dir}/shared-path-config.asciidoc[]

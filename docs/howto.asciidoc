@@ -1,0 +1,51 @@
+[[howto-guides]]
+= How to guides
+
+[partintro]
+--
+Learn how to perform common {beatname_uc} configuration and management tasks.
+
+* <<rum>>
+* <<ilm>>
+* <<jaeger>>
+* <<configuring-ingest-node>>
+* <<tune-data-ingestion>>
+* <<storage-management>>
+
+--
+
+include::./ilm.asciidoc[]
+
+include::./rum.asciidoc[]
+
+include::./jaeger-support.asciidoc[]
+
+include::./storage-management.asciidoc[]
+
+include::./configuring-ingest.asciidoc[]
+
+include::./data-ingestion.asciidoc[]
+
+:standalone:
+include::{libbeat-dir}/shared-env-vars.asciidoc[]
+:standalone!:
+
+
+// [role="xpack"]
+// include::{libbeat-dir}/shared-geoip.asciidoc[]
+
+// [role="xpack"]
+// include::{libbeat-dir}/shared-deduplication.asciidoc[]
+
+// :standalone:
+// [role="xpack"]
+// include::{libbeat-dir}/shared-env-vars.asciidoc[]
+// :standalone!:
+
+// [role="xpack"]
+// include::{libbeat-dir}/shared-config-ingest.asciidoc[]
+
+// :standalone:
+// [role="xpack"]
+// include::{libbeat-dir}/yaml.asciidoc[]
+// :standalone!:

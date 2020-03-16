@@ -1,5 +1,5 @@
 [[configuration-rum]]
-== Set up Real User Monitoring (RUM) support
+== Real User Monitoring (RUM)
 
 The {apm-rum-ref-v}/index.html[JavaScript RUM Agent] offers real user monitoring (RUM) support.
 

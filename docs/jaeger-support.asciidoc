@@ -1,6 +1,10 @@
 [[jaeger]]
 == Jaeger integration
 
+++++
+<titleabbrev>Integrate with Jaeger</titleabbrev>
+++++
+
 experimental::["This feature is experimental and may be changed in a future release. It is not yet available on Elastic Cloud. For feature status on Elastic Cloud, see https://github.com/elastic/apm/issues/212[#212]."]
 
 Elastic APM integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.

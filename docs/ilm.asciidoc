@@ -2,6 +2,10 @@
 [role="xpack"]
 == Index lifecycle management (ILM)
 
+++++
+<titleabbrev>Enable Index lifecycle management (ILM)</titleabbrev>
+++++
+
 The {ref}/getting-started-index-lifecycle-management.html[index lifecycle management (ILM)]
 feature in {es} allows you to automate the lifecycle of your APM Server indices as they grow and age.
 
