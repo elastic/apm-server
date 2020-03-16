@@ -26,7 +26,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:performance\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -326,6 +326,21 @@ pipeline {
                   sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
                 }
               }
+            }
+          }
+        }
+        stage('Hey-Apm') {
+          agent none
+          when {
+            beforeAgent true
+            expression { return env.GITHUB_COMMENT?.contains('performance tests') }
+          }
+          steps {
+            withGithubNotify(context: 'Hey-Apm') {
+              build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
+                    parameters: [string(name: 'GO_VERSION', value: '1.12.1'),
+                                string(name: 'STACK_VERSION', value: '8.0.0-SNAPSHOT'),
+                                string(name: 'APM_DOCKER_IMAGE', value: 'docker.elastic.co/apm/apm-server')])
             }
           }
         }
