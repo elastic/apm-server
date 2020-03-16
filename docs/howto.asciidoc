@@ -5,12 +5,13 @@
 --
 Learn how to perform common {beatname_uc} configuration and management tasks.
 
-* <<rum>>
 * <<ilm>>
+* <<rum>>
 * <<jaeger>>
+* <<storage-management>>
 * <<configuring-ingest-node>>
 * <<tune-data-ingestion>>
-* <<storage-management>>
+* <<using-environ-vars>>
 
 --
 
@@ -29,23 +30,3 @@ include::./data-ingestion.asciidoc[]
 :standalone:
 include::{libbeat-dir}/shared-env-vars.asciidoc[]
 :standalone!:
-
-
-// [role="xpack"]
-// include::{libbeat-dir}/shared-geoip.asciidoc[]
-
-// [role="xpack"]
-// include::{libbeat-dir}/shared-deduplication.asciidoc[]
-
-// :standalone:
-// [role="xpack"]
-// include::{libbeat-dir}/shared-env-vars.asciidoc[]
-// :standalone!:
-
-// [role="xpack"]
-// include::{libbeat-dir}/shared-config-ingest.asciidoc[]
-
-// :standalone:
-// [role="xpack"]
-// include::{libbeat-dir}/yaml.asciidoc[]
-// :standalone!:
