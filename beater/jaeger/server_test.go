@@ -89,11 +89,42 @@ func TestServerIntegration(t *testing.T) {
 		"default config": {
 			cfg: config.DefaultConfig("9.9.9"),
 		},
+		"default config with Jaeger gRPC collector enabled": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+		},
+		"default config with Jaeger gRPC sampler enabled": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.JaegerConfig.GRPC.Enabled = false
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.GRPC.Sampling.Enabled = true
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+		},
 		"default config with Jaeger gRPC enabled": {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.GRPC.Sampling.Enabled = true
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+		},
+		"default config with Jaeger gRPC and Kibana enabled": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.JaegerConfig.GRPC.Sampling.Enabled = true
+				cfg.Kibana.Enabled = true
 				return cfg
 			}(),
 			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
@@ -266,33 +297,47 @@ func TestServerIntegration(t *testing.T) {
 
 			var nevents, ntransactions int
 			if tc.grpcClient != nil {
-				err := tc.sendSpanGRPC()
-				if tc.grpcSendShouldFail {
-					require.Error(t, err)
-					require.Len(t, tc.events, nevents)
-				} else {
-					require.NoError(t, err)
-					require.Len(t, tc.events, nevents+1)
-					event := tc.events[nevents]
-					for k := range tc.processTags {
-						field := "labels." + k
-						ok, err := event.Fields.HasKey(field)
+				t.Run("collector", func(t *testing.T) {
+					err := tc.sendSpanGRPC()
+					if tc.grpcSendShouldFail {
+						require.Error(t, err)
+						require.Len(t, tc.events, nevents)
+					} else {
 						require.NoError(t, err)
-						if k == tc.cfg.JaegerConfig.GRPC.AuthTag {
-							assert.False(t, ok, field)
-						} else {
-							assert.True(t, ok, field)
+						require.Len(t, tc.events, nevents+1)
+						event := tc.events[nevents]
+						for k := range tc.processTags {
+							field := "labels." + k
+							ok, err := event.Fields.HasKey(field)
+							require.NoError(t, err)
+							if k == tc.cfg.JaegerConfig.GRPC.AuthTag {
+								assert.False(t, ok, field)
+							} else {
+								assert.True(t, ok, field)
+							}
 						}
+						nevents++
 					}
-					nevents++
-				}
-				if status.Code(err) != codes.Unavailable {
-					tc.tracer.Flush(nil)
-					transactions := tc.tracer.Payloads().Transactions
-					require.Len(t, transactions, ntransactions+1)
-					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[ntransactions].Name)
-					ntransactions++
-				}
+					if status.Code(err) != codes.Unavailable {
+						tc.tracer.Flush(nil)
+						transactions := tc.tracer.Payloads().Transactions
+						require.Len(t, transactions, ntransactions+1)
+						assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[ntransactions].Name)
+						ntransactions++
+					}
+				})
+
+				t.Run("sampler", func(t *testing.T) {
+					resp, err := tc.sendSamplingGRPC()
+					if tc.cfg.JaegerConfig.GRPC.Enabled && tc.cfg.JaegerConfig.GRPC.Sampling.Enabled {
+						require.NoError(t, err)
+						require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
+						assert.Equal(t, tc.cfg.JaegerConfig.GRPC.Sampling.DefaultRate, resp.ProbabilisticSampling.SamplingRate)
+					} else {
+						require.Error(t, err)
+						assert.Nil(t, resp)
+					}
+				})
 			}
 			if tc.httpURL != nil {
 				err := tc.sendSpanHTTP()
@@ -336,6 +381,11 @@ func (tc *testcase) setup(t *testing.T) {
 	var err error
 	tc.tracer = apmtest.NewRecordingTracer()
 	tc.server, err = NewServer(logp.NewLogger("jaeger"), tc.cfg, tc.tracer.Tracer, reporter)
+	if tc.cfg.JaegerConfig.GRPC.Enabled && tc.cfg.JaegerConfig.GRPC.Sampling.Enabled && !tc.cfg.Kibana.Enabled {
+		require.Error(t, err)
+		require.Nil(t, tc.server)
+		return
+	}
 	require.NoError(t, err)
 	if tc.server == nil {
 		return
@@ -416,6 +466,11 @@ func (tc *testcase) sendBatchGRPC(batch jaegermodel.Batch) error {
 	client := api_v2.NewCollectorServiceClient(tc.grpcClient)
 	_, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: batch})
 	return err
+}
+
+func (tc *testcase) sendSamplingGRPC() (*api_v2.SamplingStrategyResponse, error) {
+	client := api_v2.NewSamplingManagerClient(tc.grpcClient)
+	return client.GetSamplingStrategy(context.Background(), &api_v2.SamplingStrategyParameters{ServiceName: "xyz"})
 }
 
 func (tc *testcase) sendSpanHTTP() error {

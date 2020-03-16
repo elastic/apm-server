@@ -1,6 +1,8 @@
 import os
 import re
 import subprocess
+from urllib.parse import urljoin
+import requests
 
 from apmserver import integration_test, ElasticTest
 from helper import wait_until
@@ -125,3 +127,61 @@ class TestAuthTag(JaegerBaseTest):
         transaction_docs = self.wait_for_events('transaction', 1)
         error_docs = self.wait_for_events('error', 3)
         self.approve_docs('jaeger_batch_0_authorization', transaction_docs + error_docs)
+
+
+@integration_test
+class GRPCSamplingTest(JaegerBaseTest):
+
+    def config(self):
+        cfg = super(GRPCSamplingTest, self).config()
+        cfg.update({
+            "jaeger_grpc_sampling_enabled": "true",
+            "kibana_host": self.get_kibana_url(),
+            "kibana_enabled": "true",
+            "acm_cache_expiration": "1s"
+        })
+        cfg.update(self.config_overrides)
+        return cfg
+
+    def assert_sampling(self, service, sampling_rate):
+        client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
+        out = os.path.abspath(self.working_dir) + "/sampling_response"
+        subprocess.check_call(['go', 'run', client,
+                               '-addr', self.jaeger_grpc_addr,
+                               '-insecure',
+                               '-endpoint', "sampler",
+                               '-service', service,
+                               '-out', out
+                               ])
+        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(sampling_rate)
+        with open(out, "r") as out:
+            sampling = out.read()
+            assert expected == sampling, sampling
+
+    def test_jaeger_grpc_sampling_default(self):
+        """
+        This test sends a Jaeger sampling request over gRPC,
+        and verifies the returned sampling strategy is the default sampling strategy
+        """
+        self.assert_sampling("xyz", 1)
+
+    def test_jaeger_grpc_sampling(self):
+        """
+        This test sends a Jaeger sampling request over gRPC,
+        and verifies the returned sampling strategy is the configured sampling strategy
+        """
+        service = "courses"
+
+        # create service configuration entry
+        resp = requests.put(
+            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration"),
+            headers={
+                "Accept": "*/*",
+                "Content-Type": "application/json",
+                "kbn-xsrf": "1",
+            },
+            json={"service": {"name": service}, "settings": {"transaction_sample_rate": 0.35}},
+        )
+        assert resp.status_code == 200, resp.status_code
+
+        self.assert_sampling(service, 0.35)

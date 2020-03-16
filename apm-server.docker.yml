@@ -435,6 +435,16 @@ apm-server:
       # does not apply to Jaeger agents.
       #auth_tag: ""
 
+      # Enable fetching the sampling rate from the gRPC endpoint. Only probabilistic
+      # sampling is supported. Sampling is disabled by default.
+      # No auth token can be configured for this endpoint.
+      #sampling:
+        #enabled: false
+        # Set the default sampling rate used when no service specific
+        # sampling rate is configured.
+        # Valid range from 0 to 1.0. Defaults to 1.0.
+        #default_rate: 1.0
+
     #http:
       # Set to true to enable the Jaeger HTTP collector endpoint.
       #enabled: false

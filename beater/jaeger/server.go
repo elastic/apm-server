@@ -19,6 +19,7 @@ package jaeger
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
 
@@ -32,8 +33,10 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/kibana"
 	processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -94,8 +97,21 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		srv.grpc.server = grpc.NewServer(grpcOptions...)
 		srv.grpc.listener = grpcListener
 
-		// TODO(simi) to add support for sampling: api_v2.RegisterSamplingManagerServer
-		api_v2.RegisterCollectorServiceServer(srv.grpc.server, grpcCollector{auth, traceConsumer})
+		api_v2.RegisterCollectorServiceServer(srv.grpc.server, grpcCollector{logger, auth, traceConsumer})
+
+		if cfg.JaegerConfig.GRPC.Sampling.Enabled {
+			if !cfg.Kibana.Enabled {
+				return nil, errors.New("jaeger gRPC sampling depends on a connection to Kibana, " +
+					"ensure `apm-server.kibana` is enabled to use this feature")
+			}
+			client := kibana.NewConnectingClient(&cfg.Kibana.ClientConfig)
+			api_v2.RegisterSamplingManagerServer(srv.grpc.server, grpcSampler{
+				logger,
+				cfg.JaegerConfig.GRPC.Sampling.DefaultRate,
+				client,
+				agentcfg.NewFetcher(client, cfg.AgentConfig.Cache.Expiration),
+			})
+		}
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?

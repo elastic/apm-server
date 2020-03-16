@@ -36,10 +36,18 @@ type JaegerConfig struct {
 
 // JaegerGRPCConfig holds configuration for the Jaeger gRPC server.
 type JaegerGRPCConfig struct {
-	AuthTag string      `config:"auth_tag"`
-	Enabled bool        `config:"enabled"`
-	Host    string      `config:"host"`
-	TLS     *tls.Config `config:"-"`
+	AuthTag  string      `config:"auth_tag"`
+	Enabled  bool        `config:"enabled"`
+	Host     string      `config:"host"`
+	TLS      *tls.Config `config:"-"`
+	Sampling Sampling    `config:"sampling"`
+}
+
+// Sampling defines if the sampling endpoint is enabled
+// and the default rate for probabilistic sampling.
+type Sampling struct {
+	Enabled     bool    `config:"enabled"`
+	DefaultRate float64 `config:"default_rate"`
 }
 
 // JaegerHTTPConfig holds configuration for the Jaeger HTTP server.
@@ -65,8 +73,9 @@ func (c *JaegerConfig) setup(cfg *Config) error {
 func defaultJaeger() JaegerConfig {
 	return JaegerConfig{
 		GRPC: JaegerGRPCConfig{
-			Enabled: false,
-			Host:    defaultJaegerGRPCHost,
+			Enabled:  false,
+			Host:     defaultJaegerGRPCHost,
+			Sampling: Sampling{Enabled: false, DefaultRate: 1},
 		},
 		HTTP: JaegerHTTPConfig{
 			Enabled: false,
