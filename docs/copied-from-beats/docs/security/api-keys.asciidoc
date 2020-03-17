@@ -82,7 +82,7 @@ POST /_security/api_key
       "cluster": ["monitor"],
       "index": [
         {
-          "names": [".monitoring-{beatname_lc}-*"],
+          "names": [".monitoring-beats-*"],
           "privileges": ["create_index", "create"]
         }
       ]
