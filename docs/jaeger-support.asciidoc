@@ -56,20 +56,20 @@ Based on the endpoint enabled in the previous step, configure the relevant host 
 [[jaeger-configure-sampling]]
 *Configure Sampling*
 
-If you're using the gRPC endpoint,
-you can enable probabilistic sampling to reduce the amount of data that your agents collect and send.
-Probabilistic sampling makes a random sampling decision based on the `sampling.default` configuration.
+The gRPC endpoint supports probabilistic sampling which can be used to reduce the amount of data that your agents collect and send.
+Probabilistic sampling makes a random sampling decision based on the value of `sampling.default`.
 For example, a value of `.2` means that 20% of traces will be sampled.
-Sampling ratios can also be adjusted via the Agent configuration page in the APM app.
+Sampling ratios can also be adjusted, on a per service basis, via the Agent configuration page in the APM app.
 
 To enable sampling:
+
 * Set `apm-server.grpc.sampling.enabled` to `enabled`.
-* Set `apm-server.grpc.sampling.default` to your desired sampling rate, between `0` and `1.0`.
+* Set `apm-server.grpc.sampling.default` to the desired sampling rate (between `0` and `1.0`).
 The default value is `1.0`, which samples at 100%.
 
 WARNING: If a sampling rate smaller than `1.0` (100%) is configured,
 transactions per minute will be incorrectly calculated in the APM app.
-This is because Elastic APM sampling is fundamentally different from Jaeger sampling.
+This is because Elastic APM data model is fundamentally different from the Jaeger data model.
 In the Elastic ecosystem, sampling only impacts spans; transactions are always sampled at 100%.
 The Jaeger data structure, however, does not have the concept of transactions.
 Because of this, sampling decisions will apply to both transactions and spans.
@@ -118,7 +118,7 @@ There are some limitations and differences between Elastic APM and Jaeger that y
 
 * Because Jaeger has its own trace context header, and does not currently support W3C trace context headers,
 it is not possible to mix and match the use of Elastic's APM Agents and Jaeger's Clients.
-* Elastic APM only supports probabilistic sampling. Because of differences in Jaeger and Elastic's data structures, 
+* Elastic APM only supports probabilistic sampling. Because of differences in the Jaeger and Elastic data structures, 
 sampling at a value below `1.0` (100%), will cause inaccuracies in the APM app. See <<jaeger-configure-sampling>> for more information.
 * We currently only support exception logging. Span logs are not supported.
 
