@@ -103,8 +103,11 @@ endif::[]
 ifdef::apm-server[]
 |<<apikey-command,`apikey`>> |{apikey-command-short-desc}.
 endif::[]
+|<<export-command,`export`>> |{export-command-short-desc}.
 |<<help-command,`help`>> |{help-command-short-desc}.
+ifndef::serverless[]
 |<<keystore-command,`keystore`>> |{keystore-command-short-desc}.
+endif::[]
 ifeval::["{beatname_lc}"=="functionbeat"]
 |<<package-command,`package`>> |{package-command-short-desc}.
 |<<remove-command,`remove`>> |{remove-command-short-desc}.
@@ -433,6 +436,7 @@ Specifies the name of the command to show help for.
 {beatname_lc} help export
 -----
 
+ifndef::serverless[]
 [[keystore-command]]
 ==== `keystore` command
 
@@ -488,6 +492,8 @@ Shows help for the `keystore` command.
 
 See <<keystore>> for more examples.
 
+endif::[]
+
 ifeval::["{beatname_lc}"=="functionbeat"]
 [[package-command]]
 ==== `package` command
@@ -507,7 +513,7 @@ ifeval::["{beatname_lc}"=="functionbeat"]
 Shows help for the `package` command.
 
 *`-o, --output`*::
-Specifies the full path to the zip file that will contain the package.
+Specifies the full path pattern to use when creating the packages. 
 
 {global-flags}
 
@@ -515,7 +521,7 @@ Specifies the full path to the zip file that will contain the package.
 
 ["source","sh",subs="attributes"]
 -----
-{beatname_lc} package /path/to/file.zip
+{beatname_lc} package --output /path/to/folder/package-{{.Provider}}.zip
 -----
 
 [[remove-command]]
@@ -787,11 +793,6 @@ endif::no_dashboards[]
 *`-h, --help`*::
 Shows help for the `setup` command.
 
-ifdef::has_ml_jobs[]
-*`--machine-learning`*::
-Sets up machine learning job configurations only.
-endif::[]
-
 ifeval::["{beatname_lc}"=="filebeat"]
 *`--modules MODULE_LIST`*::
 Specifies a comma-separated list of modules. Use this flag to avoid errors when
@@ -831,7 +832,6 @@ ifeval::["{beatname_lc}"=="filebeat"]
 ["source","sh",subs="attributes"]
 -----
 {beatname_lc} setup --dashboards
-{beatname_lc} setup --machine-learning
 {beatname_lc} setup --pipelines
 {beatname_lc} setup --pipelines --modules system,nginx,mysql <1>
 {beatname_lc} setup --index-management
@@ -847,7 +847,6 @@ ifndef::no_dashboards[]
 ["source","sh",subs="attributes"]
 -----
 {beatname_lc} setup --dashboards
-{beatname_lc} setup --machine-learning
 {beatname_lc} setup --index-management
 -----
 endif::no_dashboards[]
@@ -856,7 +855,6 @@ ifndef::apm-server[]
 ifdef::no_dashboards[]
 ["source","sh",subs="attributes"]
 -----
-{beatname_lc} setup --machine-learning
 {beatname_lc} setup --index-management
 -----
 endif::no_dashboards[]
@@ -1030,6 +1028,13 @@ messages.
 
 *`-e, --e`*::
 Logs to stderr and disables syslog/file output.
+
+*`-environment`*::
+For logging purposes, specifies the environment that {beatname_uc} is running in.
+This setting is used to select a default log output when no log output is configured.
+Supported values are: `systemd`, `container`, `macos_service`, and `windows_service`.
+If `systemd` or `container` is specified, {beatname_uc} will log to stdout and stderr
+by default.
 
 *`--path.config`*::
 Sets the path for configuration files. See the <<directory-layout>> section for
