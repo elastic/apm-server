@@ -19,14 +19,14 @@ package jaeger
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
-
-	"go.uber.org/zap"
 
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -81,10 +81,9 @@ var (
 )
 
 type grpcSampler struct {
-	log         *logp.Logger
-	defaultRate float64
-	client      kibana.Client
-	fetcher     *agentcfg.Fetcher
+	log     *logp.Logger
+	client  kibana.Client
+	fetcher *agentcfg.Fetcher
 }
 
 // GetSamplingStrategy implements the api_v2/sampling.proto.
@@ -93,13 +92,21 @@ type grpcSampler struct {
 func (s grpcSampler) GetSamplingStrategy(
 	ctx context.Context,
 	params *api_v2.SamplingStrategyParameters) (*api_v2.SamplingStrategyResponse, error) {
+
 	gRPCSamplingMonitoringMap.inc(request.IDRequestCount)
 	defer gRPCSamplingMonitoringMap.inc(request.IDResponseCount)
+	if err := s.validateKibanaClient(ctx); err != nil {
+		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
+		// do not return full error details since this is part of an unprotected endpoint response
+		s.log.With(zap.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
+		return nil, errors.New("agent remote configuration not supported, check server logs for more details")
+	}
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {
-		s.log.With(zap.Error(err)).Error("Fetching sampling rate failed.")
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
-		return nil, err
+		// do not return full error details since this is part of an unprotected endpoint response
+		s.log.With(zap.Error(err)).Error("No valid sampling rate fetched from Kibana.")
+		return nil, errors.New("no sampling rate available, check server logs for more details")
 	}
 	gRPCSamplingMonitoringMap.inc(request.IDResponseValidCount)
 	return &api_v2.SamplingStrategyResponse{
@@ -108,13 +115,10 @@ func (s grpcSampler) GetSamplingStrategy(
 }
 
 func (s grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
-	if err := s.validateKibanaClient(ctx); err != nil {
-		return 0, err
-	}
 	result, err := s.fetcher.Fetch(ctx, agentcfg.NewQuery(service, ""))
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
-		return 0, fmt.Errorf("fetching sampling rate from Kibana client failed: %w", err)
+		return 0, fmt.Errorf("fetching sampling rate failed: %w", err)
 	}
 
 	if sr, ok := result.Source.Settings[agentcfg.TransactionSamplingRateKey]; ok {
@@ -130,19 +134,19 @@ func (s grpcSampler) fetchSamplingRate(ctx context.Context, service string) (flo
 }
 
 func (s grpcSampler) validateKibanaClient(ctx context.Context) error {
+	if s.client == nil {
+		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
+		return errors.New("jaeger remote sampling endpoint is disabled, " +
+			"configure the `apm-server.kibana` section in apm-server.yml to enable it")
+	}
 	supported, err := s.client.SupportsVersion(ctx, agentcfg.KibanaMinVersion, true)
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return fmt.Errorf("error checking kibana version: %w", err)
 	}
 	if !supported {
-		version := "unknown"
-		if ver, err := s.client.GetVersion(ctx); err == nil {
-			version = ver.String()
-		}
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
-		return fmt.Errorf("not supported by Kibana version %v, min Kibana version: %v, ",
-			version,
+		return fmt.Errorf("not supported by used Kibana version, min required Kibana version: %v",
 			agentcfg.KibanaMinVersion)
 	}
 	return nil

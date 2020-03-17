@@ -162,7 +162,8 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				"_id": "1",
 				"_source": map[string]interface{}{
 					"settings": map[string]interface{}{}}},
-			expectedErrMsg: "no sampling rate found",
+			expectedErrMsg: "no sampling rate available",
+			expectedLogMsg: "No valid sampling rate fetched",
 			monitoringInt: map[request.ResultID]int64{
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,
@@ -174,7 +175,8 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				"_source": map[string]interface{}{
 					"settings": map[string]interface{}{
 						agentcfg.TransactionSamplingRateKey: "foo"}}},
-			expectedErrMsg: "parsing error for sampling rate",
+			expectedErrMsg: "no sampling rate available",
+			expectedLogMsg: "No valid sampling rate fetched",
 			monitoringInt: map[request.ResultID]int64{
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,
@@ -182,7 +184,8 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				request.IDResponseErrorsInternal: 1}},
 		"unsupportedVersion": {
 			kibanaVersion:  common.MustNewVersion("7.4.0"),
-			expectedErrMsg: "not supported by Kibana version",
+			expectedErrMsg: "agent remote configuration not supported",
+			expectedLogMsg: "Kibana client does not support",
 			monitoringInt: map[request.ResultID]int64{
 				request.IDRequestCount:                     1,
 				request.IDResponseCount:                    1,
@@ -207,7 +210,7 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 					}
 					return sb.String()
 				}()
-				assert.Contains(t, logs, "Fetching sampling rate failed")
+				assert.Contains(t, logs, tc.expectedLogMsg)
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
@@ -223,22 +226,18 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 }
 
 type testGRPCSampler struct {
-	kibanaBody          map[string]interface{}
-	kibanaCode          int
-	kibanaVersion       *common.Version
-	sampler             grpcSampler
-	defaultSamplingRate float64
+	kibanaBody    map[string]interface{}
+	kibanaCode    int
+	kibanaVersion *common.Version
+	sampler       grpcSampler
 
 	expectedErrMsg       string
+	expectedLogMsg       string
 	expectedSamplingRate float64
 	monitoringInt        map[request.ResultID]int64
 }
 
 func (tc *testGRPCSampler) setup() {
-	tc.defaultSamplingRate = 1.0
-	if tc.expectedSamplingRate == 0.0 {
-		tc.expectedSamplingRate = tc.defaultSamplingRate
-	}
 	if tc.kibanaCode == 0 {
 		tc.kibanaCode = 200
 	}
@@ -257,7 +256,7 @@ func (tc *testGRPCSampler) setup() {
 	}
 	client := tests.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
 	fetcher := agentcfg.NewFetcher(client, time.Second)
-	tc.sampler = grpcSampler{logp.L(), tc.defaultSamplingRate, client, fetcher}
+	tc.sampler = grpcSampler{logp.L(), client, fetcher}
 	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
 	if tc.monitoringInt == nil {
 		tc.monitoringInt = map[request.ResultID]int64{

@@ -89,31 +89,11 @@ func TestServerIntegration(t *testing.T) {
 		"default config": {
 			cfg: config.DefaultConfig("9.9.9"),
 		},
-		"default config with Jaeger gRPC collector enabled": {
-			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
-				cfg.JaegerConfig.GRPC.Enabled = true
-				cfg.JaegerConfig.GRPC.Host = "localhost:0"
-				return cfg
-			}(),
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
-		},
-		"default config with Jaeger gRPC sampler enabled": {
-			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
-				cfg.JaegerConfig.GRPC.Enabled = false
-				cfg.JaegerConfig.GRPC.Host = "localhost:0"
-				cfg.JaegerConfig.GRPC.Sampling.Enabled = true
-				return cfg
-			}(),
-			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
-		},
 		"default config with Jaeger gRPC enabled": {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
-				cfg.JaegerConfig.GRPC.Sampling.Enabled = true
 				return cfg
 			}(),
 			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
@@ -123,7 +103,6 @@ func TestServerIntegration(t *testing.T) {
 				cfg := config.DefaultConfig("8.0.0")
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
-				cfg.JaegerConfig.GRPC.Sampling.Enabled = true
 				cfg.Kibana.Enabled = true
 				return cfg
 			}(),
@@ -328,16 +307,11 @@ func TestServerIntegration(t *testing.T) {
 				})
 
 				t.Run("sampler", func(t *testing.T) {
-					resp, err := tc.sendSamplingGRPC()
-					if tc.cfg.JaegerConfig.GRPC.Enabled && tc.cfg.JaegerConfig.GRPC.Sampling.Enabled {
-						//TODO(simi): fix with changing handling for startup
-						require.Error(t, err)
-						//require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
-						//assert.Equal(t, tc.cfg.JaegerConfig.GRPC.Sampling.DefaultRate, resp.ProbabilisticSampling.SamplingRate)
-					} else {
-						require.Error(t, err)
-						assert.Nil(t, resp)
-					}
+					//resp, err := tc.sendSamplingGRPC()
+					//TODO(simi): fix with changing handling for startup
+					//require.Error(t, err)
+					//require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
+					//assert.Equal(t, tc.cfg.JaegerConfig.GRPC.Sampling.DefaultRate, resp.ProbabilisticSampling.SamplingRate)
 				})
 			}
 			if tc.httpURL != nil {
@@ -382,11 +356,6 @@ func (tc *testcase) setup(t *testing.T) {
 	var err error
 	tc.tracer = apmtest.NewRecordingTracer()
 	tc.server, err = NewServer(logp.NewLogger("jaeger"), tc.cfg, tc.tracer.Tracer, reporter)
-	if tc.cfg.JaegerConfig.GRPC.Enabled && tc.cfg.JaegerConfig.GRPC.Sampling.Enabled && !tc.cfg.Kibana.Enabled {
-		require.Error(t, err)
-		require.Nil(t, tc.server)
-		return
-	}
 	require.NoError(t, err)
 	if tc.server == nil {
 		return

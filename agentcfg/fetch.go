@@ -24,16 +24,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
-
 	"github.com/pkg/errors"
 
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
+	"github.com/elastic/apm-server/utility"
 )
 
 // Error Messages used to signal fetching errors

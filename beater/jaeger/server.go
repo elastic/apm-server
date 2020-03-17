@@ -19,7 +19,6 @@ package jaeger
 
 import (
 	"context"
-	"errors"
 	"net"
 	"net/http"
 
@@ -97,21 +96,17 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		srv.grpc.server = grpc.NewServer(grpcOptions...)
 		srv.grpc.listener = grpcListener
 
-		api_v2.RegisterCollectorServiceServer(srv.grpc.server, grpcCollector{logger, auth, traceConsumer})
+		api_v2.RegisterCollectorServiceServer(srv.grpc.server,
+			grpcCollector{logger, auth, traceConsumer})
 
-		if cfg.JaegerConfig.GRPC.Sampling.Enabled {
-			if !cfg.Kibana.Enabled {
-				return nil, errors.New("jaeger gRPC sampling depends on a connection to Kibana, " +
-					"ensure `apm-server.kibana` is enabled to use this feature")
-			}
-			client := kibana.NewConnectingClient(&cfg.Kibana.ClientConfig)
-			api_v2.RegisterSamplingManagerServer(srv.grpc.server, grpcSampler{
-				logger,
-				cfg.JaegerConfig.GRPC.Sampling.DefaultRate,
-				client,
-				agentcfg.NewFetcher(client, cfg.AgentConfig.Cache.Expiration),
-			})
+		var client kibana.Client
+		var fetcher *agentcfg.Fetcher
+		if cfg.Kibana.Enabled {
+			client = kibana.NewConnectingClient(&cfg.Kibana.ClientConfig)
+			fetcher = agentcfg.NewFetcher(client, cfg.AgentConfig.Cache.Expiration)
 		}
+		api_v2.RegisterSamplingManagerServer(srv.grpc.server,
+			grpcSampler{logger, client, fetcher})
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?
