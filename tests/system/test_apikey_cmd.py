@@ -111,7 +111,7 @@ class APIKeyCommandBaseTest(BaseTest):
         return apikey
 
     def invalidate_by_id(self, id):
-        invalidated = self.subcommand_output("invalidate", "--id", id)
+        invalidated = self.subcommand_output("invalidate", "--id={}".format(id))
         self.apikey_helper.wait_until_invalidated(id=id)
         return invalidated
 
@@ -167,7 +167,7 @@ class APIKeyCommandTest(APIKeyCommandBaseTest):
     def test_info_by_id(self):
         self.create()
         apikey = self.create()
-        info = self.subcommand_output("info", "--id", apikey["id"])
+        info = self.subcommand_output("info",  "--id={}".format(apikey["id"]))
         assert len(info.get("api_keys")) == 1, info
         assert info["api_keys"][0].get("username") == self.user, info
         assert info["api_keys"][0].get("id") == apikey["id"], info
@@ -190,25 +190,26 @@ class APIKeyCommandTest(APIKeyCommandBaseTest):
 
     def test_verify_all(self):
         apikey = self.create()
-        result = self.subcommand_output("verify", "--credentials", apikey["credentials"])
+        result = self.subcommand_output("verify", "--credentials={}".format(apikey["credentials"]))
         assert result == {'event:write': True, 'config_agent:read': True, 'sourcemap:write': True}, result
 
         for privilege in ["ingest", "sourcemap", "agent-config"]:
-            result = self.subcommand_output("verify", "--credentials", apikey["credentials"], "--" + privilege)
+            result = self.subcommand_output(
+                "verify", "--credentials={}".format(apikey["credentials"]), "--" + privilege)
             assert len(result) == 1, result
             assert list(result.values())[0] is True
 
     def test_verify_each(self):
         apikey = self.create("--ingest")
-        result = self.subcommand_output("verify", "--credentials", apikey["credentials"])
+        result = self.subcommand_output("verify", "--credentials={}".format(apikey["credentials"]))
         assert result == {'event:write': True, 'config_agent:read': False, 'sourcemap:write': False}, result
 
         apikey = self.create("--sourcemap")
-        result = self.subcommand_output("verify", "--credentials", apikey["credentials"])
+        result = self.subcommand_output("verify", "--credentials={}".format(apikey["credentials"]))
         assert result == {'event:write': False, 'config_agent:read': False, 'sourcemap:write': True}, result
 
         apikey = self.create("--agent-config")
-        result = self.subcommand_output("verify", "--credentials", apikey["credentials"])
+        result = self.subcommand_output("verify", "--credentials={}".format(apikey["credentials"]))
         assert result == {'event:write': False, 'config_agent:read': True, 'sourcemap:write': False}, result
 
 
