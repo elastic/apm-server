@@ -56,16 +56,13 @@ Based on the endpoint enabled in the previous step, configure the relevant host 
 [[jaeger-configure-sampling]]
 *Configure Sampling*
 
-The gRPC endpoint supports probabilistic sampling which can be used to reduce the amount of data that your agents collect and send.
-Probabilistic sampling makes a random sampling decision based on the value of `sampling.default`.
+The gRPC endpoint supports probabilistic sampling, which can be used to reduce the amount of data that your agents collect and send.
+Probabilistic sampling makes a random sampling decision based on the configured sampling value.
 For example, a value of `.2` means that 20% of traces will be sampled.
-Sampling ratios can also be adjusted, on a per service basis, via the Agent configuration page in the APM app.
 
-To enable sampling:
-
-* Set `apm-server.grpc.sampling.enabled` to `enabled`.
-* Set `apm-server.grpc.sampling.default` to the desired sampling rate (between `0` and `1.0`).
-The default value is `1.0`, which samples at 100%.
+Sampling is automatically enabled when `apm-server.jaeger.grpc.enabled` is set to `true`.
+The default sampling ratio, as well as per-service sampling rates,
+are are configured via the {kibana-ref}/agent-configuration.html[Agent configuration] page in the APM app.
 
 WARNING: If a sampling rate smaller than `1.0` (100%) is configured,
 transactions per minute will be incorrectly calculated in the APM app.
@@ -154,19 +151,6 @@ Defaults to the standard Jaeger gRPC collector port `14250`.
 ===== `grpc.auth_tag`
 Set to the name of the tag that should be used for authorizing Jaeger agents.
 By default, authorization does not apply to Jaeger agents.
-
-[float]
-===== `grpc.sampling.enabled`
-Enable the sampling rate to be fetched from the gRPC endpoint.
-Only probabilistic sampling is supported.
-No authorization token can be configured for this endpoint.
-Sampling is disabled by default.
-
-[float]
-===== `grpc.sampling.default`
-Set the default sampling rate used when no service specific sampling is configured.
-Valid range is from `0` to `1.0`, where `0` samples at 0% and `1.0` samples at 100%.
-Defaults to `1.0`.
 
 [float]
 ===== `http.enabled`
