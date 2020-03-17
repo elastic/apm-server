@@ -294,9 +294,9 @@ apm-server:
   # Specify cache key expiration via this setting. Default is 30 seconds.
   #agent.config.cache.expiration: 30s
 
-  kibana:
+  #kibana:
     # For APM Agent configuration in Kibana, enabled must be true.
-    enabled: true
+    #enabled: false
 
     # Scheme and port can be left out and will be set to the default (`http` and `5601`).
     # In case you specify an additional path, the scheme is required: `http://localhost:5601/path`.
@@ -305,8 +305,8 @@ apm-server:
 
     # Optional protocol and basic auth credentials.
     #protocol: "https"
-    username: "admin"
-    password: "s"
+    #username: "elastic"
+    #password: "changeme"
 
     # Optional HTTP path.
     #path: ""
@@ -415,10 +415,10 @@ apm-server:
 
   # When enabling Jaeger integration, APM Server acts as Jaeger collector. It supports jaeger.thrift over HTTP
   # and gRPC. This is an experimental feature, use with care.
-  jaeger:
-    grpc:
+  #jaeger:
+    #grpc:
       # Set to true to enable the Jaeger gRPC collector service.
-      enabled: true
+      #enabled: false
 
       # Defines the gRPC host and port the server is listening on.
       # Defaults to the standard Jaeger gRPC collector port 14250.
@@ -541,8 +541,8 @@ output.elasticsearch:
 
   # Authentication credentials - either API key or username/password.
   #api_key: "id:api_key"
-  username: "admin"
-  password: "changeme"
+  #username: "elastic"
+  #password: "changeme"
 
   # Dictionary of HTTP parameters to pass within the url with index operations.
   #parameters:

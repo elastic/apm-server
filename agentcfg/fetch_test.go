@@ -104,10 +104,26 @@ func TestSanitize(t *testing.T) {
 	input := Result{Source: Source{
 		Agent:    "python",
 		Settings: Settings{"transaction_sample_rate": "0.1", "capture_body": "false"}}}
-	assert.Equal(t, input, sanitize(false, input))
-	assert.Equal(t, zeroResult(), sanitize(true, input))
+	// full result as not requested for an insecure agent
+	assert.Equal(t, input, sanitize([]string{}, input))
+
+	// no result for insecure agent
+	assert.Equal(t, zeroResult(), sanitize([]string{"rum-js"}, input))
+
+	// limited result for insecure agent
+	insecureAgents := []string{"rum-js"}
 	input.Source.Agent = "rum-js"
-	assert.Equal(t, Settings{"transaction_sample_rate": "0.1"}, sanitize(true, input).Source.Settings)
+	assert.Equal(t, Settings{"transaction_sample_rate": "0.1"}, sanitize(insecureAgents, input).Source.Settings)
+
+	// limited result for insecure agent prefix
+	insecureAgents = []string{"Jaeger"}
+	input.Source.Agent = "Jaeger/Python"
+	assert.Equal(t, Settings{"transaction_sample_rate": "0.1"}, sanitize(insecureAgents, input).Source.Settings)
+
+	// no result for insecure agent prefix
+	insecureAgents = []string{"Python"}
+	input.Source.Agent = "Jaeger/Python"
+	assert.Equal(t, zeroResult(), sanitize(insecureAgents, input))
 }
 
 func TestCustomJSON(t *testing.T) {

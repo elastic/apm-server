@@ -143,6 +143,23 @@ class GRPCSamplingTest(JaegerBaseTest):
         cfg.update(self.config_overrides)
         return cfg
 
+    def create_service_config(self, service, sampling_rate, agent=None):
+        data = {"service": {"name": service},
+                "settings": {"transaction_sample_rate": sampling_rate}}
+        if agent:
+            data["agent_name"] = agent
+        resp = requests.put(
+            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration"),
+            headers={
+                "Accept": "*/*",
+                "Content-Type": "application/json",
+                "kbn-xsrf": "1",
+            },
+            params={"overwrite": "true"},
+            json=data,
+        )
+        assert resp.status_code == 200, resp.status_code
+
     def call_sampling_endpoint(self, service):
         client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
         out = os.path.abspath(self.working_dir) + "/sampling_response"
@@ -156,32 +173,36 @@ class GRPCSamplingTest(JaegerBaseTest):
         with open(out, "r") as out:
             return out.read()
 
-    def test_jaeger_grpc_sampling_default(self):
+    def test_jaeger_grpc_sampling_missing(self):
         """
-        This test sends a Jaeger sampling request over gRPC, that returns an error as no sampling strategy is found
+        This test sends Jaeger sampling requests over gRPC, and tests responses
         """
-        logged = self.call_sampling_endpoint("foo")
+
+        # test returns an error as no sampling strategy is found
         expected = "no sampling rate available, check server logs for more details"
+        logged = self.call_sampling_endpoint("foo")
         assert expected in logged, logged
 
-    def test_jaeger_grpc_sampling(self):
-        """
-        This test sends a Jaeger sampling request over gRPC, that returns a valid sampling strategy
-        """
-        service = "courses"
-
-        # create service configuration entry
-        resp = requests.put(
-            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration"),
-            headers={
-                "Accept": "*/*",
-                "Content-Type": "application/json",
-                "kbn-xsrf": "1",
-            },
-            json={"service": {"name": service}, "settings": {"transaction_sample_rate": 0.35}},
-        )
-        assert resp.status_code == 200, resp.status_code
-
-        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(0.35)
+        # test returns a configured default sampling strategy
+        service = "all"
+        sampling_rate = 0.35
+        self.create_service_config(service, sampling_rate)
+        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(sampling_rate)
         logged = self.call_sampling_endpoint(service)
         assert expected == logged, logged
+
+        # test returns a configured sampling strategy
+        service = "jaeger-service"
+        sampling_rate = 0.75
+        self.create_service_config(service, sampling_rate, agent="Jaeger/Ruby")
+        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(sampling_rate)
+        logged = self.call_sampling_endpoint(service)
+        assert expected == logged, logged
+
+        # test returns an error as configured sampling strategy is not for Jaeger
+        service = "foo"
+        sampling_rate = 0.13
+        self.create_service_config(service, sampling_rate, agent="Non-Jaeger/Agent")
+        expected = "no sampling rate available, check server logs for more details"
+        logged = self.call_sampling_endpoint(service)
+        assert expected in logged, logged

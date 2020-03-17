@@ -34,10 +34,8 @@ const (
 )
 
 var (
-	// RumAgent keywords (new and old)
-	RumAgent = []string{"rum-js", "js-base"}
-	// RumSettings are whitelisted applicable settings for RUM
-	RumSettings = []string{"transaction_sample_rate"}
+	// WhitelistedSettings are settings considered safe to be returned to all requesters
+	WhitelistedSettings = []string{"transaction_sample_rate"}
 )
 
 // Result models a Kibana response
@@ -54,9 +52,9 @@ type Source struct {
 
 // Query represents an URL body or query params for agent configuration
 type Query struct {
-	Service Service `json:"service"`
-	Etag    string  `json:"etag"`
-	IsRum   bool    `json:"-"`
+	Service        Service  `json:"service"`
+	Etag           string   `json:"etag"`
+	InsecureAgents []string `json:"-"`
 }
 
 func (q Query) id() string {
@@ -64,8 +62,8 @@ func (q Query) id() string {
 }
 
 // NewQuery creates a Query struct
-func NewQuery(name, env string) Query {
-	return Query{Service: Service{name, env}}
+func NewQuery(name string, env string, insecureAgents []string) Query {
+	return Query{Service: Service{name, env}, InsecureAgents: insecureAgents}
 }
 
 // Service holds supported attributes for querying configuration

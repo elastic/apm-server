@@ -36,6 +36,7 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/kibana"
+	"github.com/elastic/apm-server/processor/otel"
 )
 
 var (
@@ -78,6 +79,8 @@ func (c grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
 var (
 	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling", monitoring.PublishExpvar)
 	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCSamplingRegistry, monitoringKeys)
+
+	jaegerAgentPrefixes = []string{otel.AgentNameJaeger}
 )
 
 type grpcSampler struct {
@@ -115,7 +118,7 @@ func (s grpcSampler) GetSamplingStrategy(
 }
 
 func (s grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
-	result, err := s.fetcher.Fetch(ctx, agentcfg.NewQuery(service, ""))
+	result, err := s.fetcher.Fetch(ctx, agentcfg.NewQuery(service, "", jaegerAgentPrefixes))
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return 0, fmt.Errorf("fetching sampling rate failed: %w", err)

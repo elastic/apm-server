@@ -22,6 +22,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -72,7 +73,7 @@ func (f *Fetcher) Fetch(ctx context.Context, query Query) (Result, error) {
 		return newResult(f.request(ctx, convert.ToReader(query)))
 	}
 	result, err := f.fetch(query, req)
-	return sanitize(query.IsRum, result), err
+	return sanitize(query.InsecureAgents, result), err
 }
 
 func (f *Fetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
@@ -96,19 +97,28 @@ func (f *Fetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
 	return result, nil
 }
 
-func sanitize(isRum bool, result Result) Result {
-	if !isRum {
+func sanitize(insecureAgents []string, result Result) Result {
+	if len(insecureAgents) == 0 {
 		return result
 	}
-	hasRumData := utility.Contains(result.Source.Agent, RumAgent) || result.Source.Agent == ""
-	if !hasRumData {
+	hasDataForAgent := containsAnyPrefix(result.Source.Agent, insecureAgents) || result.Source.Agent == ""
+	if !hasDataForAgent {
 		return zeroResult()
 	}
 	settings := Settings{}
 	for k, v := range result.Source.Settings {
-		if utility.Contains(k, RumSettings) {
+		if utility.Contains(k, WhitelistedSettings) {
 			settings[k] = v
 		}
 	}
 	return Result{Source: Source{Etag: result.Source.Etag, Settings: settings}}
+}
+
+func containsAnyPrefix(s string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(s, prefix) {
+			return true
+		}
+	}
+	return false
 }

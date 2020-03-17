@@ -56,6 +56,9 @@ var (
 	errMsgKibanaDisabled     = errors.New(msgKibanaDisabled)
 	errMsgNoKibanaConnection = errors.New(msgNoKibanaConnection)
 	errCacheControl          = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
+
+	// rumAgents keywords (new and old)
+	rumAgents = []string{"rum-js", "js-base"}
 )
 
 // Handler returns a request.Handler for managing agent central configuration requests.
@@ -154,6 +157,7 @@ func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
 		query = agentcfg.NewQuery(
 			params.Get(agentcfg.ServiceName),
 			params.Get(agentcfg.ServiceEnv),
+			nil,
 		)
 	default:
 		err = errors.Errorf("%s: %s", msgMethodUnsupported, r.Method)
@@ -162,9 +166,10 @@ func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
 	if err == nil && query.Service.Name == "" {
 		err = errors.New(agentcfg.ServiceName + " is required")
 	}
-	query.IsRum = c.IsRum
+	if c.IsRum {
+		query.InsecureAgents = rumAgents
+	}
 	query.Etag = ifNoneMatch(c)
-
 	return
 }
 
