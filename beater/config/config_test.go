@@ -98,14 +98,12 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"kibana":                            map[string]interface{}{"enabled": "true"},
-				"agent.config.cache.expiration":     "2m",
-				"jaeger.grpc.enabled":               true,
-				"jaeger.grpc.host":                  "localhost:12345",
-				"jaeger.grpc.sampling.enabled":      true,
-				"jaeger.grpc.sampling.default_rate": 0.8,
-				"jaeger.http.enabled":               true,
-				"jaeger.http.host":                  "localhost:6789",
+				"kibana":                        map[string]interface{}{"enabled": "true"},
+				"agent.config.cache.expiration": "2m",
+				"jaeger.grpc.enabled":           true,
+				"jaeger.grpc.host":              "localhost:12345",
+				"jaeger.http.enabled":           true,
+				"jaeger.http.host":              "localhost:6789",
 				"api_key": map[string]interface{}{
 					"enabled":             true,
 					"limit":               200,
@@ -185,7 +183,6 @@ func Test_UnpackConfig(t *testing.T) {
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:12345")
 						}(),
-						Sampling: Sampling{DefaultRate: 0.8, Enabled: true},
 					},
 					HTTP: JaegerHTTPConfig{
 						Enabled: true,
@@ -293,7 +290,6 @@ func Test_UnpackConfig(t *testing.T) {
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:14250")
 						}(),
-						Sampling: Sampling{DefaultRate: 1.0, Enabled: false},
 					},
 					HTTP: JaegerHTTPConfig{
 						Enabled: false,

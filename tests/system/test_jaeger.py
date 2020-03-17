@@ -143,7 +143,7 @@ class GRPCSamplingTest(JaegerBaseTest):
         cfg.update(self.config_overrides)
         return cfg
 
-    def assert_sampling(self, service, sampling_rate):
+    def call_sampling_endpoint(self, service):
         client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
         out = os.path.abspath(self.working_dir) + "/sampling_response"
         subprocess.check_call(['go', 'run', client,
@@ -153,22 +153,20 @@ class GRPCSamplingTest(JaegerBaseTest):
                                '-service', service,
                                '-out', out
                                ])
-        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(sampling_rate)
         with open(out, "r") as out:
-            sampling = out.read()
-            assert expected == sampling, sampling
+            return out.read()
 
     def test_jaeger_grpc_sampling_default(self):
         """
-        This test sends a Jaeger sampling request over gRPC,
-        and verifies the returned sampling strategy is the default sampling strategy
+        This test sends a Jaeger sampling request over gRPC, that returns an error as no sampling strategy is found
         """
-        self.assert_sampling("xyz", 1)
+        logged = self.call_sampling_endpoint("foo")
+        expected = "no sampling rate available, check server logs for more details"
+        assert expected in logged, logged
 
     def test_jaeger_grpc_sampling(self):
         """
-        This test sends a Jaeger sampling request over gRPC,
-        and verifies the returned sampling strategy is the configured sampling strategy
+        This test sends a Jaeger sampling request over gRPC, that returns a valid sampling strategy
         """
         service = "courses"
 
@@ -184,4 +182,6 @@ class GRPCSamplingTest(JaegerBaseTest):
         )
         assert resp.status_code == 200, resp.status_code
 
-        self.assert_sampling(service, 0.35)
+        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(0.35)
+        logged = self.call_sampling_endpoint(service)
+        assert expected == logged, logged

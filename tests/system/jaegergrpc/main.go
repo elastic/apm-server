@@ -69,11 +69,13 @@ func main() {
 		os.Remove(p)
 		client := api_v2.NewSamplingManagerClient(conn)
 		resp, err := client.GetSamplingStrategy(context.Background(), &api_v2.SamplingStrategyParameters{ServiceName: *service})
+		var out string
 		if err != nil {
-			log.Fatal(err)
+			out = err.Error()
+		} else {
+			out = fmt.Sprintf("strategy: %s, sampling rate: %v", resp.StrategyType.String(), resp.ProbabilisticSampling.SamplingRate)
 		}
-		s := fmt.Sprintf("strategy: %s, sampling rate: %v", resp.StrategyType.String(), resp.ProbabilisticSampling.SamplingRate)
-		if err := ioutil.WriteFile(p, []byte(s), 0644); err != nil {
+		if err := ioutil.WriteFile(p, []byte(out), 0644); err != nil {
 			log.Fatal(err)
 		}
 

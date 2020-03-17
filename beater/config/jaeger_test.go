@@ -26,9 +26,8 @@ import (
 func TestJaeger_default(t *testing.T) {
 	expected := JaegerConfig{
 		GRPC: JaegerGRPCConfig{
-			Enabled:  false,
-			Host:     "localhost:14250",
-			Sampling: Sampling{Enabled: false, DefaultRate: 1},
+			Enabled: false,
+			Host:    "localhost:14250",
 		},
 		HTTP: JaegerHTTPConfig{
 			Enabled: false,
