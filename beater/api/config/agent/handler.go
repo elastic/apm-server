@@ -118,7 +118,7 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 		return false
 	}
 
-	if supported, err := client.SupportsVersion(c.Request.Context(), kibana.AgentConfigMinVersion, true); !supported {
+	if supported, err := client.SupportsVersion(c.Request.Context(), agentcfg.KibanaMinVersion, true); !supported {
 		if err != nil {
 			c.Result.Set(request.IDResponseErrorsServiceUnavailable,
 				http.StatusServiceUnavailable,
@@ -131,7 +131,7 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 		version, _ := client.GetVersion(c.Request.Context())
 
 		errMsg := fmt.Sprintf("%s: min version %+v, configured version %+v",
-			msgKibanaVersionNotCompatible, kibana.AgentConfigMinVersion, version.String())
+			msgKibanaVersionNotCompatible, agentcfg.KibanaMinVersion, version.String())
 		body := authErrMsg(errMsg, msgKibanaVersionNotCompatible, withAuth)
 		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
 			http.StatusServiceUnavailable,

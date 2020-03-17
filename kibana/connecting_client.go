@@ -42,10 +42,6 @@ const (
 	maxBackoff  = 30 * time.Second
 )
 
-// AgentConfigMinVersion specifies the minimal required version of Kibana
-// that supports agent configuration management
-var AgentConfigMinVersion = common.MustNewVersion("7.5.0")
-
 var errNotConnected = errors.New("unable to retrieve connection to Kibana")
 
 // Client provides an interface for Kibana Clients

@@ -154,7 +154,6 @@ func nopConsumer() traceConsumerFunc {
 }
 
 func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
-	errMsg := "Fetching sampling rate failed"
 	for name, tc := range map[string]testGRPCSampler{
 		"withSamplingRate": {
 			expectedSamplingRate: 0.75},
@@ -163,17 +162,32 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				"_id": "1",
 				"_source": map[string]interface{}{
 					"settings": map[string]interface{}{}}},
-			expectedLog: "falling back to default"},
+			expectedErrMsg: "no sampling rate found",
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:           1,
+				request.IDResponseCount:          1,
+				request.IDResponseErrorsCount:    1,
+				request.IDResponseErrorsNotFound: 1}},
 		"invalidSamplingRate": {
 			kibanaBody: map[string]interface{}{
 				"_id": "1",
 				"_source": map[string]interface{}{
 					"settings": map[string]interface{}{
-						samplingRateKey: "foo"}}},
-			expectedLog: "falling back to default"},
+						agentcfg.TransactionSamplingRateKey: "foo"}}},
+			expectedErrMsg: "parsing error for sampling rate",
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:           1,
+				request.IDResponseCount:          1,
+				request.IDResponseErrorsCount:    1,
+				request.IDResponseErrorsInternal: 1}},
 		"unsupportedVersion": {
-			kibanaVersion: common.MustNewVersion("7.4.0"),
-			expectedLog:   errMsg},
+			kibanaVersion:  common.MustNewVersion("7.4.0"),
+			expectedErrMsg: "not supported by Kibana version",
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:                     1,
+				request.IDResponseCount:                    1,
+				request.IDResponseErrorsCount:              1,
+				request.IDResponseErrorsServiceUnavailable: 1}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
@@ -182,20 +196,24 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 			resp, err := tc.sampler.GetSamplingStrategy(context.Background(), params)
 
 			// assert sampling response
-			require.NoError(t, err)
-			require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
-			logs := func() string {
-				var sb strings.Builder
-				for _, entry := range logp.ObserverLogs().All() {
-					sb.WriteString(entry.Message)
-				}
-				return sb.String()
-			}()
-			assert.Equal(t, tc.expectedSamplingRate, resp.ProbabilisticSampling.SamplingRate, logs)
-			assert.Nil(t, resp.OperationSampling)
-			assert.Nil(t, resp.RateLimitingSampling)
-			if tc.expectedLog != "" {
-				assert.Contains(t, logs, tc.expectedLog)
+			if tc.expectedErrMsg != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.expectedErrMsg)
+				assert.Nil(t, resp)
+				logs := func() string {
+					var sb strings.Builder
+					for _, entry := range logp.ObserverLogs().All() {
+						sb.WriteString(entry.Message)
+					}
+					return sb.String()
+				}()
+				assert.Contains(t, logs, "Fetching sampling rate failed")
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
+				assert.Equal(t, tc.expectedSamplingRate, resp.ProbabilisticSampling.SamplingRate)
+				assert.Nil(t, resp.OperationSampling)
+				assert.Nil(t, resp.RateLimitingSampling)
 			}
 
 			// assert monitoring counters
@@ -211,8 +229,8 @@ type testGRPCSampler struct {
 	sampler             grpcSampler
 	defaultSamplingRate float64
 
+	expectedErrMsg       string
 	expectedSamplingRate float64
-	expectedLog          string
 	monitoringInt        map[request.ResultID]int64
 }
 
@@ -229,7 +247,7 @@ func (tc *testGRPCSampler) setup() {
 			"_id": "1",
 			"_source": map[string]interface{}{
 				"settings": map[string]interface{}{
-					samplingRateKey: 0.75,
+					agentcfg.TransactionSamplingRateKey: 0.75,
 				},
 			},
 		}
@@ -241,9 +259,11 @@ func (tc *testGRPCSampler) setup() {
 	fetcher := agentcfg.NewFetcher(client, time.Second)
 	tc.sampler = grpcSampler{logp.L(), tc.defaultSamplingRate, client, fetcher}
 	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
-	tc.monitoringInt = map[request.ResultID]int64{
-		request.IDRequestCount:       1,
-		request.IDResponseCount:      1,
-		request.IDResponseValidCount: 1,
+	if tc.monitoringInt == nil {
+		tc.monitoringInt = map[request.ResultID]int64{
+			request.IDRequestCount:       1,
+			request.IDResponseCount:      1,
+			request.IDResponseValidCount: 1,
+		}
 	}
 }

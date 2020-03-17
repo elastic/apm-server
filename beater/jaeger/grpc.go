@@ -75,8 +75,6 @@ func (c grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
 	return consumeBatch(ctx, batch, c.consumer, gRPCCollectorMonitoringMap)
 }
 
-const samplingRateKey = "transaction_sample_rate"
-
 var (
 	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling", monitoring.PublishExpvar)
 	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCSamplingRegistry, monitoringKeys)
@@ -99,8 +97,9 @@ func (s grpcSampler) GetSamplingStrategy(
 	defer gRPCSamplingMonitoringMap.inc(request.IDResponseCount)
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {
-		s.log.With(zap.Error(err)).Error("Fetching sampling rate failed, falling back to default value.")
-		samplingRate = s.defaultRate
+		s.log.With(zap.Error(err)).Error("Fetching sampling rate failed.")
+		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
+		return nil, err
 	}
 	gRPCSamplingMonitoringMap.inc(request.IDResponseValidCount)
 	return &api_v2.SamplingStrategyResponse{
@@ -114,23 +113,26 @@ func (s grpcSampler) fetchSamplingRate(ctx context.Context, service string) (flo
 	}
 	result, err := s.fetcher.Fetch(ctx, agentcfg.NewQuery(service, ""))
 	if err != nil {
+		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return 0, fmt.Errorf("fetching sampling rate from Kibana client failed: %w", err)
 	}
 
-	if sr, ok := result.Source.Settings[samplingRateKey]; ok {
+	if sr, ok := result.Source.Settings[agentcfg.TransactionSamplingRateKey]; ok {
 		srFloat64, err := strconv.ParseFloat(sr, 64)
 		if err != nil {
-			return 0, fmt.Errorf("parsing error for sample rate `%v`: %w", sr, err)
+			gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsInternal)
+			return 0, fmt.Errorf("parsing error for sampling rate `%v`: %w", sr, err)
 		}
 		return srFloat64, nil
 	}
-	s.log.Debugf("No sampling rate found for %v, falling back to default value.", service)
-	return s.defaultRate, nil
+	gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsNotFound)
+	return 0, fmt.Errorf("no sampling rate found for %v", service)
 }
 
 func (s grpcSampler) validateKibanaClient(ctx context.Context) error {
-	supported, err := s.client.SupportsVersion(ctx, kibana.AgentConfigMinVersion, true)
+	supported, err := s.client.SupportsVersion(ctx, agentcfg.KibanaMinVersion, true)
 	if err != nil {
+		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return fmt.Errorf("error checking kibana version: %w", err)
 	}
 	if !supported {
@@ -138,9 +140,10 @@ func (s grpcSampler) validateKibanaClient(ctx context.Context) error {
 		if ver, err := s.client.GetVersion(ctx); err == nil {
 			version = ver.String()
 		}
+		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return fmt.Errorf("not supported by Kibana version %v, min Kibana version: %v, ",
 			version,
-			kibana.AgentConfigMinVersion)
+			agentcfg.KibanaMinVersion)
 	}
 	return nil
 }

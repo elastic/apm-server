@@ -24,6 +24,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/pkg/errors"
@@ -38,7 +40,14 @@ import (
 const (
 	ErrMsgSendToKibanaFailed = "sending request to kibana failed"
 	ErrMsgReadKibanaResponse = "unable to read Kibana response body"
+
+	TransactionSamplingRateKey = "transaction_sample_rate"
 )
+
+// KibanaMinVersion specifies the minimal required version of Kibana
+// that supports agent configuration management
+var KibanaMinVersion = common.MustNewVersion("7.5.0")
+
 const endpoint = "/api/apm/settings/agent-configuration/search"
 
 // Fetcher holds static information and information shared between requests.
