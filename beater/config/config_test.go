@@ -404,32 +404,6 @@ func TestTLSSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("VerificationMode", func(t *testing.T) {
-		for name, tc := range map[string]struct {
-			config map[string]interface{}
-			tls    *tlscommon.ServerConfig
-		}{
-			"Default": {
-				config: map[string]interface{}{"ssl.enabled": true},
-				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
-			"ConfiguredToFull": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "full"}},
-				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
-			"ConfiguredToNone": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "none"}},
-				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyNone}},
-		} {
-			t.Run(name, func(t *testing.T) {
-				ucfgCfg, err := common.NewConfigFrom(tc.config)
-				require.NoError(t, err)
-
-				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
-				require.NoError(t, err)
-				assert.Equal(t, tc.tls.VerificationMode, cfg.TLS.VerificationMode)
-			})
-		}
-	})
-
 	t.Run("Enabled", func(t *testing.T) {
 		truthy := true
 		falsy := false

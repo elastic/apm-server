@@ -68,13 +68,3 @@ and by the Jaeger agent.
 * `none` - Disables client authentication.
 * `optional` - When a client certificate is given, the server will verify it.
 * `required` - Requires clients to provide a valid certificate.
-
-[float]
-==== `verification_mode`
-
-This option controls whether the client verifies server certificates and host
-names. Valid values are `none` and `full`. If `none` is used,
-SSL-based connections are susceptible to man-in-the-middle attacks. Use this
-option for testing only.
-
-The default is `full`.

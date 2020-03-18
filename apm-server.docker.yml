@@ -117,11 +117,6 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #curve_types: []
 
-    # Configure SSL verification mode. If `none` is configured, all hosts and
-    # certificates will be accepted. In this mode, SSL-based connections are
-    # susceptible to man-in-the-middle attacks. Use only for testing. Default is `full`.
-    #verification_mode: full
-
     # Following options only concern requiring and verifying client certificates provided by the agents.
     # Providing a client certificate is currently only supported by the RUM agent through
     # browser configured certificates and Jaeger agents connecting via gRPC.
