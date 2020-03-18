@@ -131,9 +131,9 @@ apm-server:
     #
     # Configure which type of client authentication is supported.
     # Options are `none`, `optional`, and `required`.
-    # Default is `optional`. If `certificate_authorities` are configured,
+    # Default is `none`. If `certificate_authorities` are configured,
     # the value for `client_authentication` is automatically changed to `required`.
-    #client_authentication: "optional"
+    #client_authentication: "none"
 
   # The APM Server endpoints can be secured by configuring a secret token or enabling the usage of API keys. Both
   # options can be enabled in parallel, allowing Elastic APM agents to chose whichever mechanism they support.

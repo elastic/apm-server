@@ -59,7 +59,7 @@ and by the Jaeger agent.
 ==== `client_authentication`
 
 This configures what types of client authentication are supported. The valid options
-are `none`, `optional`, and `required`. The default is `optional`.
+are `none`, `optional`, and `required`. The default is `none`.
 If `certificate_authorities` has been specified, this setting will automatically change to `required`.
 This option only needs to be configured when the agent is expected to provide a client certificate.
 Sending client certificates is currently only supported by the RUM agent through the browser

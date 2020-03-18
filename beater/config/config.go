@@ -112,19 +112,6 @@ type Cache struct {
 func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
 	c := DefaultConfig(version)
-
-	if ucfg.HasField("ssl") {
-		ssl, err := ucfg.Child("ssl", -1)
-		if err != nil {
-			return nil, err
-		}
-		if !ssl.HasField("certificate_authorities") && !ssl.HasField("client_authentication") {
-			if err := ucfg.SetString("ssl.client_authentication", -1, "optional"); err != nil {
-				return nil, err
-			}
-		}
-	}
-
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
