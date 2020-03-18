@@ -46,8 +46,9 @@ import (
 )
 
 const (
+	AgentNameJaeger = "Jaeger"
+
 	sourceFormatJaeger = "jaeger"
-	agentNameJaeger    = "Jaeger"
 	keywordLength      = 1024
 	dot                = "."
 	underscore         = "_"
@@ -177,7 +178,7 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 			jaegerVersion := "unknown"
 			md.Service.Agent.Version = &jaegerVersion
 		}
-		agentName := agentNameJaeger
+		agentName := AgentNameJaeger
 		if md.Service.Language.Name != nil {
 			agentName = truncate(agentName + "/" + *md.Service.Language.Name)
 		}

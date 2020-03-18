@@ -15,6 +15,9 @@ apm-server:
   {% if jaeger_grpc_auth_tag %}
   jaeger.grpc.auth_tag: {{ jaeger_grpc_auth_tag }}
   {% endif %}
+  {% if jaeger_grpc_sampling_enabled %}
+  jaeger.grpc.sampling.enabled: {{ jaeger_grpc_sampling_enabled }}
+  {% endif %}
 
   {% if api_key_enabled %}
   api_key.enabled: {{ api_key_enabled }}
