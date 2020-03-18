@@ -22,23 +22,31 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
-
-	"github.com/elastic/apm-server/utility"
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
+	"github.com/elastic/apm-server/utility"
 )
 
 // Error Messages used to signal fetching errors
 const (
 	ErrMsgSendToKibanaFailed = "sending request to kibana failed"
 	ErrMsgReadKibanaResponse = "unable to read Kibana response body"
+
+	TransactionSamplingRateKey = "transaction_sample_rate"
 )
+
+// KibanaMinVersion specifies the minimal required version of Kibana
+// that supports agent configuration management
+var KibanaMinVersion = common.MustNewVersion("7.5.0")
+
 const endpoint = "/api/apm/settings/agent-configuration/search"
 
 // Fetcher holds static information and information shared between requests.
@@ -65,7 +73,7 @@ func (f *Fetcher) Fetch(ctx context.Context, query Query) (Result, error) {
 		return newResult(f.request(ctx, convert.ToReader(query)))
 	}
 	result, err := f.fetch(query, req)
-	return sanitize(query.IsRum, result), err
+	return sanitize(query.InsecureAgents, result), err
 }
 
 func (f *Fetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
@@ -89,19 +97,28 @@ func (f *Fetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
 	return result, nil
 }
 
-func sanitize(isRum bool, result Result) Result {
-	if !isRum {
+func sanitize(insecureAgents []string, result Result) Result {
+	if len(insecureAgents) == 0 {
 		return result
 	}
-	hasRumData := utility.Contains(result.Source.Agent, RumAgent) || result.Source.Agent == ""
-	if !hasRumData {
+	hasDataForAgent := containsAnyPrefix(result.Source.Agent, insecureAgents) || result.Source.Agent == ""
+	if !hasDataForAgent {
 		return zeroResult()
 	}
 	settings := Settings{}
 	for k, v := range result.Source.Settings {
-		if utility.Contains(k, RumSettings) {
+		if utility.Contains(k, WhitelistedSettings) {
 			settings[k] = v
 		}
 	}
 	return Result{Source: Source{Etag: result.Source.Etag, Settings: settings}}
+}
+
+func containsAnyPrefix(s string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(s, prefix) {
+			return true
+		}
+	}
+	return false
 }

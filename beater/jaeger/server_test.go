@@ -98,6 +98,17 @@ func TestServerIntegration(t *testing.T) {
 			}(),
 			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
 		},
+		"default config with Jaeger gRPC and Kibana enabled": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.JaegerConfig.GRPC.Enabled = true
+				cfg.JaegerConfig.GRPC.Host = "localhost:0"
+				cfg.Kibana.Enabled = true
+				cfg.Kibana.Host = "non-existing:1234"
+				return cfg
+			}(),
+			grpcDialOpts: []grpc.DialOption{grpc.WithInsecure()},
+		},
 		"default config with Jaeger HTTP enabled": {
 			cfg: func() *config.Config {
 				cfg := config.DefaultConfig("8.0.0")
@@ -208,7 +219,7 @@ func TestServerIntegration(t *testing.T) {
 			// grpc.Dial returns immediately, and the connection happens in the background.
 			// Therefore the dial won't fail, the subsequent PostSpans call will fail due
 			// to the certificate verification failing.
-			grpcSendShouldFail: true,
+			grpcSendSpanShouldFail: true,
 			grpcDialOpts: func() []grpc.DialOption {
 				return []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{}))}
 			}(),
@@ -234,8 +245,8 @@ func TestServerIntegration(t *testing.T) {
 				cfg.JaegerConfig.GRPC.AuthTag = "authorization"
 				return cfg
 			}(),
-			grpcDialOpts:       []grpc.DialOption{grpc.WithInsecure()},
-			grpcSendShouldFail: true, // unauthorized
+			grpcDialOpts:           []grpc.DialOption{grpc.WithInsecure()},
+			grpcSendSpanShouldFail: true, // unauthorized
 		},
 		"secret token and auth_tag set, auth_tag sent by agent": {
 			cfg: func() *config.Config {
@@ -266,8 +277,9 @@ func TestServerIntegration(t *testing.T) {
 
 			var nevents, ntransactions int
 			if tc.grpcClient != nil {
+				// gRPC span collector
 				err := tc.sendSpanGRPC()
-				if tc.grpcSendShouldFail {
+				if tc.grpcSendSpanShouldFail {
 					require.Error(t, err)
 					require.Len(t, tc.events, nevents)
 				} else {
@@ -293,6 +305,21 @@ func TestServerIntegration(t *testing.T) {
 					assert.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", transactions[ntransactions].Name)
 					ntransactions++
 				}
+
+				// gRPC sampler
+				resp, err := tc.sendSamplingGRPC()
+				// no valid Kibana configuration as these are unit tests
+				// for integration tests with Kibana see tests/system/test_jaeger.py
+				require.Error(t, err)
+				assert.Nil(t, resp)
+				if status.Code(err) != codes.Unavailable {
+					// a transaction event is recorded with the tracer
+					tc.tracer.Flush(nil)
+					transactions := tc.tracer.Payloads().Transactions
+					require.Len(t, transactions, ntransactions+1)
+					assert.Equal(t, "/jaeger.api_v2.SamplingManager/GetSamplingStrategy", transactions[ntransactions].Name)
+					ntransactions++
+				}
 			}
 			if tc.httpURL != nil {
 				err := tc.sendSpanHTTP()
@@ -311,11 +338,11 @@ func TestServerIntegration(t *testing.T) {
 }
 
 type testcase struct {
-	cfg                *config.Config
-	grpcDialOpts       []grpc.DialOption
-	grpcDialShouldFail bool
-	grpcSendShouldFail bool
-	processTags        map[string]string
+	cfg                    *config.Config
+	grpcDialOpts           []grpc.DialOption
+	grpcDialShouldFail     bool
+	grpcSendSpanShouldFail bool
+	processTags            map[string]string
 
 	events     []beat.Event
 	server     *Server
@@ -416,6 +443,11 @@ func (tc *testcase) sendBatchGRPC(batch jaegermodel.Batch) error {
 	client := api_v2.NewCollectorServiceClient(tc.grpcClient)
 	_, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: batch})
 	return err
+}
+
+func (tc *testcase) sendSamplingGRPC() (*api_v2.SamplingStrategyResponse, error) {
+	client := api_v2.NewSamplingManagerClient(tc.grpcClient)
+	return client.GetSamplingStrategy(context.Background(), &api_v2.SamplingStrategyParameters{ServiceName: "xyz"})
 }
 
 func (tc *testcase) sendSpanHTTP() error {

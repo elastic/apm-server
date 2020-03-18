@@ -1,6 +1,8 @@
 import os
 import re
 import subprocess
+from urllib.parse import urljoin
+import requests
 
 from apmserver import integration_test, ElasticTest
 from helper import wait_until
@@ -125,3 +127,82 @@ class TestAuthTag(JaegerBaseTest):
         transaction_docs = self.wait_for_events('transaction', 1)
         error_docs = self.wait_for_events('error', 3)
         self.approve_docs('jaeger_batch_0_authorization', transaction_docs + error_docs)
+
+
+@integration_test
+class GRPCSamplingTest(JaegerBaseTest):
+
+    def config(self):
+        cfg = super(GRPCSamplingTest, self).config()
+        cfg.update({
+            "jaeger_grpc_sampling_enabled": "true",
+            "kibana_host": self.get_kibana_url(),
+            "kibana_enabled": "true",
+            "acm_cache_expiration": "1s"
+        })
+        cfg.update(self.config_overrides)
+        return cfg
+
+    def create_service_config(self, service, sampling_rate, agent=None):
+        data = {"service": {"name": service},
+                "settings": {"transaction_sample_rate": sampling_rate}}
+        if agent:
+            data["agent_name"] = agent
+        resp = requests.put(
+            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration"),
+            headers={
+                "Accept": "*/*",
+                "Content-Type": "application/json",
+                "kbn-xsrf": "1",
+            },
+            params={"overwrite": "true"},
+            json=data,
+        )
+        assert resp.status_code == 200, resp.status_code
+
+    def call_sampling_endpoint(self, service):
+        client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
+        out = os.path.abspath(self.working_dir) + "/sampling_response"
+        subprocess.check_call(['go', 'run', client,
+                               '-addr', self.jaeger_grpc_addr,
+                               '-insecure',
+                               '-endpoint', "sampler",
+                               '-service', service,
+                               '-out', out
+                               ])
+        with open(out, "r") as out:
+            return out.read()
+
+    def test_jaeger_grpc_sampling_missing(self):
+        """
+        This test sends Jaeger sampling requests over gRPC, and tests responses
+        """
+
+        # test returns an error as no sampling strategy is found
+        expected = "no sampling rate available, check server logs for more details"
+        logged = self.call_sampling_endpoint("foo")
+        assert expected in logged, logged
+
+        # test returns a configured default sampling strategy
+        service = "all"
+        sampling_rate = 0.35
+        self.create_service_config(service, sampling_rate)
+        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(sampling_rate)
+        logged = self.call_sampling_endpoint(service)
+        assert expected == logged, logged
+
+        # test returns a configured sampling strategy
+        service = "jaeger-service"
+        sampling_rate = 0.75
+        self.create_service_config(service, sampling_rate, agent="Jaeger/Ruby")
+        expected = "strategy: PROBABILISTIC, sampling rate: {}".format(sampling_rate)
+        logged = self.call_sampling_endpoint(service)
+        assert expected == logged, logged
+
+        # test returns an error as configured sampling strategy is not for Jaeger
+        service = "foo"
+        sampling_rate = 0.13
+        self.create_service_config(service, sampling_rate, agent="Non-Jaeger/Agent")
+        expected = "no sampling rate available, check server logs for more details"
+        logged = self.call_sampling_endpoint(service)
+        assert expected in logged, logged
