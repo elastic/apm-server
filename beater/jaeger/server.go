@@ -97,7 +97,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		srv.grpc.listener = grpcListener
 
 		api_v2.RegisterCollectorServiceServer(srv.grpc.server,
-			grpcCollector{logger, auth, traceConsumer})
+			&grpcCollector{logger, auth, traceConsumer})
 
 		var client kibana.Client
 		var fetcher *agentcfg.Fetcher
@@ -106,7 +106,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 			fetcher = agentcfg.NewFetcher(client, cfg.AgentConfig.Cache.Expiration)
 		}
 		api_v2.RegisterSamplingManagerServer(srv.grpc.server,
-			grpcSampler{logger, client, fetcher})
+			&grpcSampler{logger, client, fetcher})
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?

@@ -52,8 +52,8 @@ type Source struct {
 
 // Query represents an URL body or query params for agent configuration
 type Query struct {
-	Service        Service  `json:"service"`
-	Etag           string   `json:"etag"`
+	Service Service `json:"service"`
+	Etag    string  `json:"etag"`
 	// InsecureAgents holds a set of prefixes for restricting results to those whose
 	// agent name matches any of the specified prefixes.
 	//
@@ -66,11 +66,6 @@ type Query struct {
 
 func (q Query) id() string {
 	return q.Service.Name + q.Service.Environment
-}
-
-// NewQuery creates a Query struct
-func NewQuery(name string, env string, insecureAgents []string) Query {
-	return Query{Service: Service{name, env}, InsecureAgents: insecureAgents}
 }
 
 // Service holds supported attributes for querying configuration

@@ -55,7 +55,7 @@ type grpcCollector struct {
 // TraceData and passes them on to the internal Consumer taking care of converting into Elastic APM format.
 // The implementation of the protobuf contract is based on the open-telemetry implementation at
 // https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
-func (c grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
+func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
 	gRPCCollectorMonitoringMap.inc(request.IDRequestCount)
 	defer gRPCCollectorMonitoringMap.inc(request.IDResponseCount)
 
@@ -68,7 +68,7 @@ func (c grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest
 	return &api_v2.PostSpansResponse{}, nil
 }
 
-func (c grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
+func (c *grpcCollector) postSpans(ctx context.Context, batch model.Batch) error {
 	if err := c.auth(ctx, batch); err != nil {
 		gRPCCollectorMonitoringMap.inc(request.IDResponseErrorsUnauthorized)
 		return status.Error(codes.Unauthenticated, err.Error())
@@ -92,7 +92,7 @@ type grpcSampler struct {
 // GetSamplingStrategy implements the api_v2/sampling.proto.
 // Only probabilistic sampling is supported.
 // It fetches the sampling rate from the central configuration management and returns the sampling strategy.
-func (s grpcSampler) GetSamplingStrategy(
+func (s *grpcSampler) GetSamplingStrategy(
 	ctx context.Context,
 	params *api_v2.SamplingStrategyParameters) (*api_v2.SamplingStrategyResponse, error) {
 
@@ -117,8 +117,9 @@ func (s grpcSampler) GetSamplingStrategy(
 		ProbabilisticSampling: &api_v2.ProbabilisticSamplingStrategy{SamplingRate: samplingRate}}, nil
 }
 
-func (s grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
-	result, err := s.fetcher.Fetch(ctx, agentcfg.NewQuery(service, "", jaegerAgentPrefixes))
+func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
+	query := agentcfg.Query{Service: agentcfg.Service{Name: service}, InsecureAgents: jaegerAgentPrefixes}
+	result, err := s.fetcher.Fetch(ctx, query)
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return 0, fmt.Errorf("fetching sampling rate failed: %w", err)
@@ -136,7 +137,7 @@ func (s grpcSampler) fetchSamplingRate(ctx context.Context, service string) (flo
 	return 0, fmt.Errorf("no sampling rate found for %v", service)
 }
 
-func (s grpcSampler) validateKibanaClient(ctx context.Context) error {
+func (s *grpcSampler) validateKibanaClient(ctx context.Context) error {
 	if s.client == nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return errors.New("jaeger remote sampling endpoint is disabled, " +

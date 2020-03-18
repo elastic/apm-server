@@ -154,11 +154,12 @@ func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
 		err = convert.FromReader(r.Body, &query)
 	case http.MethodGet:
 		params := r.URL.Query()
-		query = agentcfg.NewQuery(
-			params.Get(agentcfg.ServiceName),
-			params.Get(agentcfg.ServiceEnv),
-			nil,
-		)
+		query = agentcfg.Query{
+			Service: agentcfg.Service{
+				Name:        params.Get(agentcfg.ServiceName),
+				Environment: params.Get(agentcfg.ServiceEnv),
+			},
+		}
 	default:
 		err = errors.Errorf("%s: %s", msgMethodUnsupported, r.Method)
 	}

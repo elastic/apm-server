@@ -107,7 +107,7 @@ type testGRPCCollector struct {
 	request     *api_v2.PostSpansRequest
 	authError   error
 	consumerErr error
-	collector   grpcCollector
+	collector   *grpcCollector
 
 	monitoringInt map[request.ResultID]int64
 }
@@ -126,7 +126,7 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 		tc.request = &api_v2.PostSpansRequest{Batch: *batch}
 	}
 
-	tc.collector = grpcCollector{logp.NewLogger("gRPC"), authFunc(func(context.Context, model.Batch) error {
+	tc.collector = &grpcCollector{logp.NewLogger("gRPC"), authFunc(func(context.Context, model.Batch) error {
 		return tc.authError
 	}), traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
 		return tc.consumerErr
@@ -229,7 +229,7 @@ type testGRPCSampler struct {
 	kibanaBody    map[string]interface{}
 	kibanaCode    int
 	kibanaVersion *common.Version
-	sampler       grpcSampler
+	sampler       *grpcSampler
 
 	expectedErrMsg       string
 	expectedLogMsg       string
@@ -256,7 +256,7 @@ func (tc *testGRPCSampler) setup() {
 	}
 	client := tests.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
 	fetcher := agentcfg.NewFetcher(client, time.Second)
-	tc.sampler = grpcSampler{logp.L(), client, fetcher}
+	tc.sampler = &grpcSampler{logp.L(), client, fetcher}
 	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
 	if tc.monitoringInt == nil {
 		tc.monitoringInt = map[request.ResultID]int64{
