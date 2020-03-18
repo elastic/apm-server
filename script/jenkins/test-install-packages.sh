@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
 
-mage -v -debug testPackagesInstall
+./build/linux/mage -v testPackagesInstall
