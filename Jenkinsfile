@@ -330,13 +330,28 @@ pipeline {
           }
         }
         stage('Hey-Apm') {
-          agent none
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
           when {
             beforeAgent true
             expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
           }
+          environment {
+            PLATFORMS = 'linux/amd64'
+            TYPE = 'docker'
+            SNAPSHOT = 'true'
+          }
           steps {
             withGithubNotify(context: 'Hey-Apm') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Build docker packages', script: './script/jenkins/package.sh')
+                  sh(label: 'List docker images', script: 'docker images')
+                  // TODO: push docker images to docker registry
+                }
+              }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
                     parameters: [string(name: 'GO_VERSION', value: '1.12.1'),
                                 string(name: 'STACK_VERSION', value: '8.0.0-SNAPSHOT'),
