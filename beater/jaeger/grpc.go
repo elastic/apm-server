@@ -26,7 +26,6 @@ import (
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -61,7 +60,7 @@ func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansReques
 
 	if err := c.postSpans(ctx, r.Batch); err != nil {
 		gRPCCollectorMonitoringMap.inc(request.IDResponseErrorsCount)
-		c.log.With(zap.Error(err)).Error("error gRPC PostSpans")
+		c.log.With(logp.Error(err)).Error("error gRPC PostSpans")
 		return nil, err
 	}
 	gRPCCollectorMonitoringMap.inc(request.IDResponseValidCount)
@@ -108,7 +107,7 @@ func (s *grpcSampler) GetSamplingStrategy(
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.log.With(zap.Error(err)).Error("No valid sampling rate fetched from Kibana.")
+		s.log.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
 		return nil, errors.New("no sampling rate available, check server logs for more details")
 	}
 	gRPCSamplingMonitoringMap.inc(request.IDResponseValidCount)

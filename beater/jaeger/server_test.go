@@ -28,8 +28,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
-
 	jaegermodel "github.com/jaegertracing/jaeger/model"
 	jaegerthriftconv "github.com/jaegertracing/jaeger/model/converter/thrift/jaeger"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
@@ -43,6 +41,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"

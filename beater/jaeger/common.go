@@ -20,14 +20,15 @@ package jaeger
 import (
 	"context"
 
-	"github.com/elastic/apm-server/beater/authorization"
-	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
-
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/open-telemetry/opentelemetry-collector/consumer"
 	trjaeger "github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/pkg/errors"
+
+	"github.com/elastic/beats/v7/libbeat/monitoring"
+
+	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/beater/request"
 )
 
 const (
