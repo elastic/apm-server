@@ -60,10 +60,10 @@ The gRPC endpoint supports probabilistic sampling, which can be used to reduce t
 Probabilistic sampling makes a random sampling decision based on the configured sampling value.
 For example, a value of `.2` means that 20% of traces will be sampled.
 
-By default, when using Jaeger Clients over gRPC, two things happen:
+By default, when using Jaeger over gRPC, two things happen:
 
 * APM Server automatically enables the sampling endpoint when `apm-server.jaeger.grpc.enabled` is set to `true`.
-* Jaeger clients poll APM Server for the configured sampling rate.
+* Jaeger agents poll APM Server for the configured sampling rate.
 
 In this case, the default sampling ratio, as well as per-service sampling rates,
 can be configured via the {kibana-ref}/agent-configuration.html[Agent configuration] page in the APM app.
