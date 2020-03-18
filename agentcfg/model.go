@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	// WhitelistedSettings are settings considered safe to be returned to all requesters
+	// WhitelistedSettings are settings considered safe to be returned to all requesters, including unauthenticated ones such as RUM.
 	WhitelistedSettings = []string{"transaction_sample_rate"}
 )
 
@@ -54,6 +54,13 @@ type Source struct {
 type Query struct {
 	Service        Service  `json:"service"`
 	Etag           string   `json:"etag"`
+	// InsecureAgents holds a set of prefixes for restricting results to those whose
+	// agent name matches any of the specified prefixes.
+	//
+	// If InsecureAgents is non-empty, and any of the prefixes matches the result,
+	// then the resulting settings will be restricted to those identified by
+	// WhitelistedSettings. Otherwise, if InsecureAgents is empty, the agent name
+	// is ignored and no restrictions are applied.
 	InsecureAgents []string `json:"-"`
 }
 

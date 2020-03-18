@@ -101,7 +101,7 @@ func (s grpcSampler) GetSamplingStrategy(
 	if err := s.validateKibanaClient(ctx); err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.log.With(zap.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
+		s.log.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
 		return nil, errors.New("agent remote configuration not supported, check server logs for more details")
 	}
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
