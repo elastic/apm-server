@@ -337,25 +337,24 @@ pipeline {
             expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
           }
           environment {
-            PLATFORMS = 'linux/amd64'
-            TYPE = 'docker'
-            SNAPSHOT = 'true'
+            DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+            DOCKER_REGISTRY = 'docker.elastic.co'
+            DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
           }
           steps {
             withGithubNotify(context: 'Hey-Apm') {
               deleteDir()
               unstash 'source'
               golang(){
+                dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                 dir("${BASE_DIR}"){
-                  sh(label: 'Build docker packages', script: './script/jenkins/package.sh')
-                  sh(label: 'List docker images', script: 'docker images')
-                  // TODO: push docker images to docker registry
+                  sh "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}"
                 }
               }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
                     parameters: [string(name: 'GO_VERSION', value: '1.12.1'),
-                                string(name: 'STACK_VERSION', value: '8.0.0-SNAPSHOT'),
-                                string(name: 'APM_DOCKER_IMAGE', value: 'docker.elastic.co/apm/apm-server')])
+                                string(name: 'STACK_VERSION', value: "${env.GIT_BASE_COMMIT}"),
+                                string(name: 'APM_DOCKER_IMAGE', value: "${env.DOCKER_IMAGE}")])
             }
           }
         }
