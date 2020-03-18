@@ -203,13 +203,13 @@ Defining too many unique fields in an index is a condition that can lead to a
 
 |===
 |*Labels API links*
-v|*Go:* {apm-go-ref-v}/api.html#context-set-tag[`SetTag`]
+v|*Go:* {apm-go-ref-v}/api.html#context-set-label[`SetLabel`]
 *Java:* {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`addLabel`]
 *.NET:* {apm-dotnet-ref-v}/public-api.html#api-transaction-tags[`Labels`]
 *Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-label[`setLabel`] \| {apm-node-ref-v}/agent-api.html#apm-add-labels[`addLabel`]
 *Python:* {apm-py-ref-v}/api.html#api-label[`elasticapm.label()`]
 *Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-label[`set_label`]
-*Rum:* {apm-rum-ref-v}/agent-api.html#apm-add-tags[`addTags`]
+*Rum:* {apm-rum-ref-v}/agent-api.html#apm-add-labels[`addLabels`]
 |===
 
 [float]
