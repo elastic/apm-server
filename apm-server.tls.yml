@@ -90,16 +90,19 @@ apm-server:
   #---------------------------- APM Server - Secure Communication with Agents ----------------------------
 
   # Enable secure communication between APM agents and the server. By default ssl is disabled.
-  #ssl:
-    #enabled: false
+  ssl:
+    enabled: true
+
+    # Configure a list of root certificate authorities for verifying client certificates.
+    #certificate_authorities: []
 
     # Path to file containing the certificate for server authentication.
     # Needs to be configured when ssl is enabled.
-    #certificate: ''
+    certificate: 'testdata/tls/certificate.pem'
 
     # Path to file containing server certificate key.
     # Needs to be configured when ssl is enabled.
-    #key: ''
+    key: 'testdata/tls/key.pem'
 
     # Optional configuration options for ssl communication.
 
@@ -108,7 +111,7 @@ apm-server:
     #key_passphrase: ''
 
     # List of supported/valid protocol versions. By default TLS versions 1.1 up to 1.3 are enabled.
-    #supported_protocols: [TLSv1.1, TLSv1.2, TLSv1.3]
+    supported_protocols: [TLSv1.1, TLSv1.2, TLSv1.3]
 
     # Configure cipher suites to be used for SSL connections.
     # Note that cipher suites are not configurable for TLS 1.3.
@@ -117,23 +120,14 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #curve_types: []
 
+    # Configure which type of client authentication is supported.
+    # Options are `none`, `optional`, and `required`. Default is `optional`.
+    client_authentication: "optional"
+
     # Configure SSL verification mode. If `none` is configured, all hosts and
     # certificates will be accepted. In this mode, SSL-based connections are
     # susceptible to man-in-the-middle attacks. Use only for testing. Default is `full`.
-    #verification_mode: full
-
-    # Following options only concern requiring and verifying client certificates provided by the agents.
-    # Providing a client certificate is currently only supported by the RUM agent through
-    # browser configured certificates and Jaeger agents connecting via gRPC.
-    #
-    # Configure a list of root certificate authorities for verifying client certificates.
-    #certificate_authorities: []
-    #
-    # Configure which type of client authentication is supported.
-    # Options are `none`, `optional`, and `required`.
-    # Default is `optional`. If `certificate_authorities` are configured,
-    # the value for `client_authentication` is automatically changed to `required`.
-    #client_authentication: "optional"
+    #ssl.verification_mode: full
 
   # The APM Server endpoints can be secured by configuring a secret token or enabling the usage of API keys. Both
   # options can be enabled in parallel, allowing Elastic APM agents to chose whichever mechanism they support.
@@ -300,9 +294,9 @@ apm-server:
   # Specify cache key expiration via this setting. Default is 30 seconds.
   #agent.config.cache.expiration: 30s
 
-  #kibana:
+  kibana:
     # For APM Agent configuration in Kibana, enabled must be true.
-    #enabled: false
+    enabled: true
 
     # Scheme and port can be left out and will be set to the default (`http` and `5601`).
     # In case you specify an additional path, the scheme is required: `http://localhost:5601/path`.
@@ -311,8 +305,8 @@ apm-server:
 
     # Optional protocol and basic auth credentials.
     #protocol: "https"
-    #username: "elastic"
-    #password: "changeme"
+    username: "admin"
+    password: "changeme"
 
     # Optional HTTP path.
     #path: ""
@@ -547,8 +541,8 @@ output.elasticsearch:
 
   # Authentication credentials - either API key or username/password.
   #api_key: "id:api_key"
-  #username: "elastic"
-  #password: "changeme"
+  username: "admin"
+  password: "changeme"
 
   # Dictionary of HTTP parameters to pass within the url with index operations.
   #parameters:
