@@ -16,9 +16,14 @@ export TYPE='docker'
 export SNAPSHOT='true'
 export IMAGE="docker.elastic.co/apm/apm-server"
 
-mage -debug package
+echo 'INFO: Build docker images'
+mage package
 
+echo 'INFO: Get the just built docker image'
 TAG=$(docker images ${IMAGE} --format "{{.Tag}}" | head -1)
 
+echo "INFO: Retag docker image (${IMAGE}:${TAG})"
 docker tag "${IMAGE}:${TAG}" "${NEW_IMAGE}:${NEW_TAG}"
+
+echo "INFO: Push docker image (${NEW_IMAGE}:${NEW_TAG})"
 docker push "${NEW_IMAGE}:${NEW_TAG}"

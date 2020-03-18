@@ -348,7 +348,7 @@ pipeline {
               golang(){
                 dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                 dir("${BASE_DIR}"){
-                  sh "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}"
+                  sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                 }
               }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
