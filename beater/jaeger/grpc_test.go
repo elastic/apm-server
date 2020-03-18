@@ -20,7 +20,9 @@ package jaeger
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
+	"time"
 
 	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	"github.com/jaegertracing/jaeger/model"
@@ -32,8 +34,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
+
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/tests"
 )
 
 func TestGRPCCollector_PostSpans(t *testing.T) {
@@ -91,7 +98,7 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 				require.NotNil(t, resp)
 				require.NoError(t, err)
 			}
-			assertMonitoring(t, tc.monitoringInt, gRPCMonitoringMap)
+			assertMonitoring(t, tc.monitoringInt, gRPCCollectorMonitoringMap)
 		})
 	}
 }
@@ -100,13 +107,13 @@ type testGRPCCollector struct {
 	request     *api_v2.PostSpansRequest
 	authError   error
 	consumerErr error
-	collector   grpcCollector
+	collector   *grpcCollector
 
 	monitoringInt map[request.ResultID]int64
 }
 
 func (tc *testGRPCCollector) setup(t *testing.T) {
-	beatertest.ClearRegistry(gRPCMonitoringMap)
+	beatertest.ClearRegistry(gRPCCollectorMonitoringMap)
 	if tc.request == nil {
 		td := consumerdata.TraceData{Spans: []*v1.Span{
 			{TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -119,7 +126,7 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 		tc.request = &api_v2.PostSpansRequest{Batch: *batch}
 	}
 
-	tc.collector = grpcCollector{authFunc(func(context.Context, model.Batch) error {
+	tc.collector = &grpcCollector{logp.NewLogger("gRPC"), authFunc(func(context.Context, model.Batch) error {
 		return tc.authError
 	}), traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
 		return tc.consumerErr
@@ -144,4 +151,118 @@ func (f traceConsumerFunc) ConsumeTraceData(ctx context.Context, td consumerdata
 
 func nopConsumer() traceConsumerFunc {
 	return func(context.Context, consumerdata.TraceData) error { return nil }
+}
+
+func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
+	for name, tc := range map[string]testGRPCSampler{
+		"withSamplingRate": {
+			expectedSamplingRate: 0.75},
+		"noSamplingRate": {
+			kibanaBody: map[string]interface{}{
+				"_id": "1",
+				"_source": map[string]interface{}{
+					"settings": map[string]interface{}{}}},
+			expectedErrMsg: "no sampling rate available",
+			expectedLogMsg: "No valid sampling rate fetched",
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:           1,
+				request.IDResponseCount:          1,
+				request.IDResponseErrorsCount:    1,
+				request.IDResponseErrorsNotFound: 1}},
+		"invalidSamplingRate": {
+			kibanaBody: map[string]interface{}{
+				"_id": "1",
+				"_source": map[string]interface{}{
+					"settings": map[string]interface{}{
+						agentcfg.TransactionSamplingRateKey: "foo"}}},
+			expectedErrMsg: "no sampling rate available",
+			expectedLogMsg: "No valid sampling rate fetched",
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:           1,
+				request.IDResponseCount:          1,
+				request.IDResponseErrorsCount:    1,
+				request.IDResponseErrorsInternal: 1}},
+		"unsupportedVersion": {
+			kibanaVersion:  common.MustNewVersion("7.4.0"),
+			expectedErrMsg: "agent remote configuration not supported",
+			expectedLogMsg: "Kibana client does not support",
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:                     1,
+				request.IDResponseCount:                    1,
+				request.IDResponseErrorsCount:              1,
+				request.IDResponseErrorsServiceUnavailable: 1}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+			tc.setup()
+			params := &api_v2.SamplingStrategyParameters{ServiceName: "serviceA"}
+			resp, err := tc.sampler.GetSamplingStrategy(context.Background(), params)
+
+			// assert sampling response
+			if tc.expectedErrMsg != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.expectedErrMsg)
+				assert.Nil(t, resp)
+				logs := func() string {
+					var sb strings.Builder
+					for _, entry := range logp.ObserverLogs().All() {
+						sb.WriteString(entry.Message)
+					}
+					return sb.String()
+				}()
+				assert.Contains(t, logs, tc.expectedLogMsg)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, api_v2.SamplingStrategyType_PROBABILISTIC, resp.StrategyType)
+				assert.Equal(t, tc.expectedSamplingRate, resp.ProbabilisticSampling.SamplingRate)
+				assert.Nil(t, resp.OperationSampling)
+				assert.Nil(t, resp.RateLimitingSampling)
+			}
+
+			// assert monitoring counters
+			assertMonitoring(t, tc.monitoringInt, gRPCSamplingMonitoringMap)
+		})
+	}
+}
+
+type testGRPCSampler struct {
+	kibanaBody    map[string]interface{}
+	kibanaCode    int
+	kibanaVersion *common.Version
+	sampler       *grpcSampler
+
+	expectedErrMsg       string
+	expectedLogMsg       string
+	expectedSamplingRate float64
+	monitoringInt        map[request.ResultID]int64
+}
+
+func (tc *testGRPCSampler) setup() {
+	if tc.kibanaCode == 0 {
+		tc.kibanaCode = 200
+	}
+	if tc.kibanaBody == nil {
+		tc.kibanaBody = map[string]interface{}{
+			"_id": "1",
+			"_source": map[string]interface{}{
+				"settings": map[string]interface{}{
+					agentcfg.TransactionSamplingRateKey: 0.75,
+				},
+			},
+		}
+	}
+	if tc.kibanaVersion == nil {
+		tc.kibanaVersion = common.MustNewVersion("7.7.0")
+	}
+	client := tests.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
+	fetcher := agentcfg.NewFetcher(client, time.Second)
+	tc.sampler = &grpcSampler{logp.L(), client, fetcher}
+	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
+	if tc.monitoringInt == nil {
+		tc.monitoringInt = map[request.ResultID]int64{
+			request.IDRequestCount:       1,
+			request.IDResponseCount:      1,
+			request.IDResponseValidCount: 1,
+		}
+	}
 }

@@ -21,12 +21,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/logp"
-
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/pkg/errors"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 var (

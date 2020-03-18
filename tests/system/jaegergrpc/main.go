@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -33,11 +34,14 @@ import (
 var (
 	serverAddr = flag.String("addr", "localhost:14250", "Jaeger gRPC server address")
 	insecure   = flag.Bool("insecure", false, "Disable certificate verification")
+	endpoint   = flag.String("endpoint", "collector", "Which Jaeger gRPC endpoint to call ('collector', 'sampler')")
+	service    = flag.String("service", "xyz", "Service for which sampling rate should be fetched")
+	path       = flag.String("out", "", "Output path for sampling response")
 )
 
 func main() {
 	flag.Parse()
-	if flag.NArg() == 0 {
+	if *endpoint != "sampler" && flag.NArg() == 0 {
 		fmt.Fprintf(os.Stderr, "Usage: %s [flags] <request.json> [<request2.json> ...]\n", filepath.Base(os.Args[0]))
 		os.Exit(2)
 	}
@@ -53,15 +57,39 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := api_v2.NewCollectorServiceClient(conn)
-	for _, arg := range flag.Args() {
-		request, err := decodeRequest(arg)
+	switch *endpoint {
+	case "sampler":
+		if *path == "" {
+			log.Fatal("output path missing")
+		}
+		p, err := filepath.Abs(*path)
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = client.PostSpans(context.Background(), request)
+		os.Remove(p)
+		client := api_v2.NewSamplingManagerClient(conn)
+		resp, err := client.GetSamplingStrategy(context.Background(), &api_v2.SamplingStrategyParameters{ServiceName: *service})
+		var out string
 		if err != nil {
+			out = err.Error()
+		} else {
+			out = fmt.Sprintf("strategy: %s, sampling rate: %v", resp.StrategyType.String(), resp.ProbabilisticSampling.SamplingRate)
+		}
+		if err := ioutil.WriteFile(p, []byte(out), 0644); err != nil {
 			log.Fatal(err)
+		}
+
+	default:
+		client := api_v2.NewCollectorServiceClient(conn)
+		for _, arg := range flag.Args() {
+			request, err := decodeRequest(arg)
+			if err != nil {
+				log.Fatal(err)
+			}
+			_, err = client.PostSpans(context.Background(), request)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 }

@@ -27,7 +27,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
@@ -56,9 +55,10 @@ var (
 
 	errMsgKibanaDisabled     = errors.New(msgKibanaDisabled)
 	errMsgNoKibanaConnection = errors.New(msgNoKibanaConnection)
+	errCacheControl          = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
-	minKibanaVersion = common.MustNewVersion("7.5.0")
-	errCacheControl  = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
+	// rumAgents keywords (new and old)
+	rumAgents = []string{"rum-js", "js-base"}
 )
 
 // Handler returns a request.Handler for managing agent central configuration requests.
@@ -121,7 +121,7 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 		return false
 	}
 
-	if supported, err := client.SupportsVersion(c.Request.Context(), minKibanaVersion, true); !supported {
+	if supported, err := client.SupportsVersion(c.Request.Context(), agentcfg.KibanaMinVersion, true); !supported {
 		if err != nil {
 			c.Result.Set(request.IDResponseErrorsServiceUnavailable,
 				http.StatusServiceUnavailable,
@@ -134,7 +134,7 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 		version, _ := client.GetVersion(c.Request.Context())
 
 		errMsg := fmt.Sprintf("%s: min version %+v, configured version %+v",
-			msgKibanaVersionNotCompatible, minKibanaVersion, version.String())
+			msgKibanaVersionNotCompatible, agentcfg.KibanaMinVersion, version.String())
 		body := authErrMsg(errMsg, msgKibanaVersionNotCompatible, withAuth)
 		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
 			http.StatusServiceUnavailable,
@@ -154,10 +154,12 @@ func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
 		err = convert.FromReader(r.Body, &query)
 	case http.MethodGet:
 		params := r.URL.Query()
-		query = agentcfg.NewQuery(
-			params.Get(agentcfg.ServiceName),
-			params.Get(agentcfg.ServiceEnv),
-		)
+		query = agentcfg.Query{
+			Service: agentcfg.Service{
+				Name:        params.Get(agentcfg.ServiceName),
+				Environment: params.Get(agentcfg.ServiceEnv),
+			},
+		}
 	default:
 		err = errors.Errorf("%s: %s", msgMethodUnsupported, r.Method)
 	}
@@ -165,9 +167,10 @@ func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
 	if err == nil && query.Service.Name == "" {
 		err = errors.New(agentcfg.ServiceName + " is required")
 	}
-	query.IsRum = c.IsRum
+	if c.IsRum {
+		query.InsecureAgents = rumAgents
+	}
 	query.Etag = ifNoneMatch(c)
-
 	return
 }
 
