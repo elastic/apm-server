@@ -3,13 +3,13 @@
 # Build the docker image for the apm-server, retag and push it to the given docker registry
 #
 # Arguments:
-# - NEW_TAG
-# - NEW_IMAGE
+# - NEW_TAG, this is the tag for the docker image to be pushed.
+# - NEW_IMAGE, this is the docker image name to be pushed.
 #
 set -euo pipefail
 
 NEW_TAG=${1:?Docker tag is not set}
-NEW_IMAGE=${1:?Docker image is not set}
+NEW_IMAGE=${2:?Docker image is not set}
 
 export PLATFORMS='linux/amd64'
 export TYPE='docker'
