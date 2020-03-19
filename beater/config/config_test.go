@@ -66,7 +66,7 @@ func Test_UnpackConfig(t *testing.T) {
 					"key":                     path.Join("../..", "testdata", "tls", "key.pem"),
 					"certificate":             path.Join("../..", "testdata", "tls", "certificate.pem"),
 					"certificate_authorities": []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
-					"client_authentication":   "none",
+					"client_authentication":   "required",
 				},
 				"expvar": map[string]interface{}{
 					"enabled": true,
@@ -124,7 +124,7 @@ func Test_UnpackConfig(t *testing.T) {
 					Certificate: tlscommon.CertificateConfig{
 						Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
 						Key:         path.Join("../..", "testdata", "tls", "key.pem")},
-					ClientAuth: 0,
+					ClientAuth: 4,
 					CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
 				},
 				AugmentEnabled: true,
@@ -178,7 +178,7 @@ func Test_UnpackConfig(t *testing.T) {
 								Certificate: tlscommon.CertificateConfig{
 									Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
 									Key:         path.Join("../..", "testdata", "tls", "key.pem")},
-								ClientAuth: 0,
+								ClientAuth: 4,
 								CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")}})
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:12345")
@@ -242,7 +242,7 @@ func Test_UnpackConfig(t *testing.T) {
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
 					Certificate: tlscommon.CertificateConfig{Certificate: "", Key: ""},
-					ClientAuth:  3},
+					ClientAuth:  0},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
@@ -286,7 +286,7 @@ func Test_UnpackConfig(t *testing.T) {
 							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
 								Enabled:     &truthy,
 								Certificate: tlscommon.CertificateConfig{Certificate: "", Key: ""},
-								ClientAuth:  3})
+								ClientAuth:  0})
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:14250")
 						}(),
@@ -311,7 +311,7 @@ func Test_UnpackConfig(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		t.Run(name+"no outputESCfg", func(t *testing.T) {
+		t.Run(name, func(t *testing.T) {
 			inpCfg, err := common.NewConfigFrom(test.inpCfg)
 			assert.NoError(t, err)
 
@@ -370,16 +370,16 @@ func TestTLSSettings(t *testing.T) {
 			tls *tlscommon.ServerConfig
 		}{
 			"Defaults": {
-				config: map[string]interface{}{"ssl": nil},
-				tls:    &tlscommon.ServerConfig{ClientAuth: 3},
+				config: map[string]interface{}{"ssl.enabled": true},
+				tls:    &tlscommon.ServerConfig{ClientAuth: 0},
 			},
 			"ConfiguredToRequired": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{"client_authentication": "required"}},
 				tls:    &tlscommon.ServerConfig{ClientAuth: 4},
 			},
-			"ConfiguredToNone": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{"client_authentication": "none"}},
-				tls:    &tlscommon.ServerConfig{ClientAuth: 0},
+			"ConfiguredToOptional": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{"client_authentication": "optional"}},
+				tls:    &tlscommon.ServerConfig{ClientAuth: 3},
 			},
 			"DefaultRequiredByCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
@@ -400,32 +400,6 @@ func TestTLSSettings(t *testing.T) {
 				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
-			})
-		}
-	})
-
-	t.Run("VerificationMode", func(t *testing.T) {
-		for name, tc := range map[string]struct {
-			config map[string]interface{}
-			tls    *tlscommon.ServerConfig
-		}{
-			"Default": {
-				config: map[string]interface{}{"ssl": nil},
-				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
-			"ConfiguredToFull": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "full"}},
-				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
-			"ConfiguredToNone": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "none"}},
-				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyNone}},
-		} {
-			t.Run(name, func(t *testing.T) {
-				ucfgCfg, err := common.NewConfigFrom(tc.config)
-				require.NoError(t, err)
-
-				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
-				require.NoError(t, err)
-				assert.Equal(t, tc.tls.VerificationMode, cfg.TLS.VerificationMode)
 			})
 		}
 	})
