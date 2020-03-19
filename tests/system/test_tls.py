@@ -113,8 +113,7 @@ class TestSSLBadPassphraseTest(TestSecureServerBaseTest):
 
 @integration_test
 class TestSSLEnabledNoClientAuthenticationTest(TestSecureServerBaseTest):
-    def ssl_overrides(self):
-        return {"ssl_client_authentication": "none"}
+    # no ssl_overrides necessary as `none` is default
 
     def test_https_no_cert_ok(self):
         self.ssl_connect()
@@ -132,7 +131,8 @@ class TestSSLEnabledNoClientAuthenticationTest(TestSecureServerBaseTest):
 
 @integration_test
 class TestSSLEnabledOptionalClientAuthenticationTest(TestSecureServerBaseTest):
-    # no ssl_overrides necessary as `optional` is default
+    def ssl_overrides(self):
+        return {"ssl_client_authentication": "optional"}
 
     def test_https_no_certificate_ok(self):
         self.ssl_connect()
