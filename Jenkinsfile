@@ -26,7 +26,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:hey-apm\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -326,6 +326,35 @@ pipeline {
                   sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
                 }
               }
+            }
+          }
+        }
+        stage('Hey-Apm') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            beforeAgent true
+            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
+          }
+          environment {
+            DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+            DOCKER_REGISTRY = 'docker.elastic.co'
+            DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
+          }
+          steps {
+            withGithubNotify(context: 'Hey-Apm') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+                dir("${BASE_DIR}"){
+                  sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                }
+              }
+              build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
+                    parameters: [string(name: 'GO_VERSION', value: '1.12.1'),
+                                string(name: 'STACK_VERSION', value: "${env.GIT_BASE_COMMIT}"),
+                                string(name: 'APM_DOCKER_IMAGE', value: "${env.DOCKER_IMAGE}")])
             }
           }
         }
