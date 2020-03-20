@@ -97,8 +97,8 @@ func (s *Store) Fetch(ctx context.Context, name string, version string, path str
 }
 
 // Added ensures the internal cache is cleared for the given parameters. This should be called when a sourcemap is uploaded.
-func (s *Store) Added(name string, version string, path string) {
-	if sourcemap, err := s.Fetch(context.TODO(), name, version, path); err == nil && sourcemap != nil {
+func (s *Store) Added(ctx context.Context, name string, version string, path string) {
+	if sourcemap, err := s.Fetch(ctx, name, version, path); err == nil && sourcemap != nil {
 		s.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
 			name, version, path)
 	}

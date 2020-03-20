@@ -18,6 +18,7 @@
 package error
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -187,7 +188,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	return &e, nil
 }
 
-func (e *Event) Transform(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 
 	if e.Exception != nil {
@@ -198,7 +199,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	fields := common.MapStr{
-		"error":     e.fields(tctx),
+		"error":     e.fields(ctx, tctx),
 		"processor": processorEntry,
 	}
 
@@ -244,14 +245,14 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 }
 
-func (e *Event) fields(tctx *transform.Context) common.MapStr {
+func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 	e.add("page", e.Page.Fields())
 
 	exceptionChain := flattenExceptionTree(e.Exception)
-	e.addException(tctx, exceptionChain)
-	e.addLog(tctx)
+	e.addException(ctx, tctx, exceptionChain)
+	e.addLog(ctx, tctx)
 
 	e.updateCulprit(tctx)
 	e.add("culprit", e.Culprit)
@@ -297,7 +298,7 @@ func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame 
 	return nil
 }
 
-func (e *Event) addException(tctx *transform.Context, chain []Exception) {
+func (e *Event) addException(ctx context.Context, tctx *transform.Context, chain []Exception) {
 	var result []common.MapStr
 	for _, exception := range chain {
 		ex := common.MapStr{}
@@ -319,7 +320,7 @@ func (e *Event) addException(tctx *transform.Context, chain []Exception) {
 			utility.Set(ex, "code", code.String())
 		}
 
-		st := exception.Stacktrace.Transform(tctx)
+		st := exception.Stacktrace.Transform(ctx, tctx)
 		utility.Set(ex, "stacktrace", st)
 
 		result = append(result, ex)
@@ -328,7 +329,7 @@ func (e *Event) addException(tctx *transform.Context, chain []Exception) {
 	e.add("exception", result)
 }
 
-func (e *Event) addLog(tctx *transform.Context) {
+func (e *Event) addLog(ctx context.Context, tctx *transform.Context) {
 	if e.Log == nil {
 		return
 	}
@@ -337,7 +338,7 @@ func (e *Event) addLog(tctx *transform.Context) {
 	utility.Set(log, "param_message", e.Log.ParamMessage)
 	utility.Set(log, "logger_name", e.Log.LoggerName)
 	utility.Set(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(tctx)
+	st := e.Log.Stacktrace.Transform(ctx, tctx)
 	utility.Set(log, "stacktrace", st)
 
 	e.add("log", log)

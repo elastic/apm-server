@@ -18,6 +18,7 @@
 package transaction
 
 import (
+	"context"
 	"time"
 
 	"github.com/elastic/apm-server/model/field"
@@ -176,7 +177,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	return tx
 }
 
-func (e *Event) Transform(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 
 	if e.Timestamp.IsZero() {

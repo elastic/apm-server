@@ -18,6 +18,7 @@
 package package_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -70,7 +71,7 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		tctx.Metadata = *metadata
 		var events []beat.Event
 		for _, transformable := range payload {
-			events = append(events, transformable.Transform(&tctx)...)
+			events = append(events, transformable.Transform(context.Background(), &tctx)...)
 		}
 		verifyErr := approvals.ApproveEvents(events, info.Name, "@timestamp")
 		if verifyErr != nil {
