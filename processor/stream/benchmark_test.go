@@ -29,6 +29,7 @@ import (
 
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
 )
@@ -48,7 +49,7 @@ func BenchmarkStreamProcessor(b *testing.B) {
 	}
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
 	rl := rate.NewLimiter(rate.Limit(math.MaxFloat64-1), math.MaxInt32)
-	sp := &Processor{MaxEventSize: 300 * 1024}
+	sp := &Processor{MaxEventSize: 300 * 1024, metadataSchema: metadata.ModelSchema()}
 
 	benchmark := func(filename string, rl *rate.Limiter) func(b *testing.B) {
 		return func(b *testing.B) {
