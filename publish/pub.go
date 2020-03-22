@@ -149,25 +149,30 @@ func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 }
 
 func (p *Publisher) run() {
+	ctx := context.Background()
 	for req := range p.pendingRequests {
-		p.processPendingReq(req)
+		p.processPendingReq(ctx, req)
 	}
 }
 
-func (p *Publisher) processPendingReq(req PendingReq) {
+func (p *Publisher) processPendingReq(ctx context.Context, req PendingReq) {
 	var tx *apm.Transaction
 	if req.Trace {
 		tx = p.tracer.StartTransaction("ProcessPending", "Publisher")
 		defer tx.End()
+		ctx = apm.ContextWithTransaction(ctx, tx)
 	}
 
 	for _, transformable := range req.Transformables {
-		span := tx.StartSpan("Transform", "Publisher", nil)
-		events := transformable.Transform(req.Tcontext)
-		span.End()
-
-		span = tx.StartSpan("PublishAll", "Publisher", nil)
+		events := transformTransformable(ctx, transformable, req.Tcontext)
+		span := tx.StartSpan("PublishAll", "Publisher", nil)
 		p.client.PublishAll(events)
 		span.End()
 	}
+}
+
+func transformTransformable(ctx context.Context, t transform.Transformable, tctx *transform.Context) []beat.Event {
+	span, ctx := apm.StartSpan(ctx, "Transform", "Publisher")
+	defer span.End()
+	return t.Transform(ctx, tctx)
 }

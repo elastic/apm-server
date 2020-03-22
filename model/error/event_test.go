@@ -18,6 +18,7 @@
 package error
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -542,7 +543,7 @@ func TestEventFields(t *testing.T) {
 				},
 			}
 
-			output := tc.Event.Transform(tctx)
+			output := tc.Event.Transform(context.Background(), tctx)
 			require.Len(t, output, 1)
 			fields := output[0].Fields["error"]
 			assert.Equal(t, tc.Output, fields)
@@ -689,7 +690,7 @@ func TestEvents(t *testing.T) {
 				RequestTime: timestamp,
 			}
 
-			outputEvents := tc.Transformable.Transform(tctx)
+			outputEvents := tc.Transformable.Transform(context.Background(), tctx)
 			require.Len(t, outputEvents, 1)
 			outputEvent := outputEvents[0]
 			assert.Equal(t, tc.Output, outputEvent.Fields)
@@ -1037,13 +1038,13 @@ func TestSourcemapping(t *testing.T) {
 		Config:   transform.Config{SourcemapStore: nil},
 		Metadata: metadata.Metadata{Service: &metadata.Service{Name: &str, Version: &str}},
 	}
-	transformedNoSourcemap := event1.fields(tctx)
+	transformedNoSourcemap := event1.fields(context.Background(), tctx)
 
 	// transform with sourcemap store
 	store, err := sourcemap.NewStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	tctx.Config = transform.Config{SourcemapStore: store}
-	transformedWithSourcemap := event2.fields(tctx)
+	transformedWithSourcemap := event2.fields(context.Background(), tctx)
 
 	// ensure events have different line number and grouping keys
 	assert.Equal(t, 1, *event1.Exception.Stacktrace[0].Lineno)

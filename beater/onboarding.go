@@ -43,7 +43,7 @@ type onboardingDoc struct {
 	listenAddr string
 }
 
-func (o onboardingDoc) Transform(tctx *transform.Context) []beat.Event {
+func (o onboardingDoc) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
 	return []beat.Event{{
 		Timestamp: tctx.RequestTime,
 		Fields: common.MapStr{

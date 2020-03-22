@@ -51,7 +51,7 @@ func DecodeStacktrace(input interface{}, hasShortFieldNames bool, err error) (*S
 	return &st, err
 }
 
-func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
+func (st *Stacktrace) Transform(ctx context.Context, tctx *transform.Context) []common.MapStr {
 	if st == nil {
 		return nil
 	}
@@ -85,7 +85,7 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 	logger := logp.NewLogger(logs.Stacktrace)
 	fct := "<anonymous>"
 	return st.transform(tctx, func(frame *StacktraceFrame) {
-		fct, errMsg = frame.applySourcemap(context.TODO(), tctx.Config.SourcemapStore, tctx.Metadata.Service, fct)
+		fct, errMsg = frame.applySourcemap(ctx, tctx.Config.SourcemapStore, tctx.Metadata.Service, fct)
 		if errMsg != "" {
 			if _, ok := sourcemapErrorSet[errMsg]; !ok {
 				logger.Warn(errMsg)

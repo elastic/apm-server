@@ -18,6 +18,7 @@
 package span
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -378,7 +379,7 @@ func TestSpanTransform(t *testing.T) {
 		RequestTime: timestamp,
 	}
 	for _, test := range tests {
-		output := test.Event.Transform(tctx)
+		output := test.Event.Transform(context.Background(), tctx)
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields)
 	}
@@ -388,7 +389,7 @@ func TestEventTransformUseReqTimePlusStart(t *testing.T) {
 	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	start := 1234.8
 	e := Event{Start: &start}
-	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
+	beatEvent := e.Transform(context.Background(), &transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
 
 	adjustedParsed := time.Date(2017, 5, 30, 18, 53, 28, 388.8*1e6, time.UTC)

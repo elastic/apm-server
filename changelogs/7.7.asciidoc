@@ -21,3 +21,4 @@ https://github.com/elastic/apm-server/compare/v7.6.0\...v7.7.0[View commits]
 ==== Added
 * Instrumentation for go-elasticsearch {pull}3305[3305]
 * Added support for Jaeger auth tags {pull}3394[3394]
+* Enabled instrumentation of sourcemaps {pull}3515[3515]

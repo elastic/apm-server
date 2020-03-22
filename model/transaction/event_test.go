@@ -18,6 +18,7 @@
 package transaction
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -317,7 +318,7 @@ func TestEventTransform(t *testing.T) {
 	tctx := &transform.Context{}
 
 	for idx, test := range tests {
-		output := test.Event.Transform(tctx)
+		output := test.Event.Transform(context.Background(), tctx)
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -524,7 +525,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Metadata:    *test.Metadata,
 			RequestTime: timestamp,
 		}
-		outputEvents := test.Event.Transform(tctx)
+		outputEvents := test.Event.Transform(context.Background(), tctx)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
@@ -536,7 +537,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 func TestEventTransformUseReqTime(t *testing.T) {
 	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	e := Event{}
-	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
+	beatEvent := e.Transform(context.Background(), &transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
 	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
 }
