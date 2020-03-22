@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"context"
 	"net/http"
 	"testing"
 	"time"
@@ -52,7 +53,7 @@ func TestDecode(t *testing.T) {
 	sourcemap, err := DecodeSourcemap(data)
 	assert.NoError(t, err)
 
-	rs := sourcemap.Transform(&transform.Context{})
+	rs := sourcemap.Transform(context.Background(), &transform.Context{})
 	assert.Len(t, rs, 1)
 	event := rs[0]
 	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
@@ -77,7 +78,7 @@ func TestTransform(t *testing.T) {
 	}
 
 	tctx := &transform.Context{}
-	events := p.Transform(tctx)
+	events := p.Transform(context.Background(), tctx)
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -120,7 +121,7 @@ func TestInvalidateCache(t *testing.T) {
 		require.NoError(t, err)
 
 		// transform with sourcemap store
-		event.Transform(&transform.Context{Config: transform.Config{SourcemapStore: store}})
+		event.Transform(context.Background(), &transform.Context{Config: transform.Config{SourcemapStore: store}})
 
 		logCollection := logp.ObserverLogs().TakeAll()
 		assert.Equal(t, 2, len(logCollection))
@@ -143,7 +144,7 @@ func TestInvalidateCache(t *testing.T) {
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 		// transform with sourcemap store
-		event.Transform(&transform.Context{Config: transform.Config{SourcemapStore: nil}})
+		event.Transform(context.Background(), &transform.Context{Config: transform.Config{SourcemapStore: nil}})
 
 		logCollection := logp.ObserverLogs().TakeAll()
 		assert.Equal(t, 1, len(logCollection))

@@ -18,6 +18,7 @@
 package metricset
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -245,7 +246,7 @@ func TestTransform(t *testing.T) {
 
 	tctx := &transform.Context{Config: transform.Config{}, Metadata: *md}
 	for idx, test := range tests {
-		outputEvents := test.Metricset.Transform(tctx)
+		outputEvents := test.Metricset.Transform(context.Background(), tctx)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
@@ -257,7 +258,7 @@ func TestTransform(t *testing.T) {
 func TestEventTransformUseReqTime(t *testing.T) {
 	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	e := Metricset{}
-	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
+	beatEvent := e.Transform(context.Background(), &transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
 	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
 }

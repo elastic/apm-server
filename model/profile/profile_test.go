@@ -18,6 +18,7 @@
 package profile_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -27,7 +28,6 @@ import (
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/profile"
-	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -87,11 +87,11 @@ func TestPprofProfileTransform(t *testing.T) {
 	metadata := metadata.Metadata{Service: &service}
 
 	tctx := &transform.Context{
-		Config:      transform.Config{SourcemapStore: &sourcemap.Store{}},
+		Config:      transform.Config{}, // not used
 		Metadata:    metadata,
 		RequestTime: time.Time{}, // not used
 	}
-	output := pp.Transform(tctx)
+	output := pp.Transform(context.Background(), tctx)
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 

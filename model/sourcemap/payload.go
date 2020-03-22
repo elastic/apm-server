@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"context"
 	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -59,7 +60,7 @@ type Sourcemap struct {
 	BundleFilepath string
 }
 
-func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
+func (pa *Sourcemap) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
 	sourcemapCounter.Inc()
 	if pa == nil {
 		return nil
@@ -68,7 +69,7 @@ func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
 	if tctx.Config.SourcemapStore == nil {
 		logp.NewLogger(logs.Sourcemap).Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		tctx.Config.SourcemapStore.Added(pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
+		tctx.Config.SourcemapStore.Added(ctx, pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
 	}
 
 	ev := beat.Event{

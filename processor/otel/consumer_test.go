@@ -64,7 +64,7 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 			reporter := func(ctx context.Context, p publish.PendingReq) error {
 				var events []beat.Event
 				for _, transformable := range p.Transformables {
-					events = append(events, transformable.Transform(p.Tcontext)...)
+					events = append(events, transformable.Transform(ctx, p.Tcontext)...)
 				}
 				assert.NoError(t, approvals.ApproveEvents(events, file("consume_"+tc.name)))
 				return nil
