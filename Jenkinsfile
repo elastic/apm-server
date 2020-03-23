@@ -31,6 +31,7 @@ pipeline {
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
+    booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
     booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
@@ -191,6 +192,7 @@ pipeline {
           when {
             beforeAgent true
             allOf {
+              expression { return params.osx_ci }
               expression { return env.ONLY_DOCS == "false" }
             }
           }
