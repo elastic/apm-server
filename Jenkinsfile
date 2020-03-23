@@ -201,7 +201,7 @@ pipeline {
               dir(BASE_DIR){
                 retry(2) { // Retry in case there are any errors to avoid temporary glitches
                   sleep randomNumber(min: 5, max: 10)
-                  sh(label: 'OSX build', script: './script/jenkins/build-darwin.sh')
+                  sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
                 }
               }
             }
