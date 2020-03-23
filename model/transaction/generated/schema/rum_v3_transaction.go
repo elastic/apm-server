@@ -424,20 +424,111 @@ const RUMV3Schema = `{
                         "null"
                     ],
                     "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
-                    "patternProperties": {
-                        "^[^.*\"]*$": {
-                                "$id": "docs/spec/transactions/mark.json",
+                        "$id": "docs/spec/transactions/rum_v3_mark.json",
     "type": ["object", "null"],
     "description": "A mark captures the timing in milliseconds of a significant event during the lifetime of a transaction. Every mark is a simple key value pair, where the value has to be a number, and can be set by the user or the agent.",
-    "patternProperties": {
-        "^[^.*\"]*$": {
-            "type": ["number", "null"]
+    "properties": {
+        "a": {
+            "type": ["object", "null"],
+            "description": "agent",
+            "properties": {
+                "dc": {
+                    "type": ["number", "null"],
+                    "description": "domComplete"
+                },
+                "di": {
+                    "type": ["number", "null"],
+                    "description": "domInteractive"
+                },
+                "ds": {
+                    "type": ["number", "null"],
+                    "description": "domContentLoadedEventStart"
+                },
+                "de": {
+                    "type": ["number", "null"],
+                    "description": "domContentLoadedEventEnd"
+                },
+                "fb": {
+                    "type": ["number", "null"],
+                    "description": "timeToFirstByte"
+                },
+                "fp": {
+                    "type": ["number", "null"],
+                    "description": "firstContentfulPaint"
+                },
+                "lp": {
+                    "type": ["number", "null"],
+                    "description": "largestContentfulPaint"
+                }
+            }
+        },
+        "nt": {
+            "type": ["object", "null"],
+            "description": "navigation-timing",
+            "properties": {
+                "fs": {
+                    "type": ["number", "null"],
+                    "description": "fetchStart"
+                },
+                "ls": {
+                    "type": ["number", "null"],
+                    "description": "domainLookupStart"
+                },
+                "le": {
+                    "type": ["number", "null"],
+                    "description": "domainLookupEnd"
+                },
+                "cs": {
+                    "type": ["number", "null"],
+                    "description": "connectStart"
+                },
+                "ce": {
+                    "type": ["number", "null"],
+                    "description": "connectEnd"
+                },
+                "qs": {
+                    "type": ["number", "null"],
+                    "description": "requestStart"
+                },
+                "rs": {
+                    "type": ["number", "null"],
+                    "description": "responseStart"
+                },
+                "re": {
+                    "type": ["number", "null"],
+                    "description": "responseEnd"
+                },
+                "dl": {
+                    "type": ["number", "null"],
+                    "description": "domLoading"
+                },
+                "di": {
+                    "type": ["number", "null"],
+                    "description": "domInteractive"
+                },
+                "ds": {
+                    "type": ["number", "null"],
+                    "description": "domContentLoadedEventStart"
+                },
+                "de": {
+                    "type": ["number", "null"],
+                    "description": "domContentLoadedEventEnd"
+                },
+                "dc": {
+                    "type": ["number", "null"],
+                    "description": "domComplete"
+                },
+                "es": {
+                    "type": ["number", "null"],
+                    "description": "loadEventStart"
+                },
+                "ee": {
+                    "type": ["number", "null"],
+                    "description": "loadEventEnd"
+                }
+            }
         }
-    },
-    "additionalProperties": false
-                        }
-                    },
-                    "additionalProperties": false
+    }
                 },
                 "sm": {
                     "type": [

@@ -63,6 +63,32 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 	}
 }
 
+func TestTransactionDecodeRUMV3Marks(t *testing.T) {
+	// unknown fields are ignored
+	input := map[string]interface{}{
+		"k": map[string]interface{}{
+			"foo": 0,
+			"a": map[string]interface{}{
+				"foo": 0,
+				"dc":  1.2,
+			},
+			"nt": map[string]interface{}{
+				"foo": 0,
+				"dc":  1.2,
+			},
+		},
+	}
+	event := &Event{}
+	transformable, err := decodeRUMV3Marks(event, input, model.Config{HasShortFieldNames: true})
+	require.Nil(t, err)
+
+	var f = 1.2
+	assert.Equal(t, common.MapStr{
+		"agent":            common.MapStr{"domComplete": &f},
+		"navigationTiming": common.MapStr{"domComplete": &f},
+	}, transformable.(*Event).Marks)
+}
+
 func TestTransactionEventDecode(t *testing.T) {
 	id, trType, name, result := "123", "type", "foo()", "555"
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
