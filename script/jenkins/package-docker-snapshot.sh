@@ -17,7 +17,7 @@ export SNAPSHOT='true'
 export IMAGE="docker.elastic.co/apm/apm-server"
 
 echo 'INFO: Build docker images'
-mage package
+./build/linux/mage package
 
 echo 'INFO: Get the just built docker image'
 TAG=$(docker images ${IMAGE} --format "{{.Tag}}" | head -1)
