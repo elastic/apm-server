@@ -88,11 +88,15 @@ func CompressedRequestReader(req *http.Request) (io.ReadCloser, error) {
 
 func DecodeJSONData(reader io.Reader) (map[string]interface{}, error) {
 	v := make(map[string]interface{})
-	d := json.NewDecoder(reader)
-	d.UseNumber()
+	d := NewJSONDecoder(reader)
 	if err := d.Decode(&v); err != nil {
-		// If we run out of memory, for example
-		return nil, errors.Wrap(err, "data read error")
+		return nil, err
 	}
 	return v, nil
+}
+
+func NewJSONDecoder(r io.Reader) *json.Decoder {
+	d := json.NewDecoder(r)
+	d.UseNumber()
+	return d
 }
