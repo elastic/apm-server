@@ -2,11 +2,15 @@
 set -eox pipefail
 
 # Setup python3
+pythonVersion=3.7.7
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 export PATH="${HOME}/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-pyenv install 3.7.7
+pyenv install ${pythonVersion}
+pyenv global ${pythonVersion}
+pythonInstallation=$(dirname "$(pyenv which pip)")
+export PATH="${pythonInstallation}:$PATH"
 
 # shellcheck disable=SC1091
 source ./script/common.bash
