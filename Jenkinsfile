@@ -196,6 +196,9 @@ pipeline {
               expression { return env.ONLY_DOCS == "false" }
             }
           }
+          environment {
+            HOME = "${env.WORKSPACE}"
+          }
           steps {
             withGithubNotify(context: 'Build-Test - OSX') {
               deleteDir()
