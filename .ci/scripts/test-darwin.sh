@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euox pipefail
+set -eox pipefail
 
 # Setup python3
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
