@@ -182,7 +182,7 @@ pipeline {
         /**
         Build on a mac environment.
         */
-        stage('OSX build') {
+        stage('OSX build-test') {
           agent { label 'macosx' }
           options {
             skipDefaultCheckout()
@@ -195,15 +195,21 @@ pipeline {
             }
           }
           steps {
-            withGithubNotify(context: 'Build - OSX') {
+            withGithubNotify(context: 'Build-Test - OSX') {
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
                 retry(2) { // Retry in case there are any errors to avoid temporary glitches
                   sleep randomNumber(min: 5, max: 10)
                   sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
+                  sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
                 }
               }
+            }
+          }
+          post {
+            always {
+              junit(allowEmptyResults: true, keepLongStdio: true, testResults: "${BASE_DIR}/build/junit-*.xml")
             }
           }
         }
