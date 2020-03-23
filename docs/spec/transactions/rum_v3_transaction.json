@@ -76,12 +76,7 @@
                         "null"
                     ],
                     "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
-                    "patternProperties": {
-                        "^[^.*\"]*$": {
-                            "$ref": "mark.json"
-                        }
-                    },
-                    "additionalProperties": false
+                    "$ref": "rum_v3_mark.json"
                 },
                 "sm": {
                     "type": [

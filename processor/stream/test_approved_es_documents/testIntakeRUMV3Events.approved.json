@@ -42,29 +42,29 @@
                 },
                 "id": "ec2e280be8345240",
                 "marks": {
-                    "a": {
-                        "dc": 138,
-                        "di": 120,
-                        "fb": 5,
-                        "fp": 70.825,
-                        "lp": 131.03
+                    "agent": {
+                        "domComplete": 138,
+                        "domInteractive": 120,
+                        "firstContentfulPaint": 70.82500003930181,
+                        "largestContentfulPaint": 131.03000004775822,
+                        "timeToFirstByte": 5
                     },
-                    "nt": {
-                        "ce": 0,
-                        "cs": 0,
-                        "dc": 138,
-                        "de": 122,
-                        "di": 120,
-                        "dl": 14,
-                        "ds": 120,
-                        "ee": 138,
-                        "es": 138,
-                        "fs": 0,
-                        "le": 0,
-                        "ls": 0,
-                        "qs": 4,
-                        "re": 6,
-                        "rs": 5
+                    "navigationTiming": {
+                        "connectEnd": 0,
+                        "connectStart": 0,
+                        "domComplete": 138,
+                        "domContentLoadedEventEnd": 122,
+                        "domContentLoadedEventStart": 120,
+                        "domInteractive": 120,
+                        "domLoading": 14,
+                        "domainLookupEnd": 0,
+                        "domainLookupStart": 0,
+                        "fetchStart": 0,
+                        "loadEventEnd": 138,
+                        "loadEventStart": 138,
+                        "requestStart": 4,
+                        "responseEnd": 6,
+                        "responseStart": 5
                     }
                 },
                 "name": "general-usecase-initial-p-load",
