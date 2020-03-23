@@ -180,6 +180,36 @@ pipeline {
           }
         }
         /**
+        Build on a mac environment.
+        */
+        stage('OSX build') {
+          agent { label 'macosx' }
+          options {
+            skipDefaultCheckout()
+            warnError('OSX execution failed')
+          }
+          when {
+            beforeAgent true
+            allOf {
+              expression { return env.ONLY_DOCS == "false" }
+            }
+          }
+          steps {
+            withGithubNotify(context: 'Build - OSX') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dir(BASE_DIR){
+                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                    sleep randomNumber(min: 5, max: 10)
+                    sh(label: 'OSX build', script: './script/jenkins/build.sh')
+                  }
+                }
+              }
+            }
+          }
+        }
+        /**
           Run unit tests and report junit results.
         */
         stage('Unit Test') {
