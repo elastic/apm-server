@@ -3,6 +3,9 @@ set -euox pipefail
 
 # Setup python3
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+export PATH="${HOME}/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
 pyenv install 3.7.7
 
 # shellcheck disable=SC1091
