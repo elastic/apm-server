@@ -18,6 +18,7 @@
 package model
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -145,7 +146,7 @@ func TestStacktraceTransform(t *testing.T) {
 		},
 	}
 	for idx, test := range tests {
-		output := test.Stacktrace.Transform(&tctx)
+		output := test.Stacktrace.Transform(context.Background(), &tctx)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -293,8 +294,8 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 			}
 
 			// run `Stacktrace.Transform` twice to ensure method is idempotent
-			tc.Stacktrace.Transform(tctx)
-			output := tc.Stacktrace.Transform(tctx)
+			tc.Stacktrace.Transform(context.Background(), tctx)
+			output := tc.Stacktrace.Transform(context.Background(), tctx)
 			assert.Equal(t, tc.Output, output)
 		})
 	}

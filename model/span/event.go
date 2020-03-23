@@ -18,6 +18,7 @@
 package span
 
 import (
+	"context"
 	"net"
 	"strings"
 	"time"
@@ -374,7 +375,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	return &event, nil
 }
 
-func (e *Event) Transform(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
@@ -383,7 +384,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	fields := common.MapStr{
 		"processor": processorEntry,
-		spanDocType: e.fields(tctx),
+		spanDocType: e.fields(ctx, tctx),
 	}
 
 	// first set the generic metadata
@@ -420,7 +421,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 }
 
-func (e *Event) fields(tctx *transform.Context) common.MapStr {
+func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
 	if e == nil {
 		return nil
 	}
@@ -448,7 +449,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 	utility.Set(fields, "message", e.Message.Fields())
 
-	st := e.Stacktrace.Transform(tctx)
+	st := e.Stacktrace.Transform(ctx, tctx)
 	utility.Set(fields, "stacktrace", st)
 	return fields
 }

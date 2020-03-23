@@ -18,6 +18,7 @@
 package package_tests
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/elastic/apm-server/processor/asset"
@@ -61,7 +62,7 @@ func (p *TestProcessor) Process(buf []byte) ([]beat.Event, error) {
 
 	var events []beat.Event
 	for _, transformable := range transformables {
-		events = append(events, transformable.Transform(&transform.Context{Metadata: *metadata})...)
+		events = append(events, transformable.Transform(context.Background(), &transform.Context{Metadata: *metadata})...)
 	}
 	return events, nil
 }

@@ -111,7 +111,7 @@ func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 	for _, req := range reqs {
 		if req.Transformables != nil {
 			for _, transformable := range req.Transformables {
-				events = append(events, transformable.Transform(req.Tcontext)...)
+				events = append(events, transformable.Transform(context.Background(), req.Tcontext)...)
 			}
 		}
 	}

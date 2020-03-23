@@ -18,6 +18,7 @@
 package transform
 
 import (
+	"context"
 	"regexp"
 	"time"
 
@@ -28,7 +29,7 @@ import (
 )
 
 type Transformable interface {
-	Transform(*Context) []beat.Event
+	Transform(context.Context, *Context) []beat.Event
 }
 
 type Context struct {

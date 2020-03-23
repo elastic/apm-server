@@ -18,6 +18,7 @@
 package metricset
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -202,7 +203,7 @@ func (t *Transaction) fields() common.MapStr {
 	return fields
 }
 
-func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
+func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if me == nil {
 		return nil
