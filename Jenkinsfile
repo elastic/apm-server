@@ -31,6 +31,7 @@ pipeline {
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
+    booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
     booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
@@ -176,6 +177,44 @@ pipeline {
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/junit-report.xml,${BASE_DIR}/build/TEST-*.xml")
+            }
+          }
+        }
+        /**
+        Build on a mac environment.
+        */
+        stage('OSX build-test') {
+          agent { label 'macosx' }
+          options {
+            skipDefaultCheckout()
+            warnError('OSX execution failed')
+          }
+          when {
+            beforeAgent true
+            allOf {
+              expression { return params.osx_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
+          }
+          environment {
+            HOME = "${env.WORKSPACE}"
+          }
+          steps {
+            withGithubNotify(context: 'Build-Test - OSX') {
+              deleteDir()
+              unstash 'source'
+              dir(BASE_DIR){
+                retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                  sleep randomNumber(min: 5, max: 10)
+                  sh(label: 'OSX build', script: '.ci/scripts/build-darwin.sh')
+                  sh(label: 'Run Unit tests', script: '.ci/scripts/test-darwin.sh')
+                }
+              }
+            }
+          }
+          post {
+            always {
+              junit(allowEmptyResults: true, keepLongStdio: true, testResults: "${BASE_DIR}/build/junit-*.xml")
             }
           }
         }
