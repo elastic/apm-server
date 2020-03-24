@@ -16,7 +16,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.4.0"
+                "version": "1.5.0"
             },
             "host": {
                 "architecture": "x64",
@@ -125,7 +125,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.4.0"
+                "version": "1.5.0"
             },
             "host": {
                 "architecture": "x64",
@@ -235,7 +235,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.4.0"
+                "version": "1.5.0"
             },
             "host": {
                 "architecture": "x64",
@@ -349,7 +349,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.4.0"
+                "version": "1.5.0"
             },
             "host": {
                 "architecture": "x64",
@@ -465,7 +465,7 @@
                 "port": 5432
             },
             "ecs": {
-                "version": "1.4.0"
+                "version": "1.5.0"
             },
             "host": {
                 "architecture": "x64",
@@ -653,7 +653,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.4.0"
+                "version": "1.5.0"
             },
             "host": {
                 "architecture": "x64",
