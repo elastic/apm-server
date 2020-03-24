@@ -18,7 +18,6 @@
 package decoder
 
 import (
-	"bufio"
 	"bytes"
 	"strings"
 	"testing"
@@ -62,7 +61,7 @@ func TestNDStreamReader(t *testing.T) {
 		},
 	}
 	buf := bytes.NewBufferString(strings.Join(lines, "\n"))
-	n := NewNDJSONStreamReader(NewLineReader(bufio.NewReaderSize(buf, 20), 20))
+	n := NewNDJSONStreamReader(buf, 20)
 
 	for idx, test := range expected {
 		out, err := n.Read()
