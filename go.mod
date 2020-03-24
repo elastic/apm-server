@@ -8,25 +8,25 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
-	github.com/dop251/goja v0.0.0-20200306114808-3d3261579167 // indirect
+	github.com/dop251/goja v0.0.0-20200309191912-043cf4f34a48 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200128125109-2d688c7e0ac4 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200306124118-bbf9d6697f4a
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200324205625-99f483e5e3fb
 	github.com/elastic/go-elasticsearch/v7 v7.5.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
 	github.com/elastic/go-licenser v0.2.1
 	github.com/elastic/go-ucfg v0.8.3
 	github.com/fatih/color v1.7.0
-	github.com/go-sourcemap/sourcemap v2.1.2+incompatible
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/gogo/googleapis v1.3.1-0.20190914144012-b8d18e97a9a1 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/google/addlicense v0.0.0-20190907113143-be125746c2c4 // indirect
 	github.com/google/go-cmp v0.4.0
 	github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc
-	github.com/grpc-ecosystem/grpc-gateway v1.12.2-0.20191114094031-9087bb89f1e0 // indirect
 	github.com/hashicorp/golang-lru v0.5.3
 	github.com/jaegertracing/jaeger v1.16.0
+	github.com/josephspurrier/goversioninfo v0.0.0-20200309025242-14b0ab84c6ca // indirect
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/magefile/mage v1.9.0
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
@@ -35,8 +35,8 @@ require (
 	github.com/opentracing/opentracing-go v1.1.1-0.20190913142402-a7454ce5950e // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/procfs v0.0.10 // indirect
-	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
+	github.com/prometheus/procfs v0.0.11 // indirect
+	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
 	github.com/reviewdog/reviewdog v0.9.17
 	github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735
 	github.com/santhosh-tekuri/jsonschema v1.2.4
@@ -50,14 +50,13 @@ require (
 	go.elastic.co/apm/module/apmgrpc v1.7.0
 	go.elastic.co/apm/module/apmhttp v1.7.0
 	go.uber.org/atomic v1.6.0
-	go.uber.org/multierr v1.5.0 // indirect
-	go.uber.org/zap v1.14.0
+	go.uber.org/zap v1.14.1
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200305224536-de023d59a5d1 // indirect
+	golang.org/x/tools v0.0.0-20200324201824-1fc30e1f4ccc // indirect
 	google.golang.org/grpc v1.27.1
 	gopkg.in/yaml.v2 v2.2.8
 	howett.net/plist v0.0.0-20200225050739-77e249a2e2ba // indirect

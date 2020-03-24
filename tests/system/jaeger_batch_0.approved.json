@@ -56,7 +56,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "processor": {
             "name": "transaction",
@@ -109,7 +109,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "error": {
             "exception": [
@@ -173,7 +173,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "error": {
             "exception": [
@@ -237,7 +237,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "error": {
             "exception": [
