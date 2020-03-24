@@ -355,7 +355,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: e0b817d621e4
+Revision: 38b258172697
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
