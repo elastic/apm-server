@@ -18,7 +18,6 @@
 package stream
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"io"
@@ -52,39 +51,9 @@ var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
 )
 
-type StreamReader interface {
-	Read() (map[string]interface{}, error)
-	IsEOF() bool
-	LatestLine() []byte
-}
-
-// srErrorWrapper wraps stream decoders and converts errors to
-// something we know how to deal with
-type srErrorWrapper struct {
-	StreamReader
-}
-
-func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
-	v, err := s.StreamReader.Read()
-	if err != nil {
-		if _, ok := err.(decoder.JSONDecodeError); ok {
-			return nil, &Error{
-				Type:     InvalidInputErrType,
-				Message:  err.Error(),
-				Document: string(s.StreamReader.LatestLine()),
-			}
-		}
-
-		if err == decoder.ErrLineTooLong {
-			return nil, &Error{
-				Type:     InputTooLargeErrType,
-				Message:  "event exceeded the permitted size.",
-				Document: string(s.StreamReader.LatestLine()),
-			}
-		}
-	}
-	return v, err
-}
+const (
+	batchSize = 10
+)
 
 type processorModel struct {
 	schema       *jsonschema.Schema
@@ -92,12 +61,12 @@ type processorModel struct {
 }
 
 type Processor struct {
-	Tconfig        transform.Config
-	Mconfig        model.Config
-	MaxEventSize   int
-	bufferPool     sync.Pool
-	models         map[string]processorModel
-	metadataSchema *jsonschema.Schema
+	Tconfig          transform.Config
+	Mconfig          model.Config
+	MaxEventSize     int
+	streamReaderPool sync.Pool
+	models           map[string]processorModel
+	metadataSchema   *jsonschema.Schema
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
@@ -177,10 +146,7 @@ func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	}
 }
 
-const batchSize = 10
-
-func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
-	// first item is the metadata object
+func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamReader) (*metadata.Metadata, error) {
 	rawModel, err := reader.Read()
 	if err != nil {
 		if err == io.EOF {
@@ -202,28 +168,18 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamRe
 			Document: string(reader.LatestLine()),
 		}
 	}
-
 	for k, v := range reqMeta {
 		utility.InsertInMap(rawMetadata, k, v.(map[string]interface{}))
 	}
 
-	// validate the metadata object against our jsonschema
-	err = validation.Validate(rawMetadata, p.metadataSchema)
-	if err != nil {
+	if err := validation.Validate(rawMetadata, p.metadataSchema); err != nil {
 		return nil, &Error{
 			Type:     InvalidInputErrType,
 			Message:  err.Error(),
 			Document: string(reader.LatestLine()),
 		}
 	}
-
-	// create a metadata struct
-	metadata, err := metadata.DecodeMetadata(rawMetadata, p.Mconfig.HasShortFieldNames)
-	if err != nil {
-		return nil, err
-	}
-
-	return metadata, nil
+	return metadata.DecodeMetadata(rawMetadata, p.Mconfig.HasShortFieldNames)
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
@@ -245,44 +201,37 @@ func (p *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.T
 	return nil, ErrUnrecognizedObject
 }
 
-// readBatch will read up to `batchSize` objects from the ndjson stream
-// it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
-	var (
-		err        error
-		rawModel   map[string]interface{}
-		eventables []transform.Transformable
-	)
-
+// readBatch will read up to `batchSize` objects from the ndjson stream,
+// returning a slice of Transformables and a boolean indicating that there
+// might be more to read.
+func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, batchSize int, reader *streamReader, response *Result) ([]transform.Transformable, bool) {
 	if ipRateLimiter != nil {
 		// use provided rate limiter to throttle batch read
 		ctxT, cancel := context.WithTimeout(ctx, time.Second)
-		err = ipRateLimiter.WaitN(ctxT, batchSize)
+		err := ipRateLimiter.WaitN(ctxT, batchSize)
 		cancel()
 		if err != nil {
 			response.Add(&Error{
 				Type:    RateLimitErrType,
 				Message: "rate limit exceeded",
 			})
-			return eventables, true
+			return nil, true
 		}
 	}
 
-	for i := 0; i < batchSize && err == nil; i++ {
-
-		rawModel, err = reader.Read()
+	var out []transform.Transformable
+	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
+		rawModel, err := reader.Read()
 		if err != nil && err != io.EOF {
-
 			if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
 				response.LimitedAdd(e)
 				continue
 			}
 			// return early, we assume we can only recover from a input error types
 			response.Add(err)
-			return eventables, true
+			return out, true
 		}
-
-		if rawModel != nil {
+		if len(rawModel) > 0 {
 			tr, err := p.HandleRawModel(rawModel)
 			if err != nil {
 				response.LimitedAdd(&Error{
@@ -292,37 +241,23 @@ func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, 
 				})
 				continue
 			}
-			eventables = append(eventables, tr)
+			out = append(out, tr)
 		}
 	}
-
-	return eventables, reader.IsEOF()
+	return out, reader.IsEOF()
 }
 
 // HandleStream processes a stream of events
 func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
-	buf, ok := p.bufferPool.Get().(*bufio.Reader)
-	if !ok {
-		buf = bufio.NewReaderSize(reader, p.MaxEventSize)
-	} else {
-		buf.Reset(reader)
-	}
-	defer func() {
-		buf.Reset(nil)
-		p.bufferPool.Put(buf)
-	}()
+	sr := p.getStreamReader(reader)
+	defer sr.release()
 
-	lineReader := decoder.NewLineReader(buf, p.MaxEventSize)
-	ndReader := decoder.NewNDJSONStreamReader(lineReader)
-
-	// our own wrapper converts json reader errors to errors that are useful to us
-	jsonReader := &srErrorWrapper{ndReader}
-
-	metadata, err := p.readMetadata(meta, jsonReader)
-	// no point in continuing if we couldn't read the metadata
+	// first item is the metadata object
+	metadata, err := p.readMetadata(meta, sr)
 	if err != nil {
+		// no point in continuing if we couldn't read the metadata
 		res.Add(err)
 		return res
 	}
@@ -336,41 +271,89 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	for {
-
-		transformables, done := p.readBatch(ctx, ipRateLimiter, batchSize, jsonReader, res)
-		if transformables != nil {
-			err := report(ctx, publish.PendingReq{
-				Transformables: transformables,
-				Tcontext:       tctx,
-				Trace:          !sp.Dropped(),
-			})
-
-			if err != nil {
-				switch err {
-				case publish.ErrChannelClosed:
-					res.Add(&Error{
-						Type:    ShuttingDownErrType,
-						Message: "server is shutting down",
-					})
-				case publish.ErrFull:
-					res.Add(&Error{
-						Type:    QueueFullErrType,
-						Message: err.Error(),
-					})
-				default:
-					res.Add(err)
-				}
-
-				return res
+	var transformables []transform.Transformable
+	var done bool
+	for !done {
+		transformables, done = p.readBatch(ctx, ipRateLimiter, batchSize, sr, res)
+		if len(transformables) == 0 {
+			continue
+		}
+		// NOTE(axw) `report` takes ownership of transformables, which
+		// means we cannot reuse the slice memory. We should investigate
+		// alternative interfaces between the processor and publisher
+		// which would enable better memory reuse.
+		if err := report(ctx, publish.PendingReq{
+			Transformables: transformables,
+			Tcontext:       tctx,
+			Trace:          !sp.Dropped(),
+		}); err != nil {
+			switch err {
+			case publish.ErrChannelClosed:
+				res.Add(&Error{
+					Type:    ShuttingDownErrType,
+					Message: "server is shutting down",
+				})
+			case publish.ErrFull:
+				res.Add(&Error{
+					Type:    QueueFullErrType,
+					Message: err.Error(),
+				})
+			default:
+				res.Add(err)
 			}
-
-			res.AddAccepted(len(transformables))
+			return res
 		}
-
-		if done {
-			break
-		}
+		res.AddAccepted(len(transformables))
 	}
 	return res
+}
+
+// getStreamReader returns a streamReader that reads ND-JSON lines from r.
+func (p *Processor) getStreamReader(r io.Reader) *streamReader {
+	if sr, ok := p.streamReaderPool.Get().(*streamReader); ok {
+		sr.Reset(r)
+		return sr
+	}
+	return &streamReader{
+		processor:          p,
+		NDJSONStreamReader: decoder.NewNDJSONStreamReader(r, p.MaxEventSize),
+	}
+}
+
+// streamReader wraps NDJSONStreamReader, converting errors to stream errors.
+type streamReader struct {
+	processor *Processor
+	*decoder.NDJSONStreamReader
+}
+
+// release releases the streamReader, adding it to its Processor's sync.Pool.
+// The streamReader must not be used after release returns.
+func (sr *streamReader) release() {
+	sr.Reset(nil)
+	sr.processor.streamReaderPool.Put(sr)
+}
+
+func (sr *streamReader) Read() (map[string]interface{}, error) {
+	// TODO(axw) decode into a reused map, clearing out the
+	// map between reads. We would require that decoders copy
+	// any contents of rawModel that they wish to retain after
+	// the call, in order to safely reuse the map.
+	v, err := sr.NDJSONStreamReader.Read()
+	if err != nil {
+		if _, ok := err.(decoder.JSONDecodeError); ok {
+			return nil, &Error{
+				Type:     InvalidInputErrType,
+				Message:  err.Error(),
+				Document: string(sr.LatestLine()),
+			}
+		}
+		if err == decoder.ErrLineTooLong {
+			return nil, &Error{
+				Type:     InputTooLargeErrType,
+				Message:  "event exceeded the permitted size.",
+				Document: string(sr.LatestLine()),
+			}
+		}
+	}
+	return v, err
 }
