@@ -18,7 +18,6 @@
 package package_tests
 
 import (
-	"bufio"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -84,8 +83,7 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/only-metadata.ndjson")
 	require.NoError(t, err)
 
-	lr := decoder.NewLineReader(bufio.NewReader(payloadStream), lrSize)
-	metadata, err := decoder.NewNDJSONStreamReader(lr).Read()
+	metadata, err := decoder.NewNDJSONStreamReader(payloadStream, lrSize).Read()
 	require.NoError(t, err)
 
 	contextMetadata := metadata["metadata"]

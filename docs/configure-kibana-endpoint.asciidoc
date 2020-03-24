@@ -1,11 +1,8 @@
 [[setup-kibana-endpoint]]
 == Configure the Kibana endpoint
 
-Starting with {beatname_uc} 7.3.0, we've introduced a new Kibana API for APM Server.
-Configuring this endpoint is required for 
+Configuring the Kibana endpoint is required for 
 {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
-Once the endpoint is configured,
-you'll be able to fine-tune certain agent configurations directly in Kibana without having to redeploy your agents.
 You configure the endpoint in the `apm-server.kibana` section of the
 +{beatname_lc}.yml+ config file.
 
@@ -13,6 +10,7 @@ Here's a sample configuration:
 
 [source,yaml]
 ----
+apm-server.kibana.enabled: true
 apm-server.kibana.host: "http://localhost:5601"
 ----
 
@@ -38,6 +36,7 @@ You can specify the following options in the `apm-server.kibana` section of the
 Defaults to `false`. Must be `true` to use APM Agent configuration.
 
 [float]
+[[kibana-host]]
 ==== `apm-server.kibana.host`
 
 The Kibana host that APM Server will communicate with. The default is

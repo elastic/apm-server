@@ -18,7 +18,6 @@
 package package_tests
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -51,8 +50,7 @@ func (v *intakeTestProcessor) getReader(path string) (*decoder.NDJSONStreamReade
 	if err != nil {
 		return nil, err
 	}
-	lr := decoder.NewLineReader(bufio.NewReaderSize(reader, lrSize), lrSize)
-	return decoder.NewNDJSONStreamReader(lr), nil
+	return decoder.NewNDJSONStreamReader(reader, lrSize), nil
 }
 
 func (v *intakeTestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]interface{}, error) {

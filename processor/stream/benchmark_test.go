@@ -20,39 +20,41 @@ package stream
 import (
 	"bytes"
 	"context"
-	"errors"
 	"io/ioutil"
 	"math"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 )
 
-func BenchmarkStreamProcessor(b *testing.B) {
+func BenchmarkBackendProcessor(b *testing.B) {
+	processor := BackendProcessor(&config.Config{MaxEventSize: 300 * 1024})
+	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
+	benchmarkStreamProcessor(b, processor, files)
+}
+
+func BenchmarkRUMV3Processor(b *testing.B) {
+	tcfg := &transform.Config{}
+	processor := RUMV3Processor(&config.Config{MaxEventSize: 300 * 1024}, tcfg)
+	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v3/rum_*.ndjson"))
+	benchmarkStreamProcessor(b, processor, files)
+}
+
+func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string) {
 	report := func(ctx context.Context, p publish.PendingReq) error {
 		return nil
 	}
-	dir := "../testdata/intake-v2"
-	_, cwd, _, ok := runtime.Caller(0)
-	if !ok {
-		b.Error(errors.New("Could not determine test dir"))
-	}
-	files, err := ioutil.ReadDir(filepath.Join(cwd, "../..", dir))
-	if err != nil {
-		b.Error(err)
-	}
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
 	rl := rate.NewLimiter(rate.Limit(math.MaxFloat64-1), math.MaxInt32)
-	sp := &Processor{MaxEventSize: 300 * 1024}
 
 	benchmark := func(filename string, rl *rate.Limiter) func(b *testing.B) {
 		return func(b *testing.B) {
-			data, err := loader.LoadDataAsBytes(filepath.Join(dir, filename))
+			data, err := ioutil.ReadFile(filename)
 			if err != nil {
 				b.Error(err)
 			}
@@ -64,15 +66,15 @@ func BenchmarkStreamProcessor(b *testing.B) {
 				b.StopTimer()
 				r.Reset(data)
 				b.StartTimer()
-				sp.HandleStream(context.Background(), rl, map[string]interface{}{}, r, report)
+				processor.HandleStream(context.Background(), rl, map[string]interface{}{}, r, report)
 			}
 		}
 	}
 
 	for _, f := range files {
-		b.Run(f.Name(), func(b *testing.B) {
-			b.Run("NoRateLimit", benchmark(f.Name(), nil))
-			b.Run("WithRateLimit", benchmark(f.Name(), rl))
+		b.Run(filepath.Base(f), func(b *testing.B) {
+			b.Run("NoRateLimit", benchmark(f, nil))
+			b.Run("WithRateLimit", benchmark(f, rl))
 		})
 	}
 }

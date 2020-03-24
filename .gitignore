@@ -13,7 +13,7 @@
 /apm-server.iml
 /apm-server.keystore
 /apm-server
-/apm-server.test
+**/*.test
 /apm-server.dev.yml
 /_meta/fields.generated.yml
 /_meta/kibana/*/index-pattern
