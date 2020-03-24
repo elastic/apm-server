@@ -80,7 +80,7 @@ include::{libbeat-dir}/command-reference.asciidoc[tag=apikey-subcommands]
 ==== Privileges
 
 There are three unique privileges you can assign to each API keys.
-If privileges are not specified at creation time, the created key will have all privileges. 
+If privileges are not specified at creation time, the created key will have all privileges.
 
 * *Agent configuration* - Required for agents to read
 {kibana-ref}/agent-configuration.html[Agent configuration remotely].
@@ -122,7 +122,7 @@ The following example verifies that the `java-001` API key has the "agent config
 
 ["source","sh",subs="attributes"]
 -----
-{beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==  
+{beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==
 -----
 
 If the API key has the requested privileges, the response will look similar to this:
@@ -166,11 +166,10 @@ See the relevant Agent documentation for additional information:
 * *Go Agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
 // MERGED: https://github.com/elastic/apm-agent-go/pull/698
 
-// No issue or docs yet
-// * *Java Agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
+* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-api-key[`ApiKey`]
 
 // No issue or docs yet
-// * *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#[`API_KEY`]
+// * *Java Agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
 
 // No issue or docs yet
 // * *Node.js Agent*: {apm-node-ref}/configuration.html[`api_key`]
@@ -396,3 +395,4 @@ This ensures encryption, but does not verify that you are sending data to the co
 
 * *Java Agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
 * *Node.js Agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
+* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
