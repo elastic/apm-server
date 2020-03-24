@@ -5,28 +5,13 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 
 [float]
 ==== Breaking Changes
-* Remove enroll subcommand {pull}3270[3270].
 
 [float]
 ==== Bug fixes
-* Merge default values with custom Elasticsearch config for API Keys and add `required` tag for `host` {pull}3342[3342]
-* Merge default values with custom Sourcemap Elasticsearch config {pull}3355[3355]
 
 [float]
 ==== Intake API Changes
-* Add `transfer_size`, `encoded_body_size`  and `decoded_body_size` to `transaction.context.http.response` {pull}3327[3327]
-* Add `transfer_size`, `encoded_body_size`, `decoded_body_size` and `headers` to `span.context.http.response` {pull}3327[3327]
-* Deprecate `span.context.http.status_code` in favor of newly introduced `span.context.http.response.status_code` {pull}3327[3327]
 
 [float]
 ==== Added
-* Instrumentation for go-elasticsearch {pull}3305[3305]
-* Make configurable the list of Access-Control-Allow-Headers for RUM preflight requests {pull}3299[3299]
 * RUM V3 endpoint {pull}3328[3328], {pull}3414[3414], {pull}3512[3512]
-* Instrumentation for kibana client {pull}3359[3359]
-* Added support for Jaeger auth tags {pull}3394[3394]
-* Add pipeline for removing metadata fields from spans {pull}3408[3408]
-* Add gRPC sampling endpoint for Jaeger {pull}3490[3490]
-* Change default value for apm-server.ssl.client_authentication from optional to none {pull}3500[3500]
-* Enabled instrumentation of sourcemaps {pull}3515[3515]
-* Upgrade Go to 1.13.9 {pull}3539[3539]
