@@ -73,7 +73,7 @@ func (s server) run(listener net.Listener, tracerServer *tracerServer) error {
 		g.Go(func() error {
 			return s.httpServer.start(listener)
 		})
-		if s.isAvailable() {
+		if s.isAvailable(s.cfg.ShutdownTimeout) {
 			notifyListening(context.Background(), s.cfg, s.reporter)
 		}
 		if tracerServer != nil {
@@ -98,12 +98,11 @@ func (s server) stop() {
 	}
 }
 
-func (s server) isAvailable() bool {
+func (s server) isAvailable(timeout time.Duration) bool {
 	// following an example from https://golang.org/pkg/net/
 	// dial into tcp connection to ensure listener is ready, send get request and read response,
 	// in case tls is enabled, the server will respond with 400,
 	// as this only checks the server is up and reachable errors can be ignored
-	timeout := s.cfg.ShutdownTimeout
 	conn, err := net.DialTimeout("tcp", s.cfg.Host, timeout)
 	if err != nil {
 		return false
