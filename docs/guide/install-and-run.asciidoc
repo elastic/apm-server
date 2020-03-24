@@ -15,7 +15,7 @@ Skip managing your own {es}, {kib}, and APM Server by using our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud.
 
-https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free],
+{ess-trial}[Try out the {es} Service for free],
 then jump straight to <<agents>>.
 
 [float]
