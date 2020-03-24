@@ -227,7 +227,6 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.enabled":      true,
 				"jaeger.grpc.enabled": true,
 				"api_key.enabled":     true,
 			},
