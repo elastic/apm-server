@@ -30,7 +30,7 @@
         },
         "@timestamp": "2019-12-20T07:41:44.953Z",
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "service": {
             "node": {
@@ -100,7 +100,7 @@
         },
         "@timestamp": "2019-12-20T07:41:45.007Z",
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "service": {
             "node": {
@@ -164,7 +164,7 @@
         },
         "@timestamp": "2019-12-20T07:41:45.089Z",
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "service": {
             "node": {
@@ -228,7 +228,7 @@
         },
         "@timestamp": "2019-12-20T07:41:45.172Z",
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "service": {
             "node": {

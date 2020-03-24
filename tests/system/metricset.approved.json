@@ -34,7 +34,7 @@
         },
         "@timestamp": "2017-05-30T18:53:41.364Z",
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "service": {
             "node": {
@@ -83,7 +83,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "event": {
             "ingested": "2020-03-12T07:34:48.922439Z"
