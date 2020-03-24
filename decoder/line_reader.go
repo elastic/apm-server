@@ -40,6 +40,12 @@ func NewLineReader(reader *bufio.Reader, maxLineLength int) *LineReader {
 	}
 }
 
+// Reset sets lr's underlying *bufio.Reader to br, and clears any state.
+func (lr *LineReader) Reset(br *bufio.Reader) {
+	lr.br = br
+	lr.skip = false
+}
+
 // ReadLine reads the next line from the given reader.
 // If it encounters a line that is longer than `maxLineLength` it will
 // return the first `maxLineLength` bytes with `ErrLineTooLong`. On the next
