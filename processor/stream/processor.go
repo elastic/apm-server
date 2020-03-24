@@ -18,7 +18,6 @@
 package stream
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"io"
@@ -252,18 +251,8 @@ func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, 
 func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
-	sr, ok := p.streamReaderPool.Get().(*streamReader)
-	if !ok {
-		sr = &streamReader{buf: bufio.NewReaderSize(reader, p.MaxEventSize)}
-		sr.lineReader = decoder.NewLineReader(sr.buf, p.MaxEventSize)
-		sr.NDJSONStreamReader = decoder.NewNDJSONStreamReader(sr.lineReader)
-	} else {
-		sr.Reset(reader)
-	}
-	defer func() {
-		sr.Reset(nil)
-		p.streamReaderPool.Put(sr)
-	}()
+	sr := p.getStreamReader(reader)
+	defer sr.release()
 
 	// first item is the metadata object
 	metadata, err := p.readMetadata(meta, sr)
@@ -319,11 +308,29 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	return res
 }
 
+// getStreamReader returns a streamReader that reads ND-JSON lines from r.
+func (p *Processor) getStreamReader(r io.Reader) *streamReader {
+	if sr, ok := p.streamReaderPool.Get().(*streamReader); ok {
+		sr.Reset(r)
+		return sr
+	}
+	return &streamReader{
+		processor:          p,
+		NDJSONStreamReader: decoder.NewNDJSONStreamReader(r, p.MaxEventSize),
+	}
+}
+
 // streamReader wraps NDJSONStreamReader, converting errors to stream errors.
 type streamReader struct {
-	buf        *bufio.Reader
-	lineReader *decoder.LineReader
+	processor *Processor
 	*decoder.NDJSONStreamReader
+}
+
+// release releases the streamReader, adding it to its Processor's sync.Pool.
+// The streamReader must not be used after release returns.
+func (sr *streamReader) release() {
+	sr.Reset(nil)
+	sr.processor.streamReaderPool.Put(sr)
 }
 
 func (sr *streamReader) Read() (map[string]interface{}, error) {
@@ -349,16 +356,4 @@ func (sr *streamReader) Read() (map[string]interface{}, error) {
 		}
 	}
 	return v, err
-}
-
-func (sr *streamReader) Reset(r io.Reader) {
-	if r == nil {
-		sr.buf.Reset(nil)
-		sr.lineReader.Reset(nil)
-		sr.NDJSONStreamReader.Reset(nil)
-	} else {
-		sr.buf.Reset(r)
-		sr.lineReader.Reset(sr.buf)
-		sr.NDJSONStreamReader.Reset(sr.lineReader)
-	}
 }

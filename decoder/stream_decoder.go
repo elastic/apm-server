@@ -18,32 +18,37 @@
 package decoder
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"io"
 )
 
-func NewNDJSONStreamReader(reader *LineReader) *NDJSONStreamReader {
-	var r NDJSONStreamReader
-	r.Reset(reader)
-	r.resetDecoder()
-	return &r
+// NewNDJSONStreamReader returns a NDJSONStreamReader which reads
+// ND-JSON lines from r, with a maximum line length of maxLineLength.
+func NewNDJSONStreamReader(r io.Reader, maxLineLength int) *NDJSONStreamReader {
+	var sr NDJSONStreamReader
+	sr.bufioReader = bufio.NewReaderSize(r, maxLineLength)
+	sr.lineReader = NewLineReader(sr.bufioReader, maxLineLength)
+	sr.resetDecoder()
+	return &sr
 }
 
+// NDJSONStreamReader reads and decodes a stream of ND-JSON lines from an io.Reader.
 type NDJSONStreamReader struct {
-	reader           *LineReader
+	bufioReader *bufio.Reader
+	lineReader  *LineReader
+
 	isEOF            bool
 	latestLine       []byte
 	latestLineReader bytes.Reader
 	decoder          *json.Decoder
 }
 
-type JSONDecodeError string
-
-func (s JSONDecodeError) Error() string { return string(s) }
-
-func (sr *NDJSONStreamReader) Reset(r *LineReader) {
-	sr.reader = r
+// Reset sets sr's underlying io.Reader to r, and resets any reading/decoding state.
+func (sr *NDJSONStreamReader) Reset(r io.Reader) {
+	sr.bufioReader.Reset(r)
+	sr.lineReader.Reset(sr.bufioReader)
 	sr.isEOF = false
 	sr.latestLine = nil
 	sr.latestLineReader.Reset(nil)
@@ -68,7 +73,7 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 
 func (sr *NDJSONStreamReader) readLine() ([]byte, error) {
 	// readLine can return valid data in `buf` _and_ also an io.EOF
-	line, readErr := sr.reader.ReadLine()
+	line, readErr := sr.lineReader.ReadLine()
 	sr.latestLine = line
 	sr.latestLineReader.Reset(sr.latestLine)
 	sr.isEOF = readErr == io.EOF
@@ -77,3 +82,7 @@ func (sr *NDJSONStreamReader) readLine() ([]byte, error) {
 
 func (sr *NDJSONStreamReader) IsEOF() bool        { return sr.isEOF }
 func (sr *NDJSONStreamReader) LatestLine() []byte { return sr.latestLine }
+
+type JSONDecodeError string
+
+func (s JSONDecodeError) Error() string { return string(s) }
