@@ -145,7 +145,7 @@ class GRPCSamplingTest(JaegerBaseTest):
 
     def create_service_config(self, service, sampling_rate, agent=None):
         data = {"service": {"name": service},
-                "settings": {"transaction_sample_rate": sampling_rate}}
+                "settings": {"transaction_sample_rate": "{}".format(sampling_rate)}}
         if agent:
             data["agent_name"] = agent
         resp = requests.put(
