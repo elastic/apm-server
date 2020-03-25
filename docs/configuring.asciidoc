@@ -18,7 +18,7 @@ include::{libbeat-dir}/shared-configuring.asciidoc[]
 * <<configuration-logging>>
 * <<setup-kibana-endpoint>>
 * <<configuration-rum>>
-// * <<jaeger>>
+* <<jaeger-reference>>
 * <<using-environ-vars>>
 * <<configuration-path>>
 --
@@ -54,6 +54,8 @@ See <<securing-apm-server,Securing APM Server>> for more information.
 include::./template-config.asciidoc[]
 
 include::./ilm-reference.asciidoc[]
+
+include::./jaeger-reference.asciidoc[]
 
 include::{libbeat-dir}/loggingconfig.asciidoc[]
 
