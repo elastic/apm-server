@@ -16,7 +16,7 @@ See {apm-server-ref}/ilm.html#ilm-setup[set up ILM] for more information.
 
 * By default, ILM policies will not longer be versioned.
 All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.
-See {apm-server-ref}/ilm.html#ilm-default[default policy] for more information.
+See {apm-server-ref}/ilm.html[default policy] for more information.
 
 * To make use of all the new features introduced in 7.5,
 you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
