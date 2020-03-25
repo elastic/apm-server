@@ -231,6 +231,8 @@ github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200324155507-e0b817d621e4 h1:RPyiC
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200324155507-e0b817d621e4/go.mod h1:2QDEcZki5w1sRSjfytFDr5bhyeMWAYTHmTzuuZ9U/vM=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200324211046-38b258172697 h1:UV5MjyaXVAtGzhupI8M4emJ5HHwORUfmiI89gAI57pU=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200324211046-38b258172697/go.mod h1:2QDEcZki5w1sRSjfytFDr5bhyeMWAYTHmTzuuZ9U/vM=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200325125649-99b8c146aac6 h1:H9z4htiMg/yOevfIkaU1koyBeYWp6sxtABm1CKqxxv4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200325125649-99b8c146aac6/go.mod h1:2QDEcZki5w1sRSjfytFDr5bhyeMWAYTHmTzuuZ9U/vM=
 github.com/elastic/ecs v1.4.0 h1:BGIUwWJhThRO2IQxzm7ekV9TMUGwZoYyevT5/1xmMf0=
 github.com/elastic/ecs v1.4.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/ecs v1.5.0 h1:/VEIBsRU4ecq2+U3RPfKNc6bFyomP6qnthYEcQZu8GU=
@@ -1190,6 +1192,8 @@ golang.org/x/tools v0.0.0-20200324161117-bbbf714b4a18 h1:kYFemdkw+SKnSgin4WqNPDZ
 golang.org/x/tools v0.0.0-20200324161117-bbbf714b4a18/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
 golang.org/x/tools v0.0.0-20200324201824-1fc30e1f4ccc h1:pdV61EOqqmHmRMCtqTv+eoY+K04cmKfr4R8aA9ysfgY=
 golang.org/x/tools v0.0.0-20200324201824-1fc30e1f4ccc/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
+golang.org/x/tools v0.0.0-20200325010219-a49f79bcc224 h1:azwY/v0y0K4mFHVsg5+UrTgchqALYWpqVo6vL5OmkmI=
+golang.org/x/tools v0.0.0-20200325010219-a49f79bcc224/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
