@@ -85,7 +85,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         })
         self.assertDictEqual({}, r2.json())
 
-        self.create_service_config({"transaction_sample_rate": 0.05}, service_name)
+        self.create_service_config({"transaction_sample_rate": "0.05"}, service_name)
 
         # yes configuration for service
         r3 = requests.get(self.agent_config_url,
@@ -115,7 +115,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         })
 
         self.create_service_config(
-            {"transaction_sample_rate": 0.15}, service_name, env=service_env)
+            {"transaction_sample_rate": "0.15"}, service_name, env=service_env)
 
         # yes configuration for service+environment
         r4 = requests.get(self.agent_config_url,
@@ -150,7 +150,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         })
 
         self.update_service_config(
-            {"transaction_sample_rate": 0.99}, service_name, env=service_env)
+            {"transaction_sample_rate": "0.99"}, service_name, env=service_env)
 
         # TODO (gr): remove when cache can be disabled via config
         # wait for cache to purge
@@ -272,7 +272,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
 
     def test_rum(self):
         service_name = "rum-service"
-        self.create_service_config({"transaction_sample_rate": 0.2}, service_name, agent="rum-js")
+        self.create_service_config({"transaction_sample_rate": "0.2"}, service_name, agent="rum-js")
 
         r1 = requests.get(self.rum_agent_config_url,
                           params={"service.name": service_name},
@@ -289,7 +289,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
 
     def test_rum_current_name(self):
         service_name = "rum-service"
-        self.create_service_config({"transaction_sample_rate": 0.2}, service_name, agent="js-base")
+        self.create_service_config({"transaction_sample_rate": "0.2"}, service_name, agent="js-base")
 
         r1 = requests.get(self.rum_agent_config_url,
                           params={"service.name": service_name},
@@ -306,7 +306,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
 
     def test_backend_after_rum(self):
         service_name = "backend-service"
-        self.create_service_config({"transaction_sample_rate": 0.3}, service_name)
+        self.create_service_config({"transaction_sample_rate": "0.3"}, service_name)
 
         r1 = requests.get(self.rum_agent_config_url,
                           params={"service.name": service_name},
@@ -324,7 +324,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
 
     def test_rum_after_backend(self):
         service_name = "backend-service"
-        self.create_service_config({"transaction_sample_rate": 0.3}, service_name)
+        self.create_service_config({"transaction_sample_rate": "0.3"}, service_name)
 
         r1 = requests.get(self.agent_config_url,
                           params={"service.name": service_name},
@@ -343,7 +343,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
     def test_all_agents(self):
         service_name = "any-service"
         self.create_service_config(
-            {"transaction_sample_rate": 0.4, "capture_body": "all"}, service_name, agent="")
+            {"transaction_sample_rate": "0.4", "capture_body": "all"}, service_name, agent="")
 
         r1 = requests.get(self.rum_agent_config_url,
                           params={"service.name": service_name},
