@@ -23,6 +23,8 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
+
 	"go.elastic.co/apm"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -207,15 +209,15 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 
 	// ensure setup cmd is working properly
 	b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-		esClient, err := elasticsearch.NewConnectedClient(esConfig)
+		conn, err := eslegclient.NewConnectedClient(esConfig)
 		if err != nil {
 			return err
 		}
-		return pipeline.RegisterPipelines(esClient, overwrite, path)
+		return pipeline.RegisterPipelines(conn, overwrite, path)
 	}
 	// ensure pipelines are registered when new ES connection is established.
-	_, err := elasticsearch.RegisterConnectCallback(func(esClient *elasticsearch.Client) error {
-		return pipeline.RegisterPipelines(esClient, overwrite, path)
+	_, err := elasticsearch.RegisterConnectCallback(func(conn *eslegclient.Connection) error {
+		return pipeline.RegisterPipelines(conn, overwrite, path)
 	})
 	return err
 }
