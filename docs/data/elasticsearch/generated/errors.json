@@ -70,7 +70,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "error": {
             "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -178,7 +178,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "url": {
             "domain": "www.example.com",
@@ -480,7 +480,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "error": {
             "exception": [
@@ -567,7 +567,7 @@
             }
         },
         "ecs": {
-            "version": "1.4.0"
+            "version": "1.5.0"
         },
         "error": {
             "exception": [
