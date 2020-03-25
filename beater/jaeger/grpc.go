@@ -39,7 +39,7 @@ import (
 )
 
 var (
-	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect", monitoring.PublishExpvar)
+	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
 	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, monitoringKeys)
 )
 
@@ -76,7 +76,7 @@ func (c *grpcCollector) postSpans(ctx context.Context, batch model.Batch) error 
 }
 
 var (
-	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling", monitoring.PublishExpvar)
+	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling")
 	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCSamplingRegistry, monitoringKeys)
 
 	jaegerAgentPrefixes = []string{otel.AgentNameJaeger}

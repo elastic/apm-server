@@ -46,7 +46,7 @@ const (
 )
 
 var (
-	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.metric", monitoring.PublishExpvar)
+	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
 	transformations = monitoring.NewInt(Metrics, "transformations")
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
 )

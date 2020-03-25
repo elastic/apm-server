@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring", monitoring.PublishExpvar)
+	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring")
 	mockMonitoringNil      = map[request.ResultID]*monitoring.Int{}
 	mockMonitoring         = request.DefaultMonitoringMapForRegistry(mockMonitoringRegistry)
 )
