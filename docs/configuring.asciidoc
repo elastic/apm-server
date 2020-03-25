@@ -14,11 +14,11 @@ include::{libbeat-dir}/shared-configuring.asciidoc[]
 * <<configuring-ingest-node>>
 * <<configuration-ssl-landing>>
 * <<configuration-template>>
-* <<ilm>>
+* <<ilm-reference>>
 * <<configuration-logging>>
 * <<setup-kibana-endpoint>>
 * <<configuration-rum>>
-* <<jaeger>>
+// * <<jaeger>>
 * <<using-environ-vars>>
 * <<configuration-path>>
 --
@@ -52,6 +52,8 @@ include::ssl-input-settings.asciidoc[]
 See <<securing-apm-server,Securing APM Server>> for more information.
 
 include::./template-config.asciidoc[]
+
+include::./ilm-reference.asciidoc[]
 
 include::{libbeat-dir}/loggingconfig.asciidoc[]
 
