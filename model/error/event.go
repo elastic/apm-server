@@ -46,7 +46,7 @@ import (
 )
 
 var (
-	Metrics           = monitoring.Default.NewRegistry("apm-server.processor.error", monitoring.PublishExpvar)
+	Metrics           = monitoring.Default.NewRegistry("apm-server.processor.error")
 	transformations   = monitoring.NewInt(Metrics, "transformations")
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")

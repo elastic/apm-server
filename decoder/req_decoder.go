@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)
+	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder")
 	missingContentLengthCounter   = monitoring.NewInt(decoderMetrics, "missing-content-length.count")
 	deflateLengthAccumulator      = monitoring.NewInt(decoderMetrics, "deflate.content-length")
 	deflateCounter                = monitoring.NewInt(decoderMetrics, "deflate.count")

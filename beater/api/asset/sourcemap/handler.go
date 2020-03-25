@@ -37,7 +37,7 @@ import (
 var (
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.sourcemap", monitoring.PublishExpvar)
+	registry      = monitoring.Default.NewRegistry("apm-server.sourcemap")
 )
 
 // RequestDecoder is the type for a function that decodes sourcemap data from an http.Request.
