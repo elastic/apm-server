@@ -51,7 +51,7 @@ const (
 var (
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.acm", monitoring.PublishExpvar)
+	registry      = monitoring.Default.NewRegistry("apm-server.acm")
 
 	errMsgKibanaDisabled     = errors.New(msgKibanaDisabled)
 	errMsgNoKibanaConnection = errors.New(msgNoKibanaConnection)

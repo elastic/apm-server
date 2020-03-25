@@ -190,7 +190,7 @@ func TestResult_Failure(t *testing.T) {
 }
 
 func TestDefaultMonitoringMapForRegistry(t *testing.T) {
-	mockRegistry := monitoring.Default.NewRegistry("mock-default", monitoring.PublishExpvar)
+	mockRegistry := monitoring.Default.NewRegistry("mock-default")
 	m := DefaultMonitoringMapForRegistry(mockRegistry)
 	assert.Equal(t, 21, len(m))
 	for id := range m {
@@ -200,7 +200,7 @@ func TestDefaultMonitoringMapForRegistry(t *testing.T) {
 
 func TestMonitoringMapForRegistry(t *testing.T) {
 	keys := []ResultID{IDEventDroppedCount, IDResponseErrorsServiceUnavailable}
-	mockRegistry := monitoring.Default.NewRegistry("mock-with-keys", monitoring.PublishExpvar)
+	mockRegistry := monitoring.Default.NewRegistry("mock-with-keys")
 	m := MonitoringMapForRegistry(mockRegistry, keys)
 	assert.Equal(t, 2, len(m))
 	for id := range m {

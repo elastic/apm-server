@@ -45,7 +45,7 @@ const (
 )
 
 var (
-	Metrics           = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
+	Metrics           = monitoring.Default.NewRegistry("apm-server.processor.transaction")
 	transformations   = monitoring.NewInt(Metrics, "transformations")
 	processorEntry    = common.MapStr{"name": processorName, "event": transactionDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")

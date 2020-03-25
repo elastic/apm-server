@@ -42,7 +42,7 @@ import (
 var (
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.profile", monitoring.PublishExpvar)
+	registry      = monitoring.Default.NewRegistry("apm-server.profile")
 )
 
 const (
