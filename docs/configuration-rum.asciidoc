@@ -17,6 +17,7 @@ you will need to configure {apm-rum-ref-v}/configuring-cors.html[Cross-Origin Re
 A full list of APM Server configuration options is available in the <<configuration-rum,RUM configuration reference>>.
 
 // this is required to not break the doc build
+// do not link here
 // future iterations should remove this
 [[rum]]
 Example config with RUM enabled:
