@@ -1,27 +1,6 @@
-[[rum]]
-== Real User Monitoring (RUM)
-
-++++
-<titleabbrev>Enable Real User Monitoring (RUM)</titleabbrev>
-++++
-
-Real User Monitoring captures user interaction with clients such as web browsers.
-The {apm-rum-ref-v}/index.html[JavaScript Agent] is Elastic's RUM Agent.
-
-[float]
-[[enable-rum-support]]
-=== Enable RUM support
-
-By default, Real User Monitoring is disabled. To enable it, 
-set `apm-server.rum.enabled` to `true` in your APM Server configuration file.
-
-In addition, if APM Server is deployed in an origin different than the page’s origin,
-you will need to configure {apm-rum-ref-v}/configuring-cors.html[Cross-Origin Resource Sharing (CORS)] in the Agent.
-
-A full list of APM Server configuration options is available in the <<configuration-rum,RUM configuration reference>>.
-
 [[sourcemaps]]
-=== Upload source Maps
+== Upload source maps (RUM)
+
 For a number of reasons, it is common practice to minify JavaScript code, for example to reduce network latency.
 While improving performance, minified code can be hard to debug.
 A source map library helps by mapping the minified files back to the the original source code.
@@ -36,7 +15,7 @@ Source maps are cached in memory for as long as the <<rum-sourcemap-cache,cache 
 
 [[sourcemap-apply]]
 [float]
-=== How source maps are applied
+== How source maps are applied
 
 APM Server needs to find the correct source map for every `stack trace frame` in an event.
 To do so, it tries the following:

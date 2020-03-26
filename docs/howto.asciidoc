@@ -1,23 +1,20 @@
 [[howto-guides]]
-= How to guides
+= How-to guides
 
 [partintro]
 --
 Learn how to perform common {beatname_uc} configuration and management tasks.
 
 * <<ilm>>
-* <<rum>>
 * <<jaeger>>
 * <<storage-management>>
 * <<configuring-ingest-node>>
 * <<tune-data-ingestion>>
-* <<using-environ-vars>>
+* <<sourcemaps>>
 
 --
 
 include::./ilm.asciidoc[]
-
-include::./rum.asciidoc[]
 
 include::./jaeger-support.asciidoc[]
 
@@ -27,6 +24,4 @@ include::./configuring-ingest.asciidoc[]
 
 include::./data-ingestion.asciidoc[]
 
-:standalone:
-include::{libbeat-dir}/shared-env-vars.asciidoc[]
-:standalone!:
+include::./sourcemaps.asciidoc[]
