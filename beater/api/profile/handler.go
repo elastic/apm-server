@@ -84,10 +84,7 @@ func Handler(
 			}
 		}
 
-		tctx := &transform.Context{
-			RequestTime: utility.RequestTime(c.Request.Context()),
-			Config:      transformConfig,
-		}
+		tctx := &transform.Context{Config: transformConfig}
 
 		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
