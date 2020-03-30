@@ -159,8 +159,7 @@ func TestDecode(t *testing.T) {
 			},
 		},
 	} {
-		var err error
-		transformables, err := DecodeEvent(test.input, model.Config{}, err)
+		transformables, err := DecodeEvent(test.input, model.Config{})
 		if test.err != nil {
 			assert.Error(t, err)
 		}

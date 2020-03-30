@@ -101,14 +101,13 @@ func TestErrorEventDecode(t *testing.T) {
 	ctxUrl := m.Url{Original: &origUrl}
 
 	for name, test := range map[string]struct {
-		input       interface{}
-		cfg         m.Config
-		err, inpErr error
-		e           *Event
+		input interface{}
+		cfg   m.Config
+		err   error
+		e     *Event
 	}{
-		"no input":               {input: nil, err: errMissingInput, e: nil},
-		"an error passed as arg": {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		"invalid type":           {input: "", err: errInvalidType, e: nil},
+		"no input":     {input: nil, err: errMissingInput, e: nil},
+		"invalid type": {input: "", err: errInvalidType, e: nil},
 		"error decoding timestamp": {
 			input: map[string]interface{}{"timestamp": 123},
 			err:   utility.ErrFetch,
@@ -282,7 +281,7 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, test.cfg, test.inpErr)
+			transformable, err := DecodeEvent(test.input, test.cfg)
 			if test.e != nil && assert.NotNil(t, transformable) {
 				event := transformable.(*Event)
 				assert.Equal(t, test.e, event)
@@ -315,7 +314,7 @@ func TestHandleExceptionTree(t *testing.T) {
 			},
 		},
 	}
-	result, err := DecodeEvent(errorEvent, m.Config{}, nil)
+	result, err := DecodeEvent(errorEvent, m.Config{})
 	require.NoError(t, err)
 
 	event := result.(*Event)
@@ -342,7 +341,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				"type":    "type0",
 			},
 		}
-		result, err := DecodeEvent(badID, m.Config{}, nil)
+		result, err := DecodeEvent(badID, m.Config{})
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -358,7 +357,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeEvent(badException, m.Config{}, nil)
+		result, err := DecodeEvent(badException, m.Config{})
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -372,7 +371,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				"cause":   []interface{}{7.4},
 			},
 		}
-		result, err := DecodeEvent(badException, m.Config{}, nil)
+		result, err := DecodeEvent(badException, m.Config{})
 		assert.Error(t, err)
 		assert.EqualError(t, err, "cause must be an exception")
 		assert.Nil(t, result)
@@ -389,7 +388,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeEvent(emptyCauses, m.Config{}, nil)
+		result, err := DecodeEvent(emptyCauses, m.Config{})
 		require.NoError(t, err)
 		assert.NotNil(t, result)
 

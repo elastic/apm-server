@@ -86,10 +86,7 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func DecodeEvent(input interface{}, _ model.Config, err error) (transform.Transformable, error) {
-	if err != nil {
-		return nil, err
-	}
+func DecodeEvent(input interface{}, _ model.Config) (transform.Transformable, error) {
 	if input == nil {
 		return nil, errors.New("no data for metric event")
 	}

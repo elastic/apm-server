@@ -273,15 +273,12 @@ func (d *DestinationService) fields() common.MapStr {
 	return fields
 }
 
-func DecodeRUMV3Event(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
-	return DecodeEvent(input, cfg, err)
+func DecodeRUMV3Event(input interface{}, cfg m.Config) (transform.Transformable, error) {
+	return DecodeEvent(input, cfg)
 }
 
 // DecodeEvent decodes a span event.
-func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
-	if err != nil {
-		return nil, err
-	}
+func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, error) {
 	if input == nil {
 		return nil, errMissingInput
 	}

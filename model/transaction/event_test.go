@@ -26,7 +26,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -41,17 +40,16 @@ import (
 
 func TestTransactionEventDecodeFailure(t *testing.T) {
 	for name, test := range map[string]struct {
-		input       interface{}
-		err, inpErr error
-		e           *Event
+		input interface{}
+		err   error
+		e     *Event
 	}{
 		"no input":           {input: nil, err: errMissingInput, e: nil},
-		"input error":        {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
 		"invalid type":       {input: "", err: errInvalidType, e: nil},
 		"cannot fetch field": {input: map[string]interface{}{}, err: utility.ErrFetch, e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, model.Config{}, test.inpErr)
+			transformable, err := DecodeEvent(test.input, model.Config{})
 			assert.Equal(t, test.err, err)
 			if test.e != nil {
 				event := transformable.(*Event)
@@ -236,7 +234,7 @@ func TestTransactionEventDecode(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, test.cfg, nil)
+			transformable, err := DecodeEvent(test.input, test.cfg)
 			if test.err != "" {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), test.err)

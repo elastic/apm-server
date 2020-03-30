@@ -20,7 +20,6 @@ package span
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -79,12 +78,10 @@ func TestDecodeSpan(t *testing.T) {
 		input interface{}
 		cfg   m.Config
 		// we don't use a regular `error.New` here, because some errors are of a different type
-		err    string
-		inpErr error
-		e      transform.Transformable
+		err string
+		e   transform.Transformable
 	}{
 		"no input":     {input: nil, err: errMissingInput.Error()},
-		"input error":  {input: nil, inpErr: errors.New("a"), err: "a"},
 		"invalid type": {input: "", err: errInvalidType.Error()},
 		"missing required field": {
 			input: map[string]interface{}{},
@@ -247,7 +244,7 @@ func TestDecodeSpan(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			span, err := DecodeEvent(test.input, test.cfg, test.inpErr)
+			span, err := DecodeEvent(test.input, test.cfg)
 			if test.err == "" {
 				require.Nil(t, err)
 				assert.Equal(t, test.e, span)
