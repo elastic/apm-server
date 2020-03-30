@@ -41,6 +41,11 @@ convert-tests-results: ## convert TAP test results to JUnit
 	@APP=$*; docker run --rm -e APP=$${APP} -v "$(CURDIR)":/usr/src/app -w /usr/src/app node:${LTS_ALPINE} \
 					sh -c 'npm install tap-xunit -g && cat target/results.tap | tap-xunit --package="co.elastic.pipeline.$${APP}" > target/junit-$${APP}-results.xml'
 
+test-golang-mage: prepare-test ## Run the tests for the specific app
+	cp ../../go.mod golang-mage
+	@DOCKERFILE=golang-mage bats-core/bin/bats --tap tests | tee target/results.tap
+	@$(MAKE) -s convert-tests-results
+
 test-%: prepare-test ## Run the tests for the specific app
 	@DOCKERFILE=$* bats-core/bin/bats --tap tests | tee target/results.tap
 	@$(MAKE) -s convert-tests-results
