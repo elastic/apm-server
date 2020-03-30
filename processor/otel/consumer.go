@@ -64,11 +64,8 @@ type Consumer struct {
 // ConsumeTraceData consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
-	metadata, transformables := c.convert(td)
-	transformContext := &transform.Context{
-		Config:   c.TransformConfig,
-		Metadata: metadata,
-	}
+	transformables := c.convert(td)
+	transformContext := &transform.Context{Config: c.TransformConfig}
 
 	return c.Reporter(ctx, publish.PendingReq{
 		Transformables: transformables,
@@ -77,7 +74,7 @@ func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceDa
 	})
 }
 
-func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []transform.Transformable) {
+func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable {
 	md := metadata.Metadata{}
 	parseMetadata(td, &md)
 	var hostname string
@@ -108,6 +105,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 		name := otelSpan.GetName().GetValue()
 		if root || otelSpan.Kind == tracepb.Span_SERVER {
 			transaction := model_transaction.Event{
+				Metadata:  md,
 				Id:        spanID,
 				ParentId:  parentID,
 				TraceId:   traceID,
@@ -124,6 +122,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 
 		} else {
 			span := model_span.Event{
+				Metadata:  md,
 				Id:        spanID,
 				ParentId:  *parentID,
 				TraceId:   traceID,
@@ -139,7 +138,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 			}
 		}
 	}
-	return md, transformables
+	return transformables
 }
 
 func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
@@ -487,6 +486,7 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 }
 
 func addTransactionCtxToErr(transaction model_transaction.Event, err *model_error.Event) {
+	err.Metadata = transaction.Metadata
 	err.TransactionId = &transaction.Id
 	err.TraceId = &transaction.TraceId
 	err.ParentId = &transaction.Id
@@ -496,6 +496,7 @@ func addTransactionCtxToErr(transaction model_transaction.Event, err *model_erro
 }
 
 func addSpanCtxToErr(span model_span.Event, hostname string, err *model_error.Event) {
+	err.Metadata = span.Metadata
 	err.TransactionId = span.TransactionId
 	err.TraceId = &span.TraceId
 	err.ParentId = &span.Id

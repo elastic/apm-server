@@ -60,6 +60,8 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Event struct {
+	Metadata metadata.Metadata
+
 	Id       string
 	ParentId *string
 	TraceId  string
@@ -161,6 +163,7 @@ func DecodeEvent(input m.Input) (transform.Transformable, error) {
 	decoder := utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	e := Event{
+		Metadata:     input.Metadata,
 		Id:           decoder.String(raw, "id"),
 		Type:         decoder.String(raw, fieldName("type")),
 		Name:         decoder.StringPtr(raw, fieldName("name")),
@@ -236,7 +239,7 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	}
 
 	// first set generic metadata (order is relevant)
-	tctx.Metadata.Set(fields)
+	e.Metadata.Set(fields)
 
 	// then merge event specific information
 	utility.Update(fields, "user", e.User.Fields())

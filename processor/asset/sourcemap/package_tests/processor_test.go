@@ -65,10 +65,9 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		err = p.Validate(data)
 		require.NoError(t, err)
 
-		metadata, payload, err := p.Decode(data)
+		payload, err := p.Decode(data)
 		require.NoError(t, err)
 
-		tctx.Metadata = *metadata
 		var events []beat.Event
 		for _, transformable := range payload {
 			events = append(events, transformable.Transform(context.Background(), &tctx)...)

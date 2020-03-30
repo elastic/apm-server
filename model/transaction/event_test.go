@@ -108,6 +108,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	h := model.Http{Request: &request, Response: &response}
 	ctxUrl := model.Url{Original: &origUrl}
 	custom := model.Custom{"abc": 1}
+	metadata := metadata.Metadata{Service: &metadata.Service{Name: tests.StringPtr("foo")}}
 
 	for name, test := range map[string]struct {
 		input interface{}
@@ -120,6 +121,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
 			},
 			e: &Event{
+				Metadata:  metadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -135,6 +137,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			},
 			cfg: model.Config{Experimental: true},
 			e: &Event{
+				Metadata:  metadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -150,6 +153,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			},
 			cfg: model.Config{Experimental: false},
 			e: &Event{
+				Metadata:  metadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -165,6 +169,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			},
 			cfg: model.Config{Experimental: true},
 			e: &Event{
+				Metadata:     metadata,
 				Id:           id,
 				Type:         trType,
 				Name:         &name,
@@ -188,6 +193,7 @@ func TestTransactionEventDecode(t *testing.T) {
 						"headers": map[string]interface{}{"internal": "false"},
 						"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}}},
 			e: &Event{
+				Metadata:  metadata,
 				Id:        id,
 				Type:      "messaging",
 				TraceId:   traceId,
@@ -227,6 +233,7 @@ func TestTransactionEventDecode(t *testing.T) {
 					}},
 				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0}},
 			e: &Event{
+				Metadata:  metadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -252,6 +259,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			transformable, err := DecodeEvent(model.Input{
 				Raw:         test.input,
 				RequestTime: requestTime,
+				Metadata:    metadata,
 				Config:      test.cfg,
 			})
 			if test.err != "" {
@@ -376,64 +384,56 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	user := metadata.User{Id: &id, Name: &name, IP: net.ParseIP(ip), UserAgent: &userAgent}
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
-	metadataLabels := common.MapStr{"a": true}
-	service := metadata.Service{Name: &serviceName}
-	system := func() *metadata.System {
-		return &metadata.System{
-			DetectedHostname: &hostname,
-			Architecture:     &architecture,
-			Platform:         &platform,
-		}
+	eventMetadata := metadata.Metadata{
+		Service: &metadata.Service{
+			Name: &serviceName,
+			Node: metadata.ServiceNode{Name: tests.StringPtr(serviceNodeName)},
+		},
+		System: &metadata.System{
+			ConfiguredHostname: &name,
+			DetectedHostname:   &hostname,
+			Architecture:       &architecture,
+			Platform:           &platform,
+		},
+		Labels: common.MapStr{"a": true},
 	}
 
-	txValid := Event{Timestamp: timestamp}
-	txValidEs := common.MapStr{
+	txValid := Event{Metadata: eventMetadata, Timestamp: timestamp}
+	events := txValid.Transform(context.Background(), &transform.Context{})
+	require.Len(t, events, 1)
+	assert.Equal(t, events[0].Fields, common.MapStr{
 		"processor": common.MapStr{
 			"event": "transaction",
 			"name":  "transaction",
 		},
 		"service": common.MapStr{
 			"name": serviceName,
-		},
-		"transaction": common.MapStr{
-			"duration": common.MapStr{"us": 0},
-			"id":       "",
-			"type":     "",
-			"sampled":  true,
-		},
-		"labels":    common.MapStr{"a": true},
-		"timestamp": common.MapStr{"us": timestampUs},
-	}
-
-	txValidWithSystemES := common.MapStr{
-		"host": common.MapStr{
-			"architecture": architecture,
-			"hostname":     hostname,
-			"name":         hostname,
-			"os": common.MapStr{
-				"platform": platform,
+			"node": common.MapStr{
+				"name": serviceNodeName,
 			},
 		},
-		"processor": common.MapStr{
-			"event": "transaction",
-			"name":  "transaction",
+		"host": common.MapStr{
+			"architecture": "darwin",
+			"hostname":     "a.b.c",
+			"name":         "jane",
+			"os": common.MapStr{
+				"platform": "x64",
+			},
 		},
-		"service": common.MapStr{
-			"name": serviceName, "node": common.MapStr{"name": hostname},
-		},
-		"labels":    common.MapStr{"a": true},
-		"timestamp": common.MapStr{"us": timestampUs},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"id":       "",
 			"type":     "",
 			"sampled":  true,
 		},
-	}
+		"labels":    common.MapStr{"a": true},
+		"timestamp": common.MapStr{"us": timestampUs},
+	})
 
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{}}
 	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
 	txWithContext := Event{
+		Metadata:  eventMetadata,
 		Timestamp: timestamp,
 		User:      &user,
 		Labels:    &model.Labels{"a": "b"},
@@ -443,8 +443,11 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    &model.Custom{"foo": "bar"},
 		Client:    &model.Client{IP: net.ParseIP("198.12.13.1")},
 		Message:   &model.Message{QueueName: tests.StringPtr("routeUser")},
+		Service:   &metadata.Service{Version: &serviceVersion},
 	}
-	txWithContextEs := common.MapStr{
+	events = txWithContext.Transform(context.Background(), &transform.Context{})
+	require.Len(t, events, 1)
+	assert.Equal(t, events[0].Fields, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": "198.12.13.1"},
 		"source":     common.MapStr{"ip": "198.12.13.1"},
@@ -462,7 +465,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"name":  "transaction",
 		},
 		"service": common.MapStr{
-			"name": "myservice", "node": common.MapStr{"name": "jane"},
+			"name":    serviceName,
+			"version": serviceVersion,
+			"node":    common.MapStr{"name": serviceNodeName},
 		},
 		"timestamp": common.MapStr{"us": timestampUs},
 		"transaction": common.MapStr{
@@ -481,97 +486,5 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"http": common.MapStr{
 			"request":  common.MapStr{"method": "post"},
 			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}}},
-	}
-
-	txValidWithSpan := Event{Timestamp: timestamp}
-	spanEs := common.MapStr{
-		"processor": common.MapStr{
-			"event": "span",
-			"name":  "transaction",
-		},
-		"service": common.MapStr{
-			"name": "myservice",
-		},
-		"span": common.MapStr{
-			"duration": common.MapStr{"us": 0},
-			"name":     "",
-			"type":     "",
-		},
-		"timestamp": common.MapStr{"us": timestampUs},
-	}
-
-	tests := []struct {
-		Metadata *metadata.Metadata
-		Event    transform.Transformable
-		Output   []common.MapStr
-		Msg      string
-	}{
-		{
-			Metadata: metadata.NewMetadata(&service,
-				nil, nil, nil, metadataLabels,
-			),
-			Event:  &txValid,
-			Output: []common.MapStr{txValidEs},
-			Msg:    "Payload with multiple Events",
-		}, {
-			Metadata: metadata.NewMetadata(
-				&service,
-				nil, nil, nil, metadataLabels,
-			),
-			Event:  &txValidWithSpan,
-			Output: []common.MapStr{txValidEs, spanEs},
-			Msg:    "Payload with multiple Events",
-		},
-		{
-			Metadata: metadata.NewMetadata(
-				&service, system(),
-				nil, nil, metadataLabels,
-			),
-			Event:  &txValid,
-			Output: []common.MapStr{txValidWithSystemES},
-			Msg:    "Payload with System and Event",
-		},
-		{
-			Metadata: metadata.NewMetadata(
-				&service, func() *metadata.System { s := system(); s.ConfiguredHostname = &name; return s }(),
-				nil, nil, metadataLabels,
-			),
-			Event:  &txWithContext,
-			Output: []common.MapStr{txWithContextEs},
-			Msg:    "Payload with Service, System and Event with context",
-		},
-		{
-			Metadata: metadata.NewMetadata(
-				func() *metadata.Service {
-					s, err := metadata.DecodeService(map[string]interface{}{
-						"name":    "m-name",
-						"version": "m-version",
-						"node":    map[string]interface{}{"configured_name": serviceNodeName}}, false, nil)
-					require.NoError(t, err)
-					return s
-				}(),
-				nil, nil, nil, nil,
-			),
-			Event: &Event{Timestamp: timestamp, Service: &metadata.Service{Version: &serviceVersion}},
-			Output: []common.MapStr{{
-				"processor":   common.MapStr{"event": "transaction", "name": "transaction"},
-				"service":     common.MapStr{"name": "m-name", "version": serviceVersion, "node": common.MapStr{"name": serviceNodeName}},
-				"timestamp":   common.MapStr{"us": timestampUs},
-				"transaction": common.MapStr{"duration": common.MapStr{"us": 0}, "id": "", "type": "", "sampled": true},
-			}},
-			Msg: "Deep update service fields",
-		},
-	}
-
-	for idx, test := range tests {
-		tctx := &transform.Context{
-			Metadata: *test.Metadata,
-		}
-		outputEvents := test.Event.Transform(context.Background(), tctx)
-
-		for j, outputEvent := range outputEvents {
-			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
-			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
-		}
-	}
+	})
 }

@@ -36,7 +36,7 @@ type Service struct {
 	Runtime     Runtime
 	Framework   Framework
 	Agent       Agent
-	node        node
+	Node        ServiceNode
 }
 
 //Language has an optional version and name
@@ -64,8 +64,8 @@ type Agent struct {
 	EphemeralId *string
 }
 
-type node struct {
-	name *string
+type ServiceNode struct {
+	Name *string
 }
 
 //DecodeService decodes a given input into a Service instance
@@ -100,8 +100,8 @@ func DecodeService(input interface{}, hasShortFieldNames bool, err error) (*Serv
 			Name:    decoder.StringPtr(raw, fieldName("name"), fieldName("runtime")),
 			Version: decoder.StringPtr(raw, fieldName("version"), fieldName("runtime")),
 		},
-		node: node{
-			name: decoder.StringPtr(raw, "configured_name", "node"),
+		Node: ServiceNode{
+			Name: decoder.StringPtr(raw, "configured_name", "node"),
 		},
 	}
 	return &service, decoder.Err
@@ -115,7 +115,7 @@ func (s *Service) Fields(containerID, hostName string) common.MapStr {
 	svc := common.MapStr{}
 	utility.Set(svc, "name", s.Name)
 	utility.Set(svc, "environment", s.Environment)
-	utility.Set(svc, "node", s.node.fields(containerID, hostName))
+	utility.Set(svc, "node", s.Node.fields(containerID, hostName))
 	utility.Set(svc, "version", s.Version)
 
 	lang := common.MapStr{}
@@ -144,9 +144,9 @@ func (s *Service) AgentFields() common.MapStr {
 	return s.Agent.fields()
 }
 
-func (n *node) fields(containerID, hostName string) common.MapStr {
-	if n.name != nil && *n.name != "" {
-		return common.MapStr{"name": *n.name}
+func (n *ServiceNode) fields(containerID, hostName string) common.MapStr {
+	if n.Name != nil && *n.Name != "" {
+		return common.MapStr{"name": *n.Name}
 	}
 	if containerID != "" {
 		return common.MapStr{"name": containerID}

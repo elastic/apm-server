@@ -78,6 +78,7 @@ type Event struct {
 	ParentId      *string
 
 	Timestamp time.Time
+	Metadata  metadata.Metadata
 
 	Culprit *string
 	User    *metadata.User
@@ -140,6 +141,7 @@ func DecodeEvent(input m.Input) (transform.Transformable, error) {
 	decoder := utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	e := Event{
+		Metadata:           input.Metadata,
 		Id:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, fieldName("culprit")),
 		Labels:             ctx.Labels,
@@ -204,7 +206,7 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	}
 
 	// first set the generic metadata (order is relevant)
-	tctx.Metadata.Set(fields)
+	e.Metadata.Set(fields)
 	// then add event specific information
 	utility.Update(fields, "user", e.User.Fields())
 	clientFields := e.Client.Fields()
@@ -316,7 +318,9 @@ func (e *Event) addException(ctx context.Context, tctx *transform.Context, chain
 			utility.Set(ex, "code", code.String())
 		}
 
-		st := exception.Stacktrace.Transform(ctx, tctx)
+		// TODO(axw) we should be using a merged service object, combining
+		// the stream metadata and event-specific service info.
+		st := exception.Stacktrace.Transform(ctx, tctx, e.Metadata.Service)
 		utility.Set(ex, "stacktrace", st)
 
 		result = append(result, ex)
@@ -334,7 +338,9 @@ func (e *Event) addLog(ctx context.Context, tctx *transform.Context) {
 	utility.Set(log, "param_message", e.Log.ParamMessage)
 	utility.Set(log, "logger_name", e.Log.LoggerName)
 	utility.Set(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(ctx, tctx)
+	// TODO(axw) we should be using a merged service object, combining
+	// the stream metadata and event-specific service info.
+	st := e.Log.Stacktrace.Transform(ctx, tctx, e.Metadata.Service)
 	utility.Set(log, "stacktrace", st)
 
 	e.add("log", log)

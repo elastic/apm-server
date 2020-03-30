@@ -34,8 +34,15 @@ import (
 )
 
 func TestPprofProfileTransform(t *testing.T) {
+	serviceName, env := "myService", "staging"
+	service := metadata.Service{
+		Name:        &serviceName,
+		Environment: &env,
+	}
+
 	timestamp := time.Unix(123, 456)
 	pp := profile.PprofProfile{
+		Metadata: metadata.Metadata{Service: &service},
 		Profile: &pprof_profile.Profile{
 			TimeNanos:     timestamp.UnixNano(),
 			DurationNanos: int64(10 * time.Second),
@@ -79,18 +86,7 @@ func TestPprofProfileTransform(t *testing.T) {
 		},
 	}
 
-	serviceName, env := "myService", "staging"
-	service := metadata.Service{
-		Name:        &serviceName,
-		Environment: &env,
-	}
-	metadata := metadata.Metadata{Service: &service}
-
-	tctx := &transform.Context{
-		Config:   transform.Config{}, // not used
-		Metadata: metadata,
-	}
-	output := pp.Transform(context.Background(), tctx)
+	output := pp.Transform(context.Background(), &transform.Context{})
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 

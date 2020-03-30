@@ -25,6 +25,7 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/google/pprof/profile"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -43,11 +44,12 @@ var processorEntry = common.MapStr{
 
 // PprofProfile represents a resource profile.
 type PprofProfile struct {
-	Profile *profile.Profile
+	Metadata metadata.Metadata
+	Profile  *profile.Profile
 }
 
 // Transform transforms a Profile into a sequence of beat.Events: one per profile sample.
-func (pp PprofProfile) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Context) []beat.Event {
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
 	profileTimestamp := time.Unix(0, pp.Profile.TimeNanos)
@@ -108,7 +110,7 @@ func (pp PprofProfile) Transform(ctx context.Context, tctx *transform.Context) [
 				profileDocType: profileFields,
 			},
 		}
-		tctx.Metadata.Set(event.Fields)
+		pp.Metadata.Set(event.Fields)
 		if len(sample.Label) > 0 {
 			labels := make(common.MapStr)
 			for k, v := range sample.Label {
