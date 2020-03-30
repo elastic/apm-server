@@ -27,6 +27,9 @@
             "Version": null
         },
         "Name": "foo",
+        "Node": {
+            "Name": null
+        },
         "Runtime": {
             "Name": null,
             "Version": null
