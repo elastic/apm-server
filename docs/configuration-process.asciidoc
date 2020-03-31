@@ -134,7 +134,7 @@ Defaults to true.
 [float]
 ==== `register.ingest.pipeline.overwrite`
 Overwrites the existing APM pipeline definition in Elasticsearch.
-Defaults to true.
+Defaults to false.
 
 [float]
 === Configuration options: `queue.mem.*`

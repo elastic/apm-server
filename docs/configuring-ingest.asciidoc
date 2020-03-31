@@ -6,25 +6,39 @@
 
 You can configure APM Server to use an {ref}/ingest.html[ingest node]
 to pre-process documents before indexing them in Elasticsearch.
-
-A pipeline is a definition of a series of processors that operate on your data.
-For example, a pipeline can define one processor to remove a field, and another to rename a field.
+A pipeline definition specifies the series of processors that will transform each document in a specific way.
+For example, a pipeline might define one processor that removes a field, followed by another that renames a field.
 
 [[default-pipeline]]
 [float]
 === Default ingest pipeline
 
-// The content within the "default-pipeline" tag is reused elsewhere. Keep that in mind when editing it.
-// tag::default-pipeline[]
-By default, <<register.ingest.pipeline.enabled,`register.ingest.pipeline.enabled`>> is set to `true`.
-This loads the default pipeline definition to Elasticsearch on APM Server startup.
+By default, APM Server registers the `apm` pipeline definition to Elasticsearch on startup.
+The `apm` pipeline definition defines the following processors:
 
-The default pipeline is `apm`. It adds user agent information to events and processes {ref}/geoip-processor.html[Geo-IP data],
-which is especially useful for Elastic's {apm-rum-ref-v}/index.html[JavaScript RUM Agent].
-You can view the pipeline configuration by navigating to the APM Server's home directory and then
-viewing `ingest/pipeline/definition.json`.
+[horizontal]
+`apm_user_agent`::
+Adds `user_agent` information for APM events
+
+`apm_user_geo`::
+Enriches Elastic's {apm-rum-ref-v}/index.html[JavaScript RUM Agent] data by
+adding user {ref}/geoip-processor.html[Geo-IP data] to the `client.geo` field.
+
+`apm_ingest_timestamp`::
+Adds an ingest timestamp for APM events.
+
+`apm_remove_span_metadata`::
+added:[7.7,"Previously hardcoded. See <<upgrading-to-77,upgrading to 7.7>>"]
+To save storage, removes metadata fields (like `host`, `kubernetes`, and `container`)
+that are already available on the parent transaction.
+
+See the complete pipeline definition by navigating to the APM Server's home directory,
+and then viewing `ingest/pipeline/definition.json`.
 
 To disable this, or any other pipeline, set `output.elasticsearch.pipeline: _none`.
+
+// The content within the "default-pipeline" tag is reused elsewhere. Keep that in mind when editing it.
+// tag::default-pipeline[]
 // end::default-pipeline[]
 
 [[custom-pipelines]]
@@ -52,7 +66,7 @@ Navigate to APM Server's home directory and find the default pipeline configurat
 To add, change, or remove pipelines in Elasticsearch,
 change the definitions in this file and restart your APM Server or run `apm-server setup --pipelines`.
 
-By default, pipeline registration is <<register.ingest.pipeline.enabled,enabled>>. 
+By default, pipeline registration is <<register.ingest.pipeline.enabled,enabled>>.
 
 [[register-pipelines-manual]]
 [float]

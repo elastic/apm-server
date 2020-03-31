@@ -1,0 +1,38 @@
+[[upgrading-to-77]]
+=== Upgrade to APM Server version 7.7
+
+++++
+<titleabbrev>Upgrade to version 7.7</titleabbrev>
+++++
+
+Version 7.7 adds a new `apm_remove_span_metadata` processor to the default <<default-pipeline,`apm` ingest pipeline>>.
+To save storage, this processor removes span metadata fields, like `host`, `kubernetes`, and `container`,
+that are already available on the parent transaction.
+
+While this processor is new, the functionality is not.
+In previous versions of APM Server, this functionality was hardcoded internally.
+However, there are use cases for including this metadata in span documents.
+Switching this metadata cleanup functionality to a processor allows you to define the span metadata that is important in your architecture.
+
+Failing to follow the upgrade steps will result in increased span metadata ingestion when upgrading to version 7.7.
+
+[[upgrade-steps-77]]
+==== Upgrade Steps
+
+. In order to avoid breaking custom pipeline definitions,
+pipelines are not overwritten when restarting APM Server.
+Enable pipeline overwriting by setting <<register.ingest.pipeline.overwrite,`register.ingest.pipeline.overwrite`>>
+to `true`.
+
+. Copy any custom pipelines you've created or altered to the pipeline definition file, located at
+`ingest/pipeline/definition.json`.
+
+. Restart APM Server.
+
+Alternatively, you can use the <<setup-command,`setup`>>
+command to register the pipeline definitions in `definition.json`:
+
+[source,sh]
+--------------------------------------------------
+./apm-server setup --pipelines -e -E apm-server.register.ingest.pipeline.overwrite=true
+--------------------------------------------------
