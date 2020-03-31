@@ -18,7 +18,6 @@
 package metadata
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,36 +36,36 @@ func TestDecodeMetadata(t *testing.T) {
 
 	for _, test := range []struct {
 		input  interface{}
-		err    error
+		err    string
 		output Metadata
 	}{
 		{
 			input: nil,
-			err:   nil,
+			err:   "failed to validate metadata: input missing",
 		},
 		{
 			input: "it doesn't work on strings",
-			err:   errors.New("invalid type for metadata"),
+			err:   "failed to validate metadata: invalid input type",
 		},
 		{
 			input: map[string]interface{}{"service": 123},
-			err:   errors.New("invalid type for service"),
+			err:   "invalid type for service",
 		},
 		{
 			input: map[string]interface{}{"system": 123},
-			err:   errors.New("invalid type for system"),
+			err:   "invalid type for system",
 		},
 		{
 			input: map[string]interface{}{"process": 123},
-			err:   errors.New("invalid type for process"),
+			err:   "invalid type for process",
 		},
 		{
 			input: map[string]interface{}{"user": 123},
-			err:   errors.New("invalid type for user"),
+			err:   "invalid type for user",
 		},
 		{
 			input: map[string]interface{}{"user": 123},
-			err:   errors.New("invalid type for user"),
+			err:   "invalid type for user",
 		},
 		{
 			input: map[string]interface{}{
@@ -105,10 +104,11 @@ func TestDecodeMetadata(t *testing.T) {
 		},
 	} {
 		output, err := DecodeMetadata(test.input, false)
-		require.Equal(t, test.err, err)
-		if test.err != nil {
+		if test.err != "" {
+			assert.EqualError(t, err, test.err)
 			assert.Nil(t, output)
 		} else {
+			assert.NoError(t, err)
 			if test.input == nil {
 				assert.Nil(t, output)
 			} else {

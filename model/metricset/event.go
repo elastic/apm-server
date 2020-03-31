@@ -19,11 +19,10 @@ package metricset
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/santhosh-tekuri/jsonschema"
+	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -53,10 +52,6 @@ var (
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
 
 type Sample struct {
 	Name  string
@@ -89,12 +84,9 @@ type metricsetDecoder struct {
 }
 
 func DecodeEvent(input model.Input) (transform.Transformable, error) {
-	if input.Raw == nil {
-		return nil, errors.New("no data for metric event")
-	}
-	raw, ok := input.Raw.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for metric event")
+	raw, err := validation.ValidateObject(input.Raw, cachedModelSchema)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate metricset")
 	}
 
 	md := metricsetDecoder{&utility.ManualDecoder{}}

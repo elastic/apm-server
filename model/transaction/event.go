@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/model/field"
-
 	"github.com/pkg/errors"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -49,15 +49,8 @@ var (
 	transformations   = monitoring.NewInt(Metrics, "transformations")
 	processorEntry    = common.MapStr{"name": processorName, "event": transactionDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
-	RUMV3Schema       = validation.CreateSchema(schema.RUMV3Schema, "transaction")
-
-	errMissingInput = errors.New("input missing for decoding transaction event")
-	errInvalidType  = errors.New("invalid type for transaction event")
+	rumV3Schema       = validation.CreateSchema(schema.RUMV3Schema, "transaction")
 )
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
 
 type Event struct {
 	Metadata metadata.Metadata
@@ -94,16 +87,19 @@ type SpanCount struct {
 }
 
 func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
-	transformable, err := DecodeEvent(input)
+	event, err := decodeEvent(input, rumV3Schema)
 	if err != nil {
-		return transformable, err
+		return nil, err
 	}
-	event, _ := transformable.(*Event)
-	raw, _ := input.Raw.(map[string]interface{})
-	return decodeRUMV3Marks(event, raw, input.Config)
+	marks, err := decodeRUMV3Marks(input.Raw.(map[string]interface{}), input.Config)
+	if err != nil {
+		return nil, err
+	}
+	event.Marks = marks
+	return event, nil
 }
 
-func decodeRUMV3Marks(event *Event, raw map[string]interface{}, cfg m.Config) (transform.Transformable, error) {
+func decodeRUMV3Marks(raw map[string]interface{}, cfg m.Config) (common.MapStr, error) {
 
 	decoder := &utility.ManualDecoder{}
 	fieldName := field.Mapper(cfg.HasShortFieldNames)
@@ -140,20 +136,23 @@ func decodeRUMV3Marks(event *Event, raw map[string]interface{}, cfg m.Config) (t
 	decodeMark(navigationTiming, "loadEventStart", "navigationTiming")
 	decodeMark(navigationTiming, "loadEventEnd", "navigationTiming")
 
-	event.Marks = common.MapStr{
+	if err := decoder.Err; err != nil {
+		return nil, err
+	}
+	return common.MapStr{
 		"agent":            agentMarks,
 		"navigationTiming": navigationTiming,
-	}
-	return event, decoder.Err
+	}, nil
 }
 
 func DecodeEvent(input m.Input) (transform.Transformable, error) {
-	if input.Raw == nil {
-		return nil, errMissingInput
-	}
-	raw, ok := input.Raw.(map[string]interface{})
-	if !ok {
-		return nil, errInvalidType
+	return decodeEvent(input, cachedModelSchema)
+}
+
+func decodeEvent(input m.Input, schema *jsonschema.Schema) (*Event, error) {
+	raw, err := validation.ValidateObject(input.Raw, schema)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate transaction")
 	}
 
 	ctx, err := m.DecodeContext(raw, input.Config, nil)

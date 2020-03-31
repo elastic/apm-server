@@ -35,22 +35,25 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 )
 
 func TestTransactionEventDecodeFailure(t *testing.T) {
 	for name, test := range map[string]struct {
 		input interface{}
-		err   error
+		err   string
 		e     *Event
 	}{
-		"no input":           {input: nil, err: errMissingInput, e: nil},
-		"invalid type":       {input: "", err: errInvalidType, e: nil},
-		"cannot fetch field": {input: map[string]interface{}{}, err: utility.ErrFetch, e: nil},
+		"no input":           {input: nil, err: "failed to validate transaction: error validating JSON: input missing", e: nil},
+		"invalid type":       {input: "", err: "failed to validate transaction: error validating JSON: invalid input type", e: nil},
+		"cannot fetch field": {input: map[string]interface{}{}, err: "failed to validate transaction: error validating JSON: (.|\n)*missing properties:(.|\n)*", e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
 			transformable, err := DecodeEvent(model.Input{Raw: test.input})
-			assert.Equal(t, test.err, err)
+			if test.err != "" {
+				assert.Regexp(t, test.err, err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
 			if test.e != nil {
 				event := transformable.(*Event)
 				assert.Equal(t, test.e, event)
@@ -76,15 +79,14 @@ func TestTransactionDecodeRUMV3Marks(t *testing.T) {
 			},
 		},
 	}
-	event := &Event{}
-	transformable, err := decodeRUMV3Marks(event, input, model.Config{HasShortFieldNames: true})
+	marks, err := decodeRUMV3Marks(input, model.Config{HasShortFieldNames: true})
 	require.Nil(t, err)
 
 	var f = 1.2
 	assert.Equal(t, common.MapStr{
 		"agent":            common.MapStr{"domComplete": &f},
 		"navigationTiming": common.MapStr{"domComplete": &f},
-	}, transformable.(*Event).Marks)
+	}, marks)
 }
 
 func TestTransactionEventDecode(t *testing.T) {
@@ -97,7 +99,10 @@ func TestTransactionEventDecode(t *testing.T) {
 	dropped, started, duration := 12, 6, 1.67
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
 	url, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
-	marks := map[string]interface{}{"k": "b"}
+	marks := map[string]interface{}{"navigationTiming": map[string]interface{}{
+		"appBeforeBootstrap": 608.9300000000001,
+		"navigationStart":    -21,
+	}}
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
@@ -110,16 +115,19 @@ func TestTransactionEventDecode(t *testing.T) {
 	custom := model.Custom{"abc": 1}
 	metadata := metadata.Metadata{Service: &metadata.Service{Name: tests.StringPtr("foo")}}
 
+	// baseInput holds the minimal valid input. Test-specific input is added to this.
+	baseInput := map[string]interface{}{
+		"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
+		"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
+	}
+
 	for name, test := range map[string]struct {
-		input interface{}
+		input map[string]interface{}
 		cfg   model.Config
-		err   string
 		e     *Event
 	}{
 		"no timestamp specified, request time used": {
-			input: map[string]interface{}{
-				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
-			},
+			input: map[string]interface{}{},
 			e: &Event{
 				Metadata:  metadata,
 				Id:        id,
@@ -128,12 +136,13 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceId:   traceId,
 				Duration:  duration,
 				Timestamp: requestTime,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 			},
 		},
 		"event experimental=true, no experimental payload": {
 			input: map[string]interface{}{
-				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
-				"timestamp": timestampEpoch, "context": map[string]interface{}{"foo": "bar"},
+				"timestamp": timestampEpoch,
+				"context":   map[string]interface{}{"foo": "bar"},
 			},
 			cfg: model.Config{Experimental: true},
 			e: &Event{
@@ -144,12 +153,13 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceId:   traceId,
 				Duration:  duration,
 				Timestamp: timestampParsed,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 			},
 		},
 		"event experimental=false": {
 			input: map[string]interface{}{
-				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId, "timestamp": timestampEpoch,
-				"context": map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
+				"timestamp": timestampEpoch,
+				"context":   map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
 			},
 			cfg: model.Config{Experimental: false},
 			e: &Event{
@@ -160,12 +170,13 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceId:   traceId,
 				Duration:  duration,
 				Timestamp: timestampParsed,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 			},
 		},
 		"event experimental=true": {
 			input: map[string]interface{}{
-				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId, "timestamp": timestampEpoch,
-				"context": map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
+				"timestamp": timestampEpoch,
+				"context":   map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
 			},
 			cfg: model.Config{Experimental: true},
 			e: &Event{
@@ -176,14 +187,12 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceId:      traceId,
 				Duration:     duration,
 				Timestamp:    timestampParsed,
+				SpanCount:    SpanCount{Dropped: &dropped, Started: &started},
 				Experimental: map[string]interface{}{"foo": "bar"},
 			},
 		},
 		"messaging event": {
 			input: map[string]interface{}{
-				"id":        id,
-				"trace_id":  traceId,
-				"duration":  duration,
 				"timestamp": timestampEpoch,
 				"type":      "messaging",
 				"context": map[string]interface{}{
@@ -191,14 +200,19 @@ func TestTransactionEventDecode(t *testing.T) {
 						"queue":   map[string]interface{}{"name": "order"},
 						"body":    "confirmed",
 						"headers": map[string]interface{}{"internal": "false"},
-						"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}}},
+						"age":     map[string]interface{}{"ms": json.Number("1577958057123")},
+					},
+				},
+			},
 			e: &Event{
 				Metadata:  metadata,
 				Id:        id,
+				Name:      &name,
 				Type:      "messaging",
 				TraceId:   traceId,
 				Duration:  duration,
 				Timestamp: timestampParsed,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 				Message: &model.Message{
 					QueueName: tests.StringPtr("order"),
 					Body:      tests.StringPtr("confirmed"),
@@ -209,8 +223,11 @@ func TestTransactionEventDecode(t *testing.T) {
 		},
 		"valid event": {
 			input: map[string]interface{}{
-				"id": id, "type": trType, "name": name, "result": result,
-				"duration": duration, "timestamp": timestampEpoch,
+				"timestamp": timestampEpoch,
+				"result":    result,
+				"sampled":   sampled,
+				"parent_id": parentId,
+				"marks":     marks,
 				"context": map[string]interface{}{
 					"a":      "b",
 					"custom": map[string]interface{}{"abc": 1},
@@ -220,18 +237,14 @@ func TestTransactionEventDecode(t *testing.T) {
 					"request": map[string]interface{}{
 						"method":  "POST",
 						"url":     map[string]interface{}{"raw": "127.0.0.1"},
-						"headers": map[string]interface{}{"user-agent": ua}},
+						"headers": map[string]interface{}{"user-agent": ua},
+					},
 					"response": map[string]interface{}{
 						"finished": false,
-						"headers":  map[string]interface{}{"Content-Type": "text/html"}},
+						"headers":  map[string]interface{}{"Content-Type": "text/html"},
+					},
 				},
-				"marks": marks, "sampled": sampled,
-				"parent_id": parentId, "trace_id": traceId,
-				"spans": []interface{}{
-					map[string]interface{}{
-						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
-					}},
-				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0}},
+			},
 			e: &Event{
 				Metadata:  metadata,
 				Id:        id,
@@ -256,20 +269,23 @@ func TestTransactionEventDecode(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
+			}
+			for k, v := range test.input {
+				input[k] = v
+			}
+
 			transformable, err := DecodeEvent(model.Input{
-				Raw:         test.input,
+				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    metadata,
 				Config:      test.cfg,
 			})
-			if test.err != "" {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), test.err)
-			}
-			if test.e != nil && assert.NotNil(t, transformable) {
-				event := transformable.(*Event)
-				assert.Equal(t, test.e, event)
-			}
+			require.NoError(t, err)
+			event := transformable.(*Event)
+			assert.Equal(t, test.e, event)
 		})
 	}
 }

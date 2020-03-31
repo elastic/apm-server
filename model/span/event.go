@@ -52,15 +52,8 @@ var (
 
 	processorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
-	RUMV3Schema       = validation.CreateSchema(schema.RUMV3Schema, "span")
-
-	errMissingInput = errors.New("input missing for decoding span event")
-	errInvalidType  = errors.New("invalid type for span event")
+	rumV3Schema       = validation.CreateSchema(schema.RUMV3Schema, "span")
 )
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
 
 type Event struct {
 	Metadata      metadata.Metadata
@@ -275,18 +268,20 @@ func (d *DestinationService) fields() common.MapStr {
 }
 
 func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
-	return DecodeEvent(input)
+	return decodeEvent(input, rumV3Schema)
 }
 
 // DecodeEvent decodes a span event.
 func DecodeEvent(input m.Input) (transform.Transformable, error) {
-	if input.Raw == nil {
-		return nil, errMissingInput
+	return decodeEvent(input, cachedModelSchema)
+}
+
+func decodeEvent(input m.Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+	raw, err := validation.ValidateObject(input.Raw, schema)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate span")
 	}
-	raw, ok := input.Raw.(map[string]interface{})
-	if !ok {
-		return nil, errInvalidType
-	}
+
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	decoder := utility.ManualDecoder{}
 	event := Event{
