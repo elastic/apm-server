@@ -86,14 +86,14 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func DecodeEvent(input interface{}, _ model.Config, err error) (transform.Transformable, error) {
+func DecodeEvent(input model.Input, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
-	if input == nil {
+	if input.Raw == nil {
 		return nil, errors.New("no data for metric event")
 	}
-	raw, ok := input.(map[string]interface{})
+	raw, ok := input.Raw.(map[string]interface{})
 	if !ok {
 		return nil, errors.New("invalid type for metric event")
 	}
@@ -112,6 +112,9 @@ func DecodeEvent(input interface{}, _ model.Config, err error) (transform.Transf
 
 	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
 		e.Labels = tags
+	}
+	if e.Timestamp.IsZero() {
+		e.Timestamp = input.RequestTime
 	}
 
 	return &e, nil
@@ -224,10 +227,6 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 	utility.DeepUpdate(fields, "labels", me.Labels)
 	utility.DeepUpdate(fields, transactionKey, me.Transaction.fields())
 	utility.DeepUpdate(fields, spanKey, me.Span.fields())
-
-	if me.Timestamp.IsZero() {
-		me.Timestamp = tctx.RequestTime
-	}
 
 	return []beat.Event{
 		{

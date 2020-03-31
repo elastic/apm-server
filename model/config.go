@@ -17,6 +17,28 @@
 
 package model
 
+import (
+	"time"
+)
+
+// Input holds the input required for decoding an event.
+type Input struct {
+	// Raw holds the raw input, decoded by encoding/json.
+	Raw interface{}
+
+	// RequestTime is the time at which the event was received
+	// by the server. This is used to set the timestamp for
+	// events sent by RUM.
+	RequestTime time.Time
+
+	// Config holds configuration for decoding.
+	//
+	// TODO(axw) define a Decoder type which encapsulates
+	// static configuration defined in one location, removing
+	// the possibility of inconsistent configuration.
+	Config Config
+}
+
 type Config struct {
 	Experimental bool
 	// RUM v3 support

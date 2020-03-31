@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
@@ -52,6 +51,7 @@ func TestDecode(t *testing.T) {
 		return json.Number(fmt.Sprintf("%d", ts.UnixNano()/1000))
 	}
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
+	requestTime := time.Now()
 	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
 
 	for _, test := range []struct {
@@ -88,6 +88,15 @@ func TestDecode(t *testing.T) {
 				},
 			},
 			err: utility.ErrFetch,
+		},
+		{
+			input: map[string]interface{}{
+				"samples": map[string]interface{}{},
+			},
+			metricset: &Metricset{
+				Samples:   []*Sample{},
+				Timestamp: requestTime,
+			},
 		},
 		{
 			input: map[string]interface{}{
@@ -160,7 +169,10 @@ func TestDecode(t *testing.T) {
 		},
 	} {
 		var err error
-		transformables, err := DecodeEvent(test.input, model.Config{}, err)
+		transformables, err := DecodeEvent(model.Input{
+			Raw:         test.input,
+			RequestTime: requestTime,
+		}, err)
 		if test.err != nil {
 			assert.Error(t, err)
 		}
@@ -253,12 +265,4 @@ func TestTransform(t *testing.T) {
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 		}
 	}
-}
-
-func TestEventTransformUseReqTime(t *testing.T) {
-	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
-	e := Metricset{}
-	beatEvent := e.Transform(context.Background(), &transform.Context{RequestTime: reqTimestampParsed})
-	require.Len(t, beatEvent, 1)
-	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
 }
