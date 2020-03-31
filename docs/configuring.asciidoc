@@ -1,30 +1,32 @@
 [[configuring-howto-apm-server]]
-= Configuring APM Server
+= Configure APM Server
 
 [partintro]
 --
+++++
+<titleabbrev>Configure</titleabbrev>
+++++
+
 include::{libbeat-dir}/shared-configuring.asciidoc[]
 
 * <<configuration-process>>
 * <<configuring-output>>
-* <<configuring-ingest-node>>
 * <<configuration-ssl-landing>>
 * <<configuration-template>>
-* <<ilm>>
+* <<ilm-reference>>
+* <<jaeger-reference>>
 * <<configuration-logging>>
 * <<setup-kibana-endpoint>>
 * <<configuration-rum>>
-* <<jaeger>>
-* <<using-environ-vars>>
 * <<configuration-path>>
+* <<using-environ-vars>>
+
 --
 
 include::./configuration-process.asciidoc[]
 
 :no-redis-output:
 include::{libbeat-dir}/outputconfig.asciidoc[]
-
-include::./configuring-ingest.asciidoc[]
 
 [[configuration-ssl-landing]]
 == SSL/TLS settings
@@ -51,7 +53,9 @@ See <<securing-apm-server,Securing APM Server>> for more information.
 
 include::./template-config.asciidoc[]
 
-include::./ilm.asciidoc[]
+include::./ilm-reference.asciidoc[]
+
+include::./jaeger-reference.asciidoc[]
 
 include::{libbeat-dir}/loggingconfig.asciidoc[]
 
@@ -59,9 +63,8 @@ include::./configure-kibana-endpoint.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
 
-include::./jaeger-support.asciidoc[]
+include::{libbeat-dir}/shared-path-config.asciidoc[]
 
 :standalone:
 include::{libbeat-dir}/shared-env-vars.asciidoc[]
-
-include::{libbeat-dir}/shared-path-config.asciidoc[]
+:standalone!:
