@@ -49,7 +49,7 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 		"cannot fetch field": {input: map[string]interface{}{}, err: utility.ErrFetch, e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, model.Config{})
+			transformable, err := DecodeEvent(model.Input{Raw: test.input})
 			assert.Equal(t, test.err, err)
 			if test.e != nil {
 				event := transformable.(*Event)
@@ -89,8 +89,10 @@ func TestTransactionDecodeRUMV3Marks(t *testing.T) {
 
 func TestTransactionEventDecode(t *testing.T) {
 	id, trType, name, result := "123", "type", "foo()", "555"
+	requestTime := time.Now()
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
+
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
 	dropped, started, duration := 12, 6, 1.67
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
@@ -113,6 +115,19 @@ func TestTransactionEventDecode(t *testing.T) {
 		err   string
 		e     *Event
 	}{
+		"no timestamp specified, request time used": {
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
+			},
+			e: &Event{
+				Id:        id,
+				Type:      trType,
+				Name:      &name,
+				TraceId:   traceId,
+				Duration:  duration,
+				Timestamp: requestTime,
+			},
+		},
 		"event experimental=true, no experimental payload": {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
@@ -234,7 +249,11 @@ func TestTransactionEventDecode(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, test.cfg)
+			transformable, err := DecodeEvent(model.Input{
+				Raw:         test.input,
+				RequestTime: requestTime,
+				Config:      test.cfg,
+			})
 			if test.err != "" {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), test.err)
@@ -546,8 +565,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	for idx, test := range tests {
 		tctx := &transform.Context{
-			Metadata:    *test.Metadata,
-			RequestTime: timestamp,
+			Metadata: *test.Metadata,
 		}
 		outputEvents := test.Event.Transform(context.Background(), tctx)
 
@@ -556,12 +574,4 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
 		}
 	}
-}
-
-func TestEventTransformUseReqTime(t *testing.T) {
-	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
-	e := Event{}
-	beatEvent := e.Transform(context.Background(), &transform.Context{RequestTime: reqTimestampParsed})
-	require.Len(t, beatEvent, 1)
-	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
 }

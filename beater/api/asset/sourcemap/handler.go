@@ -77,9 +77,8 @@ func Handler(dec RequestDecoder, processor asset.Processor, cfg transform.Config
 		}
 
 		tctx := &transform.Context{
-			RequestTime: utility.RequestTime(c.Request.Context()),
-			Config:      cfg,
-			Metadata:    *metadata,
+			Config:   cfg,
+			Metadata: *metadata,
 		}
 		req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
 		span, ctx := apm.StartSpan(c.Request.Context(), "Send", "Reporter")

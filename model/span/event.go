@@ -273,20 +273,20 @@ func (d *DestinationService) fields() common.MapStr {
 	return fields
 }
 
-func DecodeRUMV3Event(input interface{}, cfg m.Config) (transform.Transformable, error) {
-	return DecodeEvent(input, cfg)
+func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
+	return DecodeEvent(input)
 }
 
 // DecodeEvent decodes a span event.
-func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, error) {
-	if input == nil {
+func DecodeEvent(input m.Input) (transform.Transformable, error) {
+	if input.Raw == nil {
 		return nil, errMissingInput
 	}
-	raw, ok := input.(map[string]interface{})
+	raw, ok := input.Raw.(map[string]interface{})
 	if !ok {
 		return nil, errInvalidType
 	}
-	fieldName := field.Mapper(cfg.HasShortFieldNames)
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	decoder := utility.ManualDecoder{}
 	event := Event{
 		Name:          decoder.String(raw, fieldName("name")),
@@ -315,13 +315,13 @@ func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, erro
 		}
 		event.DB = db
 
-		http, err := decodeHTTP(ctx, cfg.HasShortFieldNames, decoder.Err)
+		http, err := decodeHTTP(ctx, input.Config.HasShortFieldNames, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
 		event.HTTP = http
 
-		dest, destService, err := decodeDestination(ctx, cfg.HasShortFieldNames, decoder.Err)
+		dest, destService, err := decodeDestination(ctx, input.Config.HasShortFieldNames, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
@@ -329,7 +329,7 @@ func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, erro
 		event.DestinationService = destService
 
 		if s, set := ctx["service"]; set {
-			service, err := metadata.DecodeService(s, cfg.HasShortFieldNames, decoder.Err)
+			service, err := metadata.DecodeService(s, input.Config.HasShortFieldNames, decoder.Err)
 			if err != nil {
 				return nil, err
 			}
@@ -340,7 +340,7 @@ func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, erro
 			return nil, err
 		}
 
-		if cfg.Experimental {
+		if input.Config.Experimental {
 			if obj, set := ctx["experimental"]; set {
 				event.Experimental = obj
 			}
@@ -348,7 +348,7 @@ func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, erro
 	}
 
 	var stacktr *m.Stacktrace
-	stacktr, decoder.Err = m.DecodeStacktrace(raw[fieldName("stacktrace")], cfg.HasShortFieldNames, decoder.Err)
+	stacktr, decoder.Err = m.DecodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
@@ -367,6 +367,15 @@ func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, erro
 			action := strings.Join(t[2:], sep)
 			event.Action = &action
 		}
+	}
+
+	if event.Timestamp.IsZero() {
+		timestamp := input.RequestTime
+		if event.Start != nil {
+			// adjust timestamp to be reqTime + start
+			timestamp = timestamp.Add(time.Duration(float64(time.Millisecond) * *event.Start))
+		}
+		event.Timestamp = timestamp
 	}
 
 	return &event, nil
@@ -397,23 +406,12 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	utility.AddId(fields, "transaction", e.TransactionId)
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())
-
-	timestamp := e.Timestamp
-	if timestamp.IsZero() {
-		timestamp = tctx.RequestTime
-	}
-
-	// adjust timestamp to be reqTime + start
-	if e.Timestamp.IsZero() && e.Start != nil {
-		timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
-	}
-
-	utility.Set(fields, "timestamp", utility.TimeAsMicros(timestamp))
+	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
 		{
 			Fields:    fields,
-			Timestamp: timestamp,
+			Timestamp: e.Timestamp,
 		},
 	}
 }

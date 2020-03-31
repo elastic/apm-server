@@ -24,19 +24,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/apm-server/model/field"
-
-	"github.com/elastic/apm-server/beater/config"
-
-	"github.com/elastic/apm-server/model"
-
 	"github.com/santhosh-tekuri/jsonschema"
 	"golang.org/x/time/rate"
 
 	"go.elastic.co/apm"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	er "github.com/elastic/apm-server/model/error"
+	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metricset"
 	"github.com/elastic/apm-server/model/span"
@@ -57,7 +54,7 @@ const (
 
 type processorModel struct {
 	schema       *jsonschema.Schema
-	modelDecoder func(input interface{}, cfg model.Config) (transform.Transformable, error)
+	modelDecoder func(model.Input) (transform.Transformable, error)
 }
 
 type Processor struct {
@@ -183,15 +180,19 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (p *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
-	for key, model := range p.models {
+func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time) (transform.Transformable, error) {
+	for key, m := range p.models {
 		if entry, ok := rawModel[key]; ok {
-			err := validation.Validate(entry, model.schema)
+			err := validation.Validate(entry, m.schema)
 			if err != nil {
 				return nil, err
 			}
 
-			tr, err := model.modelDecoder(entry, p.Mconfig)
+			tr, err := m.modelDecoder(model.Input{
+				Raw:         entry,
+				RequestTime: requestTime,
+				Config:      p.Mconfig,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -204,7 +205,15 @@ func (p *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.T
 // readBatch will read up to `batchSize` objects from the ndjson stream,
 // returning a slice of Transformables and a boolean indicating that there
 // might be more to read.
-func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, batchSize int, reader *streamReader, response *Result) ([]transform.Transformable, bool) {
+func (p *Processor) readBatch(
+	ctx context.Context,
+	ipRateLimiter *rate.Limiter,
+	requestTime time.Time,
+	batchSize int,
+	reader *streamReader,
+	response *Result,
+) ([]transform.Transformable, bool) {
+
 	if ipRateLimiter != nil {
 		// use provided rate limiter to throttle batch read
 		ctxT, cancel := context.WithTimeout(ctx, time.Second)
@@ -232,7 +241,7 @@ func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, 
 			return out, true
 		}
 		if len(rawModel) > 0 {
-			tr, err := p.HandleRawModel(rawModel)
+			tr, err := p.HandleRawModel(rawModel, requestTime)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
@@ -262,10 +271,11 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 		return res
 	}
 
+	requestTime := utility.RequestTime(ctx)
 	tctx := &transform.Context{
-		RequestTime: utility.RequestTime(ctx),
-		Config:      p.Tconfig,
-		Metadata:    *metadata,
+		Config: p.Tconfig,
+		// TODO(axw) pass metadata into the decoder instead
+		Metadata: *metadata,
 	}
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
@@ -274,7 +284,7 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	var transformables []transform.Transformable
 	var done bool
 	for !done {
-		transformables, done = p.readBatch(ctx, ipRateLimiter, batchSize, sr, res)
+		transformables, done = p.readBatch(ctx, ipRateLimiter, requestTime, batchSize, sr, res)
 		if len(transformables) == 0 {
 			continue
 		}

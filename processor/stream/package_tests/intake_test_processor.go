@@ -22,6 +22,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -87,7 +88,7 @@ func (p *intakeTestProcessor) LoadPayload(path string) (interface{}, error) {
 func (p *intakeTestProcessor) Decode(data interface{}) error {
 	events := data.([]interface{})
 	for _, e := range events {
-		_, err := p.Processor.HandleRawModel(e.(map[string]interface{}))
+		_, err := p.Processor.HandleRawModel(e.(map[string]interface{}), time.Now())
 		if err != nil {
 			return err
 		}

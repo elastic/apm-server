@@ -91,14 +91,14 @@ type SpanCount struct {
 	Started *int
 }
 
-func DecodeRUMV3Event(input interface{}, cfg m.Config) (transform.Transformable, error) {
-	transformable, err := DecodeEvent(input, cfg)
+func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
+	transformable, err := DecodeEvent(input)
 	if err != nil {
 		return transformable, err
 	}
 	event, _ := transformable.(*Event)
-	raw, _ := input.(map[string]interface{})
-	return decodeRUMV3Marks(event, raw, cfg)
+	raw, _ := input.Raw.(map[string]interface{})
+	return decodeRUMV3Marks(event, raw, input.Config)
 }
 
 func decodeRUMV3Marks(event *Event, raw map[string]interface{}, cfg m.Config) (transform.Transformable, error) {
@@ -145,21 +145,21 @@ func decodeRUMV3Marks(event *Event, raw map[string]interface{}, cfg m.Config) (t
 	return event, decoder.Err
 }
 
-func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, error) {
-	if input == nil {
+func DecodeEvent(input m.Input) (transform.Transformable, error) {
+	if input.Raw == nil {
 		return nil, errMissingInput
 	}
-	raw, ok := input.(map[string]interface{})
+	raw, ok := input.Raw.(map[string]interface{})
 	if !ok {
 		return nil, errInvalidType
 	}
 
-	ctx, err := m.DecodeContext(raw, cfg, nil)
+	ctx, err := m.DecodeContext(raw, input.Config, nil)
 	if err != nil {
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(cfg.HasShortFieldNames)
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	e := Event{
 		Id:           decoder.String(raw, "id"),
 		Type:         decoder.String(raw, fieldName("type")),
@@ -187,6 +187,9 @@ func DecodeEvent(input interface{}, cfg m.Config) (transform.Transformable, erro
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+	if e.Timestamp.IsZero() {
+		e.Timestamp = input.RequestTime
 	}
 
 	return &e, nil
@@ -226,10 +229,6 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
 	transformations.Inc()
-
-	if e.Timestamp.IsZero() {
-		e.Timestamp = tctx.RequestTime
-	}
 
 	fields := common.MapStr{
 		"processor":        processorEntry,

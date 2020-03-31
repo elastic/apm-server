@@ -38,6 +38,7 @@ import (
 )
 
 func TestDecodeSpan(t *testing.T) {
+	requestTime := time.Now()
 	spanTime := time.Date(2018, 5, 30, 19, 53, 17, 134*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", spanTime.UnixNano()/1000))
 	id, parentId := "0000000000000000", "FFFFFFFFFFFFFFFF"
@@ -135,6 +136,22 @@ func TestDecodeSpan(t *testing.T) {
 				ParentId:  parentId,
 				Id:        id,
 				TraceId:   traceId,
+			},
+		},
+		"no timestamp specified, request time + start used": {
+			input: map[string]interface{}{
+				"name": name, "type": "db", "duration": duration, "parent_id": parentId, "trace_id": traceId, "id": id,
+				"start": start,
+			},
+			e: &Event{
+				Name:      name,
+				Type:      "db",
+				Duration:  duration,
+				ParentId:  parentId,
+				Id:        id,
+				TraceId:   traceId,
+				Start:     &start,
+				Timestamp: requestTime.Add(time.Duration(start * float64(time.Millisecond))),
 			},
 		},
 		"event experimental=false": {
@@ -244,7 +261,11 @@ func TestDecodeSpan(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			span, err := DecodeEvent(test.input, test.cfg)
+			span, err := DecodeEvent(m.Input{
+				Raw:         test.input,
+				RequestTime: requestTime,
+				Config:      test.cfg,
+			})
 			if test.err == "" {
 				require.Nil(t, err)
 				assert.Equal(t, test.e, span)
@@ -302,6 +323,7 @@ func TestSpanTransform(t *testing.T) {
 				Type:       "myspantype",
 				Subtype:    &subtype,
 				Action:     &action,
+				Timestamp:  timestamp,
 				Start:      &start,
 				Duration:   1.20,
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
@@ -361,7 +383,7 @@ func TestSpanTransform(t *testing.T) {
 				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
 				"service":     common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
-				"timestamp":   common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
+				"timestamp":   common.MapStr{"us": timestampUs},
 				"trace":       common.MapStr{"id": traceId},
 				"parent":      common.MapStr{"id": parentId},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
@@ -371,24 +393,12 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	tctx := &transform.Context{
-		Config:      transform.Config{SourcemapStore: &sourcemap.Store{}},
-		Metadata:    metadata.Metadata{Service: &service, Labels: metadataLabels},
-		RequestTime: timestamp,
+		Config:   transform.Config{SourcemapStore: &sourcemap.Store{}},
+		Metadata: metadata.Metadata{Service: &service, Labels: metadataLabels},
 	}
 	for _, test := range tests {
 		output := test.Event.Transform(context.Background(), tctx)
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields)
 	}
-}
-
-func TestEventTransformUseReqTimePlusStart(t *testing.T) {
-	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
-	start := 1234.8
-	e := Event{Start: &start}
-	beatEvent := e.Transform(context.Background(), &transform.Context{RequestTime: reqTimestampParsed})
-	require.Len(t, beatEvent, 1)
-
-	adjustedParsed := time.Date(2017, 5, 30, 18, 53, 28, 388.8*1e6, time.UTC)
-	assert.Equal(t, adjustedParsed, beatEvent[0].Timestamp)
 }
