@@ -1,7 +1,7 @@
 import json
 import requests
 
-from apmserver import ElasticTest, integration_test
+from apmserver import ElasticTest, ServerBaseTest, integration_test
 
 
 @integration_test
@@ -87,3 +87,39 @@ class LoggingIntegrationTraceCorrelationTest(ElasticTest):
             self.assertIn("trace.id", req)
             self.assertIn("transaction.id", req)
             self.assertEqual(req["transaction.id"], req["request_id"])
+
+
+class LoggingToEnvContainer(ServerBaseTest):
+    def start_args(self):
+        return {"extra_args": ["-environment", "container"]}
+
+    def test_startup(self):
+        # we only need to check that the server can start up
+        self.wait_until_started()
+
+
+class LoggingToEnvSystemd(ServerBaseTest):
+    def start_args(self):
+        return {"extra_args": ["-environment", "systemd"]}
+
+    def test_startup(self):
+        # we only need to check that the server can start up
+        self.wait_until_started()
+
+
+class LoggingToEnvMacOS(ServerBaseTest):
+    def start_args(self):
+        return {"extra_args": ["-environment", "macos_service"]}
+
+    def test_startup(self):
+        # we only need to check that the server can start up
+        self.wait_until_started()
+
+
+class LoggingToEnvWindows(ServerBaseTest):
+    def start_args(self):
+        return {"extra_args": ["-environment", "windows_service"]}
+
+    def test_startup(self):
+        # we only need to check that the server can start up
+        self.wait_until_started()
