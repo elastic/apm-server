@@ -54,7 +54,7 @@ const (
 
 type processorModel struct {
 	schema       *jsonschema.Schema
-	modelDecoder func(model.Input, error) (transform.Transformable, error)
+	modelDecoder func(model.Input) (transform.Transformable, error)
 }
 
 type Processor struct {
@@ -187,12 +187,12 @@ func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime 
 			if err != nil {
 				return nil, err
 			}
-			input := model.Input{
+
+			tr, err := m.modelDecoder(model.Input{
 				Raw:         entry,
 				RequestTime: requestTime,
 				Config:      p.Mconfig,
-			}
-			tr, err := m.modelDecoder(input, err)
+			})
 			if err != nil {
 				return nil, err
 			}

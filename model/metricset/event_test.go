@@ -168,11 +168,10 @@ func TestDecode(t *testing.T) {
 			},
 		},
 	} {
-		var err error
 		transformables, err := DecodeEvent(model.Input{
 			Raw:         test.input,
 			RequestTime: requestTime,
-		}, err)
+		})
 		if test.err != nil {
 			assert.Error(t, err)
 		}
