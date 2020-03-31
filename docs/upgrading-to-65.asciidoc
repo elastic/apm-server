@@ -1,5 +1,9 @@
 [[upgrading-to-65]]
-=== Upgrading to APM Server v6.5
+=== Upgrade to APM Server version 6.5
+
+++++
+<titleabbrev>Upgrade to version 6.5</titleabbrev>
+++++
 
 If you're an advanced user, are implementing a custom agent,
 or provide custom data to Elasticsearch,

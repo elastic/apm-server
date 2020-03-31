@@ -1,5 +1,9 @@
 [[server-info]]
-== Server Information
+== Server Information API
+
+++++
+<titleabbrev>Server information</titleabbrev>
+++++
 
 The APM Server exposes an API endpoint to query general server information.
 This lightweight endpoint is useful as a server up/down healthcheck.

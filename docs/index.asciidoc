@@ -51,7 +51,7 @@ include::./getting-started-apm-server.asciidoc[]
 
 include::./setting-up-and-running.asciidoc[]
 
-include::./upgrading.asciidoc[]
+include::./howto.asciidoc[]
 
 :beat-specific-output-config: {docdir}/configuring-output-after.asciidoc
 include::./configuring.asciidoc[]
@@ -61,12 +61,6 @@ include::{libbeat-dir}/shared-securing-beat.asciidoc[]
 
 include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[]
 
-include::./rum.asciidoc[]
-
-include::./data-ingestion.asciidoc[]
-
-include::./storage-management.asciidoc[]
-
 include::./intake-api.asciidoc[]
 
 include::./exploring-es-data.asciidoc[]
@@ -74,6 +68,8 @@ include::./exploring-es-data.asciidoc[]
 include::./fields.asciidoc[]
 
 include::./troubleshooting.asciidoc[]
+
+include::./upgrading.asciidoc[]
 
 include::./release-notes.asciidoc[]
 

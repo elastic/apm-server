@@ -1,18 +1,18 @@
 [[storage-management]]
-= Storage Management
+== Storage Management
 
-[partintro]
---
+++++
+<titleabbrev>Manage Storage</titleabbrev>
+++++
 
 * <<sizing-guide, Storage and sizing guide>>
 * <<processing-performance, Processing and performance>>
 * <<reduce-storage, Reduce storage usage>>
 * <<manage-indices-kibana, Manage APM indices via Kibana>>
 * <<update-existing-data, Update existing data>>
---
 
 [[sizing-guide]]
-== Storage and sizing guide
+=== Storage and sizing guide
 
 APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
@@ -26,7 +26,7 @@ Stack frames can heavily influence the size of a span.
 
 [float]
 [[typical-transactions]]
-=== Typical transactions
+==== Typical transactions
 
 Due to the high variability of APM data, it's difficult to classify a transaction as typical.
 Regardless, this guide will attempt to classify Transactions as _Small_, _Medium_, or _Large_,
@@ -56,7 +56,7 @@ Small transactions are the most common.
 
 [float]
 [[typical-storage]]
-=== Typical storage
+==== Typical storage
 
 Consider the following typical storage reference.
 These numbers do not account for Elasticsearch compression.
@@ -77,7 +77,7 @@ APM data compresses quite well, so the storage cost in Elasticsearch will be con
 NOTE: These examples were indexing the same data over and over with minimal variation. Because of that, the compression ratios observed of 80-90% are somewhat optimistic.
 
 [[processing-performance]]
-== Processing and performance
+=== Processing and performance
 
 APM Server performance depends on a number of factors: memory and CPU available,
 network latency, transaction sizes, workload patterns,
@@ -122,7 +122,7 @@ This means that with a properly sized Elasticsearch instance, APM Server scales 
 NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency. 
 
 [[reduce-storage]]
-== Reduce storage
+=== Reduce storage
 
 The amount of storage for APM data depends on several factors:
 the number of services you are instrumenting, how much traffic the services see, agent and server settings,
@@ -130,7 +130,7 @@ and the length of time you store your data.
 
 [float]
 [[reduce-sample-rate]]
-=== Reduce the sample rate
+==== Reduce the sample rate
 
 The transaction sample rate directly influences the number of documents (more precisely, spans) to be indexed.
 It is the easiest way to reduce storage.
@@ -140,7 +140,7 @@ Reducing it does not affect the collection of metrics such as _Transactions per 
 
 [float]
 [[reduce-stacktrace]]
-=== Reduce collected stacktrace information
+==== Reduce collected stacktrace information
 
 Elastic APM agents collect `stacktrace` information under certain circumstances.
 This can be very helpful in identifying issues in your code,
@@ -150,7 +150,7 @@ Stacktrace collection settings are managed in each agent.
 
 [float]
 [[delete-data]]
-=== Delete data
+==== Delete data
 
 You might want to only keep data for a defined time period.
 This might mean deleting old documents periodically,
@@ -164,7 +164,7 @@ or in the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
 [float]
 [[delete-data-ilm]]
-==== Delete data with ILM
+===== Delete data with ILM
 
 Index Lifecycle management (ILM) enables you to automate how you want to manage your indices over time.
 You can base actions on factors such as shard size and performance requirements.
@@ -172,7 +172,7 @@ See <<ilm>> to learn more.
 
 [float]
 [[delete-data-periodically]]
-==== Delete data periodically
+===== Delete data periodically
 
 To delete data periodically you can use {curator-ref-current}[Curator] and set up a cron job to run it.
 
@@ -209,7 +209,7 @@ INFO      "delete_indices" action completed.
 
 [float]
 [[delete-data-by-query]]
-==== Delete data matching a query
+===== Delete data matching a query
 
 You can delete documents matching a specific query.
 For example, all documents with a given `c`ontext.service.name` use the following request:
@@ -238,13 +238,13 @@ See {ref}/docs-delete-by-query.html[delete by query] for further information on 
 
 [float]
 [[delete-data-kibana]]
-==== Delete data via Kibana Index Management UI
+===== Delete data via Kibana Index Management UI
 
 Select the indices you want to delete, and click **Manage indices** to see the available actions.
 Then click **delete indices**.
 
 [[manage-indices-kibana]]
-== Manage Indices via Kibana
+=== Manage Indices via Kibana
 
 The Kibana UI for {kibana-ref}/managing-indices.html[managing indices] allows you to view indices,
 index settings, mappings, document counts, used storage per index, and much more.
@@ -252,7 +252,7 @@ You can also perform management operations, like deleting indices directly via t
 Finally, the UI supports applying bulk operations on several indices at once.
 
 [[update-existing-data]]
-== Update existing data
+=== Update existing data
 
 You might want to update documents that are already indexed.
 For example, if you your service name was set incorrectly.
@@ -261,7 +261,7 @@ To do this, you can use the {ref}/docs-update-by-query.html[Update By Query API]
 
 [float]
 [[update-data-rename-a-service]]
-=== Rename a service
+==== Rename a service
 
 To rename a service, send the following request:
 

@@ -1,5 +1,5 @@
 [[exploring-es-data]]
-= Exploring data in Elasticsearch
+= Explore data in Elasticsearch
 
 [partintro]
 --
