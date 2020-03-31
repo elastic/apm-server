@@ -27,6 +27,7 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
@@ -88,7 +89,7 @@ func (p *intakeTestProcessor) LoadPayload(path string) (interface{}, error) {
 func (p *intakeTestProcessor) Decode(data interface{}) error {
 	events := data.([]interface{})
 	for _, e := range events {
-		_, err := p.Processor.HandleRawModel(e.(map[string]interface{}), time.Now())
+		_, err := p.Processor.HandleRawModel(e.(map[string]interface{}), time.Now(), metadata.Metadata{})
 		if err != nil {
 			return err
 		}

@@ -180,7 +180,7 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time) (transform.Transformable, error) {
+func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time, streamMetadata metadata.Metadata) (transform.Transformable, error) {
 	for key, m := range p.models {
 		if entry, ok := rawModel[key]; ok {
 			err := validation.Validate(entry, m.schema)
@@ -191,6 +191,7 @@ func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime 
 			tr, err := m.modelDecoder(model.Input{
 				Raw:         entry,
 				RequestTime: requestTime,
+				Metadata:    streamMetadata,
 				Config:      p.Mconfig,
 			})
 			if err != nil {
@@ -209,6 +210,7 @@ func (p *Processor) readBatch(
 	ctx context.Context,
 	ipRateLimiter *rate.Limiter,
 	requestTime time.Time,
+	streamMetadata *metadata.Metadata,
 	batchSize int,
 	reader *streamReader,
 	response *Result,
@@ -241,7 +243,7 @@ func (p *Processor) readBatch(
 			return out, true
 		}
 		if len(rawModel) > 0 {
-			tr, err := p.HandleRawModel(rawModel, requestTime)
+			tr, err := p.HandleRawModel(rawModel, requestTime, *streamMetadata)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
@@ -272,11 +274,7 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	}
 
 	requestTime := utility.RequestTime(ctx)
-	tctx := &transform.Context{
-		Config: p.Tconfig,
-		// TODO(axw) pass metadata into the decoder instead
-		Metadata: *metadata,
-	}
+	tctx := &transform.Context{Config: p.Tconfig}
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
@@ -284,7 +282,7 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	var transformables []transform.Transformable
 	var done bool
 	for !done {
-		transformables, done = p.readBatch(ctx, ipRateLimiter, requestTime, batchSize, sr, res)
+		transformables, done = p.readBatch(ctx, ipRateLimiter, requestTime, metadata, batchSize, sr, res)
 		if len(transformables) == 0 {
 			continue
 		}

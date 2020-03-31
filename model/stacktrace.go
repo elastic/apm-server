@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model/metadata"
 
 	"github.com/elastic/apm-server/transform"
 )
@@ -51,7 +52,7 @@ func DecodeStacktrace(input interface{}, hasShortFieldNames bool, err error) (*S
 	return &st, err
 }
 
-func (st *Stacktrace) Transform(ctx context.Context, tctx *transform.Context) []common.MapStr {
+func (st *Stacktrace) Transform(ctx context.Context, tctx *transform.Context, service *metadata.Service) []common.MapStr {
 	if st == nil {
 		return nil
 	}
@@ -75,7 +76,7 @@ func (st *Stacktrace) Transform(ctx context.Context, tctx *transform.Context) []
 	if tctx.Config.SourcemapStore == nil {
 		return st.transform(tctx, noSourcemapping)
 	}
-	if tctx.Metadata.Service == nil || tctx.Metadata.Service.Name == nil || tctx.Metadata.Service.Version == nil {
+	if service == nil || service.Name == nil || service.Version == nil {
 		logp.NewLogger(logs.Stacktrace).Warn(msgServiceInvalidForSourcemapping)
 		return st.transform(tctx, noSourcemapping)
 	}
@@ -85,7 +86,7 @@ func (st *Stacktrace) Transform(ctx context.Context, tctx *transform.Context) []
 	logger := logp.NewLogger(logs.Stacktrace)
 	fct := "<anonymous>"
 	return st.transform(tctx, func(frame *StacktraceFrame) {
-		fct, errMsg = frame.applySourcemap(ctx, tctx.Config.SourcemapStore, tctx.Metadata.Service, fct)
+		fct, errMsg = frame.applySourcemap(ctx, tctx.Config.SourcemapStore, service, fct)
 		if errMsg != "" {
 			if _, ok := sourcemapErrorSet[errMsg]; !ok {
 				logger.Warn(errMsg)

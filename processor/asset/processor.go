@@ -18,12 +18,11 @@
 package asset
 
 import (
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 )
 
 type Processor interface {
 	Validate(map[string]interface{}) error
-	Decode(map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error)
+	Decode(map[string]interface{}) ([]transform.Transformable, error)
 	Name() string
 }

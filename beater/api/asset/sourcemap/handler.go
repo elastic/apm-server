@@ -69,17 +69,14 @@ func Handler(dec RequestDecoder, processor asset.Processor, cfg transform.Config
 			return
 		}
 
-		metadata, transformables, err := processor.Decode(data)
+		transformables, err := processor.Decode(data)
 		if err != nil {
 			c.Result.SetWithError(request.IDResponseErrorsDecode, err)
 			c.Write()
 			return
 		}
 
-		tctx := &transform.Context{
-			Config:   cfg,
-			Metadata: *metadata,
-		}
+		tctx := &transform.Context{Config: cfg}
 		req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
 		span, ctx := apm.StartSpan(c.Request.Context(), "Send", "Reporter")
 		defer span.End()

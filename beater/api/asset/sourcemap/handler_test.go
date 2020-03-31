@@ -32,7 +32,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
@@ -150,11 +149,11 @@ func (p *mockProcessor) Validate(m map[string]interface{}) error {
 	}
 	return nil
 }
-func (p *mockProcessor) Decode(m map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error) {
+func (p *mockProcessor) Decode(m map[string]interface{}) ([]transform.Transformable, error) {
 	if _, ok := m["mockProcessor"]; ok {
-		return nil, nil, errors.New("processor decode error")
+		return nil, errors.New("processor decode error")
 	}
-	return &metadata.Metadata{}, nil, nil
+	return nil, nil
 }
 func (p *mockProcessor) Name() string {
 	return "mockProcessor"

@@ -75,6 +75,10 @@ func TestDecodeSpan(t *testing.T) {
 		"filename": "file",
 	}}
 
+	metadata := metadata.Metadata{
+		Service: &metadata.Service{Name: tests.StringPtr("foo")},
+	}
+
 	for name, test := range map[string]struct {
 		input interface{}
 		cfg   m.Config
@@ -127,6 +131,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
 			},
 			e: &Event{
+				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
 				Subtype:   &subtype,
@@ -144,6 +149,7 @@ func TestDecodeSpan(t *testing.T) {
 				"start": start,
 			},
 			e: &Event{
+				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
 				Duration:  duration,
@@ -161,6 +167,7 @@ func TestDecodeSpan(t *testing.T) {
 				"context": map[string]interface{}{"experimental": 123},
 			},
 			e: &Event{
+				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
 				Subtype:       &subtype,
@@ -181,6 +188,7 @@ func TestDecodeSpan(t *testing.T) {
 				"context": map[string]interface{}{"foo": 123},
 			},
 			e: &Event{
+				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
 				Subtype:       &subtype,
@@ -202,6 +210,7 @@ func TestDecodeSpan(t *testing.T) {
 				"context": map[string]interface{}{"experimental": 123},
 			},
 			e: &Event{
+				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
 				Subtype:       &subtype,
@@ -224,6 +233,7 @@ func TestDecodeSpan(t *testing.T) {
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			e: &Event{
+				Metadata:  metadata,
 				Name:      name,
 				Type:      "messaging",
 				Subtype:   &subtype,
@@ -264,6 +274,7 @@ func TestDecodeSpan(t *testing.T) {
 			span, err := DecodeEvent(m.Input{
 				Raw:         test.input,
 				RequestTime: requestTime,
+				Metadata:    metadata,
 				Config:      test.cfg,
 			})
 			if test.err == "" {
@@ -291,6 +302,7 @@ func TestSpanTransform(t *testing.T) {
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
 	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
+	metadata := metadata.Metadata{Service: &service, Labels: metadataLabels}
 	address, port := "127.0.0.1", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 
@@ -300,7 +312,7 @@ func TestSpanTransform(t *testing.T) {
 		Msg    string
 	}{
 		{
-			Event: Event{Timestamp: timestamp},
+			Event: Event{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
@@ -316,6 +328,7 @@ func TestSpanTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
+				Metadata:   metadata,
 				Id:         hexId,
 				TraceId:    traceId,
 				ParentId:   parentId,
@@ -393,8 +406,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	tctx := &transform.Context{
-		Config:   transform.Config{SourcemapStore: &sourcemap.Store{}},
-		Metadata: metadata.Metadata{Service: &service, Labels: metadataLabels},
+		Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
 	}
 	for _, test := range tests {
 		output := test.Event.Transform(context.Background(), tctx)

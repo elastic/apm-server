@@ -24,7 +24,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/model/metadata"
 	sm "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/validation"
@@ -55,15 +54,15 @@ func (p *sourcemapProcessor) Name() string {
 	return eventName
 }
 
-func (p *sourcemapProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error) {
+func (p *sourcemapProcessor) Decode(raw map[string]interface{}) ([]transform.Transformable, error) {
 	p.DecodingCount.Inc()
 	transformable, err := sm.DecodeSourcemap(raw)
 	if err != nil {
 		p.DecodingError.Inc()
-		return nil, nil, err
+		return nil, err
 	}
 
-	return &metadata.Metadata{}, []transform.Transformable{transformable}, err
+	return []transform.Transformable{transformable}, err
 }
 
 func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {

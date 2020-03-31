@@ -32,6 +32,7 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -75,6 +76,7 @@ type Span struct {
 }
 
 type Metricset struct {
+	Metadata    metadata.Metadata
 	Samples     []*Sample
 	Labels      common.MapStr
 	Transaction *Transaction
@@ -101,6 +103,7 @@ func DecodeEvent(input model.Input) (transform.Transformable, error) {
 		Transaction: md.decodeTransaction(raw[transactionKey]),
 		Span:        md.decodeSpan(raw[spanKey]),
 		Timestamp:   md.TimeEpochMicro(raw, "timestamp"),
+		Metadata:    input.Metadata,
 	}
 
 	if md.Err != nil {
@@ -218,7 +221,7 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 	}
 
 	fields["processor"] = processorEntry
-	tctx.Metadata.Set(fields)
+	me.Metadata.Set(fields)
 
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", me.Labels)
