@@ -87,9 +87,8 @@ func TestPprofProfileTransform(t *testing.T) {
 	metadata := metadata.Metadata{Service: &service}
 
 	tctx := &transform.Context{
-		Config:      transform.Config{}, // not used
-		Metadata:    metadata,
-		RequestTime: time.Time{}, // not used
+		Config:   transform.Config{}, // not used
+		Metadata: metadata,
 	}
 	output := pp.Transform(context.Background(), tctx)
 	require.Len(t, output, 2)

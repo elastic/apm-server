@@ -81,6 +81,7 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 func TestErrorEventDecode(t *testing.T) {
 	timestamp := json.Number("1496170407154000")
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
+	requestTime := time.Now()
 
 	id, culprit, lineno := "123", "foo()", 2
 	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
@@ -155,6 +156,14 @@ func TestErrorEventDecode(t *testing.T) {
 				Id:        &id,
 				Culprit:   &culprit,
 				Timestamp: timestampParsed,
+			},
+		},
+		"minimal valid error with request time": {
+			input: map[string]interface{}{"id": id, "culprit": culprit, "context": map[string]interface{}{}},
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Timestamp: requestTime,
 			},
 		},
 		"minimal valid error with log and exception": {
@@ -282,7 +291,11 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeEvent(test.input, test.cfg, test.inpErr)
+			transformable, err := DecodeEvent(m.Input{
+				Raw:         test.input,
+				RequestTime: requestTime,
+				Config:      test.cfg,
+			}, test.inpErr)
 			if test.e != nil && assert.NotNil(t, transformable) {
 				event := transformable.(*Event)
 				assert.Equal(t, test.e, event)
@@ -315,7 +328,7 @@ func TestHandleExceptionTree(t *testing.T) {
 			},
 		},
 	}
-	result, err := DecodeEvent(errorEvent, m.Config{}, nil)
+	result, err := DecodeEvent(m.Input{Raw: errorEvent}, nil)
 	require.NoError(t, err)
 
 	event := result.(*Event)
@@ -342,7 +355,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				"type":    "type0",
 			},
 		}
-		result, err := DecodeEvent(badID, m.Config{}, nil)
+		result, err := DecodeEvent(m.Input{Raw: badID}, nil)
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -358,7 +371,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeEvent(badException, m.Config{}, nil)
+		result, err := DecodeEvent(m.Input{Raw: badException}, nil)
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -372,7 +385,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				"cause":   []interface{}{7.4},
 			},
 		}
-		result, err := DecodeEvent(badException, m.Config{}, nil)
+		result, err := DecodeEvent(m.Input{Raw: badException}, nil)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "cause must be an exception")
 		assert.Nil(t, result)
@@ -389,7 +402,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeEvent(emptyCauses, m.Config{}, nil)
+		result, err := DecodeEvent(m.Input{Raw: emptyCauses}, nil)
 		require.NoError(t, err)
 		assert.NotNil(t, result)
 
@@ -685,9 +698,8 @@ func TestEvents(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			me := metadata.NewMetadata(&service, nil, nil, &metadata.User{Id: &uid}, metadataLabels)
 			tctx := &transform.Context{
-				Metadata:    *me,
-				Config:      transform.Config{SourcemapStore: &sourcemap.Store{}},
-				RequestTime: timestamp,
+				Metadata: *me,
+				Config:   transform.Config{SourcemapStore: &sourcemap.Store{}},
 			}
 
 			outputEvents := tc.Transformable.Transform(context.Background(), tctx)

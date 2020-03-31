@@ -64,12 +64,10 @@ type Consumer struct {
 // ConsumeTraceData consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
-	requestTime := time.Now()
 	metadata, transformables := c.convert(td)
 	transformContext := &transform.Context{
-		RequestTime: requestTime,
-		Config:      c.TransformConfig,
-		Metadata:    metadata,
+		Config:   c.TransformConfig,
+		Metadata: metadata,
 	}
 
 	return c.Reporter(ctx, publish.PendingReq{
