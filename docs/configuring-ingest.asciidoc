@@ -37,10 +37,6 @@ and then viewing `ingest/pipeline/definition.json`.
 
 To disable this, or any other pipeline, set `output.elasticsearch.pipeline: _none`.
 
-// The content within the "default-pipeline" tag is reused elsewhere. Keep that in mind when editing it.
-// tag::default-pipeline[]
-// end::default-pipeline[]
-
 [[custom-pipelines]]
 [float]
 === Custom pipelines
