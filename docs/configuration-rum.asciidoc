@@ -28,6 +28,7 @@ apm-server.rum.enabled: true
 apm-server.rum.event_rate.limit: 300
 apm-server.rum.event_rate.lru_size: 1000
 apm-server.rum.allow_origins: ['*']
+apm-server.rum.allow_headers: ["header1", "header2"]
 apm-server.rum.library_pattern: "node_modules|bower_components|~"
 apm-server.rum.exclude_from_grouping: "^/webpack"
 apm-server.rum.source_mapping.enabled: true
@@ -66,6 +67,14 @@ User-agents send an Origin header that will be validated against this list.
 This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
 An origin is made of a protocol scheme, host and port, without the URL path.
 Default value is set to `['*']`, which allows everything.
+
+[float]
+[[rum-allow-headers]]
+==== `allow_headers`
+A list of permitted Access-Control-Allow-Headers for RUM support.
+This defines the HTTP headers that can be used in a request from the frontend application.
+The default list of values includes "Content-Type", "Content-Encoding", and "Accept";
+Custom values configured here are appended to the default list of values.
 
 [float]
 [[rum-library-pattern]]
