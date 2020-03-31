@@ -119,14 +119,11 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func DecodeRUMV3Event(input m.Input, err error) (transform.Transformable, error) {
-	return DecodeEvent(input, err)
+func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
+	return DecodeEvent(input)
 }
 
-func DecodeEvent(input m.Input, err error) (transform.Transformable, error) {
-	if err != nil {
-		return nil, err
-	}
+func DecodeEvent(input m.Input) (transform.Transformable, error) {
 	if input.Raw == nil {
 		return nil, errMissingInput
 	}

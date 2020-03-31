@@ -91,8 +91,8 @@ type SpanCount struct {
 	Started *int
 }
 
-func DecodeRUMV3Event(input m.Input, err error) (transform.Transformable, error) {
-	transformable, err := DecodeEvent(input, err)
+func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
+	transformable, err := DecodeEvent(input)
 	if err != nil {
 		return transformable, err
 	}
@@ -145,10 +145,7 @@ func decodeRUMV3Marks(event *Event, raw map[string]interface{}, cfg m.Config) (t
 	return event, decoder.Err
 }
 
-func DecodeEvent(input m.Input, err error) (transform.Transformable, error) {
-	if err != nil {
-		return nil, err
-	}
+func DecodeEvent(input m.Input) (transform.Transformable, error) {
 	if input.Raw == nil {
 		return nil, errMissingInput
 	}
