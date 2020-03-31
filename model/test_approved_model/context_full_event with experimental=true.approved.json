@@ -82,6 +82,9 @@
             "Version": "8"
         },
         "Name": "myService",
+        "Node": {
+            "Name": null
+        },
         "Runtime": {
             "Name": "node",
             "Version": "8.0.0"

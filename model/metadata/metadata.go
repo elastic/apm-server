@@ -77,17 +77,13 @@ func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*Metadata, erro
 	if err != nil {
 		return nil, err
 	}
-	return NewMetadata(service, system, process, user, labels), nil
-}
-
-func NewMetadata(service *Service, system *System, process *Process, user *User, labels common.MapStr) *Metadata {
 	return &Metadata{
 		Service: service,
 		System:  system,
 		Process: process,
 		User:    user,
 		Labels:  labels,
-	}
+	}, nil
 }
 
 func (m *Metadata) Set(fields common.MapStr) common.MapStr {

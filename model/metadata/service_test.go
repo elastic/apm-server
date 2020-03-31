@@ -82,7 +82,7 @@ func TestServiceTransform(t *testing.T) {
 					Name:    &agentName,
 					Version: &agentVersion,
 				},
-				node: node{name: &serviceNodeName},
+				Node: ServiceNode{Name: &serviceNodeName},
 			},
 			ContainerID: "foo",
 			HostName:    "bar",

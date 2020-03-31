@@ -19,6 +19,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/elastic/apm-server/model/metadata"
 )
 
 // Input holds the input required for decoding an event.
@@ -30,6 +32,9 @@ type Input struct {
 	// by the server. This is used to set the timestamp for
 	// events sent by RUM.
 	RequestTime time.Time
+
+	// Metadata holds metadata that may be added to the event.
+	Metadata metadata.Metadata
 
 	// Config holds configuration for decoding.
 	//

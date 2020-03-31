@@ -63,6 +63,7 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Event struct {
+	Metadata      metadata.Metadata
 	Id            string
 	TransactionId *string
 	ParentId      string
@@ -289,6 +290,7 @@ func DecodeEvent(input m.Input) (transform.Transformable, error) {
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	decoder := utility.ManualDecoder{}
 	event := Event{
+		Metadata:      input.Metadata,
 		Name:          decoder.String(raw, fieldName("name")),
 		Start:         decoder.Float64Ptr(raw, fieldName("start")),
 		Duration:      decoder.Float64(raw, fieldName("duration")),
@@ -394,7 +396,7 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	}
 
 	// first set the generic metadata
-	tctx.Metadata.Set(fields)
+	e.Metadata.Set(fields)
 
 	// then add event specific information
 	utility.DeepUpdate(fields, "service", e.Service.Fields("", ""))
@@ -444,7 +446,9 @@ func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapS
 
 	utility.Set(fields, "message", e.Message.Fields())
 
-	st := e.Stacktrace.Transform(ctx, tctx)
+	// TODO(axw) we should be using a merged service object, combining
+	// the stream metadata and event-specific service info.
+	st := e.Stacktrace.Transform(ctx, tctx, e.Metadata.Service)
 	utility.Set(fields, "stacktrace", st)
 	return fields
 }
