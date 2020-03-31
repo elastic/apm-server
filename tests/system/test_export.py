@@ -30,7 +30,7 @@ class ExportConfigDefaultTest(ExportCommandTest):
         config = yaml.load(self.command_output)
         # logging settings
         self.assertDictEqual(
-            {"metrics": {"enabled": False}}, config["logging"]
+            {"metrics": {"enabled": False}, 'files': {'rotateeverybytes': 10485760}, }, config["logging"]
         )
 
         # template settings
@@ -72,8 +72,9 @@ class ExportConfigTest(ExportCommandTest):
         """
         config = yaml.load(self.command_output)
         # logging settings
+        assert "metrics" in config["logging"]
         self.assertDictEqual(
-            {"metrics": {"enabled": True}}, config["logging"]
+            {"enabled": True}, config["logging"]["metrics"]
         )
 
         # template settings
