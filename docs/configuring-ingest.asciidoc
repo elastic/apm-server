@@ -28,9 +28,12 @@ adding user {ref}/geoip-processor.html[Geo-IP data] to the `client.geo` field.
 Adds an ingest timestamp for APM events.
 
 `apm_remove_span_metadata`::
-added:[7.7,"Previously hardcoded. See <<upgrading-to-77,upgrading to 7.7>>"]
-To save storage, removes metadata fields (like `host`, `kubernetes`, and `container`)
+added:[7.7,"Upgrading? See <<upgrading-to-77,upgrading to 7.7>>"]
+To save storage, removes metadata fields, like `host`, `kubernetes`, and `container`,
 that are already available on the parent transaction.
++
+In previous versions of APM Server, this functionality was hardcoded internally.
+Switching metadata cleanup from an internal process to a processor allows you to keep any span metadata that is important in your architecture.
 
 See the complete pipeline definition by navigating to the APM Server's home directory,
 and then viewing `ingest/pipeline/definition.json`.
