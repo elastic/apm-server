@@ -31,6 +31,7 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -49,6 +50,7 @@ var (
 	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
 	transformations = monitoring.NewInt(Metrics, "transformations")
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
+	RUMV3Schema     = validation.CreateSchema(schema.RUMV3Schema, "metricset")
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
@@ -83,6 +85,10 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
+func DecodeRUMV3Event(input model.Input) (transform.Transformable, error) {
+	return DecodeEvent(input)
+}
+
 func DecodeEvent(input model.Input) (transform.Transformable, error) {
 	raw, err := validation.ValidateObject(input.Raw, cachedModelSchema)
 	if err != nil {
@@ -90,10 +96,11 @@ func DecodeEvent(input model.Input) (transform.Transformable, error) {
 	}
 
 	md := metricsetDecoder{&utility.ManualDecoder{}}
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	e := Metricset{
-		Samples:     md.decodeSamples(raw["samples"]),
-		Transaction: md.decodeTransaction(raw[transactionKey]),
-		Span:        md.decodeSpan(raw[spanKey]),
+		Samples:     md.decodeSamples(raw[fieldName("samples")], input.Config.HasShortFieldNames),
+		Transaction: md.decodeTransaction(raw[fieldName(transactionKey)], input.Config.HasShortFieldNames),
+		Span:        md.decodeSpan(raw[fieldName(spanKey)], input.Config.HasShortFieldNames),
 		Timestamp:   md.TimeEpochMicro(raw, "timestamp"),
 		Metadata:    input.Metadata,
 	}
@@ -112,7 +119,7 @@ func DecodeEvent(input model.Input) (transform.Transformable, error) {
 	return &e, nil
 }
 
-func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {
+func (md *metricsetDecoder) decodeSamples(input interface{}, hasShortFieldNames bool) []*Sample {
 	if input == nil {
 		md.Err = errors.New("no samples for metric event")
 		return nil
@@ -124,6 +131,9 @@ func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {
 	}
 
 	samples := make([]*Sample, len(raw))
+	fieldName := field.Mapper(hasShortFieldNames)
+	inverseFieldName := field.InverseMapper(hasShortFieldNames)
+
 	i := 0
 	for name, s := range raw {
 		if s == nil {
@@ -136,8 +146,8 @@ func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {
 		}
 
 		samples[i] = &Sample{
-			Name:  name,
-			Value: md.Float64(sampleMap, "value"),
+			Name:  inverseFieldName(name),
+			Value: md.Float64(sampleMap, fieldName("value")),
 		}
 		if md.Err != nil {
 			return nil
@@ -147,7 +157,7 @@ func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {
 	return samples
 }
 
-func (md *metricsetDecoder) decodeSpan(input interface{}) *Span {
+func (md *metricsetDecoder) decodeSpan(input interface{}, hasShortFieldNames bool) *Span {
 	if input == nil {
 		return nil
 	}
@@ -156,13 +166,13 @@ func (md *metricsetDecoder) decodeSpan(input interface{}) *Span {
 		md.Err = errors.New("invalid type for span in metric event")
 		return nil
 	}
-
+	fieldName := field.Mapper(hasShortFieldNames)
 	return &Span{
-		Type:    md.StringPtr(raw, "type"),
-		Subtype: md.StringPtr(raw, "subtype"),
+		Type:    md.StringPtr(raw, fieldName("type")),
+		Subtype: md.StringPtr(raw, fieldName("subtype")),
 	}
 }
-func (md *metricsetDecoder) decodeTransaction(input interface{}) *Transaction {
+func (md *metricsetDecoder) decodeTransaction(input interface{}, hasShortFieldNames bool) *Transaction {
 	if input == nil {
 		return nil
 	}
@@ -171,10 +181,10 @@ func (md *metricsetDecoder) decodeTransaction(input interface{}) *Transaction {
 		md.Err = errors.New("invalid type for transaction in metric event")
 		return nil
 	}
-
+	fieldName := field.Mapper(hasShortFieldNames)
 	return &Transaction{
-		Type: md.StringPtr(raw, "type"),
-		Name: md.StringPtr(raw, "name"),
+		Type: md.StringPtr(raw, fieldName("type")),
+		Name: md.StringPtr(raw, fieldName("name")),
 	}
 }
 

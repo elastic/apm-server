@@ -103,6 +103,7 @@ func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 			"x": transaction.DecodeRUMV3Event,
 			"y": span.DecodeRUMV3Event,
 			"e": er.DecodeRUMV3Event,
+			"me": metricset.DecodeRUMV3Event,
 		},
 	}
 }

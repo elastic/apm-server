@@ -130,3 +130,17 @@ func Mapper(shortFieldNames bool) func(string) string {
 		return s
 	}
 }
+
+func InverseMapper(shortFieldNames bool) func(string) string {
+	m := map[string]string{}
+	for k, v := range rumV3Mapping {
+		m[v] = k
+	}
+	return func(s string) string {
+		longField, ok := m[s]
+		if ok && shortFieldNames {
+			return longField
+		}
+		return s
+	}
+}
