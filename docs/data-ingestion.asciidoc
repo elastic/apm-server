@@ -1,17 +1,18 @@
 [[tune-data-ingestion]]
-= Tune Data Ingestion
+== Tune data ingestion
 
-[partintro]
---
 This section explains how to adapt data ingestion according to your needs.
 
 * <<tune-apm-server>>
 * <<tune-es>>
 
---
 
 [[tune-apm-server]]
-== Tune APM Server
+=== Tune APM Server
+
+++++
+<titleabbrev>APM Server</titleabbrev>
+++++
 
 * <<tune-output-config>>
 * <<adjust-queue-size>>
@@ -24,7 +25,7 @@ Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server comp
 
 [[tune-output-config]]
 [float]
-=== Tune APM Server output parameters for your Elasticsearch cluster
+==== Tune APM Server output parameters for your Elasticsearch cluster
 
 If your Elasticsearch cluster is not ingesting the amount of data you expect,
 you can tweak a few APM Server settings:
@@ -40,7 +41,7 @@ The <<configuring-output,output configuration>> section shows more details.
 
 [[adjust-queue-size]]
 [float]
-=== Adjust internal queue size
+==== Adjust internal queue size
 
 APM Server uses an internal queue to buffer incoming events.
 A larger queue can retain more data if Elasticsearch is unavailable for longer periods,
@@ -50,7 +51,7 @@ Increasing <<mem.events,`queue.mem.events`>> can significantly affect APM Server
 
 [[add-apm-server-instances]]
 [float]
-=== Add APM Server instances
+==== Add APM Server instances
 
 If the APM Server cannot process data quickly enough,
 you will see request timeouts.
@@ -62,7 +63,7 @@ Having several instances will also increase <<high-availability, availability>>.
 
 [[reduce-payload-size]]
 [float]
-=== Reduce the payload size
+==== Reduce the payload size
 
 Large payloads may result in request timeouts.
 You can reduce the payload size by decreasing the flush interval in the agents.
@@ -74,7 +75,7 @@ Read more in the {apm-agents-ref}/index.html[agents documentation].
 
 [[adjust-event-rate]]
 [float]
-=== Adjust RUM event rate limit
+==== Adjust RUM event rate limit
 
 Agents make use of long running requests and flush as many events over a single request as possible. Thus, the rate limiter for RUM is bound to the number of _events_ sent per second, per IP. 
 
@@ -83,7 +84,11 @@ If the rate limit is hit while events on an established request are sent, the re
 Increasing the <<event_rate.limit,`event_rate.limit`>> default value will help avoid `rate limit exceeded` errors.
 
 [[tune-es]]
-== Tune Elasticsearch
+=== Tune Elasticsearch
+
+++++
+<titleabbrev>Elasticsearch</titleabbrev>
+++++
 
 The Elasticsearch reference provides insight on tuning Elasticsearch.
 

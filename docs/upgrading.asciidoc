@@ -1,5 +1,9 @@
 [[upgrading]]
-== Upgrading APM Server
+== Upgrade APM Server
+
+++++
+<titleabbrev>Upgrade</titleabbrev>
+++++
 
 We do our best to keep APM Server backward compatible between minor releases.
 However, check out the <<breaking-changes, breaking changes>> section for exceptions.

@@ -45,7 +45,7 @@ See {apm-server-ref}/ilm.html#ilm-setup[set up ILM] for more information.
 +
 * By default, ILM policies will not longer be versioned.
 All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.
-See {apm-server-ref}/ilm.html#ilm-default[default policy] for more information.
+See {apm-server-ref}/ilm.html[default policy] for more information.
 
 APM::
 +
@@ -85,7 +85,7 @@ APM Server::
 **Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server,
 ensure all APM agents are upgraded to a version that supports APM Server >= 6.5.
 View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
-to determine if your agent versions are compatible. 
+to determine if your agent versions are compatible.
 +
 [[breaking-ecs]]
 **Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).**
@@ -100,7 +100,7 @@ APM UI::
 +
 [[breaking-new-endpoints]]
 **Moved to new data endpoints.**
-When you upgrade to 7.x, 
+When you upgrade to 7.x,
 data in indices created prior to 7.0 will not automatically appear in the APM UI.
 We offer a Kibana Migration Assistant (in the Kibana Management section) to help you migrate your data.
 The migration assistant will reindex your older data in the new ECS format.
