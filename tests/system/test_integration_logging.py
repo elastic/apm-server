@@ -40,7 +40,7 @@ class LoggingIntegrationTest(ElasticTest):
                 "response_code": 400,
             }, req)
             error = req.get("error")
-            assert error.startswith("error validating JSON document against schema:"), json.dumps(req)
+            assert error.startswith("failed to validate transaction: error validating JSON document against schema:"), json.dumps(req)
 
 
 @integration_test
