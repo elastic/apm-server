@@ -1,5 +1,9 @@
 [[upgrading-to-70]]
-=== Upgrading to APM Server v7.0
+=== Upgrade to APM Server version 7.0
+
+++++
+<titleabbrev>Upgrade to version 7.0</titleabbrev>
+++++
 
 Before upgrading to APM Server v7.0,
 there are some {apm-overview-ref-v}/breaking-7.0.0.html[breaking changes]

@@ -1,6 +1,10 @@
 
 [[setting-up-and-running]]
-== Setting up APM Server
+== Set up APM Server
+
+++++
+<titleabbrev>Set up</titleabbrev>
+++++
 
 Before reading this section, see the <<getting-started-apm-server,getting started documentation>>
 for basic installation and running instructions.

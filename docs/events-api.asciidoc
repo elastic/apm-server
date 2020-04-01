@@ -1,6 +1,10 @@
 [[events-api]]
 == Events Intake API
 
+++++
+<titleabbrev>Events intake</titleabbrev>
+++++
+
 NOTE: Most users do not need to interact directly with the events intake API.
 
 The events intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
