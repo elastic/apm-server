@@ -229,8 +229,8 @@ github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200325144108-e1b2f23167ed/go.mod h
 github.com/elastic/ecs v1.5.0 h1:/VEIBsRU4ecq2+U3RPfKNc6bFyomP6qnthYEcQZu8GU=
 github.com/elastic/ecs v1.5.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270/go.mod h1:Msl1pdboCbArMF/nSCDUXgQuWTeoMmE/z8607X+k7ng=
-github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200325133744-ff7196a77c6a h1:PuLTkOjzbS1FWntwGJ72NRz0qCE83ZaApzqMYwG2d50=
-github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200325133744-ff7196a77c6a/go.mod h1:OJ4wdbtDNk5g503kvlHLyErCgQwwzmDtaFC4XyOxXA4=
+github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200331090801-7114c6275d80 h1:YAz9uqdHgyC4frqe6OIOigomE3stR5waLE+aXf4cig8=
+github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200331090801-7114c6275d80/go.mod h1:OJ4wdbtDNk5g503kvlHLyErCgQwwzmDtaFC4XyOxXA4=
 github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde h1:Y9SZx8RQqFycLxi5W5eFmxMqnmijULVc3LMjBTtZQdM=
 github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde/go.mod h1:xe9a/L2aeOgFKKgrO3ibQTnMdpAeL0GC+5/HpGScSa4=
 github.com/elastic/go-libaudit v0.4.0/go.mod h1:lNJ7gX+arohEQTwqinAc8xycVuFNqsaunba1mwcBdvE=
