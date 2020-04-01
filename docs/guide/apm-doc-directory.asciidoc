@@ -29,19 +29,15 @@ Each agent has its own documentation:
 
 APM Server is an open source application that receives performance data from your APM agents.
 It's a {apm-server-ref-v}/overview.html#why-separate-component[separate component by design],
-which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.  
+which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.
 
 After the APM Server has validated and processed events from the APM agents,
 the server transforms the data into Elasticsearch documents and stores them in corresponding
 {apm-server-ref-v}/exploring-es-data.html[Elasticsearch indices].
 In a matter of seconds you can start viewing your application performance data in the Kibana APM app.
 
-// Todo: Change these links to include APM Server on Cloud installation
-// The easiest way to get started with Elastic APM is by using our
-// https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
-// Elastic Cloud
 The {apm-server-ref-v}/index.html[APM Server reference] provides everything you need when it comes to working with the server.
-Here you can learn about {apm-server-ref-v}/installing.html[installation],
+Here you can learn more about {apm-server-ref-v}/getting-started-apm-server.html[installation],
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuration],
 {apm-server-ref-v}/securing-apm-server.html[security],
 {apm-server-ref-v}/monitoring.html[monitoring], and more.
@@ -54,13 +50,13 @@ It allows you to store, search, and analyze large volumes of data quickly and in
 Elasticsearch is used to store APM performance metrics and make use of its aggregations.
 
 [float]
-=== APM Kibana app
+=== Kibana APM app
 
 {kibana-ref}/index.html[Kibana] is an open source analytics and visualization platform designed to work with Elasticsearch.
 You use Kibana to search, view, and interact with data stored in Elasticsearch.
 
 Since application performance monitoring is all about visualizing data and detecting bottlenecks,
-it's crucial you understand how to use the {kibana-ref}/xpack-apm.html[Kibana APM UI].
+it's crucial you understand how to use the {kibana-ref}/xpack-apm.html[APM app] in Kibana.
 The following sections will help you get started:
 
 * {kibana-ref}/apm-getting-started.html[Getting Started]
