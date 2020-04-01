@@ -71,10 +71,9 @@ Default value is set to `['*']`, which allows everything.
 [float]
 [[rum-allow-headers]]
 ==== `allow_headers`
-A list of permitted Access-Control-Allow-Headers for RUM support.
-This defines the HTTP headers that can be used in a request from the frontend application.
+By default the http requests made from the RUM agent to the APM Server are limited in the http headers they are allowed to have. Therefore, if any other headers are added, the request will be rejected by the browser due to Cross-Origin Resource Sharing (CORS) restrictions. If you need to add extra headers to these requests, you can use this configuration to allow additional headers. 
 The default list of values includes "Content-Type", "Content-Encoding", and "Accept";
-Custom values configured here are appended to the default list of values.
+Custom values configured here are appended to the default list of values and used as the value for `Access-Control-Allow-Headers` header.
 
 [float]
 [[rum-library-pattern]]
