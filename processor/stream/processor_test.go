@@ -194,16 +194,11 @@ func TestIntegrationRum(t *testing.T) {
 }
 
 func TestRUMV3(t *testing.T) {
-
+	var resultEvents []beat.Event
 	reporter := func(name string) publish.Reporter {
 		return func(ctx context.Context, p publish.PendingReq) error {
-			var events []beat.Event
 			for _, transformable := range p.Transformables {
-				events = append(events, transformable.Transform(ctx, p.Tcontext)...)
-			}
-			verifyErr := approvals.ApproveEvents(events, name)
-			if verifyErr != nil {
-				assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+				resultEvents = append(resultEvents, transformable.Transform(ctx, p.Tcontext)...)
 			}
 			return nil
 		}
@@ -235,6 +230,12 @@ func TestRUMV3(t *testing.T) {
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024}, &transform.Config{})
 			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bodyReader, reporter(name))
 			assertApproveResult(t, actualResult, test.name)
+
+			verifyErr := approvals.ApproveEvents(resultEvents, name)
+			if verifyErr != nil {
+				assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+			}
+			resultEvents = []beat.Event{}
 		})
 	}
 }

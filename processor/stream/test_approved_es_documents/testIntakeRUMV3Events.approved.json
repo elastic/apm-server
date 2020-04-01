@@ -541,6 +541,142 @@
             "transaction": {
                 "id": "ec2e280be8345240"
             }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "transaction": {
+                "breakdown": {
+                    "count": 1
+                },
+                "duration": {
+                    "count": 1,
+                    "sum": {
+                        "us": 295
+                    }
+                },
+                "name": "general-usecase-initial-p-load",
+                "type": "p-load"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": {
+                        "us": 1
+                    }
+                },
+                "type": "Request"
+            },
+            "transaction": {
+                "name": "general-usecase-initial-p-load",
+                "type": "p-load"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": {
+                        "us": 1
+                    }
+                },
+                "type": "Response"
+            },
+            "transaction": {
+                "name": "general-usecase-initial-p-load",
+                "type": "p-load"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "js-base",
+                "version": "4.8.1"
+            },
+            "labels": {
+                "testTagKey": "testTagValue"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "javascript"
+                },
+                "name": "apm-a-rum-test-e2e-general-usecase",
+                "version": "0.0.1"
+            },
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": {
+                        "us": 124
+                    }
+                },
+                "type": "Processing"
+            },
+            "transaction": {
+                "name": "general-usecase-initial-p-load",
+                "type": "p-load"
+            }
         }
     ]
 }
