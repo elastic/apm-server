@@ -34,88 +34,92 @@ func TestDecodeMetadata(t *testing.T) {
 	mail := "user@email.com"
 	agentName := "elastic-node"
 
+	input := map[string]interface{}{
+		"process": map[string]interface{}{
+			"pid": 1234.0,
+		},
+		"service": map[string]interface{}{
+			"name": "myservice",
+			"node": map[string]interface{}{
+				"configured_name": serviceNodeName,
+			},
+			"agent": map[string]interface{}{
+				"name":    agentName,
+				"version": agentVersion,
+			},
+		},
+		"system": map[string]interface{}{
+			"hostname": host,
+		},
+		"user": map[string]interface{}{
+			"id": uid, "email": mail,
+		},
+		"labels": map[string]interface{}{
+			"k": "v", "n": 1, "f": 1.5, "b": false,
+		},
+	}
+	output, err := DecodeMetadata(input, false)
+	require.NoError(t, err)
+	assert.Equal(t, &Metadata{
+		Service: &Service{
+			Name:  &serviceName,
+			Agent: Agent{Name: &agentName, Version: &agentVersion},
+			Node:  ServiceNode{Name: &serviceNodeName},
+		},
+		System:  &System{DetectedHostname: &host},
+		Process: &Process{Pid: pid},
+		User:    &User{Id: &uid, Email: &mail},
+		Labels:  common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
+	}, output)
+}
+
+func TestDecodeMetadataInvalid(t *testing.T) {
+	_, err := DecodeMetadata(nil, false)
+	require.EqualError(t, err, "failed to validate metadata: error validating JSON: input missing")
+
+	_, err = DecodeMetadata("", false)
+	require.EqualError(t, err, "failed to validate metadata: error validating JSON: invalid input type")
+
+	// baseInput holds the minimal valid input. Test-specific input is added to this.
+	baseInput := map[string]interface{}{
+		"service": map[string]interface{}{
+			"agent": map[string]interface{}{},
+			"name":  "name",
+		},
+	}
+	_, err = DecodeMetadata(baseInput, false)
+	require.NoError(t, err)
+
 	for _, test := range []struct {
-		input  interface{}
-		err    string
-		output Metadata
+		input map[string]interface{}
 	}{
 		{
-			input: nil,
-			err:   "failed to validate metadata: input missing",
-		},
-		{
-			input: "it doesn't work on strings",
-			err:   "failed to validate metadata: invalid input type",
-		},
-		{
 			input: map[string]interface{}{"service": 123},
-			err:   "invalid type for service",
 		},
 		{
 			input: map[string]interface{}{"system": 123},
-			err:   "invalid type for system",
 		},
 		{
 			input: map[string]interface{}{"process": 123},
-			err:   "invalid type for process",
 		},
 		{
 			input: map[string]interface{}{"user": 123},
-			err:   "invalid type for user",
-		},
-		{
-			input: map[string]interface{}{"user": 123},
-			err:   "invalid type for user",
-		},
-		{
-			input: map[string]interface{}{
-				"process": map[string]interface{}{
-					"pid": 1234.0,
-				},
-				"service": map[string]interface{}{
-					"name": "myservice",
-					"node": map[string]interface{}{
-						"configured_name": serviceNodeName},
-					"agent": map[string]interface{}{
-						"name":    agentName,
-						"version": agentVersion},
-				},
-				"system": map[string]interface{}{
-					"hostname": host,
-				},
-				"user": map[string]interface{}{
-					"id": uid, "email": mail,
-				},
-				"labels": map[string]interface{}{
-					"k": "v", "n": 1, "f": 1.5, "b": false,
-				},
-			},
-			output: Metadata{
-				Service: &Service{
-					Name:  &serviceName,
-					Agent: Agent{Name: &agentName, Version: &agentVersion},
-					Node:  ServiceNode{Name: &serviceNodeName},
-				},
-				System:  &System{DetectedHostname: &host},
-				Process: &Process{Pid: pid},
-				User:    &User{Id: &uid, Email: &mail},
-				Labels:  common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
-			},
 		},
 	} {
-		output, err := DecodeMetadata(test.input, false)
-		if test.err != "" {
-			assert.EqualError(t, err, test.err)
-			assert.Nil(t, output)
-		} else {
-			assert.NoError(t, err)
-			if test.input == nil {
-				assert.Nil(t, output)
+		input := make(map[string]interface{})
+		for k, v := range baseInput {
+			input[k] = v
+		}
+		for k, v := range test.input {
+			if v == nil {
+				delete(input, k)
 			} else {
-				require.NotNil(t, output)
-				assert.Equal(t, test.output, *output)
+				input[k] = v
 			}
 		}
+		_, err := DecodeMetadata(input, false)
+		assert.Error(t, err)
+		t.Logf("%s", err)
 	}
 
 }
