@@ -100,7 +100,7 @@ The `host:port` set here should correspond with the value set in `apm-server.jae
 Jaeger Agent also offers the `--agent.tags` CLI flag, which can be used to pass Process tags
 to the Collector. If APM Server has `apm-server.jaeger.grpc.auth_tag` set, it will look for a
 Process tag of that name in incoming events, and use it for authorizing the Jaeger Agent against
-the configured secret token or API Keys. The auth tag will not be removed from the events after
+the configured secret token or API Keys. The auth tag will be removed from the events after
 being verified.
 
 See the https://www.jaegertracing.io/docs/1.16/cli/[Jaeger CLI flags documentation] for more information.
