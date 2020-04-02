@@ -196,7 +196,7 @@ func TestPayloadDataForError(t *testing.T) {
 	errorProcSetup().DataValidation(t,
 		[]tests.SchemaTestData{
 			{Key: "error",
-				Invalid: []tests.Invalid{{Msg: `/type`, Values: val{false}}}},
+				Invalid: []tests.Invalid{{Msg: `invalid input type`, Values: val{false}}}},
 			{Key: "error.exception.code", Valid: val{"success", ""},
 				Invalid: []tests.Invalid{{Msg: `exception/properties/code/type`, Values: val{false}}}},
 			{Key: "error.exception.attributes", Valid: val{map[string]interface{}{}},

@@ -24,6 +24,19 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 )
 
+// Error represents an error due to JSON validation.
+type Error struct {
+	Err error
+}
+
+func (e *Error) Error() string {
+	return "error validating JSON: " + e.Err.Error()
+}
+
+func (e *Error) Unwrap() error {
+	return e.Err
+}
+
 func CreateSchema(schemaData string, url string) *jsonschema.Schema {
 	compiler := jsonschema.NewCompiler()
 	if err := compiler.AddResource(url, strings.NewReader(schemaData)); err != nil {
@@ -37,9 +50,26 @@ func CreateSchema(schemaData string, url string) *jsonschema.Schema {
 	return schema
 }
 
+// ValidateObject checks that raw is a non-nil, decoded JSON object
+// (i.e. has type map[string]interface{}), and validates against the
+// provided schema.
+func ValidateObject(raw interface{}, schema *jsonschema.Schema) (map[string]interface{}, error) {
+	if raw == nil {
+		return nil, &Error{errors.New("input missing")}
+	}
+	obj, ok := raw.(map[string]interface{})
+	if !ok {
+		return nil, &Error{errors.New("invalid input type")}
+	}
+	if err := Validate(raw, schema); err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+
 func Validate(raw interface{}, schema *jsonschema.Schema) error {
 	if err := schema.ValidateInterface(raw); err != nil {
-		return errors.Wrap(err, "error validating JSON document against schema")
+		return &Error{err}
 	}
 	return nil
 }

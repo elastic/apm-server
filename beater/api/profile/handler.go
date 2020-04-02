@@ -126,14 +126,15 @@ func Handler(
 				for k, v := range c.RequestMetadata {
 					utility.InsertInMap(raw, k, v.(map[string]interface{}))
 				}
-				if err := validation.Validate(raw, metadata.ModelSchema()); err != nil {
-					return nil, requestError{
-						id:  request.IDResponseErrorsValidate,
-						err: errors.Wrap(err, "invalid metadata"),
-					}
-				}
 				metadata, err := metadata.DecodeMetadata(raw, false)
 				if err != nil {
+					var ve *validation.Error
+					if errors.As(err, &ve) {
+						return nil, requestError{
+							id:  request.IDResponseErrorsValidate,
+							err: errors.Wrap(err, "invalid metadata"),
+						}
+					}
 					return nil, requestError{
 						id:  request.IDResponseErrorsDecode,
 						err: errors.Wrap(err, "failed to decode metadata"),
