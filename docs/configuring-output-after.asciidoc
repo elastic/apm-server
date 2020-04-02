@@ -12,7 +12,7 @@ See <<config-sourcemapping-elasticsearch>> for more details.
 [float]
 === `fields`
 
-Fields are optional tags that can be added to any output.
+Fields are optional tags that can be added to all outputs.
 Fields can be scalar values, arrays, dictionaries, or any nested combination of these.
 By default, the fields that you specify here will be grouped under a `fields` sub-dictionary in the output document.
 
@@ -21,6 +21,9 @@ Example:
 [source,yaml]
 ------------------------------------------------------------------------------
 fields: {project: "myproject", instance-id: "574734885120952459"}
+#-------------------------- Elasticsearch output --------------------------
+output.elasticsearch:
+  hosts: ["localhost:9200"]
 ------------------------------------------------------------------------------
 
 To store the custom fields as top-level fields, set the `fields_under_root` option to true.
