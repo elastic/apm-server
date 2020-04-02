@@ -135,6 +135,7 @@ func (md *metricsetDecoder) decodeSamples(input interface{}, hasShortFieldNames 
 	inverseFieldName := field.InverseMapper(hasShortFieldNames)
 
 	i := 0
+	value := fieldName("value")
 	for name, s := range raw {
 		if s == nil {
 			continue
@@ -147,7 +148,7 @@ func (md *metricsetDecoder) decodeSamples(input interface{}, hasShortFieldNames 
 
 		samples[i] = &Sample{
 			Name:  inverseFieldName(name),
-			Value: md.Float64(sampleMap, fieldName("value")),
+			Value: md.Float64(sampleMap, value),
 		}
 		if md.Err != nil {
 			return nil

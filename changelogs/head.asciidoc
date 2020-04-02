@@ -15,4 +15,5 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 [float]
 ==== Added
 * RUM V3 endpoint {pull}3328[3328], {pull}3414[3414], {pull}3512[3512], {pull}3526[3526]
+ git
 * We now publish libbeat metrics through the /debug/vars endpoint {pull}3550[3550]
