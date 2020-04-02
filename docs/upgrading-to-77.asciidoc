@@ -24,15 +24,23 @@ pipelines are not overwritten when restarting APM Server.
 Enable pipeline overwriting by setting <<register.ingest.pipeline.overwrite,`register.ingest.pipeline.overwrite`>>
 to `true`.
 
-. Copy any custom pipelines you've created or altered to the pipeline definition file, located at
+. Copy any custom pipelines you've created or altered to the `apm` pipeline definition file, located at
 `ingest/pipeline/definition.json`.
 
 . Restart APM Server.
 
-Alternatively, you can use the <<setup-command,`setup`>>
-command to register the pipeline definitions in `definition.json`:
+An alternate upgrade method is to use the <<setup-command,`setup` command>>.
+This upgrade method can be useful if you're using an output other than Elasticsearch.
+In this case, you'll need to disable the active output and point APM Server at your Elasticsearch cluster.
+You can then run the `setup --pipeline` command to register the pipeline definitions in `definition.json`.
+
+Here's an example of what this might look like, if you typically output to Logstash:
 
 [source,sh]
 --------------------------------------------------
-./apm-server setup --pipelines -e -E apm-server.register.ingest.pipeline.overwrite=true
+apm-server setup --pipelines \
+    -E apm-server.register.ingest.pipeline.overwrite=true \
+    -E output.logstash.enabled=false \
+    -E output.elasticsearch.enabled=true \
+    -E output.elasticsearch.hosts=["http://username:password@elasticsearch:9200"]
 --------------------------------------------------
