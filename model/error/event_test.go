@@ -22,7 +22,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -39,7 +38,6 @@ import (
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -87,8 +85,9 @@ func TestErrorEventDecode(t *testing.T) {
 	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
 	pUrl, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
-	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
-	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
+	code, module, exType, handled := "200", "a", "errorEx", false
+	exAttrs := map[string]interface{}{"a": "b", "c": 123, "d": map[string]interface{}{"e": "f"}}
+	exMsg, logMsg, paramMsg, level, logger := "Exception Msg", "Log Msg", "log pm", "error", "mylogger"
 	transactionSampled := true
 	transactionType := "request"
 	labels := m.Labels{"ab": "c"}
@@ -104,116 +103,81 @@ func TestErrorEventDecode(t *testing.T) {
 		Service: &metadata.Service{Name: tests.StringPtr("foo")},
 	}
 
+	// baseInput holds the minimal valid input. Test-specific input is added to this.
+	baseInput := map[string]interface{}{
+		"id":        id,
+		"exception": map[string]interface{}{"message": exMsg},
+	}
+
 	for name, test := range map[string]struct {
-		input interface{}
+		input map[string]interface{}
 		cfg   m.Config
-		err   error
 		e     *Event
 	}{
-		"no input":     {input: nil, err: errMissingInput, e: nil},
-		"invalid type": {input: "", err: errInvalidType, e: nil},
-		"error decoding timestamp": {
-			input: map[string]interface{}{"timestamp": 123},
-			err:   utility.ErrFetch,
-		},
-		"error decoding transaction id": {
-			input: map[string]interface{}{"transaction_id": 123},
-			err:   utility.ErrFetch,
-		},
-		"only parent id given": {input: map[string]interface{}{
-			"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
-			"parent_id": 123},
-			err: utility.ErrFetch,
-		},
-		"only trace id given": {
-			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
-				"trace_id": 123},
-			err: utility.ErrFetch,
-		},
-		"invalid type for exception stacktrace": {
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"exception": map[string]interface{}{
-					"message":    "Exception Msg",
-					"stacktrace": "123",
-				},
-			},
-			err: errors.New("invalid type for stacktrace"),
-		},
-		"invalid type for log stacktrace": {
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"log": map[string]interface{}{
-					"message":    "Log Msg",
-					"stacktrace": "123",
-				},
-			},
-			err: errors.New("invalid type for stacktrace"),
-		},
 		"minimal valid error": {
-			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp},
+			input: map[string]interface{}{},
 			e: &Event{
 				Metadata:  metadata,
 				Id:        &id,
-				Culprit:   &culprit,
-				Timestamp: timestampParsed,
+				Timestamp: requestTime,
+				Exception: &Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 		},
-		"minimal valid error with request time": {
-			input: map[string]interface{}{"id": id, "culprit": culprit, "context": map[string]interface{}{}},
+		"minimal valid error with specified timestamp": {
+			input: map[string]interface{}{"timestamp": timestamp},
 			e: &Event{
 				Metadata:  metadata,
 				Id:        &id,
-				Culprit:   &culprit,
-				Timestamp: requestTime,
+				Timestamp: timestampParsed,
+				Exception: &Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 		},
 		"minimal valid error with log and exception": {
 			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"exception": map[string]interface{}{},
-				"log":       map[string]interface{}{},
+				"exception": map[string]interface{}{"message": exMsg},
+				"log":       map[string]interface{}{"message": logMsg},
 			},
 			e: &Event{
 				Metadata:  metadata,
-				Timestamp: timestampParsed,
+				Id:        &id,
+				Timestamp: requestTime,
+				Exception: &Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
+				Log:       &Log{Message: logMsg, Stacktrace: m.Stacktrace{}},
 			},
 		},
 		"valid error experimental=true, no experimental payload": {
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "timestamp": timestamp,
-				"context": map[string]interface{}{"foo": []string{"a", "b"}}},
+				"context": map[string]interface{}{"foo": []string{"a", "b"}},
+			},
 			e: &Event{
 				Metadata:  metadata,
 				Id:        &id,
-				Culprit:   &culprit,
-				Timestamp: timestampParsed,
+				Timestamp: requestTime,
+				Exception: &Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 			cfg: m.Config{Experimental: true},
 		},
 		"valid error experimental=false": {
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "timestamp": timestamp,
-				"context": map[string]interface{}{"experimental": []string{"a", "b"}}},
+				"context": map[string]interface{}{"experimental": []string{"a", "b"}},
+			},
 			e: &Event{
 				Metadata:  metadata,
 				Id:        &id,
-				Culprit:   &culprit,
-				Timestamp: timestampParsed,
+				Timestamp: requestTime,
+				Exception: &Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 			cfg: m.Config{Experimental: false},
 		},
 		"valid error experimental=true": {
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "timestamp": timestamp,
-				"context": map[string]interface{}{"experimental": []string{"a", "b"}}},
+				"context": map[string]interface{}{"experimental": []string{"a", "b"}},
+			},
 			e: &Event{
 				Metadata:     metadata,
 				Id:           &id,
-				Culprit:      &culprit,
-				Timestamp:    timestampParsed,
+				Timestamp:    requestTime,
+				Exception:    &Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 				Experimental: []string{"a", "b"},
 			},
 			cfg: m.Config{Experimental: true},
@@ -237,9 +201,12 @@ func TestErrorEventDecode(t *testing.T) {
 						"headers":  map[string]interface{}{"Content-Type": "text/html"}},
 				},
 				"exception": map[string]interface{}{
-					"message": "Exception Msg",
-					"code":    code, "module": module, "attributes": attrs,
-					"type": exType, "handled": handled,
+					"message":    exMsg,
+					"code":       code,
+					"module":     module,
+					"attributes": exAttrs,
+					"type":       exType,
+					"handled":    handled,
 					"stacktrace": []interface{}{
 						map[string]interface{}{
 							"filename": "file",
@@ -247,7 +214,7 @@ func TestErrorEventDecode(t *testing.T) {
 					},
 				},
 				"log": map[string]interface{}{
-					"message":       "Log Msg",
+					"message":       logMsg,
 					"param_message": paramMsg,
 					"level":         level, "logger_name": logger,
 					"stacktrace": []interface{}{
@@ -256,9 +223,11 @@ func TestErrorEventDecode(t *testing.T) {
 						},
 					},
 				},
+				"id":             id,
 				"transaction_id": transactionId,
 				"parent_id":      parentId,
 				"trace_id":       traceId,
+				"culprit":        culprit,
 				"transaction":    map[string]interface{}{"sampled": transactionSampled, "type": transactionType},
 			},
 			e: &Event{
@@ -276,14 +245,14 @@ func TestErrorEventDecode(t *testing.T) {
 					Code:       code,
 					Type:       &exType,
 					Module:     &module,
-					Attributes: attrs,
+					Attributes: exAttrs,
 					Handled:    &handled,
 					Stacktrace: m.Stacktrace{
 						&m.StacktraceFrame{Filename: tests.StringPtr("file")},
 					},
 				},
 				Log: &Log{
-					Message:      "Log Msg",
+					Message:      logMsg,
 					ParamMessage: &paramMsg,
 					Level:        &level,
 					LoggerName:   &logger,
@@ -291,33 +260,114 @@ func TestErrorEventDecode(t *testing.T) {
 						&m.StacktraceFrame{Filename: tests.StringPtr("log file"), Lineno: &lineno},
 					},
 				},
+				Id:                 &id,
 				TransactionId:      &transactionId,
 				TransactionSampled: &transactionSampled,
 				TransactionType:    &transactionType,
 				ParentId:           &parentId,
 				TraceId:            &traceId,
+				Culprit:            &culprit,
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
+			}
+			for k, v := range test.input {
+				if v == nil {
+					delete(input, k)
+				} else {
+					input[k] = v
+				}
+			}
 			transformable, err := DecodeEvent(m.Input{
-				Raw:         test.input,
+				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    metadata,
 				Config:      test.cfg,
 			})
-			if test.e != nil && assert.NotNil(t, transformable) {
-				event := transformable.(*Event)
-				assert.Equal(t, test.e, event)
-			}
+			require.NoError(t, err)
+			event := transformable.(*Event)
+			assert.Equal(t, test.e, event)
+		})
+	}
+}
 
-			assert.Equal(t, test.err, err)
+func TestErrorEventDecodeInvalid(t *testing.T) {
+	_, err := DecodeEvent(m.Input{Raw: nil})
+	require.EqualError(t, err, "failed to validate error: error validating JSON: input missing")
+
+	_, err = DecodeEvent(m.Input{Raw: ""})
+	require.EqualError(t, err, "failed to validate error: error validating JSON: invalid input type")
+
+	// baseInput holds the minimal valid input. Test-specific input is added to this.
+	baseInput := map[string]interface{}{
+		"id": "id",
+		"exception": map[string]interface{}{
+			"message": "message",
+		},
+	}
+	_, err = DecodeEvent(m.Input{Raw: baseInput})
+	require.NoError(t, err)
+
+	for name, test := range map[string]struct {
+		input map[string]interface{}
+		e     *Event
+	}{
+		"error decoding timestamp": {
+			input: map[string]interface{}{"timestamp": 123},
+		},
+		"error decoding transaction id": {
+			input: map[string]interface{}{"transaction_id": 123},
+		},
+		"parent id given, but no trace id": {
+			input: map[string]interface{}{"parent_id": "123"},
+		},
+		"trace id given, but no parent id": {
+			input: map[string]interface{}{"trace_id": "123"},
+		},
+		"invalid type for exception stacktrace": {
+			input: map[string]interface{}{
+				"exception": map[string]interface{}{
+					"message":    "Exception Msg",
+					"stacktrace": "123",
+				},
+			},
+		},
+		"invalid type for log stacktrace": {
+			input: map[string]interface{}{
+				"exception": nil,
+				"log": map[string]interface{}{
+					"message":    "Log Msg",
+					"stacktrace": "123",
+				},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
+			}
+			for k, v := range test.input {
+				if v == nil {
+					delete(input, k)
+				} else {
+					input[k] = v
+				}
+			}
+			_, err := DecodeEvent(m.Input{Raw: input})
+			require.Error(t, err)
+			t.Logf("%s", err)
 		})
 	}
 }
 
 func TestHandleExceptionTree(t *testing.T) {
 	errorEvent := map[string]interface{}{
+		"id": "id",
 		"exception": map[string]interface{}{
 			"message": "message0",
 			"type":    "type0",
@@ -395,10 +445,9 @@ func TestDecodingAnomalies(t *testing.T) {
 				"cause":   []interface{}{7.4},
 			},
 		}
-		result, err := DecodeEvent(m.Input{Raw: badException})
-		assert.Error(t, err)
-		assert.EqualError(t, err, "cause must be an exception")
-		assert.Nil(t, result)
+		_, err := DecodeEvent(m.Input{Raw: badException})
+		require.Error(t, err)
+		assert.Regexp(t, "failed to validate error:(.|\n)*properties/cause/items/type(.|\n)*expected object or null, but got number", err.Error())
 	})
 
 	t.Run("handle nil exceptions", func(t *testing.T) {
@@ -412,15 +461,9 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeEvent(m.Input{Raw: emptyCauses})
-		require.NoError(t, err)
-		assert.NotNil(t, result)
-
-		event := result.(*Event)
-		assert.Equal(t, *event.Exception.Message, "message0")
-		assert.Len(t, event.Exception.Cause, 1)
-		assert.Equal(t, *event.Exception.Cause[0].Message, "message1")
-		assert.Nil(t, event.Exception.Cause[0].Cause)
+		_, err := DecodeEvent(m.Input{Raw: emptyCauses})
+		require.Error(t, err)
+		assert.Regexp(t, "failed to validate error:(.|\n)* missing properties: \"id\"", err.Error())
 	})
 }
 
