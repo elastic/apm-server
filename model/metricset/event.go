@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -50,7 +52,7 @@ var (
 	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
 	transformations = monitoring.NewInt(Metrics, "transformations")
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
-	RUMV3Schema     = validation.CreateSchema(schema.RUMV3Schema, "metricset")
+	rumV3Schema     = validation.CreateSchema(schema.RUMV3Schema, "metricset")
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
@@ -86,11 +88,15 @@ type metricsetDecoder struct {
 }
 
 func DecodeRUMV3Event(input model.Input) (transform.Transformable, error) {
-	return DecodeEvent(input)
+	return decodeEvent(input, rumV3Schema)
 }
 
 func DecodeEvent(input model.Input) (transform.Transformable, error) {
-	raw, err := validation.ValidateObject(input.Raw, cachedModelSchema)
+	return decodeEvent(input, cachedModelSchema)
+}
+
+func decodeEvent(input model.Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate metricset")
 	}

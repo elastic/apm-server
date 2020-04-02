@@ -21,8 +21,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/elastic/apm-server/model/field"
 	"github.com/pkg/errors"
+
+	"github.com/elastic/apm-server/model/field"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
