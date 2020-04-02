@@ -26,15 +26,16 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/utility"
 )
 
-var (
-	version, environment    = "5.1.3", "staging"
-	langName, langVersion   = "ecmascript", "8"
-	rtName, rtVersion       = "node", "8.0.0"
-	fwName, fwVersion       = "Express", "1.2.3"
-	agentName, agentVersion = "elastic-node", "1.0.0"
+const (
+	serviceName, serviceVersion, serviceEnvironment, serviceNodeName = "myservice", "5.1.3", "staging", "serviceABC"
+	langName, langVersion                                            = "ecmascript", "8"
+	rtName, rtVersion                                                = "node", "8.0.0"
+	fwName, fwVersion                                                = "Express", "1.2.3"
+	agentName, agentVersion                                          = "elastic-node", "1.0.0"
 )
 
 func TestServiceDecode(t *testing.T) {
@@ -81,24 +82,24 @@ func TestServiceDecode(t *testing.T) {
 			},
 			err: nil,
 			s: &metadata.Service{
-				Name:        &serviceName,
-				Version:     &version,
-				Environment: &environment,
+				Name:        tests.StringPtr(serviceName),
+				Version:     tests.StringPtr(serviceVersion),
+				Environment: tests.StringPtr(serviceEnvironment),
 				Language: metadata.Language{
-					Name:    &langName,
-					Version: &langVersion,
+					Name:    tests.StringPtr(langName),
+					Version: tests.StringPtr(langVersion),
 				},
 				Runtime: metadata.Runtime{
-					Name:    &rtName,
-					Version: &rtVersion,
+					Name:    tests.StringPtr(rtName),
+					Version: tests.StringPtr(rtVersion),
 				},
 				Framework: metadata.Framework{
-					Name:    &fwName,
-					Version: &fwVersion,
+					Name:    tests.StringPtr(fwName),
+					Version: tests.StringPtr(fwVersion),
 				},
 				Agent: metadata.Agent{
-					Name:    &agentName,
-					Version: &agentVersion,
+					Name:    tests.StringPtr(agentName),
+					Version: tests.StringPtr(agentVersion),
 				},
 			},
 		},
