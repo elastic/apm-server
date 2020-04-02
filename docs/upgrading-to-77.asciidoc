@@ -31,8 +31,9 @@ to `true`.
 
 An alternate upgrade method is to use the <<setup-command,`setup` command>>.
 This upgrade method can be useful if you're using an output other than Elasticsearch.
-In this case, you'll need to disable the active output and point APM Server at your Elasticsearch cluster.
-You can then run the `setup --pipeline` command to register the pipeline definitions in `definition.json`.
+In this case, you can use the command line to disable the active output
+and point APM Server at your Elasticsearch cluster.
+Then, run the `setup --pipeline` command to register the pipeline definitions in `definition.json`.
 
 Here's an example of what this might look like, if you typically output to Logstash:
 
@@ -44,3 +45,5 @@ apm-server setup --pipelines \
     -E output.elasticsearch.enabled=true \
     -E output.elasticsearch.hosts=["http://username:password@elasticsearch:9200"]
 --------------------------------------------------
+
+After running `setup`, restart APM Server.
