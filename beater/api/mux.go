@@ -155,7 +155,7 @@ func rumV3IntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter p
 	enabled := releaseVersion.LessThanOrEqual(false, common.MustNewVersion(version.GetDefaultVersion()))
 	m := append(rumMiddleware(cfg, nil, intake.MonitoringMap),
 		middleware.KillSwitchMiddleware(enabled,
-			fmt.Sprintf("RUM V3 endpoint is disabled in this version. Update to %s or higher", releaseVersion.String())))
+			fmt.Sprintf("RUM V3 endpoint is disabled in this version. Update to a more recent version")))
 	return middleware.Wrap(h, m...)
 }
 
