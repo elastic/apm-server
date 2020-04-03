@@ -17,5 +17,4 @@
 
 // Package modeldecoder holds functions for decoding
 // Elastic APM agent events into model objects.
-
 package modeldecoder

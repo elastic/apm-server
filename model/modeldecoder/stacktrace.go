@@ -25,7 +25,7 @@ import (
 
 var errInvalidStacktraceType = errors.New("invalid type for stacktrace")
 
-func DecodeStacktrace(input interface{}, hasShortFieldNames bool, err error) (*model.Stacktrace, error) {
+func decodeStacktrace(input interface{}, hasShortFieldNames bool, err error) (*model.Stacktrace, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func DecodeStacktrace(input interface{}, hasShortFieldNames bool, err error) (*m
 	}
 	st := make(model.Stacktrace, len(raw))
 	for idx, fr := range raw {
-		st[idx], err = DecodeStacktraceFrame(fr, hasShortFieldNames, err)
+		st[idx], err = decodeStacktraceFrame(fr, hasShortFieldNames, err)
 	}
 	return &st, err
 }

@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func DecodeContainer(input interface{}, err error) (*metadata.Container, error) {
+func decodeContainer(input interface{}, err error) (*metadata.Container, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

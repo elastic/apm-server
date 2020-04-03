@@ -25,10 +25,13 @@ import (
 	"github.com/elastic/apm-server/validation"
 )
 
-// TODO(axw) validate against SourcemapSchema from within DecodeSourcemap, and unexpose.
-
+// SourcemapSchema is the compiled JSON Schema for validating sourcemaps.
+//
+// TODO(axw) make DecodeSourcemap validate against SourcemapSchema, and unexpose this.
+// This will require changes to processor/asset/sourcemap.
 var SourcemapSchema = validation.CreateSchema(schema.PayloadSchema, "sourcemap")
 
+// DecodeSourcemap decodes a sourcemap.
 func DecodeSourcemap(raw map[string]interface{}) (transform.Transformable, error) {
 	decoder := utility.ManualDecoder{}
 	pa := sourcemap.Sourcemap{

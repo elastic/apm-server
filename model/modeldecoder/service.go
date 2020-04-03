@@ -26,8 +26,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-// DecodeService decodes a given input into a Service instance
-func DecodeService(input interface{}, hasShortFieldNames bool, err error) (*metadata.Service, error) {
+func decodeService(input interface{}, hasShortFieldNames bool, err error) (*metadata.Service, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

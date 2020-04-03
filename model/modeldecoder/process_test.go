@@ -50,7 +50,7 @@ func TestProcessDecode(t *testing.T) {
 			p:   &metadata.Process{Pid: pid, Ppid: &ppid, Title: &title, Argv: argv},
 		},
 	} {
-		proc, out := DecodeProcess(test.input, test.inpErr)
+		proc, out := decodeProcess(test.input, test.inpErr)
 		assert.Equal(t, test.p, proc)
 		assert.Equal(t, test.err, out)
 	}

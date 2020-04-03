@@ -44,6 +44,7 @@ type Input struct {
 	Config Config
 }
 
+// Config holds static configuration which applies to all decoding.
 type Config struct {
 	Experimental bool
 	// RUM v3 support

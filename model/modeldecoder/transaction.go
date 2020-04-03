@@ -37,6 +37,7 @@ var (
 	rumV3TransactionSchema = validation.CreateSchema(schema.RUMV3Schema, "transaction")
 )
 
+// DecodeRUMV3Transaction decodes a v3 RUM transaction.
 func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 	event, err := decodeTransaction(input, rumV3TransactionSchema)
 	if err != nil {
@@ -96,6 +97,7 @@ func decodeRUMV3Marks(raw map[string]interface{}, cfg Config) (common.MapStr, er
 	}, nil
 }
 
+// DecodeTransaction decodes a v2 transaction.
 func DecodeTransaction(input Input) (transform.Transformable, error) {
 	return decodeTransaction(input, transactionSchema)
 }
@@ -106,7 +108,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		return nil, errors.Wrap(err, "failed to validate transaction")
 	}
 
-	ctx, err := DecodeContext(raw, input.Config, nil)
+	ctx, err := decodeContext(raw, input.Config, nil)
 	if err != nil {
 		return nil, err
 	}

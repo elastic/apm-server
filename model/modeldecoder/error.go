@@ -35,10 +35,12 @@ var (
 	rumV3ErrorSchema = validation.CreateSchema(schema.RUMV3Schema, "error")
 )
 
+// DecodeRUMV3Error decodes a v3 RUM error.
 func DecodeRUMV3Error(input Input) (transform.Transformable, error) {
 	return decodeError(input, rumV3ErrorSchema)
 }
 
+// DecodeError decodes a v2 error.
 func DecodeError(input Input) (transform.Transformable, error) {
 	return decodeError(input, errorSchema)
 }
@@ -49,7 +51,7 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 		return nil, errors.Wrap(err, "failed to validate error")
 	}
 
-	ctx, err := DecodeContext(raw, input.Config, nil)
+	ctx, err := decodeContext(raw, input.Config, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +92,7 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 			Stacktrace:   m.Stacktrace{},
 		}
 		var stacktrace *m.Stacktrace
-		stacktrace, decoder.Err = DecodeStacktrace(log[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
+		stacktrace, decoder.Err = decodeStacktrace(log[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 		if stacktrace != nil {
 			e.Log.Stacktrace = *stacktrace
 		}
@@ -126,7 +128,7 @@ func decodeException(decoder *utility.ManualDecoder, hasShortFieldNames bool) ex
 			Stacktrace: m.Stacktrace{},
 		}
 		var stacktrace *m.Stacktrace
-		stacktrace, decoder.Err = DecodeStacktrace(exceptionTree[fieldName("stacktrace")], hasShortFieldNames, decoder.Err)
+		stacktrace, decoder.Err = decodeStacktrace(exceptionTree[fieldName("stacktrace")], hasShortFieldNames, decoder.Err)
 		if stacktrace != nil {
 			ex.Stacktrace = *stacktrace
 		}

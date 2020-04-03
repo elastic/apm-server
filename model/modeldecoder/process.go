@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func DecodeProcess(input interface{}, err error) (*metadata.Process, error) {
+func decodeProcess(input interface{}, err error) (*metadata.Process, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

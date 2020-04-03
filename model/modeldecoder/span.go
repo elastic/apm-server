@@ -80,7 +80,7 @@ func decodeSpanHTTP(input interface{}, hasShortFieldNames bool, err error) (*spa
 	if method != nil {
 		*method = strings.ToLower(*method)
 	}
-	minimalResp, err := DecodeMinimalHTTPResponse(httpInput, hasShortFieldNames, decoder.Err)
+	minimalResp, err := decodeMinimalHTTPResponse(httpInput, hasShortFieldNames, decoder.Err)
 	if err != nil {
 		return nil, err
 	}
@@ -125,11 +125,12 @@ func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*
 	return &dest, service, decoder.Err
 }
 
+// DecodeRUMV3Span decodes a v3 RUM span.
 func DecodeRUMV3Span(input Input) (transform.Transformable, error) {
 	return decodeSpan(input, rumV3SpanSchema)
 }
 
-// DecodeSpan decodes a span event.
+// DecodeSpan decodes a v2 span.
 func DecodeSpan(input Input) (transform.Transformable, error) {
 	return decodeSpan(input, spanSchema)
 }
@@ -184,14 +185,14 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (transform.Transformable
 		event.DestinationService = destService
 
 		if s, set := ctx["service"]; set {
-			service, err := DecodeService(s, input.Config.HasShortFieldNames, decoder.Err)
+			service, err := decodeService(s, input.Config.HasShortFieldNames, decoder.Err)
 			if err != nil {
 				return nil, err
 			}
 			event.Service = service
 		}
 
-		if event.Message, err = DecodeMessage(ctx, decoder.Err); err != nil {
+		if event.Message, err = decodeMessage(ctx, decoder.Err); err != nil {
 			return nil, err
 		}
 
@@ -203,7 +204,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (transform.Transformable
 	}
 
 	var stacktr *m.Stacktrace
-	stacktr, decoder.Err = DecodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
+	stacktr, decoder.Err = decodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}

@@ -61,7 +61,7 @@ func TestDecodeMessage(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			decoded, err := DecodeMessage(tc.inp, tc.inpErr)
+			decoded, err := decodeMessage(tc.inp, tc.inpErr)
 			if tc.inpErr != nil {
 				require.Equal(t, tc.inpErr, err)
 			} else if tc.outpErr != nil {

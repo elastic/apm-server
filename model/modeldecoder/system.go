@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func DecodeSystem(input interface{}, err error) (*metadata.System, error) {
+func decodeSystem(input interface{}, err error) (*metadata.System, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -38,10 +38,10 @@ func DecodeSystem(input interface{}, err error) (*metadata.System, error) {
 		Architecture: decoder.StringPtr(raw, "architecture"),
 		IP:           decoder.NetIP(raw, "ip"),
 	}
-	if system.Container, err = DecodeContainer(raw["container"], err); err != nil {
+	if system.Container, err = decodeContainer(raw["container"], err); err != nil {
 		return nil, err
 	}
-	if system.Kubernetes, err = DecodeKubernetes(raw["kubernetes"], err); err != nil {
+	if system.Kubernetes, err = decodeKubernetes(raw["kubernetes"], err); err != nil {
 		return nil, err
 	}
 	detectedHostname := decoder.StringPtr(raw, "detected_hostname")

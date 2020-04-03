@@ -24,8 +24,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-// DecodeMessage parses a Message from given input
-func DecodeMessage(input interface{}, err error) (*model.Message, error) {
+func decodeMessage(input interface{}, err error) (*model.Message, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

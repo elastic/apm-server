@@ -27,7 +27,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func DecodeUser(input interface{}, hasShortFieldNames bool, err error) (*metadata.User, error) {
+func decodeUser(input interface{}, hasShortFieldNames bool, err error) (*metadata.User, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

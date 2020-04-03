@@ -40,6 +40,7 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
+// DecodeMetricset decodes a v2 metricset.
 func DecodeMetricset(input Input) (transform.Transformable, error) {
 	raw, err := validation.ValidateObject(input.Raw, metricsetSchema)
 	if err != nil {

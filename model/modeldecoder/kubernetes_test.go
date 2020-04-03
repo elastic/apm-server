@@ -53,7 +53,7 @@ func TestKubernetesDecode(t *testing.T) {
 			},
 		},
 	} {
-		kubernetes, out := DecodeKubernetes(test.input, test.inpErr)
+		kubernetes, out := decodeKubernetes(test.input, test.inpErr)
 		assert.Equal(t, test.k, kubernetes)
 		assert.Equal(t, test.err, out)
 	}

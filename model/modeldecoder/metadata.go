@@ -34,10 +34,12 @@ var (
 	rumV3MetadataSchema = validation.CreateSchema(schema.RUMV3Schema, "metadata")
 )
 
+// DecodeRUMV3Metadata decodes v3 RUM metadata.
 func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*metadata.Metadata, error) {
 	return decodeMetadata(input, hasShortFieldNames, rumV3MetadataSchema)
 }
 
+// DecodeMetadata decodes v2 metadata.
 func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*metadata.Metadata, error) {
 	return decodeMetadata(input, hasShortFieldNames, metadataSchema)
 }
@@ -55,11 +57,11 @@ func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonsche
 	var process *metadata.Process
 	var user *metadata.User
 	var labels common.MapStr
-	service, err = DecodeService(raw[fieldName("service")], hasShortFieldNames, err)
-	system, err = DecodeSystem(raw["system"], err)
-	process, err = DecodeProcess(raw["process"], err)
-	user, err = DecodeUser(raw[fieldName("user")], hasShortFieldNames, err)
-	labels, err = DecodeLabels(raw[fieldName("labels")], err)
+	service, err = decodeService(raw[fieldName("service")], hasShortFieldNames, err)
+	system, err = decodeSystem(raw["system"], err)
+	process, err = decodeProcess(raw["process"], err)
+	user, err = decodeUser(raw[fieldName("user")], hasShortFieldNames, err)
+	labels, err = decodeLabels(raw[fieldName("labels")], err)
 
 	if err != nil {
 		return nil, err

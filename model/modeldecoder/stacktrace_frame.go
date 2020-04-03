@@ -30,7 +30,7 @@ var (
 	errInvalidStacktraceFrameType = errors.New("invalid type for stacktrace frame")
 )
 
-func DecodeStacktraceFrame(input interface{}, hasShortFieldNames bool, err error) (*model.StacktraceFrame, error) {
+func decodeStacktraceFrame(input interface{}, hasShortFieldNames bool, err error) (*model.StacktraceFrame, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

@@ -43,7 +43,7 @@ func TestContainerDecode(t *testing.T) {
 			c:   &metadata.Container{ID: id},
 		},
 	} {
-		container, out := DecodeContainer(test.input, test.inpErr)
+		container, out := decodeContainer(test.input, test.inpErr)
 		assert.Equal(t, test.c, container)
 		assert.Equal(t, test.err, out)
 	}

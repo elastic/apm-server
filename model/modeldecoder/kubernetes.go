@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func DecodeKubernetes(input interface{}, err error) (*metadata.Kubernetes, error) {
+func decodeKubernetes(input interface{}, err error) (*metadata.Kubernetes, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

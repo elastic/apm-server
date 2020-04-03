@@ -32,8 +32,8 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-// DecodeContext parses all information from input, nested under key context and returns an instance of Context.
-func DecodeContext(input interface{}, cfg Config, err error) (*model.Context, error) {
+// decodeContext parses all information from input, nested under key context and returns an instance of Context.
+func decodeContext(input interface{}, cfg Config, err error) (*model.Context, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -58,14 +58,14 @@ func DecodeContext(input interface{}, cfg Config, err error) (*model.Context, er
 	}
 	http, err := decodeHTTP(ctxInp, cfg.HasShortFieldNames, decoder.Err)
 	url, err := decodeUrl(ctxInp, err)
-	labels, err := decodeLabels(ctxInp, cfg.HasShortFieldNames, err)
+	labels, err := decodeTags(ctxInp, cfg.HasShortFieldNames, err)
 	custom, err := decodeCustom(ctxInp, cfg.HasShortFieldNames, err)
 	page, err := decodePage(ctxInp, cfg.HasShortFieldNames, err)
-	service, err := DecodeService(serviceInp, cfg.HasShortFieldNames, err)
-	user, err := DecodeUser(userInp, cfg.HasShortFieldNames, err)
+	service, err := decodeService(serviceInp, cfg.HasShortFieldNames, err)
+	user, err := decodeUser(userInp, cfg.HasShortFieldNames, err)
 	user = addUserAgent(user, http)
 	client, err := decodeClient(user, http, err)
-	message, err := DecodeMessage(ctxInp, err)
+	message, err := decodeMessage(ctxInp, err)
 
 	ctx := model.Context{
 		Http:         http,
@@ -186,7 +186,7 @@ func decodeHTTP(raw common.MapStr, hasShortFieldNames bool, err error) (*model.H
 			Finished:    decoder.BoolPtr(inpResp, "finished"),
 			HeadersSent: decoder.BoolPtr(inpResp, "headers_sent"),
 		}
-		minimalResp, err := DecodeMinimalHTTPResponse(raw, hasShortFieldNames, decoder.Err)
+		minimalResp, err := decodeMinimalHTTPResponse(raw, hasShortFieldNames, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +197,7 @@ func decodeHTTP(raw common.MapStr, hasShortFieldNames bool, err error) (*model.H
 	return h, decoder.Err
 }
 
-func DecodeMinimalHTTPResponse(raw common.MapStr, hasShortFieldNames bool, err error) (*model.MinimalResp, error) {
+func decodeMinimalHTTPResponse(raw common.MapStr, hasShortFieldNames bool, err error) (*model.MinimalResp, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.P
 	}, decoder.Err
 }
 
-func decodeLabels(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Labels, error) {
+func decodeTags(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Labels, error) {
 	if err != nil {
 		return nil, err
 	}

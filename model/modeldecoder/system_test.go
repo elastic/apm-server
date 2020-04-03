@@ -191,7 +191,7 @@ func TestSystem(t *testing.T) {
 	} {
 
 		t.Run(name, func(t *testing.T) {
-			system, err := DecodeSystem(test.input, test.inputErr)
+			system, err := decodeSystem(test.input, test.inputErr)
 			assert.Equal(t, test.err, err)
 			assert.Equal(t, test.s, system)
 
