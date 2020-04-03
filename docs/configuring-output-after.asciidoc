@@ -12,7 +12,8 @@ See <<config-sourcemapping-elasticsearch>> for more details.
 [float]
 === `fields`
 
-Fields are optional tags that can be added to all outputs.
+Fields are optional tags that can be added to the documents that APM Server outputs.
+They are defined at the top-level in your configuration file, and will apply to any configured output.
 Fields can be scalar values, arrays, dictionaries, or any nested combination of these.
 By default, the fields that you specify here will be grouped under a `fields` sub-dictionary in the output document.
 
