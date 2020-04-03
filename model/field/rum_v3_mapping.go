@@ -17,8 +17,6 @@
 
 package field
 
-import "sync"
-
 var rumV3Mapping = map[string]string{
 	"abs_path":                    "ap",
 	"action":                      "ac",
@@ -133,17 +131,17 @@ func Mapper(shortFieldNames bool) func(string) string {
 	}
 }
 
-var once sync.Once
-var inverseMap = map[string]string{}
+var rumV3InverseMapping = func() map[string]string {
+	m := make(map[string]string)
+	for k, v := range rumV3Mapping {
+		m[v] = k
+	}
+	return m
+}()
 
 func InverseMapper(shortFieldNames bool) func(string) string {
-	once.Do(func() {
-		for k, v := range rumV3Mapping {
-			inverseMap[v] = k
-		}
-	})
 	return func(s string) string {
-		longField, ok := inverseMap[s]
+		longField, ok := rumV3InverseMapping[s]
 		if ok && shortFieldNames {
 			return longField
 		}
