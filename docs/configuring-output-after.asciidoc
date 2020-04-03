@@ -17,7 +17,7 @@ They are defined at the top-level in your configuration file, and will apply to 
 Fields can be scalar values, arrays, dictionaries, or any nested combination of these.
 By default, the fields that you specify here will be grouped under a `fields` sub-dictionary in the output document.
 
-Example:
+Example using the Elasticsearch output:
 
 [source,yaml]
 ------------------------------------------------------------------------------
