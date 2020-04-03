@@ -21,18 +21,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/santhosh-tekuri/jsonschema"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/apm-server/validation"
 )
 
 const (
@@ -46,12 +42,6 @@ var (
 
 	processorEntry = common.MapStr{"name": processorName, "event": smapDocType}
 )
-
-var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
-
-func PayloadSchema() *jsonschema.Schema {
-	return cachedSchema
-}
 
 type Sourcemap struct {
 	ServiceName    string
@@ -84,15 +74,4 @@ func (pa *Sourcemap) Transform(ctx context.Context, tctx *transform.Context) []b
 		Timestamp: time.Now(),
 	}
 	return []beat.Event{ev}
-}
-
-func DecodeSourcemap(raw map[string]interface{}) (transform.Transformable, error) {
-	decoder := utility.ManualDecoder{}
-	pa := Sourcemap{
-		ServiceName:    decoder.String(raw, "service_name"),
-		ServiceVersion: decoder.String(raw, "service_version"),
-		Sourcemap:      decoder.String(raw, "sourcemap"),
-		BundleFilepath: decoder.String(raw, "bundle_filepath"),
-	}
-	return &pa, decoder.Err
 }

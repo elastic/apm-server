@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package modeldecoder
 
 import (
 	"encoding/json"
@@ -29,8 +29,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestSystem(t *testing.T) {
@@ -42,24 +44,24 @@ func TestSystem(t *testing.T) {
 	for name, test := range map[string]struct {
 		input         interface{}
 		inputErr, err error
-		s             *System
+		s             *metadata.System
 	}{
 		"nil":         {input: nil, err: nil, s: nil},
 		"inputError":  {input: nil, inputErr: inpErr, err: inpErr, s: nil},
 		"invalidType": {input: "", err: errors.New("invalid type for system"), s: nil},
-		"empty":       {input: map[string]interface{}{}, s: &System{}},
+		"empty":       {input: map[string]interface{}{}, s: &metadata.System{}},
 		"fetchError": {
 			input: map[string]interface{}{"hostname": 1},
 			err:   utility.ErrFetch,
-			s:     &System{DetectedHostname: nil, Architecture: nil, Platform: nil, IP: nil},
+			s:     &metadata.System{DetectedHostname: nil, Architecture: nil, Platform: nil, IP: nil},
 		},
 		"empty ip": {
 			input: map[string]interface{}{"ip": ""},
-			s:     &System{IP: net.ParseIP("")},
+			s:     &metadata.System{IP: net.ParseIP("")},
 		},
 		"hostname": {
 			input: map[string]interface{}{"hostname": host},
-			s:     &System{DetectedHostname: &host},
+			s:     &metadata.System{DetectedHostname: &host},
 		},
 		"detected hostname": {
 			// in practice either hostname or detected_hostname should be sent, but in theory both can be sent, so
@@ -67,7 +69,7 @@ func TestSystem(t *testing.T) {
 			input: map[string]interface{}{
 				"hostname": host, "detected_hostname": detected,
 			},
-			s: &System{DetectedHostname: &detected},
+			s: &metadata.System{DetectedHostname: &detected},
 		},
 		"ignored hostname": {
 			// in practice either hostname or configured_hostname should be sent, but in theory both can be sent, so
@@ -75,49 +77,49 @@ func TestSystem(t *testing.T) {
 			input: map[string]interface{}{
 				"hostname": host, "configured_hostname": configured,
 			},
-			s: &System{ConfiguredHostname: &configured},
+			s: &metadata.System{ConfiguredHostname: &configured},
 		},
 		"k8s nodename with hostname": {
 			input: map[string]interface{}{
 				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
 				"hostname":   host,
 			},
-			s: &System{Kubernetes: &Kubernetes{NodeName: &nodename}, DetectedHostname: &host},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{NodeName: &nodename}, DetectedHostname: &host},
 		},
 		"k8s nodename with configured hostname": {
 			input: map[string]interface{}{
 				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
 				"hostname":   host, "configured_hostname": configured,
 			},
-			s: &System{Kubernetes: &Kubernetes{NodeName: &nodename}, ConfiguredHostname: &configured},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{NodeName: &nodename}, ConfiguredHostname: &configured},
 		},
 		"k8s nodename with detected hostname": {
 			input: map[string]interface{}{
 				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
 				"hostname":   host, "detected_hostname": detected,
 			},
-			s: &System{Kubernetes: &Kubernetes{NodeName: &nodename}, DetectedHostname: &detected},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{NodeName: &nodename}, DetectedHostname: &detected},
 		},
 		"k8s podname": {
 			input: map[string]interface{}{
 				"kubernetes":        map[string]interface{}{"pod": map[string]interface{}{"name": podname}},
 				"detected_hostname": detected,
 			},
-			s: &System{Kubernetes: &Kubernetes{PodName: &podname}, DetectedHostname: &detected},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{PodName: &podname}, DetectedHostname: &detected},
 		},
 		"k8s podUID": {
 			input: map[string]interface{}{
 				"kubernetes":        map[string]interface{}{"pod": map[string]interface{}{"uid": podUID}},
 				"detected_hostname": detected,
 			},
-			s: &System{Kubernetes: &Kubernetes{PodUID: &podUID}, DetectedHostname: &detected},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{PodUID: &podUID}, DetectedHostname: &detected},
 		},
 		"k8s_namespace": {
 			input: map[string]interface{}{
 				"kubernetes":        map[string]interface{}{"namespace": namespace},
 				"detected_hostname": detected,
 			},
-			s: &System{Kubernetes: &Kubernetes{Namespace: &namespace}, DetectedHostname: &detected},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{Namespace: &namespace}, DetectedHostname: &detected},
 		},
 		"k8s podname with configured hostname": {
 			input: map[string]interface{}{
@@ -125,7 +127,7 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: &System{Kubernetes: &Kubernetes{PodName: &podname}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{PodName: &podname}, DetectedHostname: &detected, ConfiguredHostname: &configured},
 		},
 		"k8s podUID with configured hostname": {
 			input: map[string]interface{}{
@@ -133,7 +135,7 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: &System{Kubernetes: &Kubernetes{PodUID: &podUID}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{PodUID: &podUID}, DetectedHostname: &detected, ConfiguredHostname: &configured},
 		},
 		"k8s namespace with configured hostname": {
 			input: map[string]interface{}{
@@ -141,7 +143,7 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: &System{Kubernetes: &Kubernetes{Namespace: &namespace}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{Namespace: &namespace}, DetectedHostname: &detected, ConfiguredHostname: &configured},
 		},
 		"k8s empty": {
 			input: map[string]interface{}{
@@ -149,14 +151,14 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: &System{Kubernetes: &Kubernetes{}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+			s: &metadata.System{Kubernetes: &metadata.Kubernetes{}, DetectedHostname: &detected, ConfiguredHostname: &configured},
 		},
 		"full hostname info": {
 			input: map[string]interface{}{
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: &System{DetectedHostname: &detected, ConfiguredHostname: &configured},
+			s: &metadata.System{DetectedHostname: &detected, ConfiguredHostname: &configured},
 		},
 		"full": {
 			input: map[string]interface{}{
@@ -176,14 +178,14 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 			},
 			err: nil,
-			s: &System{
+			s: &metadata.System{
 				DetectedHostname:   &detected,
 				ConfiguredHostname: &configured,
 				Architecture:       &arch,
 				Platform:           &platform,
 				IP:                 net.ParseIP(ip),
-				Container:          &Container{ID: containerID},
-				Kubernetes:         &Kubernetes{Namespace: &namespace, NodeName: &nodename, PodName: &podname, PodUID: &podUID},
+				Container:          &metadata.Container{ID: containerID},
+				Kubernetes:         &metadata.Kubernetes{Namespace: &namespace, NodeName: &nodename, PodName: &podname, PodUID: &podUID},
 			},
 		},
 	} {
@@ -195,7 +197,12 @@ func TestSystem(t *testing.T) {
 
 			if test.err == nil {
 				resultName := fmt.Sprintf("test_approved_system/transform_%s", strings.ReplaceAll(name, " ", "_"))
-				resultJSON, err := json.Marshal(system.fields())
+
+				fields := make(common.MapStr)
+				metadata := metadata.Metadata{System: system}
+				metadata.Set(fields)
+
+				resultJSON, err := json.Marshal(fields["host"])
 				require.NoError(t, err)
 				approvals.AssertApproveResult(t, resultName, resultJSON)
 			}

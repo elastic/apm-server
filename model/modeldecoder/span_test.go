@@ -1,0 +1,437 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package modeldecoder
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/beats/v7/libbeat/common"
+
+	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/transform"
+)
+
+func TestDecodeSpan(t *testing.T) {
+	requestTime := time.Now()
+	spanTime := time.Date(2018, 5, 30, 19, 53, 17, 134*1e6, time.UTC)
+	timestampEpoch := json.Number(fmt.Sprintf("%d", spanTime.UnixNano()/1000))
+	id, parentId := "0000000000000000", "FFFFFFFFFFFFFFFF"
+	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
+	name, spType := "foo", "db"
+	start, duration := 1.2, 3.4
+	method, statusCode, url := "get", 200, "http://localhost"
+	instance, statement, dbType, user, link, rowsAffected := "db01", "select *", "sql", "joe", "other.db.com", 34
+	address, port := "localhost", 8080
+	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
+	context := map[string]interface{}{
+		"a":    "b",
+		"tags": map[string]interface{}{"a": "tag", "tag_key": 17},
+		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
+		"db": map[string]interface{}{
+			"instance": instance, "statement": statement, "type": dbType,
+			"user": user, "link": link, "rows_affected": json.Number("34")},
+		"destination": map[string]interface{}{
+			"address": address,
+			"port":    float64(port),
+			"service": map[string]interface{}{
+				"type":     destServiceType,
+				"name":     destServiceName,
+				"resource": destServiceResource,
+			},
+		},
+		"message": map[string]interface{}{
+			"queue": map[string]interface{}{"name": "foo"},
+			"age":   map[string]interface{}{"ms": json.Number("1577958057123")}},
+	}
+	subtype := "postgresql"
+	action, action2 := "query", "query.custom"
+	stacktrace := []interface{}{map[string]interface{}{
+		"filename": "file",
+	}}
+
+	metadata := metadata.Metadata{
+		Service: &metadata.Service{Name: tests.StringPtr("foo")},
+	}
+
+	// baseInput holds the minimal valid input. Test-specific input is added to/removed from this.
+	baseInput := common.MapStr{
+		"id": id, "type": spType, "name": name, "duration": duration, "trace_id": traceId,
+	}
+
+	for name, test := range map[string]struct {
+		input map[string]interface{}
+		cfg   Config
+		e     *span.Event
+	}{
+		"minimal payload": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
+			},
+			e: &span.Event{
+				Metadata:  metadata,
+				Name:      name,
+				Type:      "db",
+				Subtype:   &subtype,
+				Action:    &action2,
+				Duration:  duration,
+				Timestamp: spanTime,
+				ParentId:  parentId,
+				Id:        id,
+				TraceId:   traceId,
+			},
+		},
+		"no timestamp specified, request time + start used": {
+			input: map[string]interface{}{
+				"name": name, "type": "db", "duration": duration, "parent_id": parentId, "trace_id": traceId, "id": id,
+				"start": start,
+			},
+			e: &span.Event{
+				Metadata:  metadata,
+				Name:      name,
+				Type:      "db",
+				Duration:  duration,
+				ParentId:  parentId,
+				Id:        id,
+				TraceId:   traceId,
+				Start:     &start,
+				Timestamp: requestTime.Add(time.Duration(start * float64(time.Millisecond))),
+			},
+		},
+		"event experimental=false": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"experimental": 123},
+			},
+			e: &span.Event{
+				Metadata:      metadata,
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: &transactionId,
+			},
+		},
+		"event experimental=true, no experimental payload": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"foo": 123},
+			},
+			e: &span.Event{
+				Metadata:      metadata,
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: &transactionId,
+			},
+			cfg: Config{Experimental: true},
+		},
+		"event experimental=true": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"experimental": 123},
+			},
+			e: &span.Event{
+				Metadata:      metadata,
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: &transactionId,
+				Experimental:  123,
+			},
+			cfg: Config{Experimental: true},
+		},
+		"full valid payload": {
+			input: map[string]interface{}{
+				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
+				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
+				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
+			},
+			e: &span.Event{
+				Metadata:  metadata,
+				Name:      name,
+				Type:      "messaging",
+				Subtype:   &subtype,
+				Action:    &action,
+				Start:     &start,
+				Duration:  duration,
+				Timestamp: spanTime,
+				Stacktrace: m.Stacktrace{
+					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
+				},
+				Labels:        common.MapStr{"a": "tag", "tag_key": 17},
+				Id:            id,
+				TraceId:       traceId,
+				ParentId:      parentId,
+				TransactionId: &transactionId,
+				HTTP:          &span.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				DB: &span.DB{
+					Instance:     &instance,
+					Statement:    &statement,
+					Type:         &dbType,
+					UserName:     &user,
+					Link:         &link,
+					RowsAffected: &rowsAffected,
+				},
+				Destination: &span.Destination{Address: &address, Port: &port},
+				DestinationService: &span.DestinationService{
+					Type:     &destServiceType,
+					Name:     &destServiceName,
+					Resource: &destServiceResource,
+				},
+				Message: &m.Message{
+					QueueName: tests.StringPtr("foo"),
+					AgeMillis: tests.IntPtr(1577958057123)},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
+			}
+			for k, v := range test.input {
+				input[k] = v
+			}
+			span, err := DecodeSpan(Input{
+				Raw:         input,
+				RequestTime: requestTime,
+				Metadata:    metadata,
+				Config:      test.cfg,
+			})
+			require.NoError(t, err)
+			assert.Equal(t, test.e, span)
+		})
+	}
+}
+
+func TestDecodeSpanInvalid(t *testing.T) {
+	_, err := DecodeSpan(Input{Raw: nil})
+	require.EqualError(t, err, "failed to validate span: error validating JSON: input missing")
+
+	_, err = DecodeSpan(Input{Raw: ""})
+	require.EqualError(t, err, "failed to validate span: error validating JSON: invalid input type")
+
+	// baseInput holds the minimal valid input. Test-specific input is added to this.
+	baseInput := map[string]interface{}{
+		"type": "type",
+		"name": "name",
+		"id":   "id", "trace_id": "trace_id", "transaction_id": "transaction_id", "parent_id": "parent_id",
+		"start": 0.0, "duration": 123.0,
+	}
+	_, err = DecodeSpan(Input{Raw: baseInput})
+	require.NoError(t, err)
+
+	for name, test := range map[string]struct {
+		input map[string]interface{}
+	}{
+		"transaction id wrong type": {
+			input: map[string]interface{}{"transaction_id": 123},
+		},
+		"no trace_id": {
+			input: map[string]interface{}{"trace_id": nil},
+		},
+		"no id": {
+			input: map[string]interface{}{"id": nil},
+		},
+		"no parent_id": {
+			input: map[string]interface{}{"parent_id": nil},
+		},
+		"invalid stacktrace": {
+			input: map[string]interface{}{"stacktrace": []interface{}{"foo"}},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
+			}
+			for k, v := range test.input {
+				if v == nil {
+					delete(input, k)
+				} else {
+					input[k] = v
+				}
+			}
+			_, err := DecodeSpan(Input{Raw: input})
+			require.Error(t, err)
+			t.Logf("%s", err)
+		})
+	}
+}
+
+func TestSpanTransform(t *testing.T) {
+	path := "test/path"
+	start := 0.65
+	serviceName, serviceVersion, env := "myService", "1.2", "staging"
+	service := metadata.Service{Name: &serviceName, Version: &serviceVersion, Environment: &env}
+	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
+	subtype := "amqp"
+	action := "publish"
+	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
+		time.FixedZone("+0100", 3600))
+	timestampUs := timestamp.UnixNano() / 1000
+	method, statusCode, url := "get", 200, "http://localhost"
+	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
+	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
+	metadata := metadata.Metadata{Service: &service, Labels: metadataLabels}
+	address, port := "127.0.0.1", 8080
+	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
+
+	tests := []struct {
+		Event  span.Event
+		Output common.MapStr
+		Msg    string
+	}{
+		{
+			Event: span.Event{Timestamp: timestamp, Metadata: metadata},
+			Output: common.MapStr{
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"span": common.MapStr{
+					"duration": common.MapStr{"us": 0},
+					"name":     "",
+					"type":     "",
+				},
+				"labels":    metadataLabels,
+				"timestamp": common.MapStr{"us": timestampUs},
+			},
+			Msg: "Span without a Stacktrace",
+		},
+		{
+			Event: span.Event{
+				Metadata:   metadata,
+				Id:         hexId,
+				TraceId:    traceId,
+				ParentId:   parentId,
+				Name:       "myspan",
+				Type:       "myspantype",
+				Subtype:    &subtype,
+				Action:     &action,
+				Timestamp:  timestamp,
+				Start:      &start,
+				Duration:   1.20,
+				Stacktrace: m.Stacktrace{{AbsPath: &path}},
+				Labels:     common.MapStr{"label.a": 12},
+				HTTP:       &span.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				DB: &span.DB{
+					Instance:     &instance,
+					Statement:    &statement,
+					Type:         &dbType,
+					UserName:     &user,
+					RowsAffected: &rowsAffected},
+				Destination: &span.Destination{Address: &address, Port: &port},
+				DestinationService: &span.DestinationService{
+					Type:     &destServiceType,
+					Name:     &destServiceName,
+					Resource: &destServiceResource,
+				},
+				Message: &m.Message{QueueName: tests.StringPtr("users")},
+			},
+			Output: common.MapStr{
+				"span": common.MapStr{
+					"id":       hexId,
+					"duration": common.MapStr{"us": 1200},
+					"name":     "myspan",
+					"start":    common.MapStr{"us": 650},
+					"type":     "myspantype",
+					"subtype":  subtype,
+					"action":   action,
+					"stacktrace": []common.MapStr{{
+						"exclude_from_grouping": false,
+						"abs_path":              path,
+						"sourcemap": common.MapStr{
+							"error":   "Colno mandatory for sourcemapping.",
+							"updated": false,
+						}}},
+					"db": common.MapStr{
+						"instance":      instance,
+						"statement":     statement,
+						"type":          dbType,
+						"user":          common.MapStr{"name": user},
+						"rows_affected": rowsAffected,
+					},
+					"http": common.MapStr{
+						"url":      common.MapStr{"original": url},
+						"response": common.MapStr{"status_code": statusCode},
+						"method":   "get",
+					},
+					"destination": common.MapStr{
+						"service": common.MapStr{
+							"type":     destServiceType,
+							"name":     destServiceName,
+							"resource": destServiceResource,
+						},
+					},
+					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
+				},
+				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
+				"processor":   common.MapStr{"event": "span", "name": "transaction"},
+				"service":     common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"timestamp":   common.MapStr{"us": timestampUs},
+				"trace":       common.MapStr{"id": traceId},
+				"parent":      common.MapStr{"id": parentId},
+				"destination": common.MapStr{"address": address, "ip": address, "port": port},
+			},
+			Msg: "Full Span",
+		},
+	}
+
+	tctx := &transform.Context{
+		Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
+	}
+	for _, test := range tests {
+		output := test.Event.Transform(context.Background(), tctx)
+		fields := output[0].Fields
+		assert.Equal(t, test.Output, fields)
+	}
+}

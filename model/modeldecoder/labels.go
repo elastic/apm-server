@@ -15,37 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modeldecoder
 
 import (
-	"time"
+	"errors"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// Input holds the input required for decoding an event.
-type Input struct {
-	// Raw holds the raw input, decoded by encoding/json.
-	Raw interface{}
-
-	// RequestTime is the time at which the event was received
-	// by the server. This is used to set the timestamp for
-	// events sent by RUM.
-	RequestTime time.Time
-
-	// Metadata holds metadata that may be added to the event.
-	Metadata metadata.Metadata
-
-	// Config holds configuration for decoding.
-	//
-	// TODO(axw) define a Decoder type which encapsulates
-	// static configuration defined in one location, removing
-	// the possibility of inconsistent configuration.
-	Config Config
-}
-
-type Config struct {
-	Experimental bool
-	// RUM v3 support
-	HasShortFieldNames bool
+func DecodeLabels(input interface{}, err error) (common.MapStr, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid type for labels")
+	}
+	return raw, nil
 }

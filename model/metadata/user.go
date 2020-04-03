@@ -18,11 +18,7 @@
 package metadata
 
 import (
-	"encoding/json"
-	"errors"
 	"net"
-
-	"github.com/elastic/apm-server/model/field"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
@@ -35,36 +31,6 @@ type User struct {
 	Name      *string
 	IP        net.IP
 	UserAgent *string
-}
-
-func DecodeUser(input interface{}, hasShortFieldNames bool, err error) (*User, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for user")
-	}
-	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(hasShortFieldNames)
-	user := User{
-		UserAgent: decoder.StringPtr(raw, "user-agent"),
-		Name:      decoder.StringPtr(raw, fieldName("username")),
-		Email:     decoder.StringPtr(raw, fieldName("email")),
-		IP:        decoder.NetIP(raw, "ip"),
-	}
-
-	//id can be string or int
-	tmp := decoder.Interface(raw, "id")
-	if tmp != nil {
-		if t, ok := tmp.(json.Number); ok {
-			id := t.String()
-			user.Id = &id
-		} else if t, ok := tmp.(string); ok && t != "" {
-			user.Id = &t
-		}
-	}
-	return &user, decoder.Err
 }
 
 func (u *User) Fields() common.MapStr {

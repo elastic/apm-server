@@ -18,7 +18,6 @@
 package metadata
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,29 +49,5 @@ func TestContainerTransform(t *testing.T) {
 	for _, test := range tests {
 		output := test.Container.fields()
 		assert.Equal(t, test.Output, output)
-	}
-}
-
-func TestContainerDecode(t *testing.T) {
-	id := "container-id"
-	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		c           *Container
-	}{
-		{input: nil, err: nil, c: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), c: nil},
-		{input: "", err: errors.New("invalid type for container"), c: nil},
-		{
-			input: map[string]interface{}{
-				"id": id,
-			},
-			err: nil,
-			c:   &Container{ID: id},
-		},
-	} {
-		container, out := DecodeContainer(test.input, test.inpErr)
-		assert.Equal(t, test.c, container)
-		assert.Equal(t, test.err, out)
 	}
 }

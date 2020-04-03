@@ -18,8 +18,6 @@
 package model
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"testing"
 
@@ -30,48 +28,6 @@ import (
 
 	"github.com/elastic/apm-server/tests"
 )
-
-func TestDecodeMessage(t *testing.T) {
-	for _, tc := range []struct {
-		name    string
-		inp     interface{}
-		inpErr  error
-		message *Message
-		outpErr error
-	}{
-		{name: "empty"},
-		{name: "error",
-			inpErr: errors.New("error foo")},
-		{name: "invalid",
-			inp: "foo", outpErr: errors.New("invalid type for message")},
-		{name: "valid",
-			inp: map[string]interface{}{
-				"message": map[string]interface{}{
-					"queue":   map[string]interface{}{"name": "order"},
-					"body":    "user A ordered book B",
-					"headers": map[string]interface{}{"internal": "false", "services": []string{"user", "order"}},
-					"age":     map[string]interface{}{"ms": json.Number("1577958057123")}}},
-			message: &Message{
-				QueueName: tests.StringPtr("order"),
-				Body:      tests.StringPtr("user A ordered book B"),
-				Headers:   http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-				AgeMillis: tests.IntPtr(1577958057123),
-			},
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			decoded, err := DecodeMessage(tc.inp, tc.inpErr)
-			if tc.inpErr != nil {
-				require.Equal(t, tc.inpErr, err)
-			} else if tc.outpErr != nil {
-				require.Equal(t, tc.outpErr, err)
-			} else {
-				require.Nil(t, err)
-			}
-			assert.Equal(t, tc.message, decoded)
-		})
-	}
-}
 
 func TestMessaging_Fields(t *testing.T) {
 	var m *Message

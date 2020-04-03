@@ -19,10 +19,7 @@ package metricset
 
 import (
 	"context"
-	"fmt"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -30,12 +27,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/apm-server/validation"
 )
 
 const (
@@ -50,8 +44,6 @@ var (
 	transformations = monitoring.NewInt(Metrics, "transformations")
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
 )
-
-var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
 
 type Sample struct {
 	Name  string
@@ -77,105 +69,6 @@ type Metricset struct {
 	Transaction *Transaction
 	Span        *Span
 	Timestamp   time.Time
-}
-
-type metricsetDecoder struct {
-	*utility.ManualDecoder
-}
-
-func DecodeEvent(input model.Input) (transform.Transformable, error) {
-	raw, err := validation.ValidateObject(input.Raw, cachedModelSchema)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate metricset")
-	}
-
-	md := metricsetDecoder{&utility.ManualDecoder{}}
-	e := Metricset{
-		Samples:     md.decodeSamples(raw["samples"]),
-		Transaction: md.decodeTransaction(raw[transactionKey]),
-		Span:        md.decodeSpan(raw[spanKey]),
-		Timestamp:   md.TimeEpochMicro(raw, "timestamp"),
-		Metadata:    input.Metadata,
-	}
-
-	if md.Err != nil {
-		return nil, md.Err
-	}
-
-	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
-		e.Labels = tags
-	}
-	if e.Timestamp.IsZero() {
-		e.Timestamp = input.RequestTime
-	}
-
-	return &e, nil
-}
-
-func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {
-	if input == nil {
-		md.Err = errors.New("no samples for metric event")
-		return nil
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		md.Err = errors.New("invalid type for samples in metric event")
-		return nil
-	}
-
-	samples := make([]*Sample, len(raw))
-	i := 0
-	for name, s := range raw {
-		if s == nil {
-			continue
-		}
-		sampleMap, ok := s.(map[string]interface{})
-		if !ok {
-			md.Err = fmt.Errorf("invalid sample: %s: %s", name, s)
-			return nil
-		}
-
-		samples[i] = &Sample{
-			Name:  name,
-			Value: md.Float64(sampleMap, "value"),
-		}
-		if md.Err != nil {
-			return nil
-		}
-		i++
-	}
-	return samples
-}
-
-func (md *metricsetDecoder) decodeSpan(input interface{}) *Span {
-	if input == nil {
-		return nil
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		md.Err = errors.New("invalid type for span in metric event")
-		return nil
-	}
-
-	return &Span{
-		Type:    md.StringPtr(raw, "type"),
-		Subtype: md.StringPtr(raw, "subtype"),
-	}
-}
-func (md *metricsetDecoder) decodeTransaction(input interface{}) *Transaction {
-	if input == nil {
-		return nil
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		md.Err = errors.New("invalid type for transaction in metric event")
-		return nil
-	}
-
-	return &Transaction{
-		Type: md.StringPtr(raw, "type"),
-		Name: md.StringPtr(raw, "name"),
-	}
 }
 
 func (s *Span) fields() common.MapStr {
