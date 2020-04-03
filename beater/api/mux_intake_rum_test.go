@@ -18,14 +18,9 @@
 package api
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -132,26 +127,6 @@ func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 
 	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringMap)
 	assert.True(t, equal, result)
-}
-
-func TestRUMV3HandlerMinVersion(t *testing.T) {
-	cfg := cfgEnabledRUM()
-	body, err := loader.LoadDataAsStream("../testdata/intake-v3/rum_events.ndjson")
-	require.NoError(t, err)
-	h, err := rumV3IntakeHandler(cfg, nil, beatertest.NilReporter)
-	require.NoError(t, err)
-	c, w := beatertest.ContextWithResponseRecorder(http.MethodPost, IntakeRUMV3Path)
-	c.Request.Body = body
-	c.Request.Header.Set(headers.ContentType, "application/x-ndjson")
-	h(c)
-	content, err := ioutil.ReadAll(w.Body)
-	require.NoError(t, err)
-	current := common.MustNewVersion(version.GetDefaultVersion())
-	if current.Major > 7 || (current.Major == 7 && current.Minor > 7) {
-		assert.Equal(t, http.StatusAccepted, w.Code, string(content))
-	} else {
-		assert.Equal(t, http.StatusForbidden, w.Code, string(content))
-	}
 }
 
 func cfgEnabledRUM() *config.Config {
