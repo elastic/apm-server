@@ -39,9 +39,9 @@ func TestErrorEventDecode(t *testing.T) {
 	requestTime := time.Now()
 
 	id, culprit, lineno := "123", "foo()", 2
-	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
-	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
-	pUrl, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
+	parentID, traceID, transactionID := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
+	name, userID, email, userIP := "jane", "abc123", "j@d.com", "127.0.0.1"
+	pURL, referer, origURL := "https://mypage.com", "http:mypage.com", "127.0.0.1"
 	code, module, exType, handled := "200", "a", "errorEx", false
 	exAttrs := map[string]interface{}{"a": "b", "c": 123, "d": map[string]interface{}{"e": "f"}}
 	exMsg, logMsg, paramMsg, level, logger := "Exception Msg", "Log Msg", "log pm", "error", "mylogger"
@@ -49,13 +49,13 @@ func TestErrorEventDecode(t *testing.T) {
 	transactionType := "request"
 	labels := m.Labels{"ab": "c"}
 	ua := "go-1.1"
-	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIp), Id: &userId, UserAgent: &ua}
-	page := m.Page{Url: &pUrl, Referer: &referer}
+	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIP), Id: &userID, UserAgent: &ua}
+	page := m.Page{Url: &pURL, Referer: &referer}
 	custom := m.Custom{"a": "b"}
 	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}
 	response := m.Resp{Finished: new(bool), MinimalResp: m.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := m.Http{Request: &request, Response: &response}
-	ctxUrl := m.Url{Original: &origUrl}
+	ctxURL := m.Url{Original: &origURL}
 	metadata := metadata.Metadata{
 		Service: &metadata.Service{Name: tests.StringPtr("foo")},
 	}
@@ -144,9 +144,9 @@ func TestErrorEventDecode(t *testing.T) {
 				"timestamp": timestamp,
 				"context": map[string]interface{}{
 					"a":      "b",
-					"user":   map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
+					"user":   map[string]interface{}{"username": name, "email": email, "ip": userIP, "id": userID},
 					"tags":   map[string]interface{}{"ab": "c"},
-					"page":   map[string]interface{}{"url": pUrl, "referer": referer},
+					"page":   map[string]interface{}{"url": pURL, "referer": referer},
 					"custom": map[string]interface{}{"a": "b"},
 					"request": map[string]interface{}{
 						"method":  "POST",
@@ -181,9 +181,9 @@ func TestErrorEventDecode(t *testing.T) {
 					},
 				},
 				"id":             id,
-				"transaction_id": transactionId,
-				"parent_id":      parentId,
-				"trace_id":       traceId,
+				"transaction_id": transactionID,
+				"parent_id":      parentID,
+				"trace_id":       traceID,
 				"culprit":        culprit,
 				"transaction":    map[string]interface{}{"sampled": transactionSampled, "type": transactionType},
 			},
@@ -195,8 +195,8 @@ func TestErrorEventDecode(t *testing.T) {
 				Page:      &page,
 				Custom:    &custom,
 				Http:      &h,
-				Url:       &ctxUrl,
-				Client:    &m.Client{IP: net.ParseIP(userIp)},
+				Url:       &ctxURL,
+				Client:    &m.Client{IP: net.ParseIP(userIP)},
 				Exception: &modelerror.Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -218,11 +218,11 @@ func TestErrorEventDecode(t *testing.T) {
 					},
 				},
 				Id:                 &id,
-				TransactionId:      &transactionId,
+				TransactionId:      &transactionID,
 				TransactionSampled: &transactionSampled,
 				TransactionType:    &transactionType,
-				ParentId:           &parentId,
-				TraceId:            &traceId,
+				ParentId:           &parentID,
+				TraceId:            &traceID,
 				Culprit:            &culprit,
 			},
 		},

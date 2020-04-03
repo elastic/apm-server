@@ -31,7 +31,7 @@ func TestStacktraceFrameDecode(t *testing.T) {
 	lineno, colno := 1, 55
 	libraryFrame := true
 	vars := map[string]interface{}{"a": 1}
-	pre_context, post_context := []string{"a"}, []string{"b", "c"}
+	preContext, postContext := []string{"a"}, []string{"b", "c"}
 	for _, test := range []struct {
 		input       interface{}
 		err, inpErr error
@@ -74,8 +74,8 @@ func TestStacktraceFrameDecode(t *testing.T) {
 				Function:     &fct,
 				LibraryFrame: &libraryFrame,
 				Vars:         vars,
-				PreContext:   pre_context,
-				PostContext:  post_context,
+				PreContext:   preContext,
+				PostContext:  postContext,
 			},
 		},
 	} {

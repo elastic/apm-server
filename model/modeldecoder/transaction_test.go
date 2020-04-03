@@ -94,10 +94,10 @@ func TestTransactionEventDecode(t *testing.T) {
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
 
-	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
+	traceID, parentID := "0147258369012345abcdef0123456789", "abcdef0123456789"
 	dropped, started, duration := 12, 6, 1.67
-	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
-	url, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
+	name, userID, email, userIP := "jane", "abc123", "j@d.com", "127.0.0.1"
+	url, referer, origURL := "https://mypage.com", "http:mypage.com", "127.0.0.1"
 	marks := map[string]interface{}{"navigationTiming": map[string]interface{}{
 		"appBeforeBootstrap": 608.9300000000001,
 		"navigationStart":    -21,
@@ -105,18 +105,18 @@ func TestTransactionEventDecode(t *testing.T) {
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
-	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIp), Id: &userId, UserAgent: &ua}
+	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIP), Id: &userID, UserAgent: &ua}
 	page := model.Page{Url: &url, Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
 	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := model.Http{Request: &request, Response: &response}
-	ctxUrl := model.Url{Original: &origUrl}
+	ctxURL := model.Url{Original: &origURL}
 	custom := model.Custom{"abc": 1}
 	metadata := metadata.Metadata{Service: &metadata.Service{Name: tests.StringPtr("foo")}}
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
 	baseInput := map[string]interface{}{
-		"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
+		"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceID,
 		"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
 	}
 
@@ -132,7 +132,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
-				TraceId:   traceId,
+				TraceId:   traceID,
 				Duration:  duration,
 				Timestamp: requestTime,
 				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
@@ -149,7 +149,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
-				TraceId:   traceId,
+				TraceId:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
@@ -166,7 +166,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
-				TraceId:   traceId,
+				TraceId:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
@@ -183,7 +183,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Id:           id,
 				Type:         trType,
 				Name:         &name,
-				TraceId:      traceId,
+				TraceId:      traceID,
 				Duration:     duration,
 				Timestamp:    timestampParsed,
 				SpanCount:    transaction.SpanCount{Dropped: &dropped, Started: &started},
@@ -208,7 +208,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Id:        id,
 				Name:      &name,
 				Type:      "messaging",
-				TraceId:   traceId,
+				TraceId:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
@@ -225,12 +225,12 @@ func TestTransactionEventDecode(t *testing.T) {
 				"timestamp": timestampEpoch,
 				"result":    result,
 				"sampled":   sampled,
-				"parent_id": parentId,
+				"parent_id": parentID,
 				"marks":     marks,
 				"context": map[string]interface{}{
 					"a":      "b",
 					"custom": map[string]interface{}{"abc": 1},
-					"user":   map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
+					"user":   map[string]interface{}{"username": name, "email": email, "ip": userIP, "id": userID},
 					"tags":   map[string]interface{}{"foo": "bar"},
 					"page":   map[string]interface{}{"url": url, "referer": referer},
 					"request": map[string]interface{}{
@@ -250,8 +250,8 @@ func TestTransactionEventDecode(t *testing.T) {
 				Type:      trType,
 				Name:      &name,
 				Result:    &result,
-				ParentId:  &parentId,
-				TraceId:   traceId,
+				ParentId:  &parentID,
+				TraceId:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				Marks:     marks,
@@ -262,8 +262,8 @@ func TestTransactionEventDecode(t *testing.T) {
 				Page:      &page,
 				Custom:    &custom,
 				Http:      &h,
-				Url:       &ctxUrl,
-				Client:    &model.Client{IP: net.ParseIP(userIp)},
+				Url:       &ctxURL,
+				Client:    &model.Client{IP: net.ParseIP(userIP)},
 			},
 		},
 	} {

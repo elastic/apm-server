@@ -42,7 +42,7 @@ func TestDecodeSpan(t *testing.T) {
 	spanTime := time.Date(2018, 5, 30, 19, 53, 17, 134*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", spanTime.UnixNano()/1000))
 	id, parentID := "0000000000000000", "FFFFFFFFFFFFFFFF"
-	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
+	transactionID, traceID := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
@@ -81,7 +81,7 @@ func TestDecodeSpan(t *testing.T) {
 
 	// baseInput holds the minimal valid input. Test-specific input is added to/removed from this.
 	baseInput := common.MapStr{
-		"id": id, "type": spType, "name": name, "duration": duration, "trace_id": traceId,
+		"id": id, "type": spType, "name": name, "duration": duration, "trace_id": traceID,
 	}
 
 	for name, test := range map[string]struct {
@@ -92,7 +92,7 @@ func TestDecodeSpan(t *testing.T) {
 		"minimal payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
 			},
 			e: &span.Event{
 				Metadata:  metadata,
@@ -104,12 +104,12 @@ func TestDecodeSpan(t *testing.T) {
 				Timestamp: spanTime,
 				ParentId:  parentID,
 				Id:        id,
-				TraceId:   traceId,
+				TraceId:   traceID,
 			},
 		},
 		"no timestamp specified, request time + start used": {
 			input: map[string]interface{}{
-				"name": name, "type": "db", "duration": duration, "parent_id": parentID, "trace_id": traceId, "id": id,
+				"name": name, "type": "db", "duration": duration, "parent_id": parentID, "trace_id": traceID, "id": id,
 				"start": start,
 			},
 			e: &span.Event{
@@ -119,7 +119,7 @@ func TestDecodeSpan(t *testing.T) {
 				Duration:  duration,
 				ParentId:  parentID,
 				Id:        id,
-				TraceId:   traceId,
+				TraceId:   traceID,
 				Start:     &start,
 				Timestamp: requestTime.Add(time.Duration(start * float64(time.Millisecond))),
 			},
@@ -127,7 +127,7 @@ func TestDecodeSpan(t *testing.T) {
 		"event experimental=false": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentID,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
 			e: &span.Event{
@@ -141,14 +141,14 @@ func TestDecodeSpan(t *testing.T) {
 				Timestamp:     spanTime,
 				ParentId:      parentID,
 				Id:            id,
-				TraceId:       traceId,
-				TransactionId: &transactionId,
+				TraceId:       traceID,
+				TransactionId: &transactionID,
 			},
 		},
 		"event experimental=true, no experimental payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentID,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"foo": 123},
 			},
 			e: &span.Event{
@@ -162,15 +162,15 @@ func TestDecodeSpan(t *testing.T) {
 				Timestamp:     spanTime,
 				ParentId:      parentID,
 				Id:            id,
-				TraceId:       traceId,
-				TransactionId: &transactionId,
+				TraceId:       traceID,
+				TransactionId: &transactionID,
 			},
 			cfg: Config{Experimental: true},
 		},
 		"event experimental=true": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentID,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
 			e: &span.Event{
@@ -184,8 +184,8 @@ func TestDecodeSpan(t *testing.T) {
 				Timestamp:     spanTime,
 				ParentId:      parentID,
 				Id:            id,
-				TraceId:       traceId,
-				TransactionId: &transactionId,
+				TraceId:       traceID,
+				TransactionId: &transactionID,
 				Experimental:  123,
 			},
 			cfg: Config{Experimental: true},
@@ -194,7 +194,7 @@ func TestDecodeSpan(t *testing.T) {
 			input: map[string]interface{}{
 				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
-				"id": id, "parent_id": parentID, "trace_id": traceId, "transaction_id": transactionId,
+				"id": id, "parent_id": parentID, "trace_id": traceID, "transaction_id": transactionID,
 			},
 			e: &span.Event{
 				Metadata:  metadata,
@@ -210,9 +210,9 @@ func TestDecodeSpan(t *testing.T) {
 				},
 				Labels:        common.MapStr{"a": "tag", "tag_key": 17},
 				Id:            id,
-				TraceId:       traceId,
+				TraceId:       traceID,
 				ParentId:      parentID,
-				TransactionId: &transactionId,
+				TransactionId: &transactionID,
 				HTTP:          &span.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
 				DB: &span.DB{
 					Instance:     &instance,
@@ -314,7 +314,7 @@ func TestSpanTransform(t *testing.T) {
 	start := 0.65
 	serviceName, serviceVersion, env := "myService", "1.2", "staging"
 	service := metadata.Service{Name: &serviceName, Version: &serviceVersion, Environment: &env}
-	hexId, parentID, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
+	hexID, parentID, traceID := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "amqp"
 	action := "publish"
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
@@ -350,8 +350,8 @@ func TestSpanTransform(t *testing.T) {
 		{
 			Event: span.Event{
 				Metadata:   metadata,
-				Id:         hexId,
-				TraceId:    traceId,
+				Id:         hexID,
+				TraceId:    traceID,
 				ParentId:   parentID,
 				Name:       "myspan",
 				Type:       "myspantype",
@@ -379,7 +379,7 @@ func TestSpanTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
-					"id":       hexId,
+					"id":       hexID,
 					"duration": common.MapStr{"us": 1200},
 					"name":     "myspan",
 					"start":    common.MapStr{"us": 650},
@@ -418,7 +418,7 @@ func TestSpanTransform(t *testing.T) {
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
 				"service":     common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"timestamp":   common.MapStr{"us": timestampUs},
-				"trace":       common.MapStr{"id": traceId},
+				"trace":       common.MapStr{"id": traceID},
 				"parent":      common.MapStr{"id": parentID},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
 			},

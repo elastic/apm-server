@@ -57,7 +57,7 @@ func decodeContext(input interface{}, cfg Config, err error) (*model.Context, er
 		experimental = decoder.Interface(ctxInp, "experimental")
 	}
 	http, err := decodeHTTP(ctxInp, cfg.HasShortFieldNames, decoder.Err)
-	url, err := decodeUrl(ctxInp, err)
+	url, err := decodeURL(ctxInp, err)
 	labels, err := decodeTags(ctxInp, cfg.HasShortFieldNames, err)
 	custom, err := decodeCustom(ctxInp, cfg.HasShortFieldNames, err)
 	page, err := decodePage(ctxInp, cfg.HasShortFieldNames, err)
@@ -94,7 +94,7 @@ func addUserAgent(user *metadata.User, h *model.Http) *metadata.User {
 	return user
 }
 
-func decodeUrl(raw common.MapStr, err error) (*model.Url, error) {
+func decodeURL(raw common.MapStr, err error) (*model.Url, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -105,23 +105,23 @@ func decodeUrl(raw common.MapStr, err error) (*model.Url, error) {
 		return nil, decoder.Err
 	}
 
-	inpUrl := decoder.MapStr(req, "url")
+	inpURL := decoder.MapStr(req, "url")
 	url := model.Url{
-		Original: decoder.StringPtr(inpUrl, "raw"),
-		Full:     decoder.StringPtr(inpUrl, "full"),
-		Domain:   decoder.StringPtr(inpUrl, "hostname"),
-		Path:     decoder.StringPtr(inpUrl, "pathname"),
-		Query:    decoder.StringPtr(inpUrl, "search"),
-		Fragment: decoder.StringPtr(inpUrl, "hash"),
+		Original: decoder.StringPtr(inpURL, "raw"),
+		Full:     decoder.StringPtr(inpURL, "full"),
+		Domain:   decoder.StringPtr(inpURL, "hostname"),
+		Path:     decoder.StringPtr(inpURL, "pathname"),
+		Query:    decoder.StringPtr(inpURL, "search"),
+		Fragment: decoder.StringPtr(inpURL, "hash"),
 	}
-	if scheme := decoder.StringPtr(inpUrl, "protocol"); scheme != nil {
+	if scheme := decoder.StringPtr(inpURL, "protocol"); scheme != nil {
 		trimmed := strings.TrimSuffix(*scheme, ":")
 		url.Scheme = &trimmed
 	}
 	err = decoder.Err
-	if url.Port = decoder.IntPtr(inpUrl, "port"); url.Port != nil {
+	if url.Port = decoder.IntPtr(inpURL, "port"); url.Port != nil {
 		return &url, nil
-	} else if portStr := decoder.StringPtr(inpUrl, "port"); portStr != nil {
+	} else if portStr := decoder.StringPtr(inpURL, "port"); portStr != nil {
 		var p int
 		if p, err = strconv.Atoi(*portStr); err == nil {
 			url.Port = &p
