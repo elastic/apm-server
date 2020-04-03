@@ -20,23 +20,16 @@ package span
 import (
 	"context"
 	"net"
-	"strings"
 	"time"
-
-	"github.com/pkg/errors"
-	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/apm-server/validation"
 )
 
 const (
@@ -50,9 +43,7 @@ var (
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")
 
-	processorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
-	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
-	rumV3Schema       = validation.CreateSchema(schema.RUMV3Schema, "span")
+	processorEntry = common.MapStr{"name": "transaction", "event": spanDocType}
 )
 
 type Event struct {
@@ -116,30 +107,6 @@ type DestinationService struct {
 	Resource *string
 }
 
-func decodeDB(input interface{}, err error) (*DB, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for db")
-	}
-	decoder := utility.ManualDecoder{}
-	dbInput := decoder.MapStr(raw, "db")
-	if decoder.Err != nil || dbInput == nil {
-		return nil, decoder.Err
-	}
-	db := DB{
-		decoder.StringPtr(dbInput, "instance"),
-		decoder.StringPtr(dbInput, "statement"),
-		decoder.StringPtr(dbInput, "type"),
-		decoder.StringPtr(dbInput, "user"),
-		decoder.StringPtr(dbInput, "link"),
-		decoder.IntPtr(dbInput, "rows_affected"),
-	}
-	return &db, decoder.Err
-}
-
 func (db *DB) fields() common.MapStr {
 	if db == nil {
 		return nil
@@ -154,36 +121,6 @@ func (db *DB) fields() common.MapStr {
 	}
 	utility.Set(fields, "link", db.Link)
 	return fields
-}
-
-func decodeHTTP(input interface{}, hasShortFieldNames bool, err error) (*HTTP, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for http")
-	}
-	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(hasShortFieldNames)
-	httpInput := decoder.MapStr(raw, fieldName("http"))
-	if decoder.Err != nil || httpInput == nil {
-		return nil, decoder.Err
-	}
-	method := decoder.StringPtr(httpInput, fieldName("method"))
-	if method != nil {
-		*method = strings.ToLower(*method)
-	}
-	minimalResp, err := m.DecodeMinimalHTTPResponse(httpInput, hasShortFieldNames, decoder.Err)
-	if err != nil {
-		return nil, err
-	}
-	return &HTTP{
-		decoder.StringPtr(httpInput, fieldName("url")),
-		decoder.IntPtr(httpInput, fieldName("status_code")),
-		method,
-		minimalResp,
-	}, nil
 }
 
 func (http *HTTP) fields() common.MapStr {
@@ -205,39 +142,6 @@ func (http *HTTP) fields() common.MapStr {
 	utility.Set(fields, "response", response)
 	utility.Set(fields, "method", http.Method)
 	return fields
-}
-
-func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*Destination, *DestinationService, error) {
-	if input == nil || err != nil {
-		return nil, nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, nil, errors.New("invalid type for destination")
-	}
-	fieldName := field.Mapper(hasShortFieldNames)
-	decoder := utility.ManualDecoder{}
-	destinationInput := decoder.MapStr(raw, fieldName("destination"))
-	if decoder.Err != nil || destinationInput == nil {
-		return nil, nil, decoder.Err
-	}
-	serviceInput := decoder.MapStr(destinationInput, fieldName("service"))
-	if decoder.Err != nil {
-		return nil, nil, decoder.Err
-	}
-	var service *DestinationService
-	if serviceInput != nil {
-		service = &DestinationService{
-			Type:     decoder.StringPtr(serviceInput, fieldName("type")),
-			Name:     decoder.StringPtr(serviceInput, fieldName("name")),
-			Resource: decoder.StringPtr(serviceInput, fieldName("resource")),
-		}
-	}
-	dest := Destination{
-		Address: decoder.StringPtr(destinationInput, fieldName("address")),
-		Port:    decoder.IntPtr(destinationInput, fieldName("port")),
-	}
-	return &dest, service, decoder.Err
 }
 
 func (d *Destination) fields() common.MapStr {
@@ -265,117 +169,6 @@ func (d *DestinationService) fields() common.MapStr {
 	utility.Set(fields, "name", d.Name)
 	utility.Set(fields, "resource", d.Resource)
 	return fields
-}
-
-func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
-	return decodeEvent(input, rumV3Schema)
-}
-
-// DecodeEvent decodes a span event.
-func DecodeEvent(input m.Input) (transform.Transformable, error) {
-	return decodeEvent(input, cachedModelSchema)
-}
-
-func decodeEvent(input m.Input, schema *jsonschema.Schema) (transform.Transformable, error) {
-	raw, err := validation.ValidateObject(input.Raw, schema)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate span")
-	}
-
-	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	decoder := utility.ManualDecoder{}
-	event := Event{
-		Metadata:      input.Metadata,
-		Name:          decoder.String(raw, fieldName("name")),
-		Start:         decoder.Float64Ptr(raw, fieldName("start")),
-		Duration:      decoder.Float64(raw, fieldName("duration")),
-		Sync:          decoder.BoolPtr(raw, fieldName("sync")),
-		Timestamp:     decoder.TimeEpochMicro(raw, fieldName("timestamp")),
-		Id:            decoder.String(raw, fieldName("id")),
-		ParentId:      decoder.String(raw, "parent_id"),
-		TraceId:       decoder.String(raw, "trace_id"),
-		TransactionId: decoder.StringPtr(raw, "transaction_id"),
-		Type:          decoder.String(raw, fieldName("type")),
-		Subtype:       decoder.StringPtr(raw, fieldName("subtype")),
-		Action:        decoder.StringPtr(raw, fieldName("action")),
-	}
-
-	ctx := decoder.MapStr(raw, fieldName("context"))
-	if ctx != nil {
-		if labels, ok := ctx[fieldName("tags")].(map[string]interface{}); ok {
-			event.Labels = labels
-		}
-
-		db, err := decodeDB(ctx, decoder.Err)
-		if err != nil {
-			return nil, err
-		}
-		event.DB = db
-
-		http, err := decodeHTTP(ctx, input.Config.HasShortFieldNames, decoder.Err)
-		if err != nil {
-			return nil, err
-		}
-		event.HTTP = http
-
-		dest, destService, err := decodeDestination(ctx, input.Config.HasShortFieldNames, decoder.Err)
-		if err != nil {
-			return nil, err
-		}
-		event.Destination = dest
-		event.DestinationService = destService
-
-		if s, set := ctx["service"]; set {
-			service, err := metadata.DecodeService(s, input.Config.HasShortFieldNames, decoder.Err)
-			if err != nil {
-				return nil, err
-			}
-			event.Service = service
-		}
-
-		if event.Message, err = m.DecodeMessage(ctx, decoder.Err); err != nil {
-			return nil, err
-		}
-
-		if input.Config.Experimental {
-			if obj, set := ctx["experimental"]; set {
-				event.Experimental = obj
-			}
-		}
-	}
-
-	var stacktr *m.Stacktrace
-	stacktr, decoder.Err = m.DecodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-	if stacktr != nil {
-		event.Stacktrace = *stacktr
-	}
-
-	if event.Subtype == nil && event.Action == nil {
-		sep := "."
-		t := strings.Split(event.Type, sep)
-		event.Type = t[0]
-		if len(t) > 1 {
-			event.Subtype = &t[1]
-		}
-		if len(t) > 2 {
-			action := strings.Join(t[2:], sep)
-			event.Action = &action
-		}
-	}
-
-	if event.Timestamp.IsZero() {
-		timestamp := input.RequestTime
-		if event.Start != nil {
-			// adjust timestamp to be reqTime + start
-			timestamp = timestamp.Add(time.Duration(float64(time.Millisecond) * *event.Start))
-		}
-		event.Timestamp = timestamp
-	}
-
-	return &event, nil
 }
 
 func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {

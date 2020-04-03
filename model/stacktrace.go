@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -31,26 +30,10 @@ import (
 )
 
 var (
-	errInvalidStacktraceType          = errors.New("invalid type for stacktrace")
 	msgServiceInvalidForSourcemapping = "Cannot apply sourcemap without a service name or service version"
 )
 
 type Stacktrace []*StacktraceFrame
-
-func DecodeStacktrace(input interface{}, hasShortFieldNames bool, err error) (*Stacktrace, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.([]interface{})
-	if !ok {
-		return nil, errInvalidStacktraceType
-	}
-	st := make(Stacktrace, len(raw))
-	for idx, fr := range raw {
-		st[idx], err = DecodeStacktraceFrame(fr, hasShortFieldNames, err)
-	}
-	return &st, err
-}
 
 func (st *Stacktrace) Transform(ctx context.Context, tctx *transform.Context, service *metadata.Service) []common.MapStr {
 	if st == nil {

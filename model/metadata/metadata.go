@@ -18,28 +18,10 @@
 package metadata
 
 import (
-	"github.com/pkg/errors"
-	"github.com/santhosh-tekuri/jsonschema"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/apm-server/validation"
 )
-
-var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metadata")
-
-var rumV3ModelSchema = validation.CreateSchema(schema.RUMV3Schema, "metadata")
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
-
-func RUMV3ModelSchema() *jsonschema.Schema {
-	return rumV3ModelSchema
-}
 
 type Metadata struct {
 	Service *Service
@@ -47,45 +29,6 @@ type Metadata struct {
 	System  *System
 	User    *User
 	Labels  common.MapStr
-}
-
-func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*Metadata, error) {
-	return decodeMetadata(input, hasShortFieldNames, rumV3ModelSchema)
-}
-
-func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*Metadata, error) {
-	return decodeMetadata(input, hasShortFieldNames, cachedModelSchema)
-}
-
-func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonschema.Schema) (*Metadata, error) {
-	raw, err := validation.ValidateObject(input, schema)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate metadata")
-	}
-
-	fieldName := field.Mapper(hasShortFieldNames)
-
-	var service *Service
-	var system *System
-	var process *Process
-	var user *User
-	var labels common.MapStr
-	service, err = DecodeService(raw[fieldName("service")], hasShortFieldNames, err)
-	system, err = DecodeSystem(raw["system"], err)
-	process, err = DecodeProcess(raw["process"], err)
-	user, err = DecodeUser(raw[fieldName("user")], hasShortFieldNames, err)
-	labels, err = DecodeLabels(raw[fieldName("labels")], err)
-
-	if err != nil {
-		return nil, err
-	}
-	return &Metadata{
-		Service: service,
-		System:  system,
-		Process: process,
-		User:    user,
-		Labels:  labels,
-	}, nil
 }
 
 func (m *Metadata) Set(fields common.MapStr) common.MapStr {

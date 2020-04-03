@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package sourcemap
+package sourcemap_test
 
 import (
 	"context"
@@ -33,10 +33,11 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch/estest"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model/modeldecoder"
+	modelsourcemap "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -46,31 +47,8 @@ func getStr(data common.MapStr, key string) string {
 	return rs.(string)
 }
 
-func TestDecode(t *testing.T) {
-	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
-	assert.NoError(t, err)
-
-	sourcemap, err := DecodeSourcemap(data)
-	assert.NoError(t, err)
-
-	rs := sourcemap.Transform(context.Background(), &transform.Context{})
-	assert.Len(t, rs, 1)
-	event := rs[0]
-	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
-	output := event.Fields["sourcemap"].(common.MapStr)
-
-	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
-	assert.Equal(t, "service", getStr(output, "service.name"))
-	assert.Equal(t, "1", getStr(output, "service.version"))
-	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
-
-	_, err = DecodeSourcemap(nil)
-	require.Error(t, err)
-	assert.EqualError(t, err, utility.ErrFetch.Error())
-}
-
 func TestTransform(t *testing.T) {
-	p := Sourcemap{
+	p := modelsourcemap.Sourcemap{
 		ServiceName:    "myService",
 		ServiceVersion: "1.0",
 		BundleFilepath: "/my/path",
@@ -104,11 +82,14 @@ func TestParseSourcemaps(t *testing.T) {
 
 func TestInvalidateCache(t *testing.T) {
 	// load sourcemap from file and decode
+	//
+	// TODO(axw) this should be done without decoding,
+	// or moved to a separate integration test package.
 	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
 	assert.NoError(t, err)
-	decoded, err := DecodeSourcemap(data)
+	decoded, err := modeldecoder.DecodeSourcemap(data)
 	require.NoError(t, err)
-	event := decoded.(*Sourcemap)
+	event := decoded.(*modelsourcemap.Sourcemap)
 
 	t.Run("withSourcemapStore", func(t *testing.T) {
 		// collect logs

@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
@@ -31,35 +30,6 @@ import (
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/transform"
 )
-
-func TestStacktraceDecode(t *testing.T) {
-	l1 := 1
-	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		s           *Stacktrace
-	}{
-		{input: nil, err: nil, s: nil},
-		{input: nil, inpErr: errors.New("msg"), err: errors.New("msg"), s: nil},
-		{input: "", err: errors.New("invalid type for stacktrace"), s: nil},
-		{
-			input: []interface{}{"foo"},
-			err:   errInvalidStacktraceFrameType,
-			s:     &Stacktrace{nil},
-		},
-		{
-			input: []interface{}{map[string]interface{}{"lineno": 1.0}},
-			err:   nil,
-			s: &Stacktrace{
-				&StacktraceFrame{Lineno: &l1},
-			},
-		},
-	} {
-		s, err := DecodeStacktrace(test.input, false, test.inpErr)
-		assert.Equal(t, test.s, s)
-		assert.Equal(t, test.err, err)
-	}
-}
 
 func TestStacktraceTransform(t *testing.T) {
 	colno := 1

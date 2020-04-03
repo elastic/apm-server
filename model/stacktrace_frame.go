@@ -22,10 +22,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/elastic/apm-server/model/field"
-
-	"github.com/pkg/errors"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/metadata"
@@ -38,10 +34,6 @@ const (
 	errMsgSourcemapColumnMandatory = "Colno mandatory for sourcemapping."
 	errMsgSourcemapLineMandatory   = "Lineno mandatory for sourcemapping."
 	errMsgSourcemapPathMandatory   = "AbsPath mandatory for sourcemapping."
-)
-
-var (
-	errInvalidStacktraceFrameType = errors.New("invalid type for stacktrace frame")
 )
 
 type StacktraceFrame struct {
@@ -79,33 +71,6 @@ type Original struct {
 	LibraryFrame *bool
 
 	sourcemapCopied bool
-}
-
-func DecodeStacktraceFrame(input interface{}, hasShortFieldNames bool, err error) (*StacktraceFrame, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errInvalidStacktraceFrameType
-	}
-	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(hasShortFieldNames)
-	frame := StacktraceFrame{
-		AbsPath:      decoder.StringPtr(raw, fieldName("abs_path")),
-		Filename:     decoder.StringPtr(raw, fieldName("filename")),
-		Classname:    decoder.StringPtr(raw, fieldName("classname")),
-		Lineno:       decoder.IntPtr(raw, fieldName("lineno")),
-		Colno:        decoder.IntPtr(raw, fieldName("colno")),
-		ContextLine:  decoder.StringPtr(raw, fieldName("context_line")),
-		Module:       decoder.StringPtr(raw, fieldName("module")),
-		Function:     decoder.StringPtr(raw, fieldName("function")),
-		LibraryFrame: decoder.BoolPtr(raw, "library_frame"),
-		Vars:         decoder.MapStr(raw, "vars"),
-		PreContext:   decoder.StringArr(raw, fieldName("pre_context")),
-		PostContext:  decoder.StringArr(raw, fieldName("post_context")),
-	}
-	return &frame, decoder.Err
 }
 
 func (s *StacktraceFrame) Transform(tctx *transform.Context) common.MapStr {

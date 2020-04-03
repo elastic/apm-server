@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modeldecoder
 
 import (
 	"time"
@@ -44,6 +44,7 @@ type Input struct {
 	Config Config
 }
 
+// Config holds static configuration which applies to all decoding.
 type Config struct {
 	Experimental bool
 	// RUM v3 support
