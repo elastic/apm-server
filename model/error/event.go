@@ -28,20 +28,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/santhosh-tekuri/jsonschema"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/error/generated/schema"
-	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/apm-server/validation"
 )
 
 var (
@@ -56,11 +50,6 @@ const (
 	processorName = "error"
 	errorDocType  = "error"
 	emptyString   = ""
-)
-
-var (
-	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
-	rumV3Schema       = validation.CreateSchema(schema.RUMV3Schema, processorName)
 )
 
 type Event struct {
@@ -110,76 +99,6 @@ type Log struct {
 	ParamMessage *string
 	LoggerName   *string
 	Stacktrace   m.Stacktrace
-}
-
-func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
-	return decodeEvent(input, rumV3Schema)
-}
-
-func DecodeEvent(input m.Input) (transform.Transformable, error) {
-	return decodeEvent(input, cachedModelSchema)
-}
-
-func decodeEvent(input m.Input, schema *jsonschema.Schema) (transform.Transformable, error) {
-	raw, err := validation.ValidateObject(input.Raw, schema)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate error")
-	}
-
-	ctx, err := m.DecodeContext(raw, input.Config, nil)
-	if err != nil {
-		return nil, err
-	}
-	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	e := Event{
-		Metadata:           input.Metadata,
-		Id:                 decoder.StringPtr(raw, "id"),
-		Culprit:            decoder.StringPtr(raw, fieldName("culprit")),
-		Labels:             ctx.Labels,
-		Page:               ctx.Page,
-		Http:               ctx.Http,
-		Url:                ctx.Url,
-		Custom:             ctx.Custom,
-		User:               ctx.User,
-		Service:            ctx.Service,
-		Experimental:       ctx.Experimental,
-		Client:             ctx.Client,
-		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
-		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
-		ParentId:           decoder.StringPtr(raw, "parent_id"),
-		TraceId:            decoder.StringPtr(raw, "trace_id"),
-		TransactionSampled: decoder.BoolPtr(raw, fieldName("sampled"), fieldName("transaction")),
-		TransactionType:    decoder.StringPtr(raw, fieldName("type"), fieldName("transaction")),
-	}
-
-	ex := decoder.MapStr(raw, fieldName("exception"))
-	e.Exception = decodeException(&decoder, input.Config.HasShortFieldNames)(ex)
-
-	log := decoder.MapStr(raw, fieldName("log"))
-	logMsg := decoder.StringPtr(log, fieldName("message"))
-	if logMsg != nil {
-		e.Log = &Log{
-			Message:      *logMsg,
-			ParamMessage: decoder.StringPtr(log, fieldName("param_message")),
-			Level:        decoder.StringPtr(log, fieldName("level")),
-			LoggerName:   decoder.StringPtr(log, fieldName("logger_name")),
-			Stacktrace:   m.Stacktrace{},
-		}
-		var stacktrace *m.Stacktrace
-		stacktrace, decoder.Err = m.DecodeStacktrace(log[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
-		if stacktrace != nil {
-			e.Log.Stacktrace = *stacktrace
-		}
-	}
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-	if e.Timestamp.IsZero() {
-		e.Timestamp = input.RequestTime
-	}
-
-	return &e, nil
 }
 
 func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
@@ -417,47 +336,6 @@ func addStacktraceCounter(st m.Stacktrace) {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
 	}
-}
-
-type exceptionDecoder func(map[string]interface{}) *Exception
-
-func decodeException(decoder *utility.ManualDecoder, hasShortFieldNames bool) exceptionDecoder {
-	var decode exceptionDecoder
-	fieldName := field.Mapper(hasShortFieldNames)
-	decode = func(exceptionTree map[string]interface{}) *Exception {
-		exMsg := decoder.StringPtr(exceptionTree, fieldName("message"))
-		exType := decoder.StringPtr(exceptionTree, fieldName("type"))
-		if decoder.Err != nil || (exMsg == nil && exType == nil) {
-			return nil
-		}
-		ex := Exception{
-			Message:    exMsg,
-			Type:       exType,
-			Code:       decoder.Interface(exceptionTree, fieldName("code")),
-			Module:     decoder.StringPtr(exceptionTree, fieldName("module")),
-			Attributes: decoder.Interface(exceptionTree, fieldName("attributes")),
-			Handled:    decoder.BoolPtr(exceptionTree, fieldName("handled")),
-			Stacktrace: m.Stacktrace{},
-		}
-		var stacktrace *m.Stacktrace
-		stacktrace, decoder.Err = m.DecodeStacktrace(exceptionTree[fieldName("stacktrace")], hasShortFieldNames, decoder.Err)
-		if stacktrace != nil {
-			ex.Stacktrace = *stacktrace
-		}
-		for _, cause := range decoder.InterfaceArr(exceptionTree, fieldName("cause")) {
-			e, ok := cause.(map[string]interface{})
-			if !ok {
-				decoder.Err = errors.New("cause must be an exception")
-				return nil
-			}
-			nested := decode(e)
-			if nested != nil {
-				ex.Cause = append(ex.Cause, *nested)
-			}
-		}
-		return &ex
-	}
-	return decode
 }
 
 // flattenExceptionTree recursively traverses the causes of an exception to return a slice of exceptions.

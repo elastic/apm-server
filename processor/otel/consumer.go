@@ -57,7 +57,6 @@ const (
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
 type Consumer struct {
 	TransformConfig transform.Config
-	ModelConfig     model.Config
 	Reporter        publish.Reporter
 }
 

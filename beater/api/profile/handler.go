@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/profile"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -126,7 +127,7 @@ func Handler(
 				for k, v := range c.RequestMetadata {
 					utility.InsertInMap(raw, k, v.(map[string]interface{}))
 				}
-				metadata, err := metadata.DecodeMetadata(raw, false)
+				metadata, err := modeldecoder.DecodeMetadata(raw, false)
 				if err != nil {
 					var ve *validation.Error
 					if errors.As(err, &ve) {

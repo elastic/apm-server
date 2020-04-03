@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -38,65 +37,6 @@ import (
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/transform"
 )
-
-func TestStacktraceFrameDecode(t *testing.T) {
-	filename, classname, path, context, fct, module := "some file", "foo", "path", "contet", "fct", "module"
-	lineno, colno := 1, 55
-	libraryFrame := true
-	vars := map[string]interface{}{"a": 1}
-	pre_context, post_context := []string{"a"}, []string{"b", "c"}
-	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		s           *StacktraceFrame
-	}{
-		{input: nil, err: nil, s: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: errInvalidStacktraceFrameType, s: nil},
-		{
-			input: map[string]interface{}{},
-			s: &StacktraceFrame{
-				AbsPath: nil, Lineno: nil, Colno: nil,
-				ContextLine: nil, Module: nil, Function: nil, LibraryFrame: nil,
-				Vars: nil, PreContext: nil, PostContext: nil},
-		},
-		{
-			input: map[string]interface{}{
-				"abs_path":      path,
-				"filename":      filename,
-				"classname":     classname,
-				"lineno":        1.0,
-				"colno":         55.0,
-				"context_line":  context,
-				"function":      fct,
-				"module":        module,
-				"library_frame": libraryFrame,
-				"vars":          vars,
-				"pre_context":   []interface{}{"a"},
-				"post_context":  []interface{}{"b", "c"},
-			},
-			err: nil,
-			s: &StacktraceFrame{
-				AbsPath:      &path,
-				Filename:     &filename,
-				Classname:    &classname,
-				Lineno:       &lineno,
-				Colno:        &colno,
-				ContextLine:  &context,
-				Module:       &module,
-				Function:     &fct,
-				LibraryFrame: &libraryFrame,
-				Vars:         vars,
-				PreContext:   pre_context,
-				PostContext:  post_context,
-			},
-		},
-	} {
-		frame, err := DecodeStacktraceFrame(test.input, false, test.inpErr)
-		assert.Equal(t, test.s, frame)
-		assert.Equal(t, test.err, err)
-	}
-}
 
 func TestStacktraceFrameTransform(t *testing.T) {
 	filename, classname := "some file", "foo"

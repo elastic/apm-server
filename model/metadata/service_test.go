@@ -18,14 +18,11 @@
 package metadata
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -114,77 +111,5 @@ func TestServiceTransform(t *testing.T) {
 	for _, test := range tests {
 		assert.Equal(t, test.Fields, test.Service.Fields(test.ContainerID, test.HostName))
 		assert.Equal(t, test.AgentFields, test.Service.AgentFields())
-	}
-}
-
-func TestServiceDecode(t *testing.T) {
-	serviceName := "myService"
-	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		s           *Service
-	}{
-		{input: nil, err: nil, s: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: errors.New("invalid type for service"), s: nil},
-		{
-			input: map[string]interface{}{"name": 1234},
-			err:   utility.ErrFetch,
-			s: &Service{
-				Language:  Language{},
-				Runtime:   Runtime{},
-				Framework: Framework{},
-				Agent:     Agent{},
-			},
-		},
-		{
-			input: map[string]interface{}{
-				"name":        serviceName,
-				"version":     "5.1.3",
-				"environment": "staging",
-				"language": common.MapStr{
-					"name":    "ecmascript",
-					"version": "8",
-				},
-				"runtime": common.MapStr{
-					"name":    "node",
-					"version": "8.0.0",
-				},
-				"framework": common.MapStr{
-					"name":    "Express",
-					"version": "1.2.3",
-				},
-				"agent": common.MapStr{
-					"name":    "elastic-node",
-					"version": "1.0.0",
-				},
-			},
-			err: nil,
-			s: &Service{
-				Name:        &serviceName,
-				Version:     &version,
-				Environment: &environment,
-				Language: Language{
-					Name:    &langName,
-					Version: &langVersion,
-				},
-				Runtime: Runtime{
-					Name:    &rtName,
-					Version: &rtVersion,
-				},
-				Framework: Framework{
-					Name:    &fwName,
-					Version: &fwVersion,
-				},
-				Agent: Agent{
-					Name:    &agentName,
-					Version: &agentVersion,
-				},
-			},
-		},
-	} {
-		service, out := DecodeService(test.input, false, test.inpErr)
-		assert.Equal(t, test.s, service)
-		assert.Equal(t, test.err, out)
 	}
 }

@@ -24,6 +24,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/model/modeldecoder"
 	sm "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/validation"
@@ -33,7 +34,7 @@ const eventName = "sourcemap"
 
 var (
 	Processor = &sourcemapProcessor{
-		PayloadSchema: sm.PayloadSchema(),
+		PayloadSchema: modeldecoder.SourcemapSchema,
 		DecodingCount: monitoring.NewInt(sm.Metrics, "decoding.count"),
 		DecodingError: monitoring.NewInt(sm.Metrics, "decoding.errors"),
 		ValidateCount: monitoring.NewInt(sm.Metrics, "validation.count"),
@@ -56,7 +57,7 @@ func (p *sourcemapProcessor) Name() string {
 
 func (p *sourcemapProcessor) Decode(raw map[string]interface{}) ([]transform.Transformable, error) {
 	p.DecodingCount.Inc()
-	transformable, err := sm.DecodeSourcemap(raw)
+	transformable, err := modeldecoder.DecodeSourcemap(raw)
 	if err != nil {
 		p.DecodingError.Inc()
 		return nil, err

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modeldecoder
 
 import (
 	"encoding/json"
@@ -206,7 +206,7 @@ func TestDecodeContext(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			out, err := DecodeContext(test.input, test.cfg, test.errIn)
+			out, err := decodeContext(test.input, test.cfg, test.errIn)
 			if test.errOut != "" {
 				if assert.Error(t, err) {
 					assert.Contains(t, err.Error(), test.errOut)

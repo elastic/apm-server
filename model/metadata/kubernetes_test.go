@@ -18,7 +18,6 @@
 package metadata
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,39 +57,5 @@ func TestKubernetesTransform(t *testing.T) {
 	for _, test := range tests {
 		output := test.Kubernetes.fields()
 		assert.Equal(t, test.Output, output)
-	}
-}
-
-func TestKubernetesDecode(t *testing.T) {
-	namespace, podname, poduid, nodename := "namespace", "podname", "poduid", "podname"
-	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		k           *Kubernetes
-	}{
-		{input: nil, err: nil, k: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), k: nil},
-		{input: "", err: errors.New("invalid type for kubernetes"), k: nil},
-		{
-			input: map[string]interface{}{
-				"namespace": namespace,
-				"node":      map[string]interface{}{"name": nodename},
-				"pod": map[string]interface{}{
-					"uid":  poduid,
-					"name": podname,
-				},
-			},
-			err: nil,
-			k: &Kubernetes{
-				Namespace: &namespace,
-				NodeName:  &nodename,
-				PodName:   &podname,
-				PodUID:    &poduid,
-			},
-		},
-	} {
-		kubernetes, out := DecodeKubernetes(test.input, test.inpErr)
-		assert.Equal(t, test.k, kubernetes)
-		assert.Equal(t, test.err, out)
 	}
 }

@@ -18,7 +18,6 @@
 package model
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -32,33 +31,6 @@ type Message struct {
 	Headers   http.Header
 	AgeMillis *int
 	QueueName *string
-}
-
-// DecodeMessage parses a Message from given input
-func DecodeMessage(input interface{}, err error) (*Message, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for message")
-	}
-	decoder := utility.ManualDecoder{}
-
-	messageInp := decoder.MapStr(raw, "message")
-	if decoder.Err != nil || messageInp == nil {
-		return nil, decoder.Err
-	}
-	m := Message{
-		QueueName: decoder.StringPtr(messageInp, "name", "queue"),
-		Body:      decoder.StringPtr(messageInp, "body"),
-		Headers:   decoder.Headers(messageInp, "headers"),
-		AgeMillis: decoder.IntPtr(messageInp, "ms", "age"),
-	}
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-	return &m, nil
 }
 
 // Fields returns a MapStr holding the transformed message information

@@ -18,7 +18,6 @@
 package metadata
 
 import (
-	"errors"
 	"net"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -35,38 +34,6 @@ type System struct {
 
 	Container  *Container
 	Kubernetes *Kubernetes
-}
-
-func DecodeSystem(input interface{}, err error) (*System, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for system")
-	}
-	decoder := utility.ManualDecoder{}
-	system := System{
-		Platform:     decoder.StringPtr(raw, "platform"),
-		Architecture: decoder.StringPtr(raw, "architecture"),
-		IP:           decoder.NetIP(raw, "ip"),
-	}
-	if system.Container, err = DecodeContainer(raw["container"], err); err != nil {
-		return nil, err
-	}
-	if system.Kubernetes, err = DecodeKubernetes(raw["kubernetes"], err); err != nil {
-		return nil, err
-	}
-	detectedHostname := decoder.StringPtr(raw, "detected_hostname")
-	configuredHostname := decoder.StringPtr(raw, "configured_hostname")
-	if detectedHostname != nil || configuredHostname != nil {
-		system.DetectedHostname = detectedHostname
-		system.ConfiguredHostname = configuredHostname
-	} else {
-		system.DetectedHostname = decoder.StringPtr(raw, "hostname")
-	}
-
-	return &system, decoder.Err
 }
 
 func (s *System) name() *string {
