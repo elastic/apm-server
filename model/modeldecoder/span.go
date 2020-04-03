@@ -38,93 +38,6 @@ var (
 	rumV3SpanSchema = validation.CreateSchema(schema.RUMV3Schema, "span")
 )
 
-func decodeDB(input interface{}, err error) (*span.DB, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for db")
-	}
-	decoder := utility.ManualDecoder{}
-	dbInput := decoder.MapStr(raw, "db")
-	if decoder.Err != nil || dbInput == nil {
-		return nil, decoder.Err
-	}
-	db := span.DB{
-		Instance:     decoder.StringPtr(dbInput, "instance"),
-		Statement:    decoder.StringPtr(dbInput, "statement"),
-		Type:         decoder.StringPtr(dbInput, "type"),
-		UserName:     decoder.StringPtr(dbInput, "user"),
-		Link:         decoder.StringPtr(dbInput, "link"),
-		RowsAffected: decoder.IntPtr(dbInput, "rows_affected"),
-	}
-	return &db, decoder.Err
-}
-
-func decodeSpanHTTP(input interface{}, hasShortFieldNames bool, err error) (*span.HTTP, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for http")
-	}
-	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(hasShortFieldNames)
-	httpInput := decoder.MapStr(raw, fieldName("http"))
-	if decoder.Err != nil || httpInput == nil {
-		return nil, decoder.Err
-	}
-	method := decoder.StringPtr(httpInput, fieldName("method"))
-	if method != nil {
-		*method = strings.ToLower(*method)
-	}
-	minimalResp, err := decodeMinimalHTTPResponse(httpInput, hasShortFieldNames, decoder.Err)
-	if err != nil {
-		return nil, err
-	}
-	return &span.HTTP{
-		URL:        decoder.StringPtr(httpInput, fieldName("url")),
-		StatusCode: decoder.IntPtr(httpInput, fieldName("status_code")),
-		Method:     method,
-		Response:   minimalResp,
-	}, nil
-}
-
-func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*span.Destination, *span.DestinationService, error) {
-	if input == nil || err != nil {
-		return nil, nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, nil, errors.New("invalid type for destination")
-	}
-	fieldName := field.Mapper(hasShortFieldNames)
-	decoder := utility.ManualDecoder{}
-	destinationInput := decoder.MapStr(raw, fieldName("destination"))
-	if decoder.Err != nil || destinationInput == nil {
-		return nil, nil, decoder.Err
-	}
-	serviceInput := decoder.MapStr(destinationInput, fieldName("service"))
-	if decoder.Err != nil {
-		return nil, nil, decoder.Err
-	}
-	var service *span.DestinationService
-	if serviceInput != nil {
-		service = &span.DestinationService{
-			Type:     decoder.StringPtr(serviceInput, fieldName("type")),
-			Name:     decoder.StringPtr(serviceInput, fieldName("name")),
-			Resource: decoder.StringPtr(serviceInput, fieldName("resource")),
-		}
-	}
-	dest := span.Destination{
-		Address: decoder.StringPtr(destinationInput, fieldName("address")),
-		Port:    decoder.IntPtr(destinationInput, fieldName("port")),
-	}
-	return &dest, service, decoder.Err
-}
-
 // DecodeRUMV3Span decodes a v3 RUM span.
 func DecodeRUMV3Span(input Input) (transform.Transformable, error) {
 	return decodeSpan(input, rumV3SpanSchema)
@@ -235,4 +148,91 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (transform.Transformable
 	}
 
 	return &event, nil
+}
+
+func decodeDB(input interface{}, err error) (*span.DB, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid type for db")
+	}
+	decoder := utility.ManualDecoder{}
+	dbInput := decoder.MapStr(raw, "db")
+	if decoder.Err != nil || dbInput == nil {
+		return nil, decoder.Err
+	}
+	db := span.DB{
+		Instance:     decoder.StringPtr(dbInput, "instance"),
+		Statement:    decoder.StringPtr(dbInput, "statement"),
+		Type:         decoder.StringPtr(dbInput, "type"),
+		UserName:     decoder.StringPtr(dbInput, "user"),
+		Link:         decoder.StringPtr(dbInput, "link"),
+		RowsAffected: decoder.IntPtr(dbInput, "rows_affected"),
+	}
+	return &db, decoder.Err
+}
+
+func decodeSpanHTTP(input interface{}, hasShortFieldNames bool, err error) (*span.HTTP, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid type for http")
+	}
+	decoder := utility.ManualDecoder{}
+	fieldName := field.Mapper(hasShortFieldNames)
+	httpInput := decoder.MapStr(raw, fieldName("http"))
+	if decoder.Err != nil || httpInput == nil {
+		return nil, decoder.Err
+	}
+	method := decoder.StringPtr(httpInput, fieldName("method"))
+	if method != nil {
+		*method = strings.ToLower(*method)
+	}
+	minimalResp, err := decodeMinimalHTTPResponse(httpInput, hasShortFieldNames, decoder.Err)
+	if err != nil {
+		return nil, err
+	}
+	return &span.HTTP{
+		URL:        decoder.StringPtr(httpInput, fieldName("url")),
+		StatusCode: decoder.IntPtr(httpInput, fieldName("status_code")),
+		Method:     method,
+		Response:   minimalResp,
+	}, nil
+}
+
+func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*span.Destination, *span.DestinationService, error) {
+	if input == nil || err != nil {
+		return nil, nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, nil, errors.New("invalid type for destination")
+	}
+	fieldName := field.Mapper(hasShortFieldNames)
+	decoder := utility.ManualDecoder{}
+	destinationInput := decoder.MapStr(raw, fieldName("destination"))
+	if decoder.Err != nil || destinationInput == nil {
+		return nil, nil, decoder.Err
+	}
+	serviceInput := decoder.MapStr(destinationInput, fieldName("service"))
+	if decoder.Err != nil {
+		return nil, nil, decoder.Err
+	}
+	var service *span.DestinationService
+	if serviceInput != nil {
+		service = &span.DestinationService{
+			Type:     decoder.StringPtr(serviceInput, fieldName("type")),
+			Name:     decoder.StringPtr(serviceInput, fieldName("name")),
+			Resource: decoder.StringPtr(serviceInput, fieldName("resource")),
+		}
+	}
+	dest := span.Destination{
+		Address: decoder.StringPtr(destinationInput, fieldName("address")),
+		Port:    decoder.IntPtr(destinationInput, fieldName("port")),
+	}
+	return &dest, service, decoder.Err
 }

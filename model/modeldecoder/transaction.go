@@ -51,52 +51,6 @@ func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 	return event, nil
 }
 
-func decodeRUMV3Marks(raw map[string]interface{}, cfg Config) (common.MapStr, error) {
-
-	decoder := &utility.ManualDecoder{}
-	fieldName := field.Mapper(cfg.HasShortFieldNames)
-
-	decodeMark := func(m common.MapStr, key, parent string) {
-		if f := decoder.Float64Ptr(raw, fieldName(key), fieldName("marks"), fieldName(parent)); f != nil {
-			m[key] = f
-		}
-	}
-
-	agentMarks := common.MapStr{}
-	decodeMark(agentMarks, "domComplete", "agent")
-	decodeMark(agentMarks, "domInteractive", "agent")
-	decodeMark(agentMarks, "domContentLoadedEventStart", "agent")
-	decodeMark(agentMarks, "domContentLoadedEventEnd", "agent")
-	decodeMark(agentMarks, "timeToFirstByte", "agent")
-	decodeMark(agentMarks, "firstContentfulPaint", "agent")
-	decodeMark(agentMarks, "largestContentfulPaint", "agent")
-
-	navigationTiming := common.MapStr{}
-	decodeMark(navigationTiming, "fetchStart", "navigationTiming")
-	decodeMark(navigationTiming, "domainLookupStart", "navigationTiming")
-	decodeMark(navigationTiming, "domainLookupEnd", "navigationTiming")
-	decodeMark(navigationTiming, "connectStart", "navigationTiming")
-	decodeMark(navigationTiming, "connectEnd", "navigationTiming")
-	decodeMark(navigationTiming, "requestStart", "navigationTiming")
-	decodeMark(navigationTiming, "responseStart", "navigationTiming")
-	decodeMark(navigationTiming, "responseEnd", "navigationTiming")
-	decodeMark(navigationTiming, "domComplete", "navigationTiming")
-	decodeMark(navigationTiming, "domInteractive", "navigationTiming")
-	decodeMark(navigationTiming, "domLoading", "navigationTiming")
-	decodeMark(navigationTiming, "domContentLoadedEventStart", "navigationTiming")
-	decodeMark(navigationTiming, "domContentLoadedEventEnd", "navigationTiming")
-	decodeMark(navigationTiming, "loadEventStart", "navigationTiming")
-	decodeMark(navigationTiming, "loadEventEnd", "navigationTiming")
-
-	if err := decoder.Err; err != nil {
-		return nil, err
-	}
-	return common.MapStr{
-		"agent":            agentMarks,
-		"navigationTiming": navigationTiming,
-	}, nil
-}
-
 // DecodeTransaction decodes a v2 transaction.
 func DecodeTransaction(input Input) (transform.Transformable, error) {
 	return decodeTransaction(input, transactionSchema)
@@ -148,4 +102,50 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 	}
 
 	return &e, nil
+}
+
+func decodeRUMV3Marks(raw map[string]interface{}, cfg Config) (common.MapStr, error) {
+
+	decoder := &utility.ManualDecoder{}
+	fieldName := field.Mapper(cfg.HasShortFieldNames)
+
+	decodeMark := func(m common.MapStr, key, parent string) {
+		if f := decoder.Float64Ptr(raw, fieldName(key), fieldName("marks"), fieldName(parent)); f != nil {
+			m[key] = f
+		}
+	}
+
+	agentMarks := common.MapStr{}
+	decodeMark(agentMarks, "domComplete", "agent")
+	decodeMark(agentMarks, "domInteractive", "agent")
+	decodeMark(agentMarks, "domContentLoadedEventStart", "agent")
+	decodeMark(agentMarks, "domContentLoadedEventEnd", "agent")
+	decodeMark(agentMarks, "timeToFirstByte", "agent")
+	decodeMark(agentMarks, "firstContentfulPaint", "agent")
+	decodeMark(agentMarks, "largestContentfulPaint", "agent")
+
+	navigationTiming := common.MapStr{}
+	decodeMark(navigationTiming, "fetchStart", "navigationTiming")
+	decodeMark(navigationTiming, "domainLookupStart", "navigationTiming")
+	decodeMark(navigationTiming, "domainLookupEnd", "navigationTiming")
+	decodeMark(navigationTiming, "connectStart", "navigationTiming")
+	decodeMark(navigationTiming, "connectEnd", "navigationTiming")
+	decodeMark(navigationTiming, "requestStart", "navigationTiming")
+	decodeMark(navigationTiming, "responseStart", "navigationTiming")
+	decodeMark(navigationTiming, "responseEnd", "navigationTiming")
+	decodeMark(navigationTiming, "domComplete", "navigationTiming")
+	decodeMark(navigationTiming, "domInteractive", "navigationTiming")
+	decodeMark(navigationTiming, "domLoading", "navigationTiming")
+	decodeMark(navigationTiming, "domContentLoadedEventStart", "navigationTiming")
+	decodeMark(navigationTiming, "domContentLoadedEventEnd", "navigationTiming")
+	decodeMark(navigationTiming, "loadEventStart", "navigationTiming")
+	decodeMark(navigationTiming, "loadEventEnd", "navigationTiming")
+
+	if err := decoder.Err; err != nil {
+		return nil, err
+	}
+	return common.MapStr{
+		"agent":            agentMarks,
+		"navigationTiming": navigationTiming,
+	}, nil
 }

@@ -36,10 +36,6 @@ const (
 
 var metricsetSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
 
-type metricsetDecoder struct {
-	*utility.ManualDecoder
-}
-
 // DecodeMetricset decodes a v2 metricset.
 func DecodeMetricset(input Input) (transform.Transformable, error) {
 	raw, err := validation.ValidateObject(input.Raw, metricsetSchema)
@@ -68,6 +64,10 @@ func DecodeMetricset(input Input) (transform.Transformable, error) {
 	}
 
 	return &e, nil
+}
+
+type metricsetDecoder struct {
+	*utility.ManualDecoder
 }
 
 func (md *metricsetDecoder) decodeSamples(input interface{}) []*metricset.Sample {
