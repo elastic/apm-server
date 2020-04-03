@@ -19,12 +19,8 @@ package api
 
 import (
 	"expvar"
-	"fmt"
 	"net/http"
 	"regexp"
-
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -151,12 +147,7 @@ func rumV3IntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter p
 		return nil, err
 	}
 	h := intake.Handler(stream.RUMV3Processor(cfg, tcfg), reporter)
-	releaseVersion := common.Version{Major: 7, Minor: 8}
-	enabled := releaseVersion.LessThanOrEqual(false, common.MustNewVersion(version.GetDefaultVersion()))
-	m := append(rumMiddleware(cfg, nil, intake.MonitoringMap),
-		middleware.KillSwitchMiddleware(enabled,
-			fmt.Sprintf("RUM V3 endpoint is disabled in this version. Update to %s or higher", releaseVersion.String())))
-	return middleware.Wrap(h, m...)
+	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
 
 func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
