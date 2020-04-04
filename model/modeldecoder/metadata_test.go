@@ -170,6 +170,19 @@ func BenchmarkDecodeMetadata(b *testing.B) {
 	}
 }
 
+func BenchmarkDecodeMetadataRecycled(b *testing.B) {
+	b.ReportAllocs()
+	var meta metadata.Metadata
+	for i := 0; i < b.N; i++ {
+		if err := decodeMetadata(fullInput, false, metadataSchema, &meta); err != nil {
+			b.Fatal(err)
+		}
+		for k := range meta.Labels {
+			delete(meta.Labels, k)
+		}
+	}
+}
+
 func TestDecodeMetadataInvalid(t *testing.T) {
 	_, err := DecodeMetadata(nil, false)
 	require.EqualError(t, err, "failed to validate metadata: error validating JSON: input missing")
