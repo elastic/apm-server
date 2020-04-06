@@ -138,3 +138,21 @@ func rumV3Mapper(long string) string {
 func identityMapper(s string) string {
 	return s
 }
+
+var rumV3InverseMapping = func() map[string]string {
+	m := make(map[string]string)
+	for k, v := range rumV3Mapping {
+		m[v] = k
+	}
+	return m
+}()
+
+func InverseMapper(shortFieldNames bool) func(string) string {
+	return func(s string) string {
+		longField, ok := rumV3InverseMapping[s]
+		if ok && shortFieldNames {
+			return longField
+		}
+		return s
+	}
+}

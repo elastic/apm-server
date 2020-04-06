@@ -96,9 +96,10 @@ func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: modeldecoder.DecodeRUMV3Metadata,
 		models: map[string]decodeEventFunc{
-			"x": modeldecoder.DecodeRUMV3Transaction,
-			"y": modeldecoder.DecodeRUMV3Span,
-			"e": modeldecoder.DecodeRUMV3Error,
+			"x":  modeldecoder.DecodeRUMV3Transaction,
+			"y":  modeldecoder.DecodeRUMV3Span,
+			"e":  modeldecoder.DecodeRUMV3Error,
+			"me": modeldecoder.DecodeRUMV3Metricset,
 		},
 	}
 }
