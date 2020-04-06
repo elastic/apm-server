@@ -39,42 +39,60 @@
     "Log": null,
     "Metadata": {
         "Labels": {},
-        "Process": null,
+        "Process": {
+            "Argv": null,
+            "Pid": 0,
+            "Ppid": null,
+            "Title": ""
+        },
         "Service": {
             "Agent": {
-                "EphemeralId": null,
+                "EphemeralId": "",
                 "Name": "Jaeger",
                 "Version": "unknown"
             },
-            "Environment": null,
+            "Environment": "",
             "Framework": {
-                "Name": null,
-                "Version": null
+                "Name": "",
+                "Version": ""
             },
             "Language": {
                 "Name": "unknown",
-                "Version": null
+                "Version": ""
             },
             "Name": "unknown",
             "Node": {
-                "Name": null
+                "Name": ""
             },
             "Runtime": {
-                "Name": null,
-                "Version": null
+                "Name": "",
+                "Version": ""
             },
-            "Version": null
+            "Version": ""
         },
         "System": {
-            "Architecture": null,
-            "ConfiguredHostname": null,
-            "Container": null,
+            "Architecture": "",
+            "ConfiguredHostname": "",
+            "Container": {
+                "ID": ""
+            },
             "DetectedHostname": "host-abc",
             "IP": "",
-            "Kubernetes": null,
-            "Platform": null
+            "Kubernetes": {
+                "Namespace": "",
+                "NodeName": "",
+                "PodName": "",
+                "PodUID": ""
+            },
+            "Platform": ""
         },
-        "User": null
+        "User": {
+            "Email": "",
+            "IP": "",
+            "Id": "",
+            "Name": "",
+            "UserAgent": ""
+        }
     },
     "Page": null,
     "ParentId": "41414646",

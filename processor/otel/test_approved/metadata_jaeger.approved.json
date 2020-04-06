@@ -9,7 +9,7 @@
         "Argv": null,
         "Pid": 107892,
         "Ppid": null,
-        "Title": null
+        "Title": ""
     },
     "Service": {
         "Agent": {
@@ -17,33 +17,46 @@
             "Name": "Jaeger/C++",
             "Version": "3.2.1"
         },
-        "Environment": null,
+        "Environment": "",
         "Framework": {
-            "Name": null,
-            "Version": null
+            "Name": "",
+            "Version": ""
         },
         "Language": {
             "Name": "C++",
-            "Version": null
+            "Version": ""
         },
         "Name": "foo",
         "Node": {
-            "Name": null
+            "Name": ""
         },
         "Runtime": {
-            "Name": null,
-            "Version": null
+            "Name": "",
+            "Version": ""
         },
-        "Version": null
+        "Version": ""
     },
     "System": {
-        "Architecture": null,
-        "ConfiguredHostname": null,
-        "Container": null,
+        "Architecture": "",
+        "ConfiguredHostname": "",
+        "Container": {
+            "ID": ""
+        },
         "DetectedHostname": "host-foo",
         "IP": "17.0.10.123",
-        "Kubernetes": null,
-        "Platform": null
+        "Kubernetes": {
+            "Namespace": "",
+            "NodeName": "",
+            "PodName": "",
+            "PodUID": ""
+        },
+        "Platform": ""
     },
-    "User": null
+    "User": {
+        "Email": "",
+        "IP": "",
+        "Id": "",
+        "Name": "",
+        "UserAgent": ""
+    }
 }

@@ -148,7 +148,7 @@ func TestHandler(t *testing.T) {
 					require.Len(t, req.Transformables, 2)
 					for _, tr := range req.Transformables {
 						profile := tr.(profile.PprofProfile)
-						assert.Equal(t, "foo", *profile.Metadata.Service.Name)
+						assert.Equal(t, "foo", profile.Metadata.Service.Name)
 					}
 					return nil
 				}
