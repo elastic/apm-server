@@ -21,10 +21,9 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/elastic/apm-server/model/metadata"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -68,6 +67,9 @@ type Page struct {
 }
 
 // Labels holds user defined information nested under key tags
+//
+// TODO(axw) either get rid of this type, or use it consistently
+// in all model types (looking at you, Metadata).
 type Labels common.MapStr
 
 // Custom holds user defined information nested under key custom

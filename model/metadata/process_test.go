@@ -22,11 +22,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestProcessTransform(t *testing.T) {
-	pid := 1234
 	processTitle := "node"
 	argv := []string{
 		"node",
@@ -39,16 +39,18 @@ func TestProcessTransform(t *testing.T) {
 	}{
 		{
 			Process: Process{},
-			Output:  common.MapStr{"pid": 0},
+			Output:  nil,
 		},
 		{
 			Process: Process{
-				Pid:   pid,
-				Title: &processTitle,
+				Pid:   123,
+				Ppid:  tests.IntPtr(456),
+				Title: processTitle,
 				Argv:  argv,
 			},
 			Output: common.MapStr{
-				"pid":   pid,
+				"pid":   123,
+				"ppid":  456,
 				"title": processTitle,
 				"args":  argv,
 			},

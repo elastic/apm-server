@@ -59,7 +59,7 @@ func (st *Stacktrace) Transform(ctx context.Context, tctx *transform.Context, se
 	if tctx.Config.SourcemapStore == nil {
 		return st.transform(tctx, noSourcemapping)
 	}
-	if service == nil || service.Name == nil || service.Version == nil {
+	if service == nil || service.Name == "" || service.Version == "" {
 		logp.NewLogger(logs.Stacktrace).Warn(msgServiceInvalidForSourcemapping)
 		return st.transform(tctx, noSourcemapping)
 	}

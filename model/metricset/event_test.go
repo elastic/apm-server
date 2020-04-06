@@ -25,8 +25,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/tests"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/metadata"
@@ -36,7 +34,7 @@ import (
 func TestTransform(t *testing.T) {
 	timestamp := time.Now()
 	metadata := metadata.Metadata{
-		Service: &metadata.Service{Name: tests.StringPtr("myservice")},
+		Service: metadata.Service{Name: "myservice"},
 	}
 	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
 

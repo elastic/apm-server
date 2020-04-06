@@ -18,25 +18,19 @@
 package modeldecoder
 
 import (
-	"errors"
-
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/utility"
 )
 
-func decodeKubernetes(input interface{}, err error) (*metadata.Kubernetes, error) {
-	if input == nil || err != nil {
-		return nil, err
+func decodeKubernetes(input map[string]interface{}, out *metadata.Kubernetes) {
+	if input == nil {
+		return
 	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for kubernetes")
+	decodeString(input, "namespace", &out.Namespace)
+	if node := getObject(input, "node"); node != nil {
+		decodeString(node, "name", &out.NodeName)
 	}
-	decoder := utility.ManualDecoder{}
-	return &metadata.Kubernetes{
-		Namespace: decoder.StringPtr(raw, "namespace"),
-		NodeName:  decoder.StringPtr(raw, "name", "node"),
-		PodName:   decoder.StringPtr(raw, "name", "pod"),
-		PodUID:    decoder.StringPtr(raw, "uid", "pod"),
-	}, decoder.Err
+	if pod := getObject(input, "pod"); pod != nil {
+		decodeString(pod, "name", &out.PodName)
+		decodeString(pod, "uid", &out.PodUID)
+	}
 }

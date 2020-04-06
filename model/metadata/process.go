@@ -19,26 +19,26 @@ package metadata
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 type Process struct {
 	Pid   int
 	Ppid  *int
-	Title *string
+	Title string
 	Argv  []string
 }
 
 func (p *Process) fields() common.MapStr {
-	if p == nil {
-		return nil
+	var proc mapStr
+	if p.Pid != 0 {
+		proc.set("pid", p.Pid)
 	}
-	svc := common.MapStr{}
-	utility.Set(svc, "pid", p.Pid)
-	utility.Set(svc, "ppid", p.Ppid)
-	utility.Set(svc, "title", p.Title)
-	utility.Set(svc, "args", p.Argv)
-
-	return svc
+	if p.Ppid != nil {
+		proc.set("ppid", *p.Ppid)
+	}
+	if len(p.Argv) > 0 {
+		proc.set("args", p.Argv)
+	}
+	proc.maybeSetString("title", p.Title)
+	return common.MapStr(proc)
 }

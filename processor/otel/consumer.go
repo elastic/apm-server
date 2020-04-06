@@ -76,10 +76,7 @@ func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceDa
 func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable {
 	md := metadata.Metadata{}
 	parseMetadata(td, &md)
-	var hostname string
-	if md.System != nil && md.System.DetectedHostname != nil {
-		hostname = *md.System.DetectedHostname
-	}
+	hostname := md.System.DetectedHostname
 
 	logger := logp.NewLogger(logs.Otel)
 	transformables := make([]transform.Transformable, 0, len(td.Spans))
@@ -141,23 +138,19 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 }
 
 func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
-	serviceName := td.Node.GetServiceInfo().GetName()
-	if serviceName == "" {
-		serviceName = "unknown"
+	md.Service.Name = truncate(td.Node.GetServiceInfo().GetName())
+	if md.Service.Name == "" {
+		md.Service.Name = "unknown"
 	}
-	serviceName = truncate(serviceName)
-	md.Service = &metadata.Service{Name: &serviceName}
 
 	if ident := td.Node.GetIdentifier(); ident != nil {
-		if pid := ident.Pid; pid != 0 {
-			md.Process = &metadata.Process{Pid: int(pid)}
-		}
+		md.Process.Pid = int(ident.Pid)
 		if hostname := truncate(ident.HostName); hostname != "" {
-			md.System = &metadata.System{DetectedHostname: &hostname}
+			md.System.DetectedHostname = hostname
 		}
 	}
 	if languageName, ok := languageName[td.Node.GetLibraryInfo().GetLanguage()]; ok {
-		md.Service.Language.Name = &languageName
+		md.Service.Language.Name = languageName
 	}
 
 	switch td.SourceFormat {
@@ -165,45 +158,37 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 		// version is of format `Jaeger-<agentlanguage>-<version>`, e.g. `Jaeger-Go-2.20.0`
 		nVersionParts := 3
 		versionParts := strings.SplitN(td.Node.GetLibraryInfo().GetExporterVersion(), "-", nVersionParts)
-		if md.Service.Language.Name == nil && len(versionParts) == nVersionParts {
-			md.Service.Language.Name = &versionParts[1]
+		if md.Service.Language.Name == "" && len(versionParts) == nVersionParts {
+			md.Service.Language.Name = versionParts[1]
 		}
 		if v := versionParts[len(versionParts)-1]; v != "" {
-			md.Service.Agent.Version = &v
+			md.Service.Agent.Version = v
 		} else {
-			jaegerVersion := "unknown"
-			md.Service.Agent.Version = &jaegerVersion
+			md.Service.Agent.Version = "unknown"
 		}
 		agentName := AgentNameJaeger
-		if md.Service.Language.Name != nil {
-			agentName = truncate(agentName + "/" + *md.Service.Language.Name)
+		if md.Service.Language.Name != "" {
+			agentName = truncate(agentName + "/" + md.Service.Language.Name)
 		}
-		md.Service.Agent.Name = &agentName
+		md.Service.Agent.Name = agentName
 
 		if attributes := td.Node.GetAttributes(); attributes != nil {
 			if clientUUID, ok := attributes["client-uuid"]; ok {
-				clientUUID = truncate(clientUUID)
-				md.Service.Agent.EphemeralId = &clientUUID
+				md.Service.Agent.EphemeralID = truncate(clientUUID)
 				delete(td.Node.Attributes, "client-uuid")
 			}
 			if ip, ok := attributes["ip"]; ok {
-				if md.System == nil {
-					md.System = &metadata.System{}
-				}
 				md.System.IP = utility.ParseIP(ip)
 				delete(td.Node.Attributes, "ip")
 			}
 		}
 	default:
-		agentName := strings.Title(td.SourceFormat)
-		md.Service.Agent.Name = &agentName
-		version := "unknown"
-		md.Service.Agent.Version = &version
+		md.Service.Agent.Name = strings.Title(td.SourceFormat)
+		md.Service.Agent.Version = "unknown"
 	}
 
-	if md.Service.Language.Name == nil {
-		unknown := "unknown"
-		md.Service.Language.Name = &unknown
+	if md.Service.Language.Name == "" {
+		md.Service.Language.Name = "unknown"
 	}
 
 	md.Labels = make(common.MapStr)

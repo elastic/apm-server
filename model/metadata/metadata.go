@@ -18,39 +18,39 @@
 package metadata
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 type Metadata struct {
-	Service *Service
-	Process *Process
-	System  *System
-	User    *User
+	Service Service
+	Process Process
+	System  System
+	User    User
 	Labels  common.MapStr
 }
 
-func (m *Metadata) Set(fields common.MapStr) common.MapStr {
-	containerFields := m.System.containerFields()
-	hostFields := m.System.fields()
-	utility.Set(fields, "service", m.Service.Fields(get(containerFields, "id"), get(hostFields, "name")))
-	utility.Set(fields, "agent", m.Service.AgentFields())
-	utility.Set(fields, "host", hostFields)
-	utility.Set(fields, "process", m.Process.fields())
-	utility.Set(fields, "user", m.User.Fields())
-	utility.Set(fields, "client", m.User.ClientFields())
-	utility.Set(fields, "user_agent", m.User.UserAgentFields())
-	utility.Set(fields, "container", containerFields)
-	utility.Set(fields, "kubernetes", m.System.kubernetesFields())
-	// to be merged with specific event labels, these should be overwritten in case of conflict
-	utility.Set(fields, "labels", m.Labels)
-	return fields
-}
-
-func get(m common.MapStr, key string) string {
-	if val, ok := m[key].(string); ok {
-		return val
+func (m *Metadata) Set(out common.MapStr) common.MapStr {
+	fields := (*mapStr)(&out)
+	fields.maybeSetMapStr("service", m.Service.Fields(m.System.Container.ID, m.System.name()))
+	fields.maybeSetMapStr("agent", m.Service.AgentFields())
+	fields.maybeSetMapStr("host", m.System.fields())
+	fields.maybeSetMapStr("process", m.Process.fields())
+	fields.maybeSetMapStr("user", m.User.Fields())
+	fields.maybeSetMapStr("client", m.User.ClientFields())
+	fields.maybeSetMapStr("user_agent", m.User.UserAgentFields())
+	fields.maybeSetMapStr("container", m.System.containerFields())
+	fields.maybeSetMapStr("kubernetes", m.System.kubernetesFields())
+	if len(m.Labels) > 0 {
+		// These labels are merged with event-specific labels,
+		// hence we clone the map to avoid updating the shared
+		// metadata map.
+		//
+		// TODO(axw) we should only clone as needed or, better,
+		// avoid cloning altogether. For example, we could use
+		// DeepUpdateNoOverwrite in the other direction to copy
+		// the shared map into an event-specific labels map.
+		utility.Set(out, "labels", m.Labels)
 	}
-	return ""
+	return out
 }
