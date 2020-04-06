@@ -52,7 +52,7 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 	}
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config)
+	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config, &input.Metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +67,6 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 		Http:               ctx.Http,
 		Url:                ctx.Url,
 		Custom:             ctx.Custom,
-		User:               ctx.User,
-		Service:            ctx.Service,
 		Experimental:       ctx.Experimental,
 		Client:             ctx.Client,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),

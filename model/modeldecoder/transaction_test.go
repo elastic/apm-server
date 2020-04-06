@@ -105,14 +105,17 @@ func TestTransactionEventDecode(t *testing.T) {
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
-	user := metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), ID: userID, UserAgent: ua}
 	page := model.Page{Url: &url, Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
 	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := model.Http{Request: &request, Response: &response}
 	ctxURL := model.Url{Original: &origURL}
 	custom := model.Custom{"abc": 1}
-	metadata := metadata.Metadata{Service: metadata.Service{Name: "foo"}}
+
+	inputMetadata := metadata.Metadata{Service: metadata.Service{Name: "foo"}}
+
+	mergedMetadata := inputMetadata
+	mergedMetadata.User = metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), ID: userID, UserAgent: ua}
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
 	baseInput := map[string]interface{}{
@@ -128,7 +131,7 @@ func TestTransactionEventDecode(t *testing.T) {
 		"no timestamp specified, request time used": {
 			input: map[string]interface{}{},
 			e: &transaction.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -145,7 +148,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			},
 			cfg: Config{Experimental: true},
 			e: &transaction.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -162,7 +165,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			},
 			cfg: Config{Experimental: false},
 			e: &transaction.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -179,7 +182,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			},
 			cfg: Config{Experimental: true},
 			e: &transaction.Event{
-				Metadata:     metadata,
+				Metadata:     inputMetadata,
 				Id:           id,
 				Type:         trType,
 				Name:         &name,
@@ -204,7 +207,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				},
 			},
 			e: &transaction.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        id,
 				Name:      &name,
 				Type:      "messaging",
@@ -245,7 +248,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				},
 			},
 			e: &transaction.Event{
-				Metadata:  metadata,
+				Metadata:  mergedMetadata,
 				Id:        id,
 				Type:      trType,
 				Name:      &name,
@@ -257,7 +260,6 @@ func TestTransactionEventDecode(t *testing.T) {
 				Marks:     marks,
 				Sampled:   &sampled,
 				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
-				User:      &user,
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
@@ -279,7 +281,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			transformable, err := DecodeTransaction(Input{
 				Raw:         input,
 				RequestTime: requestTime,
-				Metadata:    metadata,
+				Metadata:    inputMetadata,
 				Config:      test.cfg,
 			})
 			require.NoError(t, err)

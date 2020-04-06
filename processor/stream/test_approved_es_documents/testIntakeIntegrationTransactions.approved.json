@@ -270,6 +270,7 @@
                 "scheme": "https"
             },
             "user": {
+                "email": "bar@user.com",
                 "id": "99",
                 "name": "foo"
             },

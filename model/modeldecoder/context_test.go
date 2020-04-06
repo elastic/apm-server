@@ -20,6 +20,7 @@ package modeldecoder
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/utility"
 )
@@ -190,7 +192,8 @@ func TestDecodeContext(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			out, err := decodeContext(test.input, test.cfg)
+			var meta metadata.Metadata // ignored
+			out, err := decodeContext(test.input, test.cfg, &meta)
 			if test.errOut != "" {
 				if assert.Error(t, err) {
 					assert.Contains(t, err.Error(), test.errOut)
@@ -204,4 +207,72 @@ func TestDecodeContext(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDecodeContextMetadata(t *testing.T) {
+	inputMetadata := metadata.Metadata{
+		Service: metadata.Service{
+			Name:    "myService", // unmodified
+			Version: "5.1.2",
+		},
+		User: metadata.User{
+			ID:        "12345678ab", // unmodified
+			IP:        net.ParseIP("192.158.0.1"),
+			Name:      "john",
+			Email:     "john.doe@testing.invalid",
+			UserAgent: "go-1.0",
+		},
+	}
+
+	mergedMetadata := inputMetadata
+	mergedMetadata.Service.Version = "5.1.3"       // override
+	mergedMetadata.Service.Environment = "staging" // added
+	mergedMetadata.Service.Language.Name = "ecmascript"
+	mergedMetadata.Service.Language.Version = "8"
+	mergedMetadata.Service.Runtime.Name = "node"
+	mergedMetadata.Service.Runtime.Version = "8.0.0"
+	mergedMetadata.Service.Framework.Name = "Express"
+	mergedMetadata.Service.Framework.Version = "1.2.3"
+	mergedMetadata.Service.Agent.Name = "elastic-node"
+	mergedMetadata.Service.Agent.Version = "1.0.0"
+	mergedMetadata.Service.Agent.EphemeralID = "abcdef123"
+	mergedMetadata.User.Name = "john"
+	mergedMetadata.User.Email = "john.doe@testing.invalid"
+	mergedMetadata.User.IP = net.ParseIP("10.1.1.1") // override
+	mergedMetadata.User.UserAgent = "go-1.1"         // override
+
+	input := map[string]interface{}{
+		"tags": map[string]interface{}{"ab": "c", "status": 200, "success": false},
+		"user": map[string]interface{}{
+			"username":   mergedMetadata.User.Name,
+			"email":      mergedMetadata.User.Email,
+			"ip":         mergedMetadata.User.IP.String(),
+			"user-agent": mergedMetadata.User.UserAgent,
+		},
+		"service": map[string]interface{}{
+			"version":     mergedMetadata.Service.Version,
+			"environment": mergedMetadata.Service.Environment,
+			"language": map[string]interface{}{
+				"name":    mergedMetadata.Service.Language.Name,
+				"version": mergedMetadata.Service.Language.Version,
+			},
+			"runtime": map[string]interface{}{
+				"name":    mergedMetadata.Service.Runtime.Name,
+				"version": mergedMetadata.Service.Runtime.Version,
+			},
+			"framework": map[string]interface{}{
+				"name":    mergedMetadata.Service.Framework.Name,
+				"version": mergedMetadata.Service.Framework.Version,
+			},
+			"agent": map[string]interface{}{
+				"name":         mergedMetadata.Service.Agent.Name,
+				"version":      mergedMetadata.Service.Agent.Version,
+				"ephemeral_id": mergedMetadata.Service.Agent.EphemeralID,
+			},
+		},
+	}
+
+	_, err := decodeContext(input, Config{}, &inputMetadata)
+	require.NoError(t, err)
+	assert.Equal(t, mergedMetadata, inputMetadata)
 }

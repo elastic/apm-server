@@ -62,13 +62,11 @@ type Event struct {
 	Metadata  metadata.Metadata
 
 	Culprit *string
-	User    *metadata.User
 	Labels  *m.Labels
 	Page    *m.Page
 	Http    *m.Http
 	Url     *m.Url
 	Custom  *m.Custom
-	Service *metadata.Service
 	Client  *m.Client
 
 	Exception *Exception
@@ -119,13 +117,9 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	// first set the generic metadata (order is relevant)
 	e.Metadata.Set(fields)
 	// then add event specific information
-	utility.Update(fields, "user", e.User.Fields())
 	clientFields := e.Client.Fields()
 	utility.DeepUpdate(fields, "client", clientFields)
 	utility.DeepUpdate(fields, "source", clientFields)
-	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
-	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
-	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
@@ -229,8 +223,6 @@ func (e *Event) addException(ctx context.Context, tctx *transform.Context, chain
 			utility.Set(ex, "code", code.String())
 		}
 
-		// TODO(axw) we should be using a merged service object, combining
-		// the stream metadata and event-specific service info.
 		st := exception.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
 		utility.Set(ex, "stacktrace", st)
 
@@ -249,8 +241,6 @@ func (e *Event) addLog(ctx context.Context, tctx *transform.Context) {
 	utility.Set(log, "param_message", e.Log.ParamMessage)
 	utility.Set(log, "logger_name", e.Log.LoggerName)
 	utility.Set(log, "level", e.Log.Level)
-	// TODO(axw) we should be using a merged service object, combining
-	// the stream metadata and event-specific service info.
 	st := e.Log.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
 	utility.Set(log, "stacktrace", st)
 
