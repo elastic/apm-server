@@ -43,7 +43,7 @@ func TestUserFields(t *testing.T) {
 		},
 		{
 			User: User{
-				Id:        id,
+				ID:        id,
 				IP:        ip,
 				Email:     email,
 				Name:      name,
@@ -79,7 +79,7 @@ func TestUserClientFields(t *testing.T) {
 		"Invalid": {ip: "192.0.1", out: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			u := User{IP: net.ParseIP(tc.ip), Id: id, Email: email, Name: userName, UserAgent: userAgent}
+			u := User{IP: net.ParseIP(tc.ip), ID: id, Email: email, Name: userName, UserAgent: userAgent}
 			assert.Equal(t, tc.out, u.ClientFields())
 		})
 	}
@@ -108,7 +108,7 @@ func TestUserAgentFields(t *testing.T) {
 		},
 		{
 			User: User{
-				Id:        id,
+				ID:        id,
 				IP:        net.ParseIP("127.0.0.1"),
 				Email:     email,
 				Name:      name,

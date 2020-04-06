@@ -24,7 +24,7 @@ import (
 )
 
 type User struct {
-	Id        string
+	ID        string
 	Email     string
 	Name      string
 	IP        net.IP
@@ -36,7 +36,7 @@ func (u *User) Fields() common.MapStr {
 		return nil
 	}
 	var user mapStr
-	user.maybeSetString("id", u.Id)
+	user.maybeSetString("id", u.ID)
 	user.maybeSetString("email", u.Email)
 	user.maybeSetString("name", u.Name)
 	return common.MapStr(user)

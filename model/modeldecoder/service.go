@@ -36,7 +36,7 @@ func decodeService(input map[string]interface{}, hasShortFieldNames bool, out *m
 	if agent := getObject(input, fieldName("agent")); agent != nil {
 		decodeString(agent, fieldName("name"), &out.Agent.Name)
 		decodeString(agent, fieldName("version"), &out.Agent.Version)
-		decodeString(agent, fieldName("ephemeral_id"), &out.Agent.EphemeralId)
+		decodeString(agent, fieldName("ephemeral_id"), &out.Agent.EphemeralID)
 	}
 	if framework := getObject(input, fieldName("framework")); framework != nil {
 		decodeString(framework, fieldName("name"), &out.Framework.Name)

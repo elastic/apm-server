@@ -49,7 +49,7 @@ func TestErrorEventDecode(t *testing.T) {
 	transactionType := "request"
 	labels := m.Labels{"ab": "c"}
 	ua := "go-1.1"
-	user := metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), Id: userID, UserAgent: ua}
+	user := metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), ID: userID, UserAgent: ua}
 	page := m.Page{Url: &pURL, Referer: &referer}
 	custom := m.Custom{"a": "b"}
 	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}

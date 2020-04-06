@@ -8,7 +8,7 @@
     },
     "Service": {
         "Agent": {
-            "EphemeralId": "",
+            "EphemeralID": "",
             "Name": "Jaeger",
             "Version": "3.4.12"
         },
@@ -49,8 +49,8 @@
     },
     "User": {
         "Email": "",
+        "ID": "",
         "IP": "",
-        "Id": "",
         "Name": "",
         "UserAgent": ""
     }

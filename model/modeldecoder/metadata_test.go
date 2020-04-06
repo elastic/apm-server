@@ -151,7 +151,7 @@ func TestDecodeMetadata(t *testing.T) {
 			},
 		},
 		User: metadata.User{
-			Id:        uid,
+			ID:        uid,
 			Email:     mail,
 			Name:      username,
 			IP:        net.ParseIP(userIP),

@@ -43,10 +43,10 @@ func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *meta
 	// id can be string or int
 	switch id := input["id"].(type) {
 	case json.Number:
-		out.Id = id.String()
+		out.ID = id.String()
 	case string:
 		if id != "" {
-			out.Id = id
+			out.ID = id
 		}
 	}
 }

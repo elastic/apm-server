@@ -55,7 +55,7 @@ type Framework struct {
 type Agent struct {
 	Name        string
 	Version     string
-	EphemeralId string
+	EphemeralID string
 }
 
 type ServiceNode struct {
@@ -125,6 +125,6 @@ func (a *Agent) fields() common.MapStr {
 	var agent mapStr
 	agent.maybeSetString("name", a.Name)
 	agent.maybeSetString("version", a.Version)
-	agent.maybeSetString("ephemeral_id", a.EphemeralId)
+	agent.maybeSetString("ephemeral_id", a.EphemeralID)
 	return common.MapStr(agent)
 }

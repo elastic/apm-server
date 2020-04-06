@@ -33,13 +33,13 @@ func TestUserDecode(t *testing.T) {
 		u     metadata.User
 	}{
 		{input: nil},
-		{input: map[string]interface{}{"id": json.Number("12")}, u: metadata.User{Id: id}},
+		{input: map[string]interface{}{"id": json.Number("12")}, u: metadata.User{ID: id}},
 		{
 			input: map[string]interface{}{
 				"id": id, "email": mail, "username": name, "ip": ip, "user-agent": agent,
 			},
 			u: metadata.User{
-				Id: id, Email: mail, Name: name, IP: net.ParseIP(ip), UserAgent: agent,
+				ID: id, Email: mail, Name: name, IP: net.ParseIP(ip), UserAgent: agent,
 			},
 		},
 	} {

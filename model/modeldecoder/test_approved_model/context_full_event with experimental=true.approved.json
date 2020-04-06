@@ -68,7 +68,7 @@
     },
     "Service": {
         "Agent": {
-            "EphemeralId": "",
+            "EphemeralID": "",
             "Name": "",
             "Version": ""
         },
@@ -103,8 +103,8 @@
     },
     "User": {
         "Email": "doe",
+        "ID": "12345678ab",
         "IP": "192.158.0.1",
-        "Id": "12345678ab",
         "Name": "john",
         "UserAgent": "go-1.1"
     }

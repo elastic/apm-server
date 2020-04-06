@@ -143,7 +143,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
-	user := metadata.User{Id: id, Name: name, IP: net.ParseIP(ip), UserAgent: userAgent}
+	user := metadata.User{ID: id, Name: name, IP: net.ParseIP(ip), UserAgent: userAgent}
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
 	eventMetadata := metadata.Metadata{

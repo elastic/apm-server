@@ -13,7 +13,7 @@
     },
     "Service": {
         "Agent": {
-            "EphemeralId": "xxf0",
+            "EphemeralID": "xxf0",
             "Name": "Jaeger/C++",
             "Version": "3.2.1"
         },
@@ -54,8 +54,8 @@
     },
     "User": {
         "Email": "",
+        "ID": "",
         "IP": "",
-        "Id": "",
         "Name": "",
         "UserAgent": ""
     }

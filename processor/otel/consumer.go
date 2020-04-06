@@ -174,7 +174,7 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 
 		if attributes := td.Node.GetAttributes(); attributes != nil {
 			if clientUUID, ok := attributes["client-uuid"]; ok {
-				md.Service.Agent.EphemeralId = truncate(clientUUID)
+				md.Service.Agent.EphemeralID = truncate(clientUUID)
 				delete(td.Node.Attributes, "client-uuid")
 			}
 			if ip, ok := attributes["ip"]; ok {

@@ -295,7 +295,7 @@ func TestEvents(t *testing.T) {
 			Name: serviceName, Version: version,
 			Agent: metadata.Agent{Name: agentName, Version: version},
 		},
-		User:   metadata.User{Id: uid},
+		User:   metadata.User{ID: uid},
 		Labels: common.MapStr{"label": 101},
 	}
 

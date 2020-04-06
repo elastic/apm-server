@@ -54,7 +54,7 @@ func TestMetadata_Set(t *testing.T) {
 				},
 				System:  System{DetectedHostname: host, Container: Container{ID: containerID}},
 				Process: Process{Pid: pid},
-				User:    User{Id: uid, Email: mail},
+				User:    User{ID: uid, Email: mail},
 			},
 			fields: common.MapStr{
 				"foo": "bar",
@@ -155,7 +155,7 @@ func BenchmarkMetadataSet(b *testing.B) {
 			},
 		},
 		User: User{
-			Id:        "123",
+			ID:        "123",
 			Email:     "me@example.com",
 			Name:      "bob",
 			IP:        net.ParseIP("10.1.1.2"),
