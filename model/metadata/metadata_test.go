@@ -18,10 +18,14 @@
 package metadata
 
 import (
+	"net"
 	"testing"
 
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/v7/libbeat/common"
+
+	"github.com/elastic/apm-server/tests"
 )
 
 func TestMetadata_Set(t *testing.T) {
@@ -95,4 +99,68 @@ func TestMetadata_Set(t *testing.T) {
 	} {
 		assert.Equal(t, test.output, test.input.Set(test.fields))
 	}
+}
+
+func BenchmarkMetadataSet(b *testing.B) {
+	test := func(b *testing.B, name string, input Metadata) {
+		b.Run(name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			out := make(common.MapStr)
+			for i := 0; i < b.N; i++ {
+				input.Set(out)
+				for k := range out {
+					delete(out, k)
+				}
+			}
+		})
+	}
+
+	test(b, "minimal", Metadata{
+		Service: Service{
+			Name:    "foo",
+			Version: "1.0",
+		},
+	})
+	test(b, "full", Metadata{
+		Service: Service{
+			Name:        "foo",
+			Version:     "1.0",
+			Environment: "production",
+			Node:        ServiceNode{Name: "foo-bar"},
+			Language:    Language{Name: "go", Version: "++"},
+			Runtime:     Runtime{Name: "gc", Version: "1.0"},
+			Framework:   Framework{Name: "never", Version: "again"},
+			Agent:       Agent{Name: "go", Version: "2.0"},
+		},
+		Process: Process{
+			Pid:   123,
+			Ppid:  tests.IntPtr(122),
+			Title: "case",
+			Argv:  []string{"apm-server"},
+		},
+		System: System{
+			DetectedHostname:   "detected",
+			ConfiguredHostname: "configured",
+			Architecture:       "x86_64",
+			Platform:           "linux",
+			IP:                 net.ParseIP("10.1.1.1"),
+			Container:          Container{ID: "docker"},
+			Kubernetes: Kubernetes{
+				Namespace: "system",
+				NodeName:  "node01",
+				PodName:   "pet",
+				PodUID:    "cattle",
+			},
+		},
+		User: User{
+			Id:        "123",
+			Email:     "me@example.com",
+			Name:      "bob",
+			IP:        net.ParseIP("10.1.1.2"),
+			UserAgent: "user-agent",
+		},
+		Labels: common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
+	})
 }
