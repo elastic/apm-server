@@ -17,27 +17,31 @@
 
 package modeldecoder
 
-import (
-	"testing"
+import "encoding/json"
 
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/stretchr/testify/assert"
-)
+func getObject(obj map[string]interface{}, key string) map[string]interface{} {
+	value, _ := obj[key].(map[string]interface{})
+	return value
+}
 
-func TestContainerDecode(t *testing.T) {
-	id := "container-id"
-	for _, test := range []struct {
-		input map[string]interface{}
-		c     metadata.Container
-	}{
-		{input: nil},
-		{
-			input: map[string]interface{}{"id": id},
-			c:     metadata.Container{ID: id},
-		},
-	} {
-		var container metadata.Container
-		decodeContainer(test.input, &container)
-		assert.Equal(t, test.c, container)
+func decodeString(obj map[string]interface{}, key string, out *string) bool {
+	if value, ok := obj[key].(string); ok {
+		*out = value
+		return true
 	}
+	return false
+}
+
+func decodeInt(obj map[string]interface{}, key string, out *int) bool {
+	switch value := obj[key].(type) {
+	case json.Number:
+		if f, err := value.Float64(); err == nil {
+			*out = int(f)
+		}
+		return true
+	case float64:
+		*out = int(value)
+		return true
+	}
+	return false
 }

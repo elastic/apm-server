@@ -18,22 +18,12 @@
 package modeldecoder
 
 import (
-	"errors"
-
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/utility"
 )
 
-func decodeContainer(input interface{}, err error) (*metadata.Container, error) {
-	if input == nil || err != nil {
-		return nil, err
+func decodeContainer(input map[string]interface{}, out *metadata.Container) {
+	if input == nil {
+		return
 	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for container")
-	}
-	decoder := utility.ManualDecoder{}
-	return &metadata.Container{
-		ID: decoder.String(raw, "id"),
-	}, decoder.Err
+	decodeString(input, "id", &out.ID)
 }

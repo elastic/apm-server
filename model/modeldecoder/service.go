@@ -18,48 +18,36 @@
 package modeldecoder
 
 import (
-	"errors"
-
 	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
-
-	"github.com/elastic/apm-server/utility"
 )
 
-func decodeService(input interface{}, hasShortFieldNames bool, err error) (*metadata.Service, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for service")
+func decodeService(input map[string]interface{}, hasShortFieldNames bool, out *metadata.Service) {
+	if input == nil {
+		return
 	}
 	fieldName := field.Mapper(hasShortFieldNames)
-	decoder := utility.ManualDecoder{}
-	service := metadata.Service{
-		Name:        decoder.StringPtr(raw, fieldName("name")),
-		Version:     decoder.StringPtr(raw, fieldName("version")),
-		Environment: decoder.StringPtr(raw, fieldName("environment")),
-		Agent: metadata.Agent{
-			Name:        decoder.StringPtr(raw, fieldName("name"), fieldName("agent")),
-			Version:     decoder.StringPtr(raw, fieldName("version"), fieldName("agent")),
-			EphemeralId: decoder.StringPtr(raw, "ephemeral_id", "agent"),
-		},
-		Framework: metadata.Framework{
-			Name:    decoder.StringPtr(raw, fieldName("name"), fieldName("framework")),
-			Version: decoder.StringPtr(raw, fieldName("version"), fieldName("framework")),
-		},
-		Language: metadata.Language{
-			Name:    decoder.StringPtr(raw, fieldName("name"), fieldName("language")),
-			Version: decoder.StringPtr(raw, fieldName("version"), fieldName("language")),
-		},
-		Runtime: metadata.Runtime{
-			Name:    decoder.StringPtr(raw, fieldName("name"), fieldName("runtime")),
-			Version: decoder.StringPtr(raw, fieldName("version"), fieldName("runtime")),
-		},
-		Node: metadata.ServiceNode{
-			Name: decoder.StringPtr(raw, "configured_name", "node"),
-		},
+	decodeString(input, fieldName("name"), &out.Name)
+	decodeString(input, fieldName("version"), &out.Version)
+	decodeString(input, fieldName("environment"), &out.Environment)
+	if node := getObject(input, fieldName("node")); node != nil {
+		decodeString(node, fieldName("configured_name"), &out.Node.Name)
 	}
-	return &service, decoder.Err
+	if agent := getObject(input, fieldName("agent")); agent != nil {
+		decodeString(agent, fieldName("name"), &out.Agent.Name)
+		decodeString(agent, fieldName("version"), &out.Agent.Version)
+		decodeString(agent, fieldName("ephemeral_id"), &out.Agent.EphemeralId)
+	}
+	if framework := getObject(input, fieldName("framework")); framework != nil {
+		decodeString(framework, fieldName("name"), &out.Framework.Name)
+		decodeString(framework, fieldName("version"), &out.Framework.Version)
+	}
+	if language := getObject(input, fieldName("language")); language != nil {
+		decodeString(language, fieldName("name"), &out.Language.Name)
+		decodeString(language, fieldName("version"), &out.Language.Version)
+	}
+	if runtime := getObject(input, fieldName("runtime")); runtime != nil {
+		decodeString(runtime, fieldName("name"), &out.Runtime.Name)
+		decodeString(runtime, fieldName("version"), &out.Runtime.Version)
+	}
 }

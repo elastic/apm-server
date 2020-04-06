@@ -18,7 +18,6 @@
 package modeldecoder
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/elastic/apm-server/model/metadata"
@@ -28,13 +27,10 @@ import (
 func TestKubernetesDecode(t *testing.T) {
 	namespace, podname, poduid, nodename := "namespace", "podname", "poduid", "podname"
 	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		k           *metadata.Kubernetes
+		input map[string]interface{}
+		k     metadata.Kubernetes
 	}{
-		{input: nil, err: nil, k: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), k: nil},
-		{input: "", err: errors.New("invalid type for kubernetes"), k: nil},
+		{input: nil},
 		{
 			input: map[string]interface{}{
 				"namespace": namespace,
@@ -44,17 +40,16 @@ func TestKubernetesDecode(t *testing.T) {
 					"name": podname,
 				},
 			},
-			err: nil,
-			k: &metadata.Kubernetes{
-				Namespace: &namespace,
-				NodeName:  &nodename,
-				PodName:   &podname,
-				PodUID:    &poduid,
+			k: metadata.Kubernetes{
+				Namespace: namespace,
+				NodeName:  nodename,
+				PodName:   podname,
+				PodUID:    poduid,
 			},
 		},
 	} {
-		kubernetes, out := decodeKubernetes(test.input, test.inpErr)
+		var kubernetes metadata.Kubernetes
+		decodeKubernetes(test.input, &kubernetes)
 		assert.Equal(t, test.k, kubernetes)
-		assert.Equal(t, test.err, out)
 	}
 }

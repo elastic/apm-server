@@ -68,26 +68,26 @@
     },
     "Service": {
         "Agent": {
-            "EphemeralId": "abcdef123",
-            "Name": "elastic-node",
-            "Version": "1.0.0"
+            "EphemeralId": "",
+            "Name": "",
+            "Version": ""
         },
         "Environment": "staging",
         "Framework": {
-            "Name": "Express",
-            "Version": "1.2.3"
+            "Name": "",
+            "Version": ""
         },
         "Language": {
-            "Name": "ecmascript",
-            "Version": "8"
+            "Name": "",
+            "Version": ""
         },
         "Name": "myService",
         "Node": {
-            "Name": null
+            "Name": ""
         },
         "Runtime": {
-            "Name": "node",
-            "Version": "8.0.0"
+            "Name": "",
+            "Version": ""
         },
         "Version": "5.1.3"
     },

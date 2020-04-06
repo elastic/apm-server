@@ -19,7 +19,6 @@ package modeldecoder
 
 import (
 	"encoding/json"
-	"errors"
 	"net"
 	"testing"
 
@@ -29,29 +28,23 @@ import (
 
 func TestUserDecode(t *testing.T) {
 	id, mail, name, ip, agent := "12", "m@g.dk", "foo", "127.0.0.1", "ruby"
-	inpErr := errors.New("some error happened")
 	for _, test := range []struct {
-		input    interface{}
-		inputErr error
-		err      error
-		u        *metadata.User
+		input map[string]interface{}
+		u     metadata.User
 	}{
-		{input: nil, inputErr: nil, err: nil, u: nil},
-		{input: nil, inputErr: inpErr, err: inpErr, u: nil},
-		{input: "", err: errors.New("invalid type for user"), u: nil},
-		{input: map[string]interface{}{"id": json.Number("12")}, inputErr: nil, err: nil, u: &metadata.User{Id: &id}},
+		{input: nil},
+		{input: map[string]interface{}{"id": json.Number("12")}, u: metadata.User{Id: id}},
 		{
 			input: map[string]interface{}{
 				"id": id, "email": mail, "username": name, "ip": ip, "user-agent": agent,
 			},
-			err: nil,
-			u: &metadata.User{
-				Id: &id, Email: &mail, Name: &name, IP: net.ParseIP(ip), UserAgent: &agent,
+			u: metadata.User{
+				Id: id, Email: mail, Name: name, IP: net.ParseIP(ip), UserAgent: agent,
 			},
 		},
 	} {
-		user, err := decodeUser(test.input, false, test.inputErr)
+		var user metadata.User
+		decodeUser(test.input, false, &user)
 		assert.Equal(t, test.u, user)
-		assert.Equal(t, test.err, err)
 	}
 }

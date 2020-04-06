@@ -19,40 +19,34 @@ package modeldecoder
 
 import (
 	"encoding/json"
-	"errors"
+	"net"
 
 	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
-
-	"github.com/elastic/apm-server/utility"
 )
 
-func decodeUser(input interface{}, hasShortFieldNames bool, err error) (*metadata.User, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for user")
-	}
-	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(hasShortFieldNames)
-	user := metadata.User{
-		UserAgent: decoder.StringPtr(raw, "user-agent"),
-		Name:      decoder.StringPtr(raw, fieldName("username")),
-		Email:     decoder.StringPtr(raw, fieldName("email")),
-		IP:        decoder.NetIP(raw, "ip"),
+func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *metadata.User) {
+	if input == nil {
+		return
 	}
 
-	//id can be string or int
-	tmp := decoder.Interface(raw, "id")
-	if tmp != nil {
-		if t, ok := tmp.(json.Number); ok {
-			id := t.String()
-			user.Id = &id
-		} else if t, ok := tmp.(string); ok && t != "" {
-			user.Id = &t
+	fieldName := field.Mapper(hasShortFieldNames)
+	decodeString(input, "user-agent", &out.UserAgent)
+	decodeString(input, fieldName("username"), &out.Name)
+	decodeString(input, fieldName("email"), &out.Email)
+
+	var ipString string
+	if decodeString(input, "ip", &ipString) {
+		out.IP = net.ParseIP(ipString)
+	}
+
+	// id can be string or int
+	switch id := input["id"].(type) {
+	case json.Number:
+		out.Id = id.String()
+	case string:
+		if id != "" {
+			out.Id = id
 		}
 	}
-	return &user, decoder.Err
 }

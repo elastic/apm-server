@@ -120,43 +120,42 @@ func TestDecodeMetadata(t *testing.T) {
 	output, err := DecodeMetadata(fullInput, false)
 	require.NoError(t, err)
 	assert.Equal(t, &metadata.Metadata{
-		Service: &metadata.Service{
-			Name:        tests.StringPtr(serviceName),
-			Version:     tests.StringPtr(serviceVersion),
-			Environment: tests.StringPtr(serviceEnvironment),
-			Node:        metadata.ServiceNode{Name: tests.StringPtr(serviceNodeName)},
-
-			Language:  metadata.Language{Name: tests.StringPtr(langName), Version: tests.StringPtr(langVersion)},
-			Runtime:   metadata.Runtime{Name: tests.StringPtr(rtName), Version: tests.StringPtr(rtVersion)},
-			Framework: metadata.Framework{Name: tests.StringPtr(fwName), Version: tests.StringPtr(fwVersion)},
-			Agent:     metadata.Agent{Name: tests.StringPtr(agentName), Version: tests.StringPtr(agentVersion)},
+		Service: metadata.Service{
+			Name:        serviceName,
+			Version:     serviceVersion,
+			Environment: serviceEnvironment,
+			Node:        metadata.ServiceNode{Name: serviceNodeName},
+			Language:    metadata.Language{Name: langName, Version: langVersion},
+			Runtime:     metadata.Runtime{Name: rtName, Version: rtVersion},
+			Framework:   metadata.Framework{Name: fwName, Version: fwVersion},
+			Agent:       metadata.Agent{Name: agentName, Version: agentVersion},
 		},
-		Process: &metadata.Process{
+		Process: metadata.Process{
 			Pid:   pid,
 			Ppid:  tests.IntPtr(ppid),
-			Title: tests.StringPtr(processTitle),
+			Title: processTitle,
 			Argv:  []string{"apm-server"},
 		},
-		System: &metadata.System{
-			DetectedHostname:   tests.StringPtr(detectedHostname),
-			ConfiguredHostname: tests.StringPtr(configuredHostname),
-			Architecture:       tests.StringPtr(systemArchitecture),
-			Platform:           tests.StringPtr(systemPlatform),
+		System: metadata.System{
+			DetectedHostname:   detectedHostname,
+			ConfiguredHostname: configuredHostname,
+			Architecture:       systemArchitecture,
+			Platform:           systemPlatform,
 			IP:                 net.ParseIP(systemIP),
-			Container:          &metadata.Container{ID: containerID},
-			Kubernetes: &metadata.Kubernetes{
-				Namespace: tests.StringPtr(kubernetesNamespace),
-				NodeName:  tests.StringPtr(kubernetesNodeName),
-				PodName:   tests.StringPtr(kubernetesPodName),
-				PodUID:    tests.StringPtr(kubernetesPodUID),
+			Container:          metadata.Container{ID: containerID},
+			Kubernetes: metadata.Kubernetes{
+				Namespace: kubernetesNamespace,
+				NodeName:  kubernetesNodeName,
+				PodName:   kubernetesPodName,
+				PodUID:    kubernetesPodUID,
 			},
 		},
-		User: &metadata.User{
-			Id:        tests.StringPtr(uid),
-			Email:     tests.StringPtr(mail),
-			Name:      tests.StringPtr(username),
+		User: metadata.User{
+			Id:        uid,
+			Email:     mail,
+			Name:      username,
 			IP:        net.ParseIP(userIP),
-			UserAgent: tests.StringPtr(userAgent),
+			UserAgent: userAgent,
 		},
 		Labels: common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
 	}, output)

@@ -11,10 +11,10 @@
     "Service": null,
     "Url": null,
     "User": {
-        "Email": null,
+        "Email": "",
         "IP": "10.15.21.3",
         "Id": "1234",
         "Name": "john",
-        "UserAgent": null
+        "UserAgent": ""
     }
 }

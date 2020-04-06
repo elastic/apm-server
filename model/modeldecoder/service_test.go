@@ -18,16 +18,11 @@
 package modeldecoder
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -41,17 +36,13 @@ const (
 func TestServiceDecode(t *testing.T) {
 	serviceName := "myService"
 	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		s           *metadata.Service
+		input map[string]interface{}
+		s     metadata.Service
 	}{
-		{input: nil, err: nil, s: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: errors.New("invalid type for service"), s: nil},
+		{input: nil},
 		{
 			input: map[string]interface{}{"name": 1234},
-			err:   utility.ErrFetch,
-			s: &metadata.Service{
+			s: metadata.Service{
 				Language:  metadata.Language{},
 				Runtime:   metadata.Runtime{},
 				Framework: metadata.Framework{},
@@ -63,49 +54,48 @@ func TestServiceDecode(t *testing.T) {
 				"name":        serviceName,
 				"version":     "5.1.3",
 				"environment": "staging",
-				"language": common.MapStr{
+				"language": map[string]interface{}{
 					"name":    "ecmascript",
 					"version": "8",
 				},
-				"runtime": common.MapStr{
+				"runtime": map[string]interface{}{
 					"name":    "node",
 					"version": "8.0.0",
 				},
-				"framework": common.MapStr{
+				"framework": map[string]interface{}{
 					"name":    "Express",
 					"version": "1.2.3",
 				},
-				"agent": common.MapStr{
+				"agent": map[string]interface{}{
 					"name":    "elastic-node",
 					"version": "1.0.0",
 				},
 			},
-			err: nil,
-			s: &metadata.Service{
-				Name:        tests.StringPtr(serviceName),
-				Version:     tests.StringPtr(serviceVersion),
-				Environment: tests.StringPtr(serviceEnvironment),
+			s: metadata.Service{
+				Name:        serviceName,
+				Version:     serviceVersion,
+				Environment: serviceEnvironment,
 				Language: metadata.Language{
-					Name:    tests.StringPtr(langName),
-					Version: tests.StringPtr(langVersion),
+					Name:    langName,
+					Version: langVersion,
 				},
 				Runtime: metadata.Runtime{
-					Name:    tests.StringPtr(rtName),
-					Version: tests.StringPtr(rtVersion),
+					Name:    rtName,
+					Version: rtVersion,
 				},
 				Framework: metadata.Framework{
-					Name:    tests.StringPtr(fwName),
-					Version: tests.StringPtr(fwVersion),
+					Name:    fwName,
+					Version: fwVersion,
 				},
 				Agent: metadata.Agent{
-					Name:    tests.StringPtr(agentName),
-					Version: tests.StringPtr(agentVersion),
+					Name:    agentName,
+					Version: agentVersion,
 				},
 			},
 		},
 	} {
-		service, out := decodeService(test.input, false, test.inpErr)
+		var service metadata.Service
+		decodeService(test.input, false, &service)
 		assert.Equal(t, test.s, service)
-		assert.Equal(t, test.err, out)
 	}
 }
