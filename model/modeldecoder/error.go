@@ -51,12 +51,13 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 		return nil, errors.Wrap(err, "failed to validate error")
 	}
 
-	ctx, err := decodeContext(raw, input.Config, nil)
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
+	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config)
 	if err != nil {
 		return nil, err
 	}
+
 	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	e := modelerror.Event{
 		Metadata:           input.Metadata,
 		Id:                 decoder.StringPtr(raw, "id"),

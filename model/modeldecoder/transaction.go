@@ -62,12 +62,12 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		return nil, errors.Wrap(err, "failed to validate transaction")
 	}
 
-	ctx, err := decodeContext(raw, input.Config, nil)
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
+	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config)
 	if err != nil {
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	e := transaction.Event{
 		Metadata:     input.Metadata,
 		Id:           decoder.String(raw, "id"),
@@ -100,7 +100,6 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}
-
 	return &e, nil
 }
 

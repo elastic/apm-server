@@ -37,7 +37,7 @@ func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
 	serviceName, serviceVersion, env := "myService", "1.2", "staging"
-	service := metadata.Service{Name: &serviceName, Version: &serviceVersion, Environment: &env}
+	service := metadata.Service{Name: serviceName, Version: serviceVersion, Environment: env}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "amqp"
 	action := "publish"
@@ -47,7 +47,7 @@ func TestSpanTransform(t *testing.T) {
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
 	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
-	metadata := metadata.Metadata{Service: &service, Labels: metadataLabels}
+	metadata := metadata.Metadata{Service: service, Labels: metadataLabels}
 	address, port := "127.0.0.1", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 

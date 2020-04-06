@@ -21,8 +21,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
@@ -36,41 +34,32 @@ var (
 
 // DecodeRUMV3Metadata decodes v3 RUM metadata.
 func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*metadata.Metadata, error) {
-	return decodeMetadata(input, hasShortFieldNames, rumV3MetadataSchema)
+	var out metadata.Metadata
+	if err := decodeMetadata(input, hasShortFieldNames, rumV3MetadataSchema, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // DecodeMetadata decodes v2 metadata.
 func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*metadata.Metadata, error) {
-	return decodeMetadata(input, hasShortFieldNames, metadataSchema)
-}
-
-func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonschema.Schema) (*metadata.Metadata, error) {
-	raw, err := validation.ValidateObject(input, schema)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate metadata")
-	}
-
-	fieldName := field.Mapper(hasShortFieldNames)
-
-	var service *metadata.Service
-	var system *metadata.System
-	var process *metadata.Process
-	var user *metadata.User
-	var labels common.MapStr
-	service, err = decodeService(raw[fieldName("service")], hasShortFieldNames, err)
-	system, err = decodeSystem(raw["system"], err)
-	process, err = decodeProcess(raw["process"], err)
-	user, err = decodeUser(raw[fieldName("user")], hasShortFieldNames, err)
-	labels, err = decodeLabels(raw[fieldName("labels")], err)
-
-	if err != nil {
+	var out metadata.Metadata
+	if err := decodeMetadata(input, hasShortFieldNames, metadataSchema, &out); err != nil {
 		return nil, err
 	}
-	return &metadata.Metadata{
-		Service: service,
-		System:  system,
-		Process: process,
-		User:    user,
-		Labels:  labels,
-	}, nil
+	return &out, nil
+}
+
+func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonschema.Schema, out *metadata.Metadata) error {
+	raw, err := validation.ValidateObject(input, schema)
+	if err != nil {
+		return errors.Wrap(err, "failed to validate metadata")
+	}
+	fieldName := field.Mapper(hasShortFieldNames)
+	decodeService(getObject(raw, fieldName("service")), hasShortFieldNames, &out.Service)
+	decodeSystem(getObject(raw, "system"), &out.System)
+	decodeProcess(getObject(raw, "process"), &out.Process)
+	decodeUser(getObject(raw, fieldName("user")), hasShortFieldNames, &out.User)
+	decodeLabels(getObject(raw, fieldName("labels")), &out.Labels)
+	return nil
 }

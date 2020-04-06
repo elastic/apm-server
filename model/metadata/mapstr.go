@@ -17,33 +17,29 @@
 
 package metadata
 
-import (
-	"testing"
+import "github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/stretchr/testify/assert"
+type mapStr common.MapStr
 
-	"github.com/elastic/beats/v7/libbeat/common"
-)
-
-func TestContainerTransform(t *testing.T) {
-	id := "container-id"
-
-	tests := []struct {
-		Container Container
-		Output    common.MapStr
-	}{
-		{
-			Container: Container{},
-			Output:    nil,
-		},
-		{
-			Container: Container{ID: id},
-			Output:    common.MapStr{"id": id},
-		},
+func (m *mapStr) set(k string, v interface{}) {
+	if *m == nil {
+		*m = make(mapStr)
 	}
+	(*m)[k] = v
+}
 
-	for _, test := range tests {
-		output := test.Container.fields()
-		assert.Equal(t, test.Output, output)
+func (m *mapStr) maybeSetString(k, v string) bool {
+	if v != "" {
+		m.set(k, v)
+		return true
 	}
+	return false
+}
+
+func (m *mapStr) maybeSetMapStr(k string, v common.MapStr) bool {
+	if len(v) > 0 {
+		m.set(k, v)
+		return true
+	}
+	return false
 }

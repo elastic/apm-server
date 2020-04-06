@@ -25,7 +25,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -53,7 +52,7 @@ func TestDecode(t *testing.T) {
 	requestTime := time.Now()
 	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
 	metadata := metadata.Metadata{
-		Service: &metadata.Service{Name: tests.StringPtr("myservice")},
+		Service: metadata.Service{Name: "myservice"},
 	}
 
 	for _, test := range []struct {

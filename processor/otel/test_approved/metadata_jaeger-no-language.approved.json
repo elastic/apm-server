@@ -1,31 +1,57 @@
 {
     "Labels": {},
-    "Process": null,
+    "Process": {
+        "Argv": null,
+        "Pid": 0,
+        "Ppid": null,
+        "Title": ""
+    },
     "Service": {
         "Agent": {
-            "EphemeralId": null,
+            "EphemeralID": "",
             "Name": "Jaeger",
             "Version": "3.4.12"
         },
-        "Environment": null,
+        "Environment": "",
         "Framework": {
-            "Name": null,
-            "Version": null
+            "Name": "",
+            "Version": ""
         },
         "Language": {
             "Name": "unknown",
-            "Version": null
+            "Version": ""
         },
         "Name": "unknown",
         "Node": {
-            "Name": null
+            "Name": ""
         },
         "Runtime": {
-            "Name": null,
-            "Version": null
+            "Name": "",
+            "Version": ""
         },
-        "Version": null
+        "Version": ""
     },
-    "System": null,
-    "User": null
+    "System": {
+        "Architecture": "",
+        "ConfiguredHostname": "",
+        "Container": {
+            "ID": ""
+        },
+        "DetectedHostname": "",
+        "IP": "",
+        "Kubernetes": {
+            "Namespace": "",
+            "NodeName": "",
+            "PodName": "",
+            "PodUID": ""
+        },
+        "Platform": ""
+    },
+    "User": {
+        "Email": "",
+        "ID": "",
+        "IP": "",
+        "Name": "",
+        "UserAgent": ""
+    }
 }

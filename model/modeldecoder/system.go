@@ -18,40 +18,29 @@
 package modeldecoder
 
 import (
-	"errors"
+	"net"
 
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/utility"
 )
 
-func decodeSystem(input interface{}, err error) (*metadata.System, error) {
-	if input == nil || err != nil {
-		return nil, err
+func decodeSystem(input map[string]interface{}, out *metadata.System) {
+	if input == nil {
+		return
 	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for system")
-	}
-	decoder := utility.ManualDecoder{}
-	system := metadata.System{
-		Platform:     decoder.StringPtr(raw, "platform"),
-		Architecture: decoder.StringPtr(raw, "architecture"),
-		IP:           decoder.NetIP(raw, "ip"),
-	}
-	if system.Container, err = decodeContainer(raw["container"], err); err != nil {
-		return nil, err
-	}
-	if system.Kubernetes, err = decodeKubernetes(raw["kubernetes"], err); err != nil {
-		return nil, err
-	}
-	detectedHostname := decoder.StringPtr(raw, "detected_hostname")
-	configuredHostname := decoder.StringPtr(raw, "configured_hostname")
-	if detectedHostname != nil || configuredHostname != nil {
-		system.DetectedHostname = detectedHostname
-		system.ConfiguredHostname = configuredHostname
-	} else {
-		system.DetectedHostname = decoder.StringPtr(raw, "hostname")
+	decodeString(input, "platform", &out.Platform)
+	decodeString(input, "architecture", &out.Architecture)
+
+	var ipString string
+	if decodeString(input, "ip", &ipString) {
+		out.IP = net.ParseIP(ipString)
 	}
 
-	return &system, decoder.Err
+	decodeContainer(getObject(input, "container"), &out.Container)
+	decodeKubernetes(getObject(input, "kubernetes"), &out.Kubernetes)
+
+	decodeString(input, "detected_hostname", &out.DetectedHostname)
+	decodeString(input, "configured_hostname", &out.ConfiguredHostname)
+	if out.DetectedHostname == "" && out.ConfiguredHostname == "" {
+		decodeString(input, "hostname", &out.DetectedHostname)
+	}
 }

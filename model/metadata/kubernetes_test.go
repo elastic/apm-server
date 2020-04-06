@@ -34,14 +34,14 @@ func TestKubernetesTransform(t *testing.T) {
 	}{
 		{
 			Kubernetes: Kubernetes{},
-			Output:     common.MapStr{},
+			Output:     nil,
 		},
 		{
 			Kubernetes: Kubernetes{
-				Namespace: &namespace,
-				NodeName:  &nodename,
-				PodName:   &podname,
-				PodUID:    &poduid,
+				Namespace: namespace,
+				NodeName:  nodename,
+				PodName:   podname,
+				PodUID:    poduid,
 			},
 			Output: common.MapStr{
 				"namespace": namespace,

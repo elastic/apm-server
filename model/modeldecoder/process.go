@@ -18,28 +18,30 @@
 package modeldecoder
 
 import (
-	"errors"
-
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/utility"
 )
 
-func decodeProcess(input interface{}, err error) (*metadata.Process, error) {
-	if input == nil || err != nil {
-		return nil, err
+func decodeProcess(input map[string]interface{}, out *metadata.Process) {
+	if input == nil {
+		return
 	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for process")
+
+	decodeString(input, "title", &out.Title)
+	decodeInt(input, "pid", &out.Pid)
+
+	var ppid int
+	if decodeInt(input, "ppid", &ppid) {
+		// TODO(axw) consider using a negative value as a sentinel
+		// value for unset ppid, since pids cannot be negative.
+		out.Ppid = &ppid
 	}
-	decoder := utility.ManualDecoder{}
-	process := metadata.Process{
-		Ppid:  decoder.IntPtr(raw, "ppid"),
-		Title: decoder.StringPtr(raw, "title"),
-		Argv:  decoder.StringArr(raw, "argv"),
+
+	if argv, ok := input["argv"].([]interface{}); ok {
+		out.Argv = out.Argv[:0]
+		for _, arg := range argv {
+			if strval, ok := arg.(string); ok {
+				out.Argv = append(out.Argv, strval)
+			}
+		}
 	}
-	if pid := decoder.IntPtr(raw, "pid"); pid != nil {
-		process.Pid = *pid
-	}
-	return &process, decoder.Err
 }
