@@ -22,10 +22,9 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/model/field"
-
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metricset"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
