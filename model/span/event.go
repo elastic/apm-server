@@ -236,7 +236,7 @@ func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapS
 
 	// TODO(axw) we should be using a merged service object, combining
 	// the stream metadata and event-specific service info.
-	st := e.Stacktrace.Transform(ctx, tctx, e.Metadata.Service)
+	st := e.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
 	utility.Set(fields, "stacktrace", st)
 	return fields
 }

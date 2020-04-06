@@ -223,9 +223,9 @@ func TestEventFields(t *testing.T) {
 
 				// Service name and version are required for sourcemapping.
 				Metadata: metadata.Metadata{
-					Service: &metadata.Service{
-						Name:    tests.StringPtr("myservice"),
-						Version: tests.StringPtr("myservice"),
+					Service: metadata.Service{
+						Name:    "myservice",
+						Version: "myservice",
 					},
 				},
 			},
@@ -291,11 +291,11 @@ func TestEvents(t *testing.T) {
 
 	serviceName, agentName, version := "myservice", "go", "1.0"
 	md := metadata.Metadata{
-		Service: &metadata.Service{
-			Name: &serviceName, Version: &version,
-			Agent: metadata.Agent{Name: &agentName, Version: &version},
+		Service: metadata.Service{
+			Name: serviceName, Version: version,
+			Agent: metadata.Agent{Name: agentName, Version: version},
 		},
-		User:   &metadata.User{Id: &uid},
+		User:   metadata.User{Id: uid},
 		Labels: common.MapStr{"label": 101},
 	}
 
@@ -359,7 +359,7 @@ func TestEvents(t *testing.T) {
 				},
 				TransactionId:      &trId,
 				TransactionSampled: &sampledTrue,
-				User:               &metadata.User{Email: &email, IP: net.ParseIP(userIp), UserAgent: &userAgent},
+				User:               &metadata.User{Email: email, IP: net.ParseIP(userIp), UserAgent: userAgent},
 				Labels:             &labels,
 				Page:               &m.Page{Url: &url, Referer: &referer},
 				Custom:             &custom,
@@ -402,7 +402,7 @@ func TestEvents(t *testing.T) {
 			Transformable: &Event{
 				Timestamp: timestamp,
 				Metadata:  md,
-				Service:   &metadata.Service{Version: &serviceVersion},
+				Service:   &metadata.Service{Version: serviceVersion},
 			},
 			Output: common.MapStr{
 				"service":   common.MapStr{"name": serviceName, "version": serviceVersion},
@@ -755,9 +755,9 @@ func md5With(args ...string) []byte {
 func TestSourcemapping(t *testing.T) {
 	event := Event{
 		Metadata: metadata.Metadata{
-			Service: &metadata.Service{
-				Name:    tests.StringPtr("foo"),
-				Version: tests.StringPtr("bar"),
+			Service: metadata.Service{
+				Name:    "foo",
+				Version: "bar",
 			},
 		},
 		Exception: &Exception{

@@ -110,7 +110,7 @@ func TestSourcemap_Apply(t *testing.T) {
 
 	name, version, col, line, path := "myservice", "2.1.4", 10, 15, "/../a/path"
 	validService := func() *metadata.Service {
-		return &metadata.Service{Name: &name, Version: &version}
+		return &metadata.Service{Name: name, Version: version}
 	}
 	validFrame := func() *StacktraceFrame {
 		return &StacktraceFrame{Colno: &col, Lineno: &line, AbsPath: &path}

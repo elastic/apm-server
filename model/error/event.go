@@ -231,7 +231,7 @@ func (e *Event) addException(ctx context.Context, tctx *transform.Context, chain
 
 		// TODO(axw) we should be using a merged service object, combining
 		// the stream metadata and event-specific service info.
-		st := exception.Stacktrace.Transform(ctx, tctx, e.Metadata.Service)
+		st := exception.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
 		utility.Set(ex, "stacktrace", st)
 
 		result = append(result, ex)
@@ -251,7 +251,7 @@ func (e *Event) addLog(ctx context.Context, tctx *transform.Context) {
 	utility.Set(log, "level", e.Log.Level)
 	// TODO(axw) we should be using a merged service object, combining
 	// the stream metadata and event-specific service info.
-	st := e.Log.Stacktrace.Transform(ctx, tctx, e.Metadata.Service)
+	st := e.Log.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
 	utility.Set(log, "stacktrace", st)
 
 	e.add("log", log)

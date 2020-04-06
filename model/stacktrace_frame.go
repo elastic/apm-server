@@ -153,14 +153,14 @@ func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.S
 	s.setOriginalSourcemapData()
 
 	path := utility.CleanUrlPath(*s.Original.AbsPath)
-	mapper, err := store.Fetch(ctx, *service.Name, *service.Version, path)
+	mapper, err := store.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
 		errMsg = err.Error()
 		return
 	}
 	if mapper == nil {
 		errMsg = fmt.Sprintf("No Sourcemap available for ServiceName %s, ServiceVersion %s, Path %s.",
-			*service.Name, *service.Version, path)
+			service.Name, service.Version, path)
 		s.updateError(errMsg)
 		return
 	}

@@ -21,27 +21,25 @@ import (
 	"net"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 type User struct {
-	Id        *string
-	Email     *string
-	Name      *string
+	Id        string
+	Email     string
+	Name      string
 	IP        net.IP
-	UserAgent *string
+	UserAgent string
 }
 
 func (u *User) Fields() common.MapStr {
 	if u == nil {
 		return nil
 	}
-	user := common.MapStr{}
-	utility.Set(user, "id", u.Id)
-	utility.Set(user, "email", u.Email)
-	utility.Set(user, "name", u.Name)
-	return user
+	var user mapStr
+	user.maybeSetString("id", u.Id)
+	user.maybeSetString("email", u.Email)
+	user.maybeSetString("name", u.Name)
+	return common.MapStr(user)
 }
 
 func (u *User) ClientFields() common.MapStr {
@@ -52,8 +50,8 @@ func (u *User) ClientFields() common.MapStr {
 }
 
 func (u *User) UserAgentFields() common.MapStr {
-	if u == nil || u.UserAgent == nil {
+	if u == nil || u.UserAgent == "" {
 		return nil
 	}
-	return common.MapStr{"original": *u.UserAgent}
+	return common.MapStr{"original": u.UserAgent}
 }

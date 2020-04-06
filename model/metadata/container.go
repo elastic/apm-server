@@ -18,7 +18,6 @@
 package metadata
 
 import (
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -30,7 +29,7 @@ func (k *Container) fields() common.MapStr {
 	if k == nil {
 		return nil
 	}
-	container := common.MapStr{}
-	utility.Set(container, "id", k.ID)
-	return container
+	var container mapStr
+	container.maybeSetString("id", k.ID)
+	return common.MapStr(container)
 }
