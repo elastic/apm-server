@@ -69,6 +69,8 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *metadata.Meta
 	}
 
 	if userInp := getObject(input, fieldName("user")); userInp != nil {
+		// Per-event user metadata replaces stream user metadata.
+		meta.User = metadata.User{}
 		decodeUser(userInp, cfg.HasShortFieldNames, &meta.User)
 	}
 	if ua := http.UserAgent(); ua != "" {
@@ -77,6 +79,7 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *metadata.Meta
 	ctx.Client = decodeClient(&meta.User, http)
 
 	if serviceInp := getObject(input, fieldName("service")); serviceInp != nil {
+		// Per-event service metadata is merged with stream service metadata.
 		decodeService(serviceInp, cfg.HasShortFieldNames, &meta.Service)
 	}
 

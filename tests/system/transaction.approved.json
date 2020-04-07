@@ -1,5 +1,18 @@
 [
     {
+        "transaction": {
+            "sampled": true,
+            "name": "GET /api/types",
+            "span_count": {
+                "started": 0
+            },
+            "result": "failure",
+            "duration": {
+                "us": 13980
+            },
+            "type": "request",
+            "id": "85925e55b43f4340"
+        },
         "container": {
             "id": "container-id"
         },
@@ -10,23 +23,6 @@
             },
             "namespace": "namespace1"
         },
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
-        "process": {
-            "args": [
-                "node",
-                "server.js"
-            ],
-            "pid": 1234,
-            "title": "node",
-            "ppid": 6789
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
-        },
         "observer": {
             "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
             "version_major": 8,
@@ -34,67 +30,84 @@
             "version": "8.0.0",
             "type": "apm-server",
             "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
+        },
+        "process": {
+            "ppid": 6789,
+            "args": [
+                "node",
+                "server.js"
+            ],
+            "pid": 1234,
+            "title": "node"
+        },
+        "timestamp": {
+            "us": 1496170422281000
+        },
+        "@timestamp": "2017-05-30T18:53:42.281Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:42.282Z"
+        },
+        "agent": {
+            "version": "3.14.0",
+            "name": "elastic-node"
+        },
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
+        },
+        "service": {
+            "node": {
+                "name": "container-id"
+            },
+            "name": "1234_service-12a3",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
+            "environment": "staging",
+            "framework": {
+                "version": "1.2.3",
+                "name": "Express"
+            },
+            "version": "5.1.3",
+            "runtime": {
+                "version": "8.0.0",
+                "name": "node"
+            }
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "user": {
+            "email": "foo@bar.com",
+            "name": "foo",
+            "id": "123user"
         },
         "trace": {
             "id": "85925e55b43f4340aaaaaaaaaaaaaaaa"
         },
-        "@timestamp": "2017-05-30T18:53:42.281Z",
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "service": {
-            "node": {
-                "name": "container-id"
-            },
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "name": "1234_service-12a3",
-            "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
-        },
-        "host": {
-            "os": {
-                "platform": "darwin"
-            },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
-        },
-        "event": {
-            "ingested": "2017-05-30T18:53:42.282Z"
-        },
-        "user": {
-            "name": "foo",
-            "id": "123user",
-            "email": "foo@bar.com"
-        },
+        "processor": {
+            "name": "transaction",
+            "event": "transaction"
+        }
+    },
+    {
         "transaction": {
-            "duration": {
-                "us": 13980
-            },
-            "result": "failure",
+            "sampled": false,
             "name": "GET /api/types",
             "span_count": {
                 "started": 0
             },
-            "id": "85925e55b43f4340",
+            "result": "200",
+            "duration": {
+                "us": 13980
+            },
             "type": "request",
-            "sampled": true
+            "id": "85925e55b43f4341"
         },
-        "timestamp": {
-            "us": 1496170422281000
-        }
-    },
-    {
         "container": {
             "id": "container-id"
         },
@@ -105,23 +118,6 @@
             },
             "namespace": "namespace1"
         },
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
-        "process": {
-            "args": [
-                "node",
-                "server.js"
-            ],
-            "pid": 1234,
-            "title": "node",
-            "ppid": 6789
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
-        },
         "observer": {
             "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
             "version_major": 8,
@@ -129,67 +125,85 @@
             "version": "8.0.0",
             "type": "apm-server",
             "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
+        },
+        "process": {
+            "ppid": 6789,
+            "args": [
+                "node",
+                "server.js"
+            ],
+            "pid": 1234,
+            "title": "node"
+        },
+        "timestamp": {
+            "us": 1496170422000000
+        },
+        "@timestamp": "2017-05-30T18:53:42.000Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:42.001Z"
+        },
+        "agent": {
+            "version": "3.14.0",
+            "name": "elastic-node"
+        },
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
+        },
+        "service": {
+            "node": {
+                "name": "container-id"
+            },
+            "name": "1234_service-12a3",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
+            "environment": "staging",
+            "framework": {
+                "version": "1.2.3",
+                "name": "Express"
+            },
+            "version": "5.1.3",
+            "runtime": {
+                "version": "8.0.0",
+                "name": "node"
+            }
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "user": {
+            "email": "foo@bar.com",
+            "name": "foo",
+            "id": "123user"
         },
         "trace": {
             "id": "85925e55b43f4341aaaaaaaaaaaaaaaa"
         },
-        "@timestamp": "2017-05-30T18:53:42.000Z",
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "service": {
-            "node": {
-                "name": "container-id"
-            },
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "name": "1234_service-12a3",
-            "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
-        },
-        "host": {
-            "os": {
-                "platform": "darwin"
-            },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
-        },
-        "event": {
-            "ingested": "2017-05-30T18:53:42.001Z"
-        },
-        "user": {
-            "name": "foo",
-            "id": "123user",
-            "email": "foo@bar.com"
-        },
-        "transaction": {
-            "duration": {
-                "us": 13980
-            },
-            "result": "200",
-            "name": "GET /api/types",
-            "span_count": {
-                "started": 0
-            },
-            "id": "85925e55b43f4341",
-            "type": "request",
-            "sampled": false
-        },
-        "timestamp": {
-            "us": 1496170422000000
+        "processor": {
+            "name": "transaction",
+            "event": "transaction"
         }
     },
     {
+        "transaction": {
+            "sampled": true,
+            "name": "GET /api/types",
+            "span_count": {
+                "started": 1,
+                "dropped": 258
+            },
+            "result": "200",
+            "duration": {
+                "us": 13980
+            },
+            "type": "request",
+            "id": "85925e55b43f4342"
+        },
         "container": {
             "id": "container-id"
         },
@@ -200,23 +214,6 @@
             },
             "namespace": "namespace1"
         },
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
-        "process": {
-            "args": [
-                "node",
-                "server.js"
-            ],
-            "pid": 1234,
-            "title": "node",
-            "ppid": 6789
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
-        },
         "observer": {
             "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
             "version_major": 8,
@@ -224,84 +221,80 @@
             "version": "8.0.0",
             "type": "apm-server",
             "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
+        },
+        "process": {
+            "ppid": 6789,
+            "args": [
+                "node",
+                "server.js"
+            ],
+            "pid": 1234,
+            "title": "node"
+        },
+        "timestamp": {
+            "us": 1496170422281999
+        },
+        "@timestamp": "2017-05-30T18:53:42.281Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:42.282Z"
+        },
+        "agent": {
+            "version": "3.14.0",
+            "name": "elastic-node"
+        },
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
+        },
+        "service": {
+            "node": {
+                "name": "container-id"
+            },
+            "name": "1234_service-12a3",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
+            "environment": "staging",
+            "framework": {
+                "version": "1.2.3",
+                "name": "Express"
+            },
+            "version": "5.1.3",
+            "runtime": {
+                "version": "8.0.0",
+                "name": "node"
+            }
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "user": {
+            "email": "foo@bar.com",
+            "name": "foo",
+            "id": "123user"
         },
         "trace": {
             "id": "85925e55b43f4342aaaaaaaaaaaaaaaa"
         },
-        "@timestamp": "2017-05-30T18:53:42.281Z",
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "service": {
-            "node": {
-                "name": "container-id"
-            },
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "name": "1234_service-12a3",
-            "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
-        },
-        "host": {
-            "os": {
-                "platform": "darwin"
-            },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
-        },
-        "event": {
-            "ingested": "2017-05-30T18:53:42.282Z"
-        },
-        "user": {
-            "name": "foo",
-            "id": "123user",
-            "email": "foo@bar.com"
-        },
-        "transaction": {
-            "duration": {
-                "us": 13980
-            },
-            "result": "200",
-            "name": "GET /api/types",
-            "id": "85925e55b43f4342",
-            "span_count": {
-                "dropped": 258,
-                "started": 1
-            },
-            "type": "request",
-            "sampled": true
-        },
-        "timestamp": {
-            "us": 1496170422281999
+        "processor": {
+            "name": "transaction",
+            "event": "transaction"
         }
     },
     {
+        "user_agent": {
+            "device": {
+                "name": "Other"
+            },
+            "original": "Mozilla Chrome Edge",
+            "name": "Other"
+        },
         "container": {
             "id": "container-id"
-        },
-        "kubernetes": {
-            "pod": {
-                "uid": "pod-uid",
-                "name": "pod-name"
-            },
-            "namespace": "namespace1"
-        },
-        "agent": {
-            "name": "js-base",
-            "version": "1.3"
-        },
-        "source": {
-            "ip": "8.8.8.8"
         },
         "observer": {
             "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
@@ -311,135 +304,139 @@
             "type": "apm-server",
             "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
         },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
-        },
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "host": {
-            "os": {
-                "platform": "darwin"
+        "kubernetes": {
+            "pod": {
+                "uid": "pod-uid",
+                "name": "pod-name"
             },
-            "ip": "127.0.0.1",
-            "architecture": "x64"
-        },
-        "client": {
-            "geo": {
-                "continent_name": "North America",
-                "country_iso_code": "US",
-                "location": {
-                    "lon": -97.822,
-                    "lat": 37.751
-                }
-            },
-            "ip": "8.8.8.8"
-        },
-        "event": {
-            "ingested": "2017-05-30T18:53:27.155Z"
-        },
-        "user_agent": {
-            "original": "Mozilla Chrome Edge",
-            "name": "Other",
-            "device": {
-                "name": "Other"
-            }
-        },
-        "timestamp": {
-            "us": 1496170407154000
+            "namespace": "namespace1"
         },
         "process": {
+            "ppid": 6789,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
-            "title": "node",
-            "ppid": 6789
+            "title": "node"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
-        },
-        "url": {
-            "path": "/p/a/t/h",
-            "fragment": "#hash",
-            "original": "/p/a/t/h?query=string#hash",
-            "scheme": "https",
-            "port": 8080,
-            "query": "?query=string",
-            "domain": "www.example.com",
-            "full": "https://www.example.com/p/a/t/h?query=string#hash"
-        },
-        "labels": {
-            "number_code": 2,
-            "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-            "bool_error": false
+        "timestamp": {
+            "us": 1496170407154000
         },
         "@timestamp": "2017-05-30T18:53:27.154Z",
+        "event": {
+            "ingested": "2017-05-30T18:53:27.155Z"
+        },
+        "labels": {
+            "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+            "bool_error": false,
+            "number_code": 2
+        },
+        "agent": {
+            "version": "1.3",
+            "name": "js-base"
+        },
+        "client": {
+            "ip": "8.8.8.8",
+            "geo": {
+                "continent_name": "North America",
+                "country_iso_code": "US",
+                "location": {
+                    "lat": 37.751,
+                    "lon": -97.822
+                }
+            }
+        },
+        "source": {
+            "ip": "8.8.8.8"
+        },
+        "host": {
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            },
+            "architecture": "x64"
+        },
         "service": {
             "node": {
                 "name": "special-name"
             },
+            "name": "serviceabc",
+            "language": {
+                "version": "8",
+                "name": "ecmascript"
+            },
             "environment": "staging",
             "framework": {
-                "name": "Express",
-                "version": "1.2.3"
+                "version": "1.2.3",
+                "name": "Express"
             },
-            "name": "serviceabc",
+            "version": "5.1.3",
             "runtime": {
-                "name": "javascript",
-                "version": "8.0.0"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "version": "5.1.3"
+                "version": "8.0.0",
+                "name": "javascript"
+            }
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "url": {
+            "domain": "www.example.com",
+            "full": "https://www.example.com/p/a/t/h?query=string#hash",
+            "fragment": "#hash",
+            "port": 8080,
+            "query": "?query=string",
+            "path": "/p/a/t/h",
+            "scheme": "https",
+            "original": "/p/a/t/h?query=string#hash"
+        },
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
         },
         "http": {
+            "version": "1.1",
             "request": {
+                "body": {
+                    "original": {
+                        "additional": {
+                            "req": "additional information",
+                            "bar": 123
+                        },
+                        "str": "hello world"
+                    }
+                },
+                "cookies": {
+                    "c2": "v2",
+                    "c1": "v1"
+                },
+                "socket": {
+                    "encrypted": true,
+                    "remote_address": "8.8.8.8"
+                },
                 "headers": {
-                    "Cookie": [
-                        "c1=v1,c2=v2"
+                    "Some-Other-Header": [
+                        "foo"
+                    ],
+                    "Content-Type": [
+                        "text/html"
                     ],
                     "Array": [
                         "foo",
                         "bar",
                         "baz"
                     ],
+                    "Cookie": [
+                        "c1=v1,c2=v2"
+                    ],
                     "User-Agent": [
                         "Mozilla Chrome Edge"
-                    ],
-                    "Some-Other-Header": [
-                        "foo"
-                    ],
-                    "Content-Type": [
-                        "text/html"
                     ]
                 },
-                "method": "post",
-                "socket": {
-                    "encrypted": true,
-                    "remote_address": "8.8.8.8"
-                },
-                "body": {
-                    "original": {
-                        "str": "hello world",
-                        "additional": {
-                            "bar": 123,
-                            "req": "additional information"
-                        }
-                    }
-                },
                 "env": {
-                    "GATEWAY_INTERFACE": "CGI/1.1",
-                    "SERVER_SOFTWARE": "nginx"
+                    "SERVER_SOFTWARE": "nginx",
+                    "GATEWAY_INTERFACE": "CGI/1.1"
                 },
-                "cookies": {
-                    "c1": "v1",
-                    "c2": "v2"
-                }
+                "method": "post"
             },
             "response": {
                 "headers": {
@@ -447,55 +444,57 @@
                         "application/json"
                     ]
                 },
-                "status_code": 200,
                 "finished": true,
-                "headers_sent": true
-            },
-            "version": "1.1"
-        },
-        "user": {
-            "name": "foo",
-            "id": "99",
-            "email": "foo@example.com"
+                "headers_sent": true,
+                "status_code": 200
+            }
         },
         "transaction": {
+            "sampled": true,
+            "name": "GET /api/types",
+            "span_count": {
+                "started": 4,
+                "dropped": 2
+            },
+            "page": {
+                "url": "http://localhost:8000/test/e2e/general-usecase/",
+                "referer": "http://localhost:8000/test/e2e/"
+            },
+            "result": "success",
+            "marks": {
+                "another_mark": {
+                    "some_long": 10,
+                    "some_float": 10
+                },
+                "navigationTiming": {
+                    "navigationStart": -21,
+                    "appBeforeBootstrap": 608.9300000000001
+                }
+            },
             "duration": {
                 "us": 32592
             },
-            "result": "success",
             "custom": {
                 "(": "not a valid regex and that is fine",
+                "my_key": 1,
+                "some_other_value": "foo bar",
                 "and_objects": {
                     "foo": [
                         "bar",
                         "baz"
                     ]
-                },
-                "my_key": 1,
-                "some_other_value": "foo bar"
-            },
-            "name": "GET /api/types",
-            "id": "945254c567a5417e",
-            "page": {
-                "referer": "http://localhost:8000/test/e2e/",
-                "url": "http://localhost:8000/test/e2e/general-usecase/"
-            },
-            "span_count": {
-                "dropped": 2,
-                "started": 4
-            },
-            "marks": {
-                "navigationTiming": {
-                    "appBeforeBootstrap": 608.9300000000001,
-                    "navigationStart": -21
-                },
-                "another_mark": {
-                    "some_long": 10,
-                    "some_float": 10
                 }
             },
             "type": "request",
-            "sampled": true
+            "id": "945254c567a5417e"
+        },
+        "processor": {
+            "name": "transaction",
+            "event": "transaction"
+        },
+        "user": {
+            "id": "99",
+            "email": "foo@example.com"
         }
     }
 ]

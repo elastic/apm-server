@@ -334,7 +334,6 @@
                 "scheme": "https"
             },
             "user": {
-                "email": "bar@example.com",
                 "id": "99",
                 "name": "foo"
             },

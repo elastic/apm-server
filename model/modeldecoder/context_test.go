@@ -215,13 +215,7 @@ func TestDecodeContextMetadata(t *testing.T) {
 			Name:    "myService", // unmodified
 			Version: "5.1.2",
 		},
-		User: metadata.User{
-			ID:        "12345678ab", // unmodified
-			IP:        net.ParseIP("192.158.0.1"),
-			Name:      "john",
-			Email:     "john.doe@testing.invalid",
-			UserAgent: "go-1.0",
-		},
+		User: metadata.User{ID: "12345678ab"},
 	}
 
 	mergedMetadata := inputMetadata
@@ -236,10 +230,15 @@ func TestDecodeContextMetadata(t *testing.T) {
 	mergedMetadata.Service.Agent.Name = "elastic-node"
 	mergedMetadata.Service.Agent.Version = "1.0.0"
 	mergedMetadata.Service.Agent.EphemeralID = "abcdef123"
-	mergedMetadata.User.Name = "john"
-	mergedMetadata.User.Email = "john.doe@testing.invalid"
-	mergedMetadata.User.IP = net.ParseIP("10.1.1.1") // override
-	mergedMetadata.User.UserAgent = "go-1.1"         // override
+	mergedMetadata.User = metadata.User{
+		// ID is missing because per-event user metadata
+		// replaces stream user metadata. This is unlike
+		// service metadata above, which is merged.
+		Name:      "john",
+		Email:     "john.doe@testing.invalid",
+		IP:        net.ParseIP("10.1.1.1"),
+		UserAgent: "go-1.1",
+	}
 
 	input := map[string]interface{}{
 		"tags": map[string]interface{}{"ab": "c", "status": 200, "success": false},
