@@ -63,7 +63,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 	}
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config)
+	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config, &input.Metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +80,6 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		Http:         ctx.Http,
 		Url:          ctx.Url,
 		Custom:       ctx.Custom,
-		User:         ctx.User,
-		Service:      ctx.Service,
 		Client:       ctx.Client,
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,

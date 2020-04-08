@@ -277,7 +277,6 @@ func TestEvents(t *testing.T) {
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
 		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
-	serviceVersion := "1.2.3"
 	exMsg := "exception message"
 	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 	sampledTrue, sampledFalse := true, false
@@ -295,9 +294,11 @@ func TestEvents(t *testing.T) {
 			Name: serviceName, Version: version,
 			Agent: metadata.Agent{Name: agentName, Version: version},
 		},
-		User:   metadata.User{ID: uid},
 		Labels: common.MapStr{"label": 101},
 	}
+
+	mdWithUser := md
+	mdWithUser.User = metadata.User{ID: uid, Email: email, IP: net.ParseIP(userIp), UserAgent: userAgent}
 
 	for name, tc := range map[string]struct {
 		Transformable transform.Transformable
@@ -312,7 +313,6 @@ func TestEvents(t *testing.T) {
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
-				"user":      common.MapStr{"id": uid},
 				"processor": common.MapStr{"event": "error", "name": "error"},
 				"timestamp": common.MapStr{"us": timestampUs},
 				"labels":    common.MapStr{"label": 101},
@@ -327,7 +327,6 @@ func TestEvents(t *testing.T) {
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
-				"user":      common.MapStr{"id": uid},
 				"processor": common.MapStr{"event": "error", "name": "error"},
 				"timestamp": common.MapStr{"us": timestampUs},
 				"labels":    common.MapStr{"label": 101},
@@ -342,7 +341,6 @@ func TestEvents(t *testing.T) {
 				},
 				"processor": common.MapStr{"event": "error", "name": "error"},
 				"service":   common.MapStr{"name": "myservice", "version": "1.0"},
-				"user":      common.MapStr{"id": uid},
 				"timestamp": common.MapStr{"us": timestampUs},
 				"agent":     common.MapStr{"name": "go", "version": "1.0"},
 				"labels":    common.MapStr{"label": 101},
@@ -351,7 +349,7 @@ func TestEvents(t *testing.T) {
 		"withContext": {
 			Transformable: &Event{
 				Timestamp: timestamp,
-				Metadata:  md,
+				Metadata:  mdWithUser,
 				Log:       baseLog(),
 				Exception: &Exception{
 					Message:    &exMsg,
@@ -359,7 +357,6 @@ func TestEvents(t *testing.T) {
 				},
 				TransactionId:      &trId,
 				TransactionSampled: &sampledTrue,
-				User:               &metadata.User{Email: email, IP: net.ParseIP(userIp), UserAgent: userAgent},
 				Labels:             &labels,
 				Page:               &m.Page{Url: &url, Referer: &referer},
 				Custom:             &custom,
@@ -370,7 +367,7 @@ func TestEvents(t *testing.T) {
 				"labels":     common.MapStr{"key": true, "label": 101},
 				"service":    common.MapStr{"name": "myservice", "version": "1.0"},
 				"agent":      common.MapStr{"name": "go", "version": "1.0"},
-				"user":       common.MapStr{"email": email},
+				"user":       common.MapStr{"id": uid, "email": email},
 				"client":     common.MapStr{"ip": "192.0.14.10"},
 				"source":     common.MapStr{"ip": "192.0.14.10"},
 				"user_agent": common.MapStr{"original": userAgent},
@@ -396,22 +393,6 @@ func TestEvents(t *testing.T) {
 				"processor":   common.MapStr{"event": "error", "name": "error"},
 				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79", "sampled": true},
 				"timestamp":   common.MapStr{"us": timestampUs},
-			},
-		},
-		"deepUpdateService": {
-			Transformable: &Event{
-				Timestamp: timestamp,
-				Metadata:  md,
-				Service:   &metadata.Service{Version: serviceVersion},
-			},
-			Output: common.MapStr{
-				"service":   common.MapStr{"name": serviceName, "version": serviceVersion},
-				"labels":    common.MapStr{"label": 101},
-				"agent":     common.MapStr{"name": "go", "version": "1.0"},
-				"user":      common.MapStr{"id": uid},
-				"error":     common.MapStr{"grouping_key": "d41d8cd98f00b204e9800998ecf8427e"},
-				"processor": common.MapStr{"event": "error", "name": "error"},
-				"timestamp": common.MapStr{"us": timestampUs},
 			},
 		},
 	} {

@@ -96,7 +96,6 @@
     },
     "Page": null,
     "ParentId": "41414646",
-    "Service": null,
     "Timestamp": "2019-12-16T12:46:58.000768134Z",
     "TraceId": "46467830",
     "TransactionId": null,
@@ -111,6 +110,5 @@
         "Port": null,
         "Query": "a=12",
         "Scheme": "http"
-    },
-    "User": null
+    }
 }

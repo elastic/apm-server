@@ -49,16 +49,18 @@ func TestErrorEventDecode(t *testing.T) {
 	transactionType := "request"
 	labels := m.Labels{"ab": "c"}
 	ua := "go-1.1"
-	user := metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), ID: userID, UserAgent: ua}
 	page := m.Page{Url: &pURL, Referer: &referer}
 	custom := m.Custom{"a": "b"}
 	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}
 	response := m.Resp{Finished: new(bool), MinimalResp: m.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := m.Http{Request: &request, Response: &response}
 	ctxURL := m.Url{Original: &origURL}
-	metadata := metadata.Metadata{
+	inputMetadata := metadata.Metadata{
 		Service: metadata.Service{Name: "foo"},
 	}
+
+	mergedMetadata := inputMetadata
+	mergedMetadata.User = metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), ID: userID, UserAgent: ua}
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
 	baseInput := map[string]interface{}{
@@ -74,7 +76,7 @@ func TestErrorEventDecode(t *testing.T) {
 		"minimal valid error": {
 			input: map[string]interface{}{},
 			e: &modelerror.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        &id,
 				Timestamp: requestTime,
 				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
@@ -83,7 +85,7 @@ func TestErrorEventDecode(t *testing.T) {
 		"minimal valid error with specified timestamp": {
 			input: map[string]interface{}{"timestamp": timestamp},
 			e: &modelerror.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        &id,
 				Timestamp: timestampParsed,
 				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
@@ -95,7 +97,7 @@ func TestErrorEventDecode(t *testing.T) {
 				"log":       map[string]interface{}{"message": logMsg},
 			},
 			e: &modelerror.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        &id,
 				Timestamp: requestTime,
 				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
@@ -107,7 +109,7 @@ func TestErrorEventDecode(t *testing.T) {
 				"context": map[string]interface{}{"foo": []string{"a", "b"}},
 			},
 			e: &modelerror.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        &id,
 				Timestamp: requestTime,
 				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
@@ -119,7 +121,7 @@ func TestErrorEventDecode(t *testing.T) {
 				"context": map[string]interface{}{"experimental": []string{"a", "b"}},
 			},
 			e: &modelerror.Event{
-				Metadata:  metadata,
+				Metadata:  inputMetadata,
 				Id:        &id,
 				Timestamp: requestTime,
 				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
@@ -131,7 +133,7 @@ func TestErrorEventDecode(t *testing.T) {
 				"context": map[string]interface{}{"experimental": []string{"a", "b"}},
 			},
 			e: &modelerror.Event{
-				Metadata:     metadata,
+				Metadata:     inputMetadata,
 				Id:           &id,
 				Timestamp:    requestTime,
 				Exception:    &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
@@ -188,9 +190,8 @@ func TestErrorEventDecode(t *testing.T) {
 				"transaction":    map[string]interface{}{"sampled": transactionSampled, "type": transactionType},
 			},
 			e: &modelerror.Event{
-				Metadata:  metadata,
+				Metadata:  mergedMetadata,
 				Timestamp: timestampParsed,
-				User:      &user,
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
@@ -242,7 +243,7 @@ func TestErrorEventDecode(t *testing.T) {
 			transformable, err := DecodeError(Input{
 				Raw:         input,
 				RequestTime: requestTime,
-				Metadata:    metadata,
+				Metadata:    inputMetadata,
 				Config:      test.cfg,
 			})
 			require.NoError(t, err)
