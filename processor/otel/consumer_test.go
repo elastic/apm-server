@@ -76,56 +76,73 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 }
 
 func TestConsumer_Metadata(t *testing.T) {
+	spans := []*tracepb.Span{{
+		TraceId:   []byte("FFx0"),
+		SpanId:    []byte("AAFF"),
+		Kind:      tracepb.Span_CLIENT,
+		StartTime: testStartTime(),
+	}}
 	for _, tc := range []struct {
 		name string
 		td   consumerdata.TraceData
-	}{
-		{name: "jaeger",
-			td: consumerdata.TraceData{
-				SourceFormat: "jaeger",
-				Node: &commonpb.Node{
-					Identifier: &commonpb.ProcessIdentifier{
-						HostName:       "host-foo",
-						Pid:            107892,
-						StartTimestamp: testStartTime()},
-					LibraryInfo: &commonpb.LibraryInfo{ExporterVersion: "Jaeger-C++-3.2.1"},
-					ServiceInfo: &commonpb.ServiceInfo{Name: "foo"},
-					Attributes:  map[string]string{"client-uuid": "xxf0", "ip": "17.0.10.123", "foo": "bar"}},
-				Resource: &resourcepb.Resource{
-					Type:   "request",
-					Labels: map[string]string{"a": "b", "c": "d"},
-				}}},
-		{name: "jaeger-version",
-			td: consumerdata.TraceData{SourceFormat: "jaeger",
-				Node: &commonpb.Node{LibraryInfo: &commonpb.LibraryInfo{
-					Language: 7, ExporterVersion: "Jaeger-3.4.12"}}}},
-		{name: "jaeger-no-language",
-			td: consumerdata.TraceData{SourceFormat: "jaeger",
-				Node: &commonpb.Node{LibraryInfo: &commonpb.LibraryInfo{ExporterVersion: "Jaeger-3.4.12"}}}},
-		{name: "jaeger_minimal",
-			td: consumerdata.TraceData{
-				SourceFormat: "jaeger",
-				Node: &commonpb.Node{
-					Identifier:  &commonpb.ProcessIdentifier{},
-					LibraryInfo: &commonpb.LibraryInfo{},
-					ServiceInfo: &commonpb.ServiceInfo{},
-				}}},
-
-		{name: "minimal",
-			td: consumerdata.TraceData{SourceFormat: "foo"}},
-	} {
+	}{{
+		name: "jaeger",
+		td: consumerdata.TraceData{
+			SourceFormat: "jaeger",
+			Spans:        spans,
+			Node: &commonpb.Node{
+				Identifier: &commonpb.ProcessIdentifier{
+					HostName:       "host-foo",
+					Pid:            107892,
+					StartTimestamp: testStartTime()},
+				LibraryInfo: &commonpb.LibraryInfo{ExporterVersion: "Jaeger-C++-3.2.1"},
+				ServiceInfo: &commonpb.ServiceInfo{Name: "foo"},
+				Attributes:  map[string]string{"client-uuid": "xxf0", "ip": "17.0.10.123", "foo": "bar"},
+			},
+			Resource: &resourcepb.Resource{
+				Type:   "request",
+				Labels: map[string]string{"a": "b", "c": "d"},
+			},
+		},
+	}, {
+		name: "jaeger-version",
+		td: consumerdata.TraceData{
+			SourceFormat: "jaeger",
+			Spans:        spans,
+			Node:         &commonpb.Node{LibraryInfo: &commonpb.LibraryInfo{Language: 7, ExporterVersion: "Jaeger-3.4.12"}},
+		},
+	}, {
+		name: "jaeger-no-language",
+		td: consumerdata.TraceData{
+			SourceFormat: "jaeger",
+			Spans:        spans,
+			Node:         &commonpb.Node{LibraryInfo: &commonpb.LibraryInfo{ExporterVersion: "Jaeger-3.4.12"}},
+		},
+	}, {
+		name: "jaeger_minimal",
+		td: consumerdata.TraceData{
+			SourceFormat: "jaeger",
+			Spans:        spans,
+			Node: &commonpb.Node{
+				Identifier:  &commonpb.ProcessIdentifier{},
+				LibraryInfo: &commonpb.LibraryInfo{},
+				ServiceInfo: &commonpb.ServiceInfo{},
+			},
+		},
+	}, {
+		name: "minimal",
+		td:   consumerdata.TraceData{SourceFormat: "foo", Spans: spans},
+	}} {
 		t.Run(tc.name, func(t *testing.T) {
-
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
-				metadata := req.Tcontext.Metadata
-				out, err := json.Marshal(metadata)
+				require.Len(t, req.Transformables, 1)
+				transaction := req.Transformables[0].(*transaction.Event)
+				out, err := json.Marshal(&transaction.Metadata)
 				require.NoError(t, err)
 				approvals.AssertApproveResult(t, file("metadata_"+tc.name), out)
 				return nil
 			}
-
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
-
 		})
 	}
 }

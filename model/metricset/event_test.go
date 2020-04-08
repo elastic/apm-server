@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -53,6 +54,9 @@ func TestDecode(t *testing.T) {
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	requestTime := time.Now()
 	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
+	metadata := metadata.Metadata{
+		Service: &metadata.Service{Name: tests.StringPtr("myservice")},
+	}
 
 	for _, test := range []struct {
 		input     map[string]interface{}
@@ -73,6 +77,7 @@ func TestDecode(t *testing.T) {
 
 			err: nil,
 			metricset: &Metricset{
+				Metadata:  metadata,
 				Samples:   []*Sample{},
 				Labels:    nil,
 				Timestamp: timestampParsed,
@@ -94,6 +99,7 @@ func TestDecode(t *testing.T) {
 				"samples": map[string]interface{}{},
 			},
 			metricset: &Metricset{
+				Metadata:  metadata,
 				Samples:   []*Sample{},
 				Timestamp: requestTime,
 			},
@@ -115,6 +121,7 @@ func TestDecode(t *testing.T) {
 			},
 			err: nil,
 			metricset: &Metricset{
+				Metadata: metadata,
 				Samples: []*Sample{
 					{
 						Name:  "some.gauge",
@@ -153,6 +160,7 @@ func TestDecode(t *testing.T) {
 			},
 			err: nil,
 			metricset: &Metricset{
+				Metadata: metadata,
 				Samples: []*Sample{
 					{
 						Name:  "a.counter",
@@ -171,6 +179,7 @@ func TestDecode(t *testing.T) {
 		transformables, err := DecodeEvent(model.Input{
 			Raw:         test.input,
 			RequestTime: requestTime,
+			Metadata:    metadata,
 		})
 		if test.err != nil {
 			assert.Error(t, err)
@@ -186,14 +195,9 @@ func TestDecode(t *testing.T) {
 
 func TestTransform(t *testing.T) {
 	timestamp := time.Now()
-	s := "myservice"
-	md := metadata.NewMetadata(
-		&metadata.Service{Name: &s},
-		nil,
-		nil,
-		nil,
-		nil,
-	)
+	metadata := metadata.Metadata{
+		Service: &metadata.Service{Name: tests.StringPtr("myservice")},
+	}
 	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
 
 	tests := []struct {
@@ -207,7 +211,7 @@ func TestTransform(t *testing.T) {
 			Msg:       "Nil metric",
 		},
 		{
-			Metricset: &Metricset{Timestamp: timestamp},
+			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata},
 			Output: []common.MapStr{
 				{
 					"processor": common.MapStr{"event": "metric", "name": "metric"},
@@ -220,6 +224,7 @@ func TestTransform(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
+				Metadata:  metadata,
 				Labels:    common.MapStr{"a.b": "a.b.value"},
 				Timestamp: timestamp,
 				Samples: []*Sample{
@@ -255,7 +260,7 @@ func TestTransform(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{Config: transform.Config{}, Metadata: *md}
+	tctx := &transform.Context{}
 	for idx, test := range tests {
 		outputEvents := test.Metricset.Transform(context.Background(), tctx)
 

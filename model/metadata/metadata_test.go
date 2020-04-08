@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -37,7 +38,7 @@ func TestDecodeMetadata(t *testing.T) {
 	for _, test := range []struct {
 		input  interface{}
 		err    error
-		output *Metadata
+		output Metadata
 	}{
 		{
 			input: nil,
@@ -90,22 +91,31 @@ func TestDecodeMetadata(t *testing.T) {
 					"k": "v", "n": 1, "f": 1.5, "b": false,
 				},
 			},
-			output: NewMetadata(
-				&Service{
+			output: Metadata{
+				Service: &Service{
 					Name:  &serviceName,
 					Agent: Agent{Name: &agentName, Version: &agentVersion},
-					node:  node{name: &serviceNodeName},
+					Node:  ServiceNode{Name: &serviceNodeName},
 				},
-				&System{DetectedHostname: &host},
-				&Process{Pid: pid},
-				&User{Id: &uid, Email: &mail},
-				common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
-			),
+				System:  &System{DetectedHostname: &host},
+				Process: &Process{Pid: pid},
+				User:    &User{Id: &uid, Email: &mail},
+				Labels:  common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
+			},
 		},
 	} {
-		metadata, err := DecodeMetadata(test.input, false)
-		assert.Equal(t, test.err, err)
-		assert.Equal(t, test.output, metadata)
+		output, err := DecodeMetadata(test.input, false)
+		require.Equal(t, test.err, err)
+		if test.err != nil {
+			assert.Nil(t, output)
+		} else {
+			if test.input == nil {
+				assert.Nil(t, output)
+			} else {
+				require.NotNil(t, output)
+				assert.Equal(t, test.output, *output)
+			}
+		}
 	}
 
 }
@@ -120,25 +130,24 @@ func TestMetadata_Set(t *testing.T) {
 	agentName := "elastic-node"
 
 	for _, test := range []struct {
-		input  *Metadata
+		input  Metadata
 		fields common.MapStr
 		output common.MapStr
 	}{
 		{
-			input: NewMetadata(
-				&Service{
+			input: Metadata{
+				Service: &Service{
 					Name: &serviceName,
-					node: node{name: &serviceNodeName},
+					Node: ServiceNode{Name: &serviceNodeName},
 					Agent: Agent{
 						Name:    &agentName,
 						Version: &agentVersion,
 					},
 				},
-				&System{DetectedHostname: &host, Container: &Container{ID: containerID}},
-				&Process{Pid: pid},
-				&User{Id: &uid, Email: &mail},
-				nil,
-			),
+				System:  &System{DetectedHostname: &host, Container: &Container{ID: containerID}},
+				Process: &Process{Pid: pid},
+				User:    &User{Id: &uid, Email: &mail},
+			},
 			fields: common.MapStr{
 				"foo": "bar",
 				"user": common.MapStr{
@@ -159,9 +168,10 @@ func TestMetadata_Set(t *testing.T) {
 			},
 		},
 		{
-			input: NewMetadata(&Service{},
-				&System{DetectedHostname: &host, Container: &Container{ID: containerID}},
-				nil, nil, nil),
+			input: Metadata{
+				Service: &Service{},
+				System:  &System{DetectedHostname: &host, Container: &Container{ID: containerID}},
+			},
 			fields: common.MapStr{},
 			output: common.MapStr{
 				"host":      common.MapStr{"hostname": host, "name": host},
@@ -169,7 +179,10 @@ func TestMetadata_Set(t *testing.T) {
 				"service":   common.MapStr{"node": common.MapStr{"name": containerID}}},
 		},
 		{
-			input:  NewMetadata(&Service{}, &System{DetectedHostname: &host}, nil, nil, nil),
+			input: Metadata{
+				Service: &Service{},
+				System:  &System{DetectedHostname: &host},
+			},
 			fields: common.MapStr{},
 			output: common.MapStr{
 				"host":    common.MapStr{"hostname": host, "name": host},

@@ -32,6 +32,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/api/ratelimit"
+	"github.com/elastic/apm-server/model/profile"
 	"github.com/elastic/apm-server/transform"
 
 	"github.com/stretchr/testify/assert"
@@ -145,7 +146,10 @@ func TestHandler(t *testing.T) {
 			reporter: func(t *testing.T) publish.Reporter {
 				return func(ctx context.Context, req publish.PendingReq) error {
 					require.Len(t, req.Transformables, 2)
-					assert.Equal(t, "foo", *req.Tcontext.Metadata.Service.Name)
+					for _, tr := range req.Transformables {
+						profile := tr.(profile.PprofProfile)
+						assert.Equal(t, "foo", *profile.Metadata.Service.Name)
+					}
 					return nil
 				}
 			},

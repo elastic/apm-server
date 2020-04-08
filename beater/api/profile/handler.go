@@ -88,6 +88,7 @@ func Handler(
 
 		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
+		var profileMetadata metadata.Metadata
 		mr, err := c.Request.MultipartReader()
 		if err != nil {
 			return nil, err
@@ -138,7 +139,7 @@ func Handler(
 						err: errors.Wrap(err, "failed to decode metadata"),
 					}
 				}
-				tctx.Metadata = *metadata
+				profileMetadata = *metadata
 
 			case "profile":
 				params, err := validateContentType(http.Header(part.Header), pprofMediaType)
@@ -178,7 +179,10 @@ func Handler(
 
 		transformables := make([]transform.Transformable, len(profiles))
 		for i, p := range profiles {
-			transformables[i] = profile.PprofProfile{Profile: p}
+			transformables[i] = profile.PprofProfile{
+				Metadata: profileMetadata,
+				Profile:  p,
+			}
 		}
 
 		if err := report(c.Request.Context(), publish.PendingReq{
