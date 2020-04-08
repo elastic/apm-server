@@ -32,7 +32,7 @@ import (
 )
 
 // decodeContext parses all information from input, nested under key context and returns an instance of Context.
-func decodeContext(input map[string]interface{}, cfg Config) (*model.Context, error) {
+func decodeContext(input map[string]interface{}, cfg Config, meta *metadata.Metadata) (*model.Context, error) {
 	if input == nil {
 		return &model.Context{}, nil
 	}
@@ -69,22 +69,18 @@ func decodeContext(input map[string]interface{}, cfg Config) (*model.Context, er
 	}
 
 	if userInp := getObject(input, fieldName("user")); userInp != nil {
-		var user metadata.User
-		decodeUser(userInp, cfg.HasShortFieldNames, &user)
-		ctx.User = &user
+		// Per-event user metadata replaces stream user metadata.
+		meta.User = metadata.User{}
+		decodeUser(userInp, cfg.HasShortFieldNames, &meta.User)
 	}
 	if ua := http.UserAgent(); ua != "" {
-		if ctx.User == nil {
-			ctx.User = &metadata.User{}
-		}
-		ctx.User.UserAgent = ua
+		meta.User.UserAgent = ua
 	}
-	ctx.Client = decodeClient(ctx.User, http)
+	ctx.Client = decodeClient(&meta.User, http)
 
 	if serviceInp := getObject(input, fieldName("service")); serviceInp != nil {
-		var service metadata.Service
-		decodeService(serviceInp, cfg.HasShortFieldNames, &service)
-		ctx.Service = &service
+		// Per-event service metadata is merged with stream service metadata.
+		decodeService(serviceInp, cfg.HasShortFieldNames, &meta.Service)
 	}
 
 	return &ctx, nil

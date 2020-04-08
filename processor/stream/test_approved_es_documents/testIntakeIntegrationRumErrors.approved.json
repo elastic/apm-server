@@ -101,6 +101,9 @@
                 "name": "apm-agent-js",
                 "version": "1.0.1"
             },
+            "source": {
+                "ip": "192.0.0.1"
+            },
             "timestamp": {
                 "us": 1512735530291000
             },

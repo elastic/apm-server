@@ -72,7 +72,6 @@
     "ParentId": null,
     "Result": "Error",
     "Sampled": null,
-    "Service": null,
     "SpanCount": {
         "Dropped": null,
         "Started": null
@@ -80,6 +79,5 @@
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
     "TraceId": "",
     "Type": "custom",
-    "Url": null,
-    "User": null
+    "Url": null
 }

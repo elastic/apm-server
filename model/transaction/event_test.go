@@ -143,13 +143,13 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
-	user := metadata.User{ID: id, Name: name, IP: net.ParseIP(ip), UserAgent: userAgent}
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
 	eventMetadata := metadata.Metadata{
 		Service: metadata.Service{
-			Name: serviceName,
-			Node: metadata.ServiceNode{Name: serviceNodeName},
+			Name:    serviceName,
+			Version: serviceVersion,
+			Node:    metadata.ServiceNode{Name: serviceNodeName},
 		},
 		System: metadata.System{
 			ConfiguredHostname: name,
@@ -157,47 +157,15 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Architecture:       architecture,
 			Platform:           platform,
 		},
+		User:   metadata.User{ID: id, Name: name, IP: net.ParseIP(ip), UserAgent: userAgent},
 		Labels: common.MapStr{"a": true},
 	}
-
-	txValid := Event{Metadata: eventMetadata, Timestamp: timestamp}
-	events := txValid.Transform(context.Background(), &transform.Context{})
-	require.Len(t, events, 1)
-	assert.Equal(t, events[0].Fields, common.MapStr{
-		"processor": common.MapStr{
-			"event": "transaction",
-			"name":  "transaction",
-		},
-		"service": common.MapStr{
-			"name": serviceName,
-			"node": common.MapStr{
-				"name": serviceNodeName,
-			},
-		},
-		"host": common.MapStr{
-			"architecture": "darwin",
-			"hostname":     "a.b.c",
-			"name":         "jane",
-			"os": common.MapStr{
-				"platform": "x64",
-			},
-		},
-		"transaction": common.MapStr{
-			"duration": common.MapStr{"us": 0},
-			"id":       "",
-			"type":     "",
-			"sampled":  true,
-		},
-		"labels":    common.MapStr{"a": true},
-		"timestamp": common.MapStr{"us": timestampUs},
-	})
 
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{}}
 	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
 	txWithContext := Event{
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
-		User:      &user,
 		Labels:    &model.Labels{"a": "b"},
 		Page:      &model.Page{Url: &url, Referer: &referer},
 		Http:      &model.Http{Request: &request, Response: &response},
@@ -205,9 +173,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    &model.Custom{"foo": "bar"},
 		Client:    &model.Client{IP: net.ParseIP("198.12.13.1")},
 		Message:   &model.Message{QueueName: tests.StringPtr("routeUser")},
-		Service:   &metadata.Service{Version: serviceVersion},
 	}
-	events = txWithContext.Transform(context.Background(), &transform.Context{})
+	events := txWithContext.Transform(context.Background(), &transform.Context{})
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},

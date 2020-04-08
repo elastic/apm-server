@@ -8,13 +8,5 @@
     "Labels": null,
     "Message": null,
     "Page": null,
-    "Service": null,
-    "Url": null,
-    "User": {
-        "Email": "",
-        "ID": "1234",
-        "IP": "10.15.21.3",
-        "Name": "john",
-        "UserAgent": ""
-    }
+    "Url": null
 }
