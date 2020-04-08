@@ -394,6 +394,62 @@ pipeline {
             }
           }
         }
+        stage('Package') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+            SNAPSHOT = "true"
+          }
+          when {
+            beforeAgent true
+            allOf {
+              expression { return params.release_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
+          }
+          stages {
+            stage('Package') {
+              steps {
+                withGithubNotify(context: 'Package') {
+                  deleteDir()
+                  unstash 'source'
+                  golang(){
+                    dir("${BASE_DIR}"){
+                      sh(label: 'Build packages', script: './script/jenkins/package.sh')
+                      sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
+                      dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+                      sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                    }
+                  }
+                }
+              }
+            }
+            stage('Publish') {
+              when {
+                beforeAgent true
+                anyOf {
+                  branch 'master'
+                  branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                  branch pattern: 'v\\d?', comparator: 'REGEXP'
+                  tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+                  expression { return params.Run_As_Master_Branch }
+                  expression { return env.BEATS_UPDATED != "false" }
+                }
+              }
+              steps {
+                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
+                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                  pathPrefix: "${BASE_DIR}/build/distributions/",
+                  pattern: "${BASE_DIR}/build/distributions/**/*",
+                  sharedPublicly: true,
+                  showInline: true)
+              }
+            }
+          }
+        }
       }
     }
     stage('APM Integration Tests') {
@@ -417,61 +473,6 @@ pipeline {
                            string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
                            string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
         githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: "${env.JENKINS_URL}search/?q=${env.ITS_PIPELINE.replaceAll('/','+')}")
-      }
-    }
-    /**
-      build release packages.
-    */
-    stage('Release') {
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-        SNAPSHOT="true"
-      }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            branch 'master'
-            branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-            branch pattern: 'v\\d?', comparator: 'REGEXP'
-            tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-            expression { return params.Run_As_Master_Branch }
-            expression { return env.BEATS_UPDATED != "false" }
-          }
-          expression { return params.release_ci }
-          expression { return env.ONLY_DOCS == "false" }
-        }
-      }
-      steps {
-        withGithubNotify(context: 'Release') {
-          deleteDir()
-          unstash 'source'
-          /**
-            The package build needs mage and docker
-          */
-          golang(){
-            dir("${BASE_DIR}"){
-              sh(label: 'Build packages', script: './script/jenkins/package.sh')
-              sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
-              dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-              sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
-            }
-          }
-        }
-      }
-      post {
-        success {
-          echo "Archive packages"
-          googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
-            credentialsId: "${JOB_GCS_CREDENTIALS}",
-            pathPrefix: "${BASE_DIR}/build/distributions/",
-            pattern: "${BASE_DIR}/build/distributions/**/*",
-            sharedPublicly: true,
-            showInline: true)
-        }
       }
     }
   }
