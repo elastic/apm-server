@@ -119,29 +119,29 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func DecodeRUMV3Event(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
-	return DecodeEvent(input, cfg, err)
+func DecodeRUMV3Event(input m.Input, err error) (transform.Transformable, error) {
+	return DecodeEvent(input, err)
 }
 
-func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
+func DecodeEvent(input m.Input, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
-	if input == nil {
+	if input.Raw == nil {
 		return nil, errMissingInput
 	}
 
-	raw, ok := input.(map[string]interface{})
+	raw, ok := input.Raw.(map[string]interface{})
 	if !ok {
 		return nil, errInvalidType
 	}
 
-	ctx, err := m.DecodeContext(raw, cfg, nil)
+	ctx, err := m.DecodeContext(raw, input.Config, nil)
 	if err != nil {
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(cfg.HasShortFieldNames)
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	e := Event{
 		Id:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, fieldName("culprit")),
@@ -163,7 +163,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	}
 
 	ex := decoder.MapStr(raw, fieldName("exception"))
-	e.Exception = decodeException(&decoder, cfg.HasShortFieldNames)(ex)
+	e.Exception = decodeException(&decoder, input.Config.HasShortFieldNames)(ex)
 
 	log := decoder.MapStr(raw, fieldName("log"))
 	logMsg := decoder.StringPtr(log, fieldName("message"))
@@ -176,13 +176,16 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			Stacktrace:   m.Stacktrace{},
 		}
 		var stacktrace *m.Stacktrace
-		stacktrace, decoder.Err = m.DecodeStacktrace(log[fieldName("stacktrace")], cfg.HasShortFieldNames, decoder.Err)
+		stacktrace, decoder.Err = m.DecodeStacktrace(log[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 		if stacktrace != nil {
 			e.Log.Stacktrace = *stacktrace
 		}
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+	if e.Timestamp.IsZero() {
+		e.Timestamp = input.RequestTime
 	}
 
 	return &e, nil
@@ -231,10 +234,6 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", e.TraceId)
-
-	if e.Timestamp.IsZero() {
-		e.Timestamp = tctx.RequestTime
-	}
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
