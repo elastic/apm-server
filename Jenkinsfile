@@ -14,6 +14,9 @@ pipeline {
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
+    DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+    DOCKER_REGISTRY = 'docker.elastic.co'
+    DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -42,7 +45,6 @@ pipeline {
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
     string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
-
   }
   stages {
     /**
@@ -375,11 +377,6 @@ pipeline {
             beforeAgent true
             expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
           }
-          environment {
-            DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
-            DOCKER_REGISTRY = 'docker.elastic.co'
-            DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
-          }
           steps {
             withGithubNotify(context: 'Hey-Apm') {
               deleteDir()
@@ -392,8 +389,8 @@ pipeline {
               }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
                     parameters: [string(name: 'GO_VERSION', value: '1.12.1'),
-                                string(name: 'STACK_VERSION', value: "${env.GIT_BASE_COMMIT}"),
-                                string(name: 'APM_DOCKER_IMAGE', value: "${env.DOCKER_IMAGE}")])
+                                 string(name: 'STACK_VERSION', value: "${env.GIT_BASE_COMMIT}"),
+                                 string(name: 'APM_DOCKER_IMAGE', value: "${env.DOCKER_IMAGE}")])
             }
           }
         }
@@ -459,6 +456,8 @@ pipeline {
             dir("${BASE_DIR}"){
               sh(label: 'Build packages', script: './script/jenkins/package.sh')
               sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
+              dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+              sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
             }
           }
         }
