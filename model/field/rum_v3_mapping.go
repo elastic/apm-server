@@ -122,11 +122,19 @@ var rumV3Mapping = map[string]string{
 }
 
 func Mapper(shortFieldNames bool) func(string) string {
-	return func(s string) string {
-		shortField, ok := rumV3Mapping[s]
-		if ok && shortFieldNames {
-			return shortField
-		}
-		return s
+	if shortFieldNames {
+		return rumV3Mapper
 	}
+	return identityMapper
+}
+
+func rumV3Mapper(long string) string {
+	if short, ok := rumV3Mapping[long]; ok {
+		return short
+	}
+	return long
+}
+
+func identityMapper(s string) string {
+	return s
 }
