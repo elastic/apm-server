@@ -20,7 +20,6 @@
     "Labels": null,
     "Message": null,
     "Page": null,
-    "Service": null,
     "Url": {
         "Domain": null,
         "Fragment": null,
@@ -30,6 +29,5 @@
         "Port": 8080,
         "Query": null,
         "Scheme": null
-    },
-    "User": null
+    }
 }

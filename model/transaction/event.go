@@ -60,13 +60,11 @@ type Event struct {
 	Message   *m.Message
 	Sampled   *bool
 	SpanCount SpanCount
-	User      *metadata.User
 	Page      *m.Page
 	Http      *m.Http
 	Url       *m.Url
 	Labels    *m.Labels
 	Custom    *m.Custom
-	Service   *metadata.Service
 	Client    *m.Client
 
 	Experimental interface{}
@@ -121,13 +119,9 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	e.Metadata.Set(fields)
 
 	// then merge event specific information
-	utility.Update(fields, "user", e.User.Fields())
 	clientFields := e.Client.Fields()
 	utility.DeepUpdate(fields, "client", clientFields)
 	utility.DeepUpdate(fields, "source", clientFields)
-	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
-	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
-	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))

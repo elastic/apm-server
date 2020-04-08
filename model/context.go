@@ -23,7 +23,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -34,8 +33,6 @@ type Context struct {
 	Labels       *Labels
 	Page         *Page
 	Custom       *Custom
-	User         *metadata.User
-	Service      *metadata.Service
 	Client       *Client
 	Message      *Message
 	Experimental interface{}

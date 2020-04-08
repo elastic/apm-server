@@ -96,7 +96,6 @@
     "ParentId": null,
     "Result": "HTTP 4xx",
     "Sampled": null,
-    "Service": null,
     "SpanCount": {
         "Dropped": null,
         "Started": null
@@ -113,6 +112,5 @@
         "Port": null,
         "Query": "a=12",
         "Scheme": "http"
-    },
-    "User": null
+    }
 }
