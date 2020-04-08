@@ -18,8 +18,6 @@
 package metadata
 
 import (
-	"errors"
-
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -29,23 +27,6 @@ type Kubernetes struct {
 	NodeName  *string
 	PodName   *string
 	PodUID    *string
-}
-
-func DecodeKubernetes(input interface{}, err error) (*Kubernetes, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for kubernetes")
-	}
-	decoder := utility.ManualDecoder{}
-	return &Kubernetes{
-		Namespace: decoder.StringPtr(raw, "namespace"),
-		NodeName:  decoder.StringPtr(raw, "name", "node"),
-		PodName:   decoder.StringPtr(raw, "name", "pod"),
-		PodUID:    decoder.StringPtr(raw, "uid", "pod"),
-	}, decoder.Err
 }
 
 func (k *Kubernetes) fields() common.MapStr {

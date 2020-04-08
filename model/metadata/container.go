@@ -18,28 +18,12 @@
 package metadata
 
 import (
-	"errors"
-
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 type Container struct {
 	ID string
-}
-
-func DecodeContainer(input interface{}, err error) (*Container, error) {
-	if input == nil || err != nil {
-		return nil, err
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for container")
-	}
-	decoder := utility.ManualDecoder{}
-	return &Container{
-		ID: decoder.String(raw, "id"),
-	}, decoder.Err
 }
 
 func (k *Container) fields() common.MapStr {

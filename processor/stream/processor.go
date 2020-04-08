@@ -30,13 +30,9 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/model"
-	er "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/metricset"
-	"github.com/elastic/apm-server/model/span"
-	"github.com/elastic/apm-server/model/transaction"
+	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -52,11 +48,11 @@ const (
 )
 
 type decodeMetadataFunc func(interface{}, bool) (*metadata.Metadata, error)
-type decodeEventFunc func(model.Input) (transform.Transformable, error)
+type decodeEventFunc func(modeldecoder.Input) (transform.Transformable, error)
 
 type Processor struct {
 	Tconfig          transform.Config
-	Mconfig          model.Config
+	Mconfig          modeldecoder.Config
 	MaxEventSize     int
 	streamReaderPool sync.Pool
 	decodeMetadata   decodeMetadataFunc
@@ -66,14 +62,14 @@ type Processor struct {
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
 		Tconfig:        transform.Config{},
-		Mconfig:        model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
-		decodeMetadata: metadata.DecodeMetadata,
+		decodeMetadata: modeldecoder.DecodeMetadata,
 		models: map[string]decodeEventFunc{
-			"transaction": transaction.DecodeEvent,
-			"span":        span.DecodeEvent,
-			"metricset":   metricset.DecodeEvent,
-			"error":       er.DecodeEvent,
+			"transaction": modeldecoder.DecodeTransaction,
+			"span":        modeldecoder.DecodeSpan,
+			"metricset":   modeldecoder.DecodeMetricset,
+			"error":       modeldecoder.DecodeError,
 		},
 	}
 }
@@ -81,14 +77,14 @@ func BackendProcessor(cfg *config.Config) *Processor {
 func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	return &Processor{
 		Tconfig:        *tcfg,
-		Mconfig:        model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
-		decodeMetadata: metadata.DecodeMetadata,
+		decodeMetadata: modeldecoder.DecodeMetadata,
 		models: map[string]decodeEventFunc{
-			"transaction": transaction.DecodeEvent,
-			"span":        span.DecodeEvent,
-			"metricset":   metricset.DecodeEvent,
-			"error":       er.DecodeEvent,
+			"transaction": modeldecoder.DecodeTransaction,
+			"span":        modeldecoder.DecodeSpan,
+			"metricset":   modeldecoder.DecodeMetricset,
+			"error":       modeldecoder.DecodeError,
 		},
 	}
 }
@@ -96,13 +92,13 @@ func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
 func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	return &Processor{
 		Tconfig:        *tcfg,
-		Mconfig:        model.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
 		MaxEventSize:   cfg.MaxEventSize,
-		decodeMetadata: metadata.DecodeRUMV3Metadata,
+		decodeMetadata: modeldecoder.DecodeRUMV3Metadata,
 		models: map[string]decodeEventFunc{
-			"x": transaction.DecodeRUMV3Event,
-			"y": span.DecodeRUMV3Event,
-			"e": er.DecodeRUMV3Event,
+			"x": modeldecoder.DecodeRUMV3Transaction,
+			"y": modeldecoder.DecodeRUMV3Span,
+			"e": modeldecoder.DecodeRUMV3Error,
 		},
 	}
 }
@@ -155,7 +151,7 @@ func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime 
 		if !ok {
 			continue
 		}
-		tr, err := decodeEvent(model.Input{
+		tr, err := decodeEvent(modeldecoder.Input{
 			Raw:         entry,
 			RequestTime: requestTime,
 			Metadata:    streamMetadata,

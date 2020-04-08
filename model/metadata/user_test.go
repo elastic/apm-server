@@ -18,8 +18,6 @@
 package metadata
 
 import (
-	"encoding/json"
-	"errors"
 	"net"
 	"testing"
 
@@ -123,34 +121,5 @@ func TestUserAgentFields(t *testing.T) {
 	for _, test := range tests {
 		output := test.User.UserAgentFields()
 		assert.Equal(t, test.Output, output)
-	}
-}
-
-func TestUserDecode(t *testing.T) {
-	id, mail, name, ip, agent := "12", "m@g.dk", "foo", "127.0.0.1", "ruby"
-	inpErr := errors.New("some error happened")
-	for _, test := range []struct {
-		input    interface{}
-		inputErr error
-		err      error
-		u        *User
-	}{
-		{input: nil, inputErr: nil, err: nil, u: nil},
-		{input: nil, inputErr: inpErr, err: inpErr, u: nil},
-		{input: "", err: errors.New("invalid type for user"), u: nil},
-		{input: map[string]interface{}{"id": json.Number("12")}, inputErr: nil, err: nil, u: &User{Id: &id}},
-		{
-			input: map[string]interface{}{
-				"id": id, "email": mail, "username": name, "ip": ip, "user-agent": agent,
-			},
-			err: nil,
-			u: &User{
-				Id: &id, Email: &mail, Name: &name, IP: net.ParseIP(ip), UserAgent: &agent,
-			},
-		},
-	} {
-		user, err := DecodeUser(test.input, false, test.inputErr)
-		assert.Equal(t, test.u, user)
-		assert.Equal(t, test.err, err)
 	}
 }

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package modeldecoder
 
 import (
 	"errors"
@@ -23,7 +23,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func DecodeLabels(input interface{}, err error) (common.MapStr, error) {
+func decodeLabels(input interface{}, err error) (common.MapStr, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
