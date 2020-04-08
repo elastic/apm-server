@@ -20,8 +20,11 @@ package modeldecoder
 import (
 	"fmt"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metricset"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -34,20 +37,33 @@ const (
 	spanKey        = "span"
 )
 
-var metricsetSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
+var (
+	metricsetSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
+	rumV3Schema     = validation.CreateSchema(schema.RUMV3Schema, "metricset")
+)
 
 // DecodeMetricset decodes a v2 metricset.
 func DecodeMetricset(input Input) (transform.Transformable, error) {
-	raw, err := validation.ValidateObject(input.Raw, metricsetSchema)
+	return decodeMetricset(input, metricsetSchema)
+}
+
+func DecodeRUMV3Metricset(input Input) (transform.Transformable, error) {
+	return decodeMetricset(input, rumV3Schema)
+}
+
+func decodeMetricset(input Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate metricset")
 	}
 
 	md := metricsetDecoder{&utility.ManualDecoder{}}
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
+
 	e := metricset.Metricset{
-		Samples:     md.decodeSamples(raw["samples"]),
-		Transaction: md.decodeTransaction(raw[transactionKey]),
-		Span:        md.decodeSpan(raw[spanKey]),
+		Samples:     md.decodeSamples(raw[fieldName("samples")], input.Config.HasShortFieldNames),
+		Transaction: md.decodeTransaction(raw[fieldName(transactionKey)], input.Config.HasShortFieldNames),
+		Span:        md.decodeSpan(raw[fieldName(spanKey)], input.Config.HasShortFieldNames),
 		Timestamp:   md.TimeEpochMicro(raw, "timestamp"),
 		Metadata:    input.Metadata,
 	}
@@ -70,7 +86,7 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func (md *metricsetDecoder) decodeSamples(input interface{}) []*metricset.Sample {
+func (md *metricsetDecoder) decodeSamples(input interface{}, hasShortFieldNames bool) []*metricset.Sample {
 	if input == nil {
 		md.Err = errors.New("no samples for metric event")
 		return nil
@@ -81,8 +97,12 @@ func (md *metricsetDecoder) decodeSamples(input interface{}) []*metricset.Sample
 		return nil
 	}
 
+	fieldName := field.Mapper(hasShortFieldNames)
+	inverseFieldName := field.InverseMapper(hasShortFieldNames)
+
 	samples := make([]*metricset.Sample, len(raw))
 	i := 0
+	value := fieldName("value")
 	for name, s := range raw {
 		if s == nil {
 			continue
@@ -94,8 +114,8 @@ func (md *metricsetDecoder) decodeSamples(input interface{}) []*metricset.Sample
 		}
 
 		samples[i] = &metricset.Sample{
-			Name:  name,
-			Value: md.Float64(sampleMap, "value"),
+			Name:  inverseFieldName(name),
+			Value: md.Float64(sampleMap, value),
 		}
 		if md.Err != nil {
 			return nil
@@ -105,7 +125,7 @@ func (md *metricsetDecoder) decodeSamples(input interface{}) []*metricset.Sample
 	return samples
 }
 
-func (md *metricsetDecoder) decodeSpan(input interface{}) *metricset.Span {
+func (md *metricsetDecoder) decodeSpan(input interface{}, hasShortFieldNames bool) *metricset.Span {
 	if input == nil {
 		return nil
 	}
@@ -115,12 +135,13 @@ func (md *metricsetDecoder) decodeSpan(input interface{}) *metricset.Span {
 		return nil
 	}
 
+	fieldName := field.Mapper(hasShortFieldNames)
 	return &metricset.Span{
-		Type:    md.StringPtr(raw, "type"),
-		Subtype: md.StringPtr(raw, "subtype"),
+		Type:    md.StringPtr(raw, fieldName("type")),
+		Subtype: md.StringPtr(raw, fieldName("subtype")),
 	}
 }
-func (md *metricsetDecoder) decodeTransaction(input interface{}) *metricset.Transaction {
+func (md *metricsetDecoder) decodeTransaction(input interface{}, hasShortFieldNames bool) *metricset.Transaction {
 	if input == nil {
 		return nil
 	}
@@ -130,8 +151,9 @@ func (md *metricsetDecoder) decodeTransaction(input interface{}) *metricset.Tran
 		return nil
 	}
 
+	fieldName := field.Mapper(hasShortFieldNames)
 	return &metricset.Transaction{
-		Type: md.StringPtr(raw, "type"),
-		Name: md.StringPtr(raw, "name"),
+		Type: md.StringPtr(raw, fieldName("type")),
+		Name: md.StringPtr(raw, fieldName("name")),
 	}
 }
