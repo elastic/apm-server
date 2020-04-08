@@ -19,15 +19,13 @@ package metadata
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 //Service bundles together information related to the monitored service and the agent used for monitoring
 type Service struct {
-	Name        *string
-	Version     *string
-	Environment *string
+	Name        string
+	Version     string
+	Environment string
 	Language    Language
 	Runtime     Runtime
 	Framework   Framework
@@ -37,31 +35,31 @@ type Service struct {
 
 //Language has an optional version and name
 type Language struct {
-	Name    *string
-	Version *string
+	Name    string
+	Version string
 }
 
 //Runtime has an optional version and name
 type Runtime struct {
-	Name    *string
-	Version *string
+	Name    string
+	Version string
 }
 
 //Framework has an optional version and name
 type Framework struct {
-	Name    *string
-	Version *string
+	Name    string
+	Version string
 }
 
 //Agent has an optional version, name and an ephemeral id
 type Agent struct {
-	Name        *string
-	Version     *string
-	EphemeralId *string
+	Name        string
+	Version     string
+	EphemeralID string
 }
 
 type ServiceNode struct {
-	Name *string
+	Name string
 }
 
 //Fields transforms a service instance into a common.MapStr
@@ -69,28 +67,37 @@ func (s *Service) Fields(containerID, hostName string) common.MapStr {
 	if s == nil {
 		return nil
 	}
-	svc := common.MapStr{}
-	utility.Set(svc, "name", s.Name)
-	utility.Set(svc, "environment", s.Environment)
-	utility.Set(svc, "node", s.Node.fields(containerID, hostName))
-	utility.Set(svc, "version", s.Version)
 
-	lang := common.MapStr{}
-	utility.Set(lang, "name", s.Language.Name)
-	utility.Set(lang, "version", s.Language.Version)
-	utility.Set(svc, "language", lang)
+	var svc mapStr
+	svc.maybeSetString("name", s.Name)
+	svc.maybeSetString("version", s.Version)
+	svc.maybeSetString("environment", s.Environment)
+	if node := s.Node.fields(containerID, hostName); node != nil {
+		svc.set("node", node)
+	}
 
-	runtime := common.MapStr{}
-	utility.Set(runtime, "name", s.Runtime.Name)
-	utility.Set(runtime, "version", s.Runtime.Version)
-	utility.Set(svc, "runtime", runtime)
+	var lang mapStr
+	lang.maybeSetString("name", s.Language.Name)
+	lang.maybeSetString("version", s.Language.Version)
+	if lang != nil {
+		svc.set("language", common.MapStr(lang))
+	}
 
-	framework := common.MapStr{}
-	utility.Set(framework, "name", s.Framework.Name)
-	utility.Set(framework, "version", s.Framework.Version)
-	utility.Set(svc, "framework", framework)
+	var runtime mapStr
+	runtime.maybeSetString("name", s.Runtime.Name)
+	runtime.maybeSetString("version", s.Runtime.Version)
+	if runtime != nil {
+		svc.set("runtime", common.MapStr(runtime))
+	}
 
-	return svc
+	var framework mapStr
+	framework.maybeSetString("name", s.Framework.Name)
+	framework.maybeSetString("version", s.Framework.Version)
+	if framework != nil {
+		svc.set("framework", common.MapStr(framework))
+	}
+
+	return common.MapStr(svc)
 }
 
 //AgentFields transforms all agent related information of a service into a common.MapStr
@@ -102,8 +109,8 @@ func (s *Service) AgentFields() common.MapStr {
 }
 
 func (n *ServiceNode) fields(containerID, hostName string) common.MapStr {
-	if n.Name != nil && *n.Name != "" {
-		return common.MapStr{"name": *n.Name}
+	if n.Name != "" {
+		return common.MapStr{"name": n.Name}
 	}
 	if containerID != "" {
 		return common.MapStr{"name": containerID}
@@ -115,12 +122,9 @@ func (n *ServiceNode) fields(containerID, hostName string) common.MapStr {
 }
 
 func (a *Agent) fields() common.MapStr {
-	if a == nil {
-		return nil
-	}
-	agent := common.MapStr{}
-	utility.Set(agent, "name", a.Name)
-	utility.Set(agent, "version", a.Version)
-	utility.Set(agent, "ephemeral_id", a.EphemeralId)
-	return agent
+	var agent mapStr
+	agent.maybeSetString("name", a.Name)
+	agent.maybeSetString("version", a.Version)
+	agent.maybeSetString("ephemeral_id", a.EphemeralID)
+	return common.MapStr(agent)
 }

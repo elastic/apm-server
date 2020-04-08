@@ -15,35 +15,33 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package modeldecoder
 
-import (
-	"testing"
+import "encoding/json"
 
-	"github.com/stretchr/testify/assert"
+func getObject(obj map[string]interface{}, key string) map[string]interface{} {
+	value, _ := obj[key].(map[string]interface{})
+	return value
+}
 
-	"github.com/elastic/beats/v7/libbeat/common"
-)
-
-func TestContainerTransform(t *testing.T) {
-	id := "container-id"
-
-	tests := []struct {
-		Container Container
-		Output    common.MapStr
-	}{
-		{
-			Container: Container{},
-			Output:    nil,
-		},
-		{
-			Container: Container{ID: id},
-			Output:    common.MapStr{"id": id},
-		},
+func decodeString(obj map[string]interface{}, key string, out *string) bool {
+	if value, ok := obj[key].(string); ok {
+		*out = value
+		return true
 	}
+	return false
+}
 
-	for _, test := range tests {
-		output := test.Container.fields()
-		assert.Equal(t, test.Output, output)
+func decodeInt(obj map[string]interface{}, key string, out *int) bool {
+	switch value := obj[key].(type) {
+	case json.Number:
+		if f, err := value.Float64(); err == nil {
+			*out = int(f)
+		}
+		return true
+	case float64:
+		*out = int(value)
+		return true
 	}
+	return false
 }

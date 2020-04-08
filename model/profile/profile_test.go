@@ -36,13 +36,13 @@ import (
 func TestPprofProfileTransform(t *testing.T) {
 	serviceName, env := "myService", "staging"
 	service := metadata.Service{
-		Name:        &serviceName,
-		Environment: &env,
+		Name:        serviceName,
+		Environment: env,
 	}
 
 	timestamp := time.Unix(123, 456)
 	pp := profile.PprofProfile{
-		Metadata: metadata.Metadata{Service: &service},
+		Metadata: metadata.Metadata{Service: service},
 		Profile: &pprof_profile.Profile{
 			TimeNanos:     timestamp.UnixNano(),
 			DurationNanos: int64(10 * time.Second),

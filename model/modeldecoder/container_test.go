@@ -18,7 +18,6 @@
 package modeldecoder
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/elastic/apm-server/model/metadata"
@@ -28,23 +27,17 @@ import (
 func TestContainerDecode(t *testing.T) {
 	id := "container-id"
 	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		c           *metadata.Container
+		input map[string]interface{}
+		c     metadata.Container
 	}{
-		{input: nil, err: nil, c: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), c: nil},
-		{input: "", err: errors.New("invalid type for container"), c: nil},
+		{input: nil},
 		{
-			input: map[string]interface{}{
-				"id": id,
-			},
-			err: nil,
-			c:   &metadata.Container{ID: id},
+			input: map[string]interface{}{"id": id},
+			c:     metadata.Container{ID: id},
 		},
 	} {
-		container, out := decodeContainer(test.input, test.inpErr)
+		var container metadata.Container
+		decodeContainer(test.input, &container)
 		assert.Equal(t, test.c, container)
-		assert.Equal(t, test.err, out)
 	}
 }

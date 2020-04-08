@@ -21,46 +21,40 @@ import (
 	"net"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 type System struct {
-	DetectedHostname   *string
-	ConfiguredHostname *string
-	Architecture       *string
-	Platform           *string
+	DetectedHostname   string
+	ConfiguredHostname string
+	Architecture       string
+	Platform           string
 	IP                 net.IP
 
-	Container  *Container
-	Kubernetes *Kubernetes
+	Container  Container
+	Kubernetes Kubernetes
 }
 
-func (s *System) name() *string {
-	if s != nil && s.ConfiguredHostname != nil {
+func (s *System) name() string {
+	if s.ConfiguredHostname != "" {
 		return s.ConfiguredHostname
 	}
 	return s.hostname()
 }
 
-func (s *System) hostname() *string {
+func (s *System) hostname() string {
 	if s == nil {
-		return nil
-	}
-
-	if s.Kubernetes == nil {
-		return s.DetectedHostname
+		return ""
 	}
 
 	// if system.kubernetes.node.name is set in the metadata, set host.hostname in the event to its value
-	if s.Kubernetes.NodeName != nil {
+	if s.Kubernetes.NodeName != "" {
 		return s.Kubernetes.NodeName
 	}
 
 	// If system.kubernetes.* is set, but system.kubernetes.node.name is not, then don't set host.hostname at all.
 	// some day this could be a hook to discover the right node name using these values
-	if s.Kubernetes.PodName != nil || s.Kubernetes.PodUID != nil || s.Kubernetes.Namespace != nil {
-		return nil
+	if s.Kubernetes.PodName != "" || s.Kubernetes.PodUID != "" || s.Kubernetes.Namespace != "" {
+		return ""
 	}
 
 	// Otherwise set host.hostname to system.hostname
@@ -71,17 +65,17 @@ func (s *System) fields() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	system := common.MapStr{}
-	utility.Set(system, "hostname", s.hostname())
-	utility.Set(system, "name", s.name())
-	utility.Set(system, "architecture", s.Architecture)
-	if s.Platform != nil {
-		utility.Set(system, "os", common.MapStr{"platform": s.Platform})
+	var system mapStr
+	system.maybeSetString("hostname", s.hostname())
+	system.maybeSetString("name", s.name())
+	system.maybeSetString("architecture", s.Architecture)
+	if s.Platform != "" {
+		system.set("os", common.MapStr{"platform": s.Platform})
 	}
 	if s.IP != nil {
-		utility.Set(system, "ip", s.IP.String())
+		system.set("ip", s.IP.String())
 	}
-	return system
+	return common.MapStr(system)
 }
 
 func (s *System) containerFields() common.MapStr {

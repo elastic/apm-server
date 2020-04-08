@@ -44,42 +44,42 @@ func TestServiceTransform(t *testing.T) {
 	}{
 		{
 			Service:     Service{},
-			AgentFields: common.MapStr{},
-			Fields:      common.MapStr{},
+			AgentFields: nil,
+			Fields:      nil,
 		}, {
 			Service:     Service{},
 			ContainerID: "foo",
 			HostName:    "bar",
-			AgentFields: common.MapStr{},
+			AgentFields: nil,
 			Fields:      common.MapStr{"node": common.MapStr{"name": "foo"}},
 		}, {
 			Service:     Service{},
 			HostName:    "bar",
-			AgentFields: common.MapStr{},
+			AgentFields: nil,
 			Fields:      common.MapStr{"node": common.MapStr{"name": "bar"}},
 		},
 		{
 			Service: Service{
-				Name:        &serviceName,
-				Version:     &version,
-				Environment: &environment,
+				Name:        serviceName,
+				Version:     version,
+				Environment: environment,
 				Language: Language{
-					Name:    &langName,
-					Version: &langVersion,
+					Name:    langName,
+					Version: langVersion,
 				},
 				Runtime: Runtime{
-					Name:    &rtName,
-					Version: &rtVersion,
+					Name:    rtName,
+					Version: rtVersion,
 				},
 				Framework: Framework{
-					Name:    &fwName,
-					Version: &fwVersion,
+					Name:    fwName,
+					Version: fwVersion,
 				},
 				Agent: Agent{
-					Name:    &agentName,
-					Version: &agentVersion,
+					Name:    agentName,
+					Version: agentVersion,
 				},
-				Node: ServiceNode{Name: &serviceNodeName},
+				Node: ServiceNode{Name: serviceNodeName},
 			},
 			ContainerID: "foo",
 			HostName:    "bar",

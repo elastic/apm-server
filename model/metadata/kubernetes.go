@@ -18,33 +18,31 @@
 package metadata
 
 import (
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 type Kubernetes struct {
-	Namespace *string
-	NodeName  *string
-	PodName   *string
-	PodUID    *string
+	Namespace string
+	NodeName  string
+	PodName   string
+	PodUID    string
 }
 
 func (k *Kubernetes) fields() common.MapStr {
-	if k == nil {
-		return nil
+	var kubernetes mapStr
+	kubernetes.maybeSetString("namespace", k.Namespace)
+
+	var node mapStr
+	if node.maybeSetString("name", k.NodeName) {
+		kubernetes.set("node", common.MapStr(node))
 	}
-	kubernetes := common.MapStr{}
-	utility.Set(kubernetes, "namespace", k.Namespace)
 
-	node := common.MapStr{}
-	utility.Set(node, "name", k.NodeName)
+	var pod mapStr
+	pod.maybeSetString("name", k.PodName)
+	pod.maybeSetString("uid", k.PodUID)
+	if pod != nil {
+		kubernetes.set("pod", common.MapStr(pod))
+	}
 
-	pod := common.MapStr{}
-	utility.Set(pod, "name", k.PodName)
-	utility.Set(pod, "uid", k.PodUID)
-
-	utility.Set(kubernetes, "node", node)
-	utility.Set(kubernetes, "pod", pod)
-
-	return kubernetes
+	return common.MapStr(kubernetes)
 }
