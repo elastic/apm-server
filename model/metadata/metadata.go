@@ -18,14 +18,12 @@
 package metadata
 
 import (
-	"errors"
-
-	"github.com/elastic/apm-server/model/field"
-
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
@@ -51,18 +49,22 @@ type Metadata struct {
 	Labels  common.MapStr
 }
 
+func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*Metadata, error) {
+	return decodeMetadata(input, hasShortFieldNames, rumV3ModelSchema)
+}
+
 func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*Metadata, error) {
-	if input == nil {
-		return nil, nil
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid type for metadata")
+	return decodeMetadata(input, hasShortFieldNames, cachedModelSchema)
+}
+
+func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonschema.Schema) (*Metadata, error) {
+	raw, err := validation.ValidateObject(input, schema)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate metadata")
 	}
 
 	fieldName := field.Mapper(hasShortFieldNames)
 
-	var err error
 	var service *Service
 	var system *System
 	var process *Process

@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 )
 
 func TestDecodeSpan(t *testing.T) {
@@ -51,7 +50,7 @@ func TestDecodeSpan(t *testing.T) {
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 	context := map[string]interface{}{
 		"a":    "b",
-		"tags": map[string]interface{}{"a": "tag", "tag.key": 17},
+		"tags": map[string]interface{}{"a": "tag", "tag_key": 17},
 		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
 		"db": map[string]interface{}{
 			"instance": instance, "statement": statement, "type": dbType,
@@ -79,52 +78,16 @@ func TestDecodeSpan(t *testing.T) {
 		Service: &metadata.Service{Name: tests.StringPtr("foo")},
 	}
 
+	// baseInput holds the minimal valid input. Test-specific input is added to/removed from this.
+	baseInput := common.MapStr{
+		"id": id, "type": spType, "name": name, "duration": duration, "trace_id": traceId,
+	}
+
 	for name, test := range map[string]struct {
-		input interface{}
+		input map[string]interface{}
 		cfg   m.Config
-		// we don't use a regular `error.New` here, because some errors are of a different type
-		err string
-		e   transform.Transformable
+		e     *Event
 	}{
-		"no input":     {input: nil, err: errMissingInput.Error()},
-		"invalid type": {input: "", err: errInvalidType.Error()},
-		"missing required field": {
-			input: map[string]interface{}{},
-			err:   utility.ErrFetch.Error(),
-		},
-		"transaction id wrong type": {
-			input: map[string]interface{}{"name": name, "type": spType, "start": start, "duration": duration,
-				"timestamp": "2018-05-30T19:53:17.134Z", "transaction_id": 123},
-			err: utility.ErrFetch.Error(),
-		},
-		"no trace_id": {
-			input: map[string]interface{}{
-				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": timestampEpoch, "id": id, "transaction_id": transactionId,
-			},
-			err: utility.ErrFetch.Error(),
-		},
-		"no id": {
-			input: map[string]interface{}{
-				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": timestampEpoch, "trace_id": traceId, "transaction_id": transactionId,
-			},
-			err: utility.ErrFetch.Error(),
-		},
-		"no parent_id": {
-			input: map[string]interface{}{
-				"name": name, "type": spType, "start": start, "duration": duration,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
-			},
-			err: utility.ErrFetch.Error(),
-		},
-		"invalid stacktrace": {
-			input: map[string]interface{}{
-				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "stacktrace": []interface{}{"foo"},
-			},
-			err: "invalid type for stacktrace frame",
-		},
 		"minimal payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentId,
@@ -244,7 +207,7 @@ func TestDecodeSpan(t *testing.T) {
 				Stacktrace: m.Stacktrace{
 					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
 				},
-				Labels:        common.MapStr{"a": "tag", "tag.key": 17},
+				Labels:        common.MapStr{"a": "tag", "tag_key": 17},
 				Id:            id,
 				TraceId:       traceId,
 				ParentId:      parentId,
@@ -271,19 +234,76 @@ func TestDecodeSpan(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
+			}
+			for k, v := range test.input {
+				input[k] = v
+			}
 			span, err := DecodeEvent(m.Input{
-				Raw:         test.input,
+				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    metadata,
 				Config:      test.cfg,
 			})
-			if test.err == "" {
-				require.Nil(t, err)
-				assert.Equal(t, test.e, span)
-			} else {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), test.err)
+			require.NoError(t, err)
+			assert.Equal(t, test.e, span)
+		})
+	}
+}
+
+func TestDecodeSpanInvalid(t *testing.T) {
+	_, err := DecodeEvent(m.Input{Raw: nil})
+	require.EqualError(t, err, "failed to validate span: error validating JSON: input missing")
+
+	_, err = DecodeEvent(m.Input{Raw: ""})
+	require.EqualError(t, err, "failed to validate span: error validating JSON: invalid input type")
+
+	// baseInput holds the minimal valid input. Test-specific input is added to this.
+	baseInput := map[string]interface{}{
+		"type": "type",
+		"name": "name",
+		"id":   "id", "trace_id": "trace_id", "transaction_id": "transaction_id", "parent_id": "parent_id",
+		"start": 0.0, "duration": 123.0,
+	}
+	_, err = DecodeEvent(m.Input{Raw: baseInput})
+	require.NoError(t, err)
+
+	for name, test := range map[string]struct {
+		input map[string]interface{}
+	}{
+		"transaction id wrong type": {
+			input: map[string]interface{}{"transaction_id": 123},
+		},
+		"no trace_id": {
+			input: map[string]interface{}{"trace_id": nil},
+		},
+		"no id": {
+			input: map[string]interface{}{"id": nil},
+		},
+		"no parent_id": {
+			input: map[string]interface{}{"parent_id": nil},
+		},
+		"invalid stacktrace": {
+			input: map[string]interface{}{"stacktrace": []interface{}{"foo"}},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
 			}
+			for k, v := range test.input {
+				if v == nil {
+					delete(input, k)
+				} else {
+					input[k] = v
+				}
+			}
+			_, err := DecodeEvent(m.Input{Raw: input})
+			require.Error(t, err)
+			t.Logf("%s", err)
 		})
 	}
 }

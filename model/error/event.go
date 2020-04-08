@@ -22,15 +22,13 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"hash"
 	"io"
 	"strconv"
 	"time"
 
-	"github.com/elastic/apm-server/model/field"
-
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -39,6 +37,7 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
+	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -51,9 +50,6 @@ var (
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")
 	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
-
-	errMissingInput = errors.New("input missing for decoding error event")
-	errInvalidType  = errors.New("invalid type for error event")
 )
 
 const (
@@ -64,12 +60,8 @@ const (
 
 var (
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
-	RUMV3Schema       = validation.CreateSchema(schema.RUMV3Schema, processorName)
+	rumV3Schema       = validation.CreateSchema(schema.RUMV3Schema, processorName)
 )
-
-func ModelSchema() *jsonschema.Schema {
-	return cachedModelSchema
-}
 
 type Event struct {
 	Id            *string
@@ -121,17 +113,17 @@ type Log struct {
 }
 
 func DecodeRUMV3Event(input m.Input) (transform.Transformable, error) {
-	return DecodeEvent(input)
+	return decodeEvent(input, rumV3Schema)
 }
 
 func DecodeEvent(input m.Input) (transform.Transformable, error) {
-	if input.Raw == nil {
-		return nil, errMissingInput
-	}
+	return decodeEvent(input, cachedModelSchema)
+}
 
-	raw, ok := input.Raw.(map[string]interface{})
-	if !ok {
-		return nil, errInvalidType
+func decodeEvent(input m.Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+	raw, err := validation.ValidateObject(input.Raw, schema)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate error")
 	}
 
 	ctx, err := m.DecodeContext(raw, input.Config, nil)

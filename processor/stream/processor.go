@@ -24,7 +24,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/santhosh-tekuri/jsonschema"
 	"golang.org/x/time/rate"
 
 	"go.elastic.co/apm"
@@ -52,94 +51,59 @@ const (
 	batchSize = 10
 )
 
-type processorModel struct {
-	schema       *jsonschema.Schema
-	modelDecoder func(model.Input) (transform.Transformable, error)
-}
+type decodeMetadataFunc func(interface{}, bool) (*metadata.Metadata, error)
+type decodeEventFunc func(model.Input) (transform.Transformable, error)
 
 type Processor struct {
 	Tconfig          transform.Config
 	Mconfig          model.Config
 	MaxEventSize     int
 	streamReaderPool sync.Pool
-	models           map[string]processorModel
-	metadataSchema   *jsonschema.Schema
+	decodeMetadata   decodeMetadataFunc
+	models           map[string]decodeEventFunc
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
-		Tconfig:      transform.Config{},
-		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize: cfg.MaxEventSize,
-		models: map[string]processorModel{
-			"transaction": {
-				schema:       transaction.ModelSchema(),
-				modelDecoder: transaction.DecodeEvent,
-			},
-			"span": {
-				schema:       span.ModelSchema(),
-				modelDecoder: span.DecodeEvent,
-			},
-			"metricset": {
-				schema:       metricset.ModelSchema(),
-				modelDecoder: metricset.DecodeEvent,
-			},
-			"error": {
-				schema:       er.ModelSchema(),
-				modelDecoder: er.DecodeEvent,
-			},
+		Tconfig:        transform.Config{},
+		Mconfig:        model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: metadata.DecodeMetadata,
+		models: map[string]decodeEventFunc{
+			"transaction": transaction.DecodeEvent,
+			"span":        span.DecodeEvent,
+			"metricset":   metricset.DecodeEvent,
+			"error":       er.DecodeEvent,
 		},
-		metadataSchema: metadata.ModelSchema(),
 	}
 }
 
 func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	return &Processor{
-		Tconfig:      *tcfg,
-		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize: cfg.MaxEventSize,
-		models: map[string]processorModel{
-			"transaction": {
-				schema:       transaction.ModelSchema(),
-				modelDecoder: transaction.DecodeEvent,
-			},
-			"span": {
-				schema:       span.ModelSchema(),
-				modelDecoder: span.DecodeEvent,
-			},
-			"metricset": {
-				schema:       metricset.ModelSchema(),
-				modelDecoder: metricset.DecodeEvent,
-			},
-			"error": {
-				schema:       er.ModelSchema(),
-				modelDecoder: er.DecodeEvent,
-			},
+		Tconfig:        *tcfg,
+		Mconfig:        model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: metadata.DecodeMetadata,
+		models: map[string]decodeEventFunc{
+			"transaction": transaction.DecodeEvent,
+			"span":        span.DecodeEvent,
+			"metricset":   metricset.DecodeEvent,
+			"error":       er.DecodeEvent,
 		},
-		metadataSchema: metadata.ModelSchema(),
 	}
 }
 
 func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	return &Processor{
-		Tconfig:      *tcfg,
-		Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
-		MaxEventSize: cfg.MaxEventSize,
-		models: map[string]processorModel{
-			"x": {
-				schema:       transaction.RUMV3Schema,
-				modelDecoder: transaction.DecodeRUMV3Event,
-			},
-			"y": {
-				schema:       span.RUMV3Schema,
-				modelDecoder: span.DecodeRUMV3Event,
-			},
-			"e": {
-				schema:       er.RUMV3Schema,
-				modelDecoder: er.DecodeRUMV3Event,
-			},
+		Tconfig:        *tcfg,
+		Mconfig:        model.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: metadata.DecodeRUMV3Metadata,
+		models: map[string]decodeEventFunc{
+			"x": transaction.DecodeRUMV3Event,
+			"y": span.DecodeRUMV3Event,
+			"e": er.DecodeRUMV3Event,
 		},
-		metadataSchema: metadata.RUMV3ModelSchema(),
 	}
 }
 
@@ -169,36 +133,38 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 		utility.InsertInMap(rawMetadata, k, v.(map[string]interface{}))
 	}
 
-	if err := validation.Validate(rawMetadata, p.metadataSchema); err != nil {
-		return nil, &Error{
-			Type:     InvalidInputErrType,
-			Message:  err.Error(),
-			Document: string(reader.LatestLine()),
+	metadata, err := p.decodeMetadata(rawMetadata, p.Mconfig.HasShortFieldNames)
+	if err != nil {
+		var ve *validation.Error
+		if errors.As(err, &ve) {
+			return nil, &Error{
+				Type:     InvalidInputErrType,
+				Message:  err.Error(),
+				Document: string(reader.LatestLine()),
+			}
 		}
+		return nil, err
 	}
-	return metadata.DecodeMetadata(rawMetadata, p.Mconfig.HasShortFieldNames)
+	return metadata, nil
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
 func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time, streamMetadata metadata.Metadata) (transform.Transformable, error) {
-	for key, m := range p.models {
-		if entry, ok := rawModel[key]; ok {
-			err := validation.Validate(entry, m.schema)
-			if err != nil {
-				return nil, err
-			}
-
-			tr, err := m.modelDecoder(model.Input{
-				Raw:         entry,
-				RequestTime: requestTime,
-				Metadata:    streamMetadata,
-				Config:      p.Mconfig,
-			})
-			if err != nil {
-				return nil, err
-			}
-			return tr, nil
+	for key, decodeEvent := range p.models {
+		entry, ok := rawModel[key]
+		if !ok {
+			continue
 		}
+		tr, err := decodeEvent(model.Input{
+			Raw:         entry,
+			RequestTime: requestTime,
+			Metadata:    streamMetadata,
+			Config:      p.Mconfig,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return tr, nil
 	}
 	return nil, ErrUnrecognizedObject
 }
