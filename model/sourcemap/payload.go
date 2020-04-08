@@ -41,7 +41,7 @@ const (
 )
 
 var (
-	Metrics          = monitoring.Default.NewRegistry("apm-server.processor.sourcemap", monitoring.PublishExpvar)
+	Metrics          = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
 	sourcemapCounter = monitoring.NewInt(Metrics, "counter")
 
 	processorEntry = common.MapStr{"name": processorName, "event": smapDocType}

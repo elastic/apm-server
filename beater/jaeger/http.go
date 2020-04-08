@@ -41,7 +41,7 @@ const (
 )
 
 var (
-	httpRegistry      = monitoring.Default.NewRegistry("apm-server.jaeger.http", monitoring.PublishExpvar)
+	httpRegistry      = monitoring.Default.NewRegistry("apm-server.jaeger.http")
 	httpMonitoringMap = request.MonitoringMapForRegistry(httpRegistry, monitoringKeys)
 )
 

@@ -37,7 +37,7 @@ import (
 var (
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
+	registry      = monitoring.Default.NewRegistry("apm-server.server")
 )
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.

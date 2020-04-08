@@ -18,13 +18,11 @@
 package api
 
 import (
-	"expvar"
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/beats/v7/libbeat/monitoring"
-
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
@@ -115,7 +113,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	if beaterConfig.Expvar.IsEnabled() {
 		path := beaterConfig.Expvar.URL
 		logger.Infof("Path %s added to request handler", path)
-		mux.Handle(path, expvar.Handler())
+		mux.Handle(path, http.HandlerFunc(debugVarsHandler))
 	}
 	return mux, nil
 }

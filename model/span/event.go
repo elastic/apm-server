@@ -44,7 +44,7 @@ const (
 )
 
 var (
-	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.span", monitoring.PublishExpvar)
+	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.span")
 	transformations = monitoring.NewInt(Metrics, "transformations")
 
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")

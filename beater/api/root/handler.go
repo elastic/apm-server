@@ -32,7 +32,7 @@ import (
 var (
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.root", monitoring.PublishExpvar)
+	registry      = monitoring.Default.NewRegistry("apm-server.root")
 )
 
 // Handler returns error if route does not exist,
