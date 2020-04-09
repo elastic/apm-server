@@ -77,7 +77,23 @@ type Sample struct {
 	Name string
 
 	// Value holds the metric value for single-value metrics.
+	//
+	// If Counts and Values are specified, then Value will be ignored.
 	Value float64
+
+	// Values holds the bucket values for histogram metrics.
+	//
+	// These values must be provided in ascending order.
+	Values []float64
+
+	// Counts holds the bucket counts for histogram metrics.
+	//
+	// These numbers must be positive or zero.
+	//
+	// If Counts is specified, then Values is expected to be
+	// specified with the same number of elements, and with the
+	// same order.
+	Counts []int64
 }
 
 // Transaction provides enough information to connect a metricset to the related kind of transactions.
@@ -87,6 +103,14 @@ type Transaction struct {
 
 	// Type holds the transaction type: "request", "message", etc.
 	Type string
+
+	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
+	Result string
+
+	// Root indicates whether or not the transaction is the trace root.
+	//
+	// If Root is false, then it will be omitted from the output event.
+	Root bool
 }
 
 // Span provides enough information to connect a metricset to the related kind of spans.
@@ -134,6 +158,10 @@ func (t *Transaction) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("type", t.Type)
 	fields.maybeSetString("name", t.Name)
+	fields.maybeSetString("result", t.Result)
+	if t.Root {
+		fields.set("root", true)
+	}
 	return common.MapStr(fields)
 }
 
@@ -145,6 +173,15 @@ func (s *Span) fields() common.MapStr {
 }
 
 func (s *Sample) set(fields common.MapStr) error {
-	_, err := fields.Put(s.Name, s.Value)
-	return err
+	switch {
+	case len(s.Counts) > 0:
+		_, err := fields.Put(s.Name, common.MapStr{
+			"counts": s.Counts,
+			"values": s.Values,
+		})
+		return err
+	default:
+		_, err := fields.Put(s.Name, s.Value)
+		return err
+	}
 }
