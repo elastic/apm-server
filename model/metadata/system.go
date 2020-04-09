@@ -38,10 +38,11 @@ func (s *System) name() string {
 	if s.ConfiguredHostname != "" {
 		return s.ConfiguredHostname
 	}
-	return s.hostname()
+	return s.Hostname()
 }
 
-func (s *System) hostname() string {
+// Hostname returns the value to store in `host.hostname`.
+func (s *System) Hostname() string {
 	if s == nil {
 		return ""
 	}
@@ -66,7 +67,7 @@ func (s *System) fields() common.MapStr {
 		return nil
 	}
 	var system mapStr
-	system.maybeSetString("hostname", s.hostname())
+	system.maybeSetString("hostname", s.Hostname())
 	system.maybeSetString("name", s.name())
 	system.maybeSetString("architecture", s.Architecture)
 	if s.Platform != "" {
