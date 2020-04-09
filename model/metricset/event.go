@@ -45,50 +45,57 @@ var (
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
 )
 
+// Metricset describes a set of metrics and associated metadata.
+type Metricset struct {
+	// Timestamp holds the time at which the metrics were published.
+	Timestamp time.Time
+
+	// Metadata holds common metadata describing the entities with which
+	// the metrics are associated: service, system, etc.
+	Metadata metadata.Metadata
+
+	// Transaction holds information about the transaction group with
+	// which the metrics are associated.
+	Transaction Transaction
+
+	// Span holds information about the span types with which the
+	// metrics are associated.
+	Span Span
+
+	// Labels holds arbitrary labels to apply to the metrics.
+	//
+	// These labels override any with the same names in Metadata.Labels.
+	Labels common.MapStr
+
+	// Samples holds the metrics in the set.
+	Samples []Sample
+}
+
+// Sample represents a single named metric.
 type Sample struct {
-	Name  string
+	// Name holds the metric name.
+	Name string
+
+	// Value holds the metric value for single-value metrics.
 	Value float64
 }
 
-// Transaction provides enough information to connect a metricset to the related kind of transactions
+// Transaction provides enough information to connect a metricset to the related kind of transactions.
 type Transaction struct {
-	Name *string
-	Type *string
+	// Name holds the transaction name: "GET /foo", etc.
+	Name string
+
+	// Type holds the transaction type: "request", "message", etc.
+	Type string
 }
 
-// Span provides enough information to connect a metricset to the related kind of spans
+// Span provides enough information to connect a metricset to the related kind of spans.
 type Span struct {
-	Type    *string
-	Subtype *string
-}
+	// Type holds the span type: "external", "db", etc.
+	Type string
 
-type Metricset struct {
-	Metadata    metadata.Metadata
-	Samples     []*Sample
-	Labels      common.MapStr
-	Transaction *Transaction
-	Span        *Span
-	Timestamp   time.Time
-}
-
-func (s *Span) fields() common.MapStr {
-	if s == nil {
-		return nil
-	}
-	fields := common.MapStr{}
-	utility.Set(fields, "type", s.Type)
-	utility.Set(fields, "subtype", s.Subtype)
-	return fields
-}
-
-func (t *Transaction) fields() common.MapStr {
-	if t == nil {
-		return nil
-	}
-	fields := common.MapStr{}
-	utility.Set(fields, "type", t.Type)
-	utility.Set(fields, "name", t.Name)
-	return fields
+	// Subtype holds the span subtype: "http", "sql", etc.
+	Subtype string
 }
 
 func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
@@ -99,7 +106,7 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 
 	fields := common.MapStr{}
 	for _, sample := range me.Samples {
-		if _, err := fields.Put(sample.Name, sample.Value); err != nil {
+		if err := sample.set(fields); err != nil {
 			logp.NewLogger(logs.Transform).Warnf("failed to transform sample %#v", sample)
 			continue
 		}
@@ -107,16 +114,37 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 
 	fields["processor"] = processorEntry
 	me.Metadata.Set(fields)
+	if transactionFields := me.Transaction.fields(); transactionFields != nil {
+		utility.DeepUpdate(fields, transactionKey, transactionFields)
+	}
+	if spanFields := me.Span.fields(); spanFields != nil {
+		utility.DeepUpdate(fields, spanKey, spanFields)
+	}
 
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", me.Labels)
-	utility.DeepUpdate(fields, transactionKey, me.Transaction.fields())
-	utility.DeepUpdate(fields, spanKey, me.Span.fields())
 
-	return []beat.Event{
-		{
-			Fields:    fields,
-			Timestamp: me.Timestamp,
-		},
-	}
+	return []beat.Event{{
+		Fields:    fields,
+		Timestamp: me.Timestamp,
+	}}
+}
+
+func (t *Transaction) fields() common.MapStr {
+	var fields mapStr
+	fields.maybeSetString("type", t.Type)
+	fields.maybeSetString("name", t.Name)
+	return common.MapStr(fields)
+}
+
+func (s *Span) fields() common.MapStr {
+	var fields mapStr
+	fields.maybeSetString("type", s.Type)
+	fields.maybeSetString("subtype", s.Subtype)
+	return common.MapStr(fields)
+}
+
+func (s *Sample) set(fields common.MapStr) error {
+	_, err := fields.Put(s.Name, s.Value)
+	return err
 }

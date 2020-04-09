@@ -36,7 +36,14 @@ func TestTransform(t *testing.T) {
 	metadata := metadata.Metadata{
 		Service: metadata.Service{Name: "myservice"},
 	}
-	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
+
+	const (
+		trType = "request"
+		trName = "GET /"
+
+		spType    = "db"
+		spSubtype = "sql"
+	)
 
 	tests := []struct {
 		Metricset *Metricset
@@ -65,7 +72,7 @@ func TestTransform(t *testing.T) {
 				Metadata:  metadata,
 				Labels:    common.MapStr{"a.b": "a.b.value"},
 				Timestamp: timestamp,
-				Samples: []*Sample{
+				Samples: []Sample{
 					{
 						Name:  "a.counter",
 						Value: 612,
@@ -75,23 +82,19 @@ func TestTransform(t *testing.T) {
 						Value: 9.16,
 					},
 				},
-				Span:        &Span{Type: &spType, Subtype: &spSubtype},
-				Transaction: &Transaction{Type: &trType, Name: &trName},
+				Span:        Span{Type: spType, Subtype: spSubtype},
+				Transaction: Transaction{Type: trType, Name: trName},
 			},
 			Output: []common.MapStr{
 				{
-					"labels": common.MapStr{
-						"a.b": "a.b.value",
-					},
-					"service": common.MapStr{
-						"name": "myservice",
-					},
-
-					"a":           common.MapStr{"counter": float64(612)},
-					"some":        common.MapStr{"gauge": float64(9.16)},
 					"processor":   common.MapStr{"event": "metric", "name": "metric"},
+					"service":     common.MapStr{"name": "myservice"},
 					"transaction": common.MapStr{"name": trName, "type": trType},
 					"span":        common.MapStr{"type": spType, "subtype": spSubtype},
+					"labels":      common.MapStr{"a.b": "a.b.value"},
+
+					"a":    common.MapStr{"counter": float64(612)},
+					"some": common.MapStr{"gauge": float64(9.16)},
 				},
 			},
 			Msg: "Payload with valid metric.",

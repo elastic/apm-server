@@ -75,8 +75,6 @@ func TestDecode(t *testing.T) {
 			err: nil,
 			metricset: &metricset.Metricset{
 				Metadata:  metadata,
-				Samples:   []*metricset.Sample{},
-				Labels:    nil,
 				Timestamp: timestampParsed,
 			},
 		},
@@ -97,7 +95,6 @@ func TestDecode(t *testing.T) {
 			},
 			metricset: &metricset.Metricset{
 				Metadata:  metadata,
-				Samples:   []*metricset.Sample{},
 				Timestamp: requestTime,
 			},
 		},
@@ -119,7 +116,7 @@ func TestDecode(t *testing.T) {
 			err: nil,
 			metricset: &metricset.Metricset{
 				Metadata: metadata,
-				Samples: []*metricset.Sample{
+				Samples: []metricset.Sample{
 					{
 						Name:  "some.gauge",
 						Value: 9.16,
@@ -158,7 +155,7 @@ func TestDecode(t *testing.T) {
 			err: nil,
 			metricset: &metricset.Metricset{
 				Metadata: metadata,
-				Samples: []*metricset.Sample{
+				Samples: []metricset.Sample{
 					{
 						Name:  "a.counter",
 						Value: 612,
@@ -167,8 +164,8 @@ func TestDecode(t *testing.T) {
 				Labels: common.MapStr{
 					"atag": true,
 				},
-				Span:        &metricset.Span{Type: &spType, Subtype: &spSubtype},
-				Transaction: &metricset.Transaction{Type: &trType, Name: &trName},
+				Span:        metricset.Span{Type: spType, Subtype: spSubtype},
+				Transaction: metricset.Transaction{Type: trType, Name: trName},
 				Timestamp:   timestampParsed,
 			},
 		},

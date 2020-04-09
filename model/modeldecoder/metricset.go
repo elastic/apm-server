@@ -18,8 +18,6 @@
 package modeldecoder
 
 import (
-	"fmt"
-
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/pkg/errors"
@@ -61,12 +59,12 @@ func decodeMetricset(input Input, schema *jsonschema.Schema) (transform.Transfor
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 
 	e := metricset.Metricset{
-		Samples:     md.decodeSamples(raw[fieldName("samples")], input.Config.HasShortFieldNames),
-		Transaction: md.decodeTransaction(raw[fieldName(transactionKey)], input.Config.HasShortFieldNames),
-		Span:        md.decodeSpan(raw[fieldName(spanKey)], input.Config.HasShortFieldNames),
-		Timestamp:   md.TimeEpochMicro(raw, "timestamp"),
-		Metadata:    input.Metadata,
+		Timestamp: md.TimeEpochMicro(raw, "timestamp"),
+		Metadata:  input.Metadata,
 	}
+	md.decodeSamples(getObject(raw, fieldName("samples")), input.Config.HasShortFieldNames, &e.Samples)
+	md.decodeTransaction(getObject(raw, fieldName(transactionKey)), input.Config.HasShortFieldNames, &e.Transaction)
+	md.decodeSpan(getObject(raw, fieldName(spanKey)), input.Config.HasShortFieldNames, &e.Span)
 
 	if md.Err != nil {
 		return nil, md.Err
@@ -86,74 +84,28 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func (md *metricsetDecoder) decodeSamples(input interface{}, hasShortFieldNames bool) []*metricset.Sample {
-	if input == nil {
-		md.Err = errors.New("no samples for metric event")
-		return nil
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		md.Err = errors.New("invalid type for samples in metric event")
-		return nil
-	}
-
+func (md *metricsetDecoder) decodeSamples(input map[string]interface{}, hasShortFieldNames bool, out *[]metricset.Sample) {
 	fieldName := field.Mapper(hasShortFieldNames)
 	inverseFieldName := field.InverseMapper(hasShortFieldNames)
 
-	samples := make([]*metricset.Sample, len(raw))
-	i := 0
-	value := fieldName("value")
-	for name, s := range raw {
-		if s == nil {
-			continue
-		}
-		sampleMap, ok := s.(map[string]interface{})
-		if !ok {
-			md.Err = fmt.Errorf("invalid sample: %s: %s", name, s)
-			return nil
-		}
-
-		samples[i] = &metricset.Sample{
-			Name:  inverseFieldName(name),
-			Value: md.Float64(sampleMap, value),
-		}
-		if md.Err != nil {
-			return nil
-		}
-		i++
-	}
-	return samples
-}
-
-func (md *metricsetDecoder) decodeSpan(input interface{}, hasShortFieldNames bool) *metricset.Span {
-	if input == nil {
-		return nil
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		md.Err = errors.New("invalid type for span in metric event")
-		return nil
-	}
-
-	fieldName := field.Mapper(hasShortFieldNames)
-	return &metricset.Span{
-		Type:    md.StringPtr(raw, fieldName("type")),
-		Subtype: md.StringPtr(raw, fieldName("subtype")),
+	valueFieldName := fieldName("value")
+	for name, s := range input {
+		sampleObj, _ := s.(map[string]interface{})
+		sample := metricset.Sample{Name: inverseFieldName(name)}
+		// TODO(axw) add support for ingesting counts/values (histogram metrics)
+		decodeFloat64(sampleObj, valueFieldName, &sample.Value)
+		*out = append(*out, sample)
 	}
 }
-func (md *metricsetDecoder) decodeTransaction(input interface{}, hasShortFieldNames bool) *metricset.Transaction {
-	if input == nil {
-		return nil
-	}
-	raw, ok := input.(map[string]interface{})
-	if !ok {
-		md.Err = errors.New("invalid type for transaction in metric event")
-		return nil
-	}
 
+func (md *metricsetDecoder) decodeSpan(input map[string]interface{}, hasShortFieldNames bool, out *metricset.Span) {
 	fieldName := field.Mapper(hasShortFieldNames)
-	return &metricset.Transaction{
-		Type: md.StringPtr(raw, fieldName("type")),
-		Name: md.StringPtr(raw, fieldName("name")),
-	}
+	decodeString(input, fieldName("type"), &out.Type)
+	decodeString(input, fieldName("subtype"), &out.Subtype)
+}
+func (md *metricsetDecoder) decodeTransaction(input map[string]interface{}, hasShortFieldNames bool, out *metricset.Transaction) {
+	fieldName := field.Mapper(hasShortFieldNames)
+	decodeString(input, fieldName("type"), &out.Type)
+	decodeString(input, fieldName("name"), &out.Name)
+	// TODO(axw) add support for ingesting transaction.result, transaction.root
 }
