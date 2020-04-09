@@ -19,7 +19,6 @@ package beater
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"net"
 	"net/http"
@@ -29,6 +28,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -52,84 +53,84 @@ To get a memory profile, use this:
 
 */
 
-func (bt *beater) client(insecure bool) (string, *http.Client) {
-	transport := &http.Transport{}
-	if insecure {
-		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	}
+type testBeater struct {
+	*beater
 
-	bt.mutex.Lock() // for reading bt.server
-	defer bt.mutex.Unlock()
-	if parsed, err := url.Parse(bt.server.httpServer.Addr); err == nil && parsed.Scheme == "unix" {
-		transport.DialContext = func(_ context.Context, _, _ string) (net.Conn, error) {
-			return net.Dial("unix", parsed.Path)
-		}
-		return "http://test-apm-server/", &http.Client{
-			Transport: transport,
-		}
-	}
-	scheme := "http://"
-	if bt.config.TLS.IsEnabled() {
-		scheme = "https://"
-	}
-	return scheme + bt.config.Host, &http.Client{Transport: transport}
+	listenAddr string
+	baseURL    string
+	client     *http.Client
 }
 
-func (bt *beater) wait() error {
-	wait := make(chan struct{}, 1)
-
-	go func() {
-		for {
-			bt.mutex.Lock()
-			if bt.server.httpServer != nil {
-				bt.mutex.Unlock()
-				break
+func setupBeater(t *testing.T, apmBeat *beat.Beat, ucfg *common.Config, beatConfig *beat.BeatConfig) (*testBeater, error) {
+	onboardingDocs := make(chan onboardingDoc, 1)
+	createBeater := NewCreator(CreatorParams{
+		RunServer: func(ctx context.Context, args ServerParams) error {
+			// Wrap the reporter so we can intercept the
+			// onboarding doc, to extract the listen address.
+			origReporter := args.Reporter
+			args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
+				for _, tf := range req.Transformables {
+					if o, ok := tf.(onboardingDoc); ok {
+						select {
+						case <-ctx.Done():
+							return ctx.Err()
+						case onboardingDocs <- o:
+						}
+					}
+				}
+				return origReporter(ctx, req)
 			}
-			bt.mutex.Unlock()
-			time.Sleep(10 * time.Millisecond)
-		}
-		wait <- struct{}{}
-	}()
-	timeout := time.NewTimer(2 * time.Second)
+			return RunServer(ctx, args)
+		},
+	})
 
-	select {
-	case <-wait:
-		return nil
-	case <-timeout.C:
-		return errors.New("timeout waiting server create")
-	}
-}
-
-func setupBeater(t *testing.T, apmBeat *beat.Beat, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
 	// create our beater
-	beatBeater, err := New(apmBeat, ucfg)
+	beatBeater, err := createBeater(apmBeat, ucfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	require.NotNil(t, beatBeater)
 
-	c := make(chan error)
-	// start it
+	errCh := make(chan error)
 	go func() {
 		err := beatBeater.Run(apmBeat)
 		if err != nil {
-			c <- err
+			errCh <- err
 		}
 	}()
 
-	btr := beatBeater.(*beater)
-	if err := btr.wait(); err != nil {
-		return nil, nil, err
+	tb := &testBeater{beater: beatBeater.(*beater)}
+	select {
+	case err := <-errCh:
+		return nil, err
+	case o := <-onboardingDocs:
+		tb.initClient(tb.config, o.listenAddr)
+	case <-time.After(time.Second * 10):
+		return nil, errors.New("timeout waiting for server to start listening")
 	}
 
-	url, client := btr.client(true)
-	go func() {
-		waitForServer(url, client, c)
-	}()
-	select {
-	case err := <-c:
-		return btr, beatBeater.Stop, err
-	case <-time.After(time.Second * 10):
-		return nil, nil, errors.New("timeout waiting for server start")
+	res, err := tb.client.Get(tb.baseURL)
+	require.NoError(t, err)
+	defer res.Body.Close()
+	require.Equal(t, http.StatusOK, res.StatusCode)
+	return tb, nil
+}
+
+func (tb *testBeater) initClient(cfg *config.Config, listenAddr string) {
+	tb.listenAddr = listenAddr
+	transport := &http.Transport{}
+	if parsed, err := url.Parse(cfg.Host); err == nil && parsed.Scheme == "unix" {
+		transport.DialContext = func(_ context.Context, _, _ string) (net.Conn, error) {
+			return net.Dial("unix", parsed.Path)
+		}
+		tb.baseURL = "http://test-apm-server/"
+		tb.client = &http.Client{Transport: transport}
+	} else {
+		scheme := "http://"
+		if cfg.TLS.IsEnabled() {
+			scheme = "https://"
+		}
+		tb.baseURL = scheme + listenAddr
+		tb.client = &http.Client{Transport: transport}
 	}
 }
