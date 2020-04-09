@@ -146,7 +146,7 @@ func (s *SourceMapping) Unpack(inp *common.Config) error {
 
 	cfg := tmpSourceMapping(*defaultSourcemapping())
 	if err := inp.Unpack(&cfg); err != nil {
-		return errors.Errorf("error unpacking sourcemapping config: %w", err)
+		return errors.Wrap(err, "error unpacking sourcemapping config")
 	}
 	*s = SourceMapping(cfg)
 	if inp.HasField("elasticsearch") {
