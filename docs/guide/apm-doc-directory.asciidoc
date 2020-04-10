@@ -59,8 +59,8 @@ Since application performance monitoring is all about visualizing data and detec
 it's crucial you understand how to use the {kibana-ref}/xpack-apm.html[APM app] in Kibana.
 The following sections will help you get started:
 
-* {kibana-ref}/apm-getting-started.html[Getting Started]
-* {kibana-ref}/apm-bottlenecks.html[Visualizing application bottlenecks]
-* {kibana-ref}/apm-ui.html[Using the APM app]
+* {apm-app-ref}/apm-ui.html[Set up]
+* {apm-app-ref}/apm-getting-started.html[Get started]
+// * {apm-app-ref}/apm-how-to.html[How-to guides]
 
 APM also has built-in integrations with Machine Learning. To learn more about this feature, refer to the Kibana documentation for {kibana-ref}/machine-learning-integration.html[Machine learning integration].
