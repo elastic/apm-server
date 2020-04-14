@@ -21,6 +21,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/elastic/apm-server/model/span"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
@@ -68,6 +70,11 @@ type Event struct {
 	Client    *m.Client
 
 	Experimental interface{}
+}
+
+type RUMV3Event struct {
+	*Event
+	Spans []span.Event
 }
 
 type SpanCount struct {
@@ -132,4 +139,12 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	utility.Set(fields, "experimental", e.Experimental)
 
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
+}
+
+func (e *RUMV3Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+	beatEvents := e.Event.Transform(ctx, tctx)
+	for _, span := range e.Spans {
+		beatEvents = append(beatEvents, span.Transform(ctx, tctx)...)
+	}
+	return beatEvents
 }

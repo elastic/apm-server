@@ -120,8 +120,8 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 			span := model_span.Event{
 				Metadata:  md,
 				Id:        spanID,
-				ParentId:  *parentID,
-				TraceId:   traceID,
+				ParentId:  parentID,
+				TraceId:   &traceID,
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
@@ -482,7 +482,7 @@ func addTransactionCtxToErr(transaction model_transaction.Event, err *model_erro
 func addSpanCtxToErr(span model_span.Event, hostname string, err *model_error.Event) {
 	err.Metadata = span.Metadata
 	err.TransactionId = span.TransactionId
-	err.TraceId = &span.TraceId
+	err.TraceId = span.TraceId
 	err.ParentId = &span.Id
 	if span.HTTP != nil {
 		err.Http = &model.Http{}

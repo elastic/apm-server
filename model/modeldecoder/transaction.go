@@ -18,18 +18,17 @@
 package modeldecoder
 
 import (
-	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/transaction"
 	"github.com/pkg/errors"
-
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
+	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var (
@@ -39,16 +38,49 @@ var (
 
 // DecodeRUMV3Transaction decodes a v3 RUM transaction.
 func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
-	event, err := decodeTransaction(input, rumV3TransactionSchema)
+	tr, err := decodeTransaction(input, rumV3TransactionSchema)
 	if err != nil {
 		return nil, err
 	}
-	marks, err := decodeRUMV3Marks(input.Raw.(map[string]interface{}), input.Config)
+	raw := input.Raw.(map[string]interface{})
+	spans, err := decodeRUMV3Spans(raw, input, tr)
+	if err != nil {
+		return nil, err
+	}
+	event := &transaction.RUMV3Event{
+		Event: tr,
+		Spans: spans,
+	}
+	marks, err := decodeRUMV3Marks(raw, input.Config)
 	if err != nil {
 		return nil, err
 	}
 	event.Marks = marks
 	return event, nil
+}
+
+func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.Event) ([]span.Event, error) {
+	decoder := &utility.ManualDecoder{}
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
+	var spans []span.Event
+	for _, i := range decoder.InterfaceArr(raw, fieldName("span")) {
+		span, err := DecodeRUMV3Span(Input{
+			Raw:         i,
+			RequestTime: input.RequestTime,
+			Metadata:    input.Metadata,
+			Config:      input.Config,
+		})
+		if err != nil {
+			return spans, err
+		}
+		span.TransactionId = &tr.Id
+		span.TraceId = &tr.TraceId
+		if span.ParentId == nil {
+			span.ParentId = &tr.Id
+		}
+		spans = append(spans, *span)
+	}
+	return spans, nil
 }
 
 // DecodeTransaction decodes a v2 transaction.

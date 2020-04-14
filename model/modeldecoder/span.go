@@ -40,7 +40,7 @@ var (
 )
 
 // DecodeRUMV3Span decodes a v3 RUM span.
-func DecodeRUMV3Span(input Input) (transform.Transformable, error) {
+func DecodeRUMV3Span(input Input) (*span.Event, error) {
 	return decodeSpan(input, rumV3SpanSchema)
 }
 
@@ -49,7 +49,7 @@ func DecodeSpan(input Input) (transform.Transformable, error) {
 	return decodeSpan(input, spanSchema)
 }
 
-func decodeSpan(input Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate span")
@@ -65,8 +65,8 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (transform.Transformable
 		Sync:          decoder.BoolPtr(raw, fieldName("sync")),
 		Timestamp:     decoder.TimeEpochMicro(raw, fieldName("timestamp")),
 		Id:            decoder.String(raw, fieldName("id")),
-		ParentId:      decoder.String(raw, "parent_id"),
-		TraceId:       decoder.String(raw, "trace_id"),
+		ParentId:      decoder.StringPtr(raw, fieldName("parent_id")),
+		TraceId:       decoder.StringPtr(raw, "trace_id"),
 		TransactionId: decoder.StringPtr(raw, "transaction_id"),
 		Type:          decoder.String(raw, fieldName("type")),
 		Subtype:       decoder.StringPtr(raw, fieldName("subtype")),

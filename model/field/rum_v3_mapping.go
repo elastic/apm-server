@@ -79,6 +79,7 @@ var rumV3Mapping = map[string]string{
 	"navigationTiming":            "nt",
 	"page":                        "p",
 	"param_message":               "pmg",
+	"parent_id":                   "pid",
 	"port":                        "po",
 	"post_context":                "poc",
 	"pre_context":                 "prc",

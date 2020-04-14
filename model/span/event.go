@@ -50,8 +50,8 @@ type Event struct {
 	Metadata      metadata.Metadata
 	Id            string
 	TransactionId *string
-	ParentId      string
-	TraceId       string
+	ParentId      *string
+	TraceId       *string
 
 	Timestamp time.Time
 
@@ -191,8 +191,8 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels)
-	utility.AddId(fields, "parent", &e.ParentId)
-	utility.AddId(fields, "trace", &e.TraceId)
+	utility.AddId(fields, "parent", e.ParentId)
+	utility.AddId(fields, "trace", e.TraceId)
 	utility.AddId(fields, "transaction", e.TransactionId)
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())

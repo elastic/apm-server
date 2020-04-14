@@ -19,7 +19,6 @@ package schema
 
 const RUMV3Schema = `{
     "$id": "docs/spec/spans/rum_v3_span.json",
-    "type": "object",
     "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
         {
@@ -29,22 +28,9 @@ const RUMV3Schema = `{
                     "type": "string",
                     "maxLength": 1024
                 },
-                "transaction_id": {
-                    "type": [
-                        "string",
-                        "null"
-                    ],
-                    "description": "Hex encoded 64 random bits ID of the correlated transaction.",
-                    "maxLength": 1024
-                },
-                "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace.",
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.",
-                    "type": "string",
+                "pid": {
+                    "description": "Hex encoded 64 random bits ID of the parent span. Absent when the parent is a transaction.",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "s": {
@@ -347,9 +333,7 @@ const RUMV3Schema = `{
                 "d",
                 "n",
                 "t",
-                "id",
-                "trace_id",
-                "parent_id"
+                "id"
             ]
         },
         {
@@ -363,4 +347,5 @@ const RUMV3Schema = `{
             }
         }
     ]
-}`
+}
+`
