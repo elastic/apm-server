@@ -377,7 +377,16 @@ class ElasticTest(ServerBaseTest):
             doc_type = doc['processor']['event']
             if 'id' in doc.get(doc_type, {}):
                 return (0, doc[doc_type]['id'])
-            return (1, doc['@timestamp'])
+            if doc_type == 'metric' and 'transaction' in doc:
+                transaction = doc['transaction']
+                if 'histogram' in transaction.get('duration', {}):
+                    # Transaction histogram documents are published periodically
+                    # by the apm-server, so we cannot use the timestamp. Instead,
+                    # use the transaction name, type, and result (a subset of the
+                    # full aggregation key, but good enough for our tests).
+                    fields = [transaction.get(field, '') for field in ('type', 'name', 'result')]
+                    return (1, '_'.join(fields))
+            return (2, doc['@timestamp'])
 
         received = [doc['_source'] for doc in received]
         received.sort(key=get_doc_id)
