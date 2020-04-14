@@ -88,6 +88,7 @@ type Config struct {
 	SecretToken         string                  `config:"secret_token"`
 	APIKeyConfig        *APIKeyConfig           `config:"api_key"`
 	JaegerConfig        JaegerConfig            `config:"jaeger"`
+	Aggregation         AggregationConfig       `config:"aggregation"`
 
 	Pipeline string
 }
@@ -140,6 +141,10 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
+	if err := c.Aggregation.setup(logger); err != nil {
+		return nil, err
+	}
+
 	return c, nil
 }
 
@@ -172,5 +177,6 @@ func DefaultConfig(beatVersion string) *Config {
 		Pipeline:     defaultAPMPipeline,
 		APIKeyConfig: defaultAPIKeyConfig(),
 		JaegerConfig: defaultJaeger(),
+		Aggregation:  defaultAggregationConfig(),
 	}
 }
