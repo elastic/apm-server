@@ -62,7 +62,7 @@ func defaultAPIKeyConfig() *APIKeyConfig {
 func (c *APIKeyConfig) Unpack(inp *common.Config) error {
 	cfg := tmpAPIKeyConfig(*defaultAPIKeyConfig())
 	if err := inp.Unpack(&cfg); err != nil {
-		return errors.Errorf("error unpacking api_key config: %w", err)
+		return errors.Wrap(err, "error unpacking api_key config")
 	}
 	*c = APIKeyConfig(cfg)
 	if inp.HasField("elasticsearch") {

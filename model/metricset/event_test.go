@@ -36,7 +36,15 @@ func TestTransform(t *testing.T) {
 	metadata := metadata.Metadata{
 		Service: metadata.Service{Name: "myservice"},
 	}
-	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
+
+	const (
+		trType   = "request"
+		trName   = "GET /"
+		trResult = "HTTP 2xx"
+
+		spType    = "db"
+		spSubtype = "sql"
+	)
 
 	tests := []struct {
 		Metricset *Metricset
@@ -63,9 +71,45 @@ func TestTransform(t *testing.T) {
 		{
 			Metricset: &Metricset{
 				Metadata:  metadata,
+				Timestamp: timestamp,
+				Samples: []Sample{{
+					Name:   "transaction.duration.histogram",
+					Counts: []int64{1},
+					Values: []float64{42},
+				}},
+				Transaction: Transaction{
+					Type:   trType,
+					Name:   trName,
+					Result: trResult,
+					Root:   true,
+				},
+			},
+			Output: []common.MapStr{
+				{
+					"processor": common.MapStr{"event": "metric", "name": "metric"},
+					"service":   common.MapStr{"name": "myservice"},
+					"transaction": common.MapStr{
+						"name":   trName,
+						"type":   trType,
+						"result": trResult,
+						"root":   true,
+						"duration": common.MapStr{
+							"histogram": common.MapStr{
+								"counts": []int64{1},
+								"values": []float64{42},
+							},
+						},
+					},
+				},
+			},
+			Msg: "Payload with extended transaction metadata.",
+		},
+		{
+			Metricset: &Metricset{
+				Metadata:  metadata,
 				Labels:    common.MapStr{"a.b": "a.b.value"},
 				Timestamp: timestamp,
-				Samples: []*Sample{
+				Samples: []Sample{
 					{
 						Name:  "a.counter",
 						Value: 612,
@@ -74,24 +118,32 @@ func TestTransform(t *testing.T) {
 						Name:  "some.gauge",
 						Value: 9.16,
 					},
+					{
+						Name:   "histo.gram",
+						Value:  666, // Value is ignored when Counts/Values are specified
+						Counts: []int64{1, 2, 3},
+						Values: []float64{4.5, 6.0, 9.0},
+					},
 				},
-				Span:        &Span{Type: &spType, Subtype: &spSubtype},
-				Transaction: &Transaction{Type: &trType, Name: &trName},
+				Span:        Span{Type: spType, Subtype: spSubtype},
+				Transaction: Transaction{Type: trType, Name: trName},
 			},
 			Output: []common.MapStr{
 				{
-					"labels": common.MapStr{
-						"a.b": "a.b.value",
-					},
-					"service": common.MapStr{
-						"name": "myservice",
-					},
-
-					"a":           common.MapStr{"counter": float64(612)},
-					"some":        common.MapStr{"gauge": float64(9.16)},
 					"processor":   common.MapStr{"event": "metric", "name": "metric"},
+					"service":     common.MapStr{"name": "myservice"},
 					"transaction": common.MapStr{"name": trName, "type": trType},
 					"span":        common.MapStr{"type": spType, "subtype": spSubtype},
+					"labels":      common.MapStr{"a.b": "a.b.value"},
+
+					"a":    common.MapStr{"counter": float64(612)},
+					"some": common.MapStr{"gauge": float64(9.16)},
+					"histo": common.MapStr{
+						"gram": common.MapStr{
+							"counts": []int64{1, 2, 3},
+							"values": []float64{4.5, 6.0, 9.0},
+						},
+					},
 				},
 			},
 			Msg: "Payload with valid metric.",
