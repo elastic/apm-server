@@ -33,23 +33,35 @@ var (
 	files = flag.String("files", "build/distributions/*", "filepath glob containing package files")
 )
 
-func TestDeb(t *testing.T) {
-	debs := getFiles(t, regexp.MustCompile(`\.deb$`))
-	if len(debs) == 0 {
-		t.Fatal("no debs found")
-	}
-	for _, deb := range debs {
-		checkInstall(t, deb, "Dockerfile.deb.install")
-	}
+type package_ struct {
+	arch,
+	path string
 }
 
+// TestDeb ensures debian packages are created and can be installed
+func TestDeb(t *testing.T) {
+	testInstall(t, "deb")
+}
+
+// TestRpm ensures rpm packages are created and can be installed
 func TestRpm(t *testing.T) {
-	rpms := getFiles(t, regexp.MustCompile(`\.rpm$`))
-	if len(rpms) == 0 {
-		t.Fatal("no rpms found")
+	testInstall(t, "rpm")
+}
+
+// (deb|rpm) would remove check that both types of packages are created
+func testInstall(t *testing.T, ext string) {
+	pkgs := getPackages(t, regexp.MustCompile(fmt.Sprintf(`-(\w+)\.%s$`, ext)))
+	if len(pkgs) == 0 {
+		t.Fatalf("no %ss found", ext)
 	}
-	for _, rpm := range rpms {
-		checkInstall(t, rpm, "Dockerfile.rpm.install")
+	for _, pkg := range pkgs {
+		t.Run(fmt.Sprintf("%s_%s", t.Name(), pkg.arch), func(t *testing.T) {
+			if pkg.arch == "aarch64" || pkg.arch == "arm64" {
+				t.Skipf("skipped package install test for %s on %s", ext, pkg.arch)
+				return
+			}
+			checkInstall(t, pkg.path, fmt.Sprintf("Dockerfile.%s.%s.install", pkg.arch, ext))
+		})
 	}
 }
 
@@ -66,15 +78,15 @@ func checkInstall(t *testing.T, pkg, dockerfile string) {
 	}
 }
 
-func getFiles(t *testing.T, pattern *regexp.Regexp) []string {
+func getPackages(t *testing.T, pattern *regexp.Regexp) []package_ {
 	matches, err := filepath.Glob(*files)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fs := matches[:0]
+	fs := make([]package_, 0)
 	for _, f := range matches {
-		if pattern.MatchString(filepath.Base(f)) {
-			fs = append(fs, f)
+		if m := pattern.FindStringSubmatch(filepath.Base(f)); len(m) > 0 {
+			fs = append(fs, package_{arch: m[1], path: f})
 		}
 	}
 
