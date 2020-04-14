@@ -6,7 +6,7 @@ Example config file:
 ["source","yaml"]
 ----
 apm-server:
-  hosts: ["localhost:8200"]
+  host: ["localhost:8200"]
   rum:
     enabled: true
 
