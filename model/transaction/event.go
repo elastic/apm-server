@@ -65,7 +65,6 @@ type Event struct {
 	Url       *m.Url
 	Labels    *m.Labels
 	Custom    *m.Custom
-	Client    *m.Client
 
 	Experimental interface{}
 }
@@ -117,11 +116,9 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 
 	// first set generic metadata (order is relevant)
 	e.Metadata.Set(fields)
+	utility.Set(fields, "source", fields["client"])
 
 	// then merge event specific information
-	clientFields := e.Client.Fields()
-	utility.DeepUpdate(fields, "client", clientFields)
-	utility.DeepUpdate(fields, "source", clientFields)
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))

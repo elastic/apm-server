@@ -67,7 +67,6 @@ type Event struct {
 	Http    *m.Http
 	Url     *m.Url
 	Custom  *m.Custom
-	Client  *m.Client
 
 	Exception *Exception
 	Log       *Log
@@ -116,10 +115,8 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 
 	// first set the generic metadata (order is relevant)
 	e.Metadata.Set(fields)
+	utility.Set(fields, "source", fields["client"])
 	// then add event specific information
-	clientFields := e.Client.Fields()
-	utility.DeepUpdate(fields, "client", clientFields)
-	utility.DeepUpdate(fields, "source", clientFields)
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())

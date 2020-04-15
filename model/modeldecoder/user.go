@@ -25,7 +25,7 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 )
 
-func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *metadata.User) {
+func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *metadata.User, client *metadata.Client) {
 	if input == nil {
 		return
 	}
@@ -37,7 +37,7 @@ func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *meta
 
 	var ipString string
 	if decodeString(input, "ip", &ipString) {
-		out.IP = net.ParseIP(ipString)
+		client.IP = net.ParseIP(ipString)
 	}
 
 	// id can be string or int

@@ -29,22 +29,31 @@ import (
 func TestUserDecode(t *testing.T) {
 	id, mail, name, ip, agent := "12", "m@g.dk", "foo", "127.0.0.1", "ruby"
 	for _, test := range []struct {
-		input map[string]interface{}
-		u     metadata.User
+		input  map[string]interface{}
+		user   metadata.User
+		client metadata.Client
 	}{
 		{input: nil},
-		{input: map[string]interface{}{"id": json.Number("12")}, u: metadata.User{ID: id}},
+		{
+			input: map[string]interface{}{"id": json.Number("12")},
+			user:  metadata.User{ID: id},
+		},
+		{
+			input:  map[string]interface{}{"ip": ip},
+			client: metadata.Client{IP: net.ParseIP(ip)},
+		},
 		{
 			input: map[string]interface{}{
 				"id": id, "email": mail, "username": name, "ip": ip, "user-agent": agent,
 			},
-			u: metadata.User{
-				ID: id, Email: mail, Name: name, IP: net.ParseIP(ip), UserAgent: agent,
-			},
+			user:   metadata.User{ID: id, Email: mail, Name: name, UserAgent: agent},
+			client: metadata.Client{IP: net.ParseIP(ip)},
 		},
 	} {
 		var user metadata.User
-		decodeUser(test.input, false, &user)
-		assert.Equal(t, test.u, user)
+		var client metadata.Client
+		decodeUser(test.input, false, &user, &client)
+		assert.Equal(t, test.user, user)
+		assert.Equal(t, test.client, client)
 	}
 }

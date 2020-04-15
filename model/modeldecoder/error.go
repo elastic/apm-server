@@ -68,7 +68,6 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 		Url:                ctx.Url,
 		Custom:             ctx.Custom,
 		Experimental:       ctx.Experimental,
-		Client:             ctx.Client,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),

@@ -19,6 +19,9 @@
     },
     "Message": null,
     "Metadata": {
+        "Client": {
+            "IP": ""
+        },
         "Labels": {},
         "Process": {
             "Argv": null,
@@ -70,7 +73,6 @@
         "User": {
             "Email": "",
             "ID": "",
-            "IP": "",
             "Name": "",
             "UserAgent": ""
         }

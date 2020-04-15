@@ -18,30 +18,26 @@
 package metadata
 
 import (
+	"net"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-type User struct {
-	ID        string
-	Email     string
-	Name      string
-	UserAgent string
-}
-
-func (u *User) Fields() common.MapStr {
-	if u == nil {
-		return nil
+func TestClientFields(t *testing.T) {
+	for name, tc := range map[string]struct {
+		ip  string
+		out common.MapStr
+	}{
+		"Empty": {ip: "", out: nil},
+		"IPv4":  {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv6":  {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c := Client{IP: net.ParseIP(tc.ip)}
+			assert.Equal(t, tc.out, c.fields())
+		})
 	}
-	var user mapStr
-	user.maybeSetString("id", u.ID)
-	user.maybeSetString("email", u.Email)
-	user.maybeSetString("name", u.Name)
-	return common.MapStr(user)
-}
-
-func (u *User) UserAgentFields() common.MapStr {
-	if u == nil || u.UserAgent == "" {
-		return nil
-	}
-	return common.MapStr{"original": u.UserAgent}
 }

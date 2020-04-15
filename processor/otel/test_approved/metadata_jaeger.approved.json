@@ -1,4 +1,7 @@
 {
+    "Client": {
+        "IP": ""
+    },
     "Labels": {
         "a": "b",
         "c": "d",
@@ -55,7 +58,6 @@
     "User": {
         "Email": "",
         "ID": "",
-        "IP": "",
         "Name": "",
         "UserAgent": ""
     }

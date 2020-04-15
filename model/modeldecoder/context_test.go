@@ -236,16 +236,16 @@ func TestDecodeContextMetadata(t *testing.T) {
 		// service metadata above, which is merged.
 		Name:      "john",
 		Email:     "john.doe@testing.invalid",
-		IP:        net.ParseIP("10.1.1.1"),
 		UserAgent: "go-1.1",
 	}
+	mergedMetadata.Client.IP = net.ParseIP("10.1.1.1")
 
 	input := map[string]interface{}{
 		"tags": map[string]interface{}{"ab": "c", "status": 200, "success": false},
 		"user": map[string]interface{}{
 			"username":   mergedMetadata.User.Name,
 			"email":      mergedMetadata.User.Email,
-			"ip":         mergedMetadata.User.IP.String(),
+			"ip":         mergedMetadata.Client.IP.String(),
 			"user-agent": mergedMetadata.User.UserAgent,
 		},
 		"service": map[string]interface{}{

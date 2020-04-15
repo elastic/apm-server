@@ -27,6 +27,7 @@ type Metadata struct {
 	Process Process
 	System  System
 	User    User
+	Client  Client
 	Labels  common.MapStr
 }
 
@@ -37,7 +38,7 @@ func (m *Metadata) Set(out common.MapStr) common.MapStr {
 	fields.maybeSetMapStr("host", m.System.fields())
 	fields.maybeSetMapStr("process", m.Process.fields())
 	fields.maybeSetMapStr("user", m.User.Fields())
-	fields.maybeSetMapStr("client", m.User.ClientFields())
+	fields.maybeSetMapStr("client", m.Client.fields())
 	fields.maybeSetMapStr("user_agent", m.User.UserAgentFields())
 	fields.maybeSetMapStr("container", m.System.containerFields())
 	fields.maybeSetMapStr("kubernetes", m.System.kubernetesFields())

@@ -80,7 +80,6 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		Http:         ctx.Http,
 		Url:          ctx.Url,
 		Custom:       ctx.Custom,
-		Client:       ctx.Client,
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,
 		Sampled:      decoder.BoolPtr(raw, fieldName("sampled")),
