@@ -67,9 +67,9 @@ const RUMV3Schema = `{
                     "type": "string",
                     "maxLength": 1024
                 },
-                "pid": {
-                    "description": "Hex encoded 64 random bits ID of the parent span. Absent when the parent is a transaction.",
-                    "type": ["string", "null"],
+                "pi": {
+                    "description": "Index of the parent span in the list. Absent when the parent is a transaction.",
+                    "type": ["integer", "null"],
                     "maxLength": 1024
                 },
                 "s": {

@@ -58,14 +58,16 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	decoder := utility.ManualDecoder{}
 	event := span.Event{
-		Metadata:      input.Metadata,
-		Name:          decoder.String(raw, fieldName("name")),
-		Start:         decoder.Float64Ptr(raw, fieldName("start")),
-		Duration:      decoder.Float64(raw, fieldName("duration")),
-		Sync:          decoder.BoolPtr(raw, fieldName("sync")),
-		Timestamp:     decoder.TimeEpochMicro(raw, fieldName("timestamp")),
-		Id:            decoder.String(raw, fieldName("id")),
-		ParentId:      decoder.StringPtr(raw, fieldName("parent_id")),
+		Metadata:  input.Metadata,
+		Name:      decoder.String(raw, fieldName("name")),
+		Start:     decoder.Float64Ptr(raw, fieldName("start")),
+		Duration:  decoder.Float64(raw, fieldName("duration")),
+		Sync:      decoder.BoolPtr(raw, fieldName("sync")),
+		Timestamp: decoder.TimeEpochMicro(raw, fieldName("timestamp")),
+		Id:        decoder.String(raw, fieldName("id")),
+		ParentId:  decoder.StringPtr(raw, "parent_id"),
+		// ParentIdx comes from RUM V3 payloads only, and used to populate ParentId
+		ParentIdx:     decoder.IntPtr(raw, fieldName("parent_idx")),
 		TraceId:       decoder.StringPtr(raw, "trace_id"),
 		TransactionId: decoder.StringPtr(raw, "transaction_id"),
 		Type:          decoder.String(raw, fieldName("type")),

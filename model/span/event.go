@@ -51,6 +51,7 @@ type Event struct {
 	Id            string
 	TransactionId *string
 	ParentId      *string
+	ParentIdx     *int
 	TraceId       *string
 
 	Timestamp time.Time

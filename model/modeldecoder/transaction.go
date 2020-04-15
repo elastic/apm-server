@@ -62,10 +62,11 @@ func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.Event) ([]span.Event, error) {
 	decoder := &utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	var spans []span.Event
-	for _, i := range decoder.InterfaceArr(raw, fieldName("span")) {
+	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
+	var spans = make([]span.Event, len(rawSpans))
+	for idx, rawSpan := range rawSpans {
 		span, err := DecodeRUMV3Span(Input{
-			Raw:         i,
+			Raw:         rawSpan,
 			RequestTime: input.RequestTime,
 			Metadata:    input.Metadata,
 			Config:      input.Config,
@@ -75,10 +76,12 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.E
 		}
 		span.TransactionId = &tr.Id
 		span.TraceId = &tr.TraceId
-		if span.ParentId == nil {
+		if span.ParentIdx == nil {
 			span.ParentId = &tr.Id
+		} else if *span.ParentIdx < idx {
+			span.ParentId = &spans[*span.ParentIdx].Id
 		}
-		spans = append(spans, *span)
+		spans[idx] = *span
 	}
 	return spans, nil
 }
