@@ -7,6 +7,7 @@ For a full list of changes, see the
 {apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
+* <<release-highlights-7.7.0>>
 * <<release-highlights-7.6.0>>
 * <<release-highlights-7.5.0>>
 * <<release-highlights-7.4.0>>
@@ -27,6 +28,27 @@ For a full list of changes, see the
 
 // end::notable-v8-highlights[]
 
+[[release-highlights-7.7.0]]
+=== APM version 7.7.0
+
+// tag::notable-v77-highlights[]
+Service maps::
+// to do...
+
+Alerting::
+// to do...
+
+Agent central config::
+// to do...
+
+Custom links::
+// to do...
+
+Inferred spans with async profiler::
+// to do...
+
+// end::notable-v77-highlights[]
+
 [[release-highlights-7.6.0]]
 === APM version 7.6.0
 
@@ -44,7 +66,7 @@ Experimental API Key authentication::
 
 You can now secure the communication between APM Agents and APM Server with
 {apm-server-ref-v}/api-key.html[API keys].
-API keys are easy to create and manage, and provide finer authorization rules than secret tokens. 
+API keys are easy to create and manage, and provide finer authorization rules than secret tokens.
 
 SIEM integration::
 
@@ -230,7 +252,7 @@ about this configuration, see
 image::images/apm-highlight-sample-rate.png[APM sample rate configuration in Kibana]
 
 [discrete]
-==== React support for Single Page Applications 
+==== React support for Single Page Applications
 
 The 7.3 release also brings a lot of exciting changes to the Real User
 Monitoring (RUM) agent. We have furthered our support of Single Page
@@ -353,7 +375,7 @@ Elastic APM now enables {apm-overview-ref-v}/distributed-tracing.html[distribute
 [float]
 ==== Bug Fixes
 Changes introduced in 6.4.0 potentially caused an empty APM Kibana UI.
-This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices. 
+This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices.
 To fix this, the APM Kibana UI now falls back to use `apm-*` as default indices to query.
 Users can still leverage separate indices for queries by overriding the default values described in {kibana-ref}/apm-settings-kb.html[Kibana APM settings].
 
