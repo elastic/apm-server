@@ -72,9 +72,9 @@ type Event struct {
 	Experimental interface{}
 }
 
-// TODO replace this with a Batch type and have decoders return Batches of events
-// https://github.com/elastic/apm-server/pull/3648#discussion_r408547367
 type RUMV3Event struct {
+	// TODO replace this type with a Batch type and have decoders return Batches of events
+	// https://github.com/elastic/apm-server/pull/3648#discussion_r408547367
 	*Event
 	Spans []span.Event
 }
