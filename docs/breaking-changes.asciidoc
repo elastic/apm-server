@@ -4,6 +4,12 @@ APM Server is built on top of {beats-ref}/index.html[libbeat].
 As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
+==== 7.7
+* There are no breaking changes in APM Server.
+However, a previously hardcoded feature is now configurable.
+Failing to follow these <<upgrading-to-77,upgrade steps>> will result in increased span metadata ingestion when upgrading to version 7.7.
+
+[float]
 ==== 7.6
 * There are no breaking changes in APM Server.
 
