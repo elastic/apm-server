@@ -61,6 +61,6 @@ The following sections will help you get started:
 
 * {apm-app-ref}/apm-ui.html[Set up]
 * {apm-app-ref}/apm-getting-started.html[Get started]
-// * {apm-app-ref}/apm-how-to.html[How-to guides]
+* {apm-app-ref}/apm-how-to.html[How-to guides]
 
 APM also has built-in integrations with Machine Learning. To learn more about this feature, refer to the Kibana documentation for {kibana-ref}/machine-learning-integration.html[Machine learning integration].
