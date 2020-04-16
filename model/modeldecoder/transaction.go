@@ -74,12 +74,12 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.E
 		if err != nil {
 			return spans, err
 		}
-		span.TransactionId = &tr.Id
-		span.TraceId = &tr.TraceId
+		span.TransactionID = &tr.ID
+		span.TraceID = &tr.TraceID
 		if span.ParentIdx == nil {
-			span.ParentId = &tr.Id
+			span.ParentID = &tr.ID
 		} else if *span.ParentIdx < idx {
-			span.ParentId = &spans[*span.ParentIdx].Id
+			span.ParentID = &spans[*span.ParentIdx].ID
 		}
 		spans[idx] = *span
 	}
@@ -105,7 +105,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 	decoder := utility.ManualDecoder{}
 	e := transaction.Event{
 		Metadata:     input.Metadata,
-		Id:           decoder.String(raw, "id"),
+		ID:           decoder.String(raw, "id"),
 		Type:         decoder.String(raw, fieldName("type")),
 		Name:         decoder.StringPtr(raw, fieldName("name")),
 		Result:       decoder.StringPtr(raw, fieldName("result")),
@@ -124,8 +124,8 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		SpanCount: transaction.SpanCount{
 			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
 			Started: decoder.IntPtr(raw, fieldName("started"), fieldName("span_count"))},
-		ParentId: decoder.StringPtr(raw, "parent_id"),
-		TraceId:  decoder.String(raw, "trace_id"),
+		ParentID: decoder.StringPtr(raw, "parent_id"),
+		TraceID:  decoder.String(raw, "trace_id"),
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err

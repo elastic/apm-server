@@ -48,9 +48,9 @@ var (
 type Event struct {
 	Metadata metadata.Metadata
 
-	Id       string
-	ParentId *string
-	TraceId  string
+	ID       string
+	ParentID *string
+	TraceID  string
 
 	Timestamp time.Time
 
@@ -85,7 +85,7 @@ type SpanCount struct {
 }
 
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
-	tx := common.MapStr{"id": e.Id}
+	tx := common.MapStr{"id": e.ID}
 	utility.Set(tx, "name", e.Name)
 	utility.Set(tx, "duration", utility.MillisAsMicros(e.Duration))
 	utility.Set(tx, "type", e.Type)
@@ -131,8 +131,8 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	clientFields := e.Client.Fields()
 	utility.DeepUpdate(fields, "client", clientFields)
 	utility.DeepUpdate(fields, "source", clientFields)
-	utility.AddId(fields, "parent", e.ParentId)
-	utility.AddId(fields, "trace", &e.TraceId)
+	utility.AddId(fields, "parent", e.ParentID)
+	utility.AddId(fields, "trace", &e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())

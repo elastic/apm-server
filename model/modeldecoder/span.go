@@ -64,12 +64,12 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
 		Duration:  decoder.Float64(raw, fieldName("duration")),
 		Sync:      decoder.BoolPtr(raw, fieldName("sync")),
 		Timestamp: decoder.TimeEpochMicro(raw, fieldName("timestamp")),
-		Id:        decoder.String(raw, fieldName("id")),
-		ParentId:  decoder.StringPtr(raw, "parent_id"),
-		// ParentIdx comes from RUM V3 payloads only, and used to populate ParentId
+		ID:        decoder.String(raw, fieldName("id")),
+		ParentID:  decoder.StringPtr(raw, "parent_id"),
+		// ParentIdx comes from RUM V3 payloads only, and used to populate ParentID
 		ParentIdx:     decoder.IntPtr(raw, fieldName("parent_idx")),
-		TraceId:       decoder.StringPtr(raw, "trace_id"),
-		TransactionId: decoder.StringPtr(raw, "transaction_id"),
+		TraceID:       decoder.StringPtr(raw, "trace_id"),
+		TransactionID: decoder.StringPtr(raw, "transaction_id"),
 		Type:          decoder.String(raw, fieldName("type")),
 		Subtype:       decoder.StringPtr(raw, fieldName("subtype")),
 		Action:        decoder.StringPtr(raw, fieldName("action")),

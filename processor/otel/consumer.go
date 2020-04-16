@@ -102,9 +102,9 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 		if root || otelSpan.Kind == tracepb.Span_SERVER {
 			transaction := model_transaction.Event{
 				Metadata:  md,
-				Id:        spanID,
-				ParentId:  parentID,
-				TraceId:   traceID,
+				ID:        spanID,
+				ParentID:  parentID,
+				TraceID:   traceID,
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      &name,
@@ -119,9 +119,9 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 		} else {
 			span := model_span.Event{
 				Metadata:  md,
-				Id:        spanID,
-				ParentId:  parentID,
-				TraceId:   &traceID,
+				ID:        spanID,
+				ParentID:  parentID,
+				TraceID:   &traceID,
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
@@ -471,9 +471,9 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 
 func addTransactionCtxToErr(transaction model_transaction.Event, err *model_error.Event) {
 	err.Metadata = transaction.Metadata
-	err.TransactionId = &transaction.Id
-	err.TraceId = &transaction.TraceId
-	err.ParentId = &transaction.Id
+	err.TransactionID = &transaction.ID
+	err.TraceID = &transaction.TraceID
+	err.ParentID = &transaction.ID
 	err.Http = transaction.Http
 	err.Url = transaction.Url
 	err.TransactionType = &transaction.Type
@@ -481,9 +481,9 @@ func addTransactionCtxToErr(transaction model_transaction.Event, err *model_erro
 
 func addSpanCtxToErr(span model_span.Event, hostname string, err *model_error.Event) {
 	err.Metadata = span.Metadata
-	err.TransactionId = span.TransactionId
-	err.TraceId = span.TraceId
-	err.ParentId = &span.Id
+	err.TransactionID = span.TransactionID
+	err.TraceID = span.TraceID
+	err.ParentID = &span.ID
 	if span.HTTP != nil {
 		err.Http = &model.Http{}
 		if span.HTTP.StatusCode != nil {
