@@ -31,7 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 
 	"github.com/elastic/apm-server/idxmgmt"
-	_ "github.com/elastic/apm-server/include" // ensure to include the asset fields
+	_ "github.com/elastic/apm-server/include" // include assets
 )
 
 const (

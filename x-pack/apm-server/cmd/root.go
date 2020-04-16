@@ -10,6 +10,7 @@ import (
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/cmd"
+	_ "github.com/elastic/apm-server/x-pack/apm-server/include" // include assets
 )
 
 // NewXPackRootCommand returns the Elastic licensed "apm-server" root command.
