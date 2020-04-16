@@ -20,7 +20,8 @@ func TestSubCommands(t *testing.T) {
 		"version":    {},
 	}
 
-	for _, cmd := range RootCmd.Commands() {
+	rootCmd := NewXPackRootCommand()
+	for _, cmd := range rootCmd.Commands() {
 		name := cmd.Name()
 		if _, ok := validCommands[name]; !ok {
 			t.Errorf("unexpected command: %s", name)
