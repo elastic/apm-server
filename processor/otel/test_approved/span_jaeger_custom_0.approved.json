@@ -6,7 +6,7 @@
     "Duration": 0,
     "Experimental": null,
     "HTTP": null,
-    "Id": "",
+    "ID": "",
     "Labels": null,
     "Message": null,
     "Metadata": {
@@ -67,7 +67,7 @@
         }
     },
     "Name": "",
-    "ParentId": "61626364",
+    "ParentID": "61626364",
     "ParentIdx": null,
     "Service": null,
     "Stacktrace": null,
@@ -75,7 +75,7 @@
     "Subtype": null,
     "Sync": null,
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
-    "TraceId": "",
-    "TransactionId": null,
+    "TraceID": "",
+    "TransactionID": null,
     "Type": "custom"
 }
