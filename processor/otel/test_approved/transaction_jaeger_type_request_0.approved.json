@@ -16,7 +16,7 @@
         },
         "Version": null
     },
-    "Id": "",
+    "ID": "",
     "Labels": {
         "http_protocol": "HTTP"
     },
@@ -81,7 +81,7 @@
     },
     "Name": "",
     "Page": null,
-    "ParentId": "61626364",
+    "ParentID": "61626364",
     "Result": "HTTP 2xx",
     "Sampled": null,
     "SpanCount": {
@@ -89,7 +89,7 @@
         "Started": null
     },
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
-    "TraceId": "",
+    "TraceID": "",
     "Type": "request",
     "Url": {
         "Domain": "foo.bar.com",

@@ -21,6 +21,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/elastic/apm-server/model/span"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
@@ -46,9 +48,9 @@ var (
 type Event struct {
 	Metadata metadata.Metadata
 
-	Id       string
-	ParentId *string
-	TraceId  string
+	ID       string
+	ParentID *string
+	TraceID  string
 
 	Timestamp time.Time
 
@@ -70,13 +72,20 @@ type Event struct {
 	Experimental interface{}
 }
 
+type RUMV3Event struct {
+	// TODO replace this type with a Batch type and have decoders return Batches of events
+	// https://github.com/elastic/apm-server/pull/3648#discussion_r408547367
+	*Event
+	Spans []span.Event
+}
+
 type SpanCount struct {
 	Dropped *int
 	Started *int
 }
 
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
-	tx := common.MapStr{"id": e.Id}
+	tx := common.MapStr{"id": e.ID}
 	utility.Set(tx, "name", e.Name)
 	utility.Set(tx, "duration", utility.MillisAsMicros(e.Duration))
 	utility.Set(tx, "type", e.Type)
@@ -122,8 +131,8 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	clientFields := e.Client.Fields()
 	utility.DeepUpdate(fields, "client", clientFields)
 	utility.DeepUpdate(fields, "source", clientFields)
-	utility.AddId(fields, "parent", e.ParentId)
-	utility.AddId(fields, "trace", &e.TraceId)
+	utility.AddId(fields, "parent", e.ParentID)
+	utility.AddId(fields, "trace", &e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
@@ -132,4 +141,12 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	utility.Set(fields, "experimental", e.Experimental)
 
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
+}
+
+func (e *RUMV3Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+	beatEvents := e.Event.Transform(ctx, tctx)
+	for _, span := range e.Spans {
+		beatEvents = append(beatEvents, span.Transform(ctx, tctx)...)
+	}
+	return beatEvents
 }
