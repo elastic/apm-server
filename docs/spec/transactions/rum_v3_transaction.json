@@ -36,6 +36,10 @@
                     "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
                     "maxLength": 1024
                 },
+                "y": {
+                    "type": ["array", "null"],
+                    "$ref": "../spans/rum_v3_span.json"
+                },
                 "yc": {
                     "type": "object",
                     "properties": {

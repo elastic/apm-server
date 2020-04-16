@@ -11,7 +11,7 @@
         "StatusCode": 202,
         "URL": "http://foo.bar.com?a=12"
     },
-    "Id": "41414646",
+    "ID": "41414646",
     "Labels": null,
     "Message": null,
     "Metadata": {
@@ -72,14 +72,15 @@
         }
     },
     "Name": "HTTP GET",
-    "ParentId": "58585858",
+    "ParentID": "58585858",
+    "ParentIdx": null,
     "Service": null,
     "Stacktrace": null,
     "Start": null,
     "Subtype": "http",
     "Sync": null,
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
-    "TraceId": "46467830",
-    "TransactionId": null,
+    "TraceID": "46467830",
+    "TransactionID": null,
     "Type": "external"
 }
