@@ -36,7 +36,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	model_span "github.com/elastic/apm-server/model/span"
 	model_transaction "github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -115,7 +114,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 			}
 
 		} else {
-			span := model_span.Event{
+			span := model.Span{
 				Metadata:  md,
 				ID:        spanID,
 				ParentID:  parentID,
@@ -298,12 +297,12 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model_transact
 	event.Labels = &l
 }
 
-func parseSpan(span *tracepb.Span, event *model_span.Event) {
+func parseSpan(span *tracepb.Span, event *model.Span) {
 	labels := make(common.MapStr)
 
-	var http model_span.HTTP
-	var db model_span.DB
-	var destination model_span.Destination
+	var http model.HTTP
+	var db model.DB
+	var destination model.Destination
 	var isDBSpan, isHTTPSpan bool
 	var component string
 	for kDots, v := range span.Attributes.GetAttributeMap() {
@@ -367,7 +366,7 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 		}
 	}
 
-	if destination != (model_span.Destination{}) {
+	if destination != (model.Destination{}) {
 		event.Destination = &destination
 	}
 
@@ -477,7 +476,7 @@ func addTransactionCtxToErr(transaction model_transaction.Event, err *model.Erro
 	err.TransactionType = &transaction.Type
 }
 
-func addSpanCtxToErr(span model_span.Event, hostname string, err *model.Error) {
+func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 	err.Metadata = span.Metadata
 	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID

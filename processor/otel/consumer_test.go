@@ -36,7 +36,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/approvals"
@@ -318,7 +317,7 @@ func TestConsumer_Span(t *testing.T) {
 				require.True(t, len(req.Transformables) >= 1)
 				for i, transformable := range req.Transformables {
 					switch data := transformable.(type) {
-					case *span.Event:
+					case *model.Span:
 						span, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_%s_%d", tc.name, i)), span)

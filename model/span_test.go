@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package span
+package model
 
 import (
 	"context"
@@ -26,7 +26,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
@@ -36,7 +35,7 @@ func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
 	serviceName, serviceVersion, env := "myService", "1.2", "staging"
-	service := m.Service{Name: serviceName, Version: serviceVersion, Environment: env}
+	service := Service{Name: serviceName, Version: serviceVersion, Environment: env}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "amqp"
 	action := "publish"
@@ -46,17 +45,17 @@ func TestSpanTransform(t *testing.T) {
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
 	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
-	metadata := m.Metadata{Service: service, Labels: metadataLabels}
+	metadata := Metadata{Service: service, Labels: metadataLabels}
 	address, port := "127.0.0.1", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 
 	tests := []struct {
-		Event  Event
+		Span   Span
 		Output common.MapStr
 		Msg    string
 	}{
 		{
-			Event: Event{Timestamp: timestamp, Metadata: metadata},
+			Span: Span{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
@@ -71,7 +70,7 @@ func TestSpanTransform(t *testing.T) {
 			Msg: "Span without a Stacktrace",
 		},
 		{
-			Event: Event{
+			Span: Span{
 				Metadata:   metadata,
 				ID:         hexId,
 				TraceID:    &traceId,
@@ -83,7 +82,7 @@ func TestSpanTransform(t *testing.T) {
 				Timestamp:  timestamp,
 				Start:      &start,
 				Duration:   1.20,
-				Stacktrace: m.Stacktrace{{AbsPath: &path}},
+				Stacktrace: Stacktrace{{AbsPath: &path}},
 				Labels:     common.MapStr{"label.a": 12},
 				HTTP:       &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
 				DB: &DB{
@@ -98,7 +97,7 @@ func TestSpanTransform(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Message: &m.Message{QueueName: tests.StringPtr("users")},
+				Message: &Message{QueueName: tests.StringPtr("users")},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -153,7 +152,7 @@ func TestSpanTransform(t *testing.T) {
 		Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
 	}
 	for _, test := range tests {
-		output := test.Event.Transform(context.Background(), tctx)
+		output := test.Span.Transform(context.Background(), tctx)
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields)
 	}

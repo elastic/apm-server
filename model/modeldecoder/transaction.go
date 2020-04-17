@@ -21,8 +21,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -59,11 +59,11 @@ func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 	return event, nil
 }
 
-func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.Event) ([]span.Event, error) {
+func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.Event) ([]model.Span, error) {
 	decoder := &utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
-	var spans = make([]span.Event, len(rawSpans))
+	var spans = make([]model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
 		span, err := DecodeRUMV3Span(Input{
 			Raw:         rawSpan,

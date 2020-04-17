@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package span
+package model
 
 import (
 	"context"
@@ -26,7 +26,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -36,17 +35,17 @@ const (
 )
 
 var (
-	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.span")
-	transformations = monitoring.NewInt(Metrics, "transformations")
+	SpanMetrics         = monitoring.Default.NewRegistry("apm-server.processor.span")
+	spanTransformations = monitoring.NewInt(SpanMetrics, "spanTransformations")
 
-	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
-	frameCounter      = monitoring.NewInt(Metrics, "frames")
+	spanStacktraceCounter = monitoring.NewInt(SpanMetrics, "stacktraces")
+	spanFrameCounter      = monitoring.NewInt(SpanMetrics, "frames")
 
-	processorEntry = common.MapStr{"name": "transaction", "event": spanDocType}
+	spanProcessorEntry = common.MapStr{"name": "transaction", "event": spanDocType}
 )
 
-type Event struct {
-	Metadata      m.Metadata
+type Span struct {
+	Metadata      Metadata
 	ID            string
 	TransactionID *string
 	ParentID      *string
@@ -55,12 +54,12 @@ type Event struct {
 
 	Timestamp time.Time
 
-	Message    *m.Message
+	Message    *Message
 	Name       string
 	Start      *float64
 	Duration   float64
-	Service    *m.Service
-	Stacktrace m.Stacktrace
+	Service    *Service
+	Stacktrace Stacktrace
 	Sync       *bool
 	Labels     common.MapStr
 
@@ -87,11 +86,13 @@ type DB struct {
 }
 
 // HTTP contains information about the outgoing http request information of a span event
+//
+// TODO(axw) combine this and "Http", which is used by transaction and error, into one type.
 type HTTP struct {
 	URL        *string
 	StatusCode *int
 	Method     *string
-	Response   *m.MinimalResp
+	Response   *MinimalResp
 }
 
 // Destination contains contextual data about the destination of a span, such as address and port
@@ -171,15 +172,15 @@ func (d *DestinationService) fields() common.MapStr {
 	return fields
 }
 
-func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	transformations.Inc()
+func (e *Span) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+	spanTransformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
-		stacktraceCounter.Inc()
-		frameCounter.Add(int64(frames))
+		spanStacktraceCounter.Inc()
+		spanFrameCounter.Add(int64(frames))
 	}
 
 	fields := common.MapStr{
-		"processor": processorEntry,
+		"processor": spanProcessorEntry,
 		spanDocType: e.fields(ctx, tctx),
 	}
 
@@ -206,7 +207,7 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	}
 }
 
-func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
+func (e *Span) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
 	if e == nil {
 		return nil
 	}

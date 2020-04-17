@@ -21,12 +21,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/elastic/apm-server/model/span"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/model"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -74,7 +73,7 @@ type RUMV3Event struct {
 	// TODO replace this type with a Batch type and have decoders return Batches of events
 	// https://github.com/elastic/apm-server/pull/3648#discussion_r408547367
 	*Event
-	Spans []span.Event
+	Spans []model.Span
 }
 
 type SpanCount struct {
