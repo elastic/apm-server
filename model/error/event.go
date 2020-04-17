@@ -49,14 +49,13 @@ var (
 const (
 	processorName = "error"
 	errorDocType  = "error"
-	emptyString   = ""
 )
 
 type Event struct {
-	Id            *string
-	TransactionId *string
-	TraceId       *string
-	ParentId      *string
+	ID            *string
+	TransactionID *string
+	TraceID       *string
+	ParentID      *string
 
 	Timestamp time.Time
 	Metadata  metadata.Metadata
@@ -128,16 +127,16 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
-	if e.TransactionSampled != nil || e.TransactionType != nil || (e.TransactionId != nil && *e.TransactionId != "") {
+	if e.TransactionSampled != nil || e.TransactionType != nil || (e.TransactionID != nil && *e.TransactionID != "") {
 		transaction := common.MapStr{}
-		utility.Set(transaction, "id", e.TransactionId)
+		utility.Set(transaction, "id", e.TransactionID)
 		utility.Set(transaction, "type", e.TransactionType)
 		utility.Set(transaction, "sampled", e.TransactionSampled)
 		utility.Set(fields, "transaction", transaction)
 	}
 
-	utility.AddId(fields, "parent", e.ParentId)
-	utility.AddId(fields, "trace", e.TraceId)
+	utility.AddId(fields, "parent", e.ParentID)
+	utility.AddId(fields, "trace", e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
@@ -150,7 +149,7 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 
 func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
-	e.add("id", e.Id)
+	e.add("id", e.ID)
 	e.add("page", e.Page.Fields())
 
 	exceptionChain := flattenExceptionTree(e.Exception)

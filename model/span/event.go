@@ -48,10 +48,11 @@ var (
 
 type Event struct {
 	Metadata      metadata.Metadata
-	Id            string
-	TransactionId *string
-	ParentId      string
-	TraceId       string
+	ID            string
+	TransactionID *string
+	ParentID      *string
+	ParentIdx     *int
+	TraceID       *string
 
 	Timestamp time.Time
 
@@ -191,9 +192,9 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels)
-	utility.AddId(fields, "parent", &e.ParentId)
-	utility.AddId(fields, "trace", &e.TraceId)
-	utility.AddId(fields, "transaction", e.TransactionId)
+	utility.AddId(fields, "parent", e.ParentID)
+	utility.AddId(fields, "trace", e.TraceID)
+	utility.AddId(fields, "transaction", e.TransactionID)
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
@@ -211,8 +212,8 @@ func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapS
 		return nil
 	}
 	fields := common.MapStr{}
-	if e.Id != "" {
-		utility.Set(fields, "id", e.Id)
+	if e.ID != "" {
+		utility.Set(fields, "id", e.ID)
 	}
 	utility.Set(fields, "subtype", e.Subtype)
 	utility.Set(fields, "action", e.Action)
