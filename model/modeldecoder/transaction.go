@@ -124,8 +124,8 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		SpanCount: transaction.SpanCount{
 			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
 			Started: decoder.IntPtr(raw, fieldName("started"), fieldName("span_count"))},
-		ParentID: decoder.StringPtr(raw, "parent_id"),
-		TraceID:  decoder.String(raw, "trace_id"),
+		ParentID: decoder.StringPtr(raw, fieldName("parent_id")),
+		TraceID:  decoder.String(raw, fieldName("trace_id")),
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
