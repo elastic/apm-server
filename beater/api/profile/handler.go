@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
-	"github.com/elastic/apm-server/model/profile"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -181,7 +180,7 @@ func Handler(
 
 		transformables := make([]transform.Transformable, len(profiles))
 		for i, p := range profiles {
-			transformables[i] = profile.PprofProfile{
+			transformables[i] = model.PprofProfile{
 				Metadata: profileMetadata,
 				Profile:  p,
 			}

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package profile_test
+package model_test
 
 import (
 	"context"
@@ -27,7 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/profile"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -41,7 +40,7 @@ func TestPprofProfileTransform(t *testing.T) {
 	}
 
 	timestamp := time.Unix(123, 456)
-	pp := profile.PprofProfile{
+	pp := model.PprofProfile{
 		Metadata: model.Metadata{Service: service},
 		Profile: &pprof_profile.Profile{
 			TimeNanos:     timestamp.UnixNano(),
