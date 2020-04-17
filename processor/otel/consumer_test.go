@@ -35,7 +35,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
-	model_error "github.com/elastic/apm-server/model/error"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
@@ -237,7 +237,7 @@ func TestConsumer_Transaction(t *testing.T) {
 						tr, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_%s_%d", tc.name, i)), tr)
-					case *model_error.Event:
+					case *model.Error:
 						e, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_error_%s_%d", tc.name, i)), e)
@@ -322,7 +322,7 @@ func TestConsumer_Span(t *testing.T) {
 						span, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_%s_%d", tc.name, i)), span)
-					case *model_error.Event:
+					case *model.Error:
 						e, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_error_%s_%d", tc.name, i)), e)

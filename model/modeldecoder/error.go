@@ -22,7 +22,6 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 
 	m "github.com/elastic/apm-server/model"
-	modelerror "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/model/field"
 	"github.com/elastic/apm-server/transform"
@@ -58,7 +57,7 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 	}
 
 	decoder := utility.ManualDecoder{}
-	e := modelerror.Event{
+	e := m.Error{
 		Metadata:           input.Metadata,
 		ID:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, fieldName("culprit")),
@@ -82,7 +81,7 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 	log := decoder.MapStr(raw, fieldName("log"))
 	logMsg := decoder.StringPtr(log, fieldName("message"))
 	if logMsg != nil {
-		e.Log = &modelerror.Log{
+		e.Log = &m.Log{
 			Message:      *logMsg,
 			ParamMessage: decoder.StringPtr(log, fieldName("param_message")),
 			Level:        decoder.StringPtr(log, fieldName("level")),
@@ -105,18 +104,18 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 	return &e, nil
 }
 
-type exceptionDecoder func(map[string]interface{}) *modelerror.Exception
+type exceptionDecoder func(map[string]interface{}) *m.Exception
 
 func decodeException(decoder *utility.ManualDecoder, hasShortFieldNames bool) exceptionDecoder {
 	var decode exceptionDecoder
 	fieldName := field.Mapper(hasShortFieldNames)
-	decode = func(exceptionTree map[string]interface{}) *modelerror.Exception {
+	decode = func(exceptionTree map[string]interface{}) *m.Exception {
 		exMsg := decoder.StringPtr(exceptionTree, fieldName("message"))
 		exType := decoder.StringPtr(exceptionTree, fieldName("type"))
 		if decoder.Err != nil || (exMsg == nil && exType == nil) {
 			return nil
 		}
-		ex := modelerror.Exception{
+		ex := m.Exception{
 			Message:    exMsg,
 			Type:       exType,
 			Code:       decoder.Interface(exceptionTree, fieldName("code")),

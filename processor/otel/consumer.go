@@ -36,7 +36,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	model_error "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/metadata"
 	model_span "github.com/elastic/apm-server/model/span"
 	model_transaction "github.com/elastic/apm-server/model/transaction"
@@ -403,11 +402,11 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 	event.Labels = labels
 }
 
-func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model_error.Event {
-	var errors []*model_error.Event
+func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model.Error {
+	var errors []*model.Error
 	for _, log := range otelSpan.GetTimeEvents().GetTimeEvent() {
 		var isError, hasMinimalInfo bool
-		var err model_error.Event
+		var err model.Error
 		var logMessage, exMessage, exType string
 		for k, v := range log.GetAnnotation().GetAttributes().GetAttributeMap() {
 			if source == sourceFormatJaeger {
@@ -452,10 +451,10 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 		}
 
 		if logMessage != "" {
-			err.Log = &model_error.Log{Message: logMessage}
+			err.Log = &model.Log{Message: logMessage}
 		}
 		if exMessage != "" || exType != "" {
-			err.Exception = &model_error.Exception{}
+			err.Exception = &model.Exception{}
 			if exMessage != "" {
 				err.Exception.Message = &exMessage
 			}
@@ -469,7 +468,7 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 	return errors
 }
 
-func addTransactionCtxToErr(transaction model_transaction.Event, err *model_error.Event) {
+func addTransactionCtxToErr(transaction model_transaction.Event, err *model.Error) {
 	err.Metadata = transaction.Metadata
 	err.TransactionID = &transaction.ID
 	err.TraceID = &transaction.TraceID
@@ -479,7 +478,7 @@ func addTransactionCtxToErr(transaction model_transaction.Event, err *model_erro
 	err.TransactionType = &transaction.Type
 }
 
-func addSpanCtxToErr(span model_span.Event, hostname string, err *model_error.Event) {
+func addSpanCtxToErr(span model_span.Event, hostname string, err *model.Error) {
 	err.Metadata = span.Metadata
 	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID

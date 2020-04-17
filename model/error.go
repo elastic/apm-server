@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package error
+package model
 
 import (
 	"context"
@@ -32,26 +32,25 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
 var (
-	Metrics           = monitoring.Default.NewRegistry("apm-server.processor.error")
-	transformations   = monitoring.NewInt(Metrics, "transformations")
-	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
-	frameCounter      = monitoring.NewInt(Metrics, "frames")
-	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
+	ErrorMetrics           = monitoring.Default.NewRegistry("apm-server.processor.error")
+	errorTransformations   = monitoring.NewInt(ErrorMetrics, "transformations")
+	errorStacktraceCounter = monitoring.NewInt(ErrorMetrics, "stacktraces")
+	errorFrameCounter      = monitoring.NewInt(ErrorMetrics, "frames")
+	errorProcessorEntry    = common.MapStr{"name": errorProcessorName, "event": errorDocType}
 )
 
 const (
-	processorName = "error"
-	errorDocType  = "error"
+	errorProcessorName = "error"
+	errorDocType       = "error"
 )
 
-type Event struct {
+type Error struct {
 	ID            *string
 	TransactionID *string
 	TraceID       *string
@@ -61,11 +60,11 @@ type Event struct {
 	Metadata  metadata.Metadata
 
 	Culprit *string
-	Labels  *m.Labels
-	Page    *m.Page
-	Http    *m.Http
-	Url     *m.Url
-	Custom  *m.Custom
+	Labels  *Labels
+	Page    *Page
+	Http    *Http
+	Url     *Url
+	Custom  *Custom
 
 	Exception *Exception
 	Log       *Log
@@ -82,7 +81,7 @@ type Exception struct {
 	Module     *string
 	Code       interface{}
 	Attributes interface{}
-	Stacktrace m.Stacktrace
+	Stacktrace Stacktrace
 	Type       *string
 	Handled    *bool
 	Cause      []Exception
@@ -94,11 +93,11 @@ type Log struct {
 	Level        *string
 	ParamMessage *string
 	LoggerName   *string
-	Stacktrace   m.Stacktrace
+	Stacktrace   Stacktrace
 }
 
-func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	transformations.Inc()
+func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+	errorTransformations.Inc()
 
 	if e.Exception != nil {
 		addStacktraceCounter(e.Exception.Stacktrace)
@@ -109,7 +108,7 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 
 	fields := common.MapStr{
 		"error":     e.fields(ctx, tctx),
-		"processor": processorEntry,
+		"processor": errorProcessorEntry,
 	}
 
 	// first set the generic metadata (order is relevant)
@@ -144,7 +143,7 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	}
 }
 
-func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
+func (e *Error) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.ID)
 	e.add("page", e.Page.Fields())
@@ -162,11 +161,11 @@ func (e *Event) fields(ctx context.Context, tctx *transform.Context) common.MapS
 	return e.data
 }
 
-func (e *Event) updateCulprit(tctx *transform.Context) {
+func (e *Error) updateCulprit(tctx *transform.Context) {
 	if tctx.Config.SourcemapStore == nil {
 		return
 	}
-	var fr *m.StacktraceFrame
+	var fr *StacktraceFrame
 	if e.Log != nil {
 		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace)
 	}
@@ -188,7 +187,7 @@ func (e *Event) updateCulprit(tctx *transform.Context) {
 	e.Culprit = &culprit
 }
 
-func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame {
+func findSmappedNonLibraryFrame(frames []*StacktraceFrame) *StacktraceFrame {
 	for _, fr := range frames {
 		if fr.IsSourcemapApplied() && !fr.IsLibraryFrame() {
 			return fr
@@ -197,7 +196,7 @@ func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame 
 	return nil
 }
 
-func (e *Event) addException(ctx context.Context, tctx *transform.Context, chain []Exception) {
+func (e *Error) addException(ctx context.Context, tctx *transform.Context, chain []Exception) {
 	var result []common.MapStr
 	for _, exception := range chain {
 		ex := common.MapStr{}
@@ -228,7 +227,7 @@ func (e *Event) addException(ctx context.Context, tctx *transform.Context, chain
 	e.add("exception", result)
 }
 
-func (e *Event) addLog(ctx context.Context, tctx *transform.Context) {
+func (e *Error) addLog(ctx context.Context, tctx *transform.Context) {
 	if e.Log == nil {
 		return
 	}
@@ -278,9 +277,9 @@ func (k *groupingKey) String() string {
 
 // calcGroupingKey computes a value for deduplicating errors - events with
 // same grouping key can be collapsed together.
-func (e *Event) calcGroupingKey(chain []Exception) string {
+func (e *Error) calcGroupingKey(chain []Exception) string {
 	k := newGroupingKey()
-	var stacktrace m.Stacktrace
+	var stacktrace Stacktrace
 
 	for _, ex := range chain {
 		k.add(ex.Type)
@@ -313,14 +312,14 @@ func (e *Event) calcGroupingKey(chain []Exception) string {
 	return k.String()
 }
 
-func (e *Event) add(key string, val interface{}) {
+func (e *Error) add(key string, val interface{}) {
 	utility.Set(e.data, key, val)
 }
 
-func addStacktraceCounter(st m.Stacktrace) {
+func addStacktraceCounter(st Stacktrace) {
 	if frames := len(st); frames > 0 {
-		stacktraceCounter.Inc()
-		frameCounter.Add(int64(frames))
+		errorStacktraceCounter.Inc()
+		errorFrameCounter.Add(int64(frames))
 	}
 }
 
