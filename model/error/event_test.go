@@ -298,7 +298,8 @@ func TestEvents(t *testing.T) {
 	}
 
 	mdWithUser := md
-	mdWithUser.User = metadata.User{ID: uid, Email: email, IP: net.ParseIP(userIp), UserAgent: userAgent}
+	mdWithUser.User = metadata.User{ID: uid, Email: email, UserAgent: userAgent}
+	mdWithUser.Client.IP = net.ParseIP(userIp)
 
 	for name, tc := range map[string]struct {
 		Transformable transform.Transformable
@@ -360,7 +361,6 @@ func TestEvents(t *testing.T) {
 				Labels:             &labels,
 				Page:               &m.Page{Url: &url, Referer: &referer},
 				Custom:             &custom,
-				Client:             &m.Client{IP: net.ParseIP("192.0.14.10")},
 			},
 
 			Output: common.MapStr{
@@ -368,8 +368,8 @@ func TestEvents(t *testing.T) {
 				"service":    common.MapStr{"name": "myservice", "version": "1.0"},
 				"agent":      common.MapStr{"name": "go", "version": "1.0"},
 				"user":       common.MapStr{"id": uid, "email": email},
-				"client":     common.MapStr{"ip": "192.0.14.10"},
-				"source":     common.MapStr{"ip": "192.0.14.10"},
+				"client":     common.MapStr{"ip": userIp},
+				"source":     common.MapStr{"ip": userIp},
 				"user_agent": common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{

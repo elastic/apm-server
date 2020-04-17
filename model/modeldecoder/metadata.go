@@ -59,7 +59,7 @@ func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonsche
 	decodeService(getObject(raw, fieldName("service")), hasShortFieldNames, &out.Service)
 	decodeSystem(getObject(raw, "system"), &out.System)
 	decodeProcess(getObject(raw, "process"), &out.Process)
-	decodeUser(getObject(raw, fieldName("user")), hasShortFieldNames, &out.User)
+	decodeUser(getObject(raw, fieldName("user")), hasShortFieldNames, &out.User, &out.Client)
 	decodeLabels(getObject(raw, fieldName("labels")), &out.Labels)
 	return nil
 }

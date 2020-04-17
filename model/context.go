@@ -18,7 +18,6 @@
 package model
 
 import (
-	"net"
 	"net/http"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -33,7 +32,6 @@ type Context struct {
 	Labels       *Labels
 	Page         *Page
 	Custom       *Custom
-	Client       *Client
 	Message      *Message
 	Experimental interface{}
 }
@@ -103,11 +101,6 @@ type MinimalResp struct {
 	DecodedBodySize *float64
 }
 
-// Client holds information about the client.ip of the event.
-type Client struct {
-	IP net.IP
-}
-
 // Fields returns common.MapStr holding transformed data for attribute url.
 func (url *Url) Fields() common.MapStr {
 	if url == nil {
@@ -172,14 +165,6 @@ func (custom *Custom) Fields() common.MapStr {
 		return nil
 	}
 	return common.MapStr(*custom)
-}
-
-// Fields returns common.MapStr holding transformed data for attribute client.
-func (c *Client) Fields() common.MapStr {
-	if c == nil || c.IP == nil {
-		return nil
-	}
-	return common.MapStr{"ip": c.IP.String()}
 }
 
 func (req *Req) fields() common.MapStr {

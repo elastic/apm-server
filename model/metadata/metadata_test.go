@@ -158,8 +158,10 @@ func BenchmarkMetadataSet(b *testing.B) {
 			ID:        "123",
 			Email:     "me@example.com",
 			Name:      "bob",
-			IP:        net.ParseIP("10.1.1.2"),
 			UserAgent: "user-agent",
+		},
+		Client: Client{
+			IP: net.ParseIP("10.1.1.2"),
 		},
 		Labels: common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
 	})
