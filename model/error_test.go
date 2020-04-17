@@ -414,13 +414,13 @@ func TestCulprit(t *testing.T) {
 	fct := "fct"
 	truthy := true
 	st := Stacktrace{
-		&StacktraceFrame{Filename: tests.StringPtr("a"), Function: &fct, Sourcemap: Sourcemap{}},
+		&StacktraceFrame{Filename: tests.StringPtr("a"), Function: &fct},
 	}
 	stUpdate := Stacktrace{
-		&StacktraceFrame{Filename: tests.StringPtr("a"), Function: &fct, Sourcemap: Sourcemap{}},
-		&StacktraceFrame{Filename: tests.StringPtr("a"), LibraryFrame: &truthy, Sourcemap: Sourcemap{Updated: &truthy}},
-		&StacktraceFrame{Filename: tests.StringPtr("f"), Function: &fct, Sourcemap: Sourcemap{Updated: &truthy}},
-		&StacktraceFrame{Filename: tests.StringPtr("bar"), Function: &fct, Sourcemap: Sourcemap{Updated: &truthy}},
+		&StacktraceFrame{Filename: tests.StringPtr("a"), Function: &fct},
+		&StacktraceFrame{Filename: tests.StringPtr("a"), LibraryFrame: &truthy, SourcemapUpdated: &truthy},
+		&StacktraceFrame{Filename: tests.StringPtr("f"), Function: &fct, SourcemapUpdated: &truthy},
+		&StacktraceFrame{Filename: tests.StringPtr("bar"), Function: &fct, SourcemapUpdated: &truthy},
 	}
 	store := &sourcemap.Store{}
 	tests := []struct {
@@ -453,9 +453,9 @@ func TestCulprit(t *testing.T) {
 				Log: &Log{
 					Stacktrace: Stacktrace{
 						&StacktraceFrame{
-							Filename:  tests.StringPtr("f"),
-							Classname: tests.StringPtr("xyz"),
-							Sourcemap: Sourcemap{Updated: &truthy},
+							Filename:         tests.StringPtr("f"),
+							Classname:        tests.StringPtr("xyz"),
+							SourcemapUpdated: &truthy,
 						},
 					},
 				},
@@ -470,8 +470,8 @@ func TestCulprit(t *testing.T) {
 				Log: &Log{
 					Stacktrace: Stacktrace{
 						&StacktraceFrame{
-							Classname: tests.StringPtr("xyz"),
-							Sourcemap: Sourcemap{Updated: &truthy},
+							Classname:        tests.StringPtr("xyz"),
+							SourcemapUpdated: &truthy,
 						},
 					},
 				},
@@ -505,9 +505,9 @@ func TestCulprit(t *testing.T) {
 				Log: &Log{
 					Stacktrace: Stacktrace{
 						&StacktraceFrame{
-							Filename:  tests.StringPtr("a"),
-							Function:  &fct,
-							Sourcemap: Sourcemap{Updated: &truthy},
+							Filename:         tests.StringPtr("a"),
+							Function:         &fct,
+							SourcemapUpdated: &truthy,
 						},
 					},
 				},

@@ -51,13 +51,9 @@ type StacktraceFrame struct {
 
 	ExcludeFromGrouping bool
 
-	Sourcemap Sourcemap
-	Original  Original
-}
-
-type Sourcemap struct {
-	Updated *bool
-	Error   *string
+	SourcemapUpdated *bool
+	SourcemapError   *string
+	Original         Original
 }
 
 type Original struct {
@@ -102,13 +98,13 @@ func (s *StacktraceFrame) Transform(tctx *transform.Context) common.MapStr {
 	utility.Set(m, "line", line)
 
 	sm := common.MapStr{}
-	utility.Set(sm, "updated", s.Sourcemap.Updated)
-	utility.Set(sm, "error", s.Sourcemap.Error)
+	utility.Set(sm, "updated", s.SourcemapUpdated)
+	utility.Set(sm, "error", s.SourcemapError)
 	utility.Set(m, "sourcemap", sm)
 
 	orig := common.MapStr{}
 	utility.Set(orig, "library_frame", s.Original.LibraryFrame)
-	if s.Sourcemap.Updated != nil && *(s.Sourcemap.Updated) {
+	if s.SourcemapUpdated != nil && *(s.SourcemapUpdated) {
 		utility.Set(orig, "filename", s.Original.Filename)
 		utility.Set(orig, "classname", s.Original.Classname)
 		utility.Set(orig, "abs_path", s.Original.AbsPath)
@@ -126,7 +122,7 @@ func (s *StacktraceFrame) IsLibraryFrame() bool {
 }
 
 func (s *StacktraceFrame) IsSourcemapApplied() bool {
-	return s.Sourcemap.Updated != nil && *s.Sourcemap.Updated
+	return s.SourcemapUpdated != nil && *s.SourcemapUpdated
 }
 
 func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
@@ -220,10 +216,10 @@ func (s *StacktraceFrame) setOriginalSourcemapData() {
 }
 
 func (s *StacktraceFrame) updateError(errMsg string) {
-	s.Sourcemap.Error = &errMsg
+	s.SourcemapError = &errMsg
 	s.updateSmap(false)
 }
 
 func (s *StacktraceFrame) updateSmap(updated bool) {
-	s.Sourcemap.Updated = &updated
+	s.SourcemapUpdated = &updated
 }
