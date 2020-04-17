@@ -36,7 +36,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	model_transaction "github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -97,7 +96,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 		}
 		name := otelSpan.GetName().GetValue()
 		if root || otelSpan.Kind == tracepb.Span_SERVER {
-			transaction := model_transaction.Event{
+			transaction := model.Transaction{
 				Metadata:  md,
 				ID:        spanID,
 				ParentID:  parentID,
@@ -200,7 +199,7 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 	}
 }
 
-func parseTransaction(span *tracepb.Span, hostname string, event *model_transaction.Event) {
+func parseTransaction(span *tracepb.Span, hostname string, event *model.Transaction) {
 	labels := make(common.MapStr)
 	var http model.Http
 	var component string
@@ -466,7 +465,7 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 	return errors
 }
 
-func addTransactionCtxToErr(transaction model_transaction.Event, err *model.Error) {
+func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
 	err.Metadata = transaction.Metadata
 	err.TransactionID = &transaction.ID
 	err.TraceID = &transaction.TraceID

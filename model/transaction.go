@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package transaction
+package model
 
 import (
 	"context"
@@ -25,26 +25,23 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/model"
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
 const (
-	processorName      = "transaction"
-	transactionDocType = "transaction"
-	emptyString        = ""
+	transactionProcessorName = "transaction"
+	transactionDocType       = "transaction"
 )
 
 var (
-	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction")
-	transformations = monitoring.NewInt(Metrics, "transformations")
-	processorEntry  = common.MapStr{"name": processorName, "event": transactionDocType}
+	TransactionMetrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction")
+	transactionTransformations = monitoring.NewInt(TransactionMetrics, "transformations")
+	transactionProcessorEntry  = common.MapStr{"name": transactionProcessorName, "event": transactionDocType}
 )
 
-type Event struct {
-	Metadata m.Metadata
+type Transaction struct {
+	Metadata Metadata
 
 	ID       string
 	ParentID *string
@@ -57,23 +54,23 @@ type Event struct {
 	Result    *string
 	Duration  float64
 	Marks     common.MapStr
-	Message   *m.Message
+	Message   *Message
 	Sampled   *bool
 	SpanCount SpanCount
-	Page      *m.Page
-	Http      *m.Http
-	Url       *m.Url
-	Labels    *m.Labels
-	Custom    *m.Custom
+	Page      *Page
+	Http      *Http
+	Url       *Url
+	Labels    *Labels
+	Custom    *Custom
 
 	Experimental interface{}
 }
 
-type RUMV3Event struct {
+type RUMV3Transaction struct {
 	// TODO replace this type with a Batch type and have decoders return Batches of events
 	// https://github.com/elastic/apm-server/pull/3648#discussion_r408547367
-	*Event
-	Spans []model.Span
+	*Transaction
+	Spans []Span
 }
 
 type SpanCount struct {
@@ -81,7 +78,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Event) fields(tctx *transform.Context) common.MapStr {
+func (e *Transaction) fields(tctx *transform.Context) common.MapStr {
 	tx := common.MapStr{"id": e.ID}
 	utility.Set(tx, "name", e.Name)
 	utility.Set(tx, "duration", utility.MillisAsMicros(e.Duration))
@@ -113,11 +110,11 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	return tx
 }
 
-func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	transformations.Inc()
+func (e *Transaction) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+	transactionTransformations.Inc()
 
 	fields := common.MapStr{
-		"processor":        processorEntry,
+		"processor":        transactionProcessorEntry,
 		transactionDocType: e.fields(tctx),
 	}
 
@@ -138,8 +135,8 @@ func (e *Event) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
 }
 
-func (e *RUMV3Event) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	beatEvents := e.Event.Transform(ctx, tctx)
+func (e *RUMV3Transaction) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+	beatEvents := e.Transaction.Transform(ctx, tctx)
 	for _, span := range e.Spans {
 		beatEvents = append(beatEvents, span.Transform(ctx, tctx)...)
 	}
