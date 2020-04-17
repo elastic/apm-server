@@ -157,7 +157,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Architecture:       architecture,
 			Platform:           platform,
 		},
-		User:   metadata.User{ID: id, Name: name, IP: net.ParseIP(ip), UserAgent: userAgent},
+		User:   metadata.User{ID: id, Name: name, UserAgent: userAgent},
+		Client: metadata.Client{IP: net.ParseIP(ip)},
 		Labels: common.MapStr{"a": true},
 	}
 
@@ -171,15 +172,14 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Http:      &model.Http{Request: &request, Response: &response},
 		Url:       &model.Url{Original: &url},
 		Custom:    &model.Custom{"foo": "bar"},
-		Client:    &model.Client{IP: net.ParseIP("198.12.13.1")},
 		Message:   &model.Message{QueueName: tests.StringPtr("routeUser")},
 	}
 	events := txWithContext.Transform(context.Background(), &transform.Context{})
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
-		"client":     common.MapStr{"ip": "198.12.13.1"},
-		"source":     common.MapStr{"ip": "198.12.13.1"},
+		"client":     common.MapStr{"ip": ip},
+		"source":     common.MapStr{"ip": ip},
 		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",

@@ -154,8 +154,10 @@ func TestDecodeMetadata(t *testing.T) {
 			ID:        uid,
 			Email:     mail,
 			Name:      username,
-			IP:        net.ParseIP(userIP),
 			UserAgent: userAgent,
+		},
+		Client: metadata.Client{
+			IP: net.ParseIP(userIP),
 		},
 		Labels: common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
 	}, output)

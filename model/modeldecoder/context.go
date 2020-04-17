@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"net"
 	"strconv"
 	"strings"
 
@@ -71,12 +72,14 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *metadata.Meta
 	if userInp := getObject(input, fieldName("user")); userInp != nil {
 		// Per-event user metadata replaces stream user metadata.
 		meta.User = metadata.User{}
-		decodeUser(userInp, cfg.HasShortFieldNames, &meta.User)
+		decodeUser(userInp, cfg.HasShortFieldNames, &meta.User, &meta.Client)
 	}
 	if ua := http.UserAgent(); ua != "" {
 		meta.User.UserAgent = ua
 	}
-	ctx.Client = decodeClient(&meta.User, http)
+	if meta.Client.IP == nil {
+		meta.Client.IP = getHTTPClientIP(http)
+	}
 
 	if serviceInp := getObject(input, fieldName("service")); serviceInp != nil {
 		// Per-event service metadata is merged with stream service metadata.
@@ -123,20 +126,19 @@ func decodeURL(raw common.MapStr, err error) (*model.Url, error) {
 	return &url, err
 }
 
-func decodeClient(user *metadata.User, http *model.Http) *model.Client {
-	// user.IP is only set for RUM events
-	if user != nil && user.IP != nil {
-		return &model.Client{IP: user.IP}
+func getHTTPClientIP(http *model.Http) net.IP {
+	if http == nil || http.Request == nil {
+		return nil
 	}
-	// http.Request.Headers and http.Request.Socket information is only set for backend events
-	// try to first extract an IP address from the headers, if not possible use IP address from socket remote_address
-	if http != nil && http.Request != nil {
-		if ip := utility.ExtractIPFromHeader(http.Request.Headers); ip != nil {
-			return &model.Client{IP: ip}
-		}
-		if http.Request.Socket != nil && http.Request.Socket.RemoteAddress != nil {
-			return &model.Client{IP: utility.ParseIP(*http.Request.Socket.RemoteAddress)}
-		}
+	// http.Request.Headers and http.Request.Socket information is
+	// only set for backend events try to first extract an IP address
+	// from the headers, if not possible use IP address from socket
+	// remote_address
+	if ip := utility.ExtractIPFromHeader(http.Request.Headers); ip != nil {
+		return ip
+	}
+	if http.Request.Socket != nil && http.Request.Socket.RemoteAddress != nil {
+		return utility.ParseIP(*http.Request.Socket.RemoteAddress)
 	}
 	return nil
 }

@@ -1,5 +1,4 @@
 {
-    "Client": null,
     "Culprit": null,
     "Custom": null,
     "Exception": {
@@ -44,6 +43,9 @@
         "Stacktrace": null
     },
     "Metadata": {
+        "Client": {
+            "IP": ""
+        },
         "Labels": {},
         "Process": {
             "Argv": null,
@@ -95,7 +97,6 @@
         "User": {
             "Email": "",
             "ID": "",
-            "IP": "",
             "Name": "",
             "UserAgent": ""
         }
