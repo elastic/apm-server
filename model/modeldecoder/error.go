@@ -69,9 +69,9 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 		Custom:             ctx.Custom,
 		Experimental:       ctx.Experimental,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
-		TransactionID:      decoder.StringPtr(raw, "transaction_id"),
-		ParentID:           decoder.StringPtr(raw, "parent_id"),
-		TraceID:            decoder.StringPtr(raw, "trace_id"),
+		TransactionID:      decoder.StringPtr(raw, fieldName("transaction_id")),
+		ParentID:           decoder.StringPtr(raw, fieldName("parent_id")),
+		TraceID:            decoder.StringPtr(raw, fieldName("trace_id")),
 		TransactionSampled: decoder.BoolPtr(raw, fieldName("sampled"), fieldName("transaction")),
 		TransactionType:    decoder.StringPtr(raw, fieldName("type"), fieldName("transaction")),
 	}
