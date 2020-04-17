@@ -22,8 +22,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metricset"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -58,7 +58,7 @@ func decodeMetricset(input Input, schema *jsonschema.Schema) (transform.Transfor
 	md := metricsetDecoder{&utility.ManualDecoder{}}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 
-	e := metricset.Metricset{
+	e := model.Metricset{
 		Timestamp: md.TimeEpochMicro(raw, "timestamp"),
 		Metadata:  input.Metadata,
 	}
@@ -84,26 +84,27 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func (md *metricsetDecoder) decodeSamples(input map[string]interface{}, hasShortFieldNames bool, out *[]metricset.Sample) {
+func (md *metricsetDecoder) decodeSamples(input map[string]interface{}, hasShortFieldNames bool, out *[]model.Sample) {
 	fieldName := field.Mapper(hasShortFieldNames)
 	inverseFieldName := field.InverseMapper(hasShortFieldNames)
 
 	valueFieldName := fieldName("value")
 	for name, s := range input {
 		sampleObj, _ := s.(map[string]interface{})
-		sample := metricset.Sample{Name: inverseFieldName(name)}
+		sample := model.Sample{Name: inverseFieldName(name)}
 		// TODO(axw) add support for ingesting counts/values (histogram metrics)
 		decodeFloat64(sampleObj, valueFieldName, &sample.Value)
 		*out = append(*out, sample)
 	}
 }
 
-func (md *metricsetDecoder) decodeSpan(input map[string]interface{}, hasShortFieldNames bool, out *metricset.Span) {
+func (md *metricsetDecoder) decodeSpan(input map[string]interface{}, hasShortFieldNames bool, out *model.MetricsetSpan) {
 	fieldName := field.Mapper(hasShortFieldNames)
 	decodeString(input, fieldName("type"), &out.Type)
 	decodeString(input, fieldName("subtype"), &out.Subtype)
 }
-func (md *metricsetDecoder) decodeTransaction(input map[string]interface{}, hasShortFieldNames bool, out *metricset.Transaction) {
+
+func (md *metricsetDecoder) decodeTransaction(input map[string]interface{}, hasShortFieldNames bool, out *model.MetricsetTransaction) {
 	fieldName := field.Mapper(hasShortFieldNames)
 	decodeString(input, fieldName("type"), &out.Type)
 	decodeString(input, fieldName("name"), &out.Name)

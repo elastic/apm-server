@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metricset
+package model
 
 import (
 	"context"
@@ -27,22 +27,21 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
 const (
-	processorName  = "metric"
-	docType        = "metric"
-	transactionKey = "transaction"
-	spanKey        = "span"
+	metricsetProcessorName  = "metric"
+	metricsetDocType        = "metric"
+	metricsetTransactionKey = "transaction"
+	metricsetSpanKey        = "span"
 )
 
 var (
-	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
-	transformations = monitoring.NewInt(Metrics, "transformations")
-	processorEntry  = common.MapStr{"name": processorName, "event": docType}
+	MetricsetMetrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
+	metricsetTransformations = monitoring.NewInt(MetricsetMetrics, "transformations")
+	metricsetProcessorEntry  = common.MapStr{"name": metricsetProcessorName, "event": metricsetDocType}
 )
 
 // Metricset describes a set of metrics and associated metadata.
@@ -52,15 +51,15 @@ type Metricset struct {
 
 	// Metadata holds common metadata describing the entities with which
 	// the metrics are associated: service, system, etc.
-	Metadata model.Metadata
+	Metadata Metadata
 
 	// Transaction holds information about the transaction group with
 	// which the metrics are associated.
-	Transaction Transaction
+	Transaction MetricsetTransaction
 
 	// Span holds information about the span types with which the
 	// metrics are associated.
-	Span Span
+	Span MetricsetSpan
 
 	// Labels holds arbitrary labels to apply to the metrics.
 	//
@@ -72,6 +71,9 @@ type Metricset struct {
 }
 
 // Sample represents a single named metric.
+//
+// TODO(axw) consider renaming this to "MetricSample" or similar, as
+// "Sample" isn't very meaningful in the context of the model package.
 type Sample struct {
 	// Name holds the metric name.
 	Name string
@@ -96,8 +98,8 @@ type Sample struct {
 	Counts []int64
 }
 
-// Transaction provides enough information to connect a metricset to the related kind of transactions.
-type Transaction struct {
+// MetricsetTransaction provides enough information to connect a metricset to the related kind of transactions.
+type MetricsetTransaction struct {
 	// Name holds the transaction name: "GET /foo", etc.
 	Name string
 
@@ -113,8 +115,8 @@ type Transaction struct {
 	Root bool
 }
 
-// Span provides enough information to connect a metricset to the related kind of spans.
-type Span struct {
+// MetricsetSpan provides enough information to connect a metricset to the related kind of spans.
+type MetricsetSpan struct {
 	// Type holds the span type: "external", "db", etc.
 	Type string
 
@@ -123,7 +125,7 @@ type Span struct {
 }
 
 func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	transformations.Inc()
+	metricsetTransformations.Inc()
 	if me == nil {
 		return nil
 	}
@@ -136,13 +138,13 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 		}
 	}
 
-	fields["processor"] = processorEntry
+	fields["processor"] = metricsetProcessorEntry
 	me.Metadata.Set(fields)
 	if transactionFields := me.Transaction.fields(); transactionFields != nil {
-		utility.DeepUpdate(fields, transactionKey, transactionFields)
+		utility.DeepUpdate(fields, metricsetTransactionKey, transactionFields)
 	}
 	if spanFields := me.Span.fields(); spanFields != nil {
-		utility.DeepUpdate(fields, spanKey, spanFields)
+		utility.DeepUpdate(fields, metricsetSpanKey, spanFields)
 	}
 
 	// merges with metadata labels, overrides conflicting keys
@@ -154,7 +156,7 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 	}}
 }
 
-func (t *Transaction) fields() common.MapStr {
+func (t *MetricsetTransaction) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("type", t.Type)
 	fields.maybeSetString("name", t.Name)
@@ -165,7 +167,7 @@ func (t *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (s *Span) fields() common.MapStr {
+func (s *MetricsetSpan) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("type", s.Type)
 	fields.maybeSetString("subtype", s.Subtype)
