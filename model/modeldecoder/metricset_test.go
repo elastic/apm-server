@@ -25,12 +25,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/utility"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metricset"
+	"github.com/elastic/apm-server/utility"
 )
 
 // assertMetricsMatch is an equality test for a metricset as sample order is not important
@@ -51,8 +50,8 @@ func TestDecode(t *testing.T) {
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	requestTime := time.Now()
 	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
-	metadata := metadata.Metadata{
-		Service: metadata.Service{Name: "myservice"},
+	metadata := model.Metadata{
+		Service: model.Service{Name: "myservice"},
 	}
 
 	for _, test := range []struct {

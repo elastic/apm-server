@@ -27,7 +27,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -47,7 +46,7 @@ var (
 )
 
 type Event struct {
-	Metadata      metadata.Metadata
+	Metadata      m.Metadata
 	ID            string
 	TransactionID *string
 	ParentID      *string
@@ -60,7 +59,7 @@ type Event struct {
 	Name       string
 	Start      *float64
 	Duration   float64
-	Service    *metadata.Service
+	Service    *m.Service
 	Stacktrace m.Stacktrace
 	Sync       *bool
 	Labels     common.MapStr

@@ -36,7 +36,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	model_span "github.com/elastic/apm-server/model/span"
 	model_transaction "github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
@@ -73,7 +72,7 @@ func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceDa
 }
 
 func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable {
-	md := metadata.Metadata{}
+	md := model.Metadata{}
 	parseMetadata(td, &md)
 	hostname := md.System.DetectedHostname
 
@@ -136,7 +135,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 	return transformables
 }
 
-func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
+func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 	md.Service.Name = truncate(td.Node.GetServiceInfo().GetName())
 	if md.Service.Name == "" {
 		md.Service.Name = "unknown"

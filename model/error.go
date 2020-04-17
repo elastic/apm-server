@@ -32,7 +32,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -57,7 +56,7 @@ type Error struct {
 	ParentID      *string
 
 	Timestamp time.Time
-	Metadata  metadata.Metadata
+	Metadata  Metadata
 
 	Culprit *string
 	Labels  *Labels

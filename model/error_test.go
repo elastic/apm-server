@@ -30,7 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/tests"
@@ -221,8 +220,8 @@ func TestEventFields(t *testing.T) {
 				TransactionID: &trId,
 
 				// Service name and version are required for sourcemapping.
-				Metadata: metadata.Metadata{
-					Service: metadata.Service{
+				Metadata: Metadata{
+					Service: Service{
 						Name:    "myservice",
 						Version: "myservice",
 					},
@@ -288,16 +287,16 @@ func TestEvents(t *testing.T) {
 	custom := Custom(common.MapStr{"foo": "bar"})
 
 	serviceName, agentName, version := "myservice", "go", "1.0"
-	md := metadata.Metadata{
-		Service: metadata.Service{
+	md := Metadata{
+		Service: Service{
 			Name: serviceName, Version: version,
-			Agent: metadata.Agent{Name: agentName, Version: version},
+			Agent: Agent{Name: agentName, Version: version},
 		},
 		Labels: common.MapStr{"label": 101},
 	}
 
 	mdWithUser := md
-	mdWithUser.User = metadata.User{ID: uid, Email: email, UserAgent: userAgent}
+	mdWithUser.User = User{ID: uid, Email: email, UserAgent: userAgent}
 	mdWithUser.Client.IP = net.ParseIP(userIp)
 
 	for name, tc := range map[string]struct {
@@ -734,8 +733,8 @@ func md5With(args ...string) []byte {
 
 func TestSourcemapping(t *testing.T) {
 	event := Error{
-		Metadata: metadata.Metadata{
-			Service: metadata.Service{
+		Metadata: Metadata{
+			Service: Service{
 				Name:    "foo",
 				Version: "bar",
 			},

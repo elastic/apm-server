@@ -27,7 +27,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -52,7 +52,7 @@ type Metricset struct {
 
 	// Metadata holds common metadata describing the entities with which
 	// the metrics are associated: service, system, etc.
-	Metadata metadata.Metadata
+	Metadata model.Metadata
 
 	// Transaction holds information about the transaction group with
 	// which the metrics are associated.

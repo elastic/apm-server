@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/tests"
 )
@@ -171,10 +170,10 @@ func TestTransactionEventDecode(t *testing.T) {
 	ctxURL := model.Url{Original: &origURL}
 	custom := model.Custom{"abc": 1}
 
-	inputMetadata := metadata.Metadata{Service: metadata.Service{Name: "foo"}}
+	inputMetadata := model.Metadata{Service: model.Service{Name: "foo"}}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = metadata.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID, UserAgent: ua}
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.

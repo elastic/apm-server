@@ -17,11 +17,9 @@
 
 package modeldecoder
 
-import (
-	"github.com/elastic/apm-server/model/metadata"
-)
+import "github.com/elastic/apm-server/model"
 
-func decodeProcess(input map[string]interface{}, out *metadata.Process) {
+func decodeProcess(input map[string]interface{}, out *model.Process) {
 	if input == nil {
 		return
 	}

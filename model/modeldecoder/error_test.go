@@ -28,7 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -54,12 +53,12 @@ func TestErrorEventDecode(t *testing.T) {
 	response := m.Resp{Finished: new(bool), MinimalResp: m.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := m.Http{Request: &request, Response: &response}
 	ctxURL := m.Url{Original: &origURL}
-	inputMetadata := metadata.Metadata{
-		Service: metadata.Service{Name: "foo"},
+	inputMetadata := m.Metadata{
+		Service: m.Service{Name: "foo"},
 	}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = metadata.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = m.User{Name: name, Email: email, ID: userID, UserAgent: ua}
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.

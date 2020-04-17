@@ -26,7 +26,6 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -101,7 +100,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
 		event.DestinationService = destService
 
 		if s := getObject(ctx, "service"); s != nil {
-			var service metadata.Service
+			var service m.Service
 			decodeService(s, input.Config.HasShortFieldNames, &service)
 			event.Service = &service
 		}

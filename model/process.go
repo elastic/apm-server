@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
 import (
 	"github.com/elastic/beats/v7/libbeat/common"

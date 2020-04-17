@@ -25,7 +25,7 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/google/pprof/profile"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -44,7 +44,7 @@ var processorEntry = common.MapStr{
 
 // PprofProfile represents a resource profile.
 type PprofProfile struct {
-	Metadata metadata.Metadata
+	Metadata model.Metadata
 	Profile  *profile.Profile
 }
 

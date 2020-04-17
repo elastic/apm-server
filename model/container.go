@@ -15,27 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
 import (
-	"net"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-// Client holds information about the client of a request.
-type Client struct {
-	// IP holds the client's IP address.
-	IP net.IP
-
-	// TODO(axw) add client.geo fields, when we have
-	// GeoIP lookup implemented in the server.
+type Container struct {
+	ID string
 }
 
-func (c *Client) fields() common.MapStr {
-	var fields mapStr
-	if c.IP != nil {
-		fields.set("ip", c.IP.String())
+func (k *Container) fields() common.MapStr {
+	if k == nil {
+		return nil
 	}
-	return common.MapStr(fields)
+	var container mapStr
+	container.maybeSetString("id", k.ID)
+	return common.MapStr(container)
 }

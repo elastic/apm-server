@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 )
@@ -145,20 +144,20 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
-	eventMetadata := metadata.Metadata{
-		Service: metadata.Service{
+	eventMetadata := model.Metadata{
+		Service: model.Service{
 			Name:    serviceName,
 			Version: serviceVersion,
-			Node:    metadata.ServiceNode{Name: serviceNodeName},
+			Node:    model.ServiceNode{Name: serviceNodeName},
 		},
-		System: metadata.System{
+		System: model.System{
 			ConfiguredHostname: name,
 			DetectedHostname:   hostname,
 			Architecture:       architecture,
 			Platform:           platform,
 		},
-		User:   metadata.User{ID: id, Name: name, UserAgent: userAgent},
-		Client: metadata.Client{IP: net.ParseIP(ip)},
+		User:   model.User{ID: id, Name: name, UserAgent: userAgent},
+		Client: model.Client{IP: net.ParseIP(ip)},
 		Labels: common.MapStr{"a": true},
 	}
 

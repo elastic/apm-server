@@ -31,7 +31,7 @@ import (
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/profile"
 	"github.com/elastic/apm-server/publish"
@@ -89,7 +89,7 @@ func Handler(
 
 		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
-		var profileMetadata metadata.Metadata
+		var profileMetadata model.Metadata
 		mr, err := c.Request.MultipartReader()
 		if err != nil {
 			return nil, err

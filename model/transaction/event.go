@@ -28,7 +28,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -46,7 +45,7 @@ var (
 )
 
 type Event struct {
-	Metadata metadata.Metadata
+	Metadata m.Metadata
 
 	ID       string
 	ParentID *string

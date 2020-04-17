@@ -27,14 +27,14 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 )
 
 func TestTransform(t *testing.T) {
 	timestamp := time.Now()
-	metadata := metadata.Metadata{
-		Service: metadata.Service{Name: "myservice"},
+	metadata := model.Metadata{
+		Service: model.Service{Name: "myservice"},
 	}
 
 	const (

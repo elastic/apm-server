@@ -21,8 +21,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/validation"
 )
@@ -33,8 +33,8 @@ var (
 )
 
 // DecodeRUMV3Metadata decodes v3 RUM metadata.
-func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*metadata.Metadata, error) {
-	var out metadata.Metadata
+func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*model.Metadata, error) {
+	var out model.Metadata
 	if err := decodeMetadata(input, hasShortFieldNames, rumV3MetadataSchema, &out); err != nil {
 		return nil, err
 	}
@@ -42,15 +42,15 @@ func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*metadata.
 }
 
 // DecodeMetadata decodes v2 metadata.
-func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*metadata.Metadata, error) {
-	var out metadata.Metadata
+func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*model.Metadata, error) {
+	var out model.Metadata
 	if err := decodeMetadata(input, hasShortFieldNames, metadataSchema, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
 }
 
-func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonschema.Schema, out *metadata.Metadata) error {
+func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonschema.Schema, out *model.Metadata) error {
 	raw, err := validation.ValidateObject(input, schema)
 	if err != nil {
 		return errors.Wrap(err, "failed to validate metadata")

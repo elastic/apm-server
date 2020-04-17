@@ -24,7 +24,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -141,7 +140,7 @@ func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.LibraryFrame = &libraryFrame
 }
 
-func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.Store, service *metadata.Service, prevFunction string) (function string, errMsg string) {
+func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.Store, service *Service, prevFunction string) (function string, errMsg string) {
 	function = prevFunction
 
 	var valid bool

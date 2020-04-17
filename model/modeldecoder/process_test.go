@@ -20,26 +20,25 @@ package modeldecoder
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/model/metadata"
 )
 
 func TestProcessDecode(t *testing.T) {
 	pid, ppid, title, argv := 123, 456, "foo", []string{"a", "b"}
 	for _, test := range []struct {
 		input map[string]interface{}
-		p     metadata.Process
+		p     model.Process
 	}{
 		{input: nil},
 		{
 			input: map[string]interface{}{
 				"pid": 123.0, "ppid": 456.0, "title": title, "argv": []interface{}{"a", "b"},
 			},
-			p: metadata.Process{Pid: pid, Ppid: &ppid, Title: title, Argv: argv},
+			p: model.Process{Pid: pid, Ppid: &ppid, Title: title, Argv: argv},
 		},
 	} {
-		var proc metadata.Process
+		var proc model.Process
 		decodeProcess(test.input, &proc)
 		assert.Equal(t, test.p, proc)
 	}

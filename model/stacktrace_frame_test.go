@@ -32,7 +32,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/transform"
@@ -109,8 +108,8 @@ func TestStacktraceFrameTransform(t *testing.T) {
 func TestSourcemap_Apply(t *testing.T) {
 
 	name, version, col, line, path := "myservice", "2.1.4", 10, 15, "/../a/path"
-	validService := func() *metadata.Service {
-		return &metadata.Service{Name: name, Version: version}
+	validService := func() *Service {
+		return &Service{Name: name, Version: version}
 	}
 	validFrame := func() *StacktraceFrame {
 		return &StacktraceFrame{Colno: &col, Lineno: &line, AbsPath: &path}

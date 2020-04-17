@@ -15,47 +15,33 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestKubernetesTransform(t *testing.T) {
-	namespace, podname, poduid, nodename := "namespace", "podname", "poduid", "nodename"
+type User struct {
+	ID        string
+	Email     string
+	Name      string
+	UserAgent string
+}
 
-	tests := []struct {
-		Kubernetes Kubernetes
-		Output     common.MapStr
-	}{
-		{
-			Kubernetes: Kubernetes{},
-			Output:     nil,
-		},
-		{
-			Kubernetes: Kubernetes{
-				Namespace: namespace,
-				NodeName:  nodename,
-				PodName:   podname,
-				PodUID:    poduid,
-			},
-			Output: common.MapStr{
-				"namespace": namespace,
-				"node":      common.MapStr{"name": nodename},
-				"pod": common.MapStr{
-					"uid":  poduid,
-					"name": podname,
-				},
-			},
-		},
+func (u *User) Fields() common.MapStr {
+	if u == nil {
+		return nil
 	}
+	var user mapStr
+	user.maybeSetString("id", u.ID)
+	user.maybeSetString("email", u.Email)
+	user.maybeSetString("name", u.Name)
+	return common.MapStr(user)
+}
 
-	for _, test := range tests {
-		output := test.Kubernetes.fields()
-		assert.Equal(t, test.Output, output)
+func (u *User) UserAgentFields() common.MapStr {
+	if u == nil || u.UserAgent == "" {
+		return nil
 	}
+	return common.MapStr{"original": u.UserAgent}
 }

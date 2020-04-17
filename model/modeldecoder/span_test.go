@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/tests"
 )
@@ -72,8 +71,8 @@ func TestDecodeSpan(t *testing.T) {
 		"filename": "file",
 	}}
 
-	metadata := metadata.Metadata{
-		Service: metadata.Service{Name: "foo"},
+	metadata := m.Metadata{
+		Service: m.Service{Name: "foo"},
 	}
 
 	// baseInput holds the minimal valid input. Test-specific input is added to/removed from this.

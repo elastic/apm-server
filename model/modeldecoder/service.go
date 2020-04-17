@@ -18,11 +18,11 @@
 package modeldecoder
 
 import (
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metadata"
 )
 
-func decodeService(input map[string]interface{}, hasShortFieldNames bool, out *metadata.Service) {
+func decodeService(input map[string]interface{}, hasShortFieldNames bool, out *model.Service) {
 	if input == nil {
 		return
 	}

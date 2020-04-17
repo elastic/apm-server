@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
 import (
 	"testing"
@@ -25,25 +25,37 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestContainerTransform(t *testing.T) {
-	id := "container-id"
+func TestKubernetesTransform(t *testing.T) {
+	namespace, podname, poduid, nodename := "namespace", "podname", "poduid", "nodename"
 
 	tests := []struct {
-		Container Container
-		Output    common.MapStr
+		Kubernetes Kubernetes
+		Output     common.MapStr
 	}{
 		{
-			Container: Container{},
-			Output:    nil,
+			Kubernetes: Kubernetes{},
+			Output:     nil,
 		},
 		{
-			Container: Container{ID: id},
-			Output:    common.MapStr{"id": id},
+			Kubernetes: Kubernetes{
+				Namespace: namespace,
+				NodeName:  nodename,
+				PodName:   podname,
+				PodUID:    poduid,
+			},
+			Output: common.MapStr{
+				"namespace": namespace,
+				"node":      common.MapStr{"name": nodename},
+				"pod": common.MapStr{
+					"uid":  poduid,
+					"name": podname,
+				},
+			},
 		},
 	}
 
 	for _, test := range tests {
-		output := test.Container.fields()
+		output := test.Kubernetes.fields()
 		assert.Equal(t, test.Output, output)
 	}
 }
