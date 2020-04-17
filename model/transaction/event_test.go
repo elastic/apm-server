@@ -60,7 +60,7 @@ func TestEventTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:       id,
+				ID:       id,
 				Type:     "tx",
 				Duration: 65.98,
 			},
@@ -74,7 +74,7 @@ func TestEventTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:        id,
+				ID:        id,
 				Type:      "tx",
 				Duration:  65.98,
 				SpanCount: SpanCount{Started: &startedSpans},
@@ -90,7 +90,7 @@ func TestEventTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:        id,
+				ID:        id,
 				Type:      "tx",
 				Duration:  65.98,
 				SpanCount: SpanCount{Dropped: &dropped},
@@ -106,7 +106,7 @@ func TestEventTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:        id,
+				ID:        id,
 				Name:      &name,
 				Type:      "tx",
 				Result:    &result,

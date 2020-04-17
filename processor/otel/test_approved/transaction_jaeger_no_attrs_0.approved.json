@@ -3,7 +3,7 @@
     "Duration": 79000,
     "Experimental": null,
     "Http": null,
-    "Id": "",
+    "ID": "",
     "Labels": {
         "error": true
     },
@@ -70,7 +70,7 @@
     },
     "Name": "",
     "Page": null,
-    "ParentId": null,
+    "ParentID": null,
     "Result": "Error",
     "Sampled": null,
     "SpanCount": {
@@ -78,7 +78,7 @@
         "Started": null
     },
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
-    "TraceId": "",
+    "TraceID": "",
     "Type": "custom",
     "Url": null
 }

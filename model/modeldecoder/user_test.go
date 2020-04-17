@@ -22,8 +22,9 @@ import (
 	"net"
 	"testing"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/model/metadata"
 )
 
 func TestUserDecode(t *testing.T) {

@@ -355,7 +355,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 387ee122a369
+Revision: 07ed0dabcaab
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2561,7 +2561,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 85ca7c5b95cd
+Revision: 669c56c373c4
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 

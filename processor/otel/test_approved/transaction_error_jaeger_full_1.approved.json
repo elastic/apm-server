@@ -33,7 +33,7 @@
         },
         "Version": "1.1"
     },
-    "Id": null,
+    "ID": null,
     "Labels": null,
     "Log": {
         "Level": null,
@@ -102,10 +102,10 @@
         }
     },
     "Page": null,
-    "ParentId": "41414646",
+    "ParentID": "41414646",
     "Timestamp": "2019-12-16T12:46:58.000768091Z",
-    "TraceId": "46467830",
-    "TransactionId": "41414646",
+    "TraceID": "46467830",
+    "TransactionID": "41414646",
     "TransactionSampled": null,
     "TransactionType": "http_request",
     "Url": {

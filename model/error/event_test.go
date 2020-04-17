@@ -76,7 +76,7 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 
 func TestHandleExceptionTree(t *testing.T) {
 	event := &Event{
-		Id: tests.StringPtr("id"),
+		ID: tests.StringPtr("id"),
 		Exception: &Exception{
 			Message: tests.StringPtr("message0"),
 			Type:    tests.StringPtr("type0"),
@@ -214,12 +214,12 @@ func TestEventFields(t *testing.T) {
 		},
 		"withFrames": {
 			Event: Event{
-				Id:            &id,
+				ID:            &id,
 				Timestamp:     time.Now(),
 				Culprit:       &culprit,
 				Exception:     &exception,
 				Log:           &log,
-				TransactionId: &trId,
+				TransactionID: &trId,
 
 				// Service name and version are required for sourcemapping.
 				Metadata: metadata.Metadata{
@@ -356,7 +356,7 @@ func TestEvents(t *testing.T) {
 					Message:    &exMsg,
 					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: tests.StringPtr("myFile")}},
 				},
-				TransactionId:      &trId,
+				TransactionID:      &trId,
 				TransactionSampled: &sampledTrue,
 				Labels:             &labels,
 				Page:               &m.Page{Url: &url, Referer: &referer},

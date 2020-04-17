@@ -22,7 +22,7 @@
         },
         "Version": "1.1"
     },
-    "Id": "41414646",
+    "ID": "41414646",
     "Labels": {
         "bool_a": true,
         "component": "foo",
@@ -94,7 +94,7 @@
     },
     "Name": "HTTP GET",
     "Page": null,
-    "ParentId": null,
+    "ParentID": null,
     "Result": "HTTP 4xx",
     "Sampled": null,
     "SpanCount": {
@@ -102,7 +102,7 @@
         "Started": null
     },
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
-    "TraceId": "46467830",
+    "TraceID": "46467830",
     "Type": "http_request",
     "Url": {
         "Domain": "foo.bar.com",
