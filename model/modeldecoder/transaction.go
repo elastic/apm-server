@@ -18,18 +18,17 @@
 package modeldecoder
 
 import (
-	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/transaction"
 	"github.com/pkg/errors"
-
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
+	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var (
@@ -39,16 +38,52 @@ var (
 
 // DecodeRUMV3Transaction decodes a v3 RUM transaction.
 func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
-	event, err := decodeTransaction(input, rumV3TransactionSchema)
+	tr, err := decodeTransaction(input, rumV3TransactionSchema)
 	if err != nil {
 		return nil, err
 	}
-	marks, err := decodeRUMV3Marks(input.Raw.(map[string]interface{}), input.Config)
+	raw := input.Raw.(map[string]interface{})
+	spans, err := decodeRUMV3Spans(raw, input, tr)
+	if err != nil {
+		return nil, err
+	}
+	event := &transaction.RUMV3Event{
+		Event: tr,
+		Spans: spans,
+	}
+	marks, err := decodeRUMV3Marks(raw, input.Config)
 	if err != nil {
 		return nil, err
 	}
 	event.Marks = marks
 	return event, nil
+}
+
+func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.Event) ([]span.Event, error) {
+	decoder := &utility.ManualDecoder{}
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
+	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
+	var spans = make([]span.Event, len(rawSpans))
+	for idx, rawSpan := range rawSpans {
+		span, err := DecodeRUMV3Span(Input{
+			Raw:         rawSpan,
+			RequestTime: input.RequestTime,
+			Metadata:    input.Metadata,
+			Config:      input.Config,
+		})
+		if err != nil {
+			return spans, err
+		}
+		span.TransactionID = &tr.ID
+		span.TraceID = &tr.TraceID
+		if span.ParentIdx == nil {
+			span.ParentID = &tr.ID
+		} else if *span.ParentIdx < idx {
+			span.ParentID = &spans[*span.ParentIdx].ID
+		}
+		spans[idx] = *span
+	}
+	return spans, nil
 }
 
 // DecodeTransaction decodes a v2 transaction.
@@ -70,7 +105,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 	decoder := utility.ManualDecoder{}
 	e := transaction.Event{
 		Metadata:     input.Metadata,
-		Id:           decoder.String(raw, "id"),
+		ID:           decoder.String(raw, "id"),
 		Type:         decoder.String(raw, fieldName("type")),
 		Name:         decoder.StringPtr(raw, fieldName("name")),
 		Result:       decoder.StringPtr(raw, fieldName("result")),
@@ -89,8 +124,8 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		SpanCount: transaction.SpanCount{
 			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
 			Started: decoder.IntPtr(raw, fieldName("started"), fieldName("span_count"))},
-		ParentId: decoder.StringPtr(raw, "parent_id"),
-		TraceId:  decoder.String(raw, "trace_id"),
+		ParentID: decoder.StringPtr(raw, fieldName("parent_id")),
+		TraceID:  decoder.String(raw, fieldName("trace_id")),
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err

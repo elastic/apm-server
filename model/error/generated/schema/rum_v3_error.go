@@ -39,7 +39,7 @@ const RUMV3Schema = `{
                     "description": "Hex encoded 128 random bits ID of the error.",
                     "maxLength": 1024
                 },
-                "trace_id": {
+                "tid": {
                     "description": "Hex encoded 128 random bits ID of the correlated trace. Must be present if transaction_id and parent_id are set.",
                     "type": ["string", "null"],
                     "maxLength": 1024
@@ -49,7 +49,7 @@ const RUMV3Schema = `{
                     "description": "Hex encoded 64 random bits ID of the correlated transaction. Must be present if trace_id and parent_id are set.",
                     "maxLength": 1024
                 },
-                "parent_id": {
+                "pid": {
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.",
                     "type": ["string", "null"],
                     "maxLength": 1024
@@ -668,11 +668,11 @@ const RUMV3Schema = `{
             "allOf": [
                 { "required": ["id"] },
                 { "if": {"required": ["xid"], "properties": {"xid": { "type": "string" }}},
-                    "then": { "required": ["trace_id", "parent_id"], "properties": {"trace_id": { "type": "string" }, "parent_id": {"type": "string"}}}},
-                { "if": {"required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}},
-                    "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
-                { "if": {"required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}},
-                    "then": { "required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}} }
+                    "then": { "required": ["tid", "pid"], "properties": {"tid": { "type": "string" }, "pid": {"type": "string"}}}},
+                { "if": {"required": ["tid"], "properties": {"tid": { "type": "string" }}},
+                    "then": { "required": ["pid"], "properties": {"pid": { "type": "string" }}} },
+                { "if": {"required": ["pid"], "properties": {"pid": { "type": "string" }}},
+                    "then": { "required": ["tid"], "properties": {"tid": { "type": "string" }}} }
             ],
             "anyOf": [
                 { "required": ["ex"], "properties": {"ex": { "type": "object" }} },
