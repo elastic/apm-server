@@ -179,7 +179,6 @@ class ServerBaseTest(BaseTest):
 
     def setUp(self):
         super(ServerBaseTest, self).setUp()
-        shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
 
         # Copy ingest pipeline definition to home directory of the test.
         # The pipeline definition is expected to be at a specific location

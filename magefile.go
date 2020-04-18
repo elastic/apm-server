@@ -36,7 +36,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/dev-tools/mage"
+	"github.com/elastic/beats/v7/libbeat/asset"
 	"github.com/elastic/beats/v7/libbeat/generator/fields"
+	"github.com/elastic/beats/v7/licenses"
 
 	"github.com/elastic/apm-server/beater/config"
 )
@@ -222,20 +224,63 @@ func Update() error {
 }
 
 func Fields() error {
-	if err := generateFieldsYAML(); err != nil {
+	fieldsInclude := "include/fields.go"
+	xpackFieldsInclude := mage.XPackBeatDir(fieldsInclude)
+
+	ossFieldsModules := []string{"model"}
+	xpackFieldsModules := []string{mage.XPackBeatDir()}
+	allFieldsModules := append(ossFieldsModules[:], xpackFieldsModules...)
+
+	// Create include/fields.go from the OSS-only fields.
+	if err := generateFieldsYAML(mage.FieldsYML, ossFieldsModules...); err != nil {
 		return err
 	}
-	if err := mage.GenerateAllInOneFieldsGo(); err != nil {
+	if err := mage.GenerateFieldsGo(mage.FieldsYML, fieldsInclude); err != nil {
 		return err
 	}
-	return mage.Docs.FieldDocs("fields.yml")
+
+	// Create docs/fields.asciidoc from all fields from all license types.
+	if err := generateFieldsYAML(mage.FieldsAllYML, allFieldsModules...); err != nil {
+		return err
+	}
+	if err := mage.Docs.FieldDocs(mage.FieldsAllYML); err != nil {
+		return err
+	}
+
+	// Create x-pack/apm-server/include/fields.go from the X-Pack fields.
+	// These supplement the OSS fields, they don't replace them.
+	xpackBeatDir := mage.XPackBeatDir()
+	xpackBeatDirRel, err := filepath.Rel(mage.OSSBeatDir(), xpackBeatDir)
+	if err != nil {
+		return err
+	}
+	xpackFieldsYMLFiles, err := fields.CollectModuleFiles(xpackBeatDir)
+	if err != nil {
+		return err
+	}
+	xpackFieldsData, err := fields.GenerateFieldsYml(xpackFieldsYMLFiles)
+	if err != nil {
+		return err
+	}
+	assetData, err := asset.CreateAsset(
+		licenses.Elastic, mage.BeatName,
+		"XPackFields", // asset name
+		"include",     // package name
+		xpackFieldsData,
+		"asset.ModuleFieldsPri",
+		xpackBeatDirRel,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return ioutil.WriteFile(xpackFieldsInclude, assetData, 0644)
 }
 
-func generateFieldsYAML() error {
-	if err := mage.GenerateFieldsYAML("model"); err != nil {
+func generateFieldsYAML(output string, modules ...string) error {
+	if err := mage.GenerateFieldsYAMLTo(output, modules...); err != nil {
 		return err
 	}
-	contents, err := ioutil.ReadFile("fields.yml")
+	contents, err := ioutil.ReadFile(output)
 	if err != nil {
 		return err
 	}
@@ -278,7 +323,7 @@ func generateFieldsYAML() error {
 			contents = append(contents[:i], contents[i+buf.Len():]...)
 		}
 	}
-	return ioutil.WriteFile("fields.yml", contents, 0644)
+	return ioutil.WriteFile(output, contents, 0644)
 }
 
 // Use RACE_DETECTOR=true to enable the race detector.
@@ -304,6 +349,7 @@ func PythonUnitTest() error {
 // - readme.md.tmpl used in packages is customized.
 // - apm-server.reference.yml is not included in packages.
 // - ingest .json files are included in packaging
+// - fields.yml is sourced from the build directory
 
 var emptyDir = filepath.Clean("build/empty")
 var ingestDirGenerated = filepath.Clean("build/packaging/ingest")
@@ -369,10 +415,20 @@ func customizePackaging() {
 			panic(errors.Errorf("unhandled package type: %v", pkgType))
 		}
 
-		// Remove Kibana dashboard files.
 		for filename, filespec := range args.Spec.Files {
-			if strings.HasPrefix(filespec.Source, "_meta/kibana") {
+			switch {
+			case strings.HasPrefix(filespec.Source, "_meta/kibana"):
+				// Remove Kibana dashboard files.
 				delete(args.Spec.Files, filename)
+
+			case filespec.Source == "fields.yml":
+				// Source fields.yml from the build directory.
+				if args.Spec.License == "Elastic License" {
+					filespec.Source = mage.FieldsAllYML
+				} else {
+					filespec.Source = mage.FieldsYML
+				}
+				args.Spec.Files[filename] = filespec
 			}
 		}
 	}
