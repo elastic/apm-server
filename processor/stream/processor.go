@@ -31,7 +31,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"

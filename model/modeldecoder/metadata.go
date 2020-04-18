@@ -22,7 +22,7 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/validation"
 )

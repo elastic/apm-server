@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 

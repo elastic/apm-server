@@ -26,7 +26,7 @@ import (
 
 	"github.com/elastic/apm-server/model"
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"

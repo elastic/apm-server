@@ -23,7 +23,7 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
-	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
