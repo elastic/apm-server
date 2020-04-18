@@ -233,7 +233,7 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 				http.Request = &model.Req{Method: truncate(v.StringValue.Value)}
 				isHTTP = true
 			case "http.url", "http.path":
-				event.Url = parseURL(v.StringValue.Value, hostname)
+				event.URL = parseURL(v.StringValue.Value, hostname)
 				isHTTP = true
 			case "http.status_code":
 				if intv, err := strconv.Atoi(v.StringValue.Value); err == nil {
@@ -277,7 +277,7 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 				http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &code}}
 			}
 		}
-		event.Http = &http
+		event.HTTP = &http
 	}
 
 	if result == "" {
@@ -470,8 +470,8 @@ func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
 	err.TransactionID = &transaction.ID
 	err.TraceID = &transaction.TraceID
 	err.ParentID = &transaction.ID
-	err.Http = transaction.Http
-	err.Url = transaction.Url
+	err.HTTP = transaction.HTTP
+	err.URL = transaction.URL
 	err.TransactionType = &transaction.Type
 }
 
@@ -481,15 +481,15 @@ func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 	err.TraceID = span.TraceID
 	err.ParentID = &span.ID
 	if span.HTTP != nil {
-		err.Http = &model.Http{}
+		err.HTTP = &model.Http{}
 		if span.HTTP.StatusCode != nil {
-			err.Http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: span.HTTP.StatusCode}}
+			err.HTTP.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: span.HTTP.StatusCode}}
 		}
 		if span.HTTP.Method != nil {
-			err.Http.Request = &model.Req{Method: *span.HTTP.Method}
+			err.HTTP.Request = &model.Req{Method: *span.HTTP.Method}
 		}
 		if span.HTTP.URL != nil {
-			err.Url = parseURL(*span.HTTP.URL, hostname)
+			err.URL = parseURL(*span.HTTP.URL, hostname)
 		}
 	}
 }

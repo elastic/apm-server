@@ -167,8 +167,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Timestamp: timestamp,
 		Labels:    &Labels{"a": "b"},
 		Page:      &Page{Url: &url, Referer: &referer},
-		Http:      &Http{Request: &request, Response: &response},
-		Url:       &Url{Original: &url},
+		HTTP:      &Http{Request: &request, Response: &response},
+		URL:       &Url{Original: &url},
 		Custom:    &Custom{"foo": "bar"},
 		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
 	}

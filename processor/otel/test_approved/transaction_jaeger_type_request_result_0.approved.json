@@ -2,7 +2,7 @@
     "Custom": null,
     "Duration": 0,
     "Experimental": null,
-    "Http": {
+    "HTTP": {
         "Request": null,
         "Response": {
             "DecodedBodySize": null,
@@ -90,7 +90,7 @@
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
     "TraceID": "",
     "Type": "request",
-    "Url": {
+    "URL": {
         "Domain": "host-abc",
         "Fragment": null,
         "Full": "localhost:8080",

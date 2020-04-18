@@ -58,8 +58,8 @@ type Transaction struct {
 	Sampled   *bool
 	SpanCount SpanCount
 	Page      *Page
-	Http      *Http
-	Url       *Url
+	HTTP      *Http
+	URL       *Url
 	Labels    *Labels
 	Custom    *Custom
 
@@ -128,8 +128,8 @@ func (e *Transaction) Transform(ctx context.Context, tctx *transform.Context) []
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
-	utility.Set(fields, "http", e.Http.Fields())
-	utility.Set(fields, "url", e.Url.Fields())
+	utility.Set(fields, "http", e.HTTP.Fields())
+	utility.Set(fields, "url", e.URL.Fields())
 	utility.Set(fields, "experimental", e.Experimental)
 
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}

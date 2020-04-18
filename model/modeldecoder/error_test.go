@@ -194,8 +194,8 @@ func TestErrorEventDecode(t *testing.T) {
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
-				Http:      &h,
-				Url:       &ctxURL,
+				HTTP:      &h,
+				URL:       &ctxURL,
 				Exception: &m.Exception{
 					Message:    &exMsg,
 					Code:       code,

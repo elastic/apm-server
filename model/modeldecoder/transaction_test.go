@@ -321,8 +321,8 @@ func TestTransactionEventDecode(t *testing.T) {
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
-				Http:      &h,
-				Url:       &ctxURL,
+				HTTP:      &h,
+				URL:       &ctxURL,
 			},
 		},
 	} {

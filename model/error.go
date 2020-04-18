@@ -61,8 +61,8 @@ type Error struct {
 	Culprit *string
 	Labels  *Labels
 	Page    *Page
-	Http    *Http
-	Url     *Url
+	HTTP    *Http
+	URL     *Url
 	Custom  *Custom
 
 	Exception *Exception
@@ -116,8 +116,8 @@ func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	// then add event specific information
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
-	utility.Set(fields, "http", e.Http.Fields())
-	utility.Set(fields, "url", e.Url.Fields())
+	utility.Set(fields, "http", e.HTTP.Fields())
+	utility.Set(fields, "url", e.URL.Fields())
 	utility.Set(fields, "experimental", e.Experimental)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
