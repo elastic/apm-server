@@ -11,7 +11,8 @@ import (
 )
 
 func main() {
-	if err := cmd.RootCmd.Execute(); err != nil {
+	rootCmd := cmd.NewXPackRootCommand()
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

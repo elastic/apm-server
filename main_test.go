@@ -22,8 +22,6 @@ package main
 import (
 	"flag"
 	"testing"
-
-	"github.com/elastic/apm-server/cmd"
 )
 
 var systemTest *bool
@@ -32,8 +30,8 @@ func init() {
 	testing.Init()
 	systemTest = flag.Bool("systemTest", false, "Set to true when running system tests")
 
-	cmd.RootCmd.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup("systemTest"))
-	cmd.RootCmd.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup("test.coverprofile"))
+	rootCmd.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup("systemTest"))
+	rootCmd.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup("test.coverprofile"))
 }
 
 // Test started when the test binary is started. Only calls main.
