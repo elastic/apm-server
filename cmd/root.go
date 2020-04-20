@@ -22,6 +22,7 @@ import (
 
 	"github.com/spf13/pflag"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
@@ -29,58 +30,50 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 
-	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/idxmgmt"
-
-	// ensure to include the asset fields
-	_ "github.com/elastic/apm-server/include"
+	_ "github.com/elastic/apm-server/include" // include assets
 )
 
-// Name of the beat (apm-server).
-const Name = "apm-server"
+const (
+	beatName        = "apm-server"
+	apmIndexPattern = "apm"
+)
 
-// IdxPattern for apm
-const IdxPattern = "apm"
-
-// RootCmd for running apm-server.
-// This is the command that is used if no other command is specified.
-// Running `apm-server run` or `apm-server` is identical.
-var RootCmd *cmd.BeatsRootCmd
-
-func init() {
-	overrides := common.MustNewConfigFrom(map[string]interface{}{
-		"logging": map[string]interface{}{
-			"metrics": map[string]interface{}{
-				"enabled": false,
-			},
-			"files": map[string]interface{}{
-				"rotateeverybytes": 10 * 1024 * 1024,
-			},
+var libbeatConfigOverrides = common.MustNewConfigFrom(map[string]interface{}{
+	"logging": map[string]interface{}{
+		"metrics": map[string]interface{}{
+			"enabled": false,
 		},
-		"setup": map[string]interface{}{
-			"template": map[string]interface{}{
-				"settings": map[string]interface{}{
-					"index": map[string]interface{}{
-						"codec": "best_compression",
-						"mapping": map[string]interface{}{
-							"total_fields": map[string]int{
-								"limit": 2000,
-							},
+		"files": map[string]interface{}{
+			"rotateeverybytes": 10 * 1024 * 1024,
+		},
+	},
+	"setup": map[string]interface{}{
+		"template": map[string]interface{}{
+			"settings": map[string]interface{}{
+				"index": map[string]interface{}{
+					"codec": "best_compression",
+					"mapping": map[string]interface{}{
+						"total_fields": map[string]int{
+							"limit": 2000,
 						},
-						"number_of_shards": 1,
 					},
-					"_source": map[string]interface{}{
-						"enabled": true,
-					},
+					"number_of_shards": 1,
+				},
+				"_source": map[string]interface{}{
+					"enabled": true,
 				},
 			},
 		},
-	})
+	},
+})
 
-	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
+// NewRootCommand returns the "apm-server" root command.
+func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
+	var runFlags = pflag.NewFlagSet(beatName, pflag.ExitOnError)
 	settings := instance.Settings{
-		Name:        Name,
-		IndexPrefix: IdxPattern,
+		Name:        beatName,
+		IndexPrefix: apmIndexPattern,
 		Version:     "",
 		RunFlags:    runFlags,
 		Monitoring: report.Settings{
@@ -88,34 +81,36 @@ func init() {
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 		Processing:      processing.MakeDefaultObserverSupport(false),
-		ConfigOverrides: []cfgfile.ConditionalOverride{
-			{
-				Check: func(_ *common.Config) bool {
-					return true
-				},
-				Config: overrides,
+		ConfigOverrides: []cfgfile.ConditionalOverride{{
+			Check: func(_ *common.Config) bool {
+				return true
 			},
-		},
+			Config: libbeatConfigOverrides,
+		}},
 	}
-	RootCmd = cmd.GenRootCmdWithSettings(beater.New, settings)
-	RootCmd.AddCommand(genApikeyCmd(settings))
-	for _, cmd := range RootCmd.ExportCmd.Commands() {
 
-		// remove `dashboard` from `export` commands
-		if cmd.Name() == "dashboard" {
-			RootCmd.ExportCmd.RemoveCommand(cmd)
-			continue
-		}
+	rootCmd := cmd.GenRootCmdWithSettings(newBeat, settings)
+	rootCmd.AddCommand(genApikeyCmd(settings))
+	modifyBuiltinCommands(rootCmd, settings)
+	return rootCmd
+}
 
-		// only add defined flags to `export template` command
-		if cmd.Name() == "template" {
+func modifyBuiltinCommands(rootCmd *cmd.BeatsRootCmd, settings instance.Settings) {
+	for _, cmd := range rootCmd.ExportCmd.Commands() {
+		switch cmd.Name() {
+		case "dashboard":
+			// remove `dashboard` from `export` commands
+			rootCmd.ExportCmd.RemoveCommand(cmd)
+		case "template":
+			// only add defined flags to `export template` command
 			cmd.ResetFlags()
 			cmd.Flags().String("es.version", settings.Version, "Elasticsearch version")
 			cmd.Flags().String("dir", "", "Specify directory for printing template files. By default templates are printed to stdout.")
 		}
 	}
+
 	// only add defined flags to setup command
-	setup := RootCmd.SetupCmd
+	setup := rootCmd.SetupCmd
 	setup.Short = "Setup Elasticsearch index management components and pipelines"
 	setup.Long = `This command does initial setup of the environment:
 
@@ -123,11 +118,11 @@ func init() {
  * Ingest pipelines
 `
 	setup.ResetFlags()
+
 	//lint:ignore SA1019 Setting up template must still be supported until next major version upgrade.
 	tmplKey := cmd.TemplateKey
 	setup.Flags().Bool(tmplKey, false, "Setup index template")
 	setup.Flags().MarkDeprecated(tmplKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
 	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
 	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
-
 }

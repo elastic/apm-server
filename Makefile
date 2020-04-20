@@ -105,8 +105,13 @@ docker-compose.override.yml:
 update: fields go-generate add-headers copy-docs notice $(MAGE)
 	@$(MAGE) update
 
-fields: include/fields.go fields.yml
-include/fields.go fields.yml: $(MAGE) magefile.go _meta/fields.common.yml $(shell find model -name fields.yml)
+fields_sources=\
+  _meta/fields.common.yml \
+  $(shell find model -name fields.yml) \
+  $(shell find x-pack/apm-server/fields -name fields.yml)
+
+fields: include/fields.go x-pack/apm-server/include/fields.go
+include/fields.go x-pack/apm-server/include/fields.go: $(MAGE) magefile.go $(fields_sources)
 	@$(MAGE) fields
 
 config: apm-server.yml apm-server.docker.yml

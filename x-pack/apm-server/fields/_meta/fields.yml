@@ -1,0 +1,19 @@
+- key: apm-transaction-metrics-xpack
+  title: "APM Transaction Metrics"
+  description: >
+    APM transaction metrics, and transaction metrics-specific properties,
+    requiring licensed features such as the histogram field type.
+  short_config: true
+  fields:
+    - name: transaction
+      type: group
+      dynamic: false
+      fields:
+
+      - name: duration
+        type: group
+        fields:
+        - name: histogram
+          type: histogram
+          description: >
+            Pre-aggregated histogram of transaction durations.
