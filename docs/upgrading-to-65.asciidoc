@@ -40,7 +40,7 @@ Notably, most of the endpoints associated with this API have been deprecated,
 and replaced with a new endpoint: `intake/v2/events`.
 
 Similarly,
-the <<rum, RUM>> endpoint has been deprecated and replaced with a new endpoint: `intake/v2/rum/events`.
+the <<configuration-rum, RUM>> endpoint has been deprecated and replaced with a new endpoint: `intake/v2/rum/events`.
 
 Details about these changes,
 and the information you can send to the new endpoint,
