@@ -7,7 +7,7 @@
 
 IMPORTANT: You must <<configuration-rum,enable RUM support>> in the APM Server for this endpoint to work.
 
-The APM Server exposes an API endpoint to upload source maps for <<rum, real user monitoring (RUM)>>.
+The APM Server exposes an API endpoint to upload source maps for <<configuration-rum, real user monitoring (RUM)>>.
 
 [[sourcemap-endpoint]]
 [float]
@@ -48,4 +48,3 @@ curl -X POST http://127.0.0.1:8200/assets/v1/sourcemaps \
   -F bundle_filepath="http://localhost/static/js/bundle.js" \
   -F sourcemap=@bundle.js.map
 ---------------------------------------------------------------------------
-
