@@ -21,7 +21,7 @@ Ready to learn more about the Elastic APM ecosystem? Check out these helpful top
 * <<install-and-run>>
 * <<apm-data-model>>
 * <<distributed-tracing>>
-* <<configuration-rum>>
+* <<rum>>
 * <<opentracing>>
 * <<agent-server-compatibility>>
 * <<troubleshooting>>
