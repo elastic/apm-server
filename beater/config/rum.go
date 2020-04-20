@@ -84,6 +84,9 @@ func (s *SourceMapping) IsEnabled() bool {
 }
 
 // MemoizedSourcemapStore creates the sourcemap store once and then caches it
+//
+// TODO(axw) move this logic out of beater/config. This is a consumer of config,
+// not config itself.
 func (c *RumConfig) MemoizedSourcemapStore() (*sourcemap.Store, error) {
 	if !c.IsEnabled() || !c.SourceMapping.IsEnabled() || !c.SourceMapping.isSetup() {
 		return nil, nil
@@ -151,7 +154,17 @@ func (s *SourceMapping) Unpack(inp *common.Config) error {
 	if err := inp.Unpack(&cfg); err != nil {
 		return errors.Wrap(err, "error unpacking sourcemapping config")
 	}
-	*s = SourceMapping(cfg)
+
+	// TODO(axw) we have to copy specific fields because copying the
+	// whole struct causes a vet error, due to the sync.Once. After
+	// moving MemoizedSourcemapStore out of beater/config (removing
+	// the need for the sync.Once), we should go back to copying the
+	// whole struct.
+	s.Cache = cfg.Cache
+	s.Enabled = cfg.Enabled
+	s.IndexPattern = cfg.IndexPattern
+	s.ESConfig = cfg.ESConfig
+
 	if inp.HasField("elasticsearch") {
 		s.esConfigured = true
 	}
