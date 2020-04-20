@@ -15,41 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modeldecoder
+package metricset
 
-import "encoding/json"
+import "github.com/elastic/beats/v7/libbeat/common"
 
-func getObject(obj map[string]interface{}, key string) map[string]interface{} {
-	value, _ := obj[key].(map[string]interface{})
-	return value
-}
+type mapStr common.MapStr
 
-func decodeString(obj map[string]interface{}, key string, out *string) bool {
-	if value, ok := obj[key].(string); ok {
-		*out = value
-		return true
+func (m *mapStr) set(k string, v interface{}) {
+	if *m == nil {
+		*m = make(mapStr)
 	}
-	return false
+	(*m)[k] = v
 }
 
-func decodeInt(obj map[string]interface{}, key string, out *int) bool {
-	var f float64
-	if decodeFloat64(obj, key, &f) {
-		*out = int(f)
-		return true
-	}
-	return false
-}
-
-func decodeFloat64(obj map[string]interface{}, key string, out *float64) bool {
-	switch value := obj[key].(type) {
-	case json.Number:
-		if f, err := value.Float64(); err == nil {
-			*out = f
-		}
-		return true
-	case float64:
-		*out = value
+func (m *mapStr) maybeSetString(k, v string) bool {
+	if v != "" {
+		m.set(k, v)
 		return true
 	}
 	return false
