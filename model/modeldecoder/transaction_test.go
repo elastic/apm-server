@@ -36,6 +36,65 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
+var (
+	trID     = "123"
+	trType   = "type"
+	trName   = "foo()"
+	trResult = "555"
+
+	trDuration = 6.0
+
+	traceID  = "0147258369012345abcdef0123456789"
+	parentID = "abcdef0123456789"
+
+	timestampParsed = time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
+	timestampEpoch  = json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
+
+	marks = map[string]interface{}{"navigationTiming": map[string]interface{}{
+		"appBeforeBootstrap": 608.9300000000001,
+		"navigationStart":    -21,
+	}}
+
+	trUserName  = "jane"
+	trUserID    = "abc123"
+	trUserEmail = "j@d.com"
+	trUserIP    = "127.0.0.1"
+
+	trPageURL                = "https://mypage.com"
+	trPageReferer            = "http:mypage.com"
+	trRequestHeaderUserAgent = "go-1.1"
+)
+
+var fullTransactionInput = map[string]interface{}{
+	"id":         trID,
+	"type":       trType,
+	"name":       trName,
+	"duration":   trDuration,
+	"timestamp":  timestampEpoch,
+	"result":     trResult,
+	"sampled":    true,
+	"trace_id":   traceID,
+	"parent_id":  parentID,
+	"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0},
+	"marks":      marks,
+	"context": map[string]interface{}{
+		"a":      "b",
+		"custom": map[string]interface{}{"abc": 1},
+		"user":   map[string]interface{}{"username": trUserName, "email": trUserEmail, "ip": trUserIP, "id": trUserID},
+		"tags":   map[string]interface{}{"foo": "bar"},
+		"page":   map[string]interface{}{"url": trPageURL, "referer": trPageReferer},
+		"request": map[string]interface{}{
+			"method":  "POST",
+			"url":     map[string]interface{}{"raw": "127.0.0.1"},
+			"headers": map[string]interface{}{"user-agent": trRequestHeaderUserAgent},
+		},
+		"response": map[string]interface{}{
+			"finished": false,
+			"headers":  map[string]interface{}{"Content-Type": "text/html"},
+		},
+	},
+}
+
 func TestTransactionEventDecodeFailure(t *testing.T) {
 	for name, test := range map[string]struct {
 		input interface{}
@@ -115,7 +174,8 @@ func TestTransactionEventDecode(t *testing.T) {
 	inputMetadata := metadata.Metadata{Service: metadata.Service{Name: "foo"}}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), ID: userID, UserAgent: ua}
+	mergedMetadata.User = metadata.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
 	baseInput := map[string]interface{}{
@@ -265,7 +325,6 @@ func TestTransactionEventDecode(t *testing.T) {
 				Custom:    &custom,
 				Http:      &h,
 				Url:       &ctxURL,
-				Client:    &model.Client{IP: net.ParseIP(userIP)},
 			},
 		},
 	} {
@@ -287,5 +346,21 @@ func TestTransactionEventDecode(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, test.e, transformable)
 		})
+	}
+}
+
+func BenchmarkDecodeTransaction(b *testing.B) {
+	fullMetadata, err := DecodeMetadata(fullInput, false)
+	require.NoError(b, err)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		if _, err := DecodeTransaction(Input{
+			Metadata: *fullMetadata,
+			Raw:      fullTransactionInput,
+		}); err != nil {
+			b.Fatal(err)
+		}
 	}
 }

@@ -1,5 +1,4 @@
 {
-    "Client": null,
     "Custom": null,
     "Duration": 79000,
     "Experimental": null,
@@ -11,6 +10,9 @@
     "Marks": null,
     "Message": null,
     "Metadata": {
+        "Client": {
+            "IP": ""
+        },
         "Labels": {},
         "Process": {
             "Argv": null,
@@ -62,7 +64,6 @@
         "User": {
             "Email": "",
             "ID": "",
-            "IP": "",
             "Name": "",
             "UserAgent": ""
         }

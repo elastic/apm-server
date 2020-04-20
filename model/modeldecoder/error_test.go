@@ -60,7 +60,8 @@ func TestErrorEventDecode(t *testing.T) {
 	}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = metadata.User{Name: name, Email: email, IP: net.ParseIP(userIP), ID: userID, UserAgent: ua}
+	mergedMetadata.User = metadata.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
 	baseInput := map[string]interface{}{
@@ -197,7 +198,6 @@ func TestErrorEventDecode(t *testing.T) {
 				Custom:    &custom,
 				Http:      &h,
 				Url:       &ctxURL,
-				Client:    &m.Client{IP: net.ParseIP(userIP)},
 				Exception: &modelerror.Exception{
 					Message:    &exMsg,
 					Code:       code,

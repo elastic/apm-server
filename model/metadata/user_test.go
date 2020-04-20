@@ -18,7 +18,6 @@
 package metadata
 
 import (
-	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,7 +27,6 @@ import (
 
 func TestUserFields(t *testing.T) {
 	id := "1234"
-	ip := net.ParseIP("127.0.0.1")
 	email := "test@mail.co"
 	name := "user123"
 	userAgent := "rum-1.0"
@@ -44,7 +42,6 @@ func TestUserFields(t *testing.T) {
 		{
 			User: User{
 				ID:        id,
-				IP:        ip,
 				Email:     email,
 				Name:      name,
 				UserAgent: userAgent,
@@ -61,35 +58,6 @@ func TestUserFields(t *testing.T) {
 		output := test.User.Fields()
 		assert.Equal(t, test.Output, output)
 	}
-}
-
-func TestUserClientFields(t *testing.T) {
-	id := "1234"
-	email := "test@mail.co"
-	userName := "user123"
-	userAgent := "rum-1.0"
-
-	for name, tc := range map[string]struct {
-		ip  string
-		out common.MapStr
-	}{
-		"Empty":   {ip: "", out: nil},
-		"IPv4":    {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
-		"IPv6":    {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
-		"Invalid": {ip: "192.0.1", out: nil},
-	} {
-		t.Run(name, func(t *testing.T) {
-			u := User{IP: net.ParseIP(tc.ip), ID: id, Email: email, Name: userName, UserAgent: userAgent}
-			assert.Equal(t, tc.out, u.ClientFields())
-		})
-	}
-
-	t.Run("NilValues", func(t *testing.T) {
-		var u User
-		assert.Nil(t, u.ClientFields())
-		u = User{}
-		assert.Nil(t, u.ClientFields())
-	})
 }
 
 func TestUserAgentFields(t *testing.T) {
@@ -109,7 +77,6 @@ func TestUserAgentFields(t *testing.T) {
 		{
 			User: User{
 				ID:        id,
-				IP:        net.ParseIP("127.0.0.1"),
 				Email:     email,
 				Name:      name,
 				UserAgent: userAgent,

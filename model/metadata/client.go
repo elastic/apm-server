@@ -18,30 +18,24 @@
 package metadata
 
 import (
+	"net"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-type User struct {
-	ID        string
-	Email     string
-	Name      string
-	UserAgent string
+// Client holds information about the client of a request.
+type Client struct {
+	// IP holds the client's IP address.
+	IP net.IP
+
+	// TODO(axw) add client.geo fields, when we have
+	// GeoIP lookup implemented in the server.
 }
 
-func (u *User) Fields() common.MapStr {
-	if u == nil {
-		return nil
+func (c *Client) fields() common.MapStr {
+	var fields mapStr
+	if c.IP != nil {
+		fields.set("ip", c.IP.String())
 	}
-	var user mapStr
-	user.maybeSetString("id", u.ID)
-	user.maybeSetString("email", u.Email)
-	user.maybeSetString("name", u.Name)
-	return common.MapStr(user)
-}
-
-func (u *User) UserAgentFields() common.MapStr {
-	if u == nil || u.UserAgent == "" {
-		return nil
-	}
-	return common.MapStr{"original": u.UserAgent}
+	return common.MapStr(fields)
 }
