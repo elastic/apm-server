@@ -19,6 +19,7 @@ package config
 
 import (
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -65,9 +66,11 @@ type SourceMapping struct {
 	Enabled      *bool                 `config:"enabled"`
 	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
-
-	store        *sourcemap.Store
 	esConfigured bool
+
+	initStoreOnce sync.Once
+	store         *sourcemap.Store
+	storeError    error
 }
 
 // IsEnabled indicates whether RUM endpoint is enabled or not
@@ -85,23 +88,23 @@ func (c *RumConfig) MemoizedSourcemapStore() (*sourcemap.Store, error) {
 	if !c.IsEnabled() || !c.SourceMapping.IsEnabled() || !c.SourceMapping.isSetup() {
 		return nil, nil
 	}
-	if c.SourceMapping.store != nil {
-		return c.SourceMapping.store, nil
-	}
-
-	esClient, err := elasticsearch.NewClient(c.SourceMapping.ESConfig)
-	if err != nil {
-		return nil, err
-	}
-	// the index pattern by default contains a variable `observer.version` that needs to be replaced with the
-	// concrete apm-server version.
-	index := replaceVersion(c.SourceMapping.IndexPattern, c.BeatVersion)
-	store, err := sourcemap.NewStore(esClient, index, c.SourceMapping.Cache.Expiration)
-	if err != nil {
-		return nil, err
-	}
-	c.SourceMapping.store = store
-	return store, nil
+	c.SourceMapping.initStoreOnce.Do(func() {
+		esClient, err := elasticsearch.NewClient(c.SourceMapping.ESConfig)
+		if err != nil {
+			c.SourceMapping.storeError = err
+			return
+		}
+		// the index pattern by default contains a variable `observer.version`
+		// that needs to be replaced with the concrete apm-server version.
+		index := replaceVersion(c.SourceMapping.IndexPattern, c.BeatVersion)
+		store, err := sourcemap.NewStore(esClient, index, c.SourceMapping.Cache.Expiration)
+		if err != nil {
+			c.SourceMapping.storeError = err
+			return
+		}
+		c.SourceMapping.store = store
+	})
+	return c.SourceMapping.store, c.SourceMapping.storeError
 }
 
 func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
