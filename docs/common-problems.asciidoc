@@ -73,7 +73,7 @@ The <<secret-token, secret token>> in the request header doesn't match the confi
 [float]
 === HTTP 403: Forbidden request
 
-Either you are sending requests to a <<rum, RUM>> endpoint without RUM enabled, or a request
+Either you are sending requests to a <<configuration-rum, RUM>> endpoint without RUM enabled, or a request
 is coming from an origin not whitelisted in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
 
 [[queue-full]]
@@ -187,7 +187,7 @@ destination host.
 [float]
 === Field limit exceeded
 
-When adding too many distinct tag keys on a transaction or span, 
+When adding too many distinct tag keys on a transaction or span,
 you risk creating a link:{ref}/mapping.html#mapping-limit-settings[mapping explosion].
 
 For example,
@@ -239,7 +239,7 @@ Your load balancer should be set somewhere between these numbers.
 For example:
 
 ----------------------------------------------------------------------
-APM Agent --> Load Balancer  --> APM Server 
+APM Agent --> Load Balancer  --> APM Server
    10s            15s               30s
 ----------------------------------------------------------------------
 
@@ -250,7 +250,7 @@ APM Agent --> Load Balancer  --> APM Server
 *If Elasticsearch is down*
 
 If Elasticsearch goes down, the APM Server will keep data in memory until Elasticsearch is back up,
-or until it runs out of space in its internal in-memory queue. 
+or until it runs out of space in its internal in-memory queue.
 You can <<adjust-queue-size,adjust the internal queue size>> if necessary.
 When the queue becomes full, APM Server will respond with <<queue-full,`HTTP 503: Queue is full`>>,
 and data will be lost.
