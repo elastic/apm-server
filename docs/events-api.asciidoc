@@ -37,7 +37,7 @@ Send an `HTTP POST` request to the APM Server `intake/v2/events` endpoint:
 http(s)://{hostname}:{port}/intake/v2/events
 ------------------------------------------------------------
 
-For <<rum, RUM>> send an `HTTP POST` request to the APM Server `intake/v2/rum/events` endpoint instead:
+For <<configuration-rum, RUM>> send an `HTTP POST` request to the APM Server `intake/v2/rum/events` endpoint instead:
 
 [source,bash]
 ------------------------------------------------------------
@@ -50,7 +50,7 @@ http(s)://{hostname}:{port}/intake/v2/rum/events
 
 On success, the server will respond with a 202 Accepted status code and no body.
 
-Keep in mind that events can succeed and fail independently of each other. Only if all events succeed does the server respond with a 202. 
+Keep in mind that events can succeed and fail independently of each other. Only if all events succeed does the server respond with a 202.
 
 [[events-api-errors]]
 [float]
@@ -68,13 +68,13 @@ The APM Server will only save 5 event related errors.
 If it encounters more than 5 event related errors,
 the additional errors will not be returned to agent.
 Once all events have been processed,
-the error response is sent. 
+the error response is sent.
 
 Some errors, not relating to specific events,
 may terminate the request immediately.
 For example: queue is full, IP rate limit reached, wrong metadata, etc.
 If at any point one of these errors is encountered,
-it is added to the internal array and immediately returned. 
+it is added to the internal array and immediately returned.
 
 An example error response might look something like this:
 
@@ -104,7 +104,7 @@ An example error response might look something like this:
 <3> An immediately returning non-event related error
 <4> The number of accepted events
 
-If you're developing an agent, these errors can be useful for debugging. 
+If you're developing an agent, these errors can be useful for debugging.
 
 [[events-api-schema-definition]]
 [float]
