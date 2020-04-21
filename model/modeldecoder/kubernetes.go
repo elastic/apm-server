@@ -17,11 +17,9 @@
 
 package modeldecoder
 
-import (
-	"github.com/elastic/apm-server/model/metadata"
-)
+import "github.com/elastic/apm-server/model"
 
-func decodeKubernetes(input map[string]interface{}, out *metadata.Kubernetes) {
+func decodeKubernetes(input map[string]interface{}, out *model.Kubernetes) {
 	if input == nil {
 		return
 	}

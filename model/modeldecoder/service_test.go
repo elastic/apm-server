@@ -20,9 +20,8 @@ package modeldecoder
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/model/metadata"
 )
 
 const (
@@ -37,16 +36,16 @@ func TestServiceDecode(t *testing.T) {
 	serviceName := "myService"
 	for _, test := range []struct {
 		input map[string]interface{}
-		s     metadata.Service
+		s     model.Service
 	}{
 		{input: nil},
 		{
 			input: map[string]interface{}{"name": 1234},
-			s: metadata.Service{
-				Language:  metadata.Language{},
-				Runtime:   metadata.Runtime{},
-				Framework: metadata.Framework{},
-				Agent:     metadata.Agent{},
+			s: model.Service{
+				Language:  model.Language{},
+				Runtime:   model.Runtime{},
+				Framework: model.Framework{},
+				Agent:     model.Agent{},
 			},
 		},
 		{
@@ -71,30 +70,30 @@ func TestServiceDecode(t *testing.T) {
 					"version": "1.0.0",
 				},
 			},
-			s: metadata.Service{
+			s: model.Service{
 				Name:        serviceName,
 				Version:     serviceVersion,
 				Environment: serviceEnvironment,
-				Language: metadata.Language{
+				Language: model.Language{
 					Name:    langName,
 					Version: langVersion,
 				},
-				Runtime: metadata.Runtime{
+				Runtime: model.Runtime{
 					Name:    rtName,
 					Version: rtVersion,
 				},
-				Framework: metadata.Framework{
+				Framework: model.Framework{
 					Name:    fwName,
 					Version: fwVersion,
 				},
-				Agent: metadata.Agent{
+				Agent: model.Agent{
 					Name:    agentName,
 					Version: agentVersion,
 				},
 			},
 		},
 	} {
-		var service metadata.Service
+		var service model.Service
 		decodeService(test.input, false, &service)
 		assert.Equal(t, test.s, service)
 	}

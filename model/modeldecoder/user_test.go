@@ -22,37 +22,36 @@ import (
 	"net"
 	"testing"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/model/metadata"
 )
 
 func TestUserDecode(t *testing.T) {
 	id, mail, name, ip, agent := "12", "m@g.dk", "foo", "127.0.0.1", "ruby"
 	for _, test := range []struct {
 		input  map[string]interface{}
-		user   metadata.User
-		client metadata.Client
+		user   model.User
+		client model.Client
 	}{
 		{input: nil},
 		{
 			input: map[string]interface{}{"id": json.Number("12")},
-			user:  metadata.User{ID: id},
+			user:  model.User{ID: id},
 		},
 		{
 			input:  map[string]interface{}{"ip": ip},
-			client: metadata.Client{IP: net.ParseIP(ip)},
+			client: model.Client{IP: net.ParseIP(ip)},
 		},
 		{
 			input: map[string]interface{}{
 				"id": id, "email": mail, "username": name, "ip": ip, "user-agent": agent,
 			},
-			user:   metadata.User{ID: id, Email: mail, Name: name, UserAgent: agent},
-			client: metadata.Client{IP: net.ParseIP(ip)},
+			user:   model.User{ID: id, Email: mail, Name: name, UserAgent: agent},
+			client: model.Client{IP: net.ParseIP(ip)},
 		},
 	} {
-		var user metadata.User
-		var client metadata.Client
+		var user model.User
+		var client model.Client
 		decodeUser(test.input, false, &user, &client)
 		assert.Equal(t, test.user, user)
 		assert.Equal(t, test.client, client)

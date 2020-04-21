@@ -28,7 +28,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/utility"
 )
@@ -192,7 +192,7 @@ func TestDecodeContext(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			var meta metadata.Metadata // ignored
+			var meta model.Metadata // ignored
 			out, err := decodeContext(test.input, test.cfg, &meta)
 			if test.errOut != "" {
 				if assert.Error(t, err) {
@@ -210,12 +210,12 @@ func TestDecodeContext(t *testing.T) {
 }
 
 func TestDecodeContextMetadata(t *testing.T) {
-	inputMetadata := metadata.Metadata{
-		Service: metadata.Service{
+	inputMetadata := model.Metadata{
+		Service: model.Service{
 			Name:    "myService", // unmodified
 			Version: "5.1.2",
 		},
-		User: metadata.User{ID: "12345678ab"},
+		User: model.User{ID: "12345678ab"},
 	}
 
 	mergedMetadata := inputMetadata
@@ -230,7 +230,7 @@ func TestDecodeContextMetadata(t *testing.T) {
 	mergedMetadata.Service.Agent.Name = "elastic-node"
 	mergedMetadata.Service.Agent.Version = "1.0.0"
 	mergedMetadata.Service.Agent.EphemeralID = "abcdef123"
-	mergedMetadata.User = metadata.User{
+	mergedMetadata.User = model.User{
 		// ID is missing because per-event user metadata
 		// replaces stream user metadata. This is unlike
 		// service metadata above, which is merged.

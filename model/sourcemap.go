@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package sourcemap
+package model
 
 import (
 	"context"
@@ -32,15 +32,18 @@ import (
 )
 
 const (
-	processorName = "sourcemap"
-	smapDocType   = "sourcemap"
+	sourcemapProcessorName = "sourcemap"
+	sourcemapDocType       = "sourcemap"
 )
 
 var (
-	Metrics          = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
-	sourcemapCounter = monitoring.NewInt(Metrics, "counter")
+	// TODO(axw) SourcemapMetrics should be unexported, but it's
+	// being used for the decoder in processor/asset. We should
+	// give that its own metrics registry, and unexport this one.
 
-	processorEntry = common.MapStr{"name": processorName, "event": smapDocType}
+	SourcemapMetrics        = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
+	sourcemapCounter        = monitoring.NewInt(SourcemapMetrics, "counter")
+	sourcemapProcessorEntry = common.MapStr{"name": sourcemapProcessorName, "event": sourcemapDocType}
 )
 
 type Sourcemap struct {
@@ -64,8 +67,8 @@ func (pa *Sourcemap) Transform(ctx context.Context, tctx *transform.Context) []b
 
 	ev := beat.Event{
 		Fields: common.MapStr{
-			"processor": processorEntry,
-			smapDocType: common.MapStr{
+			"processor": sourcemapProcessorEntry,
+			sourcemapDocType: common.MapStr{
 				"bundle_filepath": utility.UrlPath(pa.BundleFilepath),
 				"service":         common.MapStr{"name": pa.ServiceName, "version": pa.ServiceVersion},
 				"sourcemap":       pa.Sourcemap,

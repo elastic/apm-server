@@ -36,10 +36,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	model_error "github.com/elastic/apm-server/model/error"
-	"github.com/elastic/apm-server/model/metadata"
-	model_span "github.com/elastic/apm-server/model/span"
-	model_transaction "github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -74,7 +70,7 @@ func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceDa
 }
 
 func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable {
-	md := metadata.Metadata{}
+	md := model.Metadata{}
 	parseMetadata(td, &md)
 	hostname := md.System.DetectedHostname
 
@@ -100,7 +96,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 		}
 		name := otelSpan.GetName().GetValue()
 		if root || otelSpan.Kind == tracepb.Span_SERVER {
-			transaction := model_transaction.Event{
+			transaction := model.Transaction{
 				Metadata:  md,
 				ID:        spanID,
 				ParentID:  parentID,
@@ -117,7 +113,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 			}
 
 		} else {
-			span := model_span.Event{
+			span := model.Span{
 				Metadata:  md,
 				ID:        spanID,
 				ParentID:  parentID,
@@ -137,7 +133,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 	return transformables
 }
 
-func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
+func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 	md.Service.Name = truncate(td.Node.GetServiceInfo().GetName())
 	if md.Service.Name == "" {
 		md.Service.Name = "unknown"
@@ -203,7 +199,7 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 	}
 }
 
-func parseTransaction(span *tracepb.Span, hostname string, event *model_transaction.Event) {
+func parseTransaction(span *tracepb.Span, hostname string, event *model.Transaction) {
 	labels := make(common.MapStr)
 	var http model.Http
 	var component string
@@ -237,7 +233,7 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model_transact
 				http.Request = &model.Req{Method: truncate(v.StringValue.Value)}
 				isHTTP = true
 			case "http.url", "http.path":
-				event.Url = parseURL(v.StringValue.Value, hostname)
+				event.URL = parseURL(v.StringValue.Value, hostname)
 				isHTTP = true
 			case "http.status_code":
 				if intv, err := strconv.Atoi(v.StringValue.Value); err == nil {
@@ -281,7 +277,7 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model_transact
 				http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &code}}
 			}
 		}
-		event.Http = &http
+		event.HTTP = &http
 	}
 
 	if result == "" {
@@ -300,12 +296,12 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model_transact
 	event.Labels = &l
 }
 
-func parseSpan(span *tracepb.Span, event *model_span.Event) {
+func parseSpan(span *tracepb.Span, event *model.Span) {
 	labels := make(common.MapStr)
 
-	var http model_span.HTTP
-	var db model_span.DB
-	var destination model_span.Destination
+	var http model.HTTP
+	var db model.DB
+	var destination model.Destination
 	var isDBSpan, isHTTPSpan bool
 	var component string
 	for kDots, v := range span.Attributes.GetAttributeMap() {
@@ -369,7 +365,7 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 		}
 	}
 
-	if destination != (model_span.Destination{}) {
+	if destination != (model.Destination{}) {
 		event.Destination = &destination
 	}
 
@@ -403,11 +399,11 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 	event.Labels = labels
 }
 
-func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model_error.Event {
-	var errors []*model_error.Event
+func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model.Error {
+	var errors []*model.Error
 	for _, log := range otelSpan.GetTimeEvents().GetTimeEvent() {
 		var isError, hasMinimalInfo bool
-		var err model_error.Event
+		var err model.Error
 		var logMessage, exMessage, exType string
 		for k, v := range log.GetAnnotation().GetAttributes().GetAttributeMap() {
 			if source == sourceFormatJaeger {
@@ -452,10 +448,10 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 		}
 
 		if logMessage != "" {
-			err.Log = &model_error.Log{Message: logMessage}
+			err.Log = &model.Log{Message: logMessage}
 		}
 		if exMessage != "" || exType != "" {
-			err.Exception = &model_error.Exception{}
+			err.Exception = &model.Exception{}
 			if exMessage != "" {
 				err.Exception.Message = &exMessage
 			}
@@ -469,31 +465,31 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 	return errors
 }
 
-func addTransactionCtxToErr(transaction model_transaction.Event, err *model_error.Event) {
+func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
 	err.Metadata = transaction.Metadata
 	err.TransactionID = &transaction.ID
 	err.TraceID = &transaction.TraceID
 	err.ParentID = &transaction.ID
-	err.Http = transaction.Http
-	err.Url = transaction.Url
+	err.HTTP = transaction.HTTP
+	err.URL = transaction.URL
 	err.TransactionType = &transaction.Type
 }
 
-func addSpanCtxToErr(span model_span.Event, hostname string, err *model_error.Event) {
+func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 	err.Metadata = span.Metadata
 	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID
 	err.ParentID = &span.ID
 	if span.HTTP != nil {
-		err.Http = &model.Http{}
+		err.HTTP = &model.Http{}
 		if span.HTTP.StatusCode != nil {
-			err.Http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: span.HTTP.StatusCode}}
+			err.HTTP.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: span.HTTP.StatusCode}}
 		}
 		if span.HTTP.Method != nil {
-			err.Http.Request = &model.Req{Method: *span.HTTP.Method}
+			err.HTTP.Request = &model.Req{Method: *span.HTTP.Method}
 		}
 		if span.HTTP.URL != nil {
-			err.Url = parseURL(*span.HTTP.URL, hostname)
+			err.URL = parseURL(*span.HTTP.URL, hostname)
 		}
 	}
 }

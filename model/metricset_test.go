@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metricset
+package model
 
 import (
 	"context"
@@ -27,14 +27,13 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 )
 
 func TestTransform(t *testing.T) {
 	timestamp := time.Now()
-	metadata := metadata.Metadata{
-		Service: metadata.Service{Name: "myservice"},
+	metadata := Metadata{
+		Service: Service{Name: "myservice"},
 	}
 
 	const (
@@ -77,7 +76,7 @@ func TestTransform(t *testing.T) {
 					Counts: []int64{1},
 					Values: []float64{42},
 				}},
-				Transaction: Transaction{
+				Transaction: MetricsetTransaction{
 					Type:   trType,
 					Name:   trName,
 					Result: trResult,
@@ -125,8 +124,8 @@ func TestTransform(t *testing.T) {
 						Values: []float64{4.5, 6.0, 9.0},
 					},
 				},
-				Span:        Span{Type: spType, Subtype: spSubtype},
-				Transaction: Transaction{Type: trType, Name: trName},
+				Span:        MetricsetSpan{Type: spType, Subtype: spSubtype},
+				Transaction: MetricsetTransaction{Type: trType, Name: trName},
 			},
 			Output: []common.MapStr{
 				{

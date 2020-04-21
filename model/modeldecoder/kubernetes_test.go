@@ -20,16 +20,15 @@ package modeldecoder
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/model/metadata"
 )
 
 func TestKubernetesDecode(t *testing.T) {
 	namespace, podname, poduid, nodename := "namespace", "podname", "poduid", "podname"
 	for _, test := range []struct {
 		input map[string]interface{}
-		k     metadata.Kubernetes
+		k     model.Kubernetes
 	}{
 		{input: nil},
 		{
@@ -41,7 +40,7 @@ func TestKubernetesDecode(t *testing.T) {
 					"name": podname,
 				},
 			},
-			k: metadata.Kubernetes{
+			k: model.Kubernetes{
 				Namespace: namespace,
 				NodeName:  nodename,
 				PodName:   podname,
@@ -49,7 +48,7 @@ func TestKubernetesDecode(t *testing.T) {
 			},
 		},
 	} {
-		var kubernetes metadata.Kubernetes
+		var kubernetes model.Kubernetes
 		decodeKubernetes(test.input, &kubernetes)
 		assert.Equal(t, test.k, kubernetes)
 	}

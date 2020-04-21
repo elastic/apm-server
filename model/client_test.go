@@ -15,50 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
 import (
+	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestProcessTransform(t *testing.T) {
-	processTitle := "node"
-	argv := []string{
-		"node",
-		"server.js",
-	}
-
-	tests := []struct {
-		Process Process
-		Output  common.MapStr
+func TestClientFields(t *testing.T) {
+	for name, tc := range map[string]struct {
+		ip  string
+		out common.MapStr
 	}{
-		{
-			Process: Process{},
-			Output:  nil,
-		},
-		{
-			Process: Process{
-				Pid:   123,
-				Ppid:  tests.IntPtr(456),
-				Title: processTitle,
-				Argv:  argv,
-			},
-			Output: common.MapStr{
-				"pid":   123,
-				"ppid":  456,
-				"title": processTitle,
-				"args":  argv,
-			},
-		},
-	}
-
-	for _, test := range tests {
-		output := test.Process.fields()
-		assert.Equal(t, test.Output, output)
+		"Empty": {ip: "", out: nil},
+		"IPv4":  {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv6":  {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c := Client{IP: net.ParseIP(tc.ip)}
+			assert.Equal(t, tc.out, c.fields())
+		})
 	}
 }
