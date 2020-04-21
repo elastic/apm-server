@@ -155,7 +155,7 @@ func TestEventFields(t *testing.T) {
 	baseLogHash := md5.New()
 	io.WriteString(baseLogHash, baseLog().Message)
 	baseLogGroupingKey := hex.EncodeToString(baseLogHash.Sum(nil))
-	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+	trID := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 
 	tests := map[string]struct {
 		Error  Error
@@ -217,7 +217,7 @@ func TestEventFields(t *testing.T) {
 				Culprit:       &culprit,
 				Exception:     &exception,
 				Log:           &log,
-				TransactionID: &trId,
+				TransactionID: &trID,
 
 				// Service name and version are required for sourcemapping.
 				Metadata: Metadata{
@@ -276,11 +276,11 @@ func TestEvents(t *testing.T) {
 		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	exMsg := "exception message"
-	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+	trID := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 	sampledTrue, sampledFalse := true, false
 	transactionType := "request"
 
-	email, userIp, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
+	email, userIP, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
 	url, referer := "https://localhost", "http://localhost"
 	labels := Labels(common.MapStr{"key": true})
@@ -297,7 +297,7 @@ func TestEvents(t *testing.T) {
 
 	mdWithUser := md
 	mdWithUser.User = User{ID: uid, Email: email, UserAgent: userAgent}
-	mdWithUser.Client.IP = net.ParseIP(userIp)
+	mdWithUser.Client.IP = net.ParseIP(userIP)
 
 	for name, tc := range map[string]struct {
 		Transformable transform.Transformable
@@ -354,7 +354,7 @@ func TestEvents(t *testing.T) {
 					Message:    &exMsg,
 					Stacktrace: Stacktrace{&StacktraceFrame{Filename: tests.StringPtr("myFile")}},
 				},
-				TransactionID:      &trId,
+				TransactionID:      &trID,
 				TransactionSampled: &sampledTrue,
 				Labels:             &labels,
 				Page:               &Page{Url: &url, Referer: &referer},
@@ -366,8 +366,8 @@ func TestEvents(t *testing.T) {
 				"service":    common.MapStr{"name": "myservice", "version": "1.0"},
 				"agent":      common.MapStr{"name": "go", "version": "1.0"},
 				"user":       common.MapStr{"id": uid, "email": email},
-				"client":     common.MapStr{"ip": userIp},
-				"source":     common.MapStr{"ip": userIp},
+				"client":     common.MapStr{"ip": userIP},
+				"source":     common.MapStr{"ip": userIP},
 				"user_agent": common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{
