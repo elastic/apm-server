@@ -53,7 +53,20 @@ type Source struct {
 // Query represents an URL body or query params for agent configuration
 type Query struct {
 	Service Service `json:"service"`
-	Etag    string  `json:"etag"`
+
+	// Etag should be set to the Etag of a previous agent config query result.
+	// When the query is processed by the receiver a new Etag is calculated
+	// for the query result. If Etags from the query and the query result match,
+	// it indicates that the exact same query response has already been delivered.
+	Etag string `json:"etag"`
+
+	// AppliedByAgent can be used to signal the receiver that the response to this
+	// query can be considered being applied. When building queries for elastic APM
+	// agent requests the Etag should be set, instead of the AppliedByAgent setting.
+	// Use this flag when building queries for third party integrations,
+	// such as Jaeger, that do not send an Etag in their request.
+	AppliedByAgent *bool `json:"applied_by_agent",omitempty`
+
 	// InsecureAgents holds a set of prefixes for restricting results to those whose
 	// agent name matches any of the specified prefixes.
 	//

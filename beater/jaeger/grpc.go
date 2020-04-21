@@ -117,7 +117,8 @@ func (s *grpcSampler) GetSamplingStrategy(
 }
 
 func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
-	query := agentcfg.Query{Service: agentcfg.Service{Name: service}, InsecureAgents: jaegerAgentPrefixes}
+	query := agentcfg.Query{Service: agentcfg.Service{Name: service},
+		InsecureAgents: jaegerAgentPrefixes, AppliedByAgent: boolean(true)}
 	result, err := s.fetcher.Fetch(ctx, query)
 	if err != nil {
 		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
@@ -154,3 +155,5 @@ func (s *grpcSampler) validateKibanaClient(ctx context.Context) error {
 	}
 	return nil
 }
+
+func boolean(b bool) *bool { return &b }
