@@ -60,8 +60,8 @@ type Query struct {
 	// it indicates that the exact same query response has already been delivered.
 	Etag string `json:"etag"`
 
-	// AppliedByAgent can be used to signal the receiver that the response to this
-	// query can be considered being applied. When building queries for elastic APM
+	// AppliedByAgent can be used to signal to the receiver that the response to this
+	// query can be considered to have been applied immediately. When building queries for Elastic APM
 	// agent requests the Etag should be set, instead of the AppliedByAgent setting.
 	// Use this flag when building queries for third party integrations,
 	// such as Jaeger, that do not send an Etag in their request.
