@@ -23,9 +23,7 @@ import (
 	"strings"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
-
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
@@ -33,7 +31,7 @@ import (
 )
 
 // decodeContext parses all information from input, nested under key context and returns an instance of Context.
-func decodeContext(input map[string]interface{}, cfg Config, meta *metadata.Metadata) (*model.Context, error) {
+func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadata) (*model.Context, error) {
 	if input == nil {
 		return &model.Context{}, nil
 	}
@@ -71,7 +69,7 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *metadata.Meta
 
 	if userInp := getObject(input, fieldName("user")); userInp != nil {
 		// Per-event user metadata replaces stream user metadata.
-		meta.User = metadata.User{}
+		meta.User = model.User{}
 		decodeUser(userInp, cfg.HasShortFieldNames, &meta.User, &meta.Client)
 	}
 	if ua := http.UserAgent(); ua != "" {

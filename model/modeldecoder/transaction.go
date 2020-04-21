@@ -21,9 +21,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/span"
-	"github.com/elastic/apm-server/model/transaction"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -47,9 +46,9 @@ func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
-	event := &transaction.RUMV3Event{
-		Event: tr,
-		Spans: spans,
+	event := &model.RUMV3Transaction{
+		Transaction: tr,
+		Spans:       spans,
 	}
 	marks, err := decodeRUMV3Marks(raw, input.Config)
 	if err != nil {
@@ -59,11 +58,11 @@ func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 	return event, nil
 }
 
-func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *transaction.Event) ([]span.Event, error) {
+func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Span, error) {
 	decoder := &utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
-	var spans = make([]span.Event, len(rawSpans))
+	var spans = make([]model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
 		span, err := DecodeRUMV3Span(Input{
 			Raw:         rawSpan,
@@ -91,7 +90,7 @@ func DecodeTransaction(input Input) (transform.Transformable, error) {
 	return decodeTransaction(input, transactionSchema)
 }
 
-func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Event, error) {
+func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transaction, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate transaction")
@@ -103,7 +102,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	e := transaction.Event{
+	e := model.Transaction{
 		Metadata:     input.Metadata,
 		ID:           decoder.String(raw, "id"),
 		Type:         decoder.String(raw, fieldName("type")),
@@ -112,15 +111,15 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*transaction.Eve
 		Duration:     decoder.Float64(raw, fieldName("duration")),
 		Labels:       ctx.Labels,
 		Page:         ctx.Page,
-		Http:         ctx.Http,
-		Url:          ctx.Url,
+		HTTP:         ctx.Http,
+		URL:          ctx.Url,
 		Custom:       ctx.Custom,
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,
 		Sampled:      decoder.BoolPtr(raw, fieldName("sampled")),
 		Marks:        decoder.MapStr(raw, fieldName("marks")),
 		Timestamp:    decoder.TimeEpochMicro(raw, fieldName("timestamp")),
-		SpanCount: transaction.SpanCount{
+		SpanCount: model.SpanCount{
 			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
 			Started: decoder.IntPtr(raw, fieldName("started"), fieldName("span_count"))},
 		ParentID: decoder.StringPtr(raw, fieldName("parent_id")),

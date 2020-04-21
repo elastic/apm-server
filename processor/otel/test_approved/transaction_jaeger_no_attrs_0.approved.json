@@ -2,7 +2,7 @@
     "Custom": null,
     "Duration": 79000,
     "Experimental": null,
-    "Http": null,
+    "HTTP": null,
     "ID": "",
     "Labels": {
         "error": true
@@ -80,5 +80,5 @@
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
     "TraceID": "",
     "Type": "custom",
-    "Url": null
+    "URL": null
 }

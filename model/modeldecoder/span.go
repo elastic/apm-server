@@ -24,10 +24,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-server/model"
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -40,7 +39,7 @@ var (
 )
 
 // DecodeRUMV3Span decodes a v3 RUM span.
-func DecodeRUMV3Span(input Input) (*span.Event, error) {
+func DecodeRUMV3Span(input Input) (*model.Span, error) {
 	return decodeSpan(input, rumV3SpanSchema)
 }
 
@@ -49,7 +48,7 @@ func DecodeSpan(input Input) (transform.Transformable, error) {
 	return decodeSpan(input, spanSchema)
 }
 
-func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
+func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate span")
@@ -57,7 +56,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	decoder := utility.ManualDecoder{}
-	event := span.Event{
+	event := model.Span{
 		Metadata:  input.Metadata,
 		Name:      decoder.String(raw, fieldName("name")),
 		Start:     decoder.Float64Ptr(raw, fieldName("start")),
@@ -101,7 +100,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
 		event.DestinationService = destService
 
 		if s := getObject(ctx, "service"); s != nil {
-			var service metadata.Service
+			var service m.Service
 			decodeService(s, input.Config.HasShortFieldNames, &service)
 			event.Service = &service
 		}
@@ -151,7 +150,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*span.Event, error) {
 	return &event, nil
 }
 
-func decodeDB(input interface{}, err error) (*span.DB, error) {
+func decodeDB(input interface{}, err error) (*model.DB, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -164,7 +163,7 @@ func decodeDB(input interface{}, err error) (*span.DB, error) {
 	if decoder.Err != nil || dbInput == nil {
 		return nil, decoder.Err
 	}
-	db := span.DB{
+	db := model.DB{
 		Instance:     decoder.StringPtr(dbInput, "instance"),
 		Statement:    decoder.StringPtr(dbInput, "statement"),
 		Type:         decoder.StringPtr(dbInput, "type"),
@@ -175,7 +174,7 @@ func decodeDB(input interface{}, err error) (*span.DB, error) {
 	return &db, decoder.Err
 }
 
-func decodeSpanHTTP(input interface{}, hasShortFieldNames bool, err error) (*span.HTTP, error) {
+func decodeSpanHTTP(input interface{}, hasShortFieldNames bool, err error) (*model.HTTP, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -197,7 +196,7 @@ func decodeSpanHTTP(input interface{}, hasShortFieldNames bool, err error) (*spa
 	if err != nil {
 		return nil, err
 	}
-	return &span.HTTP{
+	return &model.HTTP{
 		URL:        decoder.StringPtr(httpInput, fieldName("url")),
 		StatusCode: decoder.IntPtr(httpInput, fieldName("status_code")),
 		Method:     method,
@@ -205,7 +204,7 @@ func decodeSpanHTTP(input interface{}, hasShortFieldNames bool, err error) (*spa
 	}, nil
 }
 
-func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*span.Destination, *span.DestinationService, error) {
+func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*model.Destination, *model.DestinationService, error) {
 	if input == nil || err != nil {
 		return nil, nil, err
 	}
@@ -223,15 +222,15 @@ func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*
 	if decoder.Err != nil {
 		return nil, nil, decoder.Err
 	}
-	var service *span.DestinationService
+	var service *model.DestinationService
 	if serviceInput != nil {
-		service = &span.DestinationService{
+		service = &model.DestinationService{
 			Type:     decoder.StringPtr(serviceInput, fieldName("type")),
 			Name:     decoder.StringPtr(serviceInput, fieldName("name")),
 			Resource: decoder.StringPtr(serviceInput, fieldName("resource")),
 		}
 	}
-	dest := span.Destination{
+	dest := model.Destination{
 		Address: decoder.StringPtr(destinationInput, fieldName("address")),
 		Port:    decoder.IntPtr(destinationInput, fieldName("port")),
 	}

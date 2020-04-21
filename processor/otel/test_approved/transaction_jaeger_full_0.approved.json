@@ -2,7 +2,7 @@
     "Custom": null,
     "Duration": 79000,
     "Experimental": null,
-    "Http": {
+    "HTTP": {
         "Request": {
             "Body": null,
             "Cookies": null,
@@ -104,7 +104,7 @@
     "Timestamp": "2019-12-16T12:46:58.000768068Z",
     "TraceID": "46467830",
     "Type": "http_request",
-    "Url": {
+    "URL": {
         "Domain": "foo.bar.com",
         "Fragment": null,
         "Full": "http://foo.bar.com?a=12",

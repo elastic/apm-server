@@ -28,9 +28,8 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/model"
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -72,8 +71,8 @@ func TestDecodeSpan(t *testing.T) {
 		"filename": "file",
 	}}
 
-	metadata := metadata.Metadata{
-		Service: metadata.Service{Name: "foo"},
+	metadata := m.Metadata{
+		Service: m.Service{Name: "foo"},
 	}
 
 	// baseInput holds the minimal valid input. Test-specific input is added to/removed from this.
@@ -84,14 +83,14 @@ func TestDecodeSpan(t *testing.T) {
 	for name, test := range map[string]struct {
 		input map[string]interface{}
 		cfg   Config
-		e     *span.Event
+		e     *model.Span
 	}{
 		"minimal payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
 			},
-			e: &span.Event{
+			e: &m.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
@@ -109,7 +108,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "db", "duration": duration, "parent_id": parentID, "trace_id": traceID, "id": id,
 				"start": start,
 			},
-			e: &span.Event{
+			e: &m.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
@@ -127,7 +126,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &span.Event{
+			e: &m.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -148,7 +147,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"foo": 123},
 			},
-			e: &span.Event{
+			e: &m.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -170,7 +169,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &span.Event{
+			e: &m.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -193,7 +192,7 @@ func TestDecodeSpan(t *testing.T) {
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentID, "trace_id": traceID, "transaction_id": transactionID,
 			},
-			e: &span.Event{
+			e: &m.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "messaging",
@@ -210,8 +209,8 @@ func TestDecodeSpan(t *testing.T) {
 				TraceID:       &traceID,
 				ParentID:      &parentID,
 				TransactionID: &transactionID,
-				HTTP:          &span.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
-				DB: &span.DB{
+				HTTP:          &m.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				DB: &m.DB{
 					Instance:     &instance,
 					Statement:    &statement,
 					Type:         &dbType,
@@ -219,8 +218,8 @@ func TestDecodeSpan(t *testing.T) {
 					Link:         &link,
 					RowsAffected: &rowsAffected,
 				},
-				Destination: &span.Destination{Address: &address, Port: &port},
-				DestinationService: &span.DestinationService{
+				Destination: &m.Destination{Address: &address, Port: &port},
+				DestinationService: &m.DestinationService{
 					Type:     &destServiceType,
 					Name:     &destServiceName,
 					Resource: &destServiceResource,

@@ -33,20 +33,51 @@ For a full list of changes, see the
 
 // tag::notable-v77-highlights[]
 Service maps::
-// to do...
+
+{apm-app-ref}/service-maps.html[Service maps] are now available in the APM app.
+A service map is a real-time visual representation of the instrumented services in your application’s architecture.
+It shows you how these services are connected,
+along with high-level metrics like average transaction duration, requests per minute,
+and errors per minute, that allow you to quickly assess the status of your services.
++
+[role="screenshot"]
+image::images/7.7-service-maps-java.png[APM Service maps]
 
 Alerting::
-// to do...
 
-Agent central config::
-// to do...
+Want to receive an email when the duration of your transactions are slower than a set threshold?
+How about a slack message when your application's error rate spikes?
+Now you can!
+The APM app integrates with Kibana’s {apm-app-ref}/apm-alerts.html[alerting and actions] feature.
+It provides a set of built-in actions and APM specific threshold alerts for you to easily set up and use.
++
+[role="screenshot"]
+image::images/7.7-apm-alert.png[APM app alerts]
+
+APM Agent central configuration::
+
+{apm-app-ref}/agent-configuration.html[Central configuration] now supports even more configuration options,
+so you can fine-tune your agents without needing to redeploy.
+Open up the configuration page in the APM app for a list of all supported options.
++
+[role="screenshot"]
+image::images/7.7-apm-agent-configuration.png[APM Service maps]
 
 Custom links::
-// to do...
+
+Elastic’s custom links feature allows you to easily create up to 500 dynamic links based on your specific APM data.
+Custom links can be filtered to only appear in the APM app for relevant services, environments, transaction types, or transaction names.
++
+Need ideas?
+Recipes for setting up custom links for emails, GitHub issues, Jira tasks, and more are available in the {apm-app-ref}/custom-links.html[documentation].
 
 Inferred spans with async profiler::
-// to do...
 
+Identifying a problematic service is only half of the battle when diagnosing application slowdowns.
+The Elastic APM Java Agent provides a new way to get method-level insights into your code:
+https://www.elastic.co/guide/en/apm/agent/java/master/java-method-monitoring.html[inferred spans with async-profiler].
+This can help you diagnose slow requests due to heavy computations, inefficient algorithms,
+or similar problems not related to interactions between services.
 // end::notable-v77-highlights[]
 
 [[release-highlights-7.6.0]]

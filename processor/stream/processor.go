@@ -30,8 +30,8 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -47,7 +47,7 @@ const (
 	batchSize = 10
 )
 
-type decodeMetadataFunc func(interface{}, bool) (*metadata.Metadata, error)
+type decodeMetadataFunc func(interface{}, bool) (*model.Metadata, error)
 type decodeEventFunc func(modeldecoder.Input) (transform.Transformable, error)
 
 type Processor struct {
@@ -103,7 +103,7 @@ func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	}
 }
 
-func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamReader) (*metadata.Metadata, error) {
+func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamReader) (*model.Metadata, error) {
 	rawModel, err := reader.Read()
 	if err != nil {
 		if err == io.EOF {
@@ -145,7 +145,7 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time, streamMetadata metadata.Metadata) (transform.Transformable, error) {
+func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time, streamMetadata model.Metadata) (transform.Transformable, error) {
 	for key, decodeEvent := range p.models {
 		entry, ok := rawModel[key]
 		if !ok {
@@ -172,7 +172,7 @@ func (p *Processor) readBatch(
 	ctx context.Context,
 	ipRateLimiter *rate.Limiter,
 	requestTime time.Time,
-	streamMetadata *metadata.Metadata,
+	streamMetadata *model.Metadata,
 	batchSize int,
 	reader *streamReader,
 	response *Result,

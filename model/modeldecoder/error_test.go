@@ -28,8 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	m "github.com/elastic/apm-server/model"
-	modelerror "github.com/elastic/apm-server/model/error"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -55,12 +53,12 @@ func TestErrorEventDecode(t *testing.T) {
 	response := m.Resp{Finished: new(bool), MinimalResp: m.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := m.Http{Request: &request, Response: &response}
 	ctxURL := m.Url{Original: &origURL}
-	inputMetadata := metadata.Metadata{
-		Service: metadata.Service{Name: "foo"},
+	inputMetadata := m.Metadata{
+		Service: m.Service{Name: "foo"},
 	}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = metadata.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = m.User{Name: name, Email: email, ID: userID, UserAgent: ua}
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -72,24 +70,24 @@ func TestErrorEventDecode(t *testing.T) {
 	for name, test := range map[string]struct {
 		input map[string]interface{}
 		cfg   Config
-		e     *modelerror.Event
+		e     *m.Error
 	}{
 		"minimal valid error": {
 			input: map[string]interface{}{},
-			e: &modelerror.Event{
+			e: &m.Error{
 				Metadata:  inputMetadata,
 				ID:        &id,
 				Timestamp: requestTime,
-				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
+				Exception: &m.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 		},
 		"minimal valid error with specified timestamp": {
 			input: map[string]interface{}{"timestamp": timestamp},
-			e: &modelerror.Event{
+			e: &m.Error{
 				Metadata:  inputMetadata,
 				ID:        &id,
 				Timestamp: timestampParsed,
-				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
+				Exception: &m.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 		},
 		"minimal valid error with log and exception": {
@@ -97,23 +95,23 @@ func TestErrorEventDecode(t *testing.T) {
 				"exception": map[string]interface{}{"message": exMsg},
 				"log":       map[string]interface{}{"message": logMsg},
 			},
-			e: &modelerror.Event{
+			e: &m.Error{
 				Metadata:  inputMetadata,
 				ID:        &id,
 				Timestamp: requestTime,
-				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
-				Log:       &modelerror.Log{Message: logMsg, Stacktrace: m.Stacktrace{}},
+				Exception: &m.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
+				Log:       &m.Log{Message: logMsg, Stacktrace: m.Stacktrace{}},
 			},
 		},
 		"valid error experimental=true, no experimental payload": {
 			input: map[string]interface{}{
 				"context": map[string]interface{}{"foo": []string{"a", "b"}},
 			},
-			e: &modelerror.Event{
+			e: &m.Error{
 				Metadata:  inputMetadata,
 				ID:        &id,
 				Timestamp: requestTime,
-				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
+				Exception: &m.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 			cfg: Config{Experimental: true},
 		},
@@ -121,11 +119,11 @@ func TestErrorEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"context": map[string]interface{}{"experimental": []string{"a", "b"}},
 			},
-			e: &modelerror.Event{
+			e: &m.Error{
 				Metadata:  inputMetadata,
 				ID:        &id,
 				Timestamp: requestTime,
-				Exception: &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
+				Exception: &m.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 			},
 			cfg: Config{Experimental: false},
 		},
@@ -133,11 +131,11 @@ func TestErrorEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"context": map[string]interface{}{"experimental": []string{"a", "b"}},
 			},
-			e: &modelerror.Event{
+			e: &m.Error{
 				Metadata:     inputMetadata,
 				ID:           &id,
 				Timestamp:    requestTime,
-				Exception:    &modelerror.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
+				Exception:    &m.Exception{Message: &exMsg, Stacktrace: m.Stacktrace{}},
 				Experimental: []string{"a", "b"},
 			},
 			cfg: Config{Experimental: true},
@@ -190,15 +188,15 @@ func TestErrorEventDecode(t *testing.T) {
 				"culprit":        culprit,
 				"transaction":    map[string]interface{}{"sampled": transactionSampled, "type": transactionType},
 			},
-			e: &modelerror.Event{
+			e: &m.Error{
 				Metadata:  mergedMetadata,
 				Timestamp: timestampParsed,
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
-				Http:      &h,
-				Url:       &ctxURL,
-				Exception: &modelerror.Exception{
+				HTTP:      &h,
+				URL:       &ctxURL,
+				Exception: &m.Exception{
 					Message:    &exMsg,
 					Code:       code,
 					Type:       &exType,
@@ -209,7 +207,7 @@ func TestErrorEventDecode(t *testing.T) {
 						&m.StacktraceFrame{Filename: tests.StringPtr("file")},
 					},
 				},
-				Log: &modelerror.Log{
+				Log: &m.Log{
 					Message:      logMsg,
 					ParamMessage: &paramMsg,
 					Level:        &level,
@@ -271,7 +269,7 @@ func TestErrorEventDecodeInvalid(t *testing.T) {
 
 	for name, test := range map[string]struct {
 		input map[string]interface{}
-		e     *modelerror.Event
+		e     *m.Error
 	}{
 		"error decoding timestamp": {
 			input: map[string]interface{}{"timestamp": 123},

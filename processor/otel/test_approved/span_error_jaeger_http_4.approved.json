@@ -13,7 +13,7 @@
         "Type": null
     },
     "Experimental": null,
-    "Http": {
+    "HTTP": {
         "Request": {
             "Body": null,
             "Cookies": null,
@@ -102,7 +102,7 @@
     "TransactionID": null,
     "TransactionSampled": null,
     "TransactionType": null,
-    "Url": {
+    "URL": {
         "Domain": "foo.bar.com",
         "Fragment": null,
         "Full": "http://foo.bar.com?a=12",

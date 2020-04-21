@@ -24,13 +24,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/beats/v7/libbeat/common"
+
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestSystem(t *testing.T) {
@@ -40,17 +40,17 @@ func TestSystem(t *testing.T) {
 
 	for name, test := range map[string]struct {
 		input map[string]interface{}
-		s     metadata.System
+		s     model.System
 	}{
 		"nil":   {input: nil},
 		"empty": {input: map[string]interface{}{}},
 		"empty ip": {
 			input: map[string]interface{}{"ip": ""},
-			s:     metadata.System{IP: net.ParseIP("")},
+			s:     model.System{IP: net.ParseIP("")},
 		},
 		"hostname": {
 			input: map[string]interface{}{"hostname": host},
-			s:     metadata.System{DetectedHostname: host},
+			s:     model.System{DetectedHostname: host},
 		},
 		"detected hostname": {
 			// in practice either hostname or detected_hostname should be sent, but in theory both can be sent, so
@@ -58,7 +58,7 @@ func TestSystem(t *testing.T) {
 			input: map[string]interface{}{
 				"hostname": host, "detected_hostname": detected,
 			},
-			s: metadata.System{DetectedHostname: detected},
+			s: model.System{DetectedHostname: detected},
 		},
 		"ignored hostname": {
 			// in practice either hostname or configured_hostname should be sent, but in theory both can be sent, so
@@ -66,49 +66,49 @@ func TestSystem(t *testing.T) {
 			input: map[string]interface{}{
 				"hostname": host, "configured_hostname": configured,
 			},
-			s: metadata.System{ConfiguredHostname: configured},
+			s: model.System{ConfiguredHostname: configured},
 		},
 		"k8s nodename with hostname": {
 			input: map[string]interface{}{
 				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
 				"hostname":   host,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{NodeName: nodename}, DetectedHostname: host},
+			s: model.System{Kubernetes: model.Kubernetes{NodeName: nodename}, DetectedHostname: host},
 		},
 		"k8s nodename with configured hostname": {
 			input: map[string]interface{}{
 				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
 				"hostname":   host, "configured_hostname": configured,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{NodeName: nodename}, ConfiguredHostname: configured},
+			s: model.System{Kubernetes: model.Kubernetes{NodeName: nodename}, ConfiguredHostname: configured},
 		},
 		"k8s nodename with detected hostname": {
 			input: map[string]interface{}{
 				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
 				"hostname":   host, "detected_hostname": detected,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{NodeName: nodename}, DetectedHostname: detected},
+			s: model.System{Kubernetes: model.Kubernetes{NodeName: nodename}, DetectedHostname: detected},
 		},
 		"k8s podname": {
 			input: map[string]interface{}{
 				"kubernetes":        map[string]interface{}{"pod": map[string]interface{}{"name": podname}},
 				"detected_hostname": detected,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{PodName: podname}, DetectedHostname: detected},
+			s: model.System{Kubernetes: model.Kubernetes{PodName: podname}, DetectedHostname: detected},
 		},
 		"k8s podUID": {
 			input: map[string]interface{}{
 				"kubernetes":        map[string]interface{}{"pod": map[string]interface{}{"uid": podUID}},
 				"detected_hostname": detected,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{PodUID: podUID}, DetectedHostname: detected},
+			s: model.System{Kubernetes: model.Kubernetes{PodUID: podUID}, DetectedHostname: detected},
 		},
 		"k8s_namespace": {
 			input: map[string]interface{}{
 				"kubernetes":        map[string]interface{}{"namespace": namespace},
 				"detected_hostname": detected,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{Namespace: namespace}, DetectedHostname: detected},
+			s: model.System{Kubernetes: model.Kubernetes{Namespace: namespace}, DetectedHostname: detected},
 		},
 		"k8s podname with configured hostname": {
 			input: map[string]interface{}{
@@ -116,7 +116,7 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{PodName: podname}, DetectedHostname: detected, ConfiguredHostname: configured},
+			s: model.System{Kubernetes: model.Kubernetes{PodName: podname}, DetectedHostname: detected, ConfiguredHostname: configured},
 		},
 		"k8s podUID with configured hostname": {
 			input: map[string]interface{}{
@@ -124,7 +124,7 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{PodUID: podUID}, DetectedHostname: detected, ConfiguredHostname: configured},
+			s: model.System{Kubernetes: model.Kubernetes{PodUID: podUID}, DetectedHostname: detected, ConfiguredHostname: configured},
 		},
 		"k8s namespace with configured hostname": {
 			input: map[string]interface{}{
@@ -132,7 +132,7 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{Namespace: namespace}, DetectedHostname: detected, ConfiguredHostname: configured},
+			s: model.System{Kubernetes: model.Kubernetes{Namespace: namespace}, DetectedHostname: detected, ConfiguredHostname: configured},
 		},
 		"k8s empty": {
 			input: map[string]interface{}{
@@ -140,14 +140,14 @@ func TestSystem(t *testing.T) {
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: metadata.System{Kubernetes: metadata.Kubernetes{}, DetectedHostname: detected, ConfiguredHostname: configured},
+			s: model.System{Kubernetes: model.Kubernetes{}, DetectedHostname: detected, ConfiguredHostname: configured},
 		},
 		"full hostname info": {
 			input: map[string]interface{}{
 				"detected_hostname":   detected,
 				"configured_hostname": configured,
 			},
-			s: metadata.System{DetectedHostname: detected, ConfiguredHostname: configured},
+			s: model.System{DetectedHostname: detected, ConfiguredHostname: configured},
 		},
 		"full": {
 			input: map[string]interface{}{
@@ -166,27 +166,27 @@ func TestSystem(t *testing.T) {
 				"configured_hostname": configured,
 				"detected_hostname":   detected,
 			},
-			s: metadata.System{
+			s: model.System{
 				DetectedHostname:   detected,
 				ConfiguredHostname: configured,
 				Architecture:       arch,
 				Platform:           platform,
 				IP:                 net.ParseIP(ip),
-				Container:          metadata.Container{ID: containerID},
-				Kubernetes:         metadata.Kubernetes{Namespace: namespace, NodeName: nodename, PodName: podname, PodUID: podUID},
+				Container:          model.Container{ID: containerID},
+				Kubernetes:         model.Kubernetes{Namespace: namespace, NodeName: nodename, PodName: podname, PodUID: podUID},
 			},
 		},
 	} {
 
 		t.Run(name, func(t *testing.T) {
-			var system metadata.System
+			var system model.System
 			decodeSystem(test.input, &system)
 			assert.Equal(t, test.s, system)
 
 			resultName := fmt.Sprintf("test_approved_system/transform_%s", strings.ReplaceAll(name, " ", "_"))
 
 			fields := make(common.MapStr)
-			metadata := metadata.Metadata{System: system}
+			metadata := model.Metadata{System: system}
 			metadata.Set(fields)
 
 			resultJSON, err := json.Marshal(fields["host"])

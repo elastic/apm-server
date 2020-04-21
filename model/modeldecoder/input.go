@@ -20,7 +20,7 @@ package modeldecoder
 import (
 	"time"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 )
 
 // Input holds the input required for decoding an event.
@@ -34,7 +34,7 @@ type Input struct {
 	RequestTime time.Time
 
 	// Metadata holds metadata that may be added to the event.
-	Metadata metadata.Metadata
+	Metadata model.Metadata
 
 	// Config holds configuration for decoding.
 	//

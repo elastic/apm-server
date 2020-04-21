@@ -26,7 +26,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/transform"
 )
@@ -37,7 +36,7 @@ func TestStacktraceTransform(t *testing.T) {
 	fct := "original function"
 	origFilename, webpackFilename := "original filename", "/webpack"
 	absPath, serviceName := "original path", "service1"
-	service := metadata.Service{Name: serviceName}
+	service := Service{Name: serviceName}
 
 	tests := []struct {
 		Stacktrace Stacktrace
@@ -121,7 +120,7 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 	fct1, fct2 := "function foo", "function bar"
 	absPath, serviceName, serviceVersion := "/../a/c", "service1", "2.4.1"
 	origFilename, appliedFilename := "original filename", "myfilename"
-	service := metadata.Service{Name: serviceName, Version: serviceVersion}
+	service := Service{Name: serviceName, Version: serviceVersion}
 
 	for name, tc := range map[string]struct {
 		Stacktrace Stacktrace
