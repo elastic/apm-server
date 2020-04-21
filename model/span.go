@@ -35,13 +35,11 @@ const (
 )
 
 var (
-	SpanMetrics         = monitoring.Default.NewRegistry("apm-server.processor.span")
-	spanTransformations = monitoring.NewInt(SpanMetrics, "spanTransformations")
-
-	spanStacktraceCounter = monitoring.NewInt(SpanMetrics, "stacktraces")
-	spanFrameCounter      = monitoring.NewInt(SpanMetrics, "frames")
-
-	spanProcessorEntry = common.MapStr{"name": "transaction", "event": spanDocType}
+	spanMetrics           = monitoring.Default.NewRegistry("apm-server.processor.span")
+	spanTransformations   = monitoring.NewInt(spanMetrics, "spanTransformations")
+	spanStacktraceCounter = monitoring.NewInt(spanMetrics, "stacktraces")
+	spanFrameCounter      = monitoring.NewInt(spanMetrics, "frames")
+	spanProcessorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
 )
 
 type Span struct {

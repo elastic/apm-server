@@ -39,8 +39,8 @@ const (
 )
 
 var (
-	MetricsetMetrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
-	metricsetTransformations = monitoring.NewInt(MetricsetMetrics, "transformations")
+	metricsetMetrics         = monitoring.Default.NewRegistry("apm-server.processor.metric")
+	metricsetTransformations = monitoring.NewInt(metricsetMetrics, "transformations")
 	metricsetProcessorEntry  = common.MapStr{"name": metricsetProcessorName, "event": metricsetDocType}
 )
 

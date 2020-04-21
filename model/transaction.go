@@ -35,8 +35,8 @@ const (
 )
 
 var (
-	TransactionMetrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction")
-	transactionTransformations = monitoring.NewInt(TransactionMetrics, "transformations")
+	transactionMetrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction")
+	transactionTransformations = monitoring.NewInt(transactionMetrics, "transformations")
 	transactionProcessorEntry  = common.MapStr{"name": transactionProcessorName, "event": transactionDocType}
 )
 

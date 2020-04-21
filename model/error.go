@@ -37,10 +37,10 @@ import (
 )
 
 var (
-	ErrorMetrics           = monitoring.Default.NewRegistry("apm-server.processor.error")
-	errorTransformations   = monitoring.NewInt(ErrorMetrics, "transformations")
-	errorStacktraceCounter = monitoring.NewInt(ErrorMetrics, "stacktraces")
-	errorFrameCounter      = monitoring.NewInt(ErrorMetrics, "frames")
+	errorMetrics           = monitoring.Default.NewRegistry("apm-server.processor.error")
+	errorTransformations   = monitoring.NewInt(errorMetrics, "transformations")
+	errorStacktraceCounter = monitoring.NewInt(errorMetrics, "stacktraces")
+	errorFrameCounter      = monitoring.NewInt(errorMetrics, "frames")
 	errorProcessorEntry    = common.MapStr{"name": errorProcessorName, "event": errorDocType}
 )
 

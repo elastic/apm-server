@@ -37,9 +37,11 @@ const (
 )
 
 var (
-	SourcemapMetrics = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
-	sourcemapCounter = monitoring.NewInt(SourcemapMetrics, "counter")
-
+	// TODO(axw) SourcemapMetrics should be unexported, but it's
+	// being used for the decoder in processor/asset. We should
+	// give that its own metrics registry, and unexport this one.
+	SourcemapMetrics        = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
+	sourcemapCounter        = monitoring.NewInt(SourcemapMetrics, "counter")
 	sourcemapProcessorEntry = common.MapStr{"name": sourcemapProcessorName, "event": sourcemapDocType}
 )
 
