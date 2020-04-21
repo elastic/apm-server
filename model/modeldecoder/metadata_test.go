@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -119,44 +119,44 @@ var fullInput = map[string]interface{}{
 func TestDecodeMetadata(t *testing.T) {
 	output, err := DecodeMetadata(fullInput, false)
 	require.NoError(t, err)
-	assert.Equal(t, &metadata.Metadata{
-		Service: metadata.Service{
+	assert.Equal(t, &model.Metadata{
+		Service: model.Service{
 			Name:        serviceName,
 			Version:     serviceVersion,
 			Environment: serviceEnvironment,
-			Node:        metadata.ServiceNode{Name: serviceNodeName},
-			Language:    metadata.Language{Name: langName, Version: langVersion},
-			Runtime:     metadata.Runtime{Name: rtName, Version: rtVersion},
-			Framework:   metadata.Framework{Name: fwName, Version: fwVersion},
-			Agent:       metadata.Agent{Name: agentName, Version: agentVersion},
+			Node:        model.ServiceNode{Name: serviceNodeName},
+			Language:    model.Language{Name: langName, Version: langVersion},
+			Runtime:     model.Runtime{Name: rtName, Version: rtVersion},
+			Framework:   model.Framework{Name: fwName, Version: fwVersion},
+			Agent:       model.Agent{Name: agentName, Version: agentVersion},
 		},
-		Process: metadata.Process{
+		Process: model.Process{
 			Pid:   pid,
 			Ppid:  tests.IntPtr(ppid),
 			Title: processTitle,
 			Argv:  []string{"apm-server"},
 		},
-		System: metadata.System{
+		System: model.System{
 			DetectedHostname:   detectedHostname,
 			ConfiguredHostname: configuredHostname,
 			Architecture:       systemArchitecture,
 			Platform:           systemPlatform,
 			IP:                 net.ParseIP(systemIP),
-			Container:          metadata.Container{ID: containerID},
-			Kubernetes: metadata.Kubernetes{
+			Container:          model.Container{ID: containerID},
+			Kubernetes: model.Kubernetes{
 				Namespace: kubernetesNamespace,
 				NodeName:  kubernetesNodeName,
 				PodName:   kubernetesPodName,
 				PodUID:    kubernetesPodUID,
 			},
 		},
-		User: metadata.User{
+		User: model.User{
 			ID:        uid,
 			Email:     mail,
 			Name:      username,
 			UserAgent: userAgent,
 		},
-		Client: metadata.Client{
+		Client: model.Client{
 			IP: net.ParseIP(userIP),
 		},
 		Labels: common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
@@ -174,7 +174,7 @@ func BenchmarkDecodeMetadata(b *testing.B) {
 
 func BenchmarkDecodeMetadataRecycled(b *testing.B) {
 	b.ReportAllocs()
-	var meta metadata.Metadata
+	var meta model.Metadata
 	for i := 0; i < b.N; i++ {
 		if err := decodeMetadata(fullInput, false, metadataSchema, &meta); err != nil {
 			b.Fatal(err)

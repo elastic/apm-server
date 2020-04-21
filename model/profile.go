@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package profile
+package model
 
 import (
 	"context"
@@ -25,7 +25,6 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/google/pprof/profile"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -33,18 +32,18 @@ import (
 )
 
 const (
-	processorName  = "profile"
-	profileDocType = "profile"
+	profileProcessorName = "profile"
+	profileDocType       = "profile"
 )
 
-var processorEntry = common.MapStr{
-	"name":  processorName,
+var profileProcessorEntry = common.MapStr{
+	"name":  profileProcessorName,
 	"event": profileDocType,
 }
 
 // PprofProfile represents a resource profile.
 type PprofProfile struct {
-	Metadata metadata.Metadata
+	Metadata Metadata
 	Profile  *profile.Profile
 }
 
@@ -106,7 +105,7 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Context) []be
 		event := beat.Event{
 			Timestamp: profileTimestamp,
 			Fields: common.MapStr{
-				"processor":    processorEntry,
+				"processor":    profileProcessorEntry,
 				profileDocType: profileFields,
 			},
 		}

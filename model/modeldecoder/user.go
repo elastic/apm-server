@@ -21,11 +21,11 @@ import (
 	"encoding/json"
 	"net"
 
-	"github.com/elastic/apm-server/model/field"
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 )
 
-func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *metadata.User, client *metadata.Client) {
+func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *model.User, client *model.Client) {
 	if input == nil {
 		return
 	}

@@ -32,7 +32,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/transform"
@@ -109,8 +108,8 @@ func TestStacktraceFrameTransform(t *testing.T) {
 func TestSourcemap_Apply(t *testing.T) {
 
 	name, version, col, line, path := "myservice", "2.1.4", 10, 15, "/../a/path"
-	validService := func() *metadata.Service {
-		return &metadata.Service{Name: name, Version: version}
+	validService := func() *Service {
+		return &Service{Name: name, Version: version}
 	}
 	validFrame := func() *StacktraceFrame {
 		return &StacktraceFrame{Colno: &col, Lineno: &line, AbsPath: &path}
@@ -137,9 +136,9 @@ func TestSourcemap_Apply(t *testing.T) {
 				function, msg := tc.frame.applySourcemap(context.Background(), &sourcemap.Store{}, validService(), "foo")
 				assert.Equal(t, "foo", function)
 				assert.Contains(t, msg, tc.expectedErrorMsg)
-				assert.Equal(t, new(bool), tc.frame.Sourcemap.Updated)
-				require.NotNil(t, tc.frame.Sourcemap.Error)
-				assert.Contains(t, *tc.frame.Sourcemap.Error, msg)
+				assert.Equal(t, new(bool), tc.frame.SourcemapUpdated)
+				require.NotNil(t, tc.frame.SourcemapError)
+				assert.Contains(t, *tc.frame.SourcemapError, msg)
 				assert.Zero(t, tc.frame.Original)
 			})
 		}
@@ -161,8 +160,8 @@ func TestSourcemap_Apply(t *testing.T) {
 				function, msg := frame.applySourcemap(context.Background(), tc.store, validService(), "xyz")
 				assert.Equal(t, "xyz", function)
 				require.Contains(t, msg, tc.expectedErrorMsg)
-				assert.NotZero(t, frame.Sourcemap.Error)
-				assert.Equal(t, new(bool), frame.Sourcemap.Updated)
+				assert.NotZero(t, frame.SourcemapError)
+				assert.Equal(t, new(bool), frame.SourcemapUpdated)
 			})
 		}
 	})
@@ -185,7 +184,8 @@ func TestSourcemap_Apply(t *testing.T) {
 				assert.Equal(t, "xyz", function)
 				require.Contains(t, msg, tc.expectedErrorMsg)
 				assert.NotZero(t, msg)
-				assert.Zero(t, frame.Sourcemap)
+				assert.Zero(t, frame.SourcemapUpdated)
+				assert.Zero(t, frame.SourcemapError)
 			})
 		}
 	})
@@ -221,9 +221,9 @@ func TestSourcemap_Apply(t *testing.T) {
 				prevFunction := "xyz"
 				function, msg := frame.applySourcemap(context.Background(), testSourcemapStore(t, test.ESClientWithValidSourcemap(t)), validService(), prevFunction)
 				require.Empty(t, msg)
-				assert.Zero(t, frame.Sourcemap.Error)
+				assert.Zero(t, frame.SourcemapError)
 				updated := true
-				assert.Equal(t, &updated, frame.Sourcemap.Updated)
+				assert.Equal(t, &updated, frame.SourcemapUpdated)
 
 				assert.Equal(t, tc.function, function)
 				assert.Equal(t, prevFunction, *frame.Function)
@@ -254,11 +254,11 @@ func TestIsLibraryFrame(t *testing.T) {
 func TestIsSourcemapApplied(t *testing.T) {
 	assert.False(t, (&StacktraceFrame{}).IsSourcemapApplied())
 
-	fr := StacktraceFrame{Sourcemap: Sourcemap{Updated: new(bool)}}
+	fr := StacktraceFrame{SourcemapUpdated: new(bool)}
 	assert.False(t, fr.IsSourcemapApplied())
 
 	libFrame := true
-	fr = StacktraceFrame{Sourcemap: Sourcemap{Updated: &libFrame}}
+	fr = StacktraceFrame{SourcemapUpdated: &libFrame}
 	assert.True(t, fr.IsSourcemapApplied())
 }
 

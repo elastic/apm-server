@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package transaction
+package model
 
 import (
 	"context"
@@ -30,13 +30,11 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 )
 
-func TestEventTransform(t *testing.T) {
+func TestTransactionTransform(t *testing.T) {
 	id := "123"
 	result := "tx result"
 	sampled := false
@@ -44,12 +42,12 @@ func TestEventTransform(t *testing.T) {
 	name := "mytransaction"
 
 	tests := []struct {
-		Event  Event
-		Output common.MapStr
-		Msg    string
+		Transaction Transaction
+		Output      common.MapStr
+		Msg         string
 	}{
 		{
-			Event: Event{},
+			Transaction: Transaction{},
 			Output: common.MapStr{
 				"id":       "",
 				"type":     "",
@@ -59,7 +57,7 @@ func TestEventTransform(t *testing.T) {
 			Msg: "Empty Event",
 		},
 		{
-			Event: Event{
+			Transaction: Transaction{
 				ID:       id,
 				Type:     "tx",
 				Duration: 65.98,
@@ -73,7 +71,7 @@ func TestEventTransform(t *testing.T) {
 			Msg: "SpanCount empty",
 		},
 		{
-			Event: Event{
+			Transaction: Transaction{
 				ID:        id,
 				Type:      "tx",
 				Duration:  65.98,
@@ -89,7 +87,7 @@ func TestEventTransform(t *testing.T) {
 			Msg: "SpanCount only contains `started`",
 		},
 		{
-			Event: Event{
+			Transaction: Transaction{
 				ID:        id,
 				Type:      "tx",
 				Duration:  65.98,
@@ -105,7 +103,7 @@ func TestEventTransform(t *testing.T) {
 			Msg: "SpanCount only contains `dropped`",
 		},
 		{
-			Event: Event{
+			Transaction: Transaction{
 				ID:        id,
 				Name:      &name,
 				Type:      "tx",
@@ -131,7 +129,7 @@ func TestEventTransform(t *testing.T) {
 	tctx := &transform.Context{}
 
 	for idx, test := range tests {
-		output := test.Event.Transform(context.Background(), tctx)
+		output := test.Transaction.Transform(context.Background(), tctx)
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -145,34 +143,34 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
-	eventMetadata := metadata.Metadata{
-		Service: metadata.Service{
+	eventMetadata := Metadata{
+		Service: Service{
 			Name:    serviceName,
 			Version: serviceVersion,
-			Node:    metadata.ServiceNode{Name: serviceNodeName},
+			Node:    ServiceNode{Name: serviceNodeName},
 		},
-		System: metadata.System{
+		System: System{
 			ConfiguredHostname: name,
 			DetectedHostname:   hostname,
 			Architecture:       architecture,
 			Platform:           platform,
 		},
-		User:   metadata.User{ID: id, Name: name, UserAgent: userAgent},
-		Client: metadata.Client{IP: net.ParseIP(ip)},
+		User:   User{ID: id, Name: name, UserAgent: userAgent},
+		Client: Client{IP: net.ParseIP(ip)},
 		Labels: common.MapStr{"a": true},
 	}
 
-	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{}}
-	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
-	txWithContext := Event{
+	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}}
+	response := Resp{Finished: new(bool), MinimalResp: MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
+	txWithContext := Transaction{
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
-		Labels:    &model.Labels{"a": "b"},
-		Page:      &model.Page{Url: &url, Referer: &referer},
-		Http:      &model.Http{Request: &request, Response: &response},
-		Url:       &model.Url{Original: &url},
-		Custom:    &model.Custom{"foo": "bar"},
-		Message:   &model.Message{QueueName: tests.StringPtr("routeUser")},
+		Labels:    &Labels{"a": "b"},
+		Page:      &Page{Url: &url, Referer: &referer},
+		HTTP:      &Http{Request: &request, Response: &response},
+		URL:       &Url{Original: &url},
+		Custom:    &Custom{"foo": "bar"},
+		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
 	}
 	events := txWithContext.Transform(context.Background(), &transform.Context{})
 	require.Len(t, events, 1)

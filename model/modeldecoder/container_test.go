@@ -20,24 +20,23 @@ package modeldecoder
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/model/metadata"
 )
 
 func TestContainerDecode(t *testing.T) {
 	id := "container-id"
 	for _, test := range []struct {
 		input map[string]interface{}
-		c     metadata.Container
+		c     model.Container
 	}{
 		{input: nil},
 		{
 			input: map[string]interface{}{"id": id},
-			c:     metadata.Container{ID: id},
+			c:     model.Container{ID: id},
 		},
 	} {
-		var container metadata.Container
+		var container model.Container
 		decodeContainer(test.input, &container)
 		assert.Equal(t, test.c, container)
 	}

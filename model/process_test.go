@@ -15,21 +15,51 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/beats/v7/libbeat/common"
+
+	"github.com/elastic/apm-server/tests"
 )
 
-type Container struct {
-	ID string
-}
-
-func (k *Container) fields() common.MapStr {
-	if k == nil {
-		return nil
+func TestProcessTransform(t *testing.T) {
+	processTitle := "node"
+	argv := []string{
+		"node",
+		"server.js",
 	}
-	var container mapStr
-	container.maybeSetString("id", k.ID)
-	return common.MapStr(container)
+
+	tests := []struct {
+		Process Process
+		Output  common.MapStr
+	}{
+		{
+			Process: Process{},
+			Output:  nil,
+		},
+		{
+			Process: Process{
+				Pid:   123,
+				Ppid:  tests.IntPtr(456),
+				Title: processTitle,
+				Argv:  argv,
+			},
+			Output: common.MapStr{
+				"pid":   123,
+				"ppid":  456,
+				"title": processTitle,
+				"args":  argv,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		output := test.Process.fields()
+		assert.Equal(t, test.Output, output)
+	}
 }

@@ -18,7 +18,7 @@
 package modeldecoder
 
 import (
-	"github.com/elastic/apm-server/model/sourcemap"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -34,7 +34,7 @@ var SourcemapSchema = validation.CreateSchema(schema.PayloadSchema, "sourcemap")
 // DecodeSourcemap decodes a sourcemap.
 func DecodeSourcemap(raw map[string]interface{}) (transform.Transformable, error) {
 	decoder := utility.ManualDecoder{}
-	pa := sourcemap.Sourcemap{
+	pa := model.Sourcemap{
 		ServiceName:    decoder.String(raw, "service_name"),
 		ServiceVersion: decoder.String(raw, "service_version"),
 		Sourcemap:      decoder.String(raw, "sourcemap"),

@@ -25,16 +25,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/utility"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/metricset"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 )
 
 // assertMetricsMatch is an equality test for a metricset as sample order is not important
-func assertMetricsetsMatch(t *testing.T, expected, actual *metricset.Metricset) bool {
+func assertMetricsetsMatch(t *testing.T, expected, actual *model.Metricset) bool {
 	samplesMatch := assert.ElementsMatch(t, expected.Samples, actual.Samples)
 	expected.Samples = nil
 	actual.Samples = nil
@@ -51,14 +49,14 @@ func TestDecode(t *testing.T) {
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	requestTime := time.Now()
 	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
-	metadata := metadata.Metadata{
-		Service: metadata.Service{Name: "myservice"},
+	metadata := model.Metadata{
+		Service: model.Service{Name: "myservice"},
 	}
 
 	for _, test := range []struct {
 		input     map[string]interface{}
 		err       error
-		metricset *metricset.Metricset
+		metricset *model.Metricset
 	}{
 		{input: nil, err: nil, metricset: nil},
 		{
@@ -73,7 +71,7 @@ func TestDecode(t *testing.T) {
 			},
 
 			err: nil,
-			metricset: &metricset.Metricset{
+			metricset: &model.Metricset{
 				Metadata:  metadata,
 				Timestamp: timestampParsed,
 			},
@@ -93,7 +91,7 @@ func TestDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"samples": map[string]interface{}{},
 			},
-			metricset: &metricset.Metricset{
+			metricset: &model.Metricset{
 				Metadata:  metadata,
 				Timestamp: requestTime,
 			},
@@ -114,9 +112,9 @@ func TestDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			metricset: &metricset.Metricset{
+			metricset: &model.Metricset{
 				Metadata: metadata,
-				Samples: []metricset.Sample{
+				Samples: []model.Sample{
 					{
 						Name:  "some.gauge",
 						Value: 9.16,
@@ -153,9 +151,9 @@ func TestDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			metricset: &metricset.Metricset{
+			metricset: &model.Metricset{
 				Metadata: metadata,
-				Samples: []metricset.Sample{
+				Samples: []model.Sample{
 					{
 						Name:  "a.counter",
 						Value: 612,
@@ -164,8 +162,8 @@ func TestDecode(t *testing.T) {
 				Labels: common.MapStr{
 					"atag": true,
 				},
-				Span:        metricset.Span{Type: spType, Subtype: spSubtype},
-				Transaction: metricset.Transaction{Type: trType, Name: trName},
+				Span:        model.MetricsetSpan{Type: spType, Subtype: spSubtype},
+				Transaction: model.MetricsetTransaction{Type: trType, Name: trName},
 				Timestamp:   timestampParsed,
 			},
 		},
@@ -180,7 +178,7 @@ func TestDecode(t *testing.T) {
 		}
 		if test.metricset != nil {
 			want := test.metricset
-			assertMetricsetsMatch(t, want, transformable.(*metricset.Metricset))
+			assertMetricsetsMatch(t, want, transformable.(*model.Metricset))
 		}
 	}
 }

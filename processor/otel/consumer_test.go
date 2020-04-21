@@ -35,9 +35,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
-	model_error "github.com/elastic/apm-server/model/error"
-	"github.com/elastic/apm-server/model/span"
-	"github.com/elastic/apm-server/model/transaction"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/approvals"
 )
@@ -136,7 +134,7 @@ func TestConsumer_Metadata(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.Len(t, req.Transformables, 1)
-				transaction := req.Transformables[0].(*transaction.Event)
+				transaction := req.Transformables[0].(*model.Transaction)
 				out, err := json.Marshal(&transaction.Metadata)
 				require.NoError(t, err)
 				approvals.AssertApproveResult(t, file("metadata_"+tc.name), out)
@@ -233,11 +231,11 @@ func TestConsumer_Transaction(t *testing.T) {
 				require.True(t, len(req.Transformables) >= 1)
 				for i, transformable := range req.Transformables {
 					switch data := transformable.(type) {
-					case *transaction.Event:
+					case *model.Transaction:
 						tr, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_%s_%d", tc.name, i)), tr)
-					case *model_error.Event:
+					case *model.Error:
 						e, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_error_%s_%d", tc.name, i)), e)
@@ -318,11 +316,11 @@ func TestConsumer_Span(t *testing.T) {
 				require.True(t, len(req.Transformables) >= 1)
 				for i, transformable := range req.Transformables {
 					switch data := transformable.(type) {
-					case *span.Event:
+					case *model.Span:
 						span, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_%s_%d", tc.name, i)), span)
-					case *model_error.Event:
+					case *model.Error:
 						e, err := json.Marshal(data)
 						require.NoError(t, err)
 						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_error_%s_%d", tc.name, i)), e)

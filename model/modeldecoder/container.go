@@ -17,11 +17,9 @@
 
 package modeldecoder
 
-import (
-	"github.com/elastic/apm-server/model/metadata"
-)
+import "github.com/elastic/apm-server/model"
 
-func decodeContainer(input map[string]interface{}, out *metadata.Container) {
+func decodeContainer(input map[string]interface{}, out *model.Container) {
 	if input == nil {
 		return
 	}
