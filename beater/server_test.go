@@ -52,32 +52,30 @@ import (
 type m map[string]interface{}
 
 func TestServerOk(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
+	defer apm.Stop()
 
-	baseUrl, client := apm.client(false)
-	req := makeTransactionRequest(t, baseUrl)
+	req := makeTransactionRequest(t, apm.baseURL)
 	req.Header.Add("Content-Type", "application/x-ndjson")
-	res, err := client.Do(req)
+	res, err := apm.client.Do(req)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
 }
 
 func TestServerRoot(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
+	defer apm.Stop()
 
-	baseUrl, client := apm.client(false)
 	rootRequest := func(path string, accept *string) *http.Response {
-		req, err := http.NewRequest(http.MethodGet, baseUrl+path, nil)
+		req, err := http.NewRequest(http.MethodGet, apm.baseURL+path, nil)
 		require.NoError(t, err, "Failed to create test request object: %v", err)
 		if accept != nil {
 			req.Header.Add("Accept", *accept)
 		}
-		res, err := client.Do(req)
+		res, err := apm.client.Do(req)
 		assert.NoError(t, err)
 		return res
 	}
@@ -122,18 +120,17 @@ func TestServerRootWithToken(t *testing.T) {
 	badToken := "Verysecret"
 	ucfg, err := common.NewConfigFrom(m{"secret_token": token})
 	assert.NoError(t, err)
-	apm, teardown, err := setupServer(t, ucfg, nil, nil)
+	apm, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
-	baseUrl, client := apm.client(false)
+	defer apm.Stop()
 
 	rootRequest := func(token *string) *http.Response {
-		req, err := http.NewRequest(http.MethodGet, baseUrl+"/", nil)
+		req, err := http.NewRequest(http.MethodGet, apm.baseURL+"/", nil)
 		require.NoError(t, err, "Failed to create test request object: %v", err)
 		if token != nil {
 			req.Header.Add("Authorization", "Bearer "+*token)
 		}
-		res, err := client.Do(req)
+		res, err := apm.client.Do(req)
 		require.NoError(t, err)
 		return res
 	}
@@ -166,12 +163,11 @@ func TestServerTcpNoPort(t *testing.T) {
 		"host": "localhost",
 	})
 	assert.NoError(t, err)
-	btr, teardown, err := setupServer(t, ucfg, nil, nil)
+	btr, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
+	defer btr.Stop()
 
-	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + api.RootPath)
+	rsp, err := btr.client.Get(btr.baseURL + api.RootPath)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
 	}
@@ -194,12 +190,11 @@ func TestServerOkUnix(t *testing.T) {
 	addr := tmpTestUnix(t)
 	ucfg, err := common.NewConfigFrom(map[string]interface{}{"host": "unix:" + addr})
 	assert.NoError(t, err)
-	btr, stop, err := setupServer(t, ucfg, nil, nil)
+	btr, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
-	defer stop()
+	defer btr.Stop()
 
-	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + api.RootPath)
+	rsp, err := btr.client.Get(btr.baseURL + api.RootPath)
 	assert.NoError(t, err)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
@@ -207,14 +202,13 @@ func TestServerOkUnix(t *testing.T) {
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
+	defer apm.Stop()
 
-	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest(http.MethodGet, baseUrl+api.RootPath, nil)
+	req, err := http.NewRequest(http.MethodGet, apm.baseURL+api.RootPath, nil)
 	require.NoError(t, err)
-	rsp, err := client.Do(req)
+	rsp, err := apm.client.Do(req)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
 	}
@@ -223,15 +217,13 @@ func TestServerHealth(t *testing.T) {
 func TestServerRumSwitch(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": []string{"*"}}})
 	assert.NoError(t, err)
-	apm, teardown, err := setupServer(t, ucfg, nil, nil)
+	apm, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
+	defer apm.Stop()
 
-	baseUrl, client := apm.client(false)
-
-	req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakeRUMPath, bytes.NewReader(testData))
+	req, err := http.NewRequest(http.MethodPost, apm.baseURL+api.IntakeRUMPath, bytes.NewReader(testData))
 	require.NoError(t, err)
-	rsp, err := client.Do(req)
+	rsp, err := apm.client.Do(req)
 	if assert.NoError(t, err) {
 		assert.NotEqual(t, http.StatusForbidden, rsp.StatusCode, body(t, rsp))
 	}
@@ -246,16 +238,12 @@ func TestServerSourcemapBadConfig(t *testing.T) {
 		m{"rum": m{"enabled": true, "source_mapping": m{"elasticsearch": m{"hosts": []string{}}}}},
 	)
 	require.NoError(t, err)
-	s, teardown, err := setupServer(t, ucfg, nil, nil)
+	s, err := setupServer(t, ucfg, nil, nil)
 	require.Nil(t, s)
-	if err == nil {
-		defer teardown()
-	}
 	require.Error(t, err)
 }
 
 func TestServerCORS(t *testing.T) {
-	true := true
 	tests := []struct {
 		expectedStatus int
 		origin         string
@@ -293,38 +281,35 @@ func TestServerCORS(t *testing.T) {
 		},
 	}
 
-	var teardown = func() {}
-	defer teardown() // in case test crashes. calling teardown twice is ok
 	for idx, test := range tests {
-		ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
-		assert.NoError(t, err)
-		var apm *beater
-		apm, teardown, err = setupServer(t, ucfg, nil, nil)
-		require.NoError(t, err)
-		baseUrl, client := apm.client(false)
+		t.Run(fmt.Sprint(idx), func(t *testing.T) {
+			ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
+			assert.NoError(t, err)
+			apm, err := setupServer(t, ucfg, nil, nil)
+			require.NoError(t, err)
+			defer apm.Stop()
 
-		req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakeRUMPath, bytes.NewReader(testData))
-		req.Header.Set("Origin", test.origin)
-		req.Header.Set("Content-Type", "application/x-ndjson")
-		assert.NoError(t, err)
-		rsp, err := client.Do(req)
-		if assert.NoError(t, err) {
-			assert.Equal(t, test.expectedStatus, rsp.StatusCode, fmt.Sprintf("Failed at idx %v; %s", idx,
-				body(t, rsp)))
-		}
+			req, err := http.NewRequest(http.MethodPost, apm.baseURL+api.IntakeRUMPath, bytes.NewReader(testData))
+			req.Header.Set("Origin", test.origin)
+			req.Header.Set("Content-Type", "application/x-ndjson")
+			assert.NoError(t, err)
+			rsp, err := apm.client.Do(req)
+			if assert.NoError(t, err) {
+				assert.Equal(t, test.expectedStatus, rsp.StatusCode, fmt.Sprintf("Failed at idx %v; %s", idx,
+					body(t, rsp)))
+			}
 
-		teardown()
+		})
 	}
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
+	defer apm.Stop()
 
-	baseUrl, client := apm.client(false)
-	req := makeTransactionRequest(t, baseUrl)
-	rsp, err := client.Do(req)
+	req := makeTransactionRequest(t, apm.baseURL)
+	rsp, err := apm.client.Do(req)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode, body(t, rsp))
 	}
@@ -386,12 +371,14 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			ocfg, err := common.NewConfigFrom(tc.outputConfig)
 			require.NoError(t, err)
 			require.NoError(t, beatConfig.Output.Unpack(ocfg))
-			apm, teardown, err := setupServer(t, ucfg, &beatConfig, nil)
+
+			apm, err := setupServer(t, ucfg, &beatConfig, nil)
 			require.NoError(t, err)
+			defer apm.Stop()
+
 			if tc.expected != nil {
 				assert.Equal(t, tc.expected, apm.config.RumConfig.SourceMapping.ESConfig.Hosts)
 			}
-			teardown()
 		})
 	}
 }
@@ -481,7 +468,7 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 	return p
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beater, func(), error) {
+func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -532,12 +519,7 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, 
 		Info:      info,
 		Config:    beatConfig,
 	}
-
-	btr, stop, err := setupBeater(t, apmBeat, baseConfig, beatConfig)
-	if err == nil {
-		assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
-	}
-	return btr, stop, err
+	return setupBeater(t, apmBeat, baseConfig, beatConfig)
 }
 
 var testData = func() []byte {
@@ -555,26 +537,6 @@ func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
 	}
 
 	return req
-}
-
-func waitForServer(url string, client *http.Client, c chan error) {
-	var check = func() int {
-		var res *http.Response
-		var err error
-		res, err = client.Get(url + api.RootPath)
-		if err != nil {
-			return http.StatusInternalServerError
-		}
-		res.Body.Close()
-		return res.StatusCode
-	}
-
-	for {
-		time.Sleep(time.Second / 50)
-		if check() == http.StatusOK {
-			c <- nil
-		}
-	}
 }
 
 func body(t *testing.T, response *http.Response) string {

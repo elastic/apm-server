@@ -19,6 +19,7 @@ package config
 
 import (
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -65,9 +66,11 @@ type SourceMapping struct {
 	Enabled      *bool                 `config:"enabled"`
 	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
-
-	store        *sourcemap.Store
 	esConfigured bool
+
+	initStoreOnce sync.Once
+	store         *sourcemap.Store
+	storeError    error
 }
 
 // IsEnabled indicates whether RUM endpoint is enabled or not
@@ -81,27 +84,30 @@ func (s *SourceMapping) IsEnabled() bool {
 }
 
 // MemoizedSourcemapStore creates the sourcemap store once and then caches it
+//
+// TODO(axw) move this logic out of beater/config. This is a consumer of config,
+// not config itself.
 func (c *RumConfig) MemoizedSourcemapStore() (*sourcemap.Store, error) {
 	if !c.IsEnabled() || !c.SourceMapping.IsEnabled() || !c.SourceMapping.isSetup() {
 		return nil, nil
 	}
-	if c.SourceMapping.store != nil {
-		return c.SourceMapping.store, nil
-	}
-
-	esClient, err := elasticsearch.NewClient(c.SourceMapping.ESConfig)
-	if err != nil {
-		return nil, err
-	}
-	// the index pattern by default contains a variable `observer.version` that needs to be replaced with the
-	// concrete apm-server version.
-	index := replaceVersion(c.SourceMapping.IndexPattern, c.BeatVersion)
-	store, err := sourcemap.NewStore(esClient, index, c.SourceMapping.Cache.Expiration)
-	if err != nil {
-		return nil, err
-	}
-	c.SourceMapping.store = store
-	return store, nil
+	c.SourceMapping.initStoreOnce.Do(func() {
+		esClient, err := elasticsearch.NewClient(c.SourceMapping.ESConfig)
+		if err != nil {
+			c.SourceMapping.storeError = err
+			return
+		}
+		// the index pattern by default contains a variable `observer.version`
+		// that needs to be replaced with the concrete apm-server version.
+		index := replaceVersion(c.SourceMapping.IndexPattern, c.BeatVersion)
+		store, err := sourcemap.NewStore(esClient, index, c.SourceMapping.Cache.Expiration)
+		if err != nil {
+			c.SourceMapping.storeError = err
+			return
+		}
+		c.SourceMapping.store = store
+	})
+	return c.SourceMapping.store, c.SourceMapping.storeError
 }
 
 func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
@@ -148,7 +154,17 @@ func (s *SourceMapping) Unpack(inp *common.Config) error {
 	if err := inp.Unpack(&cfg); err != nil {
 		return errors.Wrap(err, "error unpacking sourcemapping config")
 	}
-	*s = SourceMapping(cfg)
+
+	// TODO(axw) we have to copy specific fields because copying the
+	// whole struct causes a vet error, due to the sync.Once. After
+	// moving MemoizedSourcemapStore out of beater/config (removing
+	// the need for the sync.Once), we should go back to copying the
+	// whole struct.
+	s.Cache = cfg.Cache
+	s.Enabled = cfg.Enabled
+	s.IndexPattern = cfg.IndexPattern
+	s.ESConfig = cfg.ESConfig
+
 	if inp.HasField("elasticsearch") {
 		s.esConfigured = true
 	}

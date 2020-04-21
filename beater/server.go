@@ -18,12 +18,8 @@
 package beater
 
 import (
-	"bufio"
 	"context"
-	"fmt"
-	"net"
 	"net/http"
-	"time"
 
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
@@ -35,6 +31,45 @@ import (
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/publish"
 )
+
+// RunServerFunc is a function which runs the APM Server until a
+// fatal error occurs, or the context is cancelled.
+type RunServerFunc func(context.Context, ServerParams) error
+
+// ServerParams holds parameters for running the APM Server.
+type ServerParams struct {
+	// Config is the configuration used for running the APM Server.
+	Config *config.Config
+
+	// Logger is the logger for the beater component.
+	Logger *logp.Logger
+
+	// Tracer is an apm.Tracer that the APM Server may use
+	// for self-instrumentation.
+	Tracer *apm.Tracer
+
+	// Reporter is the publish.Reporter that the APM Server
+	// should use for reporting events.
+	Reporter publish.Reporter
+}
+
+// RunServer runs the APM Server until a fatal error occurs, or ctx is cancelled.
+func RunServer(ctx context.Context, args ServerParams) error {
+	srv, err := newServer(args.Logger, args.Config, args.Tracer, args.Reporter)
+	if err != nil {
+		return err
+	}
+	done := make(chan struct{})
+	defer close(done)
+	go func() {
+		select {
+		case <-ctx.Done():
+			srv.stop()
+		case <-done:
+		}
+	}()
+	return srv.run()
+}
 
 type server struct {
 	logger *logp.Logger
@@ -63,24 +98,14 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	}, nil
 }
 
-func (s server) run(listener net.Listener, tracerServer *tracerServer) error {
+func (s server) run() error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
 	if s.jaegerServer != nil {
 		g.Go(s.jaegerServer.Serve)
 	}
 	if s.httpServer != nil {
-		g.Go(func() error {
-			return s.httpServer.start(listener)
-		})
-		if s.isAvailable(s.cfg.ShutdownTimeout) {
-			notifyListening(context.Background(), s.cfg, s.reporter)
-		}
-		if tracerServer != nil {
-			g.Go(func() error {
-				return tracerServer.serve(s.reporter)
-			})
-		}
+		g.Go(s.httpServer.start)
 	}
 	if err := g.Wait(); err != http.ErrServerClosed {
 		return err
@@ -96,27 +121,4 @@ func (s server) stop() {
 	if s.httpServer != nil {
 		s.httpServer.stop()
 	}
-}
-
-func (s server) isAvailable(timeout time.Duration) bool {
-	// following an example from https://golang.org/pkg/net/
-	// dial into tcp connection to ensure listener is ready, send get request and read response,
-	// in case tls is enabled, the server will respond with 400,
-	// as this only checks the server is up and reachable errors can be ignored
-	conn, err := net.DialTimeout("tcp", s.cfg.Host, timeout)
-	if err != nil {
-		return false
-	}
-	err = conn.SetReadDeadline(time.Now().Add(timeout))
-	if err != nil {
-		return false
-	}
-	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
-	_, err = bufio.NewReader(conn).ReadByte()
-	if err != nil {
-		return false
-	}
-
-	err = conn.Close()
-	return err == nil
 }

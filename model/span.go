@@ -36,7 +36,7 @@ const (
 
 var (
 	spanMetrics           = monitoring.Default.NewRegistry("apm-server.processor.span")
-	spanTransformations   = monitoring.NewInt(spanMetrics, "spanTransformations")
+	spanTransformations   = monitoring.NewInt(spanMetrics, "transformations")
 	spanStacktraceCounter = monitoring.NewInt(spanMetrics, "stacktraces")
 	spanFrameCounter      = monitoring.NewInt(spanMetrics, "frames")
 	spanProcessorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
