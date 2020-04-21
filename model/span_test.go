@@ -36,7 +36,7 @@ func TestSpanTransform(t *testing.T) {
 	start := 0.65
 	serviceName, serviceVersion, env := "myService", "1.2", "staging"
 	service := Service{Name: serviceName, Version: serviceVersion, Environment: env}
-	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
+	hexID, parentID, traceID := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "amqp"
 	action := "publish"
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
@@ -72,9 +72,9 @@ func TestSpanTransform(t *testing.T) {
 		{
 			Span: Span{
 				Metadata:   metadata,
-				ID:         hexId,
-				TraceID:    &traceId,
-				ParentID:   &parentId,
+				ID:         hexID,
+				TraceID:    &traceID,
+				ParentID:   &parentID,
 				Name:       "myspan",
 				Type:       "myspantype",
 				Subtype:    &subtype,
@@ -101,7 +101,7 @@ func TestSpanTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
-					"id":       hexId,
+					"id":       hexID,
 					"duration": common.MapStr{"us": 1200},
 					"name":     "myspan",
 					"start":    common.MapStr{"us": 650},
@@ -140,8 +140,8 @@ func TestSpanTransform(t *testing.T) {
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
 				"service":     common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"timestamp":   common.MapStr{"us": timestampUs},
-				"trace":       common.MapStr{"id": traceId},
-				"parent":      common.MapStr{"id": parentId},
+				"trace":       common.MapStr{"id": traceID},
+				"parent":      common.MapStr{"id": parentID},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
 			},
 			Msg: "Full Span",
