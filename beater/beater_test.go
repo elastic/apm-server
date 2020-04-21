@@ -34,25 +34,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-/*
-Run the benchmarks as follows:
-
-	$ go test beater/*.go -run=XXX -bench=. -cpuprofile=cpu.out
-
-then load the cpu profile file:
-
-	$ go tool pprof beater.test cpu.out
-
-type `web` to get a nice svg that shows the call graph and time spent:
-
-	(pprof) web
-
-To get a memory profile, use this:
-
-	$ go test beater/*.go -run=XXX -bench=. -memprofile=mem.out
-
-*/
-
 type testBeater struct {
 	*beater
 
