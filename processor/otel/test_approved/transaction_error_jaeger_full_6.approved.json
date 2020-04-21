@@ -3,7 +3,7 @@
     "Custom": null,
     "Exception": null,
     "Experimental": null,
-    "Http": {
+    "HTTP": {
         "Request": {
             "Body": null,
             "Cookies": null,
@@ -98,7 +98,7 @@
     "TransactionID": "41414646",
     "TransactionSampled": null,
     "TransactionType": "http_request",
-    "Url": {
+    "URL": {
         "Domain": "foo.bar.com",
         "Fragment": null,
         "Full": "http://foo.bar.com?a=12",

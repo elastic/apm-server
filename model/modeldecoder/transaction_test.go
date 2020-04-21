@@ -31,8 +31,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -99,7 +97,7 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 	for name, test := range map[string]struct {
 		input interface{}
 		err   string
-		e     *transaction.Event
+		e     *model.Transaction
 	}{
 		"no input":           {input: nil, err: "failed to validate transaction: error validating JSON: input missing", e: nil},
 		"invalid type":       {input: "", err: "failed to validate transaction: error validating JSON: invalid input type", e: nil},
@@ -113,7 +111,7 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			if test.e != nil {
-				event := transformable.(*transaction.Event)
+				event := transformable.(*model.Transaction)
 				assert.Equal(t, test.e, event)
 			} else {
 				assert.Nil(t, transformable)
@@ -171,10 +169,10 @@ func TestTransactionEventDecode(t *testing.T) {
 	ctxURL := model.Url{Original: &origURL}
 	custom := model.Custom{"abc": 1}
 
-	inputMetadata := metadata.Metadata{Service: metadata.Service{Name: "foo"}}
+	inputMetadata := model.Metadata{Service: model.Service{Name: "foo"}}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = metadata.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID, UserAgent: ua}
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -186,11 +184,11 @@ func TestTransactionEventDecode(t *testing.T) {
 	for name, test := range map[string]struct {
 		input map[string]interface{}
 		cfg   Config
-		e     *transaction.Event
+		e     *model.Transaction
 	}{
 		"no timestamp specified, request time used": {
 			input: map[string]interface{}{},
-			e: &transaction.Event{
+			e: &model.Transaction{
 				Metadata:  inputMetadata,
 				ID:        id,
 				Type:      trType,
@@ -198,7 +196,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: requestTime,
-				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 			},
 		},
 		"event experimental=true, no experimental payload": {
@@ -207,7 +205,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				"context":   map[string]interface{}{"foo": "bar"},
 			},
 			cfg: Config{Experimental: true},
-			e: &transaction.Event{
+			e: &model.Transaction{
 				Metadata:  inputMetadata,
 				ID:        id,
 				Type:      trType,
@@ -215,7 +213,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
-				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 			},
 		},
 		"event experimental=false": {
@@ -224,7 +222,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				"context":   map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
 			},
 			cfg: Config{Experimental: false},
-			e: &transaction.Event{
+			e: &model.Transaction{
 				Metadata:  inputMetadata,
 				ID:        id,
 				Type:      trType,
@@ -232,7 +230,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
-				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 			},
 		},
 		"event experimental=true": {
@@ -241,7 +239,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				"context":   map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
 			},
 			cfg: Config{Experimental: true},
-			e: &transaction.Event{
+			e: &model.Transaction{
 				Metadata:     inputMetadata,
 				ID:           id,
 				Type:         trType,
@@ -249,7 +247,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceID:      traceID,
 				Duration:     duration,
 				Timestamp:    timestampParsed,
-				SpanCount:    transaction.SpanCount{Dropped: &dropped, Started: &started},
+				SpanCount:    model.SpanCount{Dropped: &dropped, Started: &started},
 				Experimental: map[string]interface{}{"foo": "bar"},
 			},
 		},
@@ -266,7 +264,7 @@ func TestTransactionEventDecode(t *testing.T) {
 					},
 				},
 			},
-			e: &transaction.Event{
+			e: &model.Transaction{
 				Metadata:  inputMetadata,
 				ID:        id,
 				Name:      &name,
@@ -274,7 +272,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
-				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Message: &model.Message{
 					QueueName: tests.StringPtr("order"),
 					Body:      tests.StringPtr("confirmed"),
@@ -307,7 +305,7 @@ func TestTransactionEventDecode(t *testing.T) {
 					},
 				},
 			},
-			e: &transaction.Event{
+			e: &model.Transaction{
 				Metadata:  mergedMetadata,
 				ID:        id,
 				Type:      trType,
@@ -319,12 +317,12 @@ func TestTransactionEventDecode(t *testing.T) {
 				Timestamp: timestampParsed,
 				Marks:     marks,
 				Sampled:   &sampled,
-				SpanCount: transaction.SpanCount{Dropped: &dropped, Started: &started},
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
-				Http:      &h,
-				Url:       &ctxURL,
+				HTTP:      &h,
+				URL:       &ctxURL,
 			},
 		},
 	} {

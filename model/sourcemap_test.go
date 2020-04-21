@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package sourcemap_test
+package model_test
 
 import (
 	"context"
@@ -25,21 +25,20 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/elastic/beats/v7/libbeat/logp"
-
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
+
 	"github.com/elastic/apm-server/elasticsearch/estest"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
-	modelsourcemap "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
-
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func getStr(data common.MapStr, key string) string {
@@ -48,7 +47,7 @@ func getStr(data common.MapStr, key string) string {
 }
 
 func TestTransform(t *testing.T) {
-	p := modelsourcemap.Sourcemap{
+	p := model.Sourcemap{
 		ServiceName:    "myService",
 		ServiceVersion: "1.0",
 		BundleFilepath: "/my/path",
@@ -89,7 +88,7 @@ func TestInvalidateCache(t *testing.T) {
 	assert.NoError(t, err)
 	decoded, err := modeldecoder.DecodeSourcemap(data)
 	require.NoError(t, err)
-	event := decoded.(*modelsourcemap.Sourcemap)
+	event := decoded.(*model.Sourcemap)
 
 	t.Run("withSourcemapStore", func(t *testing.T) {
 		// collect logs

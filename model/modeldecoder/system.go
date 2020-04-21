@@ -20,10 +20,10 @@ package modeldecoder
 import (
 	"net"
 
-	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model"
 )
 
-func decodeSystem(input map[string]interface{}, out *metadata.System) {
+func decodeSystem(input map[string]interface{}, out *model.System) {
 	if input == nil {
 		return
 	}

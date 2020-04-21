@@ -19,7 +19,7 @@ package modeldecoder
 
 import (
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/field"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 
 	"github.com/pkg/errors"
 

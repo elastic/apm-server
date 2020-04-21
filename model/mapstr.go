@@ -15,34 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
-import (
-	"github.com/elastic/beats/v7/libbeat/common"
-)
+import "github.com/elastic/beats/v7/libbeat/common"
 
-type Kubernetes struct {
-	Namespace string
-	NodeName  string
-	PodName   string
-	PodUID    string
+type mapStr common.MapStr
+
+func (m *mapStr) set(k string, v interface{}) {
+	if *m == nil {
+		*m = make(mapStr)
+	}
+	(*m)[k] = v
 }
 
-func (k *Kubernetes) fields() common.MapStr {
-	var kubernetes mapStr
-	kubernetes.maybeSetString("namespace", k.Namespace)
-
-	var node mapStr
-	if node.maybeSetString("name", k.NodeName) {
-		kubernetes.set("node", common.MapStr(node))
+func (m *mapStr) maybeSetString(k, v string) bool {
+	if v != "" {
+		m.set(k, v)
+		return true
 	}
+	return false
+}
 
-	var pod mapStr
-	pod.maybeSetString("name", k.PodName)
-	pod.maybeSetString("uid", k.PodUID)
-	if pod != nil {
-		kubernetes.set("pod", common.MapStr(pod))
+func (m *mapStr) maybeSetMapStr(k string, v common.MapStr) bool {
+	if len(v) > 0 {
+		m.set(k, v)
+		return true
 	}
-
-	return common.MapStr(kubernetes)
+	return false
 }

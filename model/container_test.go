@@ -15,10 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metadata
+package model
 
 import (
-	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,18 +25,25 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestClientFields(t *testing.T) {
-	for name, tc := range map[string]struct {
-		ip  string
-		out common.MapStr
+func TestContainerTransform(t *testing.T) {
+	id := "container-id"
+
+	tests := []struct {
+		Container Container
+		Output    common.MapStr
 	}{
-		"Empty": {ip: "", out: nil},
-		"IPv4":  {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
-		"IPv6":  {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
-	} {
-		t.Run(name, func(t *testing.T) {
-			c := Client{IP: net.ParseIP(tc.ip)}
-			assert.Equal(t, tc.out, c.fields())
-		})
+		{
+			Container: Container{},
+			Output:    nil,
+		},
+		{
+			Container: Container{ID: id},
+			Output:    common.MapStr{"id": id},
+		},
+	}
+
+	for _, test := range tests {
+		output := test.Container.fields()
+		assert.Equal(t, test.Output, output)
 	}
 }
