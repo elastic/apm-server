@@ -169,7 +169,10 @@ func (s *tracerServer) serve(report publish.Reporter) error {
 		return err
 	}
 	s.server.Handler = mux
-	return s.server.Serve(s.listener)
+	if err := s.server.Serve(s.listener); err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 func (s *tracerServer) stop() {
