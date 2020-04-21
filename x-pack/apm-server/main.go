@@ -7,11 +7,14 @@ package main
 import (
 	"os"
 
+	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 )
 
 func main() {
-	rootCmd := cmd.NewXPackRootCommand()
+	rootCmd := cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
+		RunServer: beater.RunServer,
+	}))
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

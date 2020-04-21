@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/url"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
@@ -36,8 +37,9 @@ import (
 
 type httpServer struct {
 	*http.Server
-	cfg    *config.Config
-	logger *logp.Logger
+	cfg      *config.Config
+	logger   *logp.Logger
+	reporter publish.Reporter
 }
 
 func newHTTPServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*httpServer, error) {
@@ -63,13 +65,23 @@ func newHTTPServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, 
 		if err != nil {
 			return nil, err
 		}
-		server.TLSConfig = tlsServerConfig.BuildModuleConfig(cfg.Host)
+		server.TLSConfig = tlsServerConfig.BuildModuleConfig("")
 	}
-	return &httpServer{server, cfg, logger}, nil
+	return &httpServer{server, cfg, logger, reporter}, nil
 }
 
-func (h *httpServer) start(lis net.Listener) error {
-	h.logger.Infof("Listening on: %s", h.Server.Addr)
+func (h *httpServer) start() error {
+	lis, err := h.listen()
+	if err != nil {
+		return err
+	}
+	addr := lis.Addr()
+	if addr.Network() == "tcp" {
+		h.logger.Infof("Listening on: %s", addr)
+	} else {
+		h.logger.Infof("Listening on: %s:%s", addr.Network(), addr.String())
+	}
+
 	switch h.cfg.RumConfig.IsEnabled() {
 	case true:
 		h.logger.Info("RUM endpoints enabled!")
@@ -88,6 +100,9 @@ func (h *httpServer) start(lis net.Listener) error {
 		h.logger.Infof("Connection limit set to: %d", h.cfg.MaxConnections)
 	}
 
+	// Create the "onboarding" document, which contains the server's listening address.
+	notifyListening(context.Background(), addr, h.reporter)
+
 	if h.TLSConfig != nil {
 		h.logger.Info("SSL enabled.")
 		return h.ServeTLS(lis, "", "")
@@ -96,6 +111,7 @@ func (h *httpServer) start(lis net.Listener) error {
 		h.logger.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	h.logger.Info("SSL disabled.")
+
 	return h.Serve(lis)
 }
 
@@ -107,6 +123,23 @@ func (h *httpServer) stop() {
 			h.logger.Errorf("error closing http server: %s", err.Error())
 		}
 	}
+}
+
+// listen starts the listener for bt.config.Host.
+func (h *httpServer) listen() (net.Listener, error) {
+	if url, err := url.Parse(h.cfg.Host); err == nil && url.Scheme == "unix" {
+		return net.Listen("unix", url.Path)
+	}
+
+	const network = "tcp"
+	addr := h.cfg.Host
+	if _, _, err := net.SplitHostPort(addr); err != nil {
+		// Tack on a port if SplitHostPort fails on what should be a
+		// tcp network address. If splitting failed because there were
+		// already too many colons, one more won't change that.
+		addr = net.JoinHostPort(addr, config.DefaultPort)
+	}
+	return net.Listen(network, addr)
 }
 
 func doNotTrace(req *http.Request) bool {

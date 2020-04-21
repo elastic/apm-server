@@ -18,18 +18,17 @@
 package beater
 
 import (
-	"errors"
-	"net"
-	"net/url"
+	"context"
 	"sync"
 
-	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
-
+	"github.com/pkg/errors"
 	"go.elastic.co/apm"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 
@@ -43,18 +42,61 @@ func init() {
 	apm.DefaultTracer.Close()
 }
 
-type beater struct {
-	config   *config.Config
-	mutex    sync.Mutex // guards server and stopped
-	server   server
-	stopping chan struct{}
-	stopped  bool
-	logger   *logp.Logger
-}
-
 var (
 	errSetupDashboardRemoved = errors.New("setting 'setup.dashboards' has been removed")
 )
+
+// CreatorParams holds parameters for creating beat.Beaters.
+type CreatorParams struct {
+	// RunServer is used to run the APM Server.
+	//
+	// This should be set to beater.RunServer, or a function which wraps it.
+	RunServer RunServerFunc
+}
+
+// NewCreator returns a new beat.Creator which creates beaters
+// using the provided CreatorParams.
+func NewCreator(args CreatorParams) beat.Creator {
+	if args.RunServer == nil {
+		panic("args.RunServer must be non-nil")
+	}
+	return func(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
+		logger := logp.NewLogger(logs.Beater)
+		if err := checkConfig(logger); err != nil {
+			return nil, err
+		}
+		var esOutputCfg *common.Config
+		if isElasticsearchOutput(b) {
+			esOutputCfg = b.Config.Output.Config()
+		}
+
+		beaterConfig, err := config.NewConfig(b.Info.Version, ucfg, esOutputCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		bt := &beater{
+			config:    beaterConfig,
+			stopped:   false,
+			logger:    logger,
+			runServer: args.RunServer,
+		}
+
+		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
+		shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.IsEnabled() ||
+			(b.InSetupCmd && beaterConfig.Register.Ingest.Pipeline.Enabled == nil)
+		if isElasticsearchOutput(b) && shouldSetupPipelines {
+			logger.Info("Registering pipeline callback")
+			err := bt.registerPipelineCallback(b)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			logger.Info("No pipeline callback registered")
+		}
+		return bt, nil
+	}
+}
 
 // checkConfig verifies the global configuration doesn't use unsupported settings
 func checkConfig(logger *logp.Logger) error {
@@ -80,106 +122,71 @@ func checkConfig(logger *logp.Logger) error {
 	return nil
 }
 
-// New creates a beater instance using the provided configuration
-func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
-	logger := logp.NewLogger(logs.Beater)
-	if err := checkConfig(logger); err != nil {
-		return nil, err
-	}
-	var esOutputCfg *common.Config
-	if isElasticsearchOutput(b) {
-		esOutputCfg = b.Config.Output.Config()
-	}
+type beater struct {
+	config    *config.Config
+	logger    *logp.Logger
+	runServer RunServerFunc
 
-	beaterConfig, err := config.NewConfig(b.Info.Version, ucfg, esOutputCfg)
-	if err != nil {
-		return nil, err
-	}
-
-	bt := &beater{
-		config:   beaterConfig,
-		stopping: make(chan struct{}),
-		stopped:  false,
-		logger:   logger,
-	}
-
-	// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
-	shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.IsEnabled() ||
-		(b.InSetupCmd && beaterConfig.Register.Ingest.Pipeline.Enabled == nil)
-	if isElasticsearchOutput(b) && shouldSetupPipelines {
-		logger.Info("Registering pipeline callback")
-		err := bt.registerPipelineCallback(b)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		logger.Info("No pipeline callback registered")
-	}
-	return bt, nil
+	mutex      sync.Mutex // guards stopServer and stopped
+	stopServer func()
+	stopped    bool
 }
 
-// parseListener extracts the network and path for a configured host address
-// all paths are tcp unix:/path/to.sock
-func parseListener(host string) (string, string) {
-	if parsed, err := url.Parse(host); err == nil && parsed.Scheme == "unix" {
-		return parsed.Scheme, parsed.Path
-	}
-	return "tcp", host
-}
-
-// listen starts the listener for bt.config.Host
-// bt.config.Host may be mutated by this function in case the resolved listening address does not match the
-// configured bt.config.Host value.
-// This should only be called once, from Run.
-func (bt *beater) listen() (net.Listener, error) {
-	network, path := parseListener(bt.config.Host)
-	if network == "tcp" {
-		if _, _, err := net.SplitHostPort(path); err != nil {
-			// tack on a port if SplitHostPort fails on what should be a tcp network address
-			// if there were already too many colons, one more won't hurt
-			path = net.JoinHostPort(path, config.DefaultPort)
-		}
-	}
-	lis, err := net.Listen(network, path)
-	if err != nil {
-		return nil, err
-	}
-	// in case host is :0 or similar
-	if network == "tcp" {
-		addr := lis.Addr().(*net.TCPAddr).String()
-		if bt.config.Host != addr {
-			bt.logger.Infof("host resolved from %s to %s", bt.config.Host, addr)
-			bt.config.Host = addr
-		}
-	}
-	return lis, err
-}
-
+// Run runs the APM Server, blocking until the beater's Stop method is called,
+// or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
 	tracer, tracerServer, err := initTracer(b.Info, bt.config, bt.logger)
 	if err != nil {
 		return err
 	}
-	if tracerServer != nil {
-		go func() {
-			defer tracerServer.stop()
-			<-bt.stopping
-		}()
-	}
 	defer tracer.Close()
 
-	pub, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
-		Info: b.Info, ShutdownTimeout: bt.config.ShutdownTimeout, Pipeline: bt.config.Pipeline,
+	runServer := bt.runServer
+	if tracerServer != nil {
+		// Self-instrumentation enabled, so running the APM Server
+		// should run an internal server for receiving trace data.
+		origRunServer := runServer
+		runServer = func(ctx context.Context, args ServerParams) error {
+			g, ctx := errgroup.WithContext(ctx)
+			g.Go(func() error {
+				defer tracerServer.stop()
+				<-ctx.Done()
+				// Close the tracer now to prevent the server
+				// from waiting for more events during graceful
+				// shutdown.
+				tracer.Close()
+				return nil
+			})
+			g.Go(func() error {
+				return tracerServer.serve(args.Reporter)
+			})
+			g.Go(func() error {
+				return origRunServer(ctx, args)
+			})
+			return g.Wait()
+		}
+	}
+
+	publisher, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
+		Info:            b.Info,
+		ShutdownTimeout: bt.config.ShutdownTimeout,
+		Pipeline:        bt.config.Pipeline,
 	})
 	if err != nil {
 		return err
 	}
-	defer pub.Stop()
+	defer publisher.Stop()
 
-	lis, err := bt.listen()
-	if err != nil {
-		bt.logger.Error("failed to listen:", err)
-		return nil
+	stopped := make(chan struct{})
+	defer close(stopped)
+	ctx, cancelContext := context.WithCancel(context.Background())
+	defer cancelContext()
+	var stopOnce sync.Once
+	stopServer := func() {
+		stopOnce.Do(func() {
+			cancelContext()
+			<-stopped
+		})
 	}
 
 	bt.mutex.Lock()
@@ -187,16 +194,15 @@ func (bt *beater) Run(b *beat.Beat) error {
 		bt.mutex.Unlock()
 		return nil
 	}
-
-	bt.server, err = newServer(bt.logger, bt.config, tracer, pub.Send)
-	if err != nil {
-		bt.logger.Error("failed to create new server:", err)
-		return nil
-	}
+	bt.stopServer = stopServer
 	bt.mutex.Unlock()
 
-	//blocking until shutdown
-	return bt.server.run(lis, tracerServer)
+	return runServer(ctx, ServerParams{
+		Config:   bt.config,
+		Logger:   bt.logger,
+		Tracer:   tracer,
+		Reporter: publisher.Send,
+	})
 }
 
 func isElasticsearchOutput(b *beat.Beat) bool {
@@ -222,16 +228,15 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 	return err
 }
 
-// Graceful shutdown
+// Stop stops the beater gracefully.
 func (bt *beater) Stop() {
 	bt.mutex.Lock()
 	defer bt.mutex.Unlock()
-	if bt.stopped {
+	if bt.stopped || bt.stopServer == nil {
 		return
 	}
 	bt.logger.Infof("stopping apm-server... waiting maximum of %v seconds for queues to drain",
 		bt.config.ShutdownTimeout.Seconds())
-	bt.server.stop()
-	close(bt.stopping)
+	bt.stopServer()
 	bt.stopped = true
 }

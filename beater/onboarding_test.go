@@ -30,15 +30,15 @@ import (
 
 func TestOnboarding(t *testing.T) {
 	events := make(chan beat.Event, 1)
-	beater, teardown, err := setupServer(t, nil, nil, events)
+	beater, err := setupServer(t, nil, nil, events)
 	require.NoError(t, err)
-	defer teardown()
+	defer beater.Stop()
 
 	select {
 	case event := <-events:
 		listening := event.Fields["observer"].(common.MapStr)["listening"]
+		assert.Equal(t, "localhost:0", beater.config.Host)
 		assert.NotEqual(t, "localhost:0", listening)
-		assert.Equal(t, beater.config.Host, listening)
 		processor := event.Fields["processor"].(common.MapStr)
 		assert.Equal(t, "onboarding", processor["name"])
 		assert.Equal(t, "onboarding", processor["event"])

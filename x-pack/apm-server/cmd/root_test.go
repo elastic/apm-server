@@ -6,6 +6,8 @@ package cmd
 
 import (
 	"testing"
+
+	"github.com/elastic/apm-server/beater"
 )
 
 func TestSubCommands(t *testing.T) {
@@ -20,7 +22,9 @@ func TestSubCommands(t *testing.T) {
 		"version":    {},
 	}
 
-	rootCmd := NewXPackRootCommand()
+	rootCmd := NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
+		RunServer: beater.RunServer,
+	}))
 	for _, cmd := range rootCmd.Commands() {
 		name := cmd.Name()
 		if _, ok := validCommands[name]; !ok {
