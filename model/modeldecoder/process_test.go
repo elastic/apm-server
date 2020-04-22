@@ -20,8 +20,9 @@ package modeldecoder
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/model"
 )
 
 func TestProcessDecode(t *testing.T) {

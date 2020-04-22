@@ -23,8 +23,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"

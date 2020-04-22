@@ -3,21 +3,56 @@
         "parent": {
             "id": "945254c567a5417e"
         },
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
+        },
+        "processor": {
+            "name": "transaction",
+            "event": "span"
+        },
+        "labels": {
+            "span_tag": "something"
+        },
+        "observer": {
+            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
+        },
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        },
+        "@timestamp": "2017-05-30T18:53:27.154Z",
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "service": {
+            "environment": "staging",
+            "name": "1234_service-12a3"
+        },
         "transaction": {
             "id": "945254c567a5417e"
         },
         "span": {
+            "duration": {
+                "us": 3781
+            },
             "stacktrace": [
                 {
-                    "function": "onread",
-                    "abs_path": "net.js",
                     "library_frame": true,
-                    "vars": {
-                        "key": "value"
-                    },
-                    "module": "some module",
-                    "filename": "net.js",
                     "exclude_from_grouping": false,
+                    "abs_path": "net.js",
+                    "filename": "net.js",
+                    "line": {
+                        "number": 547,
+                        "column": 4,
+                        "context": "line3"
+                    },
+                    "function": "onread",
+                    "module": "some module",
                     "context": {
                         "pre": [
                             "  var trans = this.currentTransaction",
@@ -29,121 +64,65 @@
                             "}"
                         ]
                     },
-                    "line": {
-                        "column": 4,
-                        "number": 547,
-                        "context": "line3"
+                    "vars": {
+                        "key": "value"
                     }
                 },
                 {
+                    "exclude_from_grouping": false,
+                    "filename": "my2file.js",
                     "line": {
                         "number": 10
-                    },
-                    "exclude_from_grouping": false,
-                    "filename": "my2file.js"
+                    }
                 }
             ],
-            "http": {
-                "url": {
-                    "original": "http://localhost:8000"
-                },
-                "method": "get",
-                "response": {
-                    "status_code": 200
-                }
-            },
-            "name": "SELECT FROM product_types",
             "subtype": "postgresql",
-            "db": {
-                "instance": "customers",
-                "type": "sql",
-                "user": {
-                    "name": "readonly_user"
-                },
-                "statement": "SELECT * FROM product_types WHERE user_id=?"
-            },
-            "sync": false,
-            "id": "0aaaaaaaaaaaaaaa",
+            "name": "SELECT FROM product_types",
             "start": {
                 "us": 2830
             },
-            "duration": {
-                "us": 3781
+            "http": {
+                "method": "get",
+                "response": {
+                    "status_code": 200
+                },
+                "url": {
+                    "original": "http://localhost:8000"
+                }
             },
+            "action": "query",
+            "id": "0aaaaaaaaaaaaaaa",
             "type": "db",
-            "action": "query"
-        },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
-        },
-        "observer": {
-            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
+            "sync": false,
+            "db": {
+                "instance": "customers",
+                "statement": "SELECT * FROM product_types WHERE user_id=?",
+                "type": "sql",
+                "user": {
+                    "name": "readonly_user"
+                }
+            }
         },
         "timestamp": {
             "us": 1496170407154000
-        },
-        "@timestamp": "2017-05-30T18:53:27.154Z",
-        "labels": {
-            "span_tag": "something"
-        },
-        "agent": {
-            "version": "3.14.0",
-            "name": "elastic-node"
-        },
-        "service": {
-            "environment": "staging",
-            "name": "1234_service-12a3"
-        },
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
         }
     },
     {
         "parent": {
             "id": "85925e55b43f4342"
         },
-        "transaction": {
-            "id": "85925e55b43f4342"
+        "agent": {
+            "name": "js-base",
+            "version": "1.3"
         },
-        "span": {
-            "name": "SELECT FROM product_types",
-            "start": {
-                "us": 2830
-            },
-            "destination": {
-                "service": {
-                    "type": "db",
-                    "resource": "postgresql",
-                    "name": "postgresql"
-                }
-            },
-            "db": {
-                "instance": "customers",
-                "type": "sql",
-                "user": {
-                    "name": "readonly_user"
-                },
-                "statement": "SELECT * FROM product_types WHERE user_id=?"
-            },
-            "id": "15aaaaaaaaaaaaaa",
-            "subtype": "postgresql",
-            "duration": {
-                "us": 3781
-            },
-            "type": "db.postgresql.query",
-            "action": "query.custom"
+        "destination": {
+            "address": "0:0::0:1",
+            "port": 5432,
+            "ip": "0:0::0:1"
         },
-        "trace": {
-            "id": "85925e55b43f4342aaaaaaaaaaaaaaaa"
+        "processor": {
+            "name": "transaction",
+            "event": "span"
         },
         "observer": {
             "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
@@ -153,52 +132,63 @@
             "type": "apm-server",
             "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
         },
-        "timestamp": {
-            "us": 1496170422281000
+        "trace": {
+            "id": "85925e55b43f4342aaaaaaaaaaaaaaaa"
         },
         "@timestamp": "2017-05-30T18:53:42.281Z",
-        "destination": {
-            "ip": "0:0::0:1",
-            "port": 5432,
-            "address": "0:0::0:1"
-        },
-        "agent": {
-            "version": "1.3",
-            "name": "js-base"
+        "ecs": {
+            "version": "1.5.0"
         },
         "service": {
             "environment": "staging",
             "name": "serviceabc"
         },
-        "ecs": {
-            "version": "1.5.0"
+        "transaction": {
+            "id": "85925e55b43f4342"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
+        "span": {
+            "duration": {
+                "us": 3781
+            },
+            "subtype": "postgresql",
+            "start": {
+                "us": 2830
+            },
+            "destination": {
+                "service": {
+                    "resource": "postgresql",
+                    "name": "postgresql",
+                    "type": "db"
+                }
+            },
+            "name": "SELECT FROM product_types",
+            "action": "query.custom",
+            "id": "15aaaaaaaaaaaaaa",
+            "type": "db.postgresql.query",
+            "db": {
+                "instance": "customers",
+                "statement": "SELECT * FROM product_types WHERE user_id=?",
+                "type": "sql",
+                "user": {
+                    "name": "readonly_user"
+                }
+            }
+        },
+        "timestamp": {
+            "us": 1496170422281000
         }
     },
     {
         "parent": {
             "id": "945254c567a5417e"
         },
-        "transaction": {
-            "id": "945254c567a5417e"
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
         },
-        "span": {
-            "name": "GET /api/types",
-            "start": {
-                "us": 0
-            },
-            "subtype": "external",
-            "duration": {
-                "us": 32592
-            },
-            "type": "request",
-            "id": "1aaaaaaaaaaaaaaa"
-        },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        "processor": {
+            "name": "transaction",
+            "event": "span"
         },
         "observer": {
             "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
@@ -208,48 +198,98 @@
             "type": "apm-server",
             "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
         },
-        "timestamp": {
-            "us": 1496170407154000
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
         },
         "@timestamp": "2017-05-30T18:53:27.154Z",
-        "agent": {
-            "version": "3.14.0",
-            "name": "elastic-node"
+        "ecs": {
+            "version": "1.5.0"
         },
         "service": {
             "environment": "staging",
             "name": "1234_service-12a3"
         },
-        "ecs": {
-            "version": "1.5.0"
+        "transaction": {
+            "id": "945254c567a5417e"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
+        "span": {
+            "duration": {
+                "us": 32592
+            },
+            "subtype": "external",
+            "start": {
+                "us": 0
+            },
+            "name": "GET /api/types",
+            "id": "1aaaaaaaaaaaaaaa",
+            "type": "request"
+        },
+        "timestamp": {
+            "us": 1496170407154000
         }
     },
     {
         "parent": {
             "id": "945254c567a5417e"
         },
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
+        },
+        "processor": {
+            "name": "transaction",
+            "event": "span"
+        },
+        "observer": {
+            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
+            "version_major": 8,
+            "hostname": "alloy",
+            "version": "8.0.0",
+            "type": "apm-server",
+            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
+        },
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        },
+        "@timestamp": "2017-05-30T18:53:27.154Z",
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "service": {
+            "environment": "staging",
+            "name": "1234_service-12a3"
+        },
         "transaction": {
             "id": "945254c567a5417e"
         },
         "span": {
+            "duration": {
+                "us": 3564
+            },
+            "subtype": "http",
             "name": "GET /api/types",
             "start": {
                 "us": 1845
             },
-            "subtype": "http",
             "action": "post",
-            "duration": {
-                "us": 3564
-            },
-            "type": "request",
-            "id": "2aaaaaaaaaaaaaaa"
+            "id": "2aaaaaaaaaaaaaaa",
+            "type": "request"
         },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        "timestamp": {
+            "us": 1496170407154000
+        }
+    },
+    {
+        "parent": {
+            "id": "945254c567a5417e"
+        },
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
+        },
+        "processor": {
+            "name": "transaction",
+            "event": "span"
         },
         "observer": {
             "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
@@ -259,73 +299,38 @@
             "type": "apm-server",
             "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
         },
-        "timestamp": {
-            "us": 1496170407154000
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
         },
         "@timestamp": "2017-05-30T18:53:27.154Z",
-        "agent": {
-            "version": "3.14.0",
-            "name": "elastic-node"
+        "ecs": {
+            "version": "1.5.0"
         },
         "service": {
             "environment": "staging",
             "name": "1234_service-12a3"
         },
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
-        }
-    },
-    {
-        "parent": {
-            "id": "945254c567a5417e"
-        },
         "transaction": {
             "id": "945254c567a5417e"
+        },
+        "timestamp": {
+            "us": 1496170407154000
         },
         "span": {
             "duration": {
                 "us": 13980
             },
+            "name": "GET /api/types",
             "start": {
                 "us": 0
             },
-            "type": "request",
-            "name": "GET /api/types",
-            "id": "3aaaaaaaaaaaaaaa"
+            "id": "3aaaaaaaaaaaaaaa",
+            "type": "request"
         },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
-        },
-        "observer": {
-            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
-        },
-        "timestamp": {
-            "us": 1496170407154000
-        },
-        "@timestamp": "2017-05-30T18:53:27.154Z",
-        "agent": {
-            "version": "3.14.0",
-            "name": "elastic-node"
-        },
-        "service": {
-            "environment": "staging",
-            "name": "1234_service-12a3"
-        },
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
+        "child": {
+            "id": [
+                "4aaaaaaaaaaaaaaa"
+            ]
         }
     }
 ]
