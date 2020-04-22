@@ -47,6 +47,7 @@ type Span struct {
 	ID            string
 	TransactionID *string
 	ParentID      *string
+	ChildIDs      []string
 	ParentIdx     *int
 	TraceID       *string
 
@@ -191,6 +192,9 @@ func (e *Span) Transform(ctx context.Context, tctx *transform.Context) []beat.Ev
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels)
 	utility.AddId(fields, "parent", e.ParentID)
+	if e.ChildIDs != nil {
+		utility.Set(fields, "child", common.MapStr{"id": e.ChildIDs})
+	}
 	utility.AddId(fields, "trace", e.TraceID)
 	utility.AddId(fields, "transaction", e.TransactionID)
 	utility.Set(fields, "experimental", e.Experimental)

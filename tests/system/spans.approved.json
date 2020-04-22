@@ -297,6 +297,11 @@
             "name": "GET /api/types",
             "id": "3aaaaaaaaaaaaaaa"
         },
+        "child": {
+            "id": [
+                "4aaaaaaaaaaaaaaa"
+            ]
+        },
         "trace": {
             "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
         },
