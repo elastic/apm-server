@@ -6,10 +6,14 @@
       format: url
       label_template: "View Spans"
 
-    - name: child_ids
-      type: keyword
-      description: >
-        The ID(s)s of the child event(s).
+    - name: child
+      type: group
+      dynamic: false
+      fields:
+        - name: id
+          type: keyword
+          description: >
+            The ID(s)s of the child event(s).
 
     - name: span
       type: group

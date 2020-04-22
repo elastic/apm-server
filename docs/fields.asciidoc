@@ -1369,7 +1369,8 @@ format: url
 
 --
 
-*`child_ids`*::
+
+*`child.id`*::
 +
 --
 The ID(s)s of the child event(s).

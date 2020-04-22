@@ -12,9 +12,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "child_ids": [
-                "51234abcdef56789"
-            ],
+            "child": {
+                "id": [
+                    "51234abcdef56789"
+                ]
+            },
             "container": {
                 "id": "container-id"
             },

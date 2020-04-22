@@ -36,9 +36,6 @@
         "transaction": {
             "id": "945254c567a5417e"
         },
-        "timestamp": {
-            "us": 1496170407154000
-        },
         "span": {
             "duration": {
                 "us": 3781
@@ -47,15 +44,15 @@
                 {
                     "library_frame": true,
                     "exclude_from_grouping": false,
-                    "filename": "net.js",
                     "abs_path": "net.js",
+                    "filename": "net.js",
                     "line": {
                         "number": 547,
                         "column": 4,
                         "context": "line3"
                     },
-                    "module": "some module",
                     "function": "onread",
+                    "module": "some module",
                     "context": {
                         "pre": [
                             "  var trans = this.currentTransaction",
@@ -80,10 +77,10 @@
                 }
             ],
             "subtype": "postgresql",
+            "name": "SELECT FROM product_types",
             "start": {
                 "us": 2830
             },
-            "name": "SELECT FROM product_types",
             "http": {
                 "method": "get",
                 "response": {
@@ -105,6 +102,9 @@
                     "name": "readonly_user"
                 }
             }
+        },
+        "timestamp": {
+            "us": 1496170407154000
         }
     },
     {
@@ -151,7 +151,9 @@
                 "us": 3781
             },
             "subtype": "postgresql",
-            "name": "SELECT FROM product_types",
+            "start": {
+                "us": 2830
+            },
             "destination": {
                 "service": {
                     "resource": "postgresql",
@@ -159,9 +161,7 @@
                     "type": "db"
                 }
             },
-            "start": {
-                "us": 2830
-            },
+            "name": "SELECT FROM product_types",
             "action": "query.custom",
             "id": "15aaaaaaaaaaaaaa",
             "type": "db.postgresql.query",
@@ -217,10 +217,10 @@
                 "us": 32592
             },
             "subtype": "external",
-            "name": "GET /api/types",
             "start": {
                 "us": 0
             },
+            "name": "GET /api/types",
             "id": "1aaaaaaaaaaaaaaa",
             "type": "request"
         },
@@ -262,9 +262,6 @@
         "transaction": {
             "id": "945254c567a5417e"
         },
-        "timestamp": {
-            "us": 1496170407154000
-        },
         "span": {
             "duration": {
                 "us": 3564
@@ -277,6 +274,9 @@
             "action": "post",
             "id": "2aaaaaaaaaaaaaaa",
             "type": "request"
+        },
+        "timestamp": {
+            "us": 1496170407154000
         }
     },
     {
@@ -287,9 +287,6 @@
             "name": "elastic-node",
             "version": "3.14.0"
         },
-        "child_ids": [
-            "4aaaaaaaaaaaaaaa"
-        ],
         "processor": {
             "name": "transaction",
             "event": "span"
@@ -329,6 +326,11 @@
             },
             "id": "3aaaaaaaaaaaaaaa",
             "type": "request"
+        },
+        "child": {
+            "id": [
+                "4aaaaaaaaaaaaaaa"
+            ]
         }
     }
 ]
