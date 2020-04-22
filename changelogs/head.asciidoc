@@ -1,7 +1,7 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
+https://github.com/elastic/apm-server/compare/7.7\...master[View commits]
 
 [float]
 ==== Breaking Changes
@@ -11,6 +11,7 @@ https://github.com/elastic/apm-server/compare/7.6\...master[View commits]
 
 [float]
 ==== Intake API Changes
+* Add span child_ids intake {pull}3679[3679]
 
 [float]
 ==== Added
