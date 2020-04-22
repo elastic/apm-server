@@ -469,7 +469,7 @@ func Check() error {
 			mage.GitDiff()
 		}
 		return errors.Errorf("some files are not up-to-date. "+
-			"Run 'mage fmt update' then review and commit the changes. "+
+			"Run 'make fmt update' then review and commit the changes. "+
 			"Modified: %v", changes)
 	}
 	return nil
