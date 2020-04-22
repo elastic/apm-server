@@ -113,15 +113,14 @@ func testServerTracingExternal(t *testing.T, expectedAuthorization string, extra
 		require.NoError(t, err)
 	}
 
-	apm, teardown, err := setupServer(t, ucfg, nil, nil)
+	apm, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
-	defer teardown()
+	defer apm.Stop()
 
 	// make a transaction request
-	baseUrl, client := apm.client(false)
-	req := makeTransactionRequest(t, baseUrl)
+	req := makeTransactionRequest(t, apm.baseURL)
 	req.Header.Add("Content-Type", "application/x-ndjson")
-	res, err := client.Do(req)
+	res, err := apm.client.Do(req)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
 
@@ -194,7 +193,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 		"host":            "localhost:0",
 		"secret_token":    "foo",
 	})
-	beater, teardown, err := setupServer(t, cfg, nil, events)
+	beater, err := setupServer(t, cfg, nil, events)
 	require.NoError(t, err)
 
 	// onboarding event
@@ -202,13 +201,12 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 	assert.Equal(t, "onboarding", e.Fields["processor"].(common.MapStr)["name"])
 
 	// Send a transaction request so we have something to trace.
-	baseUrl, client := beater.client(false)
-	req := makeTransactionRequest(t, baseUrl)
+	req := makeTransactionRequest(t, beater.baseURL)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	req.Header.Add("Authorization", "Bearer foo")
-	resp, err := client.Do(req)
+	resp, err := beater.client.Do(req)
 	assert.NoError(t, err)
 	resp.Body.Close()
 
-	return events, teardown
+	return events, beater.Stop
 }
