@@ -60,12 +60,12 @@ type Query struct {
 	// it indicates that the exact same query response has already been delivered.
 	Etag string `json:"etag"`
 
-	// AppliedByAgent can be used to signal to the receiver that the response to this
+	// MarkAsAppliedByAgent can be used to signal to the receiver that the response to this
 	// query can be considered to have been applied immediately. When building queries for Elastic APM
 	// agent requests the Etag should be set, instead of the AppliedByAgent setting.
 	// Use this flag when building queries for third party integrations,
 	// such as Jaeger, that do not send an Etag in their request.
-	AppliedByAgent *bool `json:"applied_by_agent,omitempty"`
+	MarkAsAppliedByAgent *bool `json:"mark_as_applied_by_agent,omitempty"`
 
 	// InsecureAgents holds a set of prefixes for restricting results to those whose
 	// agent name matches any of the specified prefixes.
