@@ -63,12 +63,13 @@ func runServerWithAggregator(ctx context.Context, args beater.ServerParams) erro
 	return g.Wait()
 }
 
+var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
+	RunServer: func(ctx context.Context, args beater.ServerParams) error {
+		return runServerWithAggregator(ctx, args)
+	},
+}))
+
 func main() {
-	rootCmd := cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
-		RunServer: func(ctx context.Context, args beater.ServerParams) error {
-			return runServerWithAggregator(ctx, args)
-		},
-	}))
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

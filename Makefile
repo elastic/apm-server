@@ -30,16 +30,19 @@ PYTHON=$(PYTHON_BIN)/python
 
 .PHONY: apm-server
 apm-server:
-	go build
+	@go build -o $@ ./x-pack/apm-server
+
+.PHONY: apm-server-oss
+apm-server-oss:
+	@go build -o $@
 
 .PHONY: apm-server.test
 apm-server.test:
-	go test -c -coverpkg=github.com/elastic/apm-server/...
+	go test -c -coverpkg=github.com/elastic/apm-server/... ./x-pack/apm-server
 
-.PHONY: apm-server.x-pack x-pack/apm-server/apm-server
-apm-server.x-pack: x-pack/apm-server/apm-server
-x-pack/apm-server/apm-server:
-	@go build -o $@ ./x-pack/apm-server
+.PHONY: apm-server-oss.test
+apm-server-oss.test:
+	go test -c -coverpkg=github.com/elastic/apm-server/...
 
 .PHONY: test
 test:
