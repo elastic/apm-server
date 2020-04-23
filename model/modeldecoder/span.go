@@ -65,6 +65,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 		Timestamp: decoder.TimeEpochMicro(raw, fieldName("timestamp")),
 		ID:        decoder.String(raw, fieldName("id")),
 		ParentID:  decoder.StringPtr(raw, "parent_id"),
+		ChildIDs:  decoder.StringArr(raw, "child_ids"),
 		// ParentIdx comes from RUM V3 payloads only, and used to populate ParentID
 		ParentIdx:     decoder.IntPtr(raw, fieldName("parent_idx")),
 		TraceID:       decoder.StringPtr(raw, "trace_id"),

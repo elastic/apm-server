@@ -74,6 +74,16 @@ const ModelSchema = `{
                     "type": "string",
                     "maxLength": 1024
                 },
+                "child_ids": {
+                    "description": "List of successor transactions and/or spans.",
+                    "type": ["array", "null"],
+                    "minItems": 0,
+                    "maxLength": 1024,
+                    "items": {
+                        "type": "string",
+                        "maxLength": 1024
+                    }
+                },
                 "start": {
                     "type": ["number", "null"],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
