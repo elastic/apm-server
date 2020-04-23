@@ -413,7 +413,7 @@ class ElasticTest(ServerBaseTest):
                     self.assertEqual(v, appr[k])
         except Exception as exc:
             with open(received_path, 'w') as f:
-                json.dump(received, f, indent=4, separators=(',', ': '))
+                json.dump(received, f, indent=4, separators=(',', ': '), sort_keys=True)
 
             # Create a dynamic Exception subclass so we can fake its name to look like the original exception.
             class ApprovalException(Exception):
@@ -421,7 +421,7 @@ class ElasticTest(ServerBaseTest):
                     super(ApprovalException, self).__init__(cause.args)
 
                 def __str__(self):
-                    return "{}\n\nReceived data differs from approved data. Run 'make update' and then 'approvals' to verify the diff.".format(self.args)
+                    return "{}\n\nReceived data differs from approved data. Run 'make update check-approvals' to verify the diff.".format(self.args)
             ApprovalException.__name__ = type(exc).__name__
             raise ApprovalException(exc).with_traceback(sys.exc_info()[2])
 
