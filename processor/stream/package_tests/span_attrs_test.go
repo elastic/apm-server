@@ -189,6 +189,7 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 		spanKeywordExceptionKeys(),
 		[]tests.FieldTemplateMapping{
 			{Template: "transaction.id", Mapping: "transaction_id"},
+			{Template: "child.id", Mapping: "child_ids"},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
 			{Template: "span.id", Mapping: "id"},

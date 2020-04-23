@@ -1371,6 +1371,17 @@ format: url
 --
 
 
+*`child.id`*::
++
+--
+The ID(s)s of the child event(s).
+
+
+type: keyword
+
+--
+
+
 *`span.id`*::
 +
 --
