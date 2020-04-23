@@ -1,69 +1,83 @@
 [
     {
-        "parent": {
-            "id": "945254c567a5417e"
-        },
+        "@timestamp": "2017-05-30T18:53:27.154Z",
         "agent": {
             "name": "elastic-node",
             "version": "3.14.0"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
+        "ecs": {
+            "version": "1.5.0"
         },
         "labels": {
             "span_tag": "something"
         },
         "observer": {
-            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
+            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
+            "hostname": "ix.lan",
+            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
             "type": "apm-server",
-            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
+            "version": "8.0.0",
+            "version_major": 8
         },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        "parent": {
+            "id": "945254c567a5417e"
         },
-        "@timestamp": "2017-05-30T18:53:27.154Z",
-        "ecs": {
-            "version": "1.5.0"
+        "processor": {
+            "event": "span",
+            "name": "transaction"
         },
         "service": {
             "environment": "staging",
             "name": "1234_service-12a3"
         },
-        "transaction": {
-            "id": "945254c567a5417e"
-        },
         "span": {
+            "action": "query",
+            "db": {
+                "instance": "customers",
+                "statement": "SELECT * FROM product_types WHERE user_id=?",
+                "type": "sql",
+                "user": {
+                    "name": "readonly_user"
+                }
+            },
             "duration": {
                 "us": 3781
             },
+            "http": {
+                "method": "get",
+                "response": {
+                    "status_code": 200
+                },
+                "url": {
+                    "original": "http://localhost:8000"
+                }
+            },
+            "id": "0aaaaaaaaaaaaaaa",
+            "name": "SELECT FROM product_types",
             "stacktrace": [
                 {
-                    "library_frame": true,
-                    "exclude_from_grouping": false,
                     "abs_path": "net.js",
-                    "filename": "net.js",
-                    "line": {
-                        "number": 547,
-                        "column": 4,
-                        "context": "line3"
-                    },
-                    "function": "onread",
-                    "module": "some module",
                     "context": {
-                        "pre": [
-                            "  var trans = this.currentTransaction",
-                            ""
-                        ],
                         "post": [
                             "    ins.currentTransaction = prev",
                             "    return result",
                             "}"
+                        ],
+                        "pre": [
+                            "  var trans = this.currentTransaction",
+                            ""
                         ]
                     },
+                    "exclude_from_grouping": false,
+                    "filename": "net.js",
+                    "function": "onread",
+                    "library_frame": true,
+                    "line": {
+                        "column": 4,
+                        "context": "line3",
+                        "number": 547
+                    },
+                    "module": "some module",
                     "vars": {
                         "key": "value"
                     }
@@ -76,95 +90,58 @@
                     }
                 }
             ],
-            "subtype": "postgresql",
-            "name": "SELECT FROM product_types",
             "start": {
                 "us": 2830
             },
-            "http": {
-                "method": "get",
-                "response": {
-                    "status_code": 200
-                },
-                "url": {
-                    "original": "http://localhost:8000"
-                }
-            },
-            "action": "query",
-            "id": "0aaaaaaaaaaaaaaa",
-            "type": "db",
+            "subtype": "postgresql",
             "sync": false,
-            "db": {
-                "instance": "customers",
-                "statement": "SELECT * FROM product_types WHERE user_id=?",
-                "type": "sql",
-                "user": {
-                    "name": "readonly_user"
-                }
-            }
+            "type": "db"
         },
         "timestamp": {
             "us": 1496170407154000
+        },
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        },
+        "transaction": {
+            "id": "945254c567a5417e"
         }
     },
     {
-        "parent": {
-            "id": "85925e55b43f4342"
-        },
+        "@timestamp": "2017-05-30T18:53:42.281Z",
         "agent": {
             "name": "js-base",
             "version": "1.3"
         },
         "destination": {
             "address": "0:0::0:1",
-            "port": 5432,
-            "ip": "0:0::0:1"
+            "ip": "0:0::0:1",
+            "port": 5432
         },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
-        },
-        "observer": {
-            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
-        },
-        "trace": {
-            "id": "85925e55b43f4342aaaaaaaaaaaaaaaa"
-        },
-        "@timestamp": "2017-05-30T18:53:42.281Z",
         "ecs": {
             "version": "1.5.0"
+        },
+        "observer": {
+            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
+            "hostname": "ix.lan",
+            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "parent": {
+            "id": "85925e55b43f4342"
+        },
+        "processor": {
+            "event": "span",
+            "name": "transaction"
         },
         "service": {
             "environment": "staging",
             "name": "serviceabc"
         },
-        "transaction": {
-            "id": "85925e55b43f4342"
-        },
         "span": {
-            "duration": {
-                "us": 3781
-            },
-            "subtype": "postgresql",
-            "start": {
-                "us": 2830
-            },
-            "destination": {
-                "service": {
-                    "resource": "postgresql",
-                    "name": "postgresql",
-                    "type": "db"
-                }
-            },
-            "name": "SELECT FROM product_types",
             "action": "query.custom",
-            "id": "15aaaaaaaaaaaaaa",
-            "type": "db.postgresql.query",
             "db": {
                 "instance": "customers",
                 "statement": "SELECT * FROM product_types WHERE user_id=?",
@@ -172,165 +149,188 @@
                 "user": {
                     "name": "readonly_user"
                 }
-            }
+            },
+            "destination": {
+                "service": {
+                    "name": "postgresql",
+                    "resource": "postgresql",
+                    "type": "db"
+                }
+            },
+            "duration": {
+                "us": 3781
+            },
+            "id": "15aaaaaaaaaaaaaa",
+            "name": "SELECT FROM product_types",
+            "start": {
+                "us": 2830
+            },
+            "subtype": "postgresql",
+            "type": "db.postgresql.query"
         },
         "timestamp": {
             "us": 1496170422281000
+        },
+        "trace": {
+            "id": "85925e55b43f4342aaaaaaaaaaaaaaaa"
+        },
+        "transaction": {
+            "id": "85925e55b43f4342"
         }
     },
     {
-        "parent": {
-            "id": "945254c567a5417e"
-        },
+        "@timestamp": "2017-05-30T18:53:27.154Z",
         "agent": {
             "name": "elastic-node",
             "version": "3.14.0"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
-        },
-        "observer": {
-            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
-        },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
-        },
-        "@timestamp": "2017-05-30T18:53:27.154Z",
         "ecs": {
             "version": "1.5.0"
+        },
+        "observer": {
+            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
+            "hostname": "ix.lan",
+            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "parent": {
+            "id": "945254c567a5417e"
+        },
+        "processor": {
+            "event": "span",
+            "name": "transaction"
         },
         "service": {
             "environment": "staging",
             "name": "1234_service-12a3"
-        },
-        "transaction": {
-            "id": "945254c567a5417e"
         },
         "span": {
             "duration": {
                 "us": 32592
             },
-            "subtype": "external",
+            "id": "1aaaaaaaaaaaaaaa",
+            "name": "GET /api/types",
             "start": {
                 "us": 0
             },
-            "name": "GET /api/types",
-            "id": "1aaaaaaaaaaaaaaa",
+            "subtype": "external",
             "type": "request"
         },
         "timestamp": {
             "us": 1496170407154000
-        }
-    },
-    {
-        "parent": {
-            "id": "945254c567a5417e"
-        },
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
-        },
-        "observer": {
-            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
         },
         "trace": {
             "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
         },
+        "transaction": {
+            "id": "945254c567a5417e"
+        }
+    },
+    {
         "@timestamp": "2017-05-30T18:53:27.154Z",
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
+        },
         "ecs": {
             "version": "1.5.0"
+        },
+        "observer": {
+            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
+            "hostname": "ix.lan",
+            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "parent": {
+            "id": "945254c567a5417e"
+        },
+        "processor": {
+            "event": "span",
+            "name": "transaction"
         },
         "service": {
             "environment": "staging",
             "name": "1234_service-12a3"
         },
-        "transaction": {
-            "id": "945254c567a5417e"
-        },
         "span": {
+            "action": "post",
             "duration": {
                 "us": 3564
             },
-            "subtype": "http",
+            "id": "2aaaaaaaaaaaaaaa",
             "name": "GET /api/types",
             "start": {
                 "us": 1845
             },
-            "action": "post",
-            "id": "2aaaaaaaaaaaaaaa",
+            "subtype": "http",
             "type": "request"
         },
         "timestamp": {
             "us": 1496170407154000
-        }
-    },
-    {
-        "parent": {
-            "id": "945254c567a5417e"
-        },
-        "agent": {
-            "name": "elastic-node",
-            "version": "3.14.0"
-        },
-        "processor": {
-            "name": "transaction",
-            "event": "span"
-        },
-        "observer": {
-            "ephemeral_id": "b0eca9b8-818a-40af-89d9-52ce62270ecf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "6c887131-df07-4f05-a69d-e60897ccbb64"
         },
         "trace": {
             "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
         },
-        "@timestamp": "2017-05-30T18:53:27.154Z",
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "service": {
-            "environment": "staging",
-            "name": "1234_service-12a3"
-        },
         "transaction": {
             "id": "945254c567a5417e"
-        },
-        "timestamp": {
-            "us": 1496170407154000
-        },
-        "span": {
-            "duration": {
-                "us": 13980
-            },
-            "name": "GET /api/types",
-            "start": {
-                "us": 0
-            },
-            "id": "3aaaaaaaaaaaaaaa",
-            "type": "request"
+        }
+    },
+    {
+        "@timestamp": "2017-05-30T18:53:27.154Z",
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
         },
         "child": {
             "id": [
                 "4aaaaaaaaaaaaaaa"
             ]
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "observer": {
+            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
+            "hostname": "ix.lan",
+            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "parent": {
+            "id": "945254c567a5417e"
+        },
+        "processor": {
+            "event": "span",
+            "name": "transaction"
+        },
+        "service": {
+            "environment": "staging",
+            "name": "1234_service-12a3"
+        },
+        "span": {
+            "duration": {
+                "us": 13980
+            },
+            "id": "3aaaaaaaaaaaaaaa",
+            "name": "GET /api/types",
+            "start": {
+                "us": 0
+            },
+            "type": "request"
+        },
+        "timestamp": {
+            "us": 1496170407154000
+        },
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        },
+        "transaction": {
+            "id": "945254c567a5417e"
         }
     }
 ]
