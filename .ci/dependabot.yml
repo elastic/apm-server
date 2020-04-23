@@ -1,0 +1,5 @@
+### The list of GitHub accounts that will be used to assign the PRs to (no space and comma separated)
+assign: ''
+
+### The package manager to be used (no space and comma separated if more than one package)
+manager: go_modules,dep
