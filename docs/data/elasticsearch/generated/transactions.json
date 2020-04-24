@@ -1,343 +1,297 @@
 [
     {
-        "transaction": {
-            "sampled": true,
-            "name": "GET /api/types",
-            "span_count": {
-                "started": 0
-            },
-            "result": "failure",
-            "duration": {
-                "us": 13980
-            },
-            "type": "request",
-            "id": "85925e55b43f4340"
+        "@timestamp": "2017-05-30T18:53:42.281Z",
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
         },
         "container": {
             "id": "container-id"
         },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "event": {
+            "ingested": "2020-04-22T14:49:24.899906Z"
+        },
+        "host": {
+            "architecture": "x64",
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            }
+        },
         "kubernetes": {
+            "namespace": "namespace1",
             "pod": {
-                "uid": "pod-uid",
-                "name": "pod-name"
-            },
-            "namespace": "namespace1"
+                "name": "pod-name",
+                "uid": "pod-uid"
+            }
         },
         "observer": {
-            "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
+            "ephemeral_id": "f78f6762-2157-4322-95aa-aecd2f486c1a",
+            "hostname": "ix.lan",
+            "id": "80b79979-4a7d-450d-b2ce-75c589f7fffd",
             "type": "apm-server",
-            "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
+            "version": "8.0.0",
+            "version_major": 8
         },
         "process": {
-            "ppid": 6789,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
+            "ppid": 6789,
             "title": "node"
+        },
+        "processor": {
+            "event": "transaction",
+            "name": "transaction"
+        },
+        "service": {
+            "environment": "staging",
+            "framework": {
+                "name": "Express",
+                "version": "1.2.3"
+            },
+            "language": {
+                "name": "ecmascript",
+                "version": "8"
+            },
+            "name": "1234_service-12a3",
+            "node": {
+                "name": "container-id"
+            },
+            "runtime": {
+                "name": "node",
+                "version": "8.0.0"
+            },
+            "version": "5.1.3"
         },
         "timestamp": {
             "us": 1496170422281000
         },
-        "@timestamp": "2017-05-30T18:53:42.281Z",
-        "event": {
-            "ingested": "2017-05-30T18:53:42.282Z"
-        },
-        "agent": {
-            "version": "3.14.0",
-            "name": "elastic-node"
-        },
-        "host": {
-            "ip": "127.0.0.1",
-            "os": {
-                "platform": "darwin"
-            },
-            "architecture": "x64"
-        },
-        "service": {
-            "node": {
-                "name": "container-id"
-            },
-            "name": "1234_service-12a3",
-            "language": {
-                "version": "8",
-                "name": "ecmascript"
-            },
-            "environment": "staging",
-            "framework": {
-                "version": "1.2.3",
-                "name": "Express"
-            },
-            "version": "5.1.3",
-            "runtime": {
-                "version": "8.0.0",
-                "name": "node"
-            }
-        },
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "user": {
-            "email": "foo@bar.com",
-            "name": "foo",
-            "id": "123user"
-        },
         "trace": {
             "id": "85925e55b43f4340aaaaaaaaaaaaaaaa"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
-        }
-    },
-    {
         "transaction": {
-            "sampled": false,
-            "name": "GET /api/types",
-            "span_count": {
-                "started": 0
-            },
-            "result": "200",
             "duration": {
                 "us": 13980
             },
-            "type": "request",
-            "id": "85925e55b43f4341"
+            "id": "85925e55b43f4340",
+            "name": "GET /api/types",
+            "result": "failure",
+            "sampled": true,
+            "span_count": {
+                "started": 0
+            },
+            "type": "request"
+        },
+        "user": {
+            "email": "foo@bar.com",
+            "id": "123user",
+            "name": "foo"
+        }
+    },
+    {
+        "@timestamp": "2017-05-30T18:53:42.000Z",
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
         },
         "container": {
             "id": "container-id"
         },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "event": {
+            "ingested": "2020-04-22T14:49:24.900309Z"
+        },
+        "host": {
+            "architecture": "x64",
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            }
+        },
         "kubernetes": {
+            "namespace": "namespace1",
             "pod": {
-                "uid": "pod-uid",
-                "name": "pod-name"
-            },
-            "namespace": "namespace1"
+                "name": "pod-name",
+                "uid": "pod-uid"
+            }
         },
         "observer": {
-            "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
+            "ephemeral_id": "f78f6762-2157-4322-95aa-aecd2f486c1a",
+            "hostname": "ix.lan",
+            "id": "80b79979-4a7d-450d-b2ce-75c589f7fffd",
             "type": "apm-server",
-            "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
+            "version": "8.0.0",
+            "version_major": 8
         },
         "process": {
-            "ppid": 6789,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
+            "ppid": 6789,
             "title": "node"
+        },
+        "processor": {
+            "event": "transaction",
+            "name": "transaction"
+        },
+        "service": {
+            "environment": "staging",
+            "framework": {
+                "name": "Express",
+                "version": "1.2.3"
+            },
+            "language": {
+                "name": "ecmascript",
+                "version": "8"
+            },
+            "name": "1234_service-12a3",
+            "node": {
+                "name": "container-id"
+            },
+            "runtime": {
+                "name": "node",
+                "version": "8.0.0"
+            },
+            "version": "5.1.3"
         },
         "timestamp": {
             "us": 1496170422000000
         },
-        "@timestamp": "2017-05-30T18:53:42.000Z",
-        "event": {
-            "ingested": "2017-05-30T18:53:42.001Z"
-        },
-        "agent": {
-            "version": "3.14.0",
-            "name": "elastic-node"
-        },
-        "host": {
-            "ip": "127.0.0.1",
-            "os": {
-                "platform": "darwin"
-            },
-            "architecture": "x64"
-        },
-        "service": {
-            "node": {
-                "name": "container-id"
-            },
-            "name": "1234_service-12a3",
-            "language": {
-                "version": "8",
-                "name": "ecmascript"
-            },
-            "environment": "staging",
-            "framework": {
-                "version": "1.2.3",
-                "name": "Express"
-            },
-            "version": "5.1.3",
-            "runtime": {
-                "version": "8.0.0",
-                "name": "node"
-            }
-        },
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "user": {
-            "email": "foo@bar.com",
-            "name": "foo",
-            "id": "123user"
-        },
         "trace": {
             "id": "85925e55b43f4341aaaaaaaaaaaaaaaa"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
-        }
-    },
-    {
         "transaction": {
-            "sampled": true,
-            "name": "GET /api/types",
-            "span_count": {
-                "started": 1,
-                "dropped": 258
-            },
-            "result": "200",
             "duration": {
                 "us": 13980
             },
-            "type": "request",
-            "id": "85925e55b43f4342"
+            "id": "85925e55b43f4341",
+            "name": "GET /api/types",
+            "result": "200",
+            "sampled": false,
+            "span_count": {
+                "started": 0
+            },
+            "type": "request"
+        },
+        "user": {
+            "email": "foo@bar.com",
+            "id": "123user",
+            "name": "foo"
+        }
+    },
+    {
+        "@timestamp": "2017-05-30T18:53:42.281Z",
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
         },
         "container": {
             "id": "container-id"
         },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "event": {
+            "ingested": "2020-04-22T14:49:24.900644Z"
+        },
+        "host": {
+            "architecture": "x64",
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            }
+        },
         "kubernetes": {
+            "namespace": "namespace1",
             "pod": {
-                "uid": "pod-uid",
-                "name": "pod-name"
-            },
-            "namespace": "namespace1"
+                "name": "pod-name",
+                "uid": "pod-uid"
+            }
         },
         "observer": {
-            "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
+            "ephemeral_id": "f78f6762-2157-4322-95aa-aecd2f486c1a",
+            "hostname": "ix.lan",
+            "id": "80b79979-4a7d-450d-b2ce-75c589f7fffd",
             "type": "apm-server",
-            "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
+            "version": "8.0.0",
+            "version_major": 8
         },
         "process": {
-            "ppid": 6789,
             "args": [
                 "node",
                 "server.js"
             ],
             "pid": 1234,
+            "ppid": 6789,
             "title": "node"
+        },
+        "processor": {
+            "event": "transaction",
+            "name": "transaction"
+        },
+        "service": {
+            "environment": "staging",
+            "framework": {
+                "name": "Express",
+                "version": "1.2.3"
+            },
+            "language": {
+                "name": "ecmascript",
+                "version": "8"
+            },
+            "name": "1234_service-12a3",
+            "node": {
+                "name": "container-id"
+            },
+            "runtime": {
+                "name": "node",
+                "version": "8.0.0"
+            },
+            "version": "5.1.3"
         },
         "timestamp": {
             "us": 1496170422281999
         },
-        "@timestamp": "2017-05-30T18:53:42.281Z",
-        "event": {
-            "ingested": "2017-05-30T18:53:42.282Z"
-        },
-        "agent": {
-            "version": "3.14.0",
-            "name": "elastic-node"
-        },
-        "host": {
-            "ip": "127.0.0.1",
-            "os": {
-                "platform": "darwin"
-            },
-            "architecture": "x64"
-        },
-        "service": {
-            "node": {
-                "name": "container-id"
-            },
-            "name": "1234_service-12a3",
-            "language": {
-                "version": "8",
-                "name": "ecmascript"
-            },
-            "environment": "staging",
-            "framework": {
-                "version": "1.2.3",
-                "name": "Express"
-            },
-            "version": "5.1.3",
-            "runtime": {
-                "version": "8.0.0",
-                "name": "node"
-            }
-        },
-        "ecs": {
-            "version": "1.5.0"
-        },
-        "user": {
-            "email": "foo@bar.com",
-            "name": "foo",
-            "id": "123user"
-        },
         "trace": {
             "id": "85925e55b43f4342aaaaaaaaaaaaaaaa"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
+        "transaction": {
+            "duration": {
+                "us": 13980
+            },
+            "id": "85925e55b43f4342",
+            "name": "GET /api/types",
+            "result": "200",
+            "sampled": true,
+            "span_count": {
+                "dropped": 258,
+                "started": 1
+            },
+            "type": "request"
+        },
+        "user": {
+            "email": "foo@bar.com",
+            "id": "123user",
+            "name": "foo"
         }
     },
     {
-        "user_agent": {
-            "device": {
-                "name": "Other"
-            },
-            "original": "Mozilla Chrome Edge",
-            "name": "Other"
-        },
-        "container": {
-            "id": "container-id"
-        },
-        "observer": {
-            "ephemeral_id": "a8dcdc38-86e5-4adf-8ba4-93b65be40bdf",
-            "version_major": 8,
-            "hostname": "alloy",
-            "version": "8.0.0",
-            "type": "apm-server",
-            "id": "d4d46875-dd50-465b-a5d7-8dd287e45144"
-        },
-        "kubernetes": {
-            "pod": {
-                "uid": "pod-uid",
-                "name": "pod-name"
-            },
-            "namespace": "namespace1"
-        },
-        "process": {
-            "ppid": 6789,
-            "args": [
-                "node",
-                "server.js"
-            ],
-            "pid": 1234,
-            "title": "node"
-        },
-        "timestamp": {
-            "us": 1496170407154000
-        },
         "@timestamp": "2017-05-30T18:53:27.154Z",
-        "event": {
-            "ingested": "2017-05-30T18:53:27.155Z"
-        },
-        "labels": {
-            "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-            "bool_error": false,
-            "number_code": 2
-        },
         "agent": {
-            "version": "1.3",
-            "name": "js-base"
+            "name": "js-base",
+            "version": "1.3"
         },
         "client": {
-            "ip": "8.8.8.8",
             "geo": {
                 "continent_name": "North America",
                 "country_iso_code": "US",
@@ -345,156 +299,202 @@
                     "lat": 37.751,
                     "lon": -97.822
                 }
-            }
-        },
-        "source": {
+            },
             "ip": "8.8.8.8"
         },
-        "host": {
-            "ip": "127.0.0.1",
-            "os": {
-                "platform": "darwin"
-            },
-            "architecture": "x64"
-        },
-        "service": {
-            "node": {
-                "name": "special-name"
-            },
-            "name": "serviceabc",
-            "language": {
-                "version": "8",
-                "name": "ecmascript"
-            },
-            "environment": "staging",
-            "framework": {
-                "version": "1.2.3",
-                "name": "Express"
-            },
-            "version": "5.1.3",
-            "runtime": {
-                "version": "8.0.0",
-                "name": "javascript"
-            }
+        "container": {
+            "id": "container-id"
         },
         "ecs": {
             "version": "1.5.0"
         },
-        "url": {
-            "domain": "www.example.com",
-            "full": "https://www.example.com/p/a/t/h?query=string#hash",
-            "fragment": "#hash",
-            "port": 8080,
-            "query": "?query=string",
-            "path": "/p/a/t/h",
-            "scheme": "https",
-            "original": "/p/a/t/h?query=string#hash"
+        "event": {
+            "ingested": "2020-04-22T14:49:24.844687Z"
         },
-        "trace": {
-            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        "host": {
+            "architecture": "x64",
+            "ip": "127.0.0.1",
+            "os": {
+                "platform": "darwin"
+            }
         },
         "http": {
-            "version": "1.1",
             "request": {
                 "body": {
                     "original": {
                         "additional": {
-                            "req": "additional information",
-                            "bar": 123
+                            "bar": 123,
+                            "req": "additional information"
                         },
                         "str": "hello world"
                     }
                 },
                 "cookies": {
-                    "c2": "v2",
-                    "c1": "v1"
+                    "c1": "v1",
+                    "c2": "v2"
                 },
-                "socket": {
-                    "encrypted": true,
-                    "remote_address": "8.8.8.8"
+                "env": {
+                    "GATEWAY_INTERFACE": "CGI/1.1",
+                    "SERVER_SOFTWARE": "nginx"
                 },
                 "headers": {
-                    "Some-Other-Header": [
-                        "foo"
-                    ],
-                    "Content-Type": [
-                        "text/html"
-                    ],
                     "Array": [
                         "foo",
                         "bar",
                         "baz"
                     ],
+                    "Content-Type": [
+                        "text/html"
+                    ],
                     "Cookie": [
                         "c1=v1,c2=v2"
+                    ],
+                    "Some-Other-Header": [
+                        "foo"
                     ],
                     "User-Agent": [
                         "Mozilla Chrome Edge"
                     ]
                 },
-                "env": {
-                    "SERVER_SOFTWARE": "nginx",
-                    "GATEWAY_INTERFACE": "CGI/1.1"
-                },
-                "method": "post"
+                "method": "post",
+                "socket": {
+                    "encrypted": true,
+                    "remote_address": "8.8.8.8"
+                }
             },
             "response": {
+                "finished": true,
                 "headers": {
                     "Content-Type": [
                         "application/json"
                     ]
                 },
-                "finished": true,
                 "headers_sent": true,
                 "status_code": 200
+            },
+            "version": "1.1"
+        },
+        "kubernetes": {
+            "namespace": "namespace1",
+            "pod": {
+                "name": "pod-name",
+                "uid": "pod-uid"
             }
         },
+        "labels": {
+            "bool_error": false,
+            "number_code": 2,
+            "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+        },
+        "observer": {
+            "ephemeral_id": "f78f6762-2157-4322-95aa-aecd2f486c1a",
+            "hostname": "ix.lan",
+            "id": "80b79979-4a7d-450d-b2ce-75c589f7fffd",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "process": {
+            "args": [
+                "node",
+                "server.js"
+            ],
+            "pid": 1234,
+            "ppid": 6789,
+            "title": "node"
+        },
+        "processor": {
+            "event": "transaction",
+            "name": "transaction"
+        },
+        "service": {
+            "environment": "staging",
+            "framework": {
+                "name": "Express",
+                "version": "1.2.3"
+            },
+            "language": {
+                "name": "ecmascript",
+                "version": "8"
+            },
+            "name": "serviceabc",
+            "node": {
+                "name": "special-name"
+            },
+            "runtime": {
+                "name": "javascript",
+                "version": "8.0.0"
+            },
+            "version": "5.1.3"
+        },
+        "source": {
+            "ip": "8.8.8.8"
+        },
+        "timestamp": {
+            "us": 1496170407154000
+        },
+        "trace": {
+            "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+        },
         "transaction": {
-            "sampled": true,
-            "name": "GET /api/types",
-            "span_count": {
-                "started": 4,
-                "dropped": 2
-            },
-            "page": {
-                "url": "http://localhost:8000/test/e2e/general-usecase/",
-                "referer": "http://localhost:8000/test/e2e/"
-            },
-            "result": "success",
-            "marks": {
-                "another_mark": {
-                    "some_long": 10,
-                    "some_float": 10
-                },
-                "navigationTiming": {
-                    "navigationStart": -21,
-                    "appBeforeBootstrap": 608.9300000000001
-                }
-            },
-            "duration": {
-                "us": 32592
-            },
             "custom": {
                 "(": "not a valid regex and that is fine",
-                "my_key": 1,
-                "some_other_value": "foo bar",
                 "and_objects": {
                     "foo": [
                         "bar",
                         "baz"
                     ]
+                },
+                "my_key": 1,
+                "some_other_value": "foo bar"
+            },
+            "duration": {
+                "us": 32592
+            },
+            "id": "945254c567a5417e",
+            "marks": {
+                "another_mark": {
+                    "some_float": 10,
+                    "some_long": 10
+                },
+                "navigationTiming": {
+                    "appBeforeBootstrap": 608.9300000000001,
+                    "navigationStart": -21
                 }
             },
-            "type": "request",
-            "id": "945254c567a5417e"
+            "name": "GET /api/types",
+            "page": {
+                "referer": "http://localhost:8000/test/e2e/",
+                "url": "http://localhost:8000/test/e2e/general-usecase/"
+            },
+            "result": "success",
+            "sampled": true,
+            "span_count": {
+                "dropped": 2,
+                "started": 4
+            },
+            "type": "request"
         },
-        "processor": {
-            "name": "transaction",
-            "event": "transaction"
+        "url": {
+            "domain": "www.example.com",
+            "fragment": "#hash",
+            "full": "https://www.example.com/p/a/t/h?query=string#hash",
+            "original": "/p/a/t/h?query=string#hash",
+            "path": "/p/a/t/h",
+            "port": 8080,
+            "query": "?query=string",
+            "scheme": "https"
         },
         "user": {
-            "id": "99",
-            "email": "foo@example.com"
+            "email": "foo@example.com",
+            "id": "99"
+        },
+        "user_agent": {
+            "device": {
+                "name": "Other"
+            },
+            "name": "Other",
+            "original": "Mozilla Chrome Edge"
         }
     }
 ]

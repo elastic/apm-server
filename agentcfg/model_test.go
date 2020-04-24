@@ -53,8 +53,8 @@ func TestQueryMarshaling(t *testing.T) {
 		out   string
 	}{
 		{name: "third_party",
-			input: `{"service":{"name":"auth-service","environment":"production"},"applied_by_agent":true}`,
-			out:   `{"service":{"name":"auth-service","environment":"production"},"applied_by_agent":true,"etag":""}`},
+			input: `{"service":{"name":"auth-service","environment":"production"},"mark_as_applied_by_agent":true}`,
+			out:   `{"service":{"name":"auth-service","environment":"production"},"mark_as_applied_by_agent":true,"etag":""}`},
 		{name: "elastic_apm",
 			input: `{"service":{"name":"auth-service","environment":"production"},"etag":"1234"}`,
 			out:   `{"service":{"name":"auth-service","environment":"production"},"etag":"1234"}`},

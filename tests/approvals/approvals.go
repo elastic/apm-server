@@ -90,7 +90,7 @@ func ApproveJSON(received map[string]interface{}, name string, ignored ...string
 		if err := enc.Encode(received); err != nil {
 			return err
 		}
-		return errors.New("received data differs from approved data. Run 'make update' and then 'approvals' to verify the diff")
+		return errors.New("received data differs from approved data. Run 'make update check-approvals' to verify the diff")
 	}
 	return nil
 }
