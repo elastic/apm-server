@@ -141,10 +141,6 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
-	if err := c.Aggregation.setup(logger); err != nil {
-		return nil, err
-	}
-
 	return c, nil
 }
 

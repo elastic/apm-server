@@ -19,8 +19,6 @@ package config
 
 import (
 	"time"
-
-	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 const (
@@ -35,22 +33,6 @@ type AggregationConfig struct {
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
 	MaxTransactionGroups           int           `config:"max_transaction_groups" validate:"min=1"`
 	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
-}
-
-func (c *AggregationConfig) setup(log *logp.Logger) error {
-	if !c.Enabled {
-		return nil
-	}
-	if c.Interval <= 0 {
-		c.Interval = defaultAggregationInterval
-	}
-	if c.MaxTransactionGroups <= 0 {
-		c.MaxTransactionGroups = defaultAggregationMaxTransactionGroups
-	}
-	if c.HDRHistogramSignificantFigures <= 0 {
-		c.HDRHistogramSignificantFigures = defaultAggregationHDRHistogramSignificantFigures
-	}
-	return nil
 }
 
 func defaultAggregationConfig() AggregationConfig {
