@@ -35,6 +35,6 @@ const (
 	Sourcemap          = "sourcemap"
 	Stacktrace         = "stacktrace"
 	Tracing            = "tracing"
-	Transform          = "transform"
 	TransactionMetrics = "txmetrics"
+	Transform          = "transform"
 )
