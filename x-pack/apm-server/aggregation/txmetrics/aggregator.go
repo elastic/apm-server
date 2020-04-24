@@ -6,10 +6,10 @@ package txmetrics
 
 import (
 	"context"
-	"hash/maphash"
 	"sync"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -25,8 +25,6 @@ const (
 	minDuration time.Duration = 0
 	maxDuration time.Duration = time.Hour
 )
-
-var maphashSeed = maphash.MakeSeed()
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
 type Aggregator struct {
@@ -348,10 +346,10 @@ func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregation
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
-	var h maphash.Hash
-	h.SetSeed(maphashSeed)
+	// TODO(axw) when we upgrade to Go 1.14, change this to maphash.
+	var h xxhash.Digest
 	if k.traceRoot {
-		h.WriteByte(1)
+		h.WriteString("1")
 	}
 	h.WriteString(k.agentName)
 	// TODO(axw) clientCountryISOCode
