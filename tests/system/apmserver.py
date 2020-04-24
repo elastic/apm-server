@@ -24,6 +24,7 @@ from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 from helper import wait_until
 from es_helper import cleanup, default_pipelines
 from es_helper import index_smap, index_span, index_error, apm_prefix
+from kibana import Kibana
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
@@ -255,10 +256,11 @@ class ElasticTest(ServerBaseTest):
         admin_password = os.getenv("ES_SUPERUSER_PASS", "changeme")
         self.admin_es = Elasticsearch([self.get_elasticsearch_url(admin_user, admin_password)])
         self.es = Elasticsearch([self.get_elasticsearch_url()])
-        self.kibana_url = self.get_kibana_url()
+        self.kibana = Kibana(self.get_kibana_url())
 
         delete_pipelines = [] if self.skip_clean_pipelines else default_pipelines
         cleanup(self.admin_es, delete_pipelines=delete_pipelines)
+        self.kibana.delete_all_agent_config()
 
         super(ElasticTest, self).setUp()
 
