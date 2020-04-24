@@ -19,36 +19,12 @@ class AgentConfigurationTest(ElasticTest):
         cfg.update(self.config_overrides)
         return cfg
 
-    def _upsert_service_config(self, settings, name, agent="python", env=None, overwrite=False):
-        data = {
-            "agent_name": agent,
-            "service": {"name": name},
-            "settings": settings
-        }
-        if env is not None:
-            data["service"]["environment"] = env
-
-        return requests.put(
-            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration"),
-            params={"overwrite": "true" if overwrite else "false"},
-            headers={
-                "Accept": "*/*",
-                "Content-Type": "application/json",
-                "kbn-xsrf": "1",
-            },
-            json=data,
-        )
-
     def create_service_config(self, settings, name, agent="python", env=None):
-        config = self._upsert_service_config(settings, name, agent=agent, env=env)
-        config.raise_for_status()
-        assert config.status_code == 200, config.status_code
-        assert config.json()["result"] == "created"
+        return self.kibana.create_agent_config(name, settings, agent=agent, env=env)
 
     def update_service_config(self, settings, name, env=None):
-        config = self._upsert_service_config(settings, name, env=env, overwrite=True)
-        assert config.status_code == 200, config.status_code
-        assert config.json()["result"] == "updated"
+        res = self.kibana.create_or_update_agent_config(name, settings, env=env)
+        assert res.json()["result"] == "updated"
 
 
 @integration_test
