@@ -253,7 +253,7 @@ func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, 
 
 type metrics struct {
 	// TODO(axw) investigate optimising the map for concurrent
-	// updates, along the same lines as what we do in th Go agent
+	// updates, along the same lines as what we do in the Go agent
 	// for breakdown metrics.
 	mu     sync.Mutex
 	groups map[transactionAggregationKey]*transactionMetrics
