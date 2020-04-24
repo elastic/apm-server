@@ -1,45 +1,44 @@
 [
     {
+        "@timestamp": "2020-04-14T08:56:03.100Z",
+        "agent": {
+            "name": "elastic-node"
+        },
         "container": {
             "id": "container-id"
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "event": {
+            "ingested": "2020-04-24T01:53:20.081678Z"
         },
         "kubernetes": {
             "pod": {
                 "name": "pod-name"
             }
         },
-        "agent": {
-            "name": "elastic-node"
-        },
-        "processor": {
-            "name": "metric",
-            "event": "metric"
-        },
         "observer": {
+            "ephemeral_id": "fdbbb18c-f372-4b20-81c1-ab6596a0703a",
             "hostname": "alloy",
-            "id": "f1db98a3-7e66-4378-a430-ccc0a69e754e",
+            "id": "fb7241d5-1c02-43dc-8561-1b8c5f95ad5c",
             "type": "apm-server",
-            "ephemeral_id": "97435f99-26c7-4d72-ad12-a950d3afc8e6",
             "version": "8.0.0",
             "version_major": 8
         },
-        "@timestamp": "2020-04-14T08:56:03.100Z",
-        "ecs": {
-            "version": "1.5.0"
+        "processor": {
+            "event": "metric",
+            "name": "metric"
         },
         "service": {
+            "environment": "staging",
+            "name": "1234_service-12a3",
             "node": {
                 "name": "container-id"
             },
-            "environment": "staging",
-            "name": "1234_service-12a3",
             "version": "5.1.3"
         },
-        "event": {
-            "ingested": "2020-04-14T08:56:03.122104Z"
-        },
         "transaction": {
-            "result": "200",
             "duration": {
                 "histogram": {
                     "counts": [
@@ -50,49 +49,50 @@
                     ]
                 }
             },
-            "root": true,
             "name": "GET /api/types",
+            "result": "200",
+            "root": true,
             "type": "request"
         }
     },
     {
+        "@timestamp": "2020-04-14T08:56:03.100Z",
+        "agent": {
+            "name": "elastic-node"
+        },
         "container": {
             "id": "container-id"
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "event": {
+            "ingested": "2020-04-24T01:53:20.083059Z"
         },
         "kubernetes": {
             "pod": {
                 "name": "pod-name"
             }
         },
-        "agent": {
-            "name": "elastic-node"
-        },
-        "processor": {
-            "name": "metric",
-            "event": "metric"
-        },
         "observer": {
+            "ephemeral_id": "fdbbb18c-f372-4b20-81c1-ab6596a0703a",
             "hostname": "alloy",
-            "id": "f1db98a3-7e66-4378-a430-ccc0a69e754e",
-            "ephemeral_id": "97435f99-26c7-4d72-ad12-a950d3afc8e6",
+            "id": "fb7241d5-1c02-43dc-8561-1b8c5f95ad5c",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8
         },
-        "@timestamp": "2020-04-14T08:56:03.100Z",
-        "ecs": {
-            "version": "1.5.0"
+        "processor": {
+            "event": "metric",
+            "name": "metric"
         },
         "service": {
+            "environment": "staging",
+            "name": "1234_service-12a3",
             "node": {
                 "name": "container-id"
             },
-            "environment": "staging",
-            "name": "1234_service-12a3",
             "version": "5.1.3"
-        },
-        "event": {
-            "ingested": "2020-04-14T08:56:03.104805Z"
         },
         "transaction": {
             "duration": {
@@ -105,53 +105,52 @@
                     ]
                 }
             },
+            "name": "GET /api/types",
             "result": "failure",
             "root": true,
-            "name": "GET /api/types",
             "type": "request"
         }
     },
     {
+        "@timestamp": "2020-04-14T08:56:03.100Z",
+        "agent": {
+            "name": "js-base"
+        },
         "container": {
             "id": "container-id"
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "event": {
+            "ingested": "2020-04-24T01:53:20.082443Z"
         },
         "kubernetes": {
             "pod": {
                 "name": "pod-name"
             }
         },
-        "agent": {
-            "name": "js-base"
-        },
-        "processor": {
-            "name": "metric",
-            "event": "metric"
-        },
         "observer": {
+            "ephemeral_id": "fdbbb18c-f372-4b20-81c1-ab6596a0703a",
             "hostname": "alloy",
-            "id": "f1db98a3-7e66-4378-a430-ccc0a69e754e",
+            "id": "fb7241d5-1c02-43dc-8561-1b8c5f95ad5c",
             "type": "apm-server",
-            "ephemeral_id": "97435f99-26c7-4d72-ad12-a950d3afc8e6",
             "version": "8.0.0",
             "version_major": 8
         },
-        "@timestamp": "2020-04-14T08:56:03.100Z",
-        "ecs": {
-            "version": "1.5.0"
+        "processor": {
+            "event": "metric",
+            "name": "metric"
         },
         "service": {
+            "environment": "staging",
+            "name": "serviceabc",
             "node": {
                 "name": "container-id"
             },
-            "environment": "staging",
-            "name": "serviceabc",
             "version": "5.1.3"
         },
-        "event": {
-            "ingested": "2020-04-14T08:56:03.133899Z"
-        },
         "transaction": {
-            "result": "success",
             "duration": {
                 "histogram": {
                     "counts": [
@@ -162,16 +161,17 @@
                     ]
                 }
             },
-            "root": true,
             "name": "GET /api/types",
+            "result": "success",
+            "root": true,
             "type": "request"
         },
         "user_agent": {
-            "original": "Mozilla Chrome Edge",
-            "name": "Other",
             "device": {
                 "name": "Other"
-            }
+            },
+            "name": "Other",
+            "original": "Mozilla Chrome Edge"
         }
     }
 ]
