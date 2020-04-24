@@ -78,3 +78,20 @@
             format: bytes
             description: >
               The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
+
+- key: apm-transaction-metrics
+  title: "APM Transaction Metrics"
+  description: >
+    APM transaction metrics, and transaction metrics-specific properties,
+    such as transaction.root.
+  short_config: true
+  fields:
+    - name: transaction
+      type: group
+      dynamic: false
+      fields:
+
+      - name: root
+        type: boolean
+        description: >
+          Identifies metrics for root transactions. This can be used for calculating metrics for traces.

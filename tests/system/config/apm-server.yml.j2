@@ -137,6 +137,13 @@ apm-server:
   instrumentation.profiling.heap.interval: {{ profiling_heap_interval }}
   {% endif %}
 
+  {% if aggregation_enabled %}
+  aggregation.enabled: {{ aggregation_enabled }}
+  {% endif %}
+  {% if aggregation_interval %}
+  aggregation.interval: {{ aggregation_interval }}
+  {% endif %}
+
   {% if mode %}
   mode: {{ mode }}
   {% endif %}
