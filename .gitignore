@@ -13,6 +13,7 @@
 /apm-server.iml
 /apm-server.keystore
 /apm-server
+/apm-server-oss
 **/*.test
 /apm-server.dev.yml
 /_meta/fields.generated.yml
