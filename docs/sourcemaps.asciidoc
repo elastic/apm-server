@@ -5,15 +5,15 @@
 <titleabbrev>Create and upload source maps (RUM)</titleabbrev>
 ++++
 
-Minifying JavaScript bundles is a common practice;
+Minifying JavaScript bundles in production is a common practice;
 it can greatly improve the load time and network latency of your applications.
 The problem with minifying code is that it can be hard to debug.
-Here's an example of an exception stack trace in the APM app when using minified code:
+Here's an example of an exception stack trace in the APM app when using minified code.
+As you can see, it's not very helpful.
 
 [role="screenshot"]
 image::images/source-map-before.png[APM app without source mapping]
 
-It's not very helpful.
 That’s why Elastic APM supports source maps.
 A source map maps minified files back to the original source code, allowing you to maintain the speed advantage of minified code,
 without losing the ability to quickly and easily debug your application.
@@ -32,7 +32,7 @@ Follow the steps below to enable source mapping your error stack traces in the A
 [[sourcemap-rum-initialize]]
 === Initialize the RUM Agent
 
-First, set the service version of your application while initializing the RUM Agent.
+First, set the service name and version of your application when initializing the RUM Agent.
 
 [source,js]
 ----
@@ -44,7 +44,7 @@ const apm = initApm({
 })
 ----
 
-This `serviceVersion` could be the version from your `package.json`. For example:
+This `serviceVersion` can also be the version from your `package.json`. For example:
 
 [source,js]
 ----
@@ -60,7 +60,7 @@ const serviceVersion = git.short()
 ----
 
 It can also be any other unique string that indicates a specific version of your application.
-APM Server uses this `serviceVersion` to match the correct source map file to each stack trace.
+APM Server uses the `serviceVersion` to match the correct source map file to each stack trace.
 
 [float]
 [role="child_attributes"]
@@ -70,15 +70,6 @@ APM Server uses this `serviceVersion` to match the correct source map file to ea
 Source maps can be generated and configured in many different ways.
 To be compatible with Elastic APM, they must follow the
 https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k[source map revision 3 proposal spec].
-
-.Click here to expand a sample source map file
-[%collapsible%closed]
-=====
-[source,json]
-----
-include::./data/intake-api/generated/sourcemap/bundle.js.map[]
-----
-=====
 
 One way to generate and configure sourcemaps, is with webpack.
 Here's an example configuration:
@@ -121,7 +112,7 @@ This means that if a source map has previously been uploaded,
 source mapping will automatically be applied to all incoming transactions and errors.
 
 Let's look at two different ways to upload a source map: curl and a custom application.
-Each example includes the four fields necessary for APM Server to identify the correct `source map`.
+Each example includes the four fields necessary for APM Server to later map minified code to its source:
 
 * `service_name` - Should match the `serviceName` from step one
 * `service_version` - Should match the `serviceVersion` from step one
@@ -146,18 +137,18 @@ curl http://localhost:8200/assets/v1/sourcemaps -X POST \
 ----
 <1> This example uses the version from `package.json`.
 
-Add the secret token to your curl command using an Authorization header:
+Add a <<secret-token,secret token>> to your curl command using an Authorization header:
 
 [source,console]
 ----
 -H "Authorization: Bearer <token>"
 ----
 
-Or, add an API key to your curl command using an Authorization header:
+Or, add an <<api-key,API key>> to your curl command using an Authorization header:
 
 [source,console]
 ----
--H "Authorization: Bearer <token>"
+-H "Authorization: ApiKey <token>"
 ----
 
 [float]
