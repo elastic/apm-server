@@ -89,7 +89,8 @@ func (p *intakeTestProcessor) LoadPayload(path string) (interface{}, error) {
 func (p *intakeTestProcessor) Decode(data interface{}) error {
 	events := data.([]interface{})
 	for _, e := range events {
-		_, err := p.Processor.HandleRawModel(e.(map[string]interface{}), time.Now(), model.Metadata{})
+		_, _, err := p.Processor.HandleRawModel(
+			context.Background(), e.(map[string]interface{}), time.Now(), model.Metadata{})
 		if err != nil {
 			return err
 		}

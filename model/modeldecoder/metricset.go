@@ -18,6 +18,8 @@
 package modeldecoder
 
 import (
+	"context"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/pkg/errors"
@@ -31,8 +33,9 @@ import (
 )
 
 const (
-	transactionKey = "transaction"
-	spanKey        = "span"
+	transactionKey       = "transaction"
+	spanKey              = "span"
+	metricTransactionKey = "metricsetTransaction"
 )
 
 var (
@@ -41,18 +44,25 @@ var (
 )
 
 // DecodeMetricset decodes a v2 metricset.
-func DecodeMetricset(input Input) (transform.Transformable, error) {
-	return decodeMetricset(input, metricsetSchema)
+func DecodeMetricset(ctx context.Context, input Input) (context.Context, transform.Transformable, error) {
+	return decodeMetricset(ctx, input, metricsetSchema)
 }
 
-func DecodeRUMV3Metricset(input Input) (transform.Transformable, error) {
-	return decodeMetricset(input, rumV3Schema)
+func DecodeRUMV3Metricset(ctx context.Context, input Input) (context.Context, transform.Transformable, error) {
+	ctx, metricset, err := decodeMetricset(ctx, input, rumV3Schema)
+	if err != nil {
+		return ctx, nil, err
+	}
+	if transaction := ctx.Value(metricTransactionKey); transaction != nil {
+		metricset.Transaction = transaction.(model.MetricsetTransaction)
+	}
+	return ctx, metricset, nil
 }
 
-func decodeMetricset(input Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+func decodeMetricset(ctx context.Context, input Input, schema *jsonschema.Schema) (context.Context, *model.Metricset, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate metricset")
+		return ctx, nil, errors.Wrap(err, "failed to validate metricset")
 	}
 
 	md := metricsetDecoder{&utility.ManualDecoder{}}
@@ -67,7 +77,7 @@ func decodeMetricset(input Input, schema *jsonschema.Schema) (transform.Transfor
 	md.decodeSpan(getObject(raw, fieldName(spanKey)), input.Config.HasShortFieldNames, &e.Span)
 
 	if md.Err != nil {
-		return nil, md.Err
+		return ctx, nil, md.Err
 	}
 
 	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
@@ -77,7 +87,7 @@ func decodeMetricset(input Input, schema *jsonschema.Schema) (transform.Transfor
 		e.Timestamp = input.RequestTime
 	}
 
-	return &e, nil
+	return ctx, &e, nil
 }
 
 type metricsetDecoder struct {

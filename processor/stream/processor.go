@@ -48,7 +48,7 @@ const (
 )
 
 type decodeMetadataFunc func(interface{}, bool) (*model.Metadata, error)
-type decodeEventFunc func(modeldecoder.Input) (transform.Transformable, error)
+type decodeEventFunc func(context.Context, modeldecoder.Input) (context.Context, transform.Transformable, error)
 
 type Processor struct {
 	Tconfig          transform.Config
@@ -145,24 +145,27 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time, streamMetadata model.Metadata) (transform.Transformable, error) {
+func (p *Processor) HandleRawModel(ctx context.Context, rawModel map[string]interface{}, requestTime time.Time, streamMetadata model.Metadata) (context.Context, transform.Transformable, error) {
+
 	for key, decodeEvent := range p.models {
 		entry, ok := rawModel[key]
 		if !ok {
 			continue
 		}
-		tr, err := decodeEvent(modeldecoder.Input{
+		var tr transform.Transformable
+		var err error
+		ctx, tr, err = decodeEvent(ctx, modeldecoder.Input{
 			Raw:         entry,
 			RequestTime: requestTime,
 			Metadata:    streamMetadata,
 			Config:      p.Mconfig,
 		})
 		if err != nil {
-			return nil, err
+			return ctx, nil, err
 		}
-		return tr, nil
+		return ctx, tr, nil
 	}
-	return nil, ErrUnrecognizedObject
+	return ctx, nil, ErrUnrecognizedObject
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream,
@@ -205,7 +208,9 @@ func (p *Processor) readBatch(
 			return out, true
 		}
 		if len(rawModel) > 0 {
-			tr, err := p.HandleRawModel(rawModel, requestTime, *streamMetadata)
+			var tr transform.Transformable
+			var err error
+			ctx, tr, err = p.HandleRawModel(ctx, rawModel, requestTime, *streamMetadata)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,

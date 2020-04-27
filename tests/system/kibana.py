@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 
 import requests
 
+
 class Kibana(object):
     def __init__(self, url):
         self.url = url

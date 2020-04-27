@@ -18,6 +18,8 @@
 package modeldecoder
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -35,25 +37,25 @@ var (
 )
 
 // DecodeRUMV3Error decodes a v3 RUM error.
-func DecodeRUMV3Error(input Input) (transform.Transformable, error) {
-	return decodeError(input, rumV3ErrorSchema)
+func DecodeRUMV3Error(ctx context.Context, input Input) (context.Context, transform.Transformable, error) {
+	return decodeError(ctx, input, rumV3ErrorSchema)
 }
 
 // DecodeError decodes a v2 error.
-func DecodeError(input Input) (transform.Transformable, error) {
-	return decodeError(input, errorSchema)
+func DecodeError(ctx context.Context, input Input) (context.Context, transform.Transformable, error) {
+	return decodeError(ctx, input, errorSchema)
 }
 
-func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+func decodeError(ctx context.Context, input Input, schema *jsonschema.Schema) (context.Context, transform.Transformable, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate error")
+		return ctx, nil, errors.Wrap(err, "failed to validate error")
 	}
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config, &input.Metadata)
+	context, err := decodeContext(getObject(raw, fieldName("context")), input.Config, &input.Metadata)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	decoder := utility.ManualDecoder{}
@@ -61,12 +63,12 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 		Metadata:           input.Metadata,
 		ID:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, fieldName("culprit")),
-		Labels:             ctx.Labels,
-		Page:               ctx.Page,
-		HTTP:               ctx.Http,
-		URL:                ctx.Url,
-		Custom:             ctx.Custom,
-		Experimental:       ctx.Experimental,
+		Labels:             context.Labels,
+		Page:               context.Page,
+		HTTP:               context.Http,
+		URL:                context.Url,
+		Custom:             context.Custom,
+		Experimental:       context.Experimental,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionID:      decoder.StringPtr(raw, fieldName("transaction_id")),
 		ParentID:           decoder.StringPtr(raw, fieldName("parent_id")),
@@ -95,13 +97,13 @@ func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformabl
 		}
 	}
 	if decoder.Err != nil {
-		return nil, decoder.Err
+		return ctx, nil, decoder.Err
 	}
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}
 
-	return &e, nil
+	return ctx, &e, nil
 }
 
 type exceptionDecoder func(map[string]interface{}) *m.Exception

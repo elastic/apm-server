@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"context"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -238,7 +239,7 @@ func TestErrorEventDecode(t *testing.T) {
 					input[k] = v
 				}
 			}
-			transformable, err := DecodeError(Input{
+			_, transformable, err := DecodeError(context.Background(), Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
@@ -251,10 +252,10 @@ func TestErrorEventDecode(t *testing.T) {
 }
 
 func TestErrorEventDecodeInvalid(t *testing.T) {
-	_, err := DecodeError(Input{Raw: nil})
+	_, _, err := DecodeError(context.Background(), Input{Raw: nil})
 	require.EqualError(t, err, "failed to validate error: error validating JSON: input missing")
 
-	_, err = DecodeError(Input{Raw: ""})
+	_, _, err = DecodeError(context.Background(), Input{Raw: ""})
 	require.EqualError(t, err, "failed to validate error: error validating JSON: invalid input type")
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -264,7 +265,7 @@ func TestErrorEventDecodeInvalid(t *testing.T) {
 			"message": "message",
 		},
 	}
-	_, err = DecodeError(Input{Raw: baseInput})
+	_, _, err = DecodeError(context.Background(), Input{Raw: baseInput})
 	require.NoError(t, err)
 
 	for name, test := range map[string]struct {
@@ -313,7 +314,7 @@ func TestErrorEventDecodeInvalid(t *testing.T) {
 					input[k] = v
 				}
 			}
-			_, err := DecodeError(Input{Raw: input})
+			_, _, err := DecodeError(context.Background(), Input{Raw: input})
 			require.Error(t, err)
 			t.Logf("%s", err)
 		})
@@ -330,7 +331,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				"type":    "type0",
 			},
 		}
-		result, err := DecodeError(Input{Raw: badID})
+		_, result, err := DecodeError(context.Background(), Input{Raw: badID})
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -346,7 +347,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeError(Input{Raw: badException})
+		_, result, err := DecodeError(context.Background(), Input{Raw: badException})
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -360,7 +361,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				"cause":   []interface{}{7.4},
 			},
 		}
-		_, err := DecodeError(Input{Raw: badException})
+		_, _, err := DecodeError(context.Background(), Input{Raw: badException})
 		require.Error(t, err)
 		assert.Regexp(t, "failed to validate error:(.|\n)*properties/cause/items/type(.|\n)*expected object or null, but got number", err.Error())
 	})
@@ -376,7 +377,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		_, err := DecodeError(Input{Raw: emptyCauses})
+		_, _, err := DecodeError(context.Background(), Input{Raw: emptyCauses})
 		require.Error(t, err)
 		assert.Regexp(t, "failed to validate error:(.|\n)* missing properties: \"id\"", err.Error())
 	})

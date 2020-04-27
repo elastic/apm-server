@@ -18,6 +18,8 @@
 package modeldecoder
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -36,15 +38,26 @@ var (
 )
 
 // DecodeRUMV3Transaction decodes a v3 RUM transaction.
-func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
-	tr, err := decodeTransaction(input, rumV3TransactionSchema)
+func DecodeRUMV3Transaction(ctx context.Context, input Input) (context.Context, transform.Transformable, error) {
+	ctx, tr, err := decodeTransaction(ctx, input, rumV3TransactionSchema)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
+	metricsetTransaction := model.MetricsetTransaction{
+		Type: tr.Type,
+		//Root: true, // ??
+	}
+	if tr.Name != nil {
+		metricsetTransaction.Name = *tr.Name
+	}
+	if tr.Result != nil {
+		metricsetTransaction.Result = *tr.Result
+	}
+	ctx = context.WithValue(ctx, metricTransactionKey, metricsetTransaction)
 	raw := input.Raw.(map[string]interface{})
-	spans, err := decodeRUMV3Spans(raw, input, tr)
+	spans, err := decodeRUMV3Spans(ctx, raw, input, tr)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 	event := &model.RUMV3Transaction{
 		Transaction: tr,
@@ -52,19 +65,19 @@ func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 	}
 	marks, err := decodeRUMV3Marks(raw, input.Config)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 	event.Marks = marks
-	return event, nil
+	return ctx, event, nil
 }
 
-func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Span, error) {
+func decodeRUMV3Spans(ctx context.Context, raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Span, error) {
 	decoder := &utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
 	var spans = make([]model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
-		span, err := DecodeRUMV3Span(Input{
+		_, span, err := DecodeRUMV3Span(ctx, Input{
 			Raw:         rawSpan,
 			RequestTime: input.RequestTime,
 			Metadata:    input.Metadata,
@@ -86,20 +99,20 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 }
 
 // DecodeTransaction decodes a v2 transaction.
-func DecodeTransaction(input Input) (transform.Transformable, error) {
-	return decodeTransaction(input, transactionSchema)
+func DecodeTransaction(ctx context.Context, input Input) (context.Context, transform.Transformable, error) {
+	return decodeTransaction(ctx, input, transactionSchema)
 }
 
-func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transaction, error) {
+func decodeTransaction(ctx context.Context, input Input, schema *jsonschema.Schema) (context.Context, *model.Transaction, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate transaction")
+		return ctx, nil, errors.Wrap(err, "failed to validate transaction")
 	}
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config, &input.Metadata)
+	context, err := decodeContext(getObject(raw, fieldName("context")), input.Config, &input.Metadata)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 	decoder := utility.ManualDecoder{}
 	e := model.Transaction{
@@ -109,13 +122,13 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		Name:         decoder.StringPtr(raw, fieldName("name")),
 		Result:       decoder.StringPtr(raw, fieldName("result")),
 		Duration:     decoder.Float64(raw, fieldName("duration")),
-		Labels:       ctx.Labels,
-		Page:         ctx.Page,
-		HTTP:         ctx.Http,
-		URL:          ctx.Url,
-		Custom:       ctx.Custom,
-		Experimental: ctx.Experimental,
-		Message:      ctx.Message,
+		Labels:       context.Labels,
+		Page:         context.Page,
+		HTTP:         context.Http,
+		URL:          context.Url,
+		Custom:       context.Custom,
+		Experimental: context.Experimental,
+		Message:      context.Message,
 		Sampled:      decoder.BoolPtr(raw, fieldName("sampled")),
 		Marks:        decoder.MapStr(raw, fieldName("marks")),
 		Timestamp:    decoder.TimeEpochMicro(raw, fieldName("timestamp")),
@@ -126,12 +139,12 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		TraceID:  decoder.String(raw, fieldName("trace_id")),
 	}
 	if decoder.Err != nil {
-		return nil, decoder.Err
+		return ctx, nil, decoder.Err
 	}
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}
-	return &e, nil
+	return ctx, &e, nil
 }
 
 func decodeRUMV3Marks(raw map[string]interface{}, cfg Config) (common.MapStr, error) {

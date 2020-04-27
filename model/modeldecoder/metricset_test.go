@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -168,7 +169,7 @@ func TestDecode(t *testing.T) {
 			},
 		},
 	} {
-		transformable, err := DecodeMetricset(Input{
+		_, transformable, err := DecodeMetricset(context.Background(), Input{
 			Raw:         test.input,
 			RequestTime: requestTime,
 			Metadata:    metadata,

@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -104,7 +105,7 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 		"cannot fetch field": {input: map[string]interface{}{}, err: "failed to validate transaction: error validating JSON: (.|\n)*missing properties:(.|\n)*", e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeTransaction(Input{Raw: test.input})
+			_, transformable, err := DecodeTransaction(context.Background(), Input{Raw: test.input})
 			if test.err != "" {
 				assert.Regexp(t, test.err, err.Error())
 			} else {
@@ -335,7 +336,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				input[k] = v
 			}
 
-			transformable, err := DecodeTransaction(Input{
+			_, transformable, err := DecodeTransaction(context.Background(), Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
@@ -354,7 +355,7 @@ func BenchmarkDecodeTransaction(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		if _, err := DecodeTransaction(Input{
+		if _, _, err := DecodeTransaction(context.Background(), Input{
 			Metadata: *fullMetadata,
 			Raw:      fullTransactionInput,
 		}); err != nil {

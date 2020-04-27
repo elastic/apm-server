@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -39,19 +40,19 @@ var (
 )
 
 // DecodeRUMV3Span decodes a v3 RUM span.
-func DecodeRUMV3Span(input Input) (*model.Span, error) {
-	return decodeSpan(input, rumV3SpanSchema)
+func DecodeRUMV3Span(ctx context.Context, input Input) (context.Context, *model.Span, error) {
+	return decodeSpan(ctx, input, rumV3SpanSchema)
 }
 
 // DecodeSpan decodes a v2 span.
-func DecodeSpan(input Input) (transform.Transformable, error) {
-	return decodeSpan(input, spanSchema)
+func DecodeSpan(ctx context.Context, input Input) (context.Context, transform.Transformable, error) {
+	return decodeSpan(ctx, input, spanSchema)
 }
 
-func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
+func decodeSpan(ctx context.Context, input Input, schema *jsonschema.Schema) (context.Context, *model.Span, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate span")
+		return ctx, nil, errors.Wrap(err, "failed to validate span")
 	}
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
@@ -75,43 +76,43 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 		Action:        decoder.StringPtr(raw, fieldName("action")),
 	}
 
-	ctx := decoder.MapStr(raw, fieldName("context"))
-	if ctx != nil {
-		if labels, ok := ctx[fieldName("tags")].(map[string]interface{}); ok {
+	context := decoder.MapStr(raw, fieldName("context"))
+	if context != nil {
+		if labels, ok := context[fieldName("tags")].(map[string]interface{}); ok {
 			event.Labels = labels
 		}
 
-		db, err := decodeDB(ctx, decoder.Err)
+		db, err := decodeDB(context, decoder.Err)
 		if err != nil {
-			return nil, err
+			return ctx, nil, err
 		}
 		event.DB = db
 
-		http, err := decodeSpanHTTP(ctx, input.Config.HasShortFieldNames, decoder.Err)
+		http, err := decodeSpanHTTP(context, input.Config.HasShortFieldNames, decoder.Err)
 		if err != nil {
-			return nil, err
+			return ctx, nil, err
 		}
 		event.HTTP = http
 
-		dest, destService, err := decodeDestination(ctx, input.Config.HasShortFieldNames, decoder.Err)
+		dest, destService, err := decodeDestination(context, input.Config.HasShortFieldNames, decoder.Err)
 		if err != nil {
-			return nil, err
+			return ctx, nil, err
 		}
 		event.Destination = dest
 		event.DestinationService = destService
 
-		if s := getObject(ctx, "service"); s != nil {
+		if s := getObject(context, "service"); s != nil {
 			var service m.Service
 			decodeService(s, input.Config.HasShortFieldNames, &service)
 			event.Service = &service
 		}
 
-		if event.Message, err = decodeMessage(ctx, decoder.Err); err != nil {
-			return nil, err
+		if event.Message, err = decodeMessage(context, decoder.Err); err != nil {
+			return ctx, nil, err
 		}
 
 		if input.Config.Experimental {
-			if obj, set := ctx["experimental"]; set {
+			if obj, set := context["experimental"]; set {
 				event.Experimental = obj
 			}
 		}
@@ -120,7 +121,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 	var stacktr *m.Stacktrace
 	stacktr, decoder.Err = decodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 	if decoder.Err != nil {
-		return nil, decoder.Err
+		return ctx, nil, decoder.Err
 	}
 	if stacktr != nil {
 		event.Stacktrace = *stacktr
@@ -148,7 +149,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 		event.Timestamp = timestamp
 	}
 
-	return &event, nil
+	return ctx, &event, nil
 }
 
 func decodeDB(input interface{}, err error) (*model.DB, error) {

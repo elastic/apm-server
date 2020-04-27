@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -45,7 +46,7 @@ func TestDecodeSpan(t *testing.T) {
 	instance, statement, dbType, user, link, rowsAffected := "db01", "select *", "sql", "joe", "other.db.com", 34
 	address, port := "localhost", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
-	context := map[string]interface{}{
+	ctx := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag_key": 17},
 		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
@@ -189,7 +190,7 @@ func TestDecodeSpan(t *testing.T) {
 		"full valid payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
-				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
+				"duration": duration, "context": ctx, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentID, "trace_id": traceID, "transaction_id": transactionID,
 			},
 			e: &m.Span{
@@ -238,7 +239,7 @@ func TestDecodeSpan(t *testing.T) {
 			for k, v := range test.input {
 				input[k] = v
 			}
-			span, err := DecodeSpan(Input{
+			_, span, err := DecodeSpan(context.Background(), Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    metadata,
@@ -251,10 +252,10 @@ func TestDecodeSpan(t *testing.T) {
 }
 
 func TestDecodeSpanInvalid(t *testing.T) {
-	_, err := DecodeSpan(Input{Raw: nil})
+	_, _, err := DecodeSpan(context.Background(), Input{Raw: nil})
 	require.EqualError(t, err, "failed to validate span: error validating JSON: input missing")
 
-	_, err = DecodeSpan(Input{Raw: ""})
+	_, _, err = DecodeSpan(context.Background(), Input{Raw: ""})
 	require.EqualError(t, err, "failed to validate span: error validating JSON: invalid input type")
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -264,7 +265,7 @@ func TestDecodeSpanInvalid(t *testing.T) {
 		"id":   "id", "trace_id": "trace_id", "transaction_id": "transaction_id", "parent_id": "parent_id",
 		"start": 0.0, "duration": 123.0,
 	}
-	_, err = DecodeSpan(Input{Raw: baseInput})
+	_, _, err = DecodeSpan(context.Background(), Input{Raw: baseInput})
 	require.NoError(t, err)
 
 	for name, test := range map[string]struct {
@@ -298,7 +299,7 @@ func TestDecodeSpanInvalid(t *testing.T) {
 					input[k] = v
 				}
 			}
-			_, err := DecodeSpan(Input{Raw: input})
+			_, _, err := DecodeSpan(context.Background(), Input{Raw: input})
 			require.Error(t, err)
 			t.Logf("%s", err)
 		})
