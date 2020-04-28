@@ -6,7 +6,6 @@ apm = "apm"
 apm_prefix = "{}*".format(apm)
 apm_version = "7.8.0"
 day = time.strftime("%Y.%m.%d", time.gmtime())
-agentcfg_index = ".apm-agent-configuration"
 default_policy = "apm-rollover-30-days"
 policy_url = "/_ilm/policy/"
 default_pipelines = ["apm_user_agent", "apm_user_geo", "apm"]
@@ -23,10 +22,9 @@ default_aliases = [index_error, index_transaction, index_span, index_metric, ind
 default_indices = [index_name, index_onboarding, index_smap] + default_aliases
 
 
-def cleanup(es, delete_indices=[apm_prefix], truncate_indices=[agentcfg_index], delete_templates=[apm_prefix],
+def cleanup(es, delete_indices=[apm_prefix], delete_templates=[apm_prefix],
             delete_policies=[default_policy], delete_pipelines=[default_pipelines]):
     wait_until_indices_deleted(es, delete_indices=delete_indices)
-    wait_until_indices_truncated(es, truncate_indices=truncate_indices)
     wait_until_templates_deleted(es, delete_templates=delete_templates)
     wait_until_policies_deleted(es, delete_policies=delete_policies)
     wait_until_pipelines_deleted(es, delete_pipelines=delete_pipelines)
@@ -55,18 +53,6 @@ def wait_until_indices_deleted(es, delete_indices=[apm_prefix]):
 
     for idx in delete_indices:
         wait_until(lambda: is_deleted(idx), name="index {} to be deleted".format(idx))
-
-
-def wait_until_indices_truncated(es, truncate_indices=[agentcfg_index]):
-    if not truncate_indices:
-        return
-    # truncate, don't delete agent configuration index since it's only created when kibana starts up
-    for index in truncate_indices:
-        if es.count(index=index, ignore_unavailable=True)["count"] > 0:
-            es.delete_by_query(index, {"query": {"match_all": {}}},
-                               ignore_unavailable=True, wait_for_completion=True)
-            wait_until(lambda: es.count(index=index, ignore_unavailable=True)["count"] == 0,
-                       max_timeout=30, name="acm index {} to be empty".format(index))
 
 
 def wait_until_templates_deleted(es, delete_templates=[apm_prefix]):

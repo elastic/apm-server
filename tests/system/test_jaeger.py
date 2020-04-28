@@ -144,21 +144,8 @@ class GRPCSamplingTest(JaegerBaseTest):
         return cfg
 
     def create_service_config(self, service, sampling_rate, agent=None):
-        data = {"service": {"name": service},
-                "settings": {"transaction_sample_rate": "{}".format(sampling_rate)}}
-        if agent:
-            data["agent_name"] = agent
-        resp = requests.put(
-            urljoin(self.kibana_url, "/api/apm/settings/agent-configuration"),
-            headers={
-                "Accept": "*/*",
-                "Content-Type": "application/json",
-                "kbn-xsrf": "1",
-            },
-            params={"overwrite": "true"},
-            json=data,
-        )
-        assert resp.status_code == 200, resp.status_code
+        return self.kibana.create_or_update_agent_config(
+            service, {"transaction_sample_rate": "{}".format(sampling_rate)}, agent=agent)
 
     def call_sampling_endpoint(self, service):
         client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
