@@ -52,8 +52,12 @@ This note is then passed on to the user in the UI.
 Settings affecting dropped spans, and more details on why they might occur,
 are available in the relevant agent documentation:
 
-* {apm-node-ref-v}/configuration.html#transaction-max-spans[Node.js Agent max spans]
-* {apm-py-ref-v}/configuration.html[Python Agent max spans]
+* Go: {apm-go-ref-v}/configuration.html#config-transaction-max-spans[`ELASTIC_APM_TRANSACTION_MAX_SPANS`]
+* Java: {apm-java-ref-v}/config-core.html#config-transaction-max-spans[`transaction_max_spans`]
+* .NET: {apm-dotnet-ref-v}/config-core.html#config-transaction-max-spans[`TransactionMaxSpans`]
+* Node.js: {apm-node-ref-v}/configuration.html#transaction-max-spans[`transactionMaxSpans`]
+* Python: {apm-py-ref-v}/configuration.html#config-transaction-max-spans[`transaction_max_spans`]
+* Ruby: {apm-ruby-ref-v}/configuration.html#config-transaction-max-spans[`transaction_max_spans`]
 
 [float]
 [[missing-spans]]
