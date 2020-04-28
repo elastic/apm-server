@@ -7,7 +7,6 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
-	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd
 	github.com/dlclark/regexp2 v1.2.0 // indirect
 	github.com/dop251/goja v0.0.0-20200414142002-77e84ffb8c65 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200128125109-2d688c7e0ac4 // indirect
@@ -15,6 +14,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200414143427-07ed0dabcaab
 	github.com/elastic/go-elasticsearch/v7 v7.5.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
+	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.2.1
 	github.com/elastic/go-ucfg v0.8.3
 	github.com/fatih/color v1.7.0
