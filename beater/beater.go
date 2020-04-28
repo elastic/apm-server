@@ -22,7 +22,6 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -37,10 +36,6 @@ import (
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/publish"
 )
-
-func init() {
-	apm.DefaultTracer.Close()
-}
 
 var (
 	errSetupDashboardRemoved = errors.New("setting 'setup.dashboards' has been removed")
