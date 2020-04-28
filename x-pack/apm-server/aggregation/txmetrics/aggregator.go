@@ -9,10 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/codahale/hdrhistogram"
+	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/go-hdrhistogram"
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -87,8 +88,8 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}
 	return &Aggregator{
 		config:   config,
-		active:   newMetrics(),
-		inactive: newMetrics(),
+		active:   newMetrics(config.MaxTransactionGroups),
+		inactive: newMetrics(config.MaxTransactionGroups),
 	}, nil
 }
 
@@ -121,7 +122,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	a.active, a.inactive = a.inactive, a.active
 	a.mu.Unlock()
 
-	if len(a.inactive.groups) == 0 {
+	if a.inactive.entries == 0 {
 		a.config.Logger.Debugf("no metrics to publish")
 		return nil
 	}
@@ -130,13 +131,16 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	// the specific time period (date_range) on the metrics documents.
 
 	now := time.Now()
-	metricsets := make([]transform.Transformable, 0, len(a.inactive.groups))
-	for key, transactionMetrics := range a.inactive.groups {
-		counts, values := transactionMetrics.histogramBuckets()
-		metricset := makeMetricset(key, now, counts, values)
-		metricsets = append(metricsets, &metricset)
-		delete(a.inactive.groups, key)
+	metricsets := make([]transform.Transformable, 0, a.inactive.entries)
+	for hash, entries := range a.inactive.m {
+		for _, entry := range entries {
+			counts, values := entry.transactionMetrics.histogramBuckets()
+			metricset := makeMetricset(entry.transactionAggregationKey, now, counts, values)
+			metricsets = append(metricsets, &metricset)
+		}
+		delete(a.inactive.m, hash)
 	}
+	a.inactive.entries = 0
 
 	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
 	return a.config.Report(ctx, publish.PendingReq{
@@ -187,33 +191,60 @@ func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricse
 }
 
 func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, duration time.Duration) bool {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-
-	m := a.active
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	metrics, ok := m.groups[key]
-	if !ok {
-		if len(m.groups) == a.config.MaxTransactionGroups {
-			return false
-		}
-		metrics = &transactionMetrics{
-			histogram: hdrhistogram.New(
-				durationMicros(minDuration),
-				durationMicros(maxDuration),
-				a.config.HDRHistogramSignificantFigures,
-			),
-		}
-		m.groups[key] = metrics
-	}
+	hash := key.hash()
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
 		duration = maxDuration
 	}
-	metrics.histogram.RecordValue(durationMicros(duration))
+
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	m := a.active
+	m.mu.RLock()
+	entries, ok := m.m[hash]
+	m.mu.RUnlock()
+	var offset int
+	if ok {
+		for offset = range entries {
+			if entries[offset].transactionAggregationKey == key {
+				entries[offset].recordDuration(duration)
+				return true
+			}
+		}
+		offset++ // where to start searching with the write lock below
+	}
+
+	m.mu.Lock()
+	entries, ok = m.m[hash]
+	if ok {
+		for i := range entries[offset:] {
+			if entries[offset+i].transactionAggregationKey == key {
+				m.mu.Unlock()
+				entries[offset+i].recordDuration(duration)
+				return true
+			}
+		}
+	} else if m.entries >= len(m.space) {
+		m.mu.Unlock()
+		return false
+	}
+	entry := &m.space[m.entries]
+	entry.transactionAggregationKey = key
+	if entry.transactionMetrics.histogram == nil {
+		entry.transactionMetrics.histogram = hdrhistogram.New(
+			durationMicros(minDuration),
+			durationMicros(maxDuration),
+			a.config.HDRHistogramSignificantFigures,
+		)
+	} else {
+		entry.transactionMetrics.histogram.Reset()
+	}
+	entry.recordDuration(duration)
+	m.m[hash] = append(entries, entry)
+	m.entries++
+	m.mu.Unlock()
 	return true
 }
 
@@ -252,17 +283,22 @@ func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, 
 }
 
 type metrics struct {
-	// TODO(axw) investigate optimising the map for concurrent
-	// updates, along the same lines as what we do in the Go agent
-	// for breakdown metrics.
-	mu     sync.Mutex
-	groups map[transactionAggregationKey]*transactionMetrics
+	mu      sync.RWMutex
+	entries int
+	m       map[uint64][]*metricsMapEntry
+	space   []metricsMapEntry
 }
 
-func newMetrics() *metrics {
+func newMetrics(maxGroups int) *metrics {
 	return &metrics{
-		groups: make(map[transactionAggregationKey]*transactionMetrics),
+		m:     make(map[uint64][]*metricsMapEntry),
+		space: make([]metricsMapEntry, maxGroups),
 	}
+}
+
+type metricsMapEntry struct {
+	transactionAggregationKey
+	transactionMetrics
 }
 
 type transactionAggregationKey struct {
@@ -309,10 +345,33 @@ func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregation
 	}
 }
 
+func (k *transactionAggregationKey) hash() uint64 {
+	// TODO(axw) when we upgrade to Go 1.14, change this to maphash.
+	var h xxhash.Digest
+	if k.traceRoot {
+		h.WriteString("1")
+	}
+	h.WriteString(k.agentName)
+	// TODO(axw) clientCountryISOCode
+	h.WriteString(k.containerID)
+	h.WriteString(k.hostname)
+	h.WriteString(k.kubernetesPodName)
+	h.WriteString(k.serviceEnvironment)
+	h.WriteString(k.serviceName)
+	h.WriteString(k.serviceVersion)
+	h.WriteString(k.transactionName)
+	h.WriteString(k.transactionResult)
+	h.WriteString(k.transactionType)
+	h.WriteString(k.userAgent)
+	return h.Sum64()
+}
+
 type transactionMetrics struct {
-	// TODO(axw) consider vendoring or forking hdrhistogram,
-	// since it has been archived in GitHub.
 	histogram *hdrhistogram.Histogram
+}
+
+func (m *transactionMetrics) recordDuration(d time.Duration) {
+	m.histogram.RecordValueAtomic(durationMicros(d))
 }
 
 func (m *transactionMetrics) histogramBuckets() (counts []int64, values []float64) {
