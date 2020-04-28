@@ -14,43 +14,40 @@ Events can contain additional <<metadata,metadata>> which further enriches your 
 [[transaction-spans]]
 === Spans
 
-*Spans* contain information about a specific code path that has been executed.
-They measure from the start to end of an activity,
+*Spans* contain information about the execution of a specific code path.
+They measure from the start to the end of an activity,
 and they can have a parent/child relationship with other spans.
 
-Agents automatically instrument a variety of libraries to capture these spans from within your application.
-In addition, you can use the Agent API for ad hoc instrumentation of specific code paths.
+Agents automatically instrument a variety of libraries to capture these spans from within your application,
+but you can also use the Agent API for custom instrumentation of specific code paths.
 
-A span contains:
+Each span contains:
 
-* A `transaction.id` attribute that refers to their parent <<transactions,transaction>>.
-* A `parent.id` attribute that refers to their parent span, or their transaction.
-* start time and duration
-* name
-* type
+* A `transaction.id` attribute that refers to its parent <<transactions,transaction>>.
+* A `parent.id` attribute that refers to its parent span or transaction.
+* Its start time and duration
+* A `name`
+* A `type`
 * An optional `stack trace`. Stack traces consist of stack frames,
 which represent a function call on the call stack.
 They include attributes like function name, file name and path, line number, etc.
 
-TIP: Most agents limit keyword fields (e.g. `span.id`) to 1024 characters,
-and non-keyword fields (e.g. `span.start.us`) to 10,000 characters.
+TIP: Most agents limit keyword fields, like `span.id`, to 1024 characters,
+and non-keyword fields, like `span.start.us`, to 10,000 characters.
 
 Spans are stored in {apm-server-ref-v}/span-indices.html[span indices].
-Note that these indices are separate from {apm-server-ref-v}/transaction-indices.html[transaction indices] by default.
+This storage is separate from {apm-server-ref-v}/transaction-indices.html[transaction indices] by default.
 
 [float]
 [[dropped-spans]]
-==== Dropped Spans
+==== Dropped spans
 
-For performance reasons, some APM agents can choose to purposefully sample or omit spans.
-One example of this might be for long running transactions with over 100 spans.
-These edge cases can overload both the agent and the APM Server.
-To avoid this, agents will drop spans. When they do this,
-they notify the server of exactly how many spans were dropped.
-This note is then passed on to the user in the UI.
+For performance reasons, APM agents can choose to sample or omit spans purposefully.
+This can be useful in preventing edge cases, like long-running transactions with over 100 spans,
+that would otherwise overload both the Agent and the APM Server.
+When this occurs, the APM app will display the number of spans dropped.
 
-Settings affecting dropped spans, and more details on why they might occur,
-are available in the relevant agent documentation:
+To configure the number of spans recorded per transaction, see the relevant Agent documentation:
 
 * Go: {apm-go-ref-v}/configuration.html#config-transaction-max-spans[`ELASTIC_APM_TRANSACTION_MAX_SPANS`]
 * Java: {apm-java-ref-v}/config-core.html#config-transaction-max-spans[`transaction_max_spans`]
@@ -61,13 +58,13 @@ are available in the relevant agent documentation:
 
 [float]
 [[missing-spans]]
-==== Missing Spans
+==== Missing spans
 
-Similarly to dropped spans, transactions may have missing spans.
-This can happen because spans are streamed from the APM Agent to the APM Server separately from their transaction.
-Unforeseen errors may cause spans to go missing.
-Because the agent notifies the server about how many spans there should be,
-the number of missing spans is able to be calculated and shown in the UI.
+Agents stream spans to the APM Server separately from their transactions.
+Because of this, unforeseen errors may cause spans to go missing.
+Agents know how many spans a transaction should have;
+if the number of expected spans does not equal the number of spans received by the APM Server,
+the APM app will calculate the difference and display a message.
 
 [[transactions]]
 === Transactions
