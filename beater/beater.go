@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/sampling"
 )
 
 var (
@@ -172,6 +173,14 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	defer publisher.Stop()
 
+	reporter := publisher.Send
+	if !bt.config.Sampling.KeepNonSampled {
+		// The server has been configured to discard non-sampled
+		// transactions. Make sure this is done just before calling
+		// the publisher to avoid affecting aggregations.
+		reporter = sampling.NewDiscardNonSampledReporter(reporter)
+	}
+
 	stopped := make(chan struct{})
 	defer close(stopped)
 	ctx, cancelContext := context.WithCancel(context.Background())
@@ -196,7 +205,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		Config:   bt.config,
 		Logger:   bt.logger,
 		Tracer:   tracer,
-		Reporter: publisher.Send,
+		Reporter: reporter,
 	})
 }
 
