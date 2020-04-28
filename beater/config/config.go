@@ -88,6 +88,7 @@ type Config struct {
 	SecretToken         string                  `config:"secret_token"`
 	APIKeyConfig        *APIKeyConfig           `config:"api_key"`
 	JaegerConfig        JaegerConfig            `config:"jaeger"`
+	Aggregation         AggregationConfig       `config:"aggregation"`
 
 	Pipeline string
 }
@@ -172,5 +173,6 @@ func DefaultConfig(beatVersion string) *Config {
 		Pipeline:     defaultAPMPipeline,
 		APIKeyConfig: defaultAPIKeyConfig(),
 		JaegerConfig: defaultJaeger(),
+		Aggregation:  defaultAggregationConfig(),
 	}
 }

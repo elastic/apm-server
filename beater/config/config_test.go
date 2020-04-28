@@ -109,6 +109,12 @@ func Test_UnpackConfig(t *testing.T) {
 					"limit":               200,
 					"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 				},
+				"aggregation": map[string]interface{}{
+					"enabled":                          true,
+					"interval":                         "1s",
+					"max_transaction_groups":           123,
+					"hdrhistogram_significant_figures": 1,
+				},
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -198,6 +204,12 @@ func Test_UnpackConfig(t *testing.T) {
 						Timeout:  5 * time.Second},
 					esConfigured: true,
 				},
+				Aggregation: AggregationConfig{
+					Enabled:                        true,
+					Interval:                       time.Second,
+					MaxTransactionGroups:           123,
+					HDRHistogramSignificantFigures: 1,
+				},
 			},
 		},
 		"merge config with default": {
@@ -229,6 +241,7 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				"jaeger.grpc.enabled": true,
 				"api_key.enabled":     true,
+				"aggregation.enabled": true,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -297,6 +310,12 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 				},
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
+				Aggregation: AggregationConfig{
+					Enabled:                        true,
+					Interval:                       time.Minute,
+					MaxTransactionGroups:           1000,
+					HDRHistogramSignificantFigures: 2,
+				},
 			},
 		},
 		"kibana trailing slash": {
