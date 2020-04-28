@@ -189,4 +189,4 @@ More information:
 
 * <<sourcemap-indices,Source map indices>>
 * <<sourcemap-api,Source map upload API reference>>.
-* <<sourcemap-apply,How source maps are applied>>.
+* <<apply-sourcemap,How source maps are applied>>.

@@ -34,7 +34,7 @@ spec and be attached as a `file upload`.
 You can configure an <<api-key,API key>> or <<secret-token,secret token>> to restrict sourcemap uploads.
 
 [float]
-[[sourcemap-apply]]
+[[apply-sourcemap]]
 ==== How source maps are applied
 
 APM Server attempts to find the correct source map for each `stack trace frame` in an event.
