@@ -15,7 +15,7 @@ As you can see, it's not very helpful.
 image::images/source-map-before.png[APM app without source mapping]
 
 That’s why Elastic APM supports source maps.
-A source map maps minified files back to the original source code, allowing you to maintain the speed advantage of minified code,
+A source map is a file that maps minified files back to the original source code, allowing you to maintain the speed advantage of minified code,
 without losing the ability to quickly and easily debug your application.
 Here's the same example as before, but with a source map uploaded and applied:
 
