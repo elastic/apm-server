@@ -89,6 +89,7 @@ type Config struct {
 	APIKeyConfig        *APIKeyConfig           `config:"api_key"`
 	JaegerConfig        JaegerConfig            `config:"jaeger"`
 	Aggregation         AggregationConfig       `config:"aggregation"`
+	Sampling            SamplingConfig          `config:"sampling"`
 
 	Pipeline string
 }
@@ -141,6 +142,18 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
+	if !c.Sampling.KeepNonSampled && !c.Aggregation.Enabled {
+		// Non-sampled transactions should only be dropped
+		// when transaction aggregation is enabled in the
+		// server. This means the aggregations performed
+		// by the APM UI will not have access to a complete
+		// representation of the latency distribution.
+		logger.Warn("" +
+			"apm-server.sampling.keep_non_sampled and " +
+			"apm-server.aggregation.enabled are both false, " +
+			"which will lead to incorrect metrics being reported in the APM UI",
+		)
+	}
 	return c, nil
 }
 
@@ -174,5 +187,6 @@ func DefaultConfig(beatVersion string) *Config {
 		APIKeyConfig: defaultAPIKeyConfig(),
 		JaegerConfig: defaultJaeger(),
 		Aggregation:  defaultAggregationConfig(),
+		Sampling:     defaultSamplingConfig(),
 	}
 }
