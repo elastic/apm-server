@@ -21,13 +21,13 @@ and they can have a parent/child relationship with other spans.
 Agents automatically instrument a variety of libraries to capture these spans from within your application,
 but you can also use the Agent API for custom instrumentation of specific code paths.
 
-Each span contains:
+Among other things, spans can contain:
 
 * A `transaction.id` attribute that refers to its parent <<transactions,transaction>>.
 * A `parent.id` attribute that refers to its parent span or transaction.
-* Its start time and duration
-* A `name`
-* A `type`
+* Its start time and duration.
+* A `name`.
+* A `type`, `subtype`, and `action`.
 * An optional `stack trace`. Stack traces consist of stack frames,
 which represent a function call on the call stack.
 They include attributes like function name, file name and path, line number, etc.
