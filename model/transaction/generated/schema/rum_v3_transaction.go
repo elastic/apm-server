@@ -18,7 +18,7 @@
 package schema
 
 const RUMV3Schema = `{
-    "$id": "docs/spec/transactions/rumv3_transaction.json",
+    "$id": "docs/spec/transactions/rum_v3_transaction.json",
     "type": "object",
     "description": "An event corresponding to an incoming request or similar task occurring in a monitored service",
     "allOf": [
@@ -201,7 +201,7 @@ const RUMV3Schema = `{
                             }
                         },
                         "g": {
-                                "$id": "doc/spec/tags.json",
+                                "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string, boolean or number values.",
@@ -407,7 +407,7 @@ const RUMV3Schema = `{
                     ]
                 },
                 "c": {
-                        "$id": "doc/spec/rum_v3_context.json",
+                        "$id": "docs/spec/rum_v3_context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
     "type": [
@@ -536,7 +536,7 @@ const RUMV3Schema = `{
             ]
         },
         "g": {
-                "$id": "doc/spec/tags.json",
+                "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string, boolean or number values.",
@@ -608,7 +608,7 @@ const RUMV3Schema = `{
         },
         "se": {
             "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
-                "$id": "doc/spec/rum_v3_service.json",
+                "$id": "docs/spec/rum_v3_service.json",
     "title": "Service",
     "type": [
         "object",

@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/rum_v3_metadata.json",
+    "$id": "docs/spec/rum_v3_metadata.json",
     "title": "Metadata",
     "description": "Metadata concerning the other objects in the stream.",
     "type": [

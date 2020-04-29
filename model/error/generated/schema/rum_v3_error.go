@@ -22,11 +22,11 @@ const RUMV3Schema = `{
     "type": "object",
     "description": "An error or a logged error message captured by an agent occurring in a monitored service",
     "allOf": [
-        {     "$id": "doc/spec/timestamp_epoch.json",
+        {     "$id": "docs/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
     "type": ["object"],
-    "properties": {  
+    "properties": {
         "timestamp": {
             "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
@@ -70,7 +70,7 @@ const RUMV3Schema = `{
                     }
                 },
                 "c": {
-                        "$id": "doc/spec/rum_v3_context.json",
+                        "$id": "docs/spec/rum_v3_context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
     "type": [
@@ -199,7 +199,7 @@ const RUMV3Schema = `{
             ]
         },
         "g": {
-                "$id": "doc/spec/tags.json",
+                "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string, boolean or number values.",
@@ -271,7 +271,7 @@ const RUMV3Schema = `{
         },
         "se": {
             "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
-                "$id": "doc/spec/rum_v3_service.json",
+                "$id": "docs/spec/rum_v3_service.json",
     "title": "Service",
     "type": [
         "object",

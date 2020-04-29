@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/message.json",
+    "$id": "docs/spec/message.json",
     "title": "Message",
     "description": "Details related to message receiving and publishing if the captured event integrates with a messaging system",
     "type": ["object", "null"],

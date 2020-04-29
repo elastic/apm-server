@@ -22,11 +22,11 @@ const ModelSchema = `{
     "type": "object",
     "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
-        {     "$id": "doc/spec/timestamp_epoch.json",
+        {     "$id": "docs/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
     "type": ["object"],
-    "properties": {  
+    "properties": {
         "timestamp": {
             "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
@@ -183,7 +183,7 @@ const ModelSchema = `{
                                     "description": "The method of the http request."
                                 },
                                 "response": {
-                                        "$id": "doc/spec/http_response.json",
+                                        "$id": "docs/spec/http_response.json",
     "title": "HTTP response object",
     "description": "HTTP response object, used by error, span and transction documents",
     "type": ["object", "null"],
@@ -220,7 +220,7 @@ const ModelSchema = `{
                             }
                         },
                         "tags": {
-                                "$id": "doc/spec/tags.json",
+                                "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string, boolean or number values.",
@@ -277,7 +277,7 @@ const ModelSchema = `{
                             }
                         },
                         "message": {
-                                "$id": "doc/spec/message.json",
+                                "$id": "docs/spec/message.json",
     "title": "Message",
     "description": "Details related to message receiving and publishing if the captured event integrates with a messaging system",
     "type": ["object", "null"],
