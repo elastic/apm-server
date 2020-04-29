@@ -139,7 +139,7 @@ const ModelSchema = `{
             ]
         },
         "request": {
-                "$id": "docs/spec/http.json",
+                "$id": "docs/spec/request.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
     "type": ["object", "null"],

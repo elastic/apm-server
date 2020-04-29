@@ -18,7 +18,7 @@
 package schema
 
 const RUMV3Schema = `{
-    "$id": "docs/spec/transactions/rumv3_transaction.json",
+    "$id": "docs/spec/transactions/rum_v3_transaction.json",
     "type": "object",
     "description": "An event corresponding to an incoming request or similar task occurring in a monitored service",
     "allOf": [
