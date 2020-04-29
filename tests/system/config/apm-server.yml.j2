@@ -144,6 +144,9 @@ apm-server:
   aggregation.interval: {{ aggregation_interval }}
   {% endif %}
 
+  sampling:
+    keep_non_sampled: {{ sampling_keep_non_sampled }}
+
   {% if mode %}
   mode: {{ mode }}
   {% endif %}
