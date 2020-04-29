@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/http_response.json",
+    "$id": "docs/spec/http_response.json",
     "title": "HTTP response object",
     "description": "HTTP response object, used by error, span and transction documents",
     "type": ["object", "null"],

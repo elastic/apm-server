@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/timestamp_rfc3339.json",
+    "$id": "docs/spec/timestamp_rfc3339.json",
     "title": "Timestamp",
     "description": "Used for '@timestamp' property.",
     "type": ["object"],

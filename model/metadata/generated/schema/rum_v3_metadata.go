@@ -18,7 +18,7 @@
 package schema
 
 const RUMV3Schema = `{
-    "$id": "doc/spec/rum_v3_metadata.json",
+    "$id": "docs/spec/rum_v3_metadata.json",
     "title": "Metadata",
     "description": "Metadata concerning the other objects in the stream.",
     "type": [
@@ -26,7 +26,7 @@ const RUMV3Schema = `{
     ],
     "properties": {
         "se": {
-                "$id": "doc/spec/rum_v3_service.json",
+                "$id": "docs/spec/rum_v3_service.json",
     "title": "Service",
     "type": [
         "object",
@@ -213,7 +213,7 @@ const RUMV3Schema = `{
     }
         },
         "l": {
-                "$id": "doc/spec/tags.json",
+                "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string, boolean or number values.",

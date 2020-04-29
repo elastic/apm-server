@@ -22,11 +22,11 @@ const ModelSchema = `{
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
-        {     "$id": "doc/spec/timestamp_epoch.json",
+        {     "$id": "docs/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
     "type": ["object"],
-    "properties": {  
+    "properties": {
         "timestamp": {
             "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
@@ -94,7 +94,7 @@ const ModelSchema = `{
                     "additionalProperties": false
                 },
                 "tags": {
-                        "$id": "doc/spec/tags.json",
+                        "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string, boolean or number values.",

@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/metadata.json",
+    "$id": "docs/spec/metadata.json",
     "title": "Metadata",
     "description": "Metadata concerning the other objects in the stream.",
     "type": ["object"],
