@@ -19,25 +19,8 @@ package schema
 
 const RUMV3Schema = `{
     "$id": "docs/spec/metricsets/rum_v3_metricset.json",
-    "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
-        "x": {
-            "type": ["object", "null"],
-            "description": "transaction",
-            "properties": {
-                "t": {
-                    "type": "string",
-                    "description": "type",
-                    "maxLength": 1024
-                },
-                "n": {
-                    "type": ["string", "null"],
-                    "description": "name",
-                    "maxLength": 1024
-                }
-            }
-        },
         "y": {
             "type": ["object", "null"],
             "description": "span",
