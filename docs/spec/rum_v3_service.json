@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/rum_v3_service.json",
+    "$id": "docs/spec/rum_v3_service.json",
     "title": "Service",
     "type": [
         "object",
