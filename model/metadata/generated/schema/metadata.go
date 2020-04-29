@@ -18,13 +18,13 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "doc/spec/metadata.json",
+    "$id": "docs/spec/metadata.json",
     "title": "Metadata",
     "description": "Metadata concerning the other objects in the stream.",
     "type": ["object"],
     "properties": {
         "service": {
-                "$id": "doc/spec/service.json",
+                "$id": "docs/spec/service.json",
     "title": "Service",
     "type": ["object", "null"],
     "properties": {
@@ -132,7 +132,7 @@ const ModelSchema = `{
             "properties.language.properties.name.type": "string"
         },
         "process": {
-              "$id": "doc/spec/process.json",
+              "$id": "docs/spec/process.json",
   "title": "Process",
   "type": ["object", "null"],
   "properties": {
@@ -160,7 +160,7 @@ const ModelSchema = `{
   "required": ["pid"]
         },
         "system": {
-                "$id": "doc/spec/system.json",
+                "$id": "docs/spec/system.json",
     "title": "System",
     "type": ["object", "null"],
     "properties": {
@@ -257,7 +257,7 @@ const ModelSchema = `{
     }
         },
         "labels": {
-                "$id": "doc/spec/tags.json",
+                "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string, boolean or number values.",

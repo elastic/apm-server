@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/service.json",
+    "$id": "docs/spec/service.json",
     "title": "Service",
     "type": ["object", "null"],
     "properties": {

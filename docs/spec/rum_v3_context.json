@@ -1,5 +1,5 @@
 {
-    "$id": "doc/spec/rum_v3_context.json",
+    "$id": "docs/spec/rum_v3_context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
     "type": [
