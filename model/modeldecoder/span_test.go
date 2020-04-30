@@ -269,21 +269,31 @@ func TestDecodeSpanInvalid(t *testing.T) {
 
 	for name, test := range map[string]struct {
 		input map[string]interface{}
+		err   string
 	}{
 		"transaction id wrong type": {
 			input: map[string]interface{}{"transaction_id": 123},
+			err:   `type.*expected string or null, but got number`,
 		},
 		"no trace_id": {
 			input: map[string]interface{}{"trace_id": nil},
+			err:   `missing properties: "trace_id"`,
 		},
 		"no id": {
 			input: map[string]interface{}{"id": nil},
+			err:   `missing properties: "id"`,
 		},
 		"no parent_id": {
 			input: map[string]interface{}{"parent_id": nil},
+			err:   `missing properties: "parent_id"`,
 		},
 		"invalid stacktrace": {
 			input: map[string]interface{}{"stacktrace": []interface{}{"foo"}},
+			err:   `stacktrace.*expected object, but got string`,
+		},
+		"negative duration": {
+			input: map[string]interface{}{"duration": -1.0},
+			err:   "duration.*must be >= 0 but found -1",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -300,7 +310,7 @@ func TestDecodeSpanInvalid(t *testing.T) {
 			}
 			_, err := DecodeSpan(Input{Raw: input})
 			require.Error(t, err)
-			t.Logf("%s", err)
+			assert.Regexp(t, test.err, err.Error())
 		})
 	}
 }

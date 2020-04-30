@@ -323,7 +323,8 @@ const ModelSchema = `{
                 },
                 "duration": {
                     "type": "number",
-                    "description": "Duration of the span in milliseconds"
+                    "description": "Duration of the span in milliseconds",
+                    "minimum": 0
                 },
                 "name": {
                     "type": "string",
