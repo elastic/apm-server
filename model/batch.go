@@ -61,7 +61,7 @@ func (b *Batch) Transformables() []transform.Transformable {
 		transformables[i+offset] = &b.Metricsets[i]
 	}
 	offset += len(b.Metricsets)
-	
+
 	for i, _ := range b.Errors {
 		transformables[i+offset] = &b.Errors[i]
 	}
