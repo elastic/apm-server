@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.7\...master[View commits]
 [float]
 ==== Bug fixes
 * Ensure applied flag can be set for agent configurations fetched for Jaeger {pull}3677[3677]
+* Negative transaction and span durations now cause a schema validation error {pull}3721[3721]
 
 [float]
 ==== Intake API Changes

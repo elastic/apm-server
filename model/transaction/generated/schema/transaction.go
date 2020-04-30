@@ -451,7 +451,8 @@ const ModelSchema = `{
                 },
                 "duration": {
                     "type": "number",
-                    "description": "How long the transaction took to complete, in ms with 3 decimal points"
+                    "description": "How long the transaction took to complete, in ms with 3 decimal points",
+                    "minimum": 0
                 },
                 "result": {
                     "type": ["string", "null"],
