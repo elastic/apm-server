@@ -47,22 +47,22 @@ func (b *Batch) Expand(b2 *Batch) {
 
 func (b *Batch) Transformables() []transform.Transformable {
 	transformables := make([]transform.Transformable, b.Len())
-	for i, _ := range b.Transactions {
+	for i := range b.Transactions {
 		transformables[i] = &b.Transactions[i]
 	}
 	var offset = len(b.Transactions)
 
-	for i, _ := range b.Spans {
+	for i := range b.Spans {
 		transformables[i+offset] = &b.Spans[i]
 	}
 	offset += len(b.Spans)
 
-	for i, _ := range b.Metricsets {
+	for i := range b.Metricsets {
 		transformables[i+offset] = &b.Metricsets[i]
 	}
 	offset += len(b.Metricsets)
 
-	for i, _ := range b.Errors {
+	for i := range b.Errors {
 		transformables[i+offset] = &b.Errors[i]
 	}
 	return transformables
