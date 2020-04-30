@@ -28,7 +28,6 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/span/generated/schema"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -38,14 +37,20 @@ var (
 	rumV3SpanSchema = validation.CreateSchema(schema.RUMV3Schema, "span")
 )
 
-// DecodeRUMV3Span decodes a v3 RUM span.
-func DecodeRUMV3Span(input Input) (*model.Span, error) {
+// decodeRUMV3Span decodes a v3 RUM span.
+func decodeRUMV3Span(input Input) (*model.Span, error) {
 	return decodeSpan(input, rumV3SpanSchema)
 }
 
-// DecodeSpan decodes a v2 span.
-func DecodeSpan(input Input) (transform.Transformable, error) {
-	return decodeSpan(input, spanSchema)
+// DecodeSpan decodes a span.
+func DecodeSpan(input Input) (*model.Batch, error) {
+	span, err := decodeSpan(input, spanSchema)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Batch{
+		Spans: []model.Span{*span},
+	}, nil
 }
 
 func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {

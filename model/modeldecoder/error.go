@@ -24,7 +24,6 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -35,16 +34,28 @@ var (
 )
 
 // DecodeRUMV3Error decodes a v3 RUM error.
-func DecodeRUMV3Error(input Input) (transform.Transformable, error) {
-	return decodeError(input, rumV3ErrorSchema)
+func DecodeRUMV3Error(input Input) (*m.Batch, error) {
+	apmError, err := decodeError(input, rumV3ErrorSchema)
+	if err != nil {
+		return nil, err
+	}
+	return &m.Batch{
+		Errors: []m.Error{*apmError},
+	}, nil
 }
 
 // DecodeError decodes a v2 error.
-func DecodeError(input Input) (transform.Transformable, error) {
-	return decodeError(input, errorSchema)
+func DecodeError(input Input) (*m.Batch, error) {
+	apmError, err := decodeError(input, errorSchema)
+	if err != nil {
+		return nil, err
+	}
+	return &m.Batch{
+		Errors: []m.Error{*apmError},
+	}, nil
 }
 
-func decodeError(input Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+func decodeError(input Input, schema *jsonschema.Schema) (*m.Error, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate error")

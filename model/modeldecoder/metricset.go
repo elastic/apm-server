@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -41,15 +40,27 @@ var (
 )
 
 // DecodeMetricset decodes a v2 metricset.
-func DecodeMetricset(input Input) (transform.Transformable, error) {
-	return decodeMetricset(input, metricsetSchema)
+func DecodeMetricset(input Input) (*model.Batch, error) {
+	metricset, err := decodeMetricset(input, metricsetSchema)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Batch{
+		Metricsets: []model.Metricset{*metricset},
+	}, nil
 }
 
-func DecodeRUMV3Metricset(input Input) (transform.Transformable, error) {
-	return decodeMetricset(input, rumV3Schema)
+func DecodeRUMV3Metricset(input Input) (*model.Batch, error) {
+	metricset, err := decodeMetricset(input, rumV3Schema)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Batch{
+		Metricsets: []model.Metricset{*metricset},
+	}, nil
 }
 
-func decodeMetricset(input Input, schema *jsonschema.Schema) (transform.Transformable, error) {
+func decodeMetricset(input Input, schema *jsonschema.Schema) (*model.Metricset, error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate metricset")

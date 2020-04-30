@@ -355,14 +355,14 @@ func TestTransactionEventDecode(t *testing.T) {
 				input[k] = v
 			}
 
-			transformable, err := DecodeTransaction(Input{
+			batch, err := DecodeTransaction(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
 				Config:      test.cfg,
 			})
 			require.NoError(t, err)
-			assert.Equal(t, test.e, transformable)
+			assert.Equal(t, test.e, &batch.Transactions[0])
 		})
 	}
 }

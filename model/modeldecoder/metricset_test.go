@@ -168,7 +168,7 @@ func TestDecode(t *testing.T) {
 			},
 		},
 	} {
-		transformable, err := DecodeMetricset(Input{
+		batch, err := DecodeMetricset(Input{
 			Raw:         test.input,
 			RequestTime: requestTime,
 			Metadata:    metadata,
@@ -178,7 +178,8 @@ func TestDecode(t *testing.T) {
 		}
 		if test.metricset != nil {
 			want := test.metricset
-			assertMetricsetsMatch(t, want, transformable.(*model.Metricset))
+			got := batch.Metricsets[0]
+			assertMetricsetsMatch(t, want, &got)
 		}
 	}
 }

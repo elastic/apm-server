@@ -238,14 +238,14 @@ func TestErrorEventDecode(t *testing.T) {
 					input[k] = v
 				}
 			}
-			transformable, err := DecodeError(Input{
+			batch, err := DecodeError(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
 				Config:      test.cfg,
 			})
 			require.NoError(t, err)
-			assert.Equal(t, test.e, transformable)
+			assert.Equal(t, test.e, &batch.Errors[0])
 		})
 	}
 }

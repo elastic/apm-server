@@ -238,14 +238,14 @@ func TestDecodeSpan(t *testing.T) {
 			for k, v := range test.input {
 				input[k] = v
 			}
-			span, err := DecodeSpan(Input{
+			batch, err := DecodeSpan(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    metadata,
 				Config:      test.cfg,
 			})
 			require.NoError(t, err)
-			assert.Equal(t, test.e, span)
+			assert.Equal(t, test.e, &batch.Spans[0])
 		})
 	}
 }

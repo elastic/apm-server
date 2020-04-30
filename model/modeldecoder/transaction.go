@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -36,7 +35,7 @@ var (
 )
 
 // DecodeRUMV3Transaction decodes a v3 RUM transaction.
-func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
+func DecodeRUMV3Transaction(input Input) (*model.Batch, error) {
 	tr, err := decodeTransaction(input, rumV3TransactionSchema)
 	if err != nil {
 		return nil, err
@@ -46,15 +45,15 @@ func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
-	event := &model.RUMV3Transaction{
-		Transaction: tr,
-		Spans:       spans,
-	}
 	marks, err := decodeRUMV3Marks(raw, input.Config)
 	if err != nil {
 		return nil, err
 	}
-	event.Marks = marks
+	tr.Marks = marks
+	event := &model.Batch{
+		Transactions: []model.Transaction{*tr},
+		Spans:        spans,
+	}
 	return event, nil
 }
 
@@ -64,7 +63,7 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
 	var spans = make([]model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
-		span, err := DecodeRUMV3Span(Input{
+		span, err := decodeRUMV3Span(Input{
 			Raw:         rawSpan,
 			RequestTime: input.RequestTime,
 			Metadata:    input.Metadata,
@@ -86,8 +85,14 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 }
 
 // DecodeTransaction decodes a v2 transaction.
-func DecodeTransaction(input Input) (transform.Transformable, error) {
-	return decodeTransaction(input, transactionSchema)
+func DecodeTransaction(input Input) (*model.Batch, error) {
+	transaction, err := decodeTransaction(input, transactionSchema)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Batch{
+		Transactions: []model.Transaction{*transaction},
+	}, nil
 }
 
 func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transaction, error) {
