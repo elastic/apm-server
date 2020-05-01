@@ -30,12 +30,12 @@ var (
 	transactionsDroppedCounter = monitoring.NewInt(monitoringRegistry, "transactions_dropped")
 )
 
-// NewDiscardNonSampledReporter returns a publish.Reporter which discards
-// non-sampled transactions before deferring to reporter.
+// NewDiscardUnsampledReporter returns a publish.Reporter which discards
+// unsampled transactions before deferring to reporter.
 //
 // The returned publish.Reporter does not guarantee order preservation of
 // reported events.
-func NewDiscardNonSampledReporter(reporter publish.Reporter) publish.Reporter {
+func NewDiscardUnsampledReporter(reporter publish.Reporter) publish.Reporter {
 	return func(ctx context.Context, req publish.PendingReq) error {
 		var dropped int64
 		events := req.Transformables

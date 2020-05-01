@@ -174,11 +174,11 @@ func (bt *beater) Run(b *beat.Beat) error {
 	defer publisher.Stop()
 
 	reporter := publisher.Send
-	if !bt.config.Sampling.KeepNonSampled {
-		// The server has been configured to discard non-sampled
+	if !bt.config.Sampling.KeepUnsampled {
+		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
 		// the publisher to avoid affecting aggregations.
-		reporter = sampling.NewDiscardNonSampledReporter(reporter)
+		reporter = sampling.NewDiscardUnsampledReporter(reporter)
 	}
 
 	stopped := make(chan struct{})

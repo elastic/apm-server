@@ -211,7 +211,7 @@ func Test_UnpackConfig(t *testing.T) {
 					HDRHistogramSignificantFigures: 1,
 				},
 				Sampling: SamplingConfig{
-					KeepNonSampled: true,
+					KeepUnsampled: true,
 				},
 			},
 		},
@@ -242,10 +242,10 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled":       true,
-				"api_key.enabled":           true,
-				"aggregation.enabled":       true,
-				"sampling.keep_non_sampled": false,
+				"jaeger.grpc.enabled":     true,
+				"api_key.enabled":         true,
+				"aggregation.enabled":     true,
+				"sampling.keep_unsampled": false,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -321,7 +321,7 @@ func Test_UnpackConfig(t *testing.T) {
 					HDRHistogramSignificantFigures: 2,
 				},
 				Sampling: SamplingConfig{
-					KeepNonSampled: false,
+					KeepUnsampled: false,
 				},
 			},
 		},

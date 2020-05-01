@@ -31,9 +31,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-func TestNewDiscardNonSampledReporter(t *testing.T) {
+func TestNewDiscardUnsampledReporter(t *testing.T) {
 	var reported []transform.Transformable
-	reporter := sampling.NewDiscardNonSampledReporter(
+	reporter := sampling.NewDiscardUnsampledReporter(
 		func(ctx context.Context, req publish.PendingReq) error {
 			reported = req.Transformables
 			return nil

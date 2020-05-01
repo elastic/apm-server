@@ -13,10 +13,10 @@ class Test(ElasticTest):
         cfg.update({
             "aggregation_enabled": True,
             "aggregation_interval": "1s",
-            # Drop non-sampled transaction events,
+            # Drop unsampled transaction events,
             # to show that we aggregate before they
             # are dropped.
-            "sampling_keep_non_sampled": False,
+            "sampling_keep_unsampled": False,
         })
         return cfg
 

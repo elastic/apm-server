@@ -19,15 +19,15 @@ package config
 
 // SamplingConfig holds configuration related to sampling.
 type SamplingConfig struct {
-	// KeepNonSampled controls whether non-sampled
+	// KeepUnsampled controls whether unsampled
 	// transactions should be recorded.
-	KeepNonSampled bool `config:"keep_non_sampled"`
+	KeepUnsampled bool `config:"keep_unsampled"`
 }
 
 func defaultSamplingConfig() SamplingConfig {
 	return SamplingConfig{
 		// In a future major release we will set this to
 		// false, and then later remove the option.
-		KeepNonSampled: true,
+		KeepUnsampled: true,
 	}
 }
