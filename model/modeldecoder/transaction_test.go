@@ -93,25 +93,7 @@ var fullTransactionInput = map[string]interface{}{
 	},
 }
 
-<<<<<<< HEAD
 func TestTransactionEventDecodeFailure(t *testing.T) {
-=======
-func TestDecodeTransactionInvalid(t *testing.T) {
-	err := DecodeTransaction(Input{Raw: nil}, &model.Batch{})
-	require.EqualError(t, err, "failed to validate transaction: error validating JSON: input missing")
-
-	err = DecodeTransaction(Input{Raw: ""}, &model.Batch{})
-	require.EqualError(t, err, "failed to validate transaction: error validating JSON: invalid input type")
-
-	baseInput := map[string]interface{}{
-		"type":       "type",
-		"trace_id":   "trace_id",
-		"id":         "id",
-		"duration":   123,
-		"span_count": map[string]interface{}{"dropped": 1.0, "started": 2.0},
-	}
-
->>>>>>> 40137f09... Refactor: decode events into batches (#3724)
 	for name, test := range map[string]struct {
 		input interface{}
 		err   string
@@ -122,24 +104,19 @@ func TestDecodeTransactionInvalid(t *testing.T) {
 		"cannot fetch field": {input: map[string]interface{}{}, err: "failed to validate transaction: error validating JSON: (.|\n)*missing properties:(.|\n)*", e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeTransaction(Input{Raw: test.input})
+			batch := &model.Batch{}
+			err := DecodeTransaction(Input{Raw: test.input}, batch)
 			if test.err != "" {
 				assert.Regexp(t, test.err, err.Error())
 			} else {
 				assert.NoError(t, err)
 			}
 			if test.e != nil {
-				event := transformable.(*model.Transaction)
+				event := batch.Transactions[0]
 				assert.Equal(t, test.e, event)
 			} else {
-				assert.Nil(t, transformable)
+				assert.Nil(t, batch.Transactions)
 			}
-<<<<<<< HEAD
-=======
-			err := DecodeTransaction(Input{Raw: input}, &model.Batch{})
-			assert.Error(t, err)
-			assert.Regexp(t, test.err, err.Error())
->>>>>>> 40137f09... Refactor: decode events into batches (#3724)
 		})
 	}
 }
