@@ -34,25 +34,23 @@ var (
 )
 
 // DecodeRUMV3Error decodes a v3 RUM error.
-func DecodeRUMV3Error(input Input) (*m.Batch, error) {
+func DecodeRUMV3Error(input Input, batch *m.Batch) error {
 	apmError, err := decodeError(input, rumV3ErrorSchema)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &m.Batch{
-		Errors: []m.Error{*apmError},
-	}, nil
+	batch.Errors = append(batch.Errors, *apmError)
+	return nil
 }
 
 // DecodeError decodes a v2 error.
-func DecodeError(input Input) (*m.Batch, error) {
+func DecodeError(input Input, batch *m.Batch) error {
 	apmError, err := decodeError(input, errorSchema)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &m.Batch{
-		Errors: []m.Error{*apmError},
-	}, nil
+	batch.Errors = append(batch.Errors, *apmError)
+	return nil
 }
 
 func decodeError(input Input, schema *jsonschema.Schema) (*m.Error, error) {

@@ -43,14 +43,13 @@ func decodeRUMV3Span(input Input) (*model.Span, error) {
 }
 
 // DecodeSpan decodes a span.
-func DecodeSpan(input Input) (*model.Batch, error) {
+func DecodeSpan(input Input, batch *model.Batch) error {
 	span, err := decodeSpan(input, spanSchema)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &model.Batch{
-		Spans: []model.Span{*span},
-	}, nil
+	batch.Spans = append(batch.Spans, *span)
+	return nil
 }
 
 func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {

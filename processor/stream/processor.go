@@ -48,7 +48,9 @@ const (
 )
 
 type decodeMetadataFunc func(interface{}, bool) (*model.Metadata, error)
-type decodeEventFunc func(modeldecoder.Input) (*model.Batch, error)
+
+// functions with the decodeEventFunc signature decode their input argument into their batch argument (output)
+type decodeEventFunc func(modeldecoder.Input, *model.Batch) error
 
 type Processor struct {
 	Tconfig          transform.Config
@@ -145,24 +147,24 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time, streamMetadata model.Metadata) (*model.Batch, error) {
+func (p *Processor) HandleRawModel(rawModel map[string]interface{}, batch *model.Batch, requestTime time.Time, streamMetadata model.Metadata) error {
 	for key, decodeEvent := range p.models {
 		entry, ok := rawModel[key]
 		if !ok {
 			continue
 		}
-		batch, err := decodeEvent(modeldecoder.Input{
+		err := decodeEvent(modeldecoder.Input{
 			Raw:         entry,
 			RequestTime: requestTime,
 			Metadata:    streamMetadata,
 			Config:      p.Mconfig,
-		})
+		}, batch)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return batch, nil
+		return nil
 	}
-	return nil, ErrUnrecognizedObject
+	return ErrUnrecognizedObject
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream,
@@ -192,7 +194,8 @@ func (p *Processor) readBatch(
 		}
 	}
 
-	allEvents := &model.Batch{}
+	// input events are decoded and appended to the batch
+	batch := &model.Batch{}
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
 		rawModel, err := reader.Read()
 		if err != nil && err != io.EOF {
@@ -202,10 +205,11 @@ func (p *Processor) readBatch(
 			}
 			// return early, we assume we can only recover from a input error types
 			response.Add(err)
-			return allEvents, true
+			return batch, true
 		}
 		if len(rawModel) > 0 {
-			batch, err := p.HandleRawModel(rawModel, requestTime, *streamMetadata)
+
+			err := p.HandleRawModel(rawModel, batch, requestTime, *streamMetadata)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
@@ -214,10 +218,9 @@ func (p *Processor) readBatch(
 				})
 				continue
 			}
-			allEvents.Expand(batch)
 		}
 	}
-	return allEvents, reader.IsEOF()
+	return batch, reader.IsEOF()
 }
 
 // HandleStream processes a stream of events

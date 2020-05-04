@@ -238,12 +238,13 @@ func TestErrorEventDecode(t *testing.T) {
 					input[k] = v
 				}
 			}
-			batch, err := DecodeError(Input{
+			batch := &m.Batch{}
+			err := DecodeError(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
 				Config:      test.cfg,
-			})
+			}, batch)
 			require.NoError(t, err)
 			assert.Equal(t, test.e, &batch.Errors[0])
 		})
@@ -251,10 +252,10 @@ func TestErrorEventDecode(t *testing.T) {
 }
 
 func TestErrorEventDecodeInvalid(t *testing.T) {
-	_, err := DecodeError(Input{Raw: nil})
+	err := DecodeError(Input{Raw: nil}, &m.Batch{})
 	require.EqualError(t, err, "failed to validate error: error validating JSON: input missing")
 
-	_, err = DecodeError(Input{Raw: ""})
+	err = DecodeError(Input{Raw: ""}, &m.Batch{})
 	require.EqualError(t, err, "failed to validate error: error validating JSON: invalid input type")
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -264,7 +265,7 @@ func TestErrorEventDecodeInvalid(t *testing.T) {
 			"message": "message",
 		},
 	}
-	_, err = DecodeError(Input{Raw: baseInput})
+	err = DecodeError(Input{Raw: baseInput}, &m.Batch{})
 	require.NoError(t, err)
 
 	for name, test := range map[string]struct {
@@ -313,7 +314,7 @@ func TestErrorEventDecodeInvalid(t *testing.T) {
 					input[k] = v
 				}
 			}
-			_, err := DecodeError(Input{Raw: input})
+			err := DecodeError(Input{Raw: input}, &m.Batch{})
 			require.Error(t, err)
 			t.Logf("%s", err)
 		})
@@ -330,9 +331,10 @@ func TestDecodingAnomalies(t *testing.T) {
 				"type":    "type0",
 			},
 		}
-		result, err := DecodeError(Input{Raw: badID})
+		result := &m.Batch{}
+		err := DecodeError(Input{Raw: badID}, result)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, result.Errors)
 	})
 
 	t.Run("exception decoding error bubbles up", func(t *testing.T) {
@@ -346,9 +348,10 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		result, err := DecodeError(Input{Raw: badException})
+		result := &m.Batch{}
+		err := DecodeError(Input{Raw: badException}, result)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, result.Errors)
 	})
 
 	t.Run("wrong cause type", func(t *testing.T) {
@@ -360,7 +363,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				"cause":   []interface{}{7.4},
 			},
 		}
-		_, err := DecodeError(Input{Raw: badException})
+		err := DecodeError(Input{Raw: badException}, &m.Batch{})
 		require.Error(t, err)
 		assert.Regexp(t, "failed to validate error:(.|\n)*properties/cause/items/type(.|\n)*expected object or null, but got number", err.Error())
 	})
@@ -376,7 +379,7 @@ func TestDecodingAnomalies(t *testing.T) {
 				},
 			},
 		}
-		_, err := DecodeError(Input{Raw: emptyCauses})
+		err := DecodeError(Input{Raw: emptyCauses}, &m.Batch{})
 		require.Error(t, err)
 		assert.Regexp(t, "failed to validate error:(.|\n)* missing properties: \"id\"", err.Error())
 	})

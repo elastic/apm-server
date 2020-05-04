@@ -40,24 +40,22 @@ var (
 )
 
 // DecodeMetricset decodes a v2 metricset.
-func DecodeMetricset(input Input) (*model.Batch, error) {
+func DecodeMetricset(input Input, batch *model.Batch) error {
 	metricset, err := decodeMetricset(input, metricsetSchema)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &model.Batch{
-		Metricsets: []model.Metricset{*metricset},
-	}, nil
+	batch.Metricsets = append(batch.Metricsets, *metricset)
+	return nil
 }
 
-func DecodeRUMV3Metricset(input Input) (*model.Batch, error) {
+func DecodeRUMV3Metricset(input Input, batch *model.Batch) error {
 	metricset, err := decodeMetricset(input, rumV3Schema)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &model.Batch{
-		Metricsets: []model.Metricset{*metricset},
-	}, nil
+	batch.Metricsets = append(batch.Metricsets, *metricset)
+	return nil
 }
 
 func decodeMetricset(input Input, schema *jsonschema.Schema) (*model.Metricset, error) {

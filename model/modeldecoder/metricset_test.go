@@ -168,11 +168,12 @@ func TestDecode(t *testing.T) {
 			},
 		},
 	} {
-		batch, err := DecodeMetricset(Input{
+		batch := &model.Batch{}
+		err := DecodeMetricset(Input{
 			Raw:         test.input,
 			RequestTime: requestTime,
 			Metadata:    metadata,
-		})
+		}, batch)
 		if test.err != nil {
 			assert.Error(t, err)
 		}

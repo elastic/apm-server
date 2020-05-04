@@ -238,12 +238,13 @@ func TestDecodeSpan(t *testing.T) {
 			for k, v := range test.input {
 				input[k] = v
 			}
-			batch, err := DecodeSpan(Input{
+			batch := &model.Batch{}
+			err := DecodeSpan(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    metadata,
 				Config:      test.cfg,
-			})
+			}, batch)
 			require.NoError(t, err)
 			assert.Equal(t, test.e, &batch.Spans[0])
 		})
@@ -251,10 +252,10 @@ func TestDecodeSpan(t *testing.T) {
 }
 
 func TestDecodeSpanInvalid(t *testing.T) {
-	_, err := DecodeSpan(Input{Raw: nil})
+	err := DecodeSpan(Input{Raw: nil}, &model.Batch{})
 	require.EqualError(t, err, "failed to validate span: error validating JSON: input missing")
 
-	_, err = DecodeSpan(Input{Raw: ""})
+	err = DecodeSpan(Input{Raw: ""}, &model.Batch{})
 	require.EqualError(t, err, "failed to validate span: error validating JSON: invalid input type")
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -264,7 +265,7 @@ func TestDecodeSpanInvalid(t *testing.T) {
 		"id":   "id", "trace_id": "trace_id", "transaction_id": "transaction_id", "parent_id": "parent_id",
 		"start": 0.0, "duration": 123.0,
 	}
-	_, err = DecodeSpan(Input{Raw: baseInput})
+	err = DecodeSpan(Input{Raw: baseInput}, &model.Batch{})
 	require.NoError(t, err)
 
 	for name, test := range map[string]struct {
@@ -308,7 +309,7 @@ func TestDecodeSpanInvalid(t *testing.T) {
 					input[k] = v
 				}
 			}
-			_, err := DecodeSpan(Input{Raw: input})
+			err := DecodeSpan(Input{Raw: input}, &model.Batch{})
 			require.Error(t, err)
 			assert.Regexp(t, test.err, err.Error())
 		})
