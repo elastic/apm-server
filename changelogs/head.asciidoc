@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/7.7\...master[View commits]
 [float]
 ==== Intake API Changes
 * Add span child_ids intake {pull}3679[3679]
+* Add cloud metadata intake {pull}3729[3729]
 
 [float]
 ==== Added
