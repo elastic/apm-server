@@ -104,17 +104,18 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 		"cannot fetch field": {input: map[string]interface{}{}, err: "failed to validate transaction: error validating JSON: (.|\n)*missing properties:(.|\n)*", e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			transformable, err := DecodeTransaction(Input{Raw: test.input})
+			batch := &model.Batch{}
+			err := DecodeTransaction(Input{Raw: test.input}, batch)
 			if test.err != "" {
 				assert.Regexp(t, test.err, err.Error())
 			} else {
 				assert.NoError(t, err)
 			}
 			if test.e != nil {
-				event := transformable.(*model.Transaction)
+				event := batch.Transactions[0]
 				assert.Equal(t, test.e, event)
 			} else {
-				assert.Nil(t, transformable)
+				assert.Nil(t, batch.Transactions)
 			}
 		})
 	}
@@ -334,15 +335,15 @@ func TestTransactionEventDecode(t *testing.T) {
 			for k, v := range test.input {
 				input[k] = v
 			}
-
-			transformable, err := DecodeTransaction(Input{
+			batch := &model.Batch{}
+			err := DecodeTransaction(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
 				Config:      test.cfg,
-			})
+			}, batch)
 			require.NoError(t, err)
-			assert.Equal(t, test.e, transformable)
+			assert.Equal(t, test.e, &batch.Transactions[0])
 		})
 	}
 }
@@ -354,10 +355,10 @@ func BenchmarkDecodeTransaction(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		if _, err := DecodeTransaction(Input{
+		if err := DecodeTransaction(Input{
 			Metadata: *fullMetadata,
 			Raw:      fullTransactionInput,
-		}); err != nil {
+		}, &model.Batch{}); err != nil {
 			b.Fatal(err)
 		}
 	}

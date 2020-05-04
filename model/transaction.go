@@ -70,13 +70,6 @@ type Transaction struct {
 	Experimental interface{}
 }
 
-type RUMV3Transaction struct {
-	// TODO replace this type with a Batch type and have decoders return Batches of events
-	// https://github.com/elastic/apm-server/pull/3648#discussion_r408547367
-	*Transaction
-	Spans []Span
-}
-
 type SpanCount struct {
 	Dropped *int
 	Started *int
@@ -136,12 +129,4 @@ func (e *Transaction) Transform(ctx context.Context, tctx *transform.Context) []
 	utility.Set(fields, "url", e.URL.Fields())
 	utility.Set(fields, "experimental", e.Experimental)
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
-}
-
-func (e *RUMV3Transaction) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	beatEvents := e.Transaction.Transform(ctx, tctx)
-	for _, span := range e.Spans {
-		beatEvents = append(beatEvents, span.Transform(ctx, tctx)...)
-	}
-	return beatEvents
 }
