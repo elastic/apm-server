@@ -19,8 +19,6 @@ package otel
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -35,7 +33,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/approvals"
 )
@@ -60,10 +57,7 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, p publish.PendingReq) error {
-				var events []beat.Event
-				for _, transformable := range p.Transformables {
-					events = append(events, transformable.Transform(ctx, p.Tcontext)...)
-				}
+				events := transformAll(ctx, p)
 				assert.NoError(t, approvals.ApproveEvents(events, file("consume_"+tc.name)))
 				return nil
 			}
@@ -134,10 +128,8 @@ func TestConsumer_Metadata(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.Len(t, req.Transformables, 1)
-				transaction := req.Transformables[0].(*model.Transaction)
-				out, err := json.Marshal(&transaction.Metadata)
-				require.NoError(t, err)
-				approvals.AssertApproveResult(t, file("metadata_"+tc.name), out)
+				events := transformAll(ctx, req)
+				assert.NoError(t, approvals.ApproveEvents(events, file("metadata_"+tc.name)))
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -229,18 +221,8 @@ func TestConsumer_Transaction(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
-				for i, transformable := range req.Transformables {
-					switch data := transformable.(type) {
-					case *model.Transaction:
-						tr, err := json.Marshal(data)
-						require.NoError(t, err)
-						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_%s_%d", tc.name, i)), tr)
-					case *model.Error:
-						e, err := json.Marshal(data)
-						require.NoError(t, err)
-						approvals.AssertApproveResult(t, file(fmt.Sprintf("transaction_error_%s_%d", tc.name, i)), e)
-					}
-				}
+				events := transformAll(ctx, req)
+				assert.NoError(t, approvals.ApproveEvents(events, file("transaction_"+tc.name)))
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -314,18 +296,8 @@ func TestConsumer_Span(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
-				for i, transformable := range req.Transformables {
-					switch data := transformable.(type) {
-					case *model.Span:
-						span, err := json.Marshal(data)
-						require.NoError(t, err)
-						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_%s_%d", tc.name, i)), span)
-					case *model.Error:
-						e, err := json.Marshal(data)
-						require.NoError(t, err)
-						approvals.AssertApproveResult(t, file(fmt.Sprintf("span_error_%s_%d", tc.name, i)), e)
-					}
-				}
+				events := transformAll(ctx, req)
+				assert.NoError(t, approvals.ApproveEvents(events, file("span_"+tc.name)))
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -435,4 +407,12 @@ func testAttributeDoubleValue(f float64) *tracepb.AttributeValue {
 
 func testAttributeStringValue(s string) *tracepb.AttributeValue {
 	return &tracepb.AttributeValue{Value: &tracepb.AttributeValue_StringValue{StringValue: testTruncatableString(s)}}
+}
+
+func transformAll(ctx context.Context, p publish.PendingReq) []beat.Event {
+	var events []beat.Event
+	for _, transformable := range p.Transformables {
+		events = append(events, transformable.Transform(ctx, p.Tcontext)...)
+	}
+	return events
 }

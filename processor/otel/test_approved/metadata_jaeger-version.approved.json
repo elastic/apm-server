@@ -1,59 +1,37 @@
 {
-    "Client": {
-        "IP": ""
-    },
-    "Labels": {},
-    "Process": {
-        "Argv": null,
-        "Pid": 0,
-        "Ppid": null,
-        "Title": ""
-    },
-    "Service": {
-        "Agent": {
-            "EphemeralID": "",
-            "Name": "Jaeger/PHP",
-            "Version": "3.4.12"
-        },
-        "Environment": "",
-        "Framework": {
-            "Name": "",
-            "Version": ""
-        },
-        "Language": {
-            "Name": "PHP",
-            "Version": ""
-        },
-        "Name": "unknown",
-        "Node": {
-            "Name": ""
-        },
-        "Runtime": {
-            "Name": "",
-            "Version": ""
-        },
-        "Version": ""
-    },
-    "System": {
-        "Architecture": "",
-        "ConfiguredHostname": "",
-        "Container": {
-            "ID": ""
-        },
-        "DetectedHostname": "",
-        "IP": "",
-        "Kubernetes": {
-            "Namespace": "",
-            "NodeName": "",
-            "PodName": "",
-            "PodUID": ""
-        },
-        "Platform": ""
-    },
-    "User": {
-        "Email": "",
-        "ID": "",
-        "Name": "",
-        "UserAgent": ""
-    }
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "agent": {
+                "name": "Jaeger/PHP",
+                "version": "3.4.12"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "PHP"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "46467830"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 0
+                },
+                "id": "41414646",
+                "name": "",
+                "result": "Success",
+                "sampled": true,
+                "type": "custom"
+            }
+        }
+    ]
 }

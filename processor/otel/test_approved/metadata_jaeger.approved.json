@@ -1,64 +1,55 @@
 {
-    "Client": {
-        "IP": ""
-    },
-    "Labels": {
-        "a": "b",
-        "c": "d",
-        "foo": "bar",
-        "resource": "request"
-    },
-    "Process": {
-        "Argv": null,
-        "Pid": 107892,
-        "Ppid": null,
-        "Title": ""
-    },
-    "Service": {
-        "Agent": {
-            "EphemeralID": "xxf0",
-            "Name": "Jaeger/C++",
-            "Version": "3.2.1"
-        },
-        "Environment": "",
-        "Framework": {
-            "Name": "",
-            "Version": ""
-        },
-        "Language": {
-            "Name": "C++",
-            "Version": ""
-        },
-        "Name": "foo",
-        "Node": {
-            "Name": ""
-        },
-        "Runtime": {
-            "Name": "",
-            "Version": ""
-        },
-        "Version": ""
-    },
-    "System": {
-        "Architecture": "",
-        "ConfiguredHostname": "",
-        "Container": {
-            "ID": ""
-        },
-        "DetectedHostname": "host-foo",
-        "IP": "17.0.10.123",
-        "Kubernetes": {
-            "Namespace": "",
-            "NodeName": "",
-            "PodName": "",
-            "PodUID": ""
-        },
-        "Platform": ""
-    },
-    "User": {
-        "Email": "",
-        "ID": "",
-        "Name": "",
-        "UserAgent": ""
-    }
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "agent": {
+                "ephemeral_id": "xxf0",
+                "name": "Jaeger/C++",
+                "version": "3.2.1"
+            },
+            "host": {
+                "hostname": "host-foo",
+                "ip": "17.0.10.123",
+                "name": "host-foo"
+            },
+            "labels": {
+                "a": "b",
+                "c": "d",
+                "foo": "bar",
+                "resource": "request"
+            },
+            "process": {
+                "pid": 107892
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "C++"
+                },
+                "name": "foo",
+                "node": {
+                    "name": "host-foo"
+                }
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "46467830"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 0
+                },
+                "id": "41414646",
+                "name": "",
+                "result": "Success",
+                "sampled": true,
+                "type": "custom"
+            }
+        }
+    ]
 }
