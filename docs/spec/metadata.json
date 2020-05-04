@@ -29,6 +29,9 @@
             "description": "Describes the authenticated User for a request.",
             "$ref": "user.json"
         },
+	"cloud": {
+            "$ref": "cloud.json"
+	},
         "labels": {
             "$ref": "tags.json"
         }
