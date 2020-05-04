@@ -10,7 +10,6 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
-    GITHUB_CHECK_ITS_NAME = 'APM Integration Tests'
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
@@ -450,29 +449,34 @@ pipeline {
             }
           }
         }
-      }
-    }
-    stage('APM Integration Tests') {
-      agent none
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            changeRequest()
-            expression { return !params.Run_As_Master_Branch }
+        stage('APM Integration Tests') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            beforeAgent true
+            allOf {
+              anyOf {
+                changeRequest()
+                expression { return !params.Run_As_Master_Branch }
+              }
+              expression { return params.its_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
-          expression { return params.its_ci }
-          expression { return env.ONLY_DOCS == "false" }
+          steps {
+            script {
+              def buildObject = build(job: env.ITS_PIPELINE, propagate: false, wait: true,
+                    parameters: [string(name: 'INTEGRATION_TEST', value: 'All'),
+                                string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}")])
+              copyArtifacts(projectName: env.ITS_PIPELINE, selector: specific(buildNumber: buildObject.number.toString()))
+            }
+          }
+          post {
+            always {
+              junit(testResults: "**/*-junit*.xml", allowEmptyResults: true, keepLongStdio: true)
+            }
+          }
         }
-      }
-      steps {
-        build(job: env.ITS_PIPELINE, propagate: false, wait: false,
-              parameters: [string(name: 'INTEGRATION_TEST', value: 'All'),
-                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}"),
-                           string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
-                           string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
-                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
-        githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: "${env.JENKINS_URL}search/?q=${env.ITS_PIPELINE.replaceAll('/','+')}")
       }
     }
   }
