@@ -387,6 +387,104 @@ const RUMV3Schema = `{
         }
     ]
                 },
+                "me": {
+                    "type": ["array", "null"],
+                        "$id": "docs/spec/metricsets/rum_v3_metricset.json",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "properties": {
+        "y": {
+            "type": ["object", "null"],
+            "description": "span",
+            "properties": {
+                "t": {
+                    "type": "string",
+                    "description": "type",
+                    "maxLength": 1024
+                },
+                "su": {
+                    "type": ["string", "null"],
+                    "description": "subtype",
+                    "maxLength": 1024
+                }
+            }
+        },
+        "sa": {
+            "type": "object",
+            "description": "Sampled application metrics collected from the agent.",
+            "properties": {
+                "xdc": {
+                    "description": "transaction.duration.count",
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/rum_v3_sample.json",
+    "type": ["object", "null"],
+    "description": "A single metric sample.",
+    "properties": {
+        "v": {"type": "number"}
+    },
+    "required": ["v"]
+                },
+                "xds": {
+                    "description": "transaction.duration.sum.us",
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/rum_v3_sample.json",
+    "type": ["object", "null"],
+    "description": "A single metric sample.",
+    "properties": {
+        "v": {"type": "number"}
+    },
+    "required": ["v"]
+                },
+                "xbc": {
+                    "description": "transaction.breakdown.count",
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/rum_v3_sample.json",
+    "type": ["object", "null"],
+    "description": "A single metric sample.",
+    "properties": {
+        "v": {"type": "number"}
+    },
+    "required": ["v"]
+                },
+                "ysc": {
+                    "description": "span.self_time.count",
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/rum_v3_sample.json",
+    "type": ["object", "null"],
+    "description": "A single metric sample.",
+    "properties": {
+        "v": {"type": "number"}
+    },
+    "required": ["v"]
+                },
+                "yss": {
+                    "description": "span.self_time.sum.us",
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/rum_v3_sample.json",
+    "type": ["object", "null"],
+    "description": "A single metric sample.",
+    "properties": {
+        "v": {"type": "number"}
+    },
+    "required": ["v"]
+                }
+            }
+        },
+        "tags": {
+                "$id": "docs/spec/tags.json",
+    "title": "Tags",
+    "type": ["object", "null"],
+    "description": "A flat mapping of user-defined tags with string, boolean or number values.",
+    "patternProperties": {
+        "^[^.*\"]*$": {
+            "type": ["string", "boolean", "number", "null"],
+            "maxLength": 1024
+        }
+    },
+    "additionalProperties": false
+        }
+    },
+    "required": ["sa"]
+                },
                 "yc": {
                     "type": "object",
                     "properties": {
