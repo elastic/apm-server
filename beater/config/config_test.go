@@ -210,6 +210,9 @@ func Test_UnpackConfig(t *testing.T) {
 					MaxTransactionGroups:           123,
 					HDRHistogramSignificantFigures: 1,
 				},
+				Sampling: SamplingConfig{
+					KeepUnsampled: true,
+				},
 			},
 		},
 		"merge config with default": {
@@ -239,9 +242,10 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled": true,
-				"api_key.enabled":     true,
-				"aggregation.enabled": true,
+				"jaeger.grpc.enabled":     true,
+				"api_key.enabled":         true,
+				"aggregation.enabled":     true,
+				"sampling.keep_unsampled": false,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -315,6 +319,9 @@ func Test_UnpackConfig(t *testing.T) {
 					Interval:                       time.Minute,
 					MaxTransactionGroups:           1000,
 					HDRHistogramSignificantFigures: 2,
+				},
+				Sampling: SamplingConfig{
+					KeepUnsampled: false,
 				},
 			},
 		},

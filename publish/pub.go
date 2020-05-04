@@ -132,6 +132,10 @@ func (p *Publisher) Stop() {
 // an error is returned.
 // Calling send after Stop will return an error.
 func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
+	if len(req.Transformables) == 0 {
+		return nil
+	}
+
 	p.m.RLock()
 	defer p.m.RUnlock()
 	if p.stopped {

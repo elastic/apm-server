@@ -13,15 +13,19 @@ class Test(ElasticTest):
         cfg.update({
             "aggregation_enabled": True,
             "aggregation_interval": "1s",
+            # Drop unsampled transaction events,
+            # to show that we aggregate before they
+            # are dropped.
+            "sampling_keep_unsampled": False,
         })
         return cfg
 
     def test_transaction_metrics(self):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
-                                     self.intake_url, 'transaction', 9)
+                                     self.intake_url, 'transaction', 8)
         self.assert_no_logged_warnings()
 
-        self.wait_for_events('transaction', 4, index=index_transaction)
+        self.wait_for_events('transaction', 3, index=index_transaction)
 
         metric_docs = self.wait_for_events('metric', 3, index=index_metric)
         for doc in metric_docs:
