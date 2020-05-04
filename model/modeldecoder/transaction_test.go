@@ -93,7 +93,25 @@ var fullTransactionInput = map[string]interface{}{
 	},
 }
 
+<<<<<<< HEAD
 func TestTransactionEventDecodeFailure(t *testing.T) {
+=======
+func TestDecodeTransactionInvalid(t *testing.T) {
+	err := DecodeTransaction(Input{Raw: nil}, &model.Batch{})
+	require.EqualError(t, err, "failed to validate transaction: error validating JSON: input missing")
+
+	err = DecodeTransaction(Input{Raw: ""}, &model.Batch{})
+	require.EqualError(t, err, "failed to validate transaction: error validating JSON: invalid input type")
+
+	baseInput := map[string]interface{}{
+		"type":       "type",
+		"trace_id":   "trace_id",
+		"id":         "id",
+		"duration":   123,
+		"span_count": map[string]interface{}{"dropped": 1.0, "started": 2.0},
+	}
+
+>>>>>>> 40137f09... Refactor: decode events into batches (#3724)
 	for name, test := range map[string]struct {
 		input interface{}
 		err   string
@@ -116,6 +134,12 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 			} else {
 				assert.Nil(t, transformable)
 			}
+<<<<<<< HEAD
+=======
+			err := DecodeTransaction(Input{Raw: input}, &model.Batch{})
+			assert.Error(t, err)
+			assert.Regexp(t, test.err, err.Error())
+>>>>>>> 40137f09... Refactor: decode events into batches (#3724)
 		})
 	}
 }
@@ -334,15 +358,15 @@ func TestTransactionEventDecode(t *testing.T) {
 			for k, v := range test.input {
 				input[k] = v
 			}
-
-			transformable, err := DecodeTransaction(Input{
+			batch := &model.Batch{}
+			err := DecodeTransaction(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
 				Config:      test.cfg,
-			})
+			}, batch)
 			require.NoError(t, err)
-			assert.Equal(t, test.e, transformable)
+			assert.Equal(t, test.e, &batch.Transactions[0])
 		})
 	}
 }
@@ -354,10 +378,10 @@ func BenchmarkDecodeTransaction(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		if _, err := DecodeTransaction(Input{
+		if err := DecodeTransaction(Input{
 			Metadata: *fullMetadata,
 			Raw:      fullTransactionInput,
-		}); err != nil {
+		}, &model.Batch{}); err != nil {
 			b.Fatal(err)
 		}
 	}
