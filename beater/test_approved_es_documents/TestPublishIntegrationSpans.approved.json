@@ -17,6 +17,26 @@
                     "51234abcdef56789"
                 ]
             },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region"
+            },
             "container": {
                 "id": "container-id"
             },
@@ -125,6 +145,26 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region"
             },
             "container": {
                 "id": "container-id"
@@ -235,6 +275,26 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region"
             },
             "container": {
                 "id": "container-id"
@@ -350,6 +410,26 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region"
+            },
             "container": {
                 "id": "container-id"
             },
@@ -460,6 +540,26 @@
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region"
             },
             "container": {
                 "id": "container-id"
@@ -653,6 +753,26 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region"
             },
             "container": {
                 "id": "container-id"
