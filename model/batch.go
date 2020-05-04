@@ -35,16 +35,6 @@ func (b *Batch) Len() int {
 	return len(b.Transactions) + len(b.Spans) + len(b.Metricsets) + len(b.Errors)
 }
 
-func (b *Batch) Expand(b2 *Batch) {
-	if b2 == nil {
-		return
-	}
-	b.Transactions = append(b.Transactions, b2.Transactions...)
-	b.Spans = append(b.Spans, b2.Spans...)
-	b.Metricsets = append(b.Metricsets, b2.Metricsets...)
-	b.Errors = append(b.Errors, b2.Errors...)
-}
-
 func (b *Batch) Transformables() []transform.Transformable {
 	transformables := make([]transform.Transformable, 0, b.Len())
 	for i := range b.Transactions {
