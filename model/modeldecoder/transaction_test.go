@@ -94,10 +94,10 @@ var fullTransactionInput = map[string]interface{}{
 }
 
 func TestDecodeTransactionInvalid(t *testing.T) {
-	_, err := DecodeTransaction(Input{Raw: nil})
+	err := DecodeTransaction(Input{Raw: nil}, &model.Batch{})
 	require.EqualError(t, err, "failed to validate transaction: error validating JSON: input missing")
 
-	_, err = DecodeTransaction(Input{Raw: ""})
+	err = DecodeTransaction(Input{Raw: ""}, &model.Batch{})
 	require.EqualError(t, err, "failed to validate transaction: error validating JSON: invalid input type")
 
 	baseInput := map[string]interface{}{
@@ -133,7 +133,7 @@ func TestDecodeTransactionInvalid(t *testing.T) {
 					input[k] = v
 				}
 			}
-			_, err := DecodeTransaction(Input{Raw: input})
+			err := DecodeTransaction(Input{Raw: input}, &model.Batch{})
 			assert.Error(t, err)
 			assert.Regexp(t, test.err, err.Error())
 		})
@@ -354,15 +354,15 @@ func TestTransactionEventDecode(t *testing.T) {
 			for k, v := range test.input {
 				input[k] = v
 			}
-
-			transformable, err := DecodeTransaction(Input{
+			batch := &model.Batch{}
+			err := DecodeTransaction(Input{
 				Raw:         input,
 				RequestTime: requestTime,
 				Metadata:    inputMetadata,
 				Config:      test.cfg,
-			})
+			}, batch)
 			require.NoError(t, err)
-			assert.Equal(t, test.e, transformable)
+			assert.Equal(t, test.e, &batch.Transactions[0])
 		})
 	}
 }
@@ -374,10 +374,10 @@ func BenchmarkDecodeTransaction(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		if _, err := DecodeTransaction(Input{
+		if err := DecodeTransaction(Input{
 			Metadata: *fullMetadata,
 			Raw:      fullTransactionInput,
-		}); err != nil {
+		}, &model.Batch{}); err != nil {
 			b.Fatal(err)
 		}
 	}

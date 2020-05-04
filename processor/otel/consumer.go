@@ -59,23 +59,23 @@ type Consumer struct {
 // ConsumeTraceData consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
-	transformables := c.convert(td)
+	batch := c.convert(td)
 	transformContext := &transform.Context{Config: c.TransformConfig}
 
 	return c.Reporter(ctx, publish.PendingReq{
-		Transformables: transformables,
+		Transformables: batch.Transformables(),
 		Tcontext:       transformContext,
 		Trace:          true,
 	})
 }
 
-func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable {
+func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 	md := model.Metadata{}
 	parseMetadata(td, &md)
 	hostname := md.System.DetectedHostname
 
 	logger := logp.NewLogger(logs.Otel)
-	transformables := make([]transform.Transformable, 0, len(td.Spans))
+	batch := model.Batch{}
 	for _, otelSpan := range td.Spans {
 		if otelSpan == nil {
 			continue
@@ -106,10 +106,10 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 				Name:      &name,
 			}
 			parseTransaction(otelSpan, hostname, &transaction)
-			transformables = append(transformables, &transaction)
+			batch.Transactions = append(batch.Transactions, transaction)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addTransactionCtxToErr(transaction, err)
-				transformables = append(transformables, err)
+				batch.Errors = append(batch.Errors, *err)
 			}
 
 		} else {
@@ -123,14 +123,14 @@ func (c *Consumer) convert(td consumerdata.TraceData) []transform.Transformable 
 				Name:      name,
 			}
 			parseSpan(otelSpan, &span)
-			transformables = append(transformables, &span)
+			batch.Spans = append(batch.Spans, span)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addSpanCtxToErr(span, hostname, err)
-				transformables = append(transformables, err)
+				batch.Errors = append(batch.Errors, *err)
 			}
 		}
 	}
-	return transformables
+	return &batch
 }
 
 func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {

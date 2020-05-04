@@ -48,7 +48,9 @@ const (
 )
 
 type decodeMetadataFunc func(interface{}, bool) (*model.Metadata, error)
-type decodeEventFunc func(modeldecoder.Input) (transform.Transformable, error)
+
+// functions with the decodeEventFunc signature decode their input argument into their batch argument (output)
+type decodeEventFunc func(modeldecoder.Input, *model.Batch) error
 
 type Processor struct {
 	Tconfig          transform.Config
@@ -145,24 +147,24 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (p *Processor) HandleRawModel(rawModel map[string]interface{}, requestTime time.Time, streamMetadata model.Metadata) (transform.Transformable, error) {
+func (p *Processor) HandleRawModel(rawModel map[string]interface{}, batch *model.Batch, requestTime time.Time, streamMetadata model.Metadata) error {
 	for key, decodeEvent := range p.models {
 		entry, ok := rawModel[key]
 		if !ok {
 			continue
 		}
-		tr, err := decodeEvent(modeldecoder.Input{
+		err := decodeEvent(modeldecoder.Input{
 			Raw:         entry,
 			RequestTime: requestTime,
 			Metadata:    streamMetadata,
 			Config:      p.Mconfig,
-		})
+		}, batch)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return tr, nil
+		return nil
 	}
-	return nil, ErrUnrecognizedObject
+	return ErrUnrecognizedObject
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream,
@@ -176,7 +178,7 @@ func (p *Processor) readBatch(
 	batchSize int,
 	reader *streamReader,
 	response *Result,
-) ([]transform.Transformable, bool) {
+) (*model.Batch, bool) {
 
 	if ipRateLimiter != nil {
 		// use provided rate limiter to throttle batch read
@@ -192,7 +194,8 @@ func (p *Processor) readBatch(
 		}
 	}
 
-	var out []transform.Transformable
+	// input events are decoded and appended to the batch
+	batch := &model.Batch{}
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
 		rawModel, err := reader.Read()
 		if err != nil && err != io.EOF {
@@ -202,10 +205,11 @@ func (p *Processor) readBatch(
 			}
 			// return early, we assume we can only recover from a input error types
 			response.Add(err)
-			return out, true
+			return batch, true
 		}
 		if len(rawModel) > 0 {
-			tr, err := p.HandleRawModel(rawModel, requestTime, *streamMetadata)
+
+			err := p.HandleRawModel(rawModel, batch, requestTime, *streamMetadata)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
@@ -214,10 +218,9 @@ func (p *Processor) readBatch(
 				})
 				continue
 			}
-			out = append(out, tr)
 		}
 	}
-	return out, reader.IsEOF()
+	return batch, reader.IsEOF()
 }
 
 // HandleStream processes a stream of events
@@ -241,11 +244,11 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	var transformables []transform.Transformable
 	var done bool
 	for !done {
-		transformables, done = p.readBatch(ctx, ipRateLimiter, requestTime, metadata, batchSize, sr, res)
-		if len(transformables) == 0 {
+		var batch *model.Batch
+		batch, done = p.readBatch(ctx, ipRateLimiter, requestTime, metadata, batchSize, sr, res)
+		if batch.Len() == 0 {
 			continue
 		}
 		// NOTE(axw) `report` takes ownership of transformables, which
@@ -253,7 +256,7 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 		// alternative interfaces between the processor and publisher
 		// which would enable better memory reuse.
 		if err := report(ctx, publish.PendingReq{
-			Transformables: transformables,
+			Transformables: batch.Transformables(),
 			Tcontext:       tctx,
 			Trace:          !sp.Dropped(),
 		}); err != nil {
@@ -273,7 +276,7 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 			}
 			return res
 		}
-		res.AddAccepted(len(transformables))
+		res.AddAccepted(batch.Len())
 	}
 	return res
 }
