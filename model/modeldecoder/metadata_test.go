@@ -111,6 +111,26 @@ var fullInput = map[string]interface{}{
 		"ip":         userIP,
 		"user-agent": userAgent,
 	},
+	"cloud": map[string]interface{}{
+		"availability_zone": "australia-southeast1-a",
+		"account": map[string]interface{}{
+			"id":   "acct123",
+			"name": "my-dev-account",
+		},
+		"instance": map[string]interface{}{
+			"id":   "inst-foo123xyz",
+			"name": "my-instance",
+		},
+		"machine": map[string]interface{}{
+			"type": "n1-highcpu-96",
+		},
+		"project": map[string]interface{}{
+			"id":   "snazzy-bobsled-123",
+			"name": "Development",
+		},
+		"provider": "gcp",
+		"region":   "australia-southeast1",
+	},
 	"labels": map[string]interface{}{
 		"k": "v", "n": 1, "f": 1.5, "b": false,
 	},
@@ -159,6 +179,18 @@ func TestDecodeMetadata(t *testing.T) {
 		Client: model.Client{
 			IP: net.ParseIP(userIP),
 		},
+		Cloud: model.Cloud{
+			AccountID:        "acct123",
+			AccountName:      "my-dev-account",
+			AvailabilityZone: "australia-southeast1-a",
+			InstanceID:       "inst-foo123xyz",
+			InstanceName:     "my-instance",
+			MachineType:      "n1-highcpu-96",
+			ProjectID:        "snazzy-bobsled-123",
+			ProjectName:      "Development",
+			Provider:         "gcp",
+			Region:           "australia-southeast1",
+		},
 		Labels: common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
 	}, output)
 }
@@ -204,18 +236,31 @@ func TestDecodeMetadataInvalid(t *testing.T) {
 
 	for _, test := range []struct {
 		input map[string]interface{}
+		err   string
 	}{
 		{
 			input: map[string]interface{}{"service": 123},
+			err:   "service.*expected object, but got number",
 		},
 		{
 			input: map[string]interface{}{"system": 123},
+			err:   "system.*expected object or null, but got number",
 		},
 		{
 			input: map[string]interface{}{"process": 123},
+			err:   "process.*expected object or null, but got number",
 		},
 		{
 			input: map[string]interface{}{"user": 123},
+			err:   "user.*expected object or null, but got number",
+		},
+		{
+			input: map[string]interface{}{"cloud": 123},
+			err:   "cloud.*expected object or null, but got number",
+		},
+		{
+			input: map[string]interface{}{"cloud": map[string]interface{}{}},
+			err:   `cloud.*missing properties: "provider"`,
 		},
 	} {
 		input := make(map[string]interface{})
@@ -230,8 +275,8 @@ func TestDecodeMetadataInvalid(t *testing.T) {
 			}
 		}
 		_, err := DecodeMetadata(input, false)
-		assert.Error(t, err)
-		t.Logf("%s", err)
+		require.Error(t, err)
+		assert.Regexp(t, test.err, err.Error())
 	}
 
 }
