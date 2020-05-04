@@ -50,9 +50,43 @@ func DecodeRUMV3Transaction(input Input, batch *model.Batch) error {
 		return err
 	}
 	transaction.Marks = marks
+	metricsets, err := decodeRUMV3Metricsets(raw, input, transaction)
+	if err != nil {
+		return nil
+	}
 	batch.Transactions = append(batch.Transactions, *transaction)
 	batch.Spans = append(batch.Spans, spans...)
+	batch.Metricsets = append(batch.Metricsets, metricsets...)
 	return nil
+}
+
+func decodeRUMV3Metricsets(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Metricset, error) {
+	decoder := &utility.ManualDecoder{}
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
+	rawMetricsets := decoder.InterfaceArr(raw, fieldName("metricset"))
+	var metricsets = make([]model.Metricset, len(rawMetricsets))
+	for idx, rawMetricset := range rawMetricsets {
+		metricset, err := decodeMetricset(Input{
+			Raw:         rawMetricset,
+			RequestTime: input.RequestTime,
+			Metadata:    input.Metadata,
+			Config:      input.Config,
+		}, rumV3Schema)
+		if err != nil {
+			return metricsets, err
+		}
+		metricset.Transaction = model.MetricsetTransaction{
+			Type: tr.Type,
+		}
+		if tr.Name != nil {
+			metricset.Transaction.Name = *tr.Name
+		}
+		if tr.Result != nil {
+			metricset.Transaction.Result = *tr.Result
+		}
+		metricsets[idx] = *metricset
+	}
+	return metricsets, nil
 }
 
 func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Span, error) {
