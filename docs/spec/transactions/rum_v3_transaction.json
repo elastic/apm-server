@@ -40,6 +40,10 @@
                     "type": ["array", "null"],
                     "$ref": "../spans/rum_v3_span.json"
                 },
+                "me": {
+                    "type": ["array", "null"],
+                    "$ref": "../metricsets/rum_v3_metricset.json"
+                },
                 "yc": {
                     "type": "object",
                     "properties": {
