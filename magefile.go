@@ -103,8 +103,8 @@ func Config() error {
 
 func shortConfigFileParams() mage.ConfigFileParams {
 	return mage.ConfigFileParams{
-		ShortParts: []string{
-			mage.OSSBeatDir("_meta/beat.yml"),
+		Short: mage.ConfigParams{
+			Template: mage.OSSBeatDir("_meta/beat.yml"),
 		},
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "localhost:9200",
@@ -117,8 +117,8 @@ func shortConfigFileParams() mage.ConfigFileParams {
 
 func dockerConfigFileParams() mage.ConfigFileParams {
 	return mage.ConfigFileParams{
-		DockerParts: []string{
-			mage.OSSBeatDir("_meta/beat.yml"),
+		Docker: mage.ConfigParams{
+			Template: mage.OSSBeatDir("_meta/beat.yml"),
 		},
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "elasticsearch:9200",

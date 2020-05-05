@@ -12,7 +12,7 @@ require (
 	github.com/dop251/goja v0.0.0-20200414142002-77e84ffb8c65 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200128125109-2d688c7e0ac4 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200505055820-76db4c043865
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200505202147-553c92eeff2d
 	github.com/elastic/go-elasticsearch/v7 v7.5.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -43,13 +43,14 @@ require (
 	github.com/santhosh-tekuri/jsonschema v1.2.4
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.0
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/uber/tchannel-go v1.16.0 // indirect
 	go.elastic.co/apm v1.7.2
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0
 	go.elastic.co/apm/module/apmhttp v1.7.2
+	go.elastic.co/ecszap v0.2.0 // indirect
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79 // indirect
