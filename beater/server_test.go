@@ -19,6 +19,7 @@ package beater
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -406,7 +407,7 @@ func (c *chanClient) Close() error {
 
 // Publish will publish every event in the batch on the channel. Options will be ignored.
 // Always returns without error.
-func (c *chanClient) Publish(batch pubs.Batch) error {
+func (c *chanClient) Publish(_ context.Context, batch pubs.Batch) error {
 	for _, event := range batch.Events() {
 		select {
 		case <-c.done:
@@ -424,7 +425,7 @@ func (c *chanClient) String() string {
 type dummyOutputClient struct {
 }
 
-func (d *dummyOutputClient) Publish(batch pubs.Batch) error {
+func (d *dummyOutputClient) Publish(_ context.Context, batch pubs.Batch) error {
 	batch.ACK()
 	return nil
 }
