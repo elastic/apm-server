@@ -105,7 +105,7 @@ var rumV3Mapping = map[string]string{
 	"start":                       "s",
 	"started":                     "sd",
 	"status_code":                 "sc",
-	"subType":                     "su",
+	"subtype":                     "su",
 	"sync":                        "sy",
 	"tags":                        "g",
 	"timeToFirstByte":             "fb",
