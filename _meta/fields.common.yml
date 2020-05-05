@@ -685,3 +685,90 @@
       dynamic: true
       description: Additional experimental data sent by the agents.
 
+    - name: cloud
+      title: Cloud
+      group: 2
+      type: group
+      description: >
+        Cloud metadata reported by agents
+      fields:
+      - name: account
+        type: group
+        dynamic: false
+        fields:
+        - name: id
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud account ID
+          overwrite: true
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud account name
+          overwrite: true
+      - name: availability_zone
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: Cloud availability zone name
+        example: us-east1-a
+        overwrite: true
+      - name: instance
+        type: group
+        dynamic: false
+        fields:
+        - name: id
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud instance/machine ID
+          overwrite: true
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud instance/machine name
+          overwrite: true
+      - name: machine
+        type: group
+        dynamic: false
+        fields:
+        - name: type
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud instance/machine type
+          example: t2.medium
+          overwrite: true
+      - name: project
+        type: group
+        dynamic: false
+        fields:
+        - name: id
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud project ID
+          overwrite: true
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud project name
+          overwrite: true
+      - name: provider
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: Cloud provider name
+        example: gcp
+        overwrite: true
+      - name: region
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: Cloud region name
+        example: us-east1
+        overwrite: true
