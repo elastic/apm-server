@@ -116,6 +116,7 @@
                 "start": {
                     "us": 4000
                 },
+                "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
             "timestamp": {
@@ -160,6 +161,7 @@
                 "start": {
                     "us": 14000
                 },
+                "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
             "timestamp": {
@@ -225,6 +227,7 @@
                 "start": {
                     "us": 22534
                 },
+                "subtype": "script",
                 "type": "rc"
             },
             "timestamp": {
@@ -333,6 +336,7 @@
                 "start": {
                     "us": 98940
                 },
+                "subtype": "h",
                 "sync": true,
                 "type": "external"
             },
@@ -398,6 +402,7 @@
                 "start": {
                     "us": 106520
                 },
+                "subtype": "h",
                 "sync": true,
                 "type": "external"
             },
@@ -463,6 +468,7 @@
                 "start": {
                     "us": 119935
                 },
+                "subtype": "h",
                 "sync": false,
                 "type": "external"
             },
@@ -530,6 +536,7 @@
                 "start": {
                     "us": 120000
                 },
+                "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
             "timestamp": {
