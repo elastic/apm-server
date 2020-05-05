@@ -512,7 +512,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 5d550fbc2313
+Revision: 76db4c043865
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -750,7 +750,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/gofrs/uuid
-Version: v3.2.0
+Version: v3.3.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -2458,7 +2458,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm
-Version: v1.7.0
+Version: v1.7.2
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -2549,7 +2549,7 @@ Contents of "NOTICE":
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm/module/apmelasticsearch
-Version: v1.7.0
+Version: v1.7.2
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2559,7 +2559,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm/module/apmhttp
-Version: v1.7.0
+Version: v1.7.2
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2621,7 +2621,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: go.uber.org/zap
-Version: v1.14.1
+Version: v1.15.0
 License type (autodetected): MIT
 Contents of "LICENSE.txt":
 
@@ -2647,7 +2647,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: c9f3fb736b72
+Revision: 4b2356b1ed79
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -2783,7 +2783,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 85ca7c5b95cd
+Revision: bc7a7d42d5c3
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -2939,6 +2939,11 @@ Version: v1.0.1
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
+Dependency: gopkg.in/jcmturner/goidentity.v3
+Version: v3.0.0
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
 Dependency: gopkg.in/jcmturner/gokrb5.v7
 Version: v7.3.0
 License type (autodetected): Apache-2.0
@@ -3008,7 +3013,7 @@ Contents of "LICENSE.libyaml":
 
 --------------------------------------------------------------------
 Dependency: howett.net/plist
-Revision: 77e249a2e2ba
+Revision: 3b63eb3a43b5
 License type (autodetected): BSD-2-Clause
 Contents of "LICENSE":
 
