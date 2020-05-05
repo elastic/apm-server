@@ -60,6 +60,7 @@ func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonsche
 	decodeSystem(getObject(raw, "system"), &out.System)
 	decodeProcess(getObject(raw, "process"), &out.Process)
 	decodeUser(getObject(raw, fieldName("user")), hasShortFieldNames, &out.User, &out.Client)
+	decodeCloud(getObject(raw, "cloud"), &out.Cloud)
 	decodeLabels(getObject(raw, fieldName("labels")), &out.Labels)
 	return nil
 }

@@ -115,6 +115,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 		{Template: "process.argv", Mapping: "process.args"},
 		{Template: "labels.*", Mapping: "labels"},
 		{Template: "service.node.configured_name", Mapping: "service.node.name"},
+		{Template: "cloud", Mapping: "cloud"},
 	}
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
