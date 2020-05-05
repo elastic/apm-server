@@ -93,30 +93,51 @@ var fullTransactionInput = map[string]interface{}{
 	},
 }
 
-func TestTransactionEventDecodeFailure(t *testing.T) {
+func TestDecodeTransactionInvalid(t *testing.T) {
+	err := DecodeTransaction(Input{Raw: nil}, &model.Batch{})
+	require.EqualError(t, err, "failed to validate transaction: error validating JSON: input missing")
+
+	err = DecodeTransaction(Input{Raw: ""}, &model.Batch{})
+	require.EqualError(t, err, "failed to validate transaction: error validating JSON: invalid input type")
+
+	baseInput := map[string]interface{}{
+		"type":       "type",
+		"trace_id":   "trace_id",
+		"id":         "id",
+		"duration":   123,
+		"span_count": map[string]interface{}{"dropped": 1.0, "started": 2.0},
+	}
+
 	for name, test := range map[string]struct {
-		input interface{}
+		input map[string]interface{}
 		err   string
-		e     *model.Transaction
 	}{
-		"no input":           {input: nil, err: "failed to validate transaction: error validating JSON: input missing", e: nil},
-		"invalid type":       {input: "", err: "failed to validate transaction: error validating JSON: invalid input type", e: nil},
-		"cannot fetch field": {input: map[string]interface{}{}, err: "failed to validate transaction: error validating JSON: (.|\n)*missing properties:(.|\n)*", e: nil},
+		"missing trace_id": {
+			input: map[string]interface{}{"trace_id": nil},
+			err:   "missing properties: \"trace_id\"",
+		},
+		"negative duration": {
+			input: map[string]interface{}{"duration": -1.0},
+			err:   "duration.*must be >= 0 but found -1",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			batch := &model.Batch{}
-			err := DecodeTransaction(Input{Raw: test.input}, batch)
-			if test.err != "" {
-				assert.Regexp(t, test.err, err.Error())
-			} else {
-				assert.NoError(t, err)
+			input := make(map[string]interface{})
+			for k, v := range baseInput {
+				input[k] = v
 			}
-			if test.e != nil {
-				event := batch.Transactions[0]
-				assert.Equal(t, test.e, event)
-			} else {
-				assert.Nil(t, batch.Transactions)
+			for k, v := range test.input {
+				if v == nil {
+					delete(input, k)
+				} else {
+					input[k] = v
+				}
 			}
+			var batch model.Batch
+			err := DecodeTransaction(Input{Raw: input}, &batch)
+			assert.Error(t, err)
+			assert.Regexp(t, test.err, err.Error())
+			assert.Zero(t, batch)
 		})
 	}
 }

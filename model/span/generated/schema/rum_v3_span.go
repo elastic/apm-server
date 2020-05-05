@@ -217,7 +217,8 @@ const RUMV3Schema = `{
                 },
                 "d": {
                     "type": "number",
-                    "description": "Duration of the span in milliseconds"
+                    "description": "Duration of the span in milliseconds",
+                    "minimum": 0
                 },
                 "n": {
                     "type": "string",

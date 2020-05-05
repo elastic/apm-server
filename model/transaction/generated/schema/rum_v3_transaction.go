@@ -256,7 +256,8 @@ const RUMV3Schema = `{
                 },
                 "d": {
                     "type": "number",
-                    "description": "Duration of the span in milliseconds"
+                    "description": "Duration of the span in milliseconds",
+                    "minimum": 0
                 },
                 "n": {
                     "type": "string",
@@ -838,7 +839,8 @@ const RUMV3Schema = `{
                 },
                 "d": {
                     "type": "number",
-                    "description": "How long the transaction took to complete, in ms with 3 decimal points"
+                    "description": "How long the transaction took to complete, in ms with 3 decimal points",
+                    "minimum": 0
                 },
                 "rt": {
                     "type": [
