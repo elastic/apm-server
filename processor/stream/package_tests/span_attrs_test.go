@@ -161,6 +161,7 @@ func spanKeywordExceptionKeys() *tests.Set {
 		tests.Group("user"),
 		tests.Group("url"),
 		tests.Group("http"),
+		tests.Group("cloud"),
 	),
 		transactionContext(),
 	)

@@ -1012,6 +1012,115 @@ type: object
 
 --
 
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 

@@ -37,6 +37,18 @@
         "Client": {
             "IP": ""
         },
+        "Cloud": {
+            "AccountID": "",
+            "AccountName": "",
+            "AvailabilityZone": "",
+            "InstanceID": "",
+            "InstanceName": "",
+            "MachineType": "",
+            "ProjectID": "",
+            "ProjectName": "",
+            "Provider": "",
+            "Region": ""
+        },
         "Labels": {},
         "Process": {
             "Argv": null,

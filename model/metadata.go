@@ -29,6 +29,7 @@ type Metadata struct {
 	System  System
 	User    User
 	Client  Client
+	Cloud   Cloud
 	Labels  common.MapStr
 }
 
@@ -43,6 +44,7 @@ func (m *Metadata) Set(out common.MapStr) common.MapStr {
 	fields.maybeSetMapStr("user_agent", m.User.UserAgentFields())
 	fields.maybeSetMapStr("container", m.System.containerFields())
 	fields.maybeSetMapStr("kubernetes", m.System.kubernetesFields())
+	fields.maybeSetMapStr("cloud", m.Cloud.fields())
 	if len(m.Labels) > 0 {
 		// These labels are merged with event-specific labels,
 		// hence we clone the map to avoid updating the shared

@@ -147,6 +147,7 @@ func errorKeywordExceptionKeys() *tests.Set {
 		tests.Group("service"),
 		tests.Group("user"),
 		tests.Group("span"),
+		tests.Group("cloud"),
 	)
 }
 
