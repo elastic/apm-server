@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -36,26 +35,58 @@ var (
 )
 
 // DecodeRUMV3Transaction decodes a v3 RUM transaction.
-func DecodeRUMV3Transaction(input Input) (transform.Transformable, error) {
-	tr, err := decodeTransaction(input, rumV3TransactionSchema)
+func DecodeRUMV3Transaction(input Input, batch *model.Batch) error {
+	transaction, err := decodeTransaction(input, rumV3TransactionSchema)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	raw := input.Raw.(map[string]interface{})
-	spans, err := decodeRUMV3Spans(raw, input, tr)
+	spans, err := decodeRUMV3Spans(raw, input, transaction)
 	if err != nil {
-		return nil, err
-	}
-	event := &model.RUMV3Transaction{
-		Transaction: tr,
-		Spans:       spans,
+		return err
 	}
 	marks, err := decodeRUMV3Marks(raw, input.Config)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	event.Marks = marks
-	return event, nil
+	transaction.Marks = marks
+	metricsets, err := decodeRUMV3Metricsets(raw, input, transaction)
+	if err != nil {
+		return nil
+	}
+	batch.Transactions = append(batch.Transactions, *transaction)
+	batch.Spans = append(batch.Spans, spans...)
+	batch.Metricsets = append(batch.Metricsets, metricsets...)
+	return nil
+}
+
+func decodeRUMV3Metricsets(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Metricset, error) {
+	decoder := &utility.ManualDecoder{}
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
+	rawMetricsets := decoder.InterfaceArr(raw, fieldName("metricset"))
+	var metricsets = make([]model.Metricset, len(rawMetricsets))
+	for idx, rawMetricset := range rawMetricsets {
+		metricset, err := decodeMetricset(Input{
+			Raw:         rawMetricset,
+			RequestTime: input.RequestTime,
+			Metadata:    input.Metadata,
+			Config:      input.Config,
+		}, rumV3Schema)
+		if err != nil {
+			return metricsets, err
+		}
+		metricset.Transaction = model.MetricsetTransaction{
+			Type: tr.Type,
+		}
+		if tr.Name != nil {
+			metricset.Transaction.Name = *tr.Name
+		}
+		if tr.Result != nil {
+			metricset.Transaction.Result = *tr.Result
+		}
+		metricsets[idx] = *metricset
+	}
+	return metricsets, nil
 }
 
 func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Span, error) {
@@ -64,7 +95,7 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
 	var spans = make([]model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
-		span, err := DecodeRUMV3Span(Input{
+		span, err := decodeRUMV3Span(Input{
 			Raw:         rawSpan,
 			RequestTime: input.RequestTime,
 			Metadata:    input.Metadata,
@@ -86,8 +117,13 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 }
 
 // DecodeTransaction decodes a v2 transaction.
-func DecodeTransaction(input Input) (transform.Transformable, error) {
-	return decodeTransaction(input, transactionSchema)
+func DecodeTransaction(input Input, batch *model.Batch) error {
+	transaction, err := decodeTransaction(input, transactionSchema)
+	if err != nil {
+		return err
+	}
+	batch.Transactions = append(batch.Transactions, *transaction)
+	return nil
 }
 
 func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transaction, error) {

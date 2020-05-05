@@ -672,10 +672,6 @@
                     }
                 },
                 "type": "Processing"
-            },
-            "transaction": {
-                "name": "general-usecase-initial-p-load",
-                "type": "p-load"
             }
         }
     ]
