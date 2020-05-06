@@ -124,9 +124,24 @@ var rumV3Mapping = map[string]string{
 	"version":                     "ve",
 }
 
+var rumV3InverseMapping = make(map[string]string)
+
+func init() {
+	for k, v := range rumV3Mapping {
+		rumV3InverseMapping[v] = k
+	}
+}
+
 func Mapper(shortFieldNames bool) func(string) string {
 	if shortFieldNames {
 		return rumV3Mapper
+	}
+	return identityMapper
+}
+
+func InverseMapper(shortFieldNames bool) func(string) string {
+	if shortFieldNames {
+		return rumV3InverseMapper
 	}
 	return identityMapper
 }
@@ -138,24 +153,13 @@ func rumV3Mapper(long string) string {
 	return long
 }
 
-func identityMapper(s string) string {
-	return s
+func rumV3InverseMapper(short string) string {
+	if long, ok := rumV3InverseMapping[short]; ok {
+		return long
+	}
+	return short
 }
 
-var rumV3InverseMapping = func() map[string]string {
-	m := make(map[string]string)
-	for k, v := range rumV3Mapping {
-		m[v] = k
-	}
-	return m
-}()
-
-func InverseMapper(shortFieldNames bool) func(string) string {
-	return func(s string) string {
-		longField, ok := rumV3InverseMapping[s]
-		if ok && shortFieldNames {
-			return longField
-		}
-		return s
-	}
+func identityMapper(s string) string {
+	return s
 }
