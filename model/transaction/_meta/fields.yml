@@ -13,6 +13,10 @@
 
             - name: us
               type: long
+              format: duration
+              input_format: microseconds
+              output_format: asMilliseconds
+              output_precision: 2
               description: >
                 Total duration of this transaction, in microseconds.
 

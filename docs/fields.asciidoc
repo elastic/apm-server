@@ -1655,6 +1655,8 @@ Total duration of this transaction, in microseconds.
 
 type: long
 
+format: duration
+
 --
 
 *`transaction.result`*::
