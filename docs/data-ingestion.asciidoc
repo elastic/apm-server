@@ -20,9 +20,6 @@ This section explains how to adapt data ingestion according to your needs.
 * <<reduce-payload-size>>
 * <<adjust-event-rate>>
 
-TIP: APM Server version 7.0 introduces breaking changes with older versions of APM agents.
-Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
-
 [[tune-output-config]]
 [float]
 ==== Tune APM Server output parameters for your Elasticsearch cluster
@@ -77,7 +74,7 @@ Read more in the {apm-agents-ref}/index.html[agents documentation].
 [float]
 ==== Adjust RUM event rate limit
 
-Agents make use of long running requests and flush as many events over a single request as possible. Thus, the rate limiter for RUM is bound to the number of _events_ sent per second, per IP. 
+Agents make use of long running requests and flush as many events over a single request as possible. Thus, the rate limiter for RUM is bound to the number of _events_ sent per second, per IP.
 
 If the rate limit is hit while events on an established request are sent, the request is not immediately terminated. The intake of events is only throttled to <<event_rate.limit,`event_rate.limit`>>, which means that events are queued and processed slower. Only when the allowed buffer queue is also full, does the request get terminated with a `429 - rate limit exceeded` HTTP response. If an agent tries to establish a new request, but the rate limit is already hit, a `429` will be sent immediately.
 
