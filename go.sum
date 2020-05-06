@@ -242,8 +242,12 @@ github.com/elastic/ecs v1.5.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU
 github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270/go.mod h1:Msl1pdboCbArMF/nSCDUXgQuWTeoMmE/z8607X+k7ng=
 github.com/elastic/go-elasticsearch/v7 v7.5.0 h1:kXW+EKls2BwsyQujTmVrxANb3U0qoz9wEq8Zkf/JEco=
 github.com/elastic/go-elasticsearch/v7 v7.5.0/go.mod h1:OJ4wdbtDNk5g503kvlHLyErCgQwwzmDtaFC4XyOxXA4=
+github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200506081032-9a4447ee944f h1:KwtaKm9uj9nraCZXwminf2acgxjfsqIm20cnYalaFzY=
+github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200506081032-9a4447ee944f/go.mod h1:OJ4wdbtDNk5g503kvlHLyErCgQwwzmDtaFC4XyOxXA4=
 github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde h1:Y9SZx8RQqFycLxi5W5eFmxMqnmijULVc3LMjBTtZQdM=
 github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde/go.mod h1:xe9a/L2aeOgFKKgrO3ibQTnMdpAeL0GC+5/HpGScSa4=
+github.com/elastic/go-elasticsearch/v8 v8.0.0-20200506081844-5ab992a62b07 h1:80MzuOeW6RHf4AygKccqk6U8fAvzW8VHDQnGRSBJGcg=
+github.com/elastic/go-elasticsearch/v8 v8.0.0-20200506081844-5ab992a62b07/go.mod h1:xe9a/L2aeOgFKKgrO3ibQTnMdpAeL0GC+5/HpGScSa4=
 github.com/elastic/go-hdrhistogram v0.1.0 h1:7UVeQ9MsO5c9h8RJeH2S2lXCGi9hQB/94W6Pjjqprc4=
 github.com/elastic/go-hdrhistogram v0.1.0/go.mod h1:NEl0wZTQXzwq7X2WBZGl5G3efcKbvv+r9mTZpXrIs78=
 github.com/elastic/go-libaudit v0.4.0/go.mod h1:lNJ7gX+arohEQTwqinAc8xycVuFNqsaunba1mwcBdvE=
