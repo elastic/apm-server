@@ -180,7 +180,7 @@ func TestDecode(t *testing.T) {
 		if test.metricset != nil {
 			want := test.metricset
 			got := batch.Metricsets[0]
-			assertMetricsetsMatch(t, want, &got)
+			assertMetricsetsMatch(t, want, got)
 		}
 	}
 }
