@@ -48,7 +48,7 @@ func DecodeSpan(input Input, batch *model.Batch) error {
 	if err != nil {
 		return err
 	}
-	batch.Spans = append(batch.Spans, *span)
+	batch.Spans = append(batch.Spans, span)
 	return nil
 }
 

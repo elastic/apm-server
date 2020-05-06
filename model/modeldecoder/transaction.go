@@ -54,17 +54,17 @@ func DecodeRUMV3Transaction(input Input, batch *model.Batch) error {
 	if err != nil {
 		return nil
 	}
-	batch.Transactions = append(batch.Transactions, *transaction)
+	batch.Transactions = append(batch.Transactions, transaction)
 	batch.Spans = append(batch.Spans, spans...)
 	batch.Metricsets = append(batch.Metricsets, metricsets...)
 	return nil
 }
 
-func decodeRUMV3Metricsets(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Metricset, error) {
+func decodeRUMV3Metricsets(raw map[string]interface{}, input Input, tr *model.Transaction) ([]*model.Metricset, error) {
 	decoder := &utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	rawMetricsets := decoder.InterfaceArr(raw, fieldName("metricset"))
-	var metricsets = make([]model.Metricset, len(rawMetricsets))
+	var metricsets = make([]*model.Metricset, len(rawMetricsets))
 	for idx, rawMetricset := range rawMetricsets {
 		metricset, err := decodeMetricset(Input{
 			Raw:         rawMetricset,
@@ -84,16 +84,16 @@ func decodeRUMV3Metricsets(raw map[string]interface{}, input Input, tr *model.Tr
 		if tr.Result != nil {
 			metricset.Transaction.Result = *tr.Result
 		}
-		metricsets[idx] = *metricset
+		metricsets[idx] = metricset
 	}
 	return metricsets, nil
 }
 
-func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transaction) ([]model.Span, error) {
+func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transaction) ([]*model.Span, error) {
 	decoder := &utility.ManualDecoder{}
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
-	var spans = make([]model.Span, len(rawSpans))
+	var spans = make([]*model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
 		span, err := decodeRUMV3Span(Input{
 			Raw:         rawSpan,
@@ -111,7 +111,7 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 		} else if *span.ParentIdx < idx {
 			span.ParentID = &spans[*span.ParentIdx].ID
 		}
-		spans[idx] = *span
+		spans[idx] = span
 	}
 	return spans, nil
 }
@@ -122,7 +122,7 @@ func DecodeTransaction(input Input, batch *model.Batch) error {
 	if err != nil {
 		return err
 	}
-	batch.Transactions = append(batch.Transactions, *transaction)
+	batch.Transactions = append(batch.Transactions, transaction)
 	return nil
 }
 

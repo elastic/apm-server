@@ -106,10 +106,10 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Name:      &name,
 			}
 			parseTransaction(otelSpan, hostname, &transaction)
-			batch.Transactions = append(batch.Transactions, transaction)
+			batch.Transactions = append(batch.Transactions, &transaction)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addTransactionCtxToErr(transaction, err)
-				batch.Errors = append(batch.Errors, *err)
+				batch.Errors = append(batch.Errors, err)
 			}
 
 		} else {
@@ -123,10 +123,10 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Name:      name,
 			}
 			parseSpan(otelSpan, &span)
-			batch.Spans = append(batch.Spans, span)
+			batch.Spans = append(batch.Spans, &span)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addSpanCtxToErr(span, hostname, err)
-				batch.Errors = append(batch.Errors, *err)
+				batch.Errors = append(batch.Errors, err)
 			}
 		}
 	}
