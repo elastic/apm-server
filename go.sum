@@ -237,6 +237,8 @@ github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200505055820-76db4c043865 h1:tF7bZ
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200505055820-76db4c043865/go.mod h1:uF1RU0IH/rU4zAc13vd20qbHHR/I0BDSdwsuEBEEy/Y=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200505202147-553c92eeff2d h1:5CASYeefJ5lVGwKyVK8JqLBTu5zwbgI9neov3cJ4FIo=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200505202147-553c92eeff2d/go.mod h1:StOavAVPJWXqrPg+0srQFWtow+9T756j/ck/lYcwTyM=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200506104719-2c4c2432da71 h1:oCEriANG3//ftMMRSTXtuUU0obQ4unNehjp8votT5ps=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200506104719-2c4c2432da71/go.mod h1:77KAgQIigBVJwPp8avX2wzrthstfk42Cq1NBBNgRM4g=
 github.com/elastic/ecs v1.5.0 h1:/VEIBsRU4ecq2+U3RPfKNc6bFyomP6qnthYEcQZu8GU=
 github.com/elastic/ecs v1.5.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270/go.mod h1:Msl1pdboCbArMF/nSCDUXgQuWTeoMmE/z8607X+k7ng=
@@ -536,6 +538,7 @@ github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t
 github.com/grpc-ecosystem/grpc-gateway v1.11.1/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grpc-ecosystem/grpc-gateway v1.13.0 h1:sBDQoHXrOlfPobnKw69FIKa1wg9qsLLvvQ/Y19WtFgI=
 github.com/grpc-ecosystem/grpc-gateway v1.13.0/go.mod h1:8XEsbTttt/W+VvjtQhLACqCisSPWTxCZ7sBRjU6iH9c=
+github.com/h2non/filetype v1.0.12/go.mod h1:319b3zT68BvV+WRj7cwy856M2ehB3HqNOt6sy1HndBY=
 github.com/hashicorp/consul/api v1.1.0/go.mod h1:VmuI/Lkw1nC05EYQWNKwWGbkg+FbDBtguAZLlVdkD9Q=
 github.com/hashicorp/consul/api v1.2.0/go.mod h1:1SIkFYi2ZTXUE5Kgt179+4hH33djo11+0Eo2XgTAtkw=
 github.com/hashicorp/consul/sdk v0.1.1/go.mod h1:VKf9jXwCTEY1QZP2MOLRhb5i/I/ssyNV1vwHyQBF0x8=
