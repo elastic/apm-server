@@ -21,39 +21,40 @@ See also https://github.com/elastic/apm-server/blob/master/CONTRIBUTING.md for m
 ## Motivation/summary
 <!--
 Please explain the motivation behind this PR, along with a summary of the major changes involved. Replace this comment with a description of what is being changed by this PR and why.
-
-Major changes require a number of considerations including impact on:
-
-* logging selector(s)
-* metrics
-* telemetry
-* Elasticsearch Service (https://cloud.elastic.co)
-* Elastic Cloud Enterprise (https://www.elastic.co/products/ece)
 -->
 
 ## Checklist
 <!--
-Add a checklist of things that are required to be reviewed in order to have the PR approved
+Add a checklist of things that are required to be considered and reviewed in order to have the PR approved
 List here all the items you have verified BEFORE sending this PR. Please DO NOT remove any item, striking through those that do not apply. (Just in case, strikethrough uses two tildes. ~~Scratch this.~~)
--->
-- [ ] I have signed the [Contributor License Agreement](https://www.elastic.co/contributor-agreement/).
-- [ ] My code follows the style guidelines of this project (run `make check-full` for static code checks and linting)
-- [ ] I have rebased my changes on top of the latest master branch
-<!--
+
 Update your local repository with the most recent code from the main repo, and rebase your branch on top of the latest master branch. We prefer your initial changes to be squashed into a single commit. Later, if we ask you to make changes, add them as separate commits. This makes them easier to review.
--->
-- [ ] I have made corresponding changes to the documentation
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing [**unit** tests](https://github.com/elastic/apm-server/blob/master/TESTING.md) pass locally with my changes
-<!--
+
+Ensure your code follows the style guidelines of this project (run `make check-full` for static code checks and linting), and rebase your changes on top of the latest master branch.
+
 Run the test suite to make sure that nothing is broken. See https://github.com/elastic/apm-server/blob/master/TESTING.md for details.
 -->
+
+I have ensured my changes include/I have considered implications for:
+- [ ] documentation
+- [ ] logging (add log lines, chose appropriate log selector, etc.)
+- [ ] metrics and monitoring (create issue for Kibana team to add metrics to visualizations)
+- [ ] automated tests (add tests for the code changes, all [**unit** tests](https://github.com/elastic/apm-server/blob/master/TESTING.md) pass locally)
+- [ ] telemetry
+- [ ] Elasticsearch Service (https://cloud.elastic.co)
+- [ ] Elastic Cloud Enterprise (https://www.elastic.co/products/ece)
+- [ ] Elastic Cloud on Kubernetes (https://www.elastic.co/elastic-cloud-kubernetes)
+
+
+- [ ] I have signed the [Contributor License Agreement](https://www.elastic.co/contributor-agreement/).
 - [ ] I have updated [CHANGELOG.asciidoc](https://github.com/elastic/apm-server/blob/master/CHANGELOG.asciidoc)
+
 
 ## How to test these changes
 <!--
 Explain here how this PR will be tested by the reviewer: commands, dependencies, steps, etc.
 -->
+
 
 ## Related issues
 <!--
