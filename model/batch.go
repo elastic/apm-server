@@ -22,10 +22,18 @@ import (
 )
 
 type Batch struct {
-	Transactions []Transaction
-	Spans        []Span
-	Metricsets   []Metricset
-	Errors       []Error
+	Transactions []*Transaction
+	Spans        []*Span
+	Metricsets   []*Metricset
+	Errors       []*Error
+}
+
+// Reset resets the batch to be empty, but it retains the underlying storage.
+func (b *Batch) Reset() {
+	b.Transactions = b.Transactions[:0]
+	b.Spans = b.Spans[:0]
+	b.Metricsets = b.Metricsets[:0]
+	b.Errors = b.Errors[:0]
 }
 
 func (b *Batch) Len() int {
@@ -37,17 +45,17 @@ func (b *Batch) Len() int {
 
 func (b *Batch) Transformables() []transform.Transformable {
 	transformables := make([]transform.Transformable, 0, b.Len())
-	for i := range b.Transactions {
-		transformables = append(transformables, &b.Transactions[i])
+	for _, tx := range b.Transactions {
+		transformables = append(transformables, tx)
 	}
-	for i := range b.Spans {
-		transformables = append(transformables, &b.Spans[i])
+	for _, span := range b.Spans {
+		transformables = append(transformables, span)
 	}
-	for i := range b.Metricsets {
-		transformables = append(transformables, &b.Metricsets[i])
+	for _, metricset := range b.Metricsets {
+		transformables = append(transformables, metricset)
 	}
-	for i := range b.Errors {
-		transformables = append(transformables, &b.Errors[i])
+	for _, err := range b.Errors {
+		transformables = append(transformables, err)
 	}
 	return transformables
 }
