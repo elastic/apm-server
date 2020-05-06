@@ -176,9 +176,10 @@ func (p *Processor) readBatch(
 	requestTime time.Time,
 	streamMetadata *model.Metadata,
 	batchSize int,
+	batch *model.Batch,
 	reader *streamReader,
 	response *Result,
-) (*model.Batch, bool) {
+) bool {
 
 	if ipRateLimiter != nil {
 		// use provided rate limiter to throttle batch read
@@ -190,12 +191,11 @@ func (p *Processor) readBatch(
 				Type:    RateLimitErrType,
 				Message: "rate limit exceeded",
 			})
-			return nil, true
+			return true
 		}
 	}
 
 	// input events are decoded and appended to the batch
-	batch := &model.Batch{}
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
 		rawModel, err := reader.Read()
 		if err != nil && err != io.EOF {
@@ -205,7 +205,7 @@ func (p *Processor) readBatch(
 			}
 			// return early, we assume we can only recover from a input error types
 			response.Add(err)
-			return batch, true
+			return true
 		}
 		if len(rawModel) > 0 {
 
@@ -220,7 +220,7 @@ func (p *Processor) readBatch(
 			}
 		}
 	}
-	return batch, reader.IsEOF()
+	return reader.IsEOF()
 }
 
 // HandleStream processes a stream of events
@@ -244,10 +244,10 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
+	var batch model.Batch
 	var done bool
 	for !done {
-		var batch *model.Batch
-		batch, done = p.readBatch(ctx, ipRateLimiter, requestTime, metadata, batchSize, sr, res)
+		done = p.readBatch(ctx, ipRateLimiter, requestTime, metadata, batchSize, &batch, sr, res)
 		if batch.Len() == 0 {
 			continue
 		}
@@ -277,6 +277,7 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 			return res
 		}
 		res.AddAccepted(batch.Len())
+		batch.Reset()
 	}
 	return res
 }

@@ -45,7 +45,7 @@ func DecodeMetricset(input Input, batch *model.Batch) error {
 	if err != nil {
 		return err
 	}
-	batch.Metricsets = append(batch.Metricsets, *metricset)
+	batch.Metricsets = append(batch.Metricsets, metricset)
 	return nil
 }
 
@@ -54,7 +54,7 @@ func DecodeRUMV3Metricset(input Input, batch *model.Batch) error {
 	if err != nil {
 		return err
 	}
-	batch.Metricsets = append(batch.Metricsets, *metricset)
+	batch.Metricsets = append(batch.Metricsets, metricset)
 	return nil
 }
 

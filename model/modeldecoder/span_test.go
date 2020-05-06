@@ -246,7 +246,7 @@ func TestDecodeSpan(t *testing.T) {
 				Config:      test.cfg,
 			}, batch)
 			require.NoError(t, err)
-			assert.Equal(t, test.e, &batch.Spans[0])
+			assert.Equal(t, test.e, batch.Spans[0])
 		})
 	}
 }
