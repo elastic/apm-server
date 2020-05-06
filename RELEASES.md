@@ -12,30 +12,31 @@
   run `make update-beats` in the branch from which the new branch will be created before FF to recognize potential issues
 
 * Update Kibana Index Pattern
-  
+
   If fields are not up-to-date, run `make update && script/update_kibana_objects.py` and create a PR.
 
-* Update Changelog 
+* Update Changelog
 
   * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/master/changelogs/head.asciidoc) to ensure all relevant notes have been added
   * Move changelogs from _head_ to _release_version_:
     * Minor version: Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/master/changelogs/head.asciidoc)
-      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file. 
+      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
     * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
-    
+
     Create PR in `master` and backport.
-  
+
   * Run the [`check_changelogs.py`](script/check_changelogs.py) script to ensure changelogs are synced across branches. This will soon be a PR check.
   * Don't forget to update the "SUPPORTED_VERSIONS" to include a new branch if necessary.
 
-* For minor releases create a new release branch and 
+* For minor releases create a new release branch and
   * update versions in release branch, e.g. [#2803](https://github.com/elastic/apm-server/pull/2803/files)
   * update versions in `major.x` branch to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804)
-   
+
 * Update to latest changes of [beats](https://github.com/elastic/beats/pulls/)
-  
+
   When beats has merged all PRs and for minor releases created the new branch, update beats again.
-  
+
+* Ensure a branch or tag is created for the [go-elasticsearch](https://github.com/elastic/go-elasticsearch) library and update to it.
 
 * The following may also need to be updated manually:
     * APM Overview's [release highlights](https://github.com/elastic/apm-server/blob/master/docs/guide/apm-release-notes.asciidoc) - Anything exciting across the APM stack!
@@ -54,7 +55,7 @@
 * Verify that a new [tag](https://github.com/elastic/apm-server/releases) has been created on GitHub.
 
 * Bump the version in anticipation of the next release, e.g. [after 7.5.1 release](https://github.com/elastic/apm-server/pull/3045/files) bump to 7.5.2
- 
+
   Prepare this PR ahead of time, but only merge after release!
 
 ## When compatibility between Agents & Server changes
