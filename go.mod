@@ -13,8 +13,8 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20200128125109-2d688c7e0ac4 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200505202147-553c92eeff2d
-	github.com/elastic/go-elasticsearch/v7 v7.5.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
+	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200506081032-9a4447ee944f
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200506081844-5ab992a62b07
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.2.1
 	github.com/elastic/go-ucfg v0.8.3
