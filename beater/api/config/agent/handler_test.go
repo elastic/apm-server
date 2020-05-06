@@ -164,12 +164,13 @@ var (
 		"Unauthorized": {
 			kbClient:               tests.MockKibana(http.StatusUnauthorized, m{"error": "Unauthorized"}, mockVersion, true),
 			method:                 http.MethodGet,
-			queryParams: map[string]string{"service.name": "opbeans-node"},
+			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
 			respBody:               map[string]string{"error": agentcfg.ErrUnauthorized},
-			respBodyToken:          map[string]string{"error": "APM Server is not authorized to contact Kibana. " +
-				"Please configure apm-server.kibana.username and apm-server.kibana.password"},
+			respBodyToken: map[string]string{"error": "APM Server is not authorized to query Kibana. " +
+				"Please configure apm-server.kibana.username and apm-server.kibana.password, " +
+				"and ensure the user has the necessary privileges."},
 		},
 	}
 )
