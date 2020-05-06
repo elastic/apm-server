@@ -39,7 +39,7 @@ func DecodeRUMV3Error(input Input, batch *m.Batch) error {
 	if err != nil {
 		return err
 	}
-	batch.Errors = append(batch.Errors, *apmError)
+	batch.Errors = append(batch.Errors, apmError)
 	return nil
 }
 
@@ -49,7 +49,7 @@ func DecodeError(input Input, batch *m.Batch) error {
 	if err != nil {
 		return err
 	}
-	batch.Errors = append(batch.Errors, *apmError)
+	batch.Errors = append(batch.Errors, apmError)
 	return nil
 }
 
