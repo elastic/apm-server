@@ -1,10 +1,13 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "0001-01-01T00:00:00Z",
             "agent": {
-                "name": "Foo",
+                "name": "Jaeger",
                 "version": "unknown"
+            },
+            "labels": {
+                "a_b": "foo"
             },
             "processor": {
                 "event": "transaction",
@@ -16,17 +19,11 @@
                 },
                 "name": "unknown"
             },
-            "timestamp": {
-                "us": 1576500418000768
-            },
-            "trace": {
-                "id": "46467830"
-            },
             "transaction": {
                 "duration": {
                     "us": 0
                 },
-                "id": "41414646",
+                "id": "",
                 "name": "",
                 "result": "Success",
                 "sampled": true,
