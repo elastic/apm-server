@@ -37,9 +37,9 @@ import (
 
 // Error Messages used to signal fetching errors
 const (
-	ErrMsgSendToKibanaFailed = "sending request to kibana failed"
-	ErrMsgReadKibanaResponse = "unable to read Kibana response body"
-
+	ErrMsgSendToKibanaFailed   = "sending request to kibana failed"
+	ErrMsgReadKibanaResponse   = "unable to read Kibana response body"
+	ErrUnauthorized            = "Unauthorized"
 	TransactionSamplingRateKey = "transaction_sample_rate"
 )
 
