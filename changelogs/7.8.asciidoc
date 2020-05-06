@@ -1,0 +1,31 @@
+[[release-notes-7.8]]
+== APM Server version 7.8
+
+https://github.com/elastic/apm-server/compare/7.7\...7.8[View commits]
+
+* <<release-notes-7.8.0>>
+
+[[release-notes-7.8.0]]
+=== APM Server version 7.8.0
+
+https://github.com/elastic/apm-server/compare/v7.7.0\...v7.8.0[View commits]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Bug fixes
+* Ensure applied flag can be set for agent configurations fetched for Jaeger {pull}3677[3677]
+* Negative transaction and span durations now cause a schema validation error {pull}3721[3721]
+
+[float]
+==== Intake API Changes
+* Add span child_ids intake {pull}3679[3679]
+* Add cloud metadata intake {pull}3729[3729]
+
+[float]
+==== Added
+* RUM V3 endpoint {pull}3328[3328], {pull}3414[3414], {pull}3512[3512], {pull}3526[3526], {pull}3616[3616], {pull}3648[3648], {pull}3659[3659], {pull}3733[3733]
+* We now publish libbeat metrics through the /debug/vars endpoint {pull}3550[3550]
+* Introduce transaction.duration.histogram aggregation {pull}3651[3651]
+* Introduce config to drop unsampled transactions {pull}3702[3702]
