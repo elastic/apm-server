@@ -34,11 +34,13 @@ import (
 )
 
 func readGoMod(modpath string) (*modfile.File, error) {
-	args := []string{"list", "-m", "-f={{.GoMod}}"}
+	args := []string{"list", "-m", "-mod=readonly", "-f={{.GoMod}}"}
 	if modpath != "" {
 		args = append(args, modpath)
 	}
-	stdout, err := exec.Command("go", args...).Output()
+	cmd := exec.Command("go", args...)
+	cmd.Stderr = os.Stderr
+	stdout, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
