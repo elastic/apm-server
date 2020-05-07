@@ -37,8 +37,8 @@ Run the test suite to make sure that nothing is broken. See https://github.com/e
 
 I have ensured my changes include/I have considered implications for:
 - [ ] documentation
-- [ ] logging (add log lines, chose appropriate log selector, etc.)
-- [ ] metrics and monitoring (create issue for Kibana team to add metrics to visualizations)
+- [ ] logging (add log lines, choose appropriate log selector, etc.)
+- [ ] metrics and monitoring (create issue for Kibana team to add metrics to visualizations, e.g. [Kibana#44001](https://github.com/elastic/kibana/issues/44001))
 - [ ] automated tests (add tests for the code changes, all [**unit** tests](https://github.com/elastic/apm-server/blob/master/TESTING.md) pass locally)
 - [ ] telemetry
 - [ ] Elasticsearch Service (https://cloud.elastic.co)
