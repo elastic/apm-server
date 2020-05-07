@@ -512,7 +512,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 553c92eeff2d
+Revision: 61101edf8315
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2452,8 +2452,28 @@ Contents of "LICENSE.md":
     THE SOFTWARE.
 
 --------------------------------------------------------------------
+Dependency: github.com/urso/diag
+Revision: 21b3cc8eb797
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/diag-ecs
+Revision: ab085841dcb9
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/ecslog
+Version: v0.0.1
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
 Dependency: github.com/urso/go-bin
 Revision: 781c575c9f0e
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/sderr
+Revision: c2a16f3d43ec
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
