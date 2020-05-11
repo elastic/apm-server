@@ -512,7 +512,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: b1fdd94c7a16
+Revision: 55bcfe7b1f13
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2453,8 +2453,28 @@ Contents of "LICENSE.md":
     THE SOFTWARE.
 
 --------------------------------------------------------------------
+Dependency: github.com/urso/diag
+Revision: 21b3cc8eb797
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/diag-ecs
+Revision: ab085841dcb9
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/ecslog
+Version: v0.0.1
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
 Dependency: github.com/urso/go-bin
 Revision: 781c575c9f0e
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/sderr
+Revision: c2a16f3d43ec
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2756,7 +2776,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 4b2356b1ed79
+Revision: 06a226fb4e37
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -2892,7 +2912,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: bc7a7d42d5c3
+Revision: 6aff5f38e54f
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
