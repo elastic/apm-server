@@ -19,8 +19,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/spf13/pflag"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -71,11 +69,6 @@ var libbeatConfigOverrides = common.MustNewConfigFrom(map[string]interface{}{
 
 // NewRootCommand returns the "apm-server" root command.
 func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
-
-	// we need to disable libbeat's tracer (mostly to not break tests)
-	// longterm solution is to adapt libbeat so we can inject apm-server's tracer
-	// the `initTracer` function will override ELASTIC_APM_ACTIVE
-	os.Setenv("ELASTIC_APM_ACTIVE", "false")
 
 	var runFlags = pflag.NewFlagSet(beatName, pflag.ExitOnError)
 	settings := instance.Settings{
