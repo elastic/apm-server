@@ -3,22 +3,23 @@ module github.com/elastic/apm-server
 go 1.13
 
 require (
+	github.com/akavel/rsrc v0.9.0 // indirect
 	github.com/apache/thrift v0.0.0-20161221203622-b2a4d4ae21c7
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
-	github.com/dop251/goja v0.0.0-20200326102500-6438c8ddc517 // indirect
+	github.com/dop251/goja v0.0.0-20200414142002-77e84ffb8c65 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200128125109-2d688c7e0ac4 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200406080813-7f5824ae68e9
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200513130238-8992fa169aaa
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20200331090801-7114c6275d80
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
 	github.com/elastic/go-licenser v0.2.1
 	github.com/elastic/go-ucfg v0.8.3
 	github.com/fatih/color v1.7.0
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
-	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gogo/googleapis v1.3.1-0.20190914144012-b8d18e97a9a1 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/google/addlicense v0.0.0-20190907113143-be125746c2c4 // indirect
@@ -49,16 +50,16 @@ require (
 	go.elastic.co/apm/module/apmgrpc v1.7.0
 	go.elastic.co/apm/module/apmhttp v1.7.0
 	go.uber.org/atomic v1.6.0
-	go.uber.org/zap v1.14.1
+	go.uber.org/zap v1.15.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200331124033-c3d80250170d // indirect
+	golang.org/x/sys v0.0.0-20200513112337-417ce2331b5c // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200403190813-44a64ad78b9b // indirect
+	golang.org/x/tools v0.0.0-20200513122804-866d71a3170a // indirect
 	google.golang.org/grpc v1.27.1
-	gopkg.in/yaml.v2 v2.2.8
-	howett.net/plist v0.0.0-20200225050739-77e249a2e2ba // indirect
+	gopkg.in/yaml.v2 v2.3.0
+	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
 )
 
 replace (
