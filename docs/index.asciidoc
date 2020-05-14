@@ -23,6 +23,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :sample_date_2: 2019.10.22
 :repo: apm-server
 :no_kibana:
+:no_ilm:
 :no-processors:
 :no-indices-rules:
 :no_dashboards:
