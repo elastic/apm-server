@@ -54,6 +54,12 @@ ifndef::no_ilm[]
 |Set up and manage index lifecycle management (ILM) policy
 endif::no_ilm[]
 
+ifdef::apm-server[]
+|Cluster
+|`manage_ilm`
+|Set up and manage index lifecycle management (ILM) policy
+endif::apm-server[]
+
 ifdef::has_ml_jobs[]
 |Cluster
 |`manage_ml`
@@ -71,8 +77,10 @@ ifdef::has_ml_jobs[]
 endif::has_ml_jobs[]
 |====
 +
+ifndef::apm-server[]
 Omit any privileges that aren't relevant in your environment.
 +
+endif::apm-server[]
 NOTE: These instructions assume that you are using the default name for
 {beatname_uc} indices. If you are using a custom name, modify the privileges to
 match your index naming pattern.
@@ -98,7 +106,9 @@ ifdef::has_central_config[]
 endif::has_central_config[]
 |====
 +
+ifndef::apm-server[]
 Omit any roles that aren't relevant in your environment.
+endif::apm-server[]
 
 // to do: make this pretty
 ifdef::apm-server[]
