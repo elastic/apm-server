@@ -84,16 +84,13 @@ need to set up {beatname_uc}:
 |====
 |Role | Purpose
 
+ifndef::apm-server[]
 |`kibana_admin`
 |Load dependencies, such as example dashboards, if available, into {kib}
+endif::apm-server[]
 
 |`ingest_admin`
 |Set up index templates and, if available, ingest pipelines
-
-ifdef::apm-server[]
-|`ingest_admin`
-|Set up ingest pipelines
-endif::apm-server[]
 
 ifdef::has_central_config[]
 |`beats_admin`
@@ -102,6 +99,19 @@ endif::has_central_config[]
 |====
 +
 Omit any roles that aren't relevant in your environment.
+
+// to do: make this pretty
+ifdef::apm-server[]
+If only a partial setup is required, use the table below to identify the required privileges.
+
+* Set up index templates:
+** Cluster `manage_index_template`
+* Set up ILM
+** Cluster `manage_index_template`, `manage_ilm`
+** Index `apm-*`: `manage`
+* Set up ingest pipelines
+** Cluster `manage_pipeline`
+endif::apm-server[]
 
 [[privileges-to-publish-monitoring]]
 ==== Grant privileges and roles needed for monitoring
