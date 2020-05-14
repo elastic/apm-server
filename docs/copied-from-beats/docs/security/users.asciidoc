@@ -6,7 +6,7 @@ You can use role-based access control to grant users access to secured
 resources. The roles that you set up depend on your organization's security
 requirements and the minimum privileges required to use specific features.
 
-Typically you need the create the following separate roles:
+Typically you need to create the following separate roles:
 
 * <<privileges-to-setup-beats,setup role>> for setting up index templates and
 other dependencies
