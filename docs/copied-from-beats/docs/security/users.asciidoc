@@ -1,6 +1,6 @@
 [role="xpack"]
 [[feature-roles]]
-=== Grant users access to secured resources
+== Grant users access to secured resources
 
 You can use role-based access control to grant users access to secured
 resources. The roles that you set up depend on your organization's security
@@ -23,9 +23,17 @@ subset of the privileges needed by {beatname_uc} users. When possible, use the
 built-in roles to minimize the affect of future changes on your security
 strategy.
 
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
 
 [[privileges-to-setup-beats]]
-==== Grant privileges and roles needed for setup
+=== Grant privileges and roles needed for setup
+
+++++
+<titleabbrev>Create a _setup_ user</titleabbrev>
+++++
 
 IMPORTANT: Setting up {beatname_uc} is an admin-level task that requires extra
 privileges. As a best practice, grant the setup role to administrators only, and
@@ -80,11 +88,25 @@ If only a partial setup is required, use the table below to identify the require
 * Set up ingest pipelines
 ** Cluster `manage_pipeline`
 
-[[privileges-to-publish-monitoring]]
-==== Grant privileges and roles needed for monitoring
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
 
-{security} provides built-in users and roles for monitoring. The privileges and
-roles needed depend on the method used to collect monitoring data.
+[[privileges-to-publish-monitoring]]
+=== Grant privileges and roles needed for monitoring
+
+++++
+<titleabbrev>Create a _monitoring_ user</titleabbrev>
+++++
+
+{security} provides built-in users and roles for publishing and viewing monitoring data.
+
+[float]
+[[privileges-to-publish-monitoring-write]]
+==== Publish monitoring data
+
+The privileges and roles needed depend on the method used to collect monitoring data.
 
 [IMPORTANT]
 .{ecloud} users:
@@ -123,36 +145,8 @@ If you don't use the +{beat_monitoring_user}+ user:
 |Write monitoring events into {es}
 |====
 --
-
++
 . Assign the +{beat_monitoring_user}+ or *monitoring role* to users who need to writer monitoring data to {es}.
-
-* For users that need to view monitoring data:
-+
---
-. Create a *monitoring role*, called something like
-+{beat_default_index_prefix}_monitoring_viewer+, that has the following privileges:
-+
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-| Spaces
-| `Read` on Stack monitoring
-| Allow the user to view the Stack monitoring feature in {kib}.
-|====
-+
-. Assign the *monitoring role*, along with the following built-in roles, to users who
-need to view monitoring data for {beatname_uc}:
-+
-[options="header"]
-|====
-|Role | Purpose
-
-|`monitoring_user`
-|Use *Stack Monitoring* in {kib} to monitor {beatname_uc}
-|====
---
-
 
 * If you're <<monitoring-metricbeat-collection,using {metricbeat}>> to collect
 metrics about {beatname_uc}, {security} provides the `remote_monitoring_user`
@@ -195,8 +189,48 @@ information.
 |====
 --
 
+[float]
+[[privileges-to-publish-monitoring-view]]
+==== View monitoring data
+
+* For users that need to view monitoring data:
++
+--
+. Create a *monitoring role*, called something like
++{beat_default_index_prefix}_monitoring_viewer+, that has the following privileges:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+| Spaces
+| `Read` on Stack monitoring
+| Allow the user to view the Stack monitoring feature in {kib}.
+|====
++
+. Assign the *monitoring role*, along with the following built-in roles, to users who
+need to view monitoring data for {beatname_uc}:
++
+[options="header"]
+|====
+|Role | Purpose
+
+|`monitoring_user`
+|Use *Stack Monitoring* in {kib} to monitor {beatname_uc}
+|====
+--
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
 [[privileges-to-publish-events]]
-==== Grant privileges and roles needed for publishing
+=== Grant privileges and roles needed for publishing
+
+++++
+<titleabbrev>Create a _publishing_ user</titleabbrev>
+++++
 
 Users who publish events to {es} need to create and write to {beatname_uc}
 indices. To minimize the privileges required by the writer role, use the
@@ -251,8 +285,17 @@ index `apm-*`: `create_doc`,`create_index`
 
 * **no extra privileges for fetching API Keys and self-instrumentation**
 
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
 [[kibana-user-privileges]]
-==== Grant privileges and roles needed to read {beatname_uc} data from {kib}
+=== Grant privileges and roles needed to read {beatname_uc} data from {kib}
+
+++++
+<titleabbrev>Create a _reader_ user</titleabbrev>
+++++
 
 {kib} users typically need to view dashboards and visualizations that contain
 {beatname_uc} data. These users might also need to create and edit dashboards
@@ -322,9 +365,82 @@ data:
 |====
 endif::apm-server[]
 
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+[[privileges-agent-central-config]]
+=== Grant privileges and roles needed for APM Agent central configuration
+
+++++
+<titleabbrev>Create a _central config management_ user</titleabbrev>
+++++
+
+[[privileges-agent-central-config-server]]
+==== APM Server central configuration management
+
+CONTENT
+
+[[privileges-agent-central-config-kib]
+==== Kibana central configuration management
+
+CONTENT
+
+[[privileges-agent-central-config-api]]
+==== Central configuration management API
+
+CONTENT
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+[[privileges-apm-app]]
+=== Grant privileges and roles needed for using the APM app
+
+++++
+<titleabbrev>Create an _APM app_ user</titleabbrev>
+++++
+
+CONTENT
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+[[privileges-create-api-keys]]
+=== Grant privileges and roles needed to create APM Server API keys
+
+++++
+<titleabbrev>Create an _APM API key_ user</titleabbrev>
+++++
+
+CONTENT
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+[[privileges-annotation-api]]
+=== Grant privileges and roles needed for the Annotation API
+
+++++
+<titleabbrev>Create an _annotation API_ user</titleabbrev>
+++++
+
+CONTENT
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
 
 [[learn-more-security]]
-==== Learn more about users and roles
+=== Learn more about users and roles
 
 Want to learn more about creating users and roles? See
 {ref}/secure-cluster.html[Secure a cluster]. Also see:
