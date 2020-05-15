@@ -45,42 +45,14 @@ the following privileges:
 |Type | Privilege | Purpose
 
 |Cluster
-|`monitor`
-|Retrieve cluster details (e.g. version)
-
-ifndef::no_ilm[]
-|Cluster
 |`manage_ilm`
 |Set up and manage index lifecycle management (ILM) policy
-endif::no_ilm[]
-
-ifdef::apm-server[]
-|Cluster
-|`manage_ilm`
-|Set up and manage index lifecycle management (ILM) policy
-endif::apm-server[]
-
-ifdef::has_ml_jobs[]
-|Cluster
-|`manage_ml`
-|Set up Machine Learning job configurations
-endif::has_ml_jobs[]
 
 |Index
 |`manage` on +{beat_default_index_prefix}-*+ indices
 |Set up aliases used by ILM
-
-ifdef::has_ml_jobs[]
-|Index
-|`read` on +{beat_default_index_prefix}-*+ indices
-|Read {beatname_uc} indices in order to set up Machine Learning jobs
-endif::has_ml_jobs[]
 |====
 +
-ifndef::apm-server[]
-Omit any privileges that aren't relevant in your environment.
-+
-endif::apm-server[]
 NOTE: These instructions assume that you are using the default name for
 {beatname_uc} indices. If you are using a custom name, modify the privileges to
 match your index naming pattern.
@@ -92,26 +64,12 @@ need to set up {beatname_uc}:
 |====
 |Role | Purpose
 
-ifndef::apm-server[]
-|`kibana_admin`
-|Load dependencies, such as example dashboards, if available, into {kib}
-endif::apm-server[]
-
 |`ingest_admin`
 |Set up index templates and, if available, ingest pipelines
-
-ifdef::has_central_config[]
-|`beats_admin`
-|Enroll and manage configurations in Beats central management
-endif::has_central_config[]
 |====
-+
-ifndef::apm-server[]
-Omit any roles that aren't relevant in your environment.
-endif::apm-server[]
 
-// to do: make this pretty
-ifdef::apm-server[]
+// CUSTOM SET UP
+// MAKE THIS PRETTY
 If only a partial setup is required, use the table below to identify the required privileges.
 
 * Set up index templates:
@@ -121,7 +79,6 @@ If only a partial setup is required, use the table below to identify the require
 ** Index `apm-*`: `manage`
 * Set up ingest pipelines
 ** Cluster `manage_pipeline`
-endif::apm-server[]
 
 [[privileges-to-publish-monitoring]]
 ==== Grant privileges and roles needed for monitoring
@@ -130,12 +87,11 @@ endif::apm-server[]
 roles needed depend on the method used to collect monitoring data.
 
 [IMPORTANT]
-.Important note for {ecloud} users
+.{ecloud} users:
 ====
-Built-in users are not available when running our
-https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}]
-on {ecloud}. To send monitoring data securely, create a monitoring user and
-grant it the roles described in the following sections.
+This section does not apply to our
+https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}].
+Monitoring on {ecloud} is as simple as clicking the *Enable self-monitoring* button.
 ====
 
 * If you're using <<monitoring-internal-collection,internal collection>> to
@@ -152,15 +108,11 @@ If you don't use the +{beat_monitoring_user}+ user:
 +
 --
 . Create a *monitoring role*, called something like
-+{beat_default_index_prefix}_monitoring+, that has the following privileges:
++{beat_default_index_prefix}_monitoring_writer+, that has the following privileges:
 +
 [options="header"]
 |====
 |Type | Privilege | Purpose
-
-|Cluster
-|`monitor`
-|Retrieve cluster details (e.g. version)
 
 |Index
 |`create_index` on `.monitoring-beats-*` indices
@@ -170,23 +122,37 @@ If you don't use the +{beat_monitoring_user}+ user:
 |`create_doc` on `.monitoring-beats-*` indices
 |Write monitoring events into {es}
 |====
+--
 
-. Assign the *monitoring role*, along with the following built-in roles, to
-users who need to monitor {beatname_uc}:
+. Assign the +{beat_monitoring_user}+ or *monitoring role* to users who need to writer monitoring data to {es}.
+
+* For users that need to view monitoring data:
++
+--
+. Create a *monitoring role*, called something like
++{beat_default_index_prefix}_monitoring_viewer+, that has the following privileges:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+| Spaces
+| `Read` on Stack monitoring
+| Allow the user to view the Stack monitoring feature in {kib}.
+|====
++
+. Assign the *monitoring role*, along with the following built-in roles, to users who
+need to view monitoring data for {beatname_uc}:
 +
 [options="header"]
 |====
 |Role | Purpose
-
-|`kibana_user`
-|Use {kib}
 
 |`monitoring_user`
 |Use *Stack Monitoring* in {kib} to monitor {beatname_uc}
 |====
 --
 
-ifndef::serverless[]
 
 * If you're <<monitoring-metricbeat-collection,using {metricbeat}>> to collect
 metrics about {beatname_uc}, {security} provides the `remote_monitoring_user`
@@ -228,7 +194,6 @@ information.
 |Use *Stack Monitoring* in {kib} to monitor {beatname_uc}
 |====
 --
-endif::serverless[]
 
 [[privileges-to-publish-events]]
 ==== Grant privileges and roles needed for publishing
@@ -253,54 +218,38 @@ To grant the required privileges:
 . Create a *writer role*, called something like +{beat_default_index_prefix}_writer+,
 that has the following privileges:
 +
-NOTE: The `monitor` cluster privilege and the `create_doc` privilege on
-+{beat_default_index_prefix}-*+ indices are required in every configuration.
-+
 [options="header"]
 |====
 |Type | Privilege | Purpose
-
-ifndef::apm-server[]
-|Cluster
-|`monitor`
-|Retrieve cluster details (e.g. version)
-endif::apm-server[]
-
-ifndef::no_ilm[]
-|Cluster
-|`read_ilm`
-| Read the ILM policy when connecting to clusters that support ILM.
-Not needed when `setup.ilm.check_exists` is `false`.
-endif::no_ilm[]
-
-ifeval::["{beatname_lc}"=="filebeat"]
-|Cluster
-|`cluster:admin/ingest/pipeline/get`
-|Check for ingest pipelines used by modules. Needed when using modules.
-endif::[]
 
 |Index
 |`create_doc` on +{beat_default_index_prefix}-*+ indices
 |Write events into {es}
 
-ifndef::no_ilm[]
-|Index
-|`view_index_metadata` on +{beat_default_index_prefix}-*+ indices
-|Check for alias when connecting to clusters that support ILM.
-Not needed when `setup.ilm.check_exists` is `false`.
-endif::no_ilm[]
-
 |Index
 |`create_index` on +{beat_default_index_prefix}-*+ indices
 |Create daily indices when connecting to clusters that do not support ILM.
 Not needed when using ILM.
+
+|Index
+|`read` on +{beat_default_index_prefix}-*sourcemap+ indices
+|Read sourcemaps
 |====
-ifndef::apm-server[]
-+
-Omit any privileges that aren't relevant in your environment.
-endif::apm-server[]
 
 . Assign the *writer role* to users who will index events into {es}.
+
+Ingest tasks:
+
+* **ingest agent data:**
++
+index `apm-*``: `create_doc`,`create_index` (Note: privilege `create_index` is also needed when using ILM, for ingesting the onboarding doc)
+index `apm-*sourcemap`: `read` (when sourcemap enabled `apm-server.rum.enabled`: `true` AND `apm-server.rum.source_mapping.enabled`: `true`)
+
+* **uploading sourcemaps:**
++
+index `apm-*`: `create_doc`,`create_index`
+
+* **no extra privileges for fetching API Keys and self-instrumentation**
 
 [[kibana-user-privileges]]
 ==== Grant privileges and roles needed to read {beatname_uc} data from {kib}
