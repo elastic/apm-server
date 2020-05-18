@@ -87,8 +87,7 @@ match your index naming pattern.
 ==== Partial setup
 
 Only need to setup a specific feature?
-To grant users the required privileges for a partial set up,
-find the relevant feature in the table below:
+Find the minimum required privileges for the relevant feature in the table below:
 
 [float]
 ===== Set up index templates
@@ -369,7 +368,7 @@ Not needed when using ILM.
 ////
 
 [[kibana-user-privileges]]
-=== Grant privileges and roles needed to read APM data from {kib}
+=== Grant privileges and roles needed to read APM data in {kib}
 
 ++++
 <titleabbrev>Create a _reader_ user</titleabbrev>
@@ -409,16 +408,6 @@ you'll need assign space privileges:
 | Allow the user to view, edit, and create dashboards, as well as browse data.
 |====
 +
-. If you're using APM Agent configuration, add the following built-in roles:
-+
-[options="header"]
-|====
-|Role | Purpose
-
-|`admin`
-|Read and update APM Agent configuration via {kib}
-|====
-+
 . Finally, assign the following role if a user needs to enable and edit machine learning features:
 +
 [options="header"]
@@ -438,65 +427,109 @@ you'll need assign space privileges:
 === Grant privileges and roles needed for APM Agent central configuration
 
 ++++
-<titleabbrev>Create a _central config management_ user</titleabbrev>
+<titleabbrev>Create a _central config_ user</titleabbrev>
 ++++
 
 [[privileges-agent-central-config-server]]
 ==== APM Server central configuration management
 
-CONTENT
+[options="header"]
+|====
+|Type | Privilege | Purpose
 
-[[privileges-agent-central-config-kib]
+| Spaces
+|`Read` on {beat_kib_app}
+|Allow the use of the {beat_kib_app}
+|====
+
+[[privileges-agent-central-config-kib]]
 ==== Kibana central configuration management
 
-CONTENT
+. If you're using APM Agent configuration, create a user with the following built-in roles:
++
+[options="header"]
+|====
+|Role | Purpose
+
+|`apm_user`
+|Read and update APM Agent configuration via {kib}
+|====
++
+. The user will also need Kibana space access:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+| Spaces
+|`All` on {beat_kib_app}
+|Allow the use of the {beat_kib_app}
+|====
 
 [[privileges-agent-central-config-api]]
 ==== Central configuration management API
 
-CONTENT
+. Create a user with the following privileges:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+|Index
+|`create_doc` on +observability-annotations+ indices
+|Write events into {es}
+
+|Index
+|`create_index` on +observability-annotations+ indices
+|Create the indices
+
+|Index
+|`manage` on +observability-annotations+ indices
+|Manage the indices
+
+|Index
+|`read` on +observability-annotations+ indices
+|Read the indices
+|====
++
+. The user will also need Kibana space access:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+| Spaces
+|`All` on {beat_kib_app}
+|Allow the use of the {beat_kib_app}
+|====
 
 ////
 ***********************************  ***********************************
 ***********************************  ***********************************
 ////
 
-[[privileges-apm-app]]
-=== Grant privileges and roles needed for using the APM app
+// [[privileges-create-api-keys]]
+// === Grant privileges and roles needed to create APM Server API keys
 
-++++
-<titleabbrev>Create an _APM app_ user</titleabbrev>
-++++
+// ++++
+// <titleabbrev>Create an _APM API key_ user</titleabbrev>
+// ++++
 
-CONTENT
-
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
-
-[[privileges-create-api-keys]]
-=== Grant privileges and roles needed to create APM Server API keys
-
-++++
-<titleabbrev>Create an _APM API key_ user</titleabbrev>
-++++
-
-CONTENT
+// CONTENT
 
 ////
 ***********************************  ***********************************
 ***********************************  ***********************************
 ////
 
-[[privileges-annotation-api]]
-=== Grant privileges and roles needed for the Annotation API
+// [[privileges-annotation-api]]
+// === Grant privileges and roles needed for the Annotation API
 
-++++
-<titleabbrev>Create an _annotation API_ user</titleabbrev>
-++++
+// ++++
+// <titleabbrev>Create an _annotation API_ user</titleabbrev>
+// ++++
 
-CONTENT
+// CONTENT
 
 ////
 ***********************************  ***********************************
