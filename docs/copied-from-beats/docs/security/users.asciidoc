@@ -284,16 +284,6 @@ indices. To minimize the privileges required by the writer role, use the
 <<privileges-to-setup-beats,setup role>> to pre-load dependencies. This section
 assumes that you've pre-loaded dependencies.
 
-ifndef::no_ilm[]
-When using ILM, turn off the ILM setup check in the {beatname_uc} config file before
-running {beatname_uc} to publish events:
-
-[source,yaml]
-----
-setup.ilm.check_exists: false
-----
-endif::no_ilm[]
-
 To grant the required privileges:
 
 . Create a *writer role*, called something like +{beat_default_index_prefix}_writer+,
@@ -466,8 +456,34 @@ you'll need assign space privileges:
 |Allow the use of the {beat_kib_app}
 |====
 
-[[privileges-agent-central-config-api]]
-==== Central configuration management API
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+// [[privileges-create-api-keys]]
+// === Grant privileges and roles needed to create APM Server API keys
+
+// ++++
+// <titleabbrev>Create an _APM API key_ user</titleabbrev>
+// ++++
+
+// CONTENT
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+[[privileges-annotation-api]]
+=== Grant privileges and roles needed for APM app APIs
+
+++++
+<titleabbrev>Create an _APM app API_ user</titleabbrev>
+++++
+
+[[privileges-apm-app-annotation-api]]
+==== Annotation API
 
 . Create a user with the following privileges:
 +
@@ -503,33 +519,30 @@ you'll need assign space privileges:
 |Allow the use of the {beat_kib_app}
 |====
 
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
+[[privileges-agent-central-config-api]]
+==== Central configuration management API
 
-// [[privileges-create-api-keys]]
-// === Grant privileges and roles needed to create APM Server API keys
+. To list and search for Agent configurations, create a user with the following privileges:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
 
-// ++++
-// <titleabbrev>Create an _APM API key_ user</titleabbrev>
-// ++++
+| Spaces
+|`Read` on {beat_kib_app}
+|Allow the use of the {beat_kib_app}
+|====
++
+. To create or delete Agent configurations, create a user with the following privileges:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
 
-// CONTENT
-
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
-
-// [[privileges-annotation-api]]
-// === Grant privileges and roles needed for the Annotation API
-
-// ++++
-// <titleabbrev>Create an _annotation API_ user</titleabbrev>
-// ++++
-
-// CONTENT
+| Spaces
+|`All` on {beat_kib_app}
+|Allow the use of the {beat_kib_app}
+|====
 
 ////
 ***********************************  ***********************************
