@@ -12,9 +12,9 @@
 
 To secure the communication between {beatname_uc} and Elasticsearch, you can use
 HTTPS and basic authentication. Basic authentication for Elasticsearch is
-available when you enable {security} (see
+available when you enable {security-features} (see
 {ref}/secure-cluster.html[Secure a cluster] and <<securing-beats>>).
-If you aren't using {security}, you can use a web proxy instead.
+If you aren't using {security-features}, you can use a web proxy instead.
 
 Here is a sample configuration:
 
