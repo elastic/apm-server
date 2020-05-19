@@ -44,18 +44,16 @@ var (
 
 // CreatorParams holds parameters for creating beat.Beaters.
 type CreatorParams struct {
-	// RunServer is used to run the APM Server.
+	// WrapRunServer is used to wrap the RunServerFunc used to run the APM Server.
 	//
-	// This should be set to beater.RunServer, or a function which wraps it.
-	RunServer RunServerFunc
+	// WrapRunServer is optional. If provided, it must return a function that calls
+	// its input, possibly modifying the parameters on the way in.
+	WrapRunServer func(RunServerFunc) RunServerFunc
 }
 
 // NewCreator returns a new beat.Creator which creates beaters
 // using the provided CreatorParams.
 func NewCreator(args CreatorParams) beat.Creator {
-	if args.RunServer == nil {
-		panic("args.RunServer must be non-nil")
-	}
 	return func(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		logger := logp.NewLogger(logs.Beater)
 		if err := checkConfig(logger); err != nil {
@@ -72,10 +70,10 @@ func NewCreator(args CreatorParams) beat.Creator {
 		}
 
 		bt := &beater{
-			config:    beaterConfig,
-			stopped:   false,
-			logger:    logger,
-			runServer: args.RunServer,
+			config:        beaterConfig,
+			stopped:       false,
+			logger:        logger,
+			wrapRunServer: args.WrapRunServer,
 		}
 
 		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
@@ -119,9 +117,9 @@ func checkConfig(logger *logp.Logger) error {
 }
 
 type beater struct {
-	config    *config.Config
-	logger    *logp.Logger
-	runServer RunServerFunc
+	config        *config.Config
+	logger        *logp.Logger
+	wrapRunServer func(RunServerFunc) RunServerFunc
 
 	mutex      sync.Mutex // guards stopServer and stopped
 	stopServer func()
@@ -137,7 +135,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	defer tracer.Close()
 
-	runServer := bt.runServer
+	runServer := runServer
 	if tracerServer != nil {
 		// Self-instrumentation enabled, so running the APM Server
 		// should run an internal server for receiving trace data.
@@ -161,6 +159,11 @@ func (bt *beater) Run(b *beat.Beat) error {
 			})
 			return g.Wait()
 		}
+	}
+	if bt.wrapRunServer != nil {
+		// Wrap the RunServer function, enabling injection
+		// of behaviour into the processing/reporting pipeline.
+		runServer = bt.wrapRunServer(runServer)
 	}
 
 	publisher, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{

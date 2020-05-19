@@ -100,7 +100,8 @@
                 "ab_testing": true,
                 "group": "experimental",
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "segment": 5
+                "segment": 5,
+                "wrapped_reporter": true
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
