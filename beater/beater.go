@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -137,32 +138,11 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	runServer := runServer
 	if tracerServer != nil {
-		// Self-instrumentation enabled, so running the APM Server
-		// should run an internal server for receiving trace data.
-		origRunServer := runServer
-		runServer = func(ctx context.Context, args ServerParams) error {
-			g, ctx := errgroup.WithContext(ctx)
-			g.Go(func() error {
-				defer tracerServer.stop()
-				<-ctx.Done()
-				// Close the tracer now to prevent the server
-				// from waiting for more events during graceful
-				// shutdown.
-				tracer.Close()
-				return nil
-			})
-			g.Go(func() error {
-				return tracerServer.serve(args.Reporter)
-			})
-			g.Go(func() error {
-				return origRunServer(ctx, args)
-			})
-			return g.Wait()
-		}
+		runServer = runServerWithTracerServer(runServer, tracerServer, tracer)
 	}
 	if bt.wrapRunServer != nil {
-		// Wrap the RunServer function, enabling injection
-		// of behaviour into the processing/reporting pipeline.
+		// Wrap runServer function, enabling injection of
+		// behaviour into the processing/reporting pipeline.
 		runServer = bt.wrapRunServer(runServer)
 	}
 
@@ -246,4 +226,28 @@ func (bt *beater) Stop() {
 		bt.config.ShutdownTimeout.Seconds())
 	bt.stopServer()
 	bt.stopped = true
+}
+
+// runServerWithTracerServer wraps runServer such that it also runs
+// tracerServer, stopping it and the tracer when the server shuts down.
+func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServer, tracer *apm.Tracer) RunServerFunc {
+	return func(ctx context.Context, args ServerParams) error {
+		g, ctx := errgroup.WithContext(ctx)
+		g.Go(func() error {
+			defer tracerServer.stop()
+			<-ctx.Done()
+			// Close the tracer now to prevent the server
+			// from waiting for more events during graceful
+			// shutdown.
+			tracer.Close()
+			return nil
+		})
+		g.Go(func() error {
+			return tracerServer.serve(args.Reporter)
+		})
+		g.Go(func() error {
+			return runServer(ctx, args)
+		})
+		return g.Wait()
+	}
 }
