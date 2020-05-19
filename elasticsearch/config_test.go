@@ -18,6 +18,7 @@
 package elasticsearch
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -143,6 +144,29 @@ func TestBeatsConfigSynced(t *testing.T) {
 		require.Contains(t, libbeatStructFields, name)
 		libbeatStructField := libbeatStructFields[name]
 		assert.Equal(t, localStructField.structTag, libbeatStructField.structTag)
-		assert.Equal(t, localStructField.Type(), libbeatStructField.Type())
+		assert.Equal(t,
+			localStructField.Type(),
+			libbeatStructField.Type(),
+			fmt.Sprintf("expected type %s for config field %q, got %s",
+				libbeatStructField.Type(), name, localStructField.Type(),
+			),
+		)
+		delete(libbeatStructFields, name)
+	}
+
+	knownUnhandled := []string{
+		"backoff",
+		"bulk_max_size",
+		"compression_level",
+		"escape_html",
+		"headers",
+		// TODO Kerberos auth (https://github.com/elastic/apm-server/issues/3794)
+		"kerberos",
+		"loadbalance",
+		"max_retries",
+		"parameters",
+	}
+	for name := range libbeatStructFields {
+		assert.Contains(t, knownUnhandled, name)
 	}
 }
