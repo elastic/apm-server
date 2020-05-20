@@ -59,7 +59,8 @@
             },
             "labels": {
                 "tag1": "one",
-                "tag2": 2
+                "tag2": 2,
+                "wrapped_reporter": true
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -253,7 +254,8 @@
                 "tag1": "one",
                 "tag2": 12,
                 "tag3": 12.45,
-                "tag4": false
+                "tag4": false,
+                "wrapped_reporter": true
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -419,7 +421,8 @@
             },
             "labels": {
                 "tag1": "one",
-                "tag2": 2
+                "tag2": 2,
+                "wrapped_reporter": true
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -555,7 +558,8 @@
             },
             "labels": {
                 "tag1": "one",
-                "tag2": 2
+                "tag2": 2,
+                "wrapped_reporter": true
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

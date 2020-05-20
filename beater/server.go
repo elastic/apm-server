@@ -53,8 +53,8 @@ type ServerParams struct {
 	Reporter publish.Reporter
 }
 
-// RunServer runs the APM Server until a fatal error occurs, or ctx is cancelled.
-func RunServer(ctx context.Context, args ServerParams) error {
+// runServer runs the APM Server until a fatal error occurs, or ctx is cancelled.
+func runServer(ctx context.Context, args ServerParams) error {
 	srv, err := newServer(args.Logger, args.Config, args.Tracer, args.Reporter)
 	if err != nil {
 		return err

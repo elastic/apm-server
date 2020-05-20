@@ -22,9 +22,7 @@ func TestSubCommands(t *testing.T) {
 		"version":    {},
 	}
 
-	rootCmd := NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
-		RunServer: beater.RunServer,
-	}))
+	rootCmd := NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{}))
 	for _, cmd := range rootCmd.Commands() {
 		name := cmd.Name()
 		if _, ok := validCommands[name]; !ok {
