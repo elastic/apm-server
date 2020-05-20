@@ -1,5 +1,5 @@
 [[upgrading-to-65]]
-=== Upgrade to APM Server version 6.5
+== Upgrade to APM Server version 6.5
 
 ++++
 <titleabbrev>Upgrade to version 6.5</titleabbrev>
@@ -16,8 +16,9 @@ it's recommended you read about the changes below and update accordingly.
 If you'd like to continue using the deprecated Intake API and Elasticsearch Schema,
 you can view https://www.elastic.co/guide/en/apm/server/6.4/overview.html[previous documentation].
 
+[float]
 [[upgrade-steps-65]]
-==== Upgrade Steps
+=== Upgrade Steps
 
 . Upgrade the Elastic Stack: {ref}/setup-upgrade.html[Elasticsearch],
 {kibana-ref}/upgrade.html[Kibana],
@@ -31,7 +32,7 @@ New agents do not support APM Server <6.5 and will not work if you upgrade in th
 
 [float]
 [[intake-api-changes-65]]
-==== Intake API Changes
+=== Intake API Changes
 
 The Intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
 This API has been redesigned in 6.5 to increase the memory efficiency and predictability of the APM Server and APM agents.
@@ -48,7 +49,7 @@ is available in the <<events-api,Events API>> documentation.
 
 [float]
 [[metadata-api-changes-65]]
-===== Metadata
+==== Metadata
 
 Metadata is now sent to the APM Server only once per request.
 APM Server will retain this information and apply it to the applicable documents when it writes to Elasticsearch.
@@ -58,7 +59,7 @@ See the <<metadata-api, metadata documentation>> for more information.
 
 [float]
 [[error-api-changes-65]]
-===== Error
+==== Error
 
 The error schema adds three new properties, and deprecates two others.
 
@@ -73,7 +74,7 @@ See the <<error-schema, error schema documentation>> for more information.
 
 [float]
 [[transaction-api-changes-65]]
-===== Transaction
+==== Transaction
 
 The transaction schema adds two new properties, and deprecates two others.
 
@@ -87,7 +88,7 @@ See the <<transaction-schema, transaction schema documentation>> for more inform
 
 [float]
 [[span-api-changes-65]]
-===== Span
+==== Span
 
 The span schema adds three new properties, removes two, and changes one.
 
@@ -103,14 +104,14 @@ See the <<span-schema, span schema documentation>> for more information.
 
 [float]
 [[healthcheck-api-changes-65]]
-===== Healthcheck Endpoint
+==== Healthcheck Endpoint
 
 The Healthcheck endpoint, previously `/healthcheck`, has been deprecated.
 The <<server-info,server information>> api has replaced it.
 
 [float]
 [[assets-api-changes-65]]
-===== Assets Endpoint
+==== Assets Endpoint
 
 The assets endpoint, `/v1/rum/sourcemaps` has been deprecated,
 and replaced with the endpoint: `/assets/v1/sourcemaps`.
@@ -118,7 +119,7 @@ The data format remains unchanged.
 
 [float]
 [[metrics-api-changes-65]]
-===== Metricsets Endpoint
+==== Metricsets Endpoint
 
 The Metricsets endpoint, previously `/v1/metrics`,
 has also integrated with the new intake endpoint at `/intake/v2/events`.
@@ -132,7 +133,7 @@ See the <<metricset-api, metricset schema>> for more information.
 
 [float]
 [[server-config-changes-65]]
-==== Server Configuration Changes
+=== Server Configuration Changes
 
 There are some configuration changes that are worth mentioning.
 
@@ -160,7 +161,7 @@ RUM configuration changes:
 
 [float]
 [[es-schema-changes-65]]
-==== Elasticsearch Schema Changes
+=== Elasticsearch Schema Changes
 
 The Elasticsearch schema defines how APM data is stored in Elasticsearch.
 There have been a number of changes to the Elasticsearch schema for 6.5.
@@ -172,7 +173,7 @@ These new keys are essential to taking advantage of APM's new {apm-overview-ref-
 
 [float]
 [[es-error-changes-65]]
-===== Error
+==== Error
 
 The Elasticsearch error schema adds two new keys:
 
@@ -183,7 +184,7 @@ View the sample Elasticsearch <<error-indices,error document>> for more informat
 
 [float]
 [[es-transaction-changes-65]]
-===== Transaction
+==== Transaction
 
 The Elasticsearch transaction schema adds two new keys:
 
@@ -194,7 +195,7 @@ View the sample Elasticsearch <<transaction-indices,transaction document>> for m
 
 [float]
 [[es-span-changes-65]]
-===== Span
+==== Span
 
 The Elasticsearch span schema adds three new keys, and deprecates two:
 
