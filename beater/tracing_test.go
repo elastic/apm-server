@@ -54,6 +54,12 @@ func TestServerTracingEnabled(t *testing.T) {
 			if testTransactionIds.Contains(eventTransactionId(e)) {
 				continue
 			}
+
+			// Check that self-instrumentation goes through the
+			// reporter wrapped by setupBeater.
+			wrapped, _ := e.GetValue("labels.wrapped_reporter")
+			assert.Equal(t, true, wrapped)
+
 			selfTransactions = append(selfTransactions, eventTransactionName(e))
 		case <-time.After(5 * time.Second):
 			assert.FailNow(t, "timed out waiting for transaction")
