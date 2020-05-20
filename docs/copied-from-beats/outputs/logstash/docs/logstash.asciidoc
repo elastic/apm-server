@@ -48,7 +48,7 @@ some extra setup. For more information, see
 endif::[]
 
 ifndef::win-only[]
-
+ 
 include::{libbeat-dir}/step-test-config.asciidoc[]
 
 endif::win-only[]
