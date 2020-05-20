@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -42,26 +43,44 @@ type testBeater struct {
 	client     *http.Client
 }
 
-func setupBeater(t *testing.T, apmBeat *beat.Beat, ucfg *common.Config, beatConfig *beat.BeatConfig) (*testBeater, error) {
+func setupBeater(
+	t *testing.T,
+	apmBeat *beat.Beat,
+	ucfg *common.Config,
+	beatConfig *beat.BeatConfig,
+) (*testBeater, error) {
+
 	onboardingDocs := make(chan onboardingDoc, 1)
 	createBeater := NewCreator(CreatorParams{
-		RunServer: func(ctx context.Context, args ServerParams) error {
-			// Wrap the reporter so we can intercept the
-			// onboarding doc, to extract the listen address.
-			origReporter := args.Reporter
-			args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
-				for _, tf := range req.Transformables {
-					if o, ok := tf.(onboardingDoc); ok {
-						select {
-						case <-ctx.Done():
-							return ctx.Err()
-						case onboardingDocs <- o:
+		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
+			return func(ctx context.Context, args ServerParams) error {
+				// Wrap the reporter so we can intercept the
+				// onboarding doc, to extract the listen address.
+				origReporter := args.Reporter
+				args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
+					for _, tf := range req.Transformables {
+						switch tf := tf.(type) {
+						case onboardingDoc:
+							select {
+							case <-ctx.Done():
+								return ctx.Err()
+							case onboardingDocs <- tf:
+							}
+
+						case *model.Transaction:
+							// Add a label to test that everything
+							// goes through the wrapped reporter.
+							if tf.Labels == nil {
+								labels := make(model.Labels)
+								tf.Labels = &labels
+							}
+							(*tf.Labels)["wrapped_reporter"] = true
 						}
 					}
+					return origReporter(ctx, req)
 				}
-				return origReporter(ctx, req)
+				return runServer(ctx, args)
 			}
-			return RunServer(ctx, args)
 		},
 	})
 
