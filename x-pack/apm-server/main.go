@@ -24,9 +24,9 @@ import (
 // and the publish.Reporter will be wrapped such that all
 // transactions pass through the aggregator before being
 // published to libbeat.
-func runServerWithAggregator(ctx context.Context, args beater.ServerParams) error {
+func runServerWithAggregator(ctx context.Context, runServer beater.RunServerFunc, args beater.ServerParams) error {
 	if !args.Config.Aggregation.Enabled {
-		return beater.RunServer(ctx, args)
+		return runServer(ctx, args)
 	}
 
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
@@ -58,14 +58,16 @@ func runServerWithAggregator(ctx context.Context, args beater.ServerParams) erro
 		}
 	})
 	g.Go(func() error {
-		return beater.RunServer(ctx, args)
+		return runServer(ctx, args)
 	})
 	return g.Wait()
 }
 
 var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
-	RunServer: func(ctx context.Context, args beater.ServerParams) error {
-		return runServerWithAggregator(ctx, args)
+	WrapRunServer: func(runServer beater.RunServerFunc) beater.RunServerFunc {
+		return func(ctx context.Context, args beater.ServerParams) error {
+			return runServerWithAggregator(ctx, runServer, args)
+		}
 	},
 }))
 
