@@ -1,5 +1,5 @@
 [[upgrading]]
-== Upgrade APM Server
+= Upgrade APM Server
 
 ++++
 <titleabbrev>Upgrade</titleabbrev>
@@ -32,8 +32,8 @@ and applies the correct template automatically.
 
 include::./breaking-changes.asciidoc[]
 
-include::./upgrading-to-65.asciidoc[]
+include::./upgrading-to-77.asciidoc[]
 
 include::./upgrading-to-70.asciidoc[]
 
-include::./upgrading-to-77.asciidoc[]
+include::./upgrading-to-65.asciidoc[]

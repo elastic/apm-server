@@ -1,5 +1,5 @@
 [[upgrading-to-77]]
-=== Upgrade to APM Server version 7.7
+== Upgrade to APM Server version 7.7
 
 ++++
 <titleabbrev>Upgrade to version 7.7</titleabbrev>
@@ -16,8 +16,9 @@ Switching this metadata cleanup functionality to a processor allows you to defin
 
 Failing to follow the upgrade steps will result in increased span metadata ingestion when upgrading to version 7.7.
 
+[float]
 [[upgrade-steps-77]]
-==== Upgrade Steps
+=== Upgrade Steps
 
 . In order to avoid breaking custom pipeline definitions,
 pipelines are not overwritten when restarting APM Server.
