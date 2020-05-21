@@ -22,9 +22,8 @@ APM Agent central configurations.
 
 {es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
 subset of the privileges needed by APM users.
-When possible, use the built-in roles to minimize the affect of future changes on your security strategy.
-If no built-in role is available, you can create a custom user and assign
-them the privileges needed to accomplish a specific task.
+When possible, assign users the built-in roles to minimize the affect of future changes on your security strategy.
+If no built-in role is available, you can assign users the privileges needed to accomplish a specific task.
 In general, there are three types of privileges you'll work with:
 
 * **Elasticsearch cluster privileges**: Manage the actions a user can perform against your cluster.
@@ -162,7 +161,7 @@ indices, upload and read sourcemaps, read API keys from Elasticsearch, and perfo
 [float]
 ==== General writer role
 
-To grant an APM Server user the required privileges for writing to {es}:
+To grant an APM Server user the required privileges for writing events to {es}:
 
 . Create a *general writer role*, called something like +{beat_default_index_prefix}_writer+,
 that has the following privileges:
@@ -178,6 +177,14 @@ that has the following privileges:
 |Index
 |`create_index` on +{beat_default_index_prefix}-*+ indices
 |Create APM indices in {es}
+|====
+
+. If <<configuration-rum,Real User Monitoring>> and <<sourcemaps,sourcemaps>> are enabled,
+assign the following additional privileges to the *general writer role*:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
 
 |Index
 |`read` on +{beat_default_index_prefix}-*sourcemap+ indices
@@ -192,33 +199,6 @@ that has the following privileges:
 Instead of creating a *general writer role*,
 individual publishing tasks, like writing events or uploading sourcemaps,
 can be performed by dedicated users with stricter privileges.
-
-[float]
-===== Event writer role
-
-To create an {beatname_uc} user that can publish APM Agent data to {es}:
-
-. Create a *event writer role*, called something like +{beat_default_index_prefix}_event_writer+,
-that has the following privileges:
-+
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-|Index
-|`create_doc` on +{beat_default_index_prefix}-*+ indices
-|Write APM events into {es}
-
-|Index
-|`create_index` on +{beat_default_index_prefix}-*+ indices
-|Create APM indices in {es}
-
-|Index
-|`read` on +{beat_default_index_prefix}-*sourcemap+ indices
-|Read sourcemaps
-|====
-
-. Assign the *event writer role* to users who need to publish APM Agent data.
 
 [float]
 ===== Sourcemap writer role
@@ -288,7 +268,7 @@ environment, or create a user who has the privileges needed to send monitoring
 information.
 
 If you use the built-in +{beat_monitoring_user}+ user,
-make sure you set the password before assigning it to users that need to write monitoring data to {es}.
+make sure you set the password before using it.
 
 If you don't use the +{beat_monitoring_user}+ user:
 
@@ -316,6 +296,11 @@ If you don't use the +{beat_monitoring_user}+ user:
 [[privileges-to-publish-monitoring-metricbeat]]
 ===== Metricbeat collection
 
+NOTE: When using Metricbeat to collect metrics,
+no roles or users need to be created with APM Server.
+See <<monitoring-metricbeat-collection>>
+for complete details on setting up Metricbeat collection.
+
 If you're <<monitoring-metricbeat-collection,using {metricbeat}>> to collect
 metrics about {beatname_uc}, {security-features} provides the `remote_monitoring_user`
 {ref}/built-in-users.html[built-in user], and the `remote_monitoring_collector`
@@ -325,7 +310,7 @@ it's available in your environment, or create a user who has the privileges
 needed to collect and send monitoring information.
 
 If you use the built-in `remote_monitoring_user` user,
-make sure you set the password before assigning it to users that need to write monitoring data to {es}.
+make sure you set the password before using it.
 
 If you don't use the `remote_monitoring_user` user:
 
@@ -343,9 +328,6 @@ information. Assign the following roles to the *monitoring user*:
 |`remote_monitoring_agent`
 |Send monitoring data to the monitoring cluster
 |====
-
-TIP: See <<monitoring-metricbeat-collection>>
-for complete details on setting up Metricbeat collection.
 --
 
 [float]
@@ -393,26 +375,37 @@ need to view monitoring data for {beatname_uc}:
 <titleabbrev>Create a _reader_ user</titleabbrev>
 ++++
 
-{kib} users typically need to view apps, dashboards, and visualizations that contain
-APM data. These users might also need to create and edit dashboards, visualizations, and machine learning jobs.
+{kib} users typically need to view apps, dashboards, and visualizations that contain APM data.
+These users might also need to create and edit dashboards, visualizations, and machine learning jobs.
 
-To grant users the required privileges:
-
-. Assign the following built-in roles to users who need to read APM data:
+. Assign the following built-in roles to users who need unrestricted read access to APM data:
 +
 [options="header"]
 |====
 |Role | Purpose
 
-|`kibana_user`
-|Use the APM UI
+|`kibana_admin`
+|Grants access to all features in Kibana.
 
 |`apm_user`
-|Use the APM UI
+|Grants the privileges required for APM users on +{beat_default_index_prefix}*+ indices
+
+|`machine_learning_admin`
+|Grants the privileges required to create, update, and view machine learning jobs
 |====
+
+In some instances, you may wish to restrict the Kibana apps a user has access to.
+
+. To create a less-privileged APM reader, assign the following built in roles to a user::
 +
-. If you're using any of the APM, Dashboard, Visualize, Discover, etc., apps,
-you'll need assign space privileges:
+[options="header"]
+|====
+|Role | Purpose
+|`apm_user`
+|Grants the privileges required for APM users on +{beat_default_index_prefix}*+ indices
+|====
+
+. Assign the following space privileges to any Kibana space that the user needs access to:
 +
 [options="header"]
 |====
@@ -426,7 +419,7 @@ you'll need assign space privileges:
 | `Read` or `All` on Dashboards, Visualize, and Discover
 | Allow the user to view, edit, and create dashboards, as well as browse data.
 |====
-+
+
 . Finally, assign the following role if a user needs to enable and edit machine learning features:
 +
 [options="header"]
@@ -434,7 +427,7 @@ you'll need assign space privileges:
 |Role | Purpose
 
 |`machine_learning_admin`
-|NEED DESCRIPTION
+|Grants the privileges required to create, update, and view machine learning jobs
 |====
 
 ////
