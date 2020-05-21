@@ -1,5 +1,5 @@
 [[upgrading-to-70]]
-=== Upgrade to APM Server version 7.0
+== Upgrade to APM Server version 7.0
 
 ++++
 <titleabbrev>Upgrade to version 7.0</titleabbrev>
@@ -9,11 +9,12 @@ Before upgrading to APM Server v7.0,
 there are some {apm-overview-ref-v}/breaking-7.0.0.html[breaking changes]
 in the APM Server and the APM UI that you should be aware of.
 
+[float]
 [[upgrade-steps-70]]
-==== Upgrade Steps
+=== Upgrade Steps
 
 Check the https://www.elastic.co/support/matrix#matrix_compatibility[Product Compatibility matrix]
-to determine if you need to upgrade Elasticsearch and Kibana. 
+to determine if you need to upgrade Elasticsearch and Kibana.
 
 . Upgrade {ref}/setup-upgrade.html[Elasticsearch].
 . Upgrade {kibana-ref}/upgrade.html[Kibana].
@@ -22,9 +23,10 @@ The {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibil
 will help determine compatibility.
 . Upgrade APM Server (see below if upgrading from an RPM or Deb install).
 . Use the Kibana migration assistant, found in the Kibana Management tab,
-to migrate 6.x data to the 7.x format. 
+to migrate 6.x data to the 7.x format.
 
-===== Upgrading from 6.x RPM or Deb install
+[float]
+==== Upgrading from 6.x RPM or Deb install
 
 When upgrading from an RPM or Deb install,
 you'll be prompted with a warning saying the install is going to overwrite `/etc/apm-server/apm-server.yml`.
