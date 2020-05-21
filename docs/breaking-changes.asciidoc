@@ -1,20 +1,20 @@
 [[breaking-changes]]
-=== Breaking Changes
+== Breaking Changes
 APM Server is built on top of {beats-ref}/index.html[libbeat].
 As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
-==== 7.7
+=== 7.7
 * There are no breaking changes in APM Server.
 However, a previously hardcoded feature is now configurable.
 Failing to follow these <<upgrading-to-77,upgrade steps>> will result in increased span metadata ingestion when upgrading to version 7.7.
 
 [float]
-==== 7.6
+=== 7.6
 * There are no breaking changes in APM Server.
 
 [float]
-==== 7.5
+=== 7.5
 * Introduced dedicated `apm-server.ilm.setup.*` flags.
 This means you can now customize ILM behavior from within the APM Server configuration.
 As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
@@ -28,7 +28,7 @@ See {apm-server-ref}/ilm.html[default policy] for more information.
 you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
 
 [float]
-==== 7.0
+=== 7.0
 * Removed deprecated Intake v1 API endpoints.
 Upgrade agents to a version that supports APM Server >= 6.5.
 {apm-overview-ref-v}/breaking-7.0.0.html#breaking-remove-v1[More information].
@@ -37,19 +37,19 @@ Upgrade agents to a version that supports APM Server >= 6.5.
 * {beats-ref}/breaking-changes-7.0.html[Breaking changes in libbeat]
 
 [float]
-==== 6.5
+=== 6.5
 * There are no breaking changes in APM Server.
 * Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
 
 [float]
-==== 6.4
+=== 6.4
 * Indexing the `onboarding` document in it's own index by default.
 
 [float]
-==== 6.3
+=== 6.3
 * Indexing events in separate indices by default.
 * {beats-ref-63}/breaking-changes-6.3.html[Breaking changes in libbeat]
 
 [float]
-==== 6.2
+=== 6.2
 * APM Server GA
