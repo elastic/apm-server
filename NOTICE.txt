@@ -512,7 +512,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 43f5689e11d1
+Revision: a9be1b56a849
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2921,7 +2921,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 6aff5f38e54f
+Revision: 059865788121
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3093,7 +3093,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: gopkg.in/yaml.v2
-Version: v2.2.8
+Version: v2.3.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -3113,7 +3113,7 @@ Contents of "NOTICE":
 
 --------------------------------------------------------------------
 Dependency: gopkg.in/yaml.v2
-Version: v2.2.8
+Version: v2.3.0
 License type (autodetected): MIT
 Contents of "LICENSE.libyaml":
 
