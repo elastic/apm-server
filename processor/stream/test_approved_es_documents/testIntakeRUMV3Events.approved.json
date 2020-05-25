@@ -7,24 +7,52 @@
                 "version": "4.8.1"
             },
             "http": {
+                "request": {
+                    "headers": {
+                        "Accept": [
+                            "application/json"
+                        ]
+                    },
+                    "method": "get"
+                },
                 "response": {
                     "decoded_body_size": 690,
                     "encoded_body_size": 690,
+                    "headers": {
+                        "Content-Type": [
+                            "application/json"
+                        ]
+                    },
+                    "status_code": 200,
                     "transfer_size": 983
-                }
+                },
+                "version": "1.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "parent": {
+                "id": "1ef08ac234fca23b455d9e27c660f1ab"
             },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "timestamp": {
@@ -44,6 +72,8 @@
                 "marks": {
                     "agent": {
                         "domComplete": 138,
+                        "domContentLoadedEventEnd": 110,
+                        "domContentLoadedEventStart": 100,
                         "domInteractive": 120,
                         "firstContentfulPaint": 70.82500003930181,
                         "largestContentfulPaint": 131.03000004775822,
@@ -74,6 +104,7 @@
                 },
                 "sampled": true,
                 "span_count": {
+                    "dropped": 1,
                     "started": 8
                 },
                 "type": "p-load"
@@ -101,10 +132,20 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -127,6 +168,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -146,10 +192,20 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -172,6 +228,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -195,10 +256,20 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -238,6 +309,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -257,10 +333,20 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -282,6 +368,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -305,10 +396,20 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -348,6 +449,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -371,10 +477,20 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -414,6 +530,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -437,13 +558,24 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
+                "action": "action",
                 "destination": {
                     "service": {
                         "name": "http://localhost:8003",
@@ -480,6 +612,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -499,10 +636,20 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -547,6 +694,11 @@
             },
             "transaction": {
                 "id": "ec2e280be8345240"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -563,10 +715,20 @@
                 "name": "metric"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "transaction": {
@@ -581,6 +743,11 @@
                 },
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -597,10 +764,20 @@
                 "name": "metric"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -615,6 +792,11 @@
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -631,10 +813,20 @@
                 "name": "metric"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -649,6 +841,11 @@
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         },
         {
@@ -658,6 +855,7 @@
                 "version": "4.8.1"
             },
             "labels": {
+                "tag1": "value1",
                 "testTagKey": "testTagValue"
             },
             "processor": {
@@ -665,10 +863,20 @@
                 "name": "metric"
             },
             "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "angular",
+                    "version": "2"
+                },
                 "language": {
-                    "name": "javascript"
+                    "name": "javascript",
+                    "version": "6"
                 },
                 "name": "apm-a-rum-test-e2e-general-usecase",
+                "runtime": {
+                    "name": "v8",
+                    "version": "8.0"
+                },
                 "version": "0.0.1"
             },
             "span": {
@@ -678,7 +886,13 @@
                         "us": 124
                     }
                 },
+                "subtype": "subtype",
                 "type": "Processing"
+            },
+            "user": {
+                "email": "user@email.com",
+                "id": "123",
+                "name": "John Doe"
             }
         }
     ]
