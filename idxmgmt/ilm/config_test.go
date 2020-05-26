@@ -113,16 +113,21 @@ func TestConfig_Valid(t *testing.T) {
 
 		expected Config
 	}{
-		{name: "new policy",
-			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
+		{name: "new policy and rollover_alias",
+			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","rollover_alias":"apm-metric"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
 					Mappings: map[string]Mapping{
-						"error":       {EventType: "error", PolicyName: defaultPolicyName},
-						"span":        {EventType: "span", PolicyName: "spanPolicy"},
-						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName},
-						"metric":      {EventType: "metric", PolicyName: defaultPolicyName},
-						"profile":     {EventType: "profile", PolicyName: defaultPolicyName},
+						"error": {EventType: "error", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-%{[observer.version]}-error"},
+						"span": {EventType: "span", PolicyName: "spanPolicy",
+							RolloverAlias: "apm-%{[observer.version]}-span"},
+						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-%{[observer.version]}-transaction"},
+						"metric": {EventType: "metric", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-metric"},
+						"profile": {EventType: "profile", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-%{[observer.version]}-profile"},
 					},
 					Policies: map[string]Policy{
 						defaultPolicyName: defaultPolicies()[defaultPolicyName],
@@ -148,13 +153,12 @@ func TestConfig_Valid(t *testing.T) {
 			cfg: `{"setup":{"require_policy":false,"mapping":[{"event_type":"error","policy_name":"errorPolicy"}]}}`,
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: false,
-					Mappings: map[string]Mapping{
-						"error":       {EventType: "error", PolicyName: "errorPolicy"},
-						"span":        {EventType: "span", PolicyName: defaultPolicyName},
-						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName},
-						"metric":      {EventType: "metric", PolicyName: defaultPolicyName},
-						"profile":     {EventType: "profile", PolicyName: defaultPolicyName},
-					},
+					Mappings: func() map[string]Mapping {
+						m := defaultMappings()
+						m["error"] = Mapping{EventType: "error", PolicyName: "errorPolicy",
+							RolloverAlias: "apm-%{[observer.version]}-error"}
+						return m
+					}(),
 					Policies: defaultPolicies(),
 				}},
 		},
@@ -180,9 +184,6 @@ func TestConfig_Invalid(t *testing.T) {
 		{name: "invalid policy",
 			cfg:    `{"setup":{"mapping":[{"event_type":"span","policy_name":"xyz"}]}}`,
 			errMsg: "policy 'xyz' not configured"},
-		{name: "empty policy name",
-			cfg:    `{"setup":{"mapping":[{"event_type":"span"}]}}`,
-			errMsg: "empty policy_name"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := NewConfig(common.MustNewConfigFrom(tc.cfg))

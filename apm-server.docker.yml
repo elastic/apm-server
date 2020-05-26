@@ -387,12 +387,16 @@ apm-server:
       #mapping:
         #- event_type: "error"
         #  policy_name: "apm-rollover-30-days"
+        #  rollover_alias: "apm-%{[observer.version]}-error"
         #- event_type: "span"
         #  policy_name: "apm-rollover-30-days"
+        #  rollover_alias: "apm-%{[observer.version]}-span"
         #- event_type: "transaction"
         #  policy_name: "apm-rollover-30-days"
+        #  rollover_alias: "apm-%{[observer.version]}-transaction"
         #- event_type: "metric"
         #  policy_name: "apm-rollover-30-days"
+        #  rollover_alias: "apm-%{[observer.version]}-metric"
 
       # Configured policies are added to pre-defined default policies.
       # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.

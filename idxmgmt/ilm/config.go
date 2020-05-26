@@ -48,8 +48,9 @@ type Policies map[string]Policy
 
 //Mapping binds together an ILM policy's name and body with an event type
 type Mapping struct {
-	EventType  string `config:"event_type"`
-	PolicyName string `config:"policy_name"`
+	EventType     string `config:"event_type"`
+	PolicyName    string `config:"policy_name"`
+	RolloverAlias string `config:"rollover_alias"`
 }
 
 // Policy contains information about an ILM policy and the name
@@ -90,6 +91,9 @@ func validate(c *Config) error {
 		if m.PolicyName == "" {
 			return errors.New("empty policy_name not supported for ILM setup")
 		}
+		if m.RolloverAlias == "" {
+			return errors.New("empty rollover_alias not supported for ILM setup")
+		}
 		if !c.Setup.RequirePolicy {
 			// `require_policy=false` indicates that policies are set up outside
 			// the APM Server, therefore do not throw an error here.
@@ -109,7 +113,16 @@ func (m *Mappings) Unpack(cfg *common.Config) error {
 		return err
 	}
 	for _, mapping := range mappings {
+		if existing, ok := (*m)[mapping.EventType]; ok {
+			if mapping.PolicyName == "" {
+				mapping.PolicyName = existing.PolicyName
+			}
+			if mapping.RolloverAlias == "" {
+				mapping.RolloverAlias = existing.RolloverAlias
+			}
+		}
 		(*m)[mapping.EventType] = mapping
+
 	}
 	return nil
 }
@@ -148,11 +161,16 @@ func preparePolicyBody(m map[string]interface{}) map[string]interface{} {
 
 func defaultMappings() map[string]Mapping {
 	return map[string]Mapping{
-		"error":       {EventType: "error", PolicyName: defaultPolicyName},
-		"span":        {EventType: "span", PolicyName: defaultPolicyName},
-		"transaction": {EventType: "transaction", PolicyName: defaultPolicyName},
-		"metric":      {EventType: "metric", PolicyName: defaultPolicyName},
-		"profile":     {EventType: "profile", PolicyName: defaultPolicyName},
+		"error": {EventType: "error", PolicyName: defaultPolicyName,
+			RolloverAlias: "apm-%{[observer.version]}-error"},
+		"span": {EventType: "span", PolicyName: defaultPolicyName,
+			RolloverAlias: "apm-%{[observer.version]}-span"},
+		"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
+			RolloverAlias: "apm-%{[observer.version]}-transaction"},
+		"metric": {EventType: "metric", PolicyName: defaultPolicyName,
+			RolloverAlias: "apm-%{[observer.version]}-metric"},
+		"profile": {EventType: "profile", PolicyName: defaultPolicyName,
+			RolloverAlias: "apm-%{[observer.version]}-profile"},
 	}
 }
 

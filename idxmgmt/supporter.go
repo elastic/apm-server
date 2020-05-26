@@ -101,7 +101,7 @@ func newSupporter(
 		st.isSet.CAS(false, true)
 	}
 
-	ilmSupporters, err := ilm.MakeDefaultSupporter(log, info, mode, ilmConfig, eventIdxNames(false))
+	ilmSupporters, err := ilm.MakeDefaultSupporter(log, info, mode, ilmConfig)
 	if err != nil {
 		return nil, err
 	}

@@ -20,8 +20,6 @@ package ilm
 import (
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
@@ -38,8 +36,7 @@ func MakeDefaultSupporter(
 	log *logp.Logger,
 	info beat.Info,
 	mode libilm.Mode,
-	ilmConfig Config,
-	eventIndexNames map[string]string) ([]libilm.Supporter, error) {
+	ilmConfig Config) ([]libilm.Supporter, error) {
 
 	if log == nil {
 		log = logp.NewLogger(logs.Ilm)
@@ -50,11 +47,7 @@ func MakeDefaultSupporter(
 	var supporters []libilm.Supporter
 
 	for _, m := range ilmConfig.Setup.Mappings {
-		index, ok := eventIndexNames[m.EventType]
-		if !ok {
-			return nil, errors.Errorf("index name missing for event %s when building ILM supporter", m.EventType)
-		}
-		alias, err := applyStaticFmtstr(info, index)
+		alias, err := applyStaticFmtstr(info, m.RolloverAlias)
 		if err != nil {
 			return nil, err
 		}

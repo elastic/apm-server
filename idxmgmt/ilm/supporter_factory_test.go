@@ -29,41 +29,29 @@ import (
 func TestMakeDefaultSupporter(t *testing.T) {
 	info := beat.Info{Beat: "mockapm", Version: "9.9.9"}
 
-	t.Run("missing index", func(t *testing.T) {
-		cfg := Config{Setup: Setup{Mappings: Mappings{
-			"abc": Mapping{EventType: "abc", PolicyName: defaultPolicyName},
-		}}}
-		indexNames := map[string]string{}
-		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
-		assert.Nil(t, s)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "index name missing")
-	})
-
 	t.Run("invalid index name", func(t *testing.T) {
 		cfg := Config{Setup: Setup{Mappings: Mappings{
-			"error": Mapping{EventType: "error", PolicyName: defaultPolicyName},
+			"error": Mapping{EventType: "error", PolicyName: defaultPolicyName,
+				RolloverAlias: "%{[xyz.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}"},
 		}}}
-		indexNames := map[string]string{"error": "%{[xyz.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}"}
-		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
+		s, err := MakeDefaultSupporter(nil, info, 0, cfg)
 		assert.Nil(t, s)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "key not found")
 	})
 
 	t.Run("valid", func(t *testing.T) {
-		cfg := Config{Setup: Setup{Policies: defaultPolicies(),
-			Mappings: Mappings{
-				"error":       Mapping{EventType: "error", PolicyName: defaultPolicyName},
-				"transaction": Mapping{EventType: "transaction", PolicyName: defaultPolicyName}}}}
-		indexNames := map[string]string{
-			"error":       "%{[observer.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}",
-			"transaction": "apm-8.0.0-transaction",
-		}
-		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
+		cfg := Config{Setup: Setup{Policies: defaultPolicies(), Mappings: defaultMappings()}}
+
+		s, err := MakeDefaultSupporter(nil, info, 0, cfg)
 		require.NoError(t, err)
-		assert.Equal(t, 2, len(s))
-		assert.Equal(t, "mockapm-9.9.9-mockapm-9.9.9", s[0].Alias().Name)
-		assert.Equal(t, defaultPolicyName, s[0].Policy().Name)
+		assert.Equal(t, 5, len(s))
+		var aliases []string
+		for _, sup := range s {
+			aliases = append(aliases, sup.Alias().Name)
+			assert.Equal(t, defaultPolicyName, sup.Policy().Name)
+		}
+		defaultAliases := []string{"apm-9.9.9-error", "apm-9.9.9-span", "apm-9.9.9-transaction", "apm-9.9.9-metric", "apm-9.9.9-profile"}
+		assert.ElementsMatch(t, defaultAliases, aliases)
 	})
 }
