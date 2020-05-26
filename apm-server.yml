@@ -245,6 +245,10 @@ apm-server:
     # "Content-Encoding", and "Accept"
     #allow_headers : []
 
+    # Custom headers to return in intake responses, eg. maybe for compliance
+    #response_headers :
+    #  X-My-Header: Contents of the header
+
     # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
     # If the regexp matches, the stacktrace frame is considered to be a library frame.
     #library_pattern: "node_modules|bower_components|~"
