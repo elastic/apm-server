@@ -98,7 +98,7 @@ const RUMV3Schema = `{
                 }
             }
         },
-        "tags": {
+        "g": {
                 "$id": "docs/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
