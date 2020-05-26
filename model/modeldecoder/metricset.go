@@ -79,7 +79,7 @@ func decodeMetricset(input Input, schema *jsonschema.Schema) (*model.Metricset, 
 		return nil, md.Err
 	}
 
-	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
+	if tags := utility.Prune(md.MapStr(raw, fieldName("tags"))); len(tags) > 0 {
 		e.Labels = tags
 	}
 	if e.Timestamp.IsZero() {
