@@ -29,39 +29,41 @@ import (
 func TestMakeDefaultSupporter(t *testing.T) {
 	info := beat.Info{Beat: "mockapm", Version: "9.9.9"}
 
-	config := func(policies []EventPolicy) Config {
-		return Config{Setup: Setup{Policies: policies}}
-	}
-
 	t.Run("missing index", func(t *testing.T) {
-		cfg := config([]EventPolicy{{EventType: "abc", Policy: map[string]interface{}{}}})
+		cfg := Config{Setup: Setup{Mappings: Mappings{
+			"abc": Mapping{EventType: "abc", PolicyName: defaultPolicyName},
+		}}}
 		indexNames := map[string]string{}
 		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
 		assert.Nil(t, s)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "index name missing")
 	})
+
 	t.Run("invalid index name", func(t *testing.T) {
-		cfg := config([]EventPolicy{{EventType: "error", Policy: map[string]interface{}{}}})
+		cfg := Config{Setup: Setup{Mappings: Mappings{
+			"error": Mapping{EventType: "error", PolicyName: defaultPolicyName},
+		}}}
 		indexNames := map[string]string{"error": "%{[xyz.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}"}
 		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
 		assert.Nil(t, s)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "key not found")
 	})
+
 	t.Run("valid", func(t *testing.T) {
-		cfg := config([]EventPolicy{
-			{EventType: "error", Policy: map[string]interface{}{"a": "b"}, Name: "foo"},
-			{EventType: "transaction", Policy: map[string]interface{}{"b": "c"}},
-		})
+		cfg := Config{Setup: Setup{Policies: defaultPolicies(),
+			Mappings: Mappings{
+				"error":       Mapping{EventType: "error", PolicyName: defaultPolicyName},
+				"transaction": Mapping{EventType: "transaction", PolicyName: defaultPolicyName}}}}
 		indexNames := map[string]string{
 			"error":       "%{[observer.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}",
 			"transaction": "apm-8.0.0-transaction",
 		}
 		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
+		require.NoError(t, err)
 		assert.Equal(t, 2, len(s))
 		assert.Equal(t, "mockapm-9.9.9-mockapm-9.9.9", s[0].Alias().Name)
-		assert.Equal(t, "foo", s[0].Policy().Name)
-		require.NoError(t, err)
+		assert.Equal(t, defaultPolicyName, s[0].Policy().Name)
 	})
 }

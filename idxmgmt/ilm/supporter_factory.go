@@ -49,18 +49,18 @@ func MakeDefaultSupporter(
 
 	var supporters []libilm.Supporter
 
-	for _, p := range ilmConfig.Setup.Policies {
-		index, ok := eventIndexNames[p.EventType]
+	for _, m := range ilmConfig.Setup.Mappings {
+		index, ok := eventIndexNames[m.EventType]
 		if !ok {
-			return nil, errors.Errorf("index name missing for event %s when building ILM supporter", p.EventType)
+			return nil, errors.Errorf("index name missing for event %s when building ILM supporter", m.EventType)
 		}
 		alias, err := applyStaticFmtstr(info, index)
 		if err != nil {
 			return nil, err
 		}
-
+		policy := ilmConfig.Setup.Policies[m.PolicyName]
 		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: alias, Pattern: pattern},
-			libilm.Policy{Name: p.Name, Body: p.Policy}, ilmConfig.Setup.Overwrite, true)
+			libilm.Policy{Name: policy.Name, Body: policy.Body}, ilmConfig.Setup.Overwrite, true)
 		supporters = append(supporters, supporter)
 	}
 	return supporters, nil

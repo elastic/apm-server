@@ -64,11 +64,10 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 }
 
 func unpackTemplateConfig(cfg *common.Config) (template.TemplateConfig, error) {
-	if cfg == nil {
-		cfg = common.NewConfig()
-	}
-
 	config := template.DefaultConfig()
+	if cfg == nil {
+		return config, nil
+	}
 	err := cfg.Unpack(&config)
 	return config, err
 }
