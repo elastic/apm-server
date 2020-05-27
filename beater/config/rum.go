@@ -43,13 +43,14 @@ const (
 
 // RumConfig holds config information related to the RUM endpoint
 type RumConfig struct {
-	Enabled             *bool          `config:"enabled"`
-	EventRate           *EventRate     `config:"event_rate"`
-	AllowOrigins        []string       `config:"allow_origins"`
-	AllowHeaders        []string       `config:"allow_headers"`
-	LibraryPattern      string         `config:"library_pattern"`
-	ExcludeFromGrouping string         `config:"exclude_from_grouping"`
-	SourceMapping       *SourceMapping `config:"source_mapping"`
+	Enabled             *bool               `config:"enabled"`
+	EventRate           *EventRate          `config:"event_rate"`
+	AllowOrigins        []string            `config:"allow_origins"`
+	AllowHeaders        []string            `config:"allow_headers"`
+	ResponseHeaders     map[string][]string `config:"response_headers"`
+	LibraryPattern      string              `config:"library_pattern"`
+	ExcludeFromGrouping string              `config:"exclude_from_grouping"`
+	SourceMapping       *SourceMapping      `config:"source_mapping"`
 
 	BeatVersion string
 }
