@@ -14,3 +14,4 @@ https://github.com/elastic/apm-server/compare/7.8\...master[View commits]
 
 [float]
 ==== Added
+* Support configurable response headers for the RUM endpoints {pull}3820[3820]
