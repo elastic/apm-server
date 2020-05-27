@@ -16,12 +16,6 @@ information, and another for viewing it
 * <<privileges-agent-central-config,Central configuration management role>>: To view, create,
 update, and delete APM Agent central configurations.
 
-// In addition, you may need to create additional roles for other APM tasks:
-
-// * <<kibana-user-privileges,Reader roles>>, for {kib} users who need to view the APM app,
-// or create and edit visualizations that access +{beat_default_index_prefix}-*+ data.
-// * Various <<privileges-apm-app-api,APM app API roles>>, for interacting with the APIs exposed by the APM app.
-
 {es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
 subset of the privileges needed by APM users.
 When possible, assign users the built-in roles to minimize the affect of future changes on your security strategy.
@@ -404,8 +398,8 @@ assign the user the following privileges:
 |Allow {beatname_uc} to manage central configurations via the {beat_kib_app}
 |====
 
-// TIP: Looking for privileges and roles needed use central configuration from the APM app or APM app API?
-// See <<KIBANA LINK HERE>>.
+TIP: Looking for privileges and roles needed use central configuration from the APM app or APM app API?
+See {kibana-ref}/apm-app-central-config-user.html[APM app central configuration user].
 
 ////
 ***********************************  ***********************************
@@ -426,6 +420,18 @@ assign the user the following privileges:
 ***********************************  ***********************************
 ////
 
+[[more-security-roles]]
+=== Additional APM users and roles
+
+In addition to the {beatname_uc} users described in this documentation,
+you'll likely need to create users for other APM tasks:
+
+* An {kibana-ref}/apm-app-reader.html[APM reader], for {kib} users who need to view the APM app,
+or create and edit visualizations that access +{beat_default_index_prefix}-*+ data.
+* Various {kibana-ref}/apm-app-api-user.html[APM app API users],
+for interacting with the APIs exposed by the APM app.
+
+[float]
 [[learn-more-security]]
 === Learn more about users and roles
 
