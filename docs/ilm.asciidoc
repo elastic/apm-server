@@ -14,6 +14,7 @@ All of this can be done directly from the `apm-server.yml` file.
 
 * <<ilm-enable>>
 * <<ilm-setup>>
+* <<custom-ilm-alias>>
 * <<custom-ilm-policy>>
 * <<example-ilm-config>>
 * <<map-ilm-policy>>
@@ -58,6 +59,40 @@ apm-server:
 ----
 
 ILM can now be customized via the remaining `apm-server.ilm.setup.*` configuration options.
+
+[float]
+[[custom-ilm-alias]]
+==== Create a custom ILM rollover_alias
+
+You can define a custom `rollover_alias` per event type.
+
+NOTE: Ensure that the configured aliases for all event types start with the same prefix,
+and that this prefix is also configured for `setup.template.name` and `setup.template.pattern`.
+If the template configuration is not accordingly changed, the Elasticsearch index template with
+the predefined mappings will not match against created indices, leading to indexing issues.
+
+The example below shows how to change the rollover alias to some custom value,
+and setting the template configuration to a matching name and pattern.
+
+[source,yml]
+----
+apm-server:
+  ilm:
+    enabled: "auto"
+    setup:
+      mapping:
+        - event_type: "error"
+          rollover_alias: "apm-dev-error"
+        - event_type: "span"
+          rollover_alias: "apm-dev-span"
+        - event_type: "transaction"
+          rollover_alias: "apm-dev-transaction"
+        - event_type: "metric"
+          rollover_alias: "apm-dev-metric"
+
+setup.template.name: "apm-dev"
+setup.template.pattern: "apm-dev*"
+----
 
 [float]
 [[custom-ilm-policy]]
@@ -197,6 +232,8 @@ and a delete phase after 30 days.
 The `apm-transaction-metric-policy` keeps data in the hot, warm, and cold phases for a longer period of time,
 and does not delete any data.
 
+Additionally this example shows how to set custom rollover aliases.
+
 [source,yml]
 ----
   ilm:
@@ -205,12 +242,16 @@ and does not delete any data.
       mapping:
         - event_type: "error"
           policy_name: "apm-error-span-policy"
+          rollover_alias: "apm-%{[observer.version]}-development-error"
         - event_type: "span"
           policy_name: "apm-error-span-policy"
+          rollover_alias: "apm-%{[observer.version]}-development-span"
         - event_type: "transaction"
           policy_name: "apm-transaction-metric-policy"
+          rollover_alias: "apm-%{[observer.version]}-development-transaction"
         - event_type: "metric"
           policy_name: "apm-transaction-metric-policy"
+          rollover_alias: "apm-%{[observer.version]}-development-metric"
       enabled: true
       policies:
         - name: "apm-error-span-policy"
