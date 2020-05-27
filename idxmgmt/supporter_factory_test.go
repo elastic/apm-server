@@ -27,6 +27,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
+
+	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 )
 
 func TestMakeDefaultSupporter(t *testing.T) {
@@ -55,7 +57,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.True(t, s.templateConfig.Enabled)
 		assert.Equal(t, libilm.ModeAuto, s.ilmConfig.Mode)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
-		assert.Equal(t, &esIndexConfig{}, s.esIdxCfg)
+		assert.Equal(t, &unmanaged.Config{}, s.unmanagedIdxConfig)
 	})
 
 	t.Run("ILMDisabled", func(t *testing.T) {

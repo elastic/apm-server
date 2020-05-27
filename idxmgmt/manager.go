@@ -26,6 +26,7 @@ import (
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 
 	"github.com/elastic/apm-server/idxmgmt/ilm"
+	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -95,9 +96,6 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 	m.supporter.templateConfig.Overwrite = templateFeature.overwrite
 
 	//(1) load general apm template
-	//only set to user configured name and pattern if ilm is disabled
-	//default template name and pattern, must be the same whether or not ilm is enabled or not,
-	//allowing former templates to be overwritten
 	if err := m.loadTemplate(templateFeature, ilmFeature); err != nil {
 		return err
 	}
@@ -161,7 +159,7 @@ func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) feature {
 		f := newFeature(enabled, m.supporter.ilmConfig.Setup.Overwrite,
 			m.supporter.ilmConfig.Setup.Enabled, true, loadMode)
 		f.warn = warning(f)
-		if m.supporter.esIdxCfg.customized() {
+		if m.supporter.unmanagedIdxConfig.Customized() {
 			f.warn += msgIdxCfgIgnored
 		}
 		f.info = information(f)
@@ -176,7 +174,7 @@ func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) feature {
 	// collect error when ilm is configured `true` but it cannot be enabled as preconditions are not met
 	var warn string
 	if m.supporter.ilmConfig.Mode == libilm.ModeAuto {
-		if m.supporter.esIdxCfg.customized() {
+		if m.supporter.unmanagedIdxConfig.Customized() {
 			warn = msgIlmDisabledCfg
 		} else {
 			warn = msgIlmDisabledES
@@ -198,8 +196,15 @@ func (m *manager) loadTemplate(templateFeature, ilmFeature feature) error {
 	if !templateFeature.load {
 		return nil
 	}
-	if ilmFeature.enabled || m.supporter.templateConfig.Name == "" && m.supporter.templateConfig.Pattern == "" {
-		m.supporter.templateConfig.Name = fmt.Sprintf("%s-%s", apmPrefix, apmVersion)
+	// if not customized, set the APM template name and pattern to the
+	// default index prefix for managed and unmanaged indices;
+	// in case the index/rollover_alias names were customized
+	if m.supporter.templateConfig.Name == "" && m.supporter.templateConfig.Pattern == "" {
+		if ilmFeature.enabled {
+			m.supporter.templateConfig.Name = ilm.APMPrefix
+		} else {
+			m.supporter.templateConfig.Name = unmanaged.APMPrefix
+		}
 		m.supporter.log.Infof("Set setup.template.name to '%s'.", m.supporter.templateConfig.Name)
 		m.supporter.templateConfig.Pattern = m.supporter.templateConfig.Name + "*"
 		m.supporter.log.Infof("Set setup.template.pattern to '%s'.", m.supporter.templateConfig.Pattern)

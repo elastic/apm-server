@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package idxmgmt
+package unmanaged
 
 import (
 	"fmt"
@@ -24,60 +24,36 @@ import (
 )
 
 const (
-	apmPrefix  = "apm"
-	apmPattern = "apm*"
-	apmVersion = "%{[observer.version]}"
-	apmSuffix  = "-%{+yyyy.MM.dd}"
+	APMPrefix = "apm-%{[observer.version]}"
+	apmSuffix = "-%{+yyyy.MM.dd}"
 )
 
-type esIndexConfig struct {
+var eventTypes = []string{"span", "transaction", "error", "metric", "profile"}
+
+type Config struct {
 	Index   string         `config:"index"`
 	Indices *common.Config `config:"indices"`
 }
 
-func (cfg *esIndexConfig) customized() bool {
+func (cfg *Config) Customized() bool {
 	if cfg == nil {
 		return false
 	}
 	return cfg.Index != "" || cfg.Indices != nil
 }
 
-var defaultIndex = fmt.Sprintf("%s-%s%s", apmPrefix, apmVersion, apmSuffix)
-
-func idxStr(name string, suffix string) string {
-	return fmt.Sprintf("%s-%s-%s%s", apmPrefix, apmVersion, name, suffix)
-}
-
-func eventIdxNames(dateSuffix bool) map[string]string {
-	var suffix = ""
-	if dateSuffix {
-		suffix = apmSuffix
-	}
-	idcs := map[string]string{}
-	for _, k := range []string{"span", "transaction", "error", "metric", "profile"} {
-		idcs[k] = idxStr(k, suffix)
-	}
-	return idcs
-}
-
-func othersIdxNames() map[string]string {
-	return map[string]string{
-		"sourcemap":  idxStr("sourcemap", ""),
-		"onboarding": idxStr("onboarding", apmSuffix),
-	}
-}
-
-func indices(cfg *esIndexConfig) (*common.Config, error) {
+func (cfg *Config) SelectorConfig() (*common.Config, error) {
 	var idcsCfg = common.NewConfig()
 
 	// set defaults
 	if cfg.Index == "" {
 		// set fallback default index
-		idcsCfg.SetString("index", -1, defaultIndex)
+		fallbackIndex := fmt.Sprintf("%s%s", APMPrefix, apmSuffix)
+		idcsCfg.SetString("index", -1, fallbackIndex)
 
 		// set default indices if not set
 		if cfg.Indices == nil {
-			if indicesCfg, err := common.NewConfigFrom(indicesConditions(false)); err == nil {
+			if indicesCfg, err := common.NewConfigFrom(conditionalIndices()); err == nil {
 				idcsCfg.SetChild("indices", -1, indicesCfg)
 			}
 		}
@@ -97,26 +73,13 @@ func indices(cfg *esIndexConfig) (*common.Config, error) {
 	return idcsCfg, nil
 }
 
-func ilmIndices() (*common.Config, error) {
-	var idcsCfg = common.NewConfig()
-
-	// set fallback index
-	idcsCfg.SetString("index", -1, defaultIndex)
-
-	if indicesCfg, err := common.NewConfigFrom(indicesConditions(true)); err == nil {
-		idcsCfg.SetChild("indices", -1, indicesCfg)
+func conditionalIndices() []map[string]interface{} {
+	conditions := []map[string]interface{}{
+		condition("sourcemap", idxStr("sourcemap", "")),
+		condition("onboarding", idxStr("onboarding", apmSuffix)),
 	}
-	return idcsCfg, nil
-}
-
-func indicesConditions(ilm bool) []map[string]interface{} {
-	indices := eventIdxNames(!ilm)
-	for k, v := range othersIdxNames() {
-		indices[k] = v
-	}
-	var conditions []map[string]interface{}
-	for k, v := range indices {
-		conditions = append(conditions, condition(k, v))
+	for _, k := range eventTypes {
+		conditions = append(conditions, condition(k, idxStr(k, apmSuffix)))
 	}
 	return conditions
 }
@@ -126,4 +89,8 @@ func condition(event string, index string) map[string]interface{} {
 		"index": index,
 		"when":  map[string]interface{}{"contains": map[string]interface{}{"processor.event": event}},
 	}
+}
+
+func idxStr(name string, suffix string) string {
+	return fmt.Sprintf("%s-%s%s", APMPrefix, name, suffix)
 }

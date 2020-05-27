@@ -18,17 +18,19 @@
 package ilm
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 )
 
 func TestConfig_Default(t *testing.T) {
-	c, err := NewConfig(nil)
+	c, err := NewConfig(info(), nil)
 	require.NoError(t, err)
 	expectedCfg := Config{
 		Mode: libilm.ModeAuto,
@@ -36,7 +38,7 @@ func TestConfig_Default(t *testing.T) {
 			Enabled:       true,
 			Overwrite:     false,
 			RequirePolicy: true,
-			Mappings:      defaultMappings(),
+			Mappings:      defaultMappingsResolved(info()),
 			Policies:      defaultPolicies()}}
 	assert.Equal(t, expectedCfg, c)
 }
@@ -51,7 +53,7 @@ func TestConfig_Mode(t *testing.T) {
 		"enabled":  {`{"enabled":"true"}`, libilm.ModeEnabled},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(tc.cfg))
+			c, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, c.Mode)
 		})
@@ -67,7 +69,7 @@ func TestConfig_SetupEnabled(t *testing.T) {
 		"disabled": {`{"setup":{"enabled":false}}`, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(tc.cfg))
+			c, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.enabled, c.Setup.Enabled)
 		})
@@ -83,7 +85,7 @@ func TestConfig_SetupOverwrite(t *testing.T) {
 		"do not overwrite": {`{"setup":{"overwrite":false}}`, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(tc.cfg))
+			c, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.overwrite, c.Setup.Overwrite)
 		})
@@ -99,7 +101,7 @@ func TestConfig_RequirePolicy(t *testing.T) {
 		"not required": {map[string]interface{}{"require_policy": false}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+			c, err := NewConfig(info(), common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.NoError(t, err)
 			assert.Equal(t, tc.required, c.Setup.RequirePolicy)
 		})
@@ -119,15 +121,15 @@ func TestConfig_Valid(t *testing.T) {
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
 					Mappings: map[string]Mapping{
 						"error": {EventType: "error", PolicyName: defaultPolicyName,
-							RolloverAlias: "apm-%{[observer.version]}-error"},
+							RolloverAlias: "apm-9.9.9-error"},
 						"span": {EventType: "span", PolicyName: "spanPolicy",
-							RolloverAlias: "apm-%{[observer.version]}-span"},
+							RolloverAlias: "apm-9.9.9-span"},
 						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
-							RolloverAlias: "apm-%{[observer.version]}-transaction"},
+							RolloverAlias: "apm-9.9.9-transaction"},
 						"metric": {EventType: "metric", PolicyName: defaultPolicyName,
 							RolloverAlias: "apm-metric"},
 						"profile": {EventType: "profile", PolicyName: defaultPolicyName,
-							RolloverAlias: "apm-%{[observer.version]}-profile"},
+							RolloverAlias: "apm-9.9.9-profile"},
 					},
 					Policies: map[string]Policy{
 						defaultPolicyName: defaultPolicies()[defaultPolicyName],
@@ -141,7 +143,7 @@ func TestConfig_Valid(t *testing.T) {
 			cfg: `{"setup":{"policies":[{"name":"apm-rollover-30-days","policy":{"phases":{"warm":{"min_age":"30d"}}}}]}}`,
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
-					Mappings: defaultMappings(),
+					Mappings: defaultMappingsResolved(info()),
 					Policies: map[string]Policy{
 						defaultPolicyName: {Name: defaultPolicyName, Body: map[string]interface{}{
 							"policy": map[string]interface{}{"phases": map[string]interface{}{
@@ -154,9 +156,9 @@ func TestConfig_Valid(t *testing.T) {
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: false,
 					Mappings: func() map[string]Mapping {
-						m := defaultMappings()
+						m := defaultMappingsResolved(info())
 						m["error"] = Mapping{EventType: "error", PolicyName: "errorPolicy",
-							RolloverAlias: "apm-%{[observer.version]}-error"}
+							RolloverAlias: "apm-9.9.9-error"}
 						return m
 					}(),
 					Policies: defaultPolicies(),
@@ -164,7 +166,7 @@ func TestConfig_Valid(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg, err := NewConfig(common.MustNewConfigFrom(tc.cfg))
+			cfg, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, cfg)
 		})
@@ -184,12 +186,27 @@ func TestConfig_Invalid(t *testing.T) {
 		{name: "invalid policy",
 			cfg:    `{"setup":{"mapping":[{"event_type":"span","policy_name":"xyz"}]}}`,
 			errMsg: "policy 'xyz' not configured"},
+		{name: "invalid rollover_alias",
+			cfg:    `{"setup":{"mapping":[{"event_type":"span","rollover_alias":"apm-%{[foo.version]}"}]}}`,
+			errMsg: "rollover_alias cannot be resolved"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := NewConfig(common.MustNewConfigFrom(tc.cfg))
+			_, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tc.errMsg)
 		})
 	}
+}
 
+func info() beat.Info {
+	return beat.Info{Beat: "mockapm", Version: "9.9.9"}
+}
+
+func defaultMappingsResolved(info beat.Info) map[string]Mapping {
+	m := defaultMappings()
+	for k, v := range m {
+		v.RolloverAlias = fmt.Sprintf("apm-%s-%s", info.Version, k)
+		m[k] = v
+	}
+	return m
 }

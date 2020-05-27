@@ -18,11 +18,6 @@
 package ilm
 
 import (
-	"time"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
@@ -34,7 +29,6 @@ const pattern = "000001"
 // MakeDefaultSupporter creates the ILM supporter for APM that is passed to libbeat.
 func MakeDefaultSupporter(
 	log *logp.Logger,
-	info beat.Info,
 	mode libilm.Mode,
 	ilmConfig Config) ([]libilm.Supporter, error) {
 
@@ -47,35 +41,10 @@ func MakeDefaultSupporter(
 	var supporters []libilm.Supporter
 
 	for _, m := range ilmConfig.Setup.Mappings {
-		alias, err := applyStaticFmtstr(info, m.RolloverAlias)
-		if err != nil {
-			return nil, err
-		}
 		policy := ilmConfig.Setup.Policies[m.PolicyName]
-		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: alias, Pattern: pattern},
+		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: m.RolloverAlias, Pattern: pattern},
 			libilm.Policy{Name: policy.Name, Body: policy.Body}, ilmConfig.Setup.Overwrite, true)
 		supporters = append(supporters, supporter)
 	}
 	return supporters, nil
-}
-
-func applyStaticFmtstr(info beat.Info, s string) (string, error) {
-	fmt, err := fmtstr.CompileEvent(s)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Run(&beat.Event{
-		Fields: common.MapStr{
-			// beat object was left in for backward compatibility reason for older configs.
-			"beat": common.MapStr{
-				"name":    info.Beat,
-				"version": info.Version,
-			},
-			"observer": common.MapStr{
-				"name":    info.Beat,
-				"version": info.Version,
-			},
-		},
-		Timestamp: time.Now(),
-	})
 }

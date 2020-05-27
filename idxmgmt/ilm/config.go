@@ -18,15 +18,23 @@
 package ilm
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/pkg/errors"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 )
 
 const (
+	APMPrefix         = "apm-%{[observer.version]}"
 	defaultPolicyName = "apm-rollover-30-days"
 )
+
+var eventTypes = []string{"span", "transaction", "error", "metric", "profile"}
 
 //Config holds information about ILM mode and whether or not the server should manage the setup
 type Config struct {
@@ -67,13 +75,23 @@ type Policy struct {
 // TODO(simitt): when the bug is fixed
 // - move the validation part into a `Validate` method
 // - remove the extra handling for `defaultPolicies` and add to defaultConfig instead.
-func NewConfig(cfg *common.Config) (Config, error) {
+func NewConfig(info beat.Info, cfg *common.Config) (Config, error) {
 	config := Config{Mode: libilm.ModeAuto,
 		Setup: Setup{Enabled: true, RequirePolicy: true, Mappings: defaultMappings()}}
+	var err error
 	if cfg != nil {
-		if err := cfg.Unpack(&config); err != nil {
+		if err = cfg.Unpack(&config); err != nil {
 			return Config{}, err
 		}
+	}
+	// replace variable rollover_alias parts with beat information if available
+	// otherwise fail as the full alias needs to be known during setup.
+	for et, m := range config.Setup.Mappings {
+		m.RolloverAlias, err = applyStaticFmtstr(info, m.RolloverAlias)
+		if err != nil {
+			return Config{}, errors.Wrap(err, "variable part of rollover_alias cannot be resolved")
+		}
+		config.Setup.Mappings[et] = m
 	}
 	if len(config.Setup.Policies) == 0 {
 		config.Setup.Policies = defaultPolicies()
@@ -81,30 +99,17 @@ func NewConfig(cfg *common.Config) (Config, error) {
 	return config, validate(&config)
 }
 
-// validate configuration and raise error if unexpected input given
-func validate(c *Config) error {
-	definedMappings := defaultMappings()
-	for _, m := range c.Setup.Mappings {
-		if _, ok := definedMappings[m.EventType]; !ok {
-			return errors.Errorf("event_type '%s' not supported for ILM setup", m.EventType)
-		}
-		if m.PolicyName == "" {
-			return errors.New("empty policy_name not supported for ILM setup")
-		}
-		if m.RolloverAlias == "" {
-			return errors.New("empty rollover_alias not supported for ILM setup")
-		}
-		if !c.Setup.RequirePolicy {
-			// `require_policy=false` indicates that policies are set up outside
-			// the APM Server, therefore do not throw an error here.
-			return nil
-		}
-		if _, ok := c.Setup.Policies[m.PolicyName]; !ok {
-			return errors.Errorf("policy '%s' not configured for ILM setup, "+
-				"set `apm-server.ilm.require_policy: false` to disable verification", m.PolicyName)
-		}
+func (c *Config) SelectorConfig() (*common.Config, error) {
+	var idcsCfg = common.NewConfig()
+	// set fallback index for ingested events with unknown event type
+	fallbackIndex := "apm-%{[observer.version]}-%{+yyyy.MM.dd}"
+	idcsCfg.SetString("index", -1, fallbackIndex)
+
+	if indicesCfg, err := common.NewConfigFrom(c.conditionalIndices()); err == nil {
+		idcsCfg.SetChild("indices", -1, indicesCfg)
 	}
-	return nil
+	return idcsCfg, nil
+
 }
 
 func (m *Mappings) Unpack(cfg *common.Config) error {
@@ -144,6 +149,32 @@ func (p *Policies) Unpack(cfg *common.Config) error {
 	return nil
 }
 
+// validate configuration and raise error if unexpected input given
+func validate(c *Config) error {
+	definedMappings := defaultMappings()
+	for _, m := range c.Setup.Mappings {
+		if _, ok := definedMappings[m.EventType]; !ok {
+			return errors.Errorf("event_type '%s' not supported for ILM setup", m.EventType)
+		}
+		if m.PolicyName == "" {
+			return errors.New("empty policy_name not supported for ILM setup")
+		}
+		if m.RolloverAlias == "" {
+			return errors.New("empty rollover_alias not supported for ILM setup")
+		}
+		if !c.Setup.RequirePolicy {
+			// `require_policy=false` indicates that policies are set up outside
+			// the APM Server, therefore do not throw an error here.
+			return nil
+		}
+		if _, ok := c.Setup.Policies[m.PolicyName]; !ok {
+			return errors.Errorf("policy '%s' not configured for ILM setup, "+
+				"set `apm-server.ilm.require_policy: false` to disable verification", m.PolicyName)
+		}
+	}
+	return nil
+}
+
 //preparePolicyBody ensures maps are in the format elasticsearch expects for policy bodies
 func preparePolicyBody(m map[string]interface{}) map[string]interface{} {
 	for k, v := range m {
@@ -159,19 +190,34 @@ func preparePolicyBody(m map[string]interface{}) map[string]interface{} {
 	return m
 }
 
-func defaultMappings() map[string]Mapping {
-	return map[string]Mapping{
-		"error": {EventType: "error", PolicyName: defaultPolicyName,
-			RolloverAlias: "apm-%{[observer.version]}-error"},
-		"span": {EventType: "span", PolicyName: defaultPolicyName,
-			RolloverAlias: "apm-%{[observer.version]}-span"},
-		"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
-			RolloverAlias: "apm-%{[observer.version]}-transaction"},
-		"metric": {EventType: "metric", PolicyName: defaultPolicyName,
-			RolloverAlias: "apm-%{[observer.version]}-metric"},
-		"profile": {EventType: "profile", PolicyName: defaultPolicyName,
-			RolloverAlias: "apm-%{[observer.version]}-profile"},
+func applyStaticFmtstr(info beat.Info, s string) (string, error) {
+	fmt, err := fmtstr.CompileEvent(s)
+	if err != nil {
+		return "", err
 	}
+	return fmt.Run(&beat.Event{
+		Fields: common.MapStr{
+			// beat object was left in for backward compatibility reason for older configs.
+			"beat": common.MapStr{
+				"name":    info.Beat,
+				"version": info.Version,
+			},
+			"observer": common.MapStr{
+				"name":    info.Beat,
+				"version": info.Version,
+			},
+		},
+		Timestamp: time.Now(),
+	})
+}
+
+func defaultMappings() map[string]Mapping {
+	m := map[string]Mapping{}
+	for _, et := range eventTypes {
+		m[et] = Mapping{EventType: et, PolicyName: defaultPolicyName,
+			RolloverAlias: fmt.Sprintf("%s-%s", APMPrefix, et)}
+	}
+	return m
 }
 
 func defaultPolicies() map[string]Policy {
@@ -205,5 +251,23 @@ func defaultPolicies() map[string]Policy {
 				},
 			},
 		},
+	}
+}
+
+func (c *Config) conditionalIndices() []map[string]interface{} {
+	conditions := []map[string]interface{}{
+		condition("sourcemap", APMPrefix+"-sourcemap"),
+		condition("onboarding", APMPrefix+"-onboarding-%{+yyyy.MM.dd}"),
+	}
+	for _, m := range c.Setup.Mappings {
+		conditions = append(conditions, condition(m.EventType, m.RolloverAlias))
+	}
+	return conditions
+}
+
+func condition(event string, index string) map[string]interface{} {
+	return map[string]interface{}{
+		"index": index,
+		"when":  map[string]interface{}{"contains": map[string]interface{}{"processor.event": event}},
 	}
 }
