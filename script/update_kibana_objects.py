@@ -58,7 +58,7 @@ def main(branch):
     call("git checkout -b update-apm-index-pattern-" + branch + " elastic/" + branch)
     call("git pull")
 
-    kibana_file_path = "x-pack/plugins/apm/server/tutorial/index_pattern.json"
+    kibana_file_path = "src/plugins/apm_oss/server/tutorial/index_pattern.json"
 
     with open(kibana_file_path, 'r+') as kibana_file:
         data = json.load(kibana_file)
