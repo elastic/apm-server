@@ -245,7 +245,7 @@ apm-server:
     # "Content-Encoding", and "Accept"
     #allow_headers : []
 
-    # Custom headers to return in intake responses, eg. maybe for compliance
+    # Custom HTTP headers to add to RUM responses, e.g. for security policy compliance.
     #response_headers :
     #  X-My-Header: Contents of the header
 
