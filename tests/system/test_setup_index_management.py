@@ -4,6 +4,7 @@ from elasticsearch import Elasticsearch, NotFoundError, RequestError
 from nose.tools import raises
 from es_helper import cleanup, wait_until_policies, wait_until_aliases, wait_until_templates
 from es_helper import default_policy, index_name
+from es_helper import index_error, index_transaction, index_span, index_metric, index_profile
 
 EVENT_NAMES = ('error', 'span', 'transaction', 'metric', 'profile')
 
@@ -27,39 +28,39 @@ class IdxMgmt(object):
         wait_until_aliases(self._client, aliases)
         wait_until_policies(self._client, policies)
 
-    def assert_template(self, loaded=1):
+    def assert_template(self, loaded=True):
         resp = self._client.indices.get_template(name=self._index, ignore=[404])
-        assert len(resp) == loaded, resp
-        if loaded > 0:
-            s, i, l = 'settings', 'index', 'lifecycle'
-            assert l not in resp[self._index][s][i]
+        assert len(resp) == int(loaded), resp
+        if loaded:
+            assert 'lifecycle' not in resp[self._index]['settings']['index']
 
-    def assert_event_template(self, loaded=len(EVENT_NAMES), with_ilm=True):
-        resp = self._client.indices.get_template(name=self._index + '*', ignore=[404])
-
-        if self._index in resp:
-            loaded += 1
-        assert loaded == len(resp), len(resp)
-
-        if loaded <= 1:
-            return
-
-        s, i, l = 'settings', 'index', 'lifecycle'
-        for idx in self._event_indices:
-            if not with_ilm:
-                assert i not in resp[idx][s], resp[idx]
+    def assert_event_template(self, loaded=True, with_ilm=True, event_templates=None):
+        if not event_templates:
+            event_templates = [index_error, index_span, index_profile, index_metric, index_transaction]
+        for et in event_templates:
+            resp = self._client.indices.get_template(name=et, ignore=[404])
+            assert len(resp) == int(loaded), et
+            if not loaded:
                 continue
-            t = resp[idx][s][i]
-            assert l in t, t
-            assert t[l]['name'] is not None, t[l]
-            assert t[l]['rollover_alias'] == idx, t[l]
+            if with_ilm:
+                t = resp[et]['settings']['index']
+                assert 'lifecycle' in t, t
+                assert t['lifecycle']['name'] is not None, t['lifecycle']
+                assert t['lifecycle']['rollover_alias'] == et, t['lifecycle']
+            else:
+                assert 'index' not in resp[et]['settings'], resp[et]['settings']
 
-    def assert_alias(self, loaded=len(EVENT_NAMES)):
-        resp = self._client.transport.perform_request('GET', '/_alias/' + self._index + '*')
-        assert len(resp) == loaded, resp
-        if loaded > 0:
-            for idx in self._event_indices:
-                assert "{}-000001".format(idx) in resp, resp
+    def assert_alias(self, loaded=True, aliases=None):
+        if not aliases:
+            aliases = self._event_indices
+        for alias in aliases:
+            try:
+                resp = self._client.transport.perform_request('GET', '/_alias/' + alias)
+                assert loaded
+                assert "{}-000001".format(alias) in resp, resp
+            except:
+                # an exception means no alias was found, which is valid for loaded=False
+                assert not loaded
 
     def assert_policies(self, loaded=True):
         resp = self._client.transport.perform_request('GET', '/_ilm/policy')
@@ -115,8 +116,8 @@ class TestCommandSetupIndexManagement(BaseTest):
                                               "-E", "apm-server.ilm.setup.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template()
-        self.idxmgmt.assert_event_template(loaded=0)
-        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_event_template(loaded=False)
+        self.idxmgmt.assert_alias(loaded=False)
         self.idxmgmt.assert_policies(loaded=False)
 
     def test_setup_template_enabled_ilm_disabled(self):
@@ -128,7 +129,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         assert exit_code == 0
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(with_ilm=False)
-        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_alias(loaded=False)
         self.idxmgmt.assert_policies(loaded=False)
 
     def test_setup_template_disabled_ilm_auto(self):
@@ -138,7 +139,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=0)
+        self.idxmgmt.assert_template(loaded=False)
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_policies()
@@ -151,9 +152,9 @@ class TestCommandSetupIndexManagement(BaseTest):
                                               "-E", "apm-server.ilm.enabled=false",
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=0)
+        self.idxmgmt.assert_template(loaded=False)
         self.idxmgmt.assert_event_template(with_ilm=False)
-        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_alias(loaded=False)
         self.idxmgmt.assert_policies(loaded=False)
 
     def test_enable_ilm(self):
@@ -198,7 +199,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         assert exit_code == 0
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(with_ilm=False)
-        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_alias(loaded=False)
         self.idxmgmt.assert_policies(loaded=False)
 
         # load with ilm enabled: setup.overwrite is respected
@@ -265,7 +266,7 @@ class TestRunIndexManagementWithoutILM(ElasticTest):
     def test_template_and_ilm_loaded(self):
         self.idxmgmt.wait_until_created(aliases=[], policies=[])
         self.idxmgmt.assert_event_template(with_ilm=False)
-        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_alias(loaded=False)
         self.idxmgmt.assert_policies(loaded=False)
 
 
@@ -302,6 +303,24 @@ class TestILMConfiguredPolicies(ElasticTest):
 
 
 @integration_test
+class TestILMCustomAlias(ElasticTest):
+    config_overrides = {"ilm_aliases": True}
+
+    def setUp(self):
+        super(TestILMCustomAlias, self).setUp()
+        self.idxmgmt = IdxMgmt(self.es, index_name)
+
+    def test_ilm_loaded(self):
+        # aliasnames configured in apm-server.yml.j2
+        aliases = ["apm-error-custom", "apm-transaction-custom",
+                   index_metric, index_profile, index_span]
+        self.idxmgmt.wait_until_created(templates=[index_name] + aliases, aliases=aliases)
+        self.idxmgmt.assert_event_template(with_ilm=True, event_templates=aliases)
+        self.idxmgmt.assert_alias(aliases=aliases)
+        self.idxmgmt.assert_policies()
+
+
+@integration_test
 class TestRunIndexManagementWithSetupDisabled(ElasticTest):
 
     config_overrides = {"queue_flush": 2048, "ilm_setup_enabled": "false"}
@@ -312,8 +331,8 @@ class TestRunIndexManagementWithSetupDisabled(ElasticTest):
 
     def test_template_and_ilm_loaded(self):
         self.idxmgmt.wait_until_created(templates=[index_name], policies=[], aliases=[])
-        self.idxmgmt.assert_event_template(loaded=0)
-        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_event_template(loaded=False)
+        self.idxmgmt.assert_alias(loaded=False)
         self.idxmgmt.assert_policies(loaded=False)
 
 
@@ -349,8 +368,8 @@ class TestCommandSetupTemplate(BaseTest):
         self.idxmgmt.assert_template()
 
         # do not setup ILM when running this command
-        self.idxmgmt.assert_event_template(loaded=0)
-        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_event_template(loaded=False)
+        self.idxmgmt.assert_alias(loaded=False)
         self.idxmgmt.assert_policies(loaded=False)
 
     def test_setup_template_disabled_ilm_enabled(self):
@@ -360,4 +379,4 @@ class TestCommandSetupTemplate(BaseTest):
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=0)
+        self.idxmgmt.assert_template(loaded=False)
