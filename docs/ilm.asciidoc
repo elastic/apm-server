@@ -62,17 +62,26 @@ ILM can now be customized via the remaining `apm-server.ilm.setup.*` configurati
 
 [float]
 [[custom-ilm-alias]]
-==== Create a custom ILM rollover_alias
+==== Create a custom ILM `rollover_alias`
 
-You can define a custom `rollover_alias` per event type.
+You can define a custom rollover alias per event type.
+The related ILM policy can specify a rollover action, e.g. when an index reaches a size of 50GB
+it should roll over to create a new index. The `rollover_alias` abstracts away the concrete write index, while
+automatically being updated and keeping track of the current write index.
+This allows to use the `rollover_alias` instead of specific indices in queries.
 
-NOTE: Ensure that the configured aliases for all event types start with the same prefix,
+For example when defining a rollover alias with name `apm-7.8.0-transaction`, an alias pointing to a write index
+`apm-7.8.0-transaction-000001` is created. When the index reaches the defined size or age it will roll over to
+a new index `apm-7.8.0-transaction-000002`. The rollover alias `apm-7.8.0-transaction` keeps
+track of which index is the write index when ingesting data.
+
+NOTE: Ensure that the configured `rollover_alias` for all event types start with the same prefix,
 and that this prefix is also configured for `setup.template.name` and `setup.template.pattern`.
 If the template configuration is not accordingly changed, the Elasticsearch index template with
 the predefined mappings will not match against created indices, leading to indexing issues.
 
-The example below shows how to change the rollover alias to some custom value,
-and setting the template configuration to a matching name and pattern.
+The example below shows how to change the `rollover_alias` to a custom value,
+and set the template configuration to a matching name and pattern.
 
 [source,yml]
 ----
