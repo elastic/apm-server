@@ -13,8 +13,8 @@ other dependencies
 * <<privileges-to-publish-monitoring,Monitoring role>>: One for sending monitoring
 information, and another for viewing it
 * <<privileges-to-publish-events,Writer role>>: To publish events collected by {beatname_uc}.
-* <<privileges-agent-central-config,Central configuration management role>>: To view, create,
-update, and delete APM Agent central configurations.
+* <<privileges-agent-central-config,Central configuration management role>>: To view
+APM Agent central configurations.
 
 {es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
 subset of the privileges needed by APM users.
@@ -268,7 +268,8 @@ collect metrics about {beatname_uc}, {security-features} provides
 the +{beat_monitoring_user}+ {ref}/built-in-users.html[built-in user] and
 +{beat_monitoring_user}+ {ref}/built-in-roles.html[built-in role] to send
 monitoring information. You can use the built-in user, if it's available in your
-environment, or create a user who has the privileges needed to send monitoring
+environment, or create a user who has the the built-in role assigned,
+or create a user and manually assign the privileges needed to send monitoring
 information.
 
 If you use the built-in +{beat_monitoring_user}+ user,
