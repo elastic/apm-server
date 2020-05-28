@@ -64,7 +64,9 @@ ILM can now be customized via the remaining `apm-server.ilm.setup.*` configurati
 [[custom-ilm-alias]]
 ==== Create a custom ILM `rollover_alias`
 
-You can define a custom rollover alias per event type.
+You can define a custom rollover alias per event type. The rollover alias can only contain a
+restricted set of variables, limited to variables concerning `observer.*`. In case other
+variables are configured, the server will refuse to start.
 The related ILM policy can specify a rollover action, e.g. when an index reaches a size of 50GB
 it should roll over to create a new index. The `rollover_alias` abstracts away the concrete write index, while
 automatically being updated and keeping track of the current write index.
