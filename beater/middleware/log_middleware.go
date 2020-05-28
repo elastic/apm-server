@@ -36,67 +36,97 @@ func LogMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 
 		return func(c *request.Context) {
-			var reqID, transactionID, traceID string
-			tx := apm.TransactionFromContext(c.Request.Context())
-			if tx != nil {
-				// This request is being traced, grab its IDs to add to logs.
-				traceContext := tx.TraceContext()
-				transactionID = traceContext.Span.String()
-				traceID = traceContext.Trace.String()
-				reqID = transactionID
-			} else {
-				uuid, err := uuid.NewV4()
-				if err != nil {
-					id := request.IDResponseErrorsInternal
-					logger.Errorw(request.MapResultIDToStatus[id].Keyword, "error", err)
-					c.Result.SetWithError(id, err)
-					c.Write()
-					return
-				}
-				reqID = uuid.String()
+			args, err := requestArgs(c, logger.ECSEnabled())
+			if err != nil {
+				id := request.IDResponseErrorsInternal
+				logger.Errorw(request.MapResultIDToStatus[id].Keyword, "error", err)
+				c.Result.SetWithError(id, err)
+				c.Write()
+				return
 			}
-
-			reqLogger := logger.With(
-				"request_id", reqID,
-				"method", c.Request.Method,
-				"URL", c.Request.URL,
-				"content_length", c.Request.ContentLength,
-				"remote_address", utility.RemoteAddr(c.Request),
-				"user-agent", c.Request.Header.Get(headers.UserAgent))
-
-			if traceID != "" {
-				reqLogger = reqLogger.With(
-					"trace.id", traceID,
-					"transaction.id", transactionID,
-				)
-			}
-
-			c.Logger = reqLogger
+			c.Logger = logger.With(args...)
 			h(c)
 
 			if c.MultipleWriteAttempts() {
-				reqLogger.Warn("multiple write attempts")
+				c.Logger.Warn("multiple write attempts")
 			}
-
 			keyword := c.Result.Keyword
 			if keyword == "" {
 				keyword = "handled request"
 			}
-
-			keysAndValues := []interface{}{"response_code", c.Result.StatusCode}
-			if c.Result.Err != nil {
-				keysAndValues = append(keysAndValues, "error", c.Result.Err.Error())
-			}
-			if c.Result.Stacktrace != "" {
-				keysAndValues = append(keysAndValues, "stacktrace", c.Result.Stacktrace)
-			}
-
+			args = resultArgs(c, logger.ECSEnabled())
 			if c.Result.Failure() {
-				reqLogger.Errorw(keyword, keysAndValues...)
-			} else {
-				reqLogger.Infow(keyword, keysAndValues...)
+				c.Logger.Errorw(keyword, args...)
+				return
 			}
-
+			c.Logger.Infow(keyword, args...)
 		}, nil
 	}
+}
+
+func requestArgs(c *request.Context, ecsEnabled bool) ([]interface{}, error) {
+	var reqID, transactionID, traceID string
+	tx := apm.TransactionFromContext(c.Request.Context())
+	if tx != nil {
+		// This request is being traced, grab its IDs to add to logs.
+		traceContext := tx.TraceContext()
+		transactionID = traceContext.Span.String()
+		traceID = traceContext.Trace.String()
+		reqID = transactionID
+	} else {
+		uuid, err := uuid.NewV4()
+		if err != nil {
+			return nil, err
+		}
+		reqID = uuid.String()
+	}
+
+	args := []interface{}{
+		"http", map[string]interface{}{
+			"request": map[string]interface{}{
+				"id":     reqID, //not defined in ECS but fits here best
+				"method": c.Request.Method,
+				"body":   map[string]interface{}{"bytes": c.Request.ContentLength}}},
+		"source", map[string]interface{}{"address": utility.RemoteAddr(c.Request)},
+		"user_agent", map[string]interface{}{"original": c.Request.Header.Get(headers.UserAgent)},
+	}
+	if traceID != "" {
+		args = append(args,
+			"trace", map[string]interface{}{"id": traceID},
+			"transaction", map[string]interface{}{"id": transactionID})
+	}
+	// avoid conflicts on existing log keys
+	if ecsEnabled {
+		return append(args, "url", map[string]string{"original": c.Request.URL.String()}), nil
+	}
+	return append(args, "URL", c.Request.URL), nil
+}
+
+func resultArgs(c *request.Context, ecsEnabled bool) []interface{} {
+	args := []interface{}{
+		// http key will be duplicated at this point
+		"http", map[string]interface{}{
+			"response": map[string]interface{}{
+				"status_code": c.Result.StatusCode}}}
+	if c.Result.Err == nil && c.Result.Stacktrace == "" {
+		return args
+	}
+
+	if ecsEnabled {
+		err := map[string]interface{}{}
+		if c.Result.Err != nil {
+			err["message"] = c.Result.Err.Error()
+		}
+		if c.Result.Stacktrace != "" {
+			err["stacktrace"] = c.Result.Stacktrace
+		}
+		return append(args, "error", err)
+	}
+	if c.Result.Err != nil {
+		args = append(args, "error", c.Result.Err)
+	}
+	if c.Result.Stacktrace != "" {
+		args = append(args, "stacktrace", c.Result.Stacktrace)
+	}
+	return args
 }
