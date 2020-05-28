@@ -29,8 +29,10 @@ import (
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 )
 
+var mockBeatInfo = beat.Info{Beat: "mockapm", Version: "9.9.9"}
+
 func TestConfig_Default(t *testing.T) {
-	c, err := NewConfig(info(), nil)
+	c, err := NewConfig(mockBeatInfo, nil)
 	require.NoError(t, err)
 	expectedCfg := Config{
 		Mode: libilm.ModeAuto,
@@ -38,7 +40,7 @@ func TestConfig_Default(t *testing.T) {
 			Enabled:       true,
 			Overwrite:     false,
 			RequirePolicy: true,
-			Mappings:      defaultMappingsResolved(info()),
+			Mappings:      defaultMappingsResolved(mockBeatInfo),
 			Policies:      defaultPolicies()}}
 	assert.Equal(t, expectedCfg, c)
 }
@@ -53,7 +55,7 @@ func TestConfig_Mode(t *testing.T) {
 		"enabled":  {`{"enabled":"true"}`, libilm.ModeEnabled},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, c.Mode)
 		})
@@ -69,7 +71,7 @@ func TestConfig_SetupEnabled(t *testing.T) {
 		"disabled": {`{"setup":{"enabled":false}}`, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.enabled, c.Setup.Enabled)
 		})
@@ -85,7 +87,7 @@ func TestConfig_SetupOverwrite(t *testing.T) {
 		"do not overwrite": {`{"setup":{"overwrite":false}}`, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.overwrite, c.Setup.Overwrite)
 		})
@@ -101,7 +103,7 @@ func TestConfig_RequirePolicy(t *testing.T) {
 		"not required": {map[string]interface{}{"require_policy": false}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(info(), common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.NoError(t, err)
 			assert.Equal(t, tc.required, c.Setup.RequirePolicy)
 		})
@@ -143,7 +145,7 @@ func TestConfig_Valid(t *testing.T) {
 			cfg: `{"setup":{"policies":[{"name":"apm-rollover-30-days","policy":{"phases":{"warm":{"min_age":"30d"}}}}]}}`,
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
-					Mappings: defaultMappingsResolved(info()),
+					Mappings: defaultMappingsResolved(mockBeatInfo),
 					Policies: map[string]Policy{
 						defaultPolicyName: {Name: defaultPolicyName, Body: map[string]interface{}{
 							"policy": map[string]interface{}{"phases": map[string]interface{}{
@@ -156,7 +158,7 @@ func TestConfig_Valid(t *testing.T) {
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: false,
 					Mappings: func() map[string]Mapping {
-						m := defaultMappingsResolved(info())
+						m := defaultMappingsResolved(mockBeatInfo)
 						m["error"] = Mapping{EventType: "error", PolicyName: "errorPolicy",
 							RolloverAlias: "apm-9.9.9-error"}
 						return m
@@ -166,7 +168,7 @@ func TestConfig_Valid(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
+			cfg, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, cfg)
 		})
@@ -191,15 +193,11 @@ func TestConfig_Invalid(t *testing.T) {
 			errMsg: "rollover_alias cannot be resolved"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := NewConfig(info(), common.MustNewConfigFrom(tc.cfg))
+			_, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tc.errMsg)
 		})
 	}
-}
-
-func info() beat.Info {
-	return beat.Info{Beat: "mockapm", Version: "9.9.9"}
 }
 
 func defaultMappingsResolved(info beat.Info) map[string]Mapping {

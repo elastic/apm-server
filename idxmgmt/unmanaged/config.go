@@ -20,19 +20,14 @@ package unmanaged
 import (
 	"fmt"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-)
+	libcommon "github.com/elastic/beats/v7/libbeat/common"
 
-const (
-	APMPrefix = "apm-%{[observer.version]}"
-	apmSuffix = "-%{+yyyy.MM.dd}"
+	"github.com/elastic/apm-server/idxmgmt/common"
 )
-
-var eventTypes = []string{"span", "transaction", "error", "metric", "profile"}
 
 type Config struct {
-	Index   string         `config:"index"`
-	Indices *common.Config `config:"indices"`
+	Index   string            `config:"index"`
+	Indices *libcommon.Config `config:"indices"`
 }
 
 func (cfg *Config) Customized() bool {
@@ -42,18 +37,17 @@ func (cfg *Config) Customized() bool {
 	return cfg.Index != "" || cfg.Indices != nil
 }
 
-func (cfg *Config) SelectorConfig() (*common.Config, error) {
-	var idcsCfg = common.NewConfig()
+func (cfg *Config) SelectorConfig() (*libcommon.Config, error) {
+	var idcsCfg = libcommon.NewConfig()
 
 	// set defaults
 	if cfg.Index == "" {
 		// set fallback default index
-		fallbackIndex := fmt.Sprintf("%s%s", APMPrefix, apmSuffix)
-		idcsCfg.SetString("index", -1, fallbackIndex)
+		idcsCfg.SetString("index", -1, common.FallbackIndex)
 
 		// set default indices if not set
 		if cfg.Indices == nil {
-			if indicesCfg, err := common.NewConfigFrom(conditionalIndices()); err == nil {
+			if indicesCfg, err := libcommon.NewConfigFrom(conditionalIndices()); err == nil {
 				idcsCfg.SetChild("indices", -1, indicesCfg)
 			}
 		}
@@ -75,22 +69,12 @@ func (cfg *Config) SelectorConfig() (*common.Config, error) {
 
 func conditionalIndices() []map[string]interface{} {
 	conditions := []map[string]interface{}{
-		condition("sourcemap", idxStr("sourcemap", "")),
-		condition("onboarding", idxStr("onboarding", apmSuffix)),
+		common.ConditionalOnboardingIndex(),
+		common.ConditionalSourcemapIndex(),
 	}
-	for _, k := range eventTypes {
-		conditions = append(conditions, condition(k, idxStr(k, apmSuffix)))
+	for _, k := range common.EventTypes {
+		idxStr := fmt.Sprintf("%s-%s%s", common.APMPrefix, k, "-%{+yyyy.MM.dd}")
+		conditions = append(conditions, common.Condition(k, idxStr))
 	}
 	return conditions
-}
-
-func condition(event string, index string) map[string]interface{} {
-	return map[string]interface{}{
-		"index": index,
-		"when":  map[string]interface{}{"contains": map[string]interface{}{"processor.event": event}},
-	}
-}
-
-func idxStr(name string, suffix string) string {
-	return fmt.Sprintf("%s-%s%s", APMPrefix, name, suffix)
 }

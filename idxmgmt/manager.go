@@ -25,8 +25,8 @@ import (
 	libidxmgmt "github.com/elastic/beats/v7/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 
+	"github.com/elastic/apm-server/idxmgmt/common"
 	"github.com/elastic/apm-server/idxmgmt/ilm"
-	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -200,11 +200,7 @@ func (m *manager) loadTemplate(templateFeature, ilmFeature feature) error {
 	// default index prefix for managed and unmanaged indices;
 	// in case the index/rollover_alias names were customized
 	if m.supporter.templateConfig.Name == "" && m.supporter.templateConfig.Pattern == "" {
-		if ilmFeature.enabled {
-			m.supporter.templateConfig.Name = ilm.APMPrefix
-		} else {
-			m.supporter.templateConfig.Name = unmanaged.APMPrefix
-		}
+		m.supporter.templateConfig.Name = common.APMPrefix
 		m.supporter.log.Infof("Set setup.template.name to '%s'.", m.supporter.templateConfig.Name)
 		m.supporter.templateConfig.Pattern = m.supporter.templateConfig.Name + "*"
 		m.supporter.log.Infof("Set setup.template.pattern to '%s'.", m.supporter.templateConfig.Pattern)

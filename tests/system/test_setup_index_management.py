@@ -58,7 +58,7 @@ class IdxMgmt(object):
                 resp = self._client.transport.perform_request('GET', '/_alias/' + alias)
                 assert loaded
                 assert "{}-000001".format(alias) in resp, resp
-            except:
+            except NotFoundError:
                 # an exception means no alias was found, which is valid for loaded=False
                 assert not loaded
 
