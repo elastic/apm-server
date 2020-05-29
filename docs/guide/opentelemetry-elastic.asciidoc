@@ -5,6 +5,7 @@
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
 :ot-pipelines:  {ot-repo}/blob/master/docs/pipelines.md
 :ot-extension:  {ot-repo}/blob/master/extension/README.md
+:ot-scaling:    {ot-repo}/blob/master/docs/performance.md
 
 :ot-collector:  https://opentelemetry.io/docs/collector/about/
 :ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib-dev
@@ -66,32 +67,45 @@ for a list of supported extensions.
 === Get started
 
 NOTE: This guide assumes you've already instrumented your services with the OpenTelemetry API and/or SDK.
-If you haven't, see the <<install-and-run,install and run guide>> to get started with our Elastic APM Agents instead.
+If you haven't, see the Elastic APM <<install-and-run,install and run guide>> to get started with Elastic APM Agents instead.
 
-OpenTelemetry Collectors should sit close to your services,
-and can be deployed in as many clusters, data centers, or regions as necessary.
+==== Deployment planning
+
+OpenTelemetry Collectors can be run as an Agent, or as standalone collectors.
+They can be deployed in as many clusters, data centers, or regions as necessary,
+and scaled up or out as needed.
+
+See OpenTelemetry's {ot-scaling}[Collector Performance] documentation for recommendations
+on the number of maximum spans per second per collector.
+
+==== Download the collector
 
 The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
-and Docker images for are published on {ot-dockerhub}[dockerhub].
+and the latest release can be downloaded from {ot-repo}/releases[GitHub releases page].
+Docker images are available on {ot-dockerhub}[dockerhub].
 
 [source,console]
 ----
 docker pull otel/opentelemetry-collector-contrib-dev
 ----
 
-You can define an Elastic exporter in the yaml configuration file.
-Here's an example exporter configuration:
+==== Configure the collector
+
+Next, create a yaml configuration file. We'll call ours `elastic-collector.yaml`.
+
+At a minimum, you must define the URL of the APM Server instance you are sending data to.
+Additional configuration options for API keys, secret tokens, and TLS settings are also available.
+For example:
 
 [source,yml]
 ----
 exporters:
   elastic:
     apm_server_url: "https://elasticapm.example.com"
-    secret_token: "hunter2"
 ----
 
-With an exporter defined, it must also be added to the collector's `traces` pipeline.
-Here's a basic configuration:
+The Elastic exporter must also be defined in `service.pipelines.traces.exporters`.
+For example:
 
 [source,yml]
 ----
@@ -114,6 +128,23 @@ service:
       exporters: [elastic]
 ----
 
+==== Deploy the collector
+
+[source,console]
+----
+Some command here where we pass in the config `elastic-collector.yaml`
+----
+
+[source,console]
+----
+Some docker command here?
+----
+
+[source,console]
+----
+Some Kubernetes config here?
+----
+
 For more information about getting started with an OpenTelemetry Collector,
 see the {ot-collector}[OpenTelemetry collector] docs.
 
@@ -123,19 +154,19 @@ see the {ot-collector}[OpenTelemetry collector] docs.
 Elastic APM Server URL. (required)
 
 ==== `api_key`
-(optional): credential for API Key authorization, if enabled in Elastic APM Server.
+Credential for API Key authorization. Must also be enabled in Elastic APM Server. (optional)
 
 ==== `secret_token`
-(optional): credential for Secret Token authorization, if enabled in Elastic APM Server.
+Credential for Secret Token authorization. Must also be enabled in Elastic APM Server. (optional)
 
 ==== `ca_file`
-(optional): root Certificate Authority (CA) certificate, for verifying the server's identity, if TLS is enabled.
+Root Certificate Authority (CA) certificate, for verifying the server's identity if TLS is enabled. (optional)
 
 ==== `cert_file`
-(optional): client TLS certificate.
+Client TLS certificate. (optional)
 
 ==== `key_file`
-(optional): client TLS key.
+Client TLS key. (optional)
 
 ==== `insecure`
-(optional): disable verification of the server's identity, if TLS is enabled.
+Disable verification of the server's identity if TLS is enabled. (optional)
