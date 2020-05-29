@@ -1,6 +1,14 @@
 [[open-telemetry-elastic]]
 == OpenTelemetry integration
 
+:ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
+:ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
+:ot-pipelines:  {ot-repo}/blob/master/docs/pipelines.md
+:ot-extension:  {ot-repo}/blob/master/extension/README.md
+
+:ot-collector:  https://opentelemetry.io/docs/collector/about/
+:ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib-dev
+
 Elastic's OpenTelemetry integration allows you to reuse your existing OpenTelemetry
 instrumentation to quickly and easily analyze distributed traces and metrics with the Elastic Stack.
 
@@ -11,7 +19,7 @@ It’s a set of APIs, SDKs, tooling, and integrations that enable the creation a
 management of telemetry data.
 
 OpenTelemetry is an open-source project that provides the components necessary to observe your applications and services.
-Learn more in the https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md[spec].
+Learn more in the {ot-spec}[spec].
 
 === Elastic exporter
 
@@ -38,12 +46,41 @@ Service 3  --->  ┘            └───────────────
                    Protocol                       Protocol
 *************
 
-=== Elastic exporter configuration reference
+=== How the OpenTelemetry Collector works
+
+The OpenTelemetry collector uses three different types of components to handle data: `receivers`, `processors`, and `exporters`.
+
+* `receivers`: Configures how data gets to the collector. At least one receiver must be configured.
+* `processors`: Defines optional transformation that occurs between receiving and exporting data.
+* `exporters`: Configures how data is sent to its destination--in this case, the Elastic Stack.
+
+Once a `receiver`, `processor`, and `exporter` is defined, `pipelines` can be configured in the `services` section of your configuration. Specifically, a `traces` pipeline will define the path of data through your collector, and bring all three of these components together.
+
+More information is available in the
+{ot-pipelines}[OpenTelemetry pipeline docs]
+
+A final note: `extensions` can also be enabled for tasks like monitoring your collectors health.
+See the {ot-extension}[OpenTelemetry extension readme]
+for a list of supported extensions.
+
+=== Get started
+
+NOTE: This guide assumes you've already instrumented your services with the OpenTelemetry API and/or SDK.
+If you haven't, see the <<install-and-run,install and run guide>> to get started with our Elastic APM Agents instead.
 
 OpenTelemetry Collectors should sit close to your services,
 and can be deployed in as many clusters, data centers, or regions as necessary.
 
-Example yaml configuration:
+The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
+and Docker images for are published on {ot-dockerhub}[dockerhub].
+
+[source,console]
+----
+docker pull otel/opentelemetry-collector-contrib-dev
+----
+
+You can define an Elastic exporter in the yaml configuration file.
+Here's an example exporter configuration:
 
 [source,yml]
 ----
@@ -53,8 +90,37 @@ exporters:
     secret_token: "hunter2"
 ----
 
+With an exporter defined, it must also be added to the collector's `traces` pipeline.
+Here's a basic configuration:
+
+[source,yml]
+----
+receivers:
+  otlp:
+    endpoint: localhost:55680
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+exporters:
+  elastic:
+    apm_server_url: "https://elasticapm.example.com"
+    secret_token: "hunter2"
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elastic]
+----
+
+For more information about getting started with an OpenTelemetry Collector,
+see the {ot-collector}[OpenTelemetry collector] docs.
+
+=== Elastic exporter configuration reference
+
 ==== `apm_server_url`
-(required): Elastic APM Server URL.
+Elastic APM Server URL. (required)
 
 ==== `api_key`
 (optional): credential for API Key authorization, if enabled in Elastic APM Server.
@@ -73,21 +139,3 @@ exporters:
 
 ==== `insecure`
 (optional): disable verification of the server's identity, if TLS is enabled.
-
-
-All Elastic APM agents have https://opentracing.io/[OpenTracing] compatible bridges.
-
-The OpenTracing bridge allows you to create Elastic APM <<transactions,transactions>> and <<transaction-spans,spans>> using the OpenTracing API.
-This means you can reuse your existing OpenTracing instrumentation to quickly and easily begin using Elastic APM.
-
-[float]
-=== Agent specific details
-
-Not all features of the OpenTracing API are supported. In addition, there are some Elastic APM specific tags you should be aware of. Please see the relevant Agent documentation for more detailed information:
-
-* {apm-go-ref-v}/opentracing.html[Go agent]
-* {apm-java-ref-v}/opentracing-bridge.html[Java agent]
-* {apm-node-ref-v}/opentracing.html[Node.js agent]
-* {apm-py-ref-v}/opentracing-bridge.html[Python agent]
-* {apm-ruby-ref-v}/opentracing.html[Ruby agent]
-* {apm-rum-ref-v}/opentracing.html[JavaScript Real User Monitoring (RUM) agent]
