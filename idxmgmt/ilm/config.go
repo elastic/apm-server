@@ -18,15 +18,22 @@
 package ilm
 
 import (
+	"fmt"
+	"time"
+
+	libcommon "github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
+
+	"github.com/elastic/apm-server/idxmgmt/common"
 )
 
-var (
-	errPolicyFmt       = errors.New("input for ILM policy is in wrong format")
-	errPolicyNameEmpty = errors.New("empty policy_name not supported for ILM setup")
+const (
+	defaultPolicyName = "apm-rollover-30-days"
 )
 
 //Config holds information about ILM mode and whether or not the server should manage the setup
@@ -37,107 +44,222 @@ type Config struct {
 
 //Setup holds information about how to setup ILM
 type Setup struct {
-	Enabled       bool `config:"enabled"`
-	Overwrite     bool `config:"overwrite"`
-	RequirePolicy bool `config:"require_policy"`
-	Policies      []EventPolicy
+	Enabled       bool     `config:"enabled"`
+	Overwrite     bool     `config:"overwrite"`
+	RequirePolicy bool     `config:"require_policy"`
+	Mappings      Mappings `config:"mapping"`
+	Policies      Policies `config:"policies"`
 }
 
-//EventPolicy binds together an ILM policy's name and body with an event type
-type EventPolicy struct {
-	Policy    map[string]interface{}
-	EventType string
-	Name      string
+type Mappings map[string]Mapping
+type Policies map[string]Policy
+
+//Mapping binds together an ILM policy's name and body with an event type
+type Mapping struct {
+	EventType     string `config:"event_type"`
+	PolicyName    string `config:"policy_name"`
+	RolloverAlias string `config:"rollover_alias"`
 }
 
-//NewConfig returns an ILM config, where default configuration is merged with user configuration
-func NewConfig(inputConfig *common.Config) (Config, error) {
-	policyPool := policyPool()
-	policyMappings := policyMapping()
-	c := defaultConfig()
-	if inputConfig != nil {
-		if err := inputConfig.Unpack(&c); err != nil {
+// Policy contains information about an ILM policy and the name
+type Policy struct {
+	Name string                 `config:"name"`
+	Body map[string]interface{} `config:"policy"`
+}
+
+// NewConfig extracts given configuration and merges with default configuration
+// https://github.com/elastic/go-ucfg/issues/167 describes a bug in go-ucfg
+// that panics when trying to unpack an empty configuration for an attribute
+// of type map[string]interface{} into a variable with existing values for the map.
+// This requires some workaround in merging configured policies with default policies
+// TODO(simitt): when the bug is fixed
+// - move the validation part into a `Validate` method
+// - remove the extra handling for `defaultPolicies` and add to defaultConfig instead.
+func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
+	config := Config{Mode: libilm.ModeAuto,
+		Setup: Setup{Enabled: true, RequirePolicy: true, Mappings: defaultMappings()}}
+	if cfg != nil {
+		if err := cfg.Unpack(&config); err != nil {
 			return Config{}, err
 		}
 	}
-
-	// Unpack and process user configuration only if setup.enabled=true
-	if inputConfig != nil && c.Setup.Enabled {
-		var tmpConfig config
-		if err := inputConfig.Unpack(&tmpConfig); err != nil {
-			return Config{}, err
+	// replace variable rollover_alias parts with beat information if available
+	// otherwise fail as the full alias needs to be known during setup.
+	for et, m := range config.Setup.Mappings {
+		rolloverAlias, err := applyStaticFmtstr(info, m.RolloverAlias)
+		if err != nil {
+			return Config{}, errors.Wrap(err, "variable part of rollover_alias cannot be resolved")
 		}
-		// create a collection of default and configured policies
-		for _, policy := range tmpConfig.PolicyPool {
-			if policy.Name == "" {
-				return Config{}, errPolicyNameEmpty
-			}
-			policyPool[policy.Name] = policy.Body
-		}
-		//update policy name per event according to configuration
-		for _, entry := range tmpConfig.Mapping {
-			if _, ok := policyMappings[entry.Event]; !ok {
-				return Config{}, errors.Errorf("event_type '%s' not supported for ILM setup", entry.Event)
-			}
-			policyMappings[entry.Event] = entry.PolicyName
-		}
+		m.RolloverAlias = rolloverAlias
+		config.Setup.Mappings[et] = m
 	}
-
-	var eventPolicies []EventPolicy
-	for event, policyName := range policyMappings {
-		if policyName == "" {
-			return Config{}, errPolicyNameEmpty
-		}
-		policy, ok := policyPool[policyName]
-		if !ok && c.Setup.RequirePolicy {
-			return Config{}, errors.Errorf("policy '%s' not configured for ILM setup, "+
-				"set `apm-server.ilm.require_policy: false` to disable verification", policyName)
-		}
-		eventPolicies = append(eventPolicies, EventPolicy{EventType: event, Policy: policy, Name: policyName})
+	if len(config.Setup.Policies) == 0 {
+		config.Setup.Policies = defaultPolicies()
 	}
-	c.Setup.Policies = eventPolicies
-	return c, nil
+	return config, validate(&config)
 }
 
-func defaultConfig() Config {
-	return Config{Mode: libilm.ModeAuto, Setup: Setup{Enabled: true, RequirePolicy: true}}
+func (c *Config) SelectorConfig() (*libcommon.Config, error) {
+	var idcsCfg = libcommon.NewConfig()
+	// set fallback index for ingested events with unknown event type
+	idcsCfg.SetString("index", -1, common.FallbackIndex)
+
+	if indicesCfg, err := libcommon.NewConfigFrom(c.conditionalIndices()); err == nil {
+		idcsCfg.SetChild("indices", -1, indicesCfg)
+	}
+	return idcsCfg, nil
+
 }
 
-type config struct {
-	Mapping []struct {
-		PolicyName string `config:"policy_name"`
-		Event      string `config:"event_type"`
-	} `config:"setup.mapping"`
-	PolicyPool []policy `config:"setup.policies"`
-}
-
-type policy struct {
-	Name string     `config:"name"`
-	Body policyBody `config:"policy"`
-}
-type policyBody map[string]interface{}
-
-func (p *policyBody) Unpack(i interface{}) error {
-	//prepare ensures maps are in the format elasticsearch expects for policy bodies,
-	var prepare func(map[string]interface{}) map[string]interface{}
-	prepare = func(m map[string]interface{}) map[string]interface{} {
-		for k, v := range m {
-			if v == nil {
-				//ensure nil values are replaced with an empty map,
-				// e.g. `delete: {}` instead of `delete: nil`
-				m[k] = map[string]interface{}{}
-			} else if val, ok := v.(map[string]interface{}); ok && val != nil {
-				m[k] = prepare(val)
+func (m *Mappings) Unpack(cfg *libcommon.Config) error {
+	var mappings []Mapping
+	if err := cfg.Unpack(&mappings); err != nil {
+		return err
+	}
+	for _, mapping := range mappings {
+		if existing, ok := (*m)[mapping.EventType]; ok {
+			if mapping.PolicyName == "" {
+				mapping.PolicyName = existing.PolicyName
+			}
+			if mapping.RolloverAlias == "" {
+				mapping.RolloverAlias = existing.RolloverAlias
 			}
 		}
-		return m
-	}
+		(*m)[mapping.EventType] = mapping
 
-	inp, ok := i.(map[string]interface{})
-	if !ok {
-		return errPolicyFmt
 	}
-	(*p) = map[string]interface{}{policyStr: prepare(inp)}
-
 	return nil
+}
+
+func (p *Policies) Unpack(cfg *libcommon.Config) error {
+	// TODO(simitt): remove setting the default policies when
+	// https://github.com/elastic/go-ucfg/issues/167 is fixed
+	(*p) = defaultPolicies()
+
+	var policies []Policy
+	if err := cfg.Unpack(&policies); err != nil {
+		return err
+	}
+	for _, policy := range policies {
+		body := preparePolicyBody(policy.Body)
+		policy.Body = map[string]interface{}{"policy": body}
+		(*p)[policy.Name] = policy
+	}
+	return nil
+}
+
+// validate configuration and raise error if unexpected input given
+func validate(c *Config) error {
+	definedMappings := defaultMappings()
+	for _, m := range c.Setup.Mappings {
+		if _, ok := definedMappings[m.EventType]; !ok {
+			return errors.Errorf("event_type '%s' not supported for ILM setup", m.EventType)
+		}
+		if m.PolicyName == "" {
+			return errors.New("empty policy_name not supported for ILM setup")
+		}
+		if m.RolloverAlias == "" {
+			return errors.New("empty rollover_alias not supported for ILM setup")
+		}
+		if !c.Setup.RequirePolicy {
+			// `require_policy=false` indicates that policies are set up outside
+			// the APM Server, therefore do not throw an error here.
+			return nil
+		}
+		if _, ok := c.Setup.Policies[m.PolicyName]; !ok {
+			return errors.Errorf("policy '%s' not configured for ILM setup, "+
+				"set `apm-server.ilm.require_policy: false` to disable verification", m.PolicyName)
+		}
+	}
+	return nil
+}
+
+//preparePolicyBody ensures maps are in the format elasticsearch expects for policy bodies
+func preparePolicyBody(m map[string]interface{}) map[string]interface{} {
+	for k, v := range m {
+		if v == nil {
+			//ensure nil values are replaced with an empty map,
+			// e.g. `delete: {}` instead of `delete: nil`
+			m[k] = map[string]interface{}{}
+			continue
+		} else if val, ok := v.(map[string]interface{}); ok && val != nil {
+			m[k] = preparePolicyBody(val)
+		}
+	}
+	return m
+}
+
+func applyStaticFmtstr(info beat.Info, s string) (string, error) {
+	fmt, err := fmtstr.CompileEvent(s)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Run(&beat.Event{
+		Fields: libcommon.MapStr{
+			// beat object was left in for backward compatibility reason for older configs.
+			"beat": libcommon.MapStr{
+				"name":    info.Beat,
+				"version": info.Version,
+			},
+			"observer": libcommon.MapStr{
+				"name":    info.Beat,
+				"version": info.Version,
+			},
+		},
+		Timestamp: time.Now(),
+	})
+}
+
+func defaultMappings() map[string]Mapping {
+	m := map[string]Mapping{}
+	for _, et := range common.EventTypes {
+		m[et] = Mapping{EventType: et, PolicyName: defaultPolicyName,
+			RolloverAlias: fmt.Sprintf("%s-%s", common.APMPrefix, et)}
+	}
+	return m
+}
+
+func defaultPolicies() map[string]Policy {
+	return map[string]Policy{
+		defaultPolicyName: {
+			Name: defaultPolicyName,
+			Body: map[string]interface{}{
+				"policy": map[string]interface{}{
+					"phases": map[string]interface{}{
+						"hot": map[string]interface{}{
+							"actions": map[string]interface{}{
+								"rollover": map[string]interface{}{
+									"max_size": "50gb",
+									"max_age":  "30d",
+								},
+								"set_priority": map[string]interface{}{
+									"priority": 100,
+								},
+							},
+						},
+						"warm": map[string]interface{}{
+							"min_age": "30d",
+							"actions": map[string]interface{}{
+								"set_priority": map[string]interface{}{
+									"priority": 50,
+								},
+								"readonly": map[string]interface{}{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (c *Config) conditionalIndices() []map[string]interface{} {
+	conditions := []map[string]interface{}{
+		common.ConditionalOnboardingIndex(),
+		common.ConditionalSourcemapIndex(),
+	}
+	for _, m := range c.Setup.Mappings {
+		conditions = append(conditions, common.Condition(m.EventType, m.RolloverAlias))
+	}
+	return conditions
 }

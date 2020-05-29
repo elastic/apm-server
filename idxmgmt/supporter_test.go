@@ -49,7 +49,7 @@ import (
 )
 
 var (
-	info  = beat.Info{Beat: "testbeat", Version: "1.1.0"}
+	info  = beat.Info{Beat: "testbeat", Version: "7.0.0"}
 	today = time.Now().UTC()
 	day   = today.Format("2006.01.02")
 )
@@ -265,6 +265,8 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 }
 
 func testEvent(fields, meta common.MapStr) *beat.Event {
+	// needs to be set for indices with unmanaged lifecycle (not ILM)
+	// as the version replacement happens on every event and not on initialization
 	fields.Put("observer", common.MapStr{"version": "7.0.0"})
 	return &beat.Event{
 		Fields:    fields,

@@ -18,52 +18,60 @@
 package ilm
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 )
 
+var mockBeatInfo = beat.Info{Beat: "mockapm", Version: "9.9.9"}
+
 func TestConfig_Default(t *testing.T) {
-	c, err := NewConfig(nil)
+	c, err := NewConfig(mockBeatInfo, nil)
 	require.NoError(t, err)
-	assert.Equal(t, libilm.ModeAuto, c.Mode)
-	assert.True(t, c.Setup.Enabled)
-	assert.False(t, c.Setup.Overwrite)
-	assert.True(t, c.Setup.RequirePolicy)
-	assert.ObjectsAreEqual(defaultPolicies(), c.Setup.Policies)
+	expectedCfg := Config{
+		Mode: libilm.ModeAuto,
+		Setup: Setup{
+			Enabled:       true,
+			Overwrite:     false,
+			RequirePolicy: true,
+			Mappings:      defaultMappingsResolved(mockBeatInfo),
+			Policies:      defaultPolicies()}}
+	assert.Equal(t, expectedCfg, c)
 }
 
 func TestConfig_Mode(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg  map[string]interface{}
-		mode libilm.Mode
+		cfg      string
+		expected libilm.Mode
 	}{
-		"default":  {map[string]interface{}{}, libilm.ModeAuto},
-		"disabled": {map[string]interface{}{"enabled": false}, libilm.ModeDisabled},
-		"enabled":  {map[string]interface{}{"enabled": true}, libilm.ModeEnabled},
+		"default":  {`{"enabled":"auto"}`, libilm.ModeAuto},
+		"disabled": {`{"enabled":"false"}`, libilm.ModeDisabled},
+		"enabled":  {`{"enabled":"true"}`, libilm.ModeEnabled},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(tc.cfg))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
-			assert.Equal(t, tc.mode, c.Mode)
+			assert.Equal(t, tc.expected, c.Mode)
 		})
 	}
 }
 
 func TestConfig_SetupEnabled(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg     map[string]interface{}
+		cfg     string
 		enabled bool
 	}{
-		"enabled":  {map[string]interface{}{"enabled": true}, true},
-		"disabled": {map[string]interface{}{"enabled": false}, false},
+		"enabled":  {`{"setup":{"enabled":true}}`, true},
+		"disabled": {`{"setup":{"enabled":false}}`, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.enabled, c.Setup.Enabled)
 		})
@@ -72,14 +80,14 @@ func TestConfig_SetupEnabled(t *testing.T) {
 
 func TestConfig_SetupOverwrite(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg       map[string]interface{}
+		cfg       string
 		overwrite bool
 	}{
-		"overwrite":        {map[string]interface{}{"overwrite": true}, true},
-		"do not overwrite": {map[string]interface{}{"overwrite": false}, false},
+		"overwrite":        {`{"setup":{"overwrite":true}}`, true},
+		"do not overwrite": {`{"setup":{"overwrite":false}}`, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.overwrite, c.Setup.Overwrite)
 		})
@@ -95,93 +103,108 @@ func TestConfig_RequirePolicy(t *testing.T) {
 		"not required": {map[string]interface{}{"require_policy": false}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+			c, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.NoError(t, err)
 			assert.Equal(t, tc.required, c.Setup.RequirePolicy)
 		})
 	}
 }
 
-func TestConfig_Policies(t *testing.T) {
+func TestConfig_Valid(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		cfg  string
 
-	findPolicy := func(p []EventPolicy, name string) map[string]interface{} {
-		for _, entry := range p {
-			if entry.EventType == name {
-				return entry.Policy
-			}
-		}
-		return nil
-	}
-
-	for name, tc := range map[string]struct {
-		event  string
-		cfg    map[string]interface{}
-		policy map[string]interface{}
+		expected Config
 	}{
-		"assign different default policy": {
-			"error",
-			map[string]interface{}{
-				"mapping": []map[string]interface{}{{"event_type": "error", "policy_name": rollover30Days}}},
-			policyPool()[rollover30Days]},
-		"change default policy": {
-			"transaction",
-			map[string]interface{}{
-				"policies": []map[string]interface{}{{
-					"name":   rollover30Days,
-					"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": nil}}}}},
-			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
-		"assign new policy": {
-			"span",
-			map[string]interface{}{
-				"mapping": []map[string]interface{}{{"event_type": "span", "policy_name": "delete-7-days"}},
-				"policies": []map[string]interface{}{{
-					"name":   "delete-7-days",
-					"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": nil}}}}},
-			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
-		"reference missing policy": {
-			"span",
-			map[string]interface{}{
-				"require_policy": false,
-				"mapping":        []map[string]interface{}{{"event_type": "span", "policy_name": "foo"}}},
-			nil},
+		{name: "new policy and rollover_alias",
+			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","rollover_alias":"apm-metric"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
+			expected: Config{Mode: libilm.ModeAuto,
+				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
+					Mappings: map[string]Mapping{
+						"error": {EventType: "error", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-9.9.9-error"},
+						"span": {EventType: "span", PolicyName: "spanPolicy",
+							RolloverAlias: "apm-9.9.9-span"},
+						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-9.9.9-transaction"},
+						"metric": {EventType: "metric", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-metric"},
+						"profile": {EventType: "profile", PolicyName: defaultPolicyName,
+							RolloverAlias: "apm-9.9.9-profile"},
+					},
+					Policies: map[string]Policy{
+						defaultPolicyName: defaultPolicies()[defaultPolicyName],
+						"spanPolicy": {Name: "spanPolicy", Body: map[string]interface{}{
+							"policy": map[string]interface{}{"phases": map[string]interface{}{
+								"foo": map[string]interface{}{}}}}},
+					},
+				}},
+		},
+		{name: "changed default policy",
+			cfg: `{"setup":{"policies":[{"name":"apm-rollover-30-days","policy":{"phases":{"warm":{"min_age":"30d"}}}}]}}`,
+			expected: Config{Mode: libilm.ModeAuto,
+				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
+					Mappings: defaultMappingsResolved(mockBeatInfo),
+					Policies: map[string]Policy{
+						defaultPolicyName: {Name: defaultPolicyName, Body: map[string]interface{}{
+							"policy": map[string]interface{}{"phases": map[string]interface{}{
+								"warm": map[string]interface{}{"min_age": "30d"}}}}},
+					},
+				}},
+		},
+		{name: "allow unknown policy",
+			cfg: `{"setup":{"require_policy":false,"mapping":[{"event_type":"error","policy_name":"errorPolicy"}]}}`,
+			expected: Config{Mode: libilm.ModeAuto,
+				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: false,
+					Mappings: func() map[string]Mapping {
+						m := defaultMappingsResolved(mockBeatInfo)
+						m["error"] = Mapping{EventType: "error", PolicyName: "errorPolicy",
+							RolloverAlias: "apm-9.9.9-error"}
+						return m
+					}(),
+					Policies: defaultPolicies(),
+				}},
+		},
 	} {
-		t.Run(name, func(t *testing.T) {
-			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+		t.Run(tc.name, func(t *testing.T) {
+			cfg, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
-			assert.Equal(t, tc.policy, findPolicy(c.Setup.Policies, tc.event))
-		})
-
-		t.Run("unmanaged "+name, func(t *testing.T) {
-			tc.cfg["enabled"] = false
-			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
-			require.NoError(t, err)
-			assert.ObjectsAreEqual(defaultPolicies(), c.Setup.Policies)
-
+			assert.Equal(t, tc.expected, cfg)
 		})
 	}
+
 }
 
 func TestConfig_Invalid(t *testing.T) {
-	for name, tc := range map[string]struct {
-		cfg    map[string]interface{}
+	for _, tc := range []struct {
+		name   string
+		cfg    string
 		errMsg string
 	}{
-		"invalid event_type": {map[string]interface{}{"mapping": []map[string]interface{}{{"event_type": "xyz", "policy_name": rollover30Days}}}, "event_type 'xyz' not supported"},
-		"invalid policy":     {map[string]interface{}{"mapping": []map[string]interface{}{{"event_type": "span", "policy_name": "xyz"}}}, "policy 'xyz' not configured"},
+		{name: "invalid event_type",
+			cfg:    `{"setup":{"mapping":[{"event_type": "xyz", "policy_name": "rollover30Days"}]}}`,
+			errMsg: "event_type 'xyz' not supported"},
+		{name: "invalid policy",
+			cfg:    `{"setup":{"mapping":[{"event_type":"span","policy_name":"xyz"}]}}`,
+			errMsg: "policy 'xyz' not configured"},
+		{name: "invalid rollover_alias",
+			cfg:    `{"setup":{"mapping":[{"event_type":"span","rollover_alias":"apm-%{[foo.version]}"}]}}`,
+			errMsg: "rollover_alias cannot be resolved"},
 	} {
-		t.Run(name, func(t *testing.T) {
-			_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tc.errMsg)
 		})
 	}
-
 }
 
-func defaultPolicies() []EventPolicy {
-	var policies []EventPolicy
-	for event, policyName := range policyMapping() {
-		policies = append(policies, EventPolicy{EventType: event, Policy: policyPool()[policyName], Name: policyName})
+func defaultMappingsResolved(info beat.Info) map[string]Mapping {
+	m := defaultMappings()
+	for k, v := range m {
+		v.RolloverAlias = fmt.Sprintf("apm-%s-%s", info.Version, k)
+		m[k] = v
 	}
-	return policies
+	return m
 }
