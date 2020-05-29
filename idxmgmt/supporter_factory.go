@@ -50,7 +50,7 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 		return nil, fmt.Errorf("unpacking template config fails: %+v", err)
 	}
 
-	ilmConfig, err := ilm.NewConfig(cfg.ILM)
+	ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
 	if err != nil {
 		return nil, fmt.Errorf("creating ILM config fails: %v", err)
 	}
@@ -64,11 +64,10 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 }
 
 func unpackTemplateConfig(cfg *common.Config) (template.TemplateConfig, error) {
-	if cfg == nil {
-		cfg = common.NewConfig()
-	}
-
 	config := template.DefaultConfig()
+	if cfg == nil {
+		return config, nil
+	}
 	err := cfg.Unpack(&config)
 	return config, err
 }

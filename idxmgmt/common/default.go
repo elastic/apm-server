@@ -15,35 +15,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package ilm
+package common
 
-import (
-	"testing"
+const APMPrefix = "apm-%{[observer.version]}"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
-
-	"github.com/elastic/apm-server/idxmgmt/common"
+var (
+	EventTypes    = []string{"span", "transaction", "error", "metric", "profile"}
+	FallbackIndex = "apm-%{[observer.version]}-%{+yyyy.MM.dd}"
 )
 
-func TestMakeDefaultSupporter(t *testing.T) {
-	info := beat.Info{Beat: "mockapm", Version: "9.9.9"}
-	cfg, err := NewConfig(info, nil)
-	require.NoError(t, err)
+func ConditionalSourcemapIndex() map[string]interface{} {
+	return Condition("sourcemap", APMPrefix+"-sourcemap")
+}
 
-	s, err := MakeDefaultSupporter(nil, 0, cfg)
-	require.NoError(t, err)
-	assert.Equal(t, 5, len(s))
-	var aliases []string
-	for _, sup := range s {
-		aliases = append(aliases, sup.Alias().Name)
-		assert.Equal(t, defaultPolicyName, sup.Policy().Name)
+func ConditionalOnboardingIndex() map[string]interface{} {
+	return Condition("onboarding", APMPrefix+"-onboarding-%{+yyyy.MM.dd}")
+}
+
+func Condition(event string, index string) map[string]interface{} {
+	return map[string]interface{}{
+		"index": index,
+		"when":  map[string]interface{}{"contains": map[string]interface{}{"processor.event": event}},
 	}
-	var defaultAliases []string
-	for _, et := range common.EventTypes {
-		defaultAliases = append(defaultAliases, "apm-9.9.9-"+et)
-	}
-	assert.ElementsMatch(t, defaultAliases, aliases)
 }
