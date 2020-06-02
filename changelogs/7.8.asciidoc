@@ -29,4 +29,5 @@ https://github.com/elastic/apm-server/compare/v7.7.0\...v7.8.0[View commits]
 * We now publish libbeat metrics through the /debug/vars endpoint {pull}3550[3550]
 * Introduce transaction.duration.histogram aggregation {pull}3651[3651]
 * Introduce config to drop unsampled transactions {pull}3702[3702]
+* Add `logging.ecs` to add minimal required ECS logging fields to log lines {pull}3749[3749].
 * Upgrade Go to 1.13.10 {pull}3834[3834]
