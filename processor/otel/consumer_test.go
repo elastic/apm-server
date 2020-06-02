@@ -378,9 +378,7 @@ func testEndTime() *timestamp.Timestamp {
 }
 
 func testTimeStamp(t *timestamp.Timestamp, addNanos int32) *timestamp.Timestamp {
-	newT := *t
-	newT.Nanos += addNanos
-	return &newT
+	return &timestamp.Timestamp{Seconds: t.GetSeconds(), Nanos: t.GetNanos() + addNanos}
 }
 
 func testIntToWrappersUint32(n int) *wrappers.UInt32Value {
