@@ -39,6 +39,8 @@ apm-server:
     #url: "/debug/vars"
 
   # Instrumentation support for the server's HTTP endpoints and event publisher.
+  # DEPRECATION NOTICE: this section will be removed in 8.0. Use `instrumentation` at the top level instead
+  # (not nested under the `apm-server` configuration block)
   #instrumentation:
     # Set to true to enable instrumentation of the APM Server itself.
     #enabled: false
@@ -982,6 +984,41 @@ output.elasticsearch:
 
   # Kerberos realm.
   #kerberos.realm: ELASTIC
+
+#============================= Instrumentation =============================
+
+# Instrumentation support for the server's HTTP endpoints and event publisher.
+#instrumentation:
+  # Set to true to enable instrumentation of the APM Server itself.
+  #enabled: false
+
+  # Environment in which the APM Server is running on (eg: staging, production, etc.)
+  #environment: ""
+
+  # Remote hosts to report instrumentation results to.
+  #hosts:
+  #  - http://remote-apm-server:8200
+
+  # API Key for the remote APM Server(s).
+  # If api_key is set then secret_token will be ignored.
+  #api_key:
+
+  # Secret token for the remote APM Server(s).
+  #secret_token:
+
+  # Enable profiling of the server, recording profile samples as events.
+  #
+  # This feature is experimental.
+  #profiling:
+    #cpu:
+      # Set to true to enable CPU profiling.
+      #enabled: false
+      #interval: 60s
+      #duration: 10s
+    #heap:
+      # Set to true to enable heap profiling.
+      #enabled: false
+      #interval: 60s
 
 #================================= Paths ==================================
 

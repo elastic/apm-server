@@ -21,6 +21,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/elastic/beats/v7/libbeat/version"
+
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
@@ -130,11 +132,26 @@ type beater struct {
 // Run runs the APM Server, blocking until the beater's Stop method is called,
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
-	tracer, tracerServer, err := initTracer(b.Info, bt.config, bt.logger)
-	if err != nil {
-		return err
+
+	var tracerServer *tracerServer
+	var tracer *apm.Tracer
+	var err error
+
+	useLegacyTracer := common.MustNewVersion(version.GetDefaultVersion()).LessThan(&common.Version{Major: 8, Minor: 0})
+	if useLegacyTracer {
+		tracer, tracerServer, err = initLegacyTracer(b.Info, bt.config, bt.logger)
+		if err != nil {
+			return err
+		}
 	}
-	defer tracer.Close()
+
+	if tracer == nil {
+		tracerServer, err = newTracerServer(bt.config, b.Instrumentation.Listener)
+		if err != nil {
+			return err
+		}
+		tracer = b.Instrumentation.GetTracer()
+	}
 
 	runServer := runServer
 	if tracerServer != nil {

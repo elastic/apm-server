@@ -43,23 +43,23 @@ func init() {
 	apm.DefaultTracer.Close()
 }
 
-// initTracer configures and returns an apm.Tracer for tracing
+// initLegacyTracer configures and returns an apm.Tracer for tracing
 // the APM server's own execution. If the server is configured
 // to send tracing data to itself, it will return a tracerServer
 // that can be used for receiving trace data.
-func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, *tracerServer, error) {
+//
+// NOTE: this reads configuration from apm-server.instrumentation.* namespace
+// In 8.0 this will be removed, and the tracer will only be initialized by libbeat (configuration in instrumentation.*)
+func initLegacyTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, *tracerServer, error) {
 	if !cfg.SelfInstrumentation.IsEnabled() {
 		os.Setenv("ELASTIC_APM_ACTIVE", "false")
 		logger.Infof("self instrumentation is disabled")
+		return nil, nil, nil
 	} else {
 		os.Setenv("ELASTIC_APM_ACTIVE", "true")
 		logger.Infof("self instrumentation is enabled")
+		logger.Infof("`apm-server.instrumentation.*` configuration block is DEPRECATED. Use `instrumentation.*` instead.")
 	}
-	if !cfg.SelfInstrumentation.IsEnabled() {
-		tracer, err := apm.NewTracer(info.Beat, info.Version)
-		return tracer, nil, err
-	}
-
 	if cfg.SelfInstrumentation.Profiling.CPU.IsEnabled() {
 		interval := cfg.SelfInstrumentation.Profiling.CPU.Interval
 		duration := cfg.SelfInstrumentation.Profiling.CPU.Duration
@@ -91,7 +91,7 @@ func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.T
 		logger.Infof("self instrumentation directed to %s", cfg.SelfInstrumentation.Hosts)
 	} else {
 		var err error
-		tracerServer, err = newTracerServer(cfg)
+		tracerServer, err = newTracerServer(cfg, nil)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -124,7 +124,7 @@ type tracerServer struct {
 	transport transport.Transport
 }
 
-func newTracerServer(cfg *config.Config) (*tracerServer, error) {
+func newTracerServer(cfg *config.Config, listener net.Listener) (*tracerServer, error) {
 	cfgCopy := *cfg // Copy cfg so we can disable auth
 	cfg = &cfgCopy
 	cfg.SecretToken = ""
@@ -137,6 +137,14 @@ func newTracerServer(cfg *config.Config) (*tracerServer, error) {
 		MaxHeaderBytes: cfg.MaxHeaderSize,
 	}
 
+	if listener != nil {
+		return &tracerServer{
+			cfg:      cfg,
+			logger:   logp.NewLogger(logs.Beater),
+			server:   server,
+			listener: listener,
+		}, nil
+	}
 	// Create an in-process net.Listener for the tracer. This enables us to:
 	// - avoid the network stack
 	// - avoid/ignore TLS for self-tracing
