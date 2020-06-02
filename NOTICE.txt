@@ -3261,7 +3261,7 @@ License type (autodetected): Apache-2.0
 --------------------------------------------------------------------
 Dependency: k8s.io/client-go
 Replacement: k8s.io/client-go
-Revision: 78d2af792bab
+Version: v0.18.3
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3271,7 +3271,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: k8s.io/utils
-Revision: 6c36bc71fc4a
+Revision: a9aa75ae1b89
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
