@@ -512,7 +512,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 33e323cd6200
+Revision: 6e91ce4988a7
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -824,7 +824,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/golang/protobuf
-Version: v1.3.2
+Version: v1.4.2
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -926,7 +926,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/google/gofuzz
-Version: v1.0.0
+Version: v1.1.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -1835,7 +1835,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/json-iterator/go
-Version: v1.1.7
+Version: v1.1.8
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -3028,8 +3028,42 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/grpc
-Version: v1.27.1
+Version: v1.29.1
 License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
+Dependency: google.golang.org/protobuf
+Version: v1.23.0
+License type (autodetected): BSD-3-Clause
+Contents of "LICENSE":
+
+    Copyright (c) 2018 The Go Authors. All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
+
+       * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+       * Redistributions in binary form must reproduce the above
+    copyright notice, this list of conditions and the following disclaimer
+    in the documentation and/or other materials provided with the
+    distribution.
+       * Neither the name of Google Inc. nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: gopkg.in/inf.v0
@@ -3216,12 +3250,12 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: k8s.io/api
-Revision: 36bff7324fb7
+Version: v0.18.3
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: k8s.io/apimachinery
-Revision: 423f5d784010
+Version: v0.18.3
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3232,7 +3266,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: k8s.io/klog
-Version: v0.4.0
+Version: v1.0.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3241,9 +3275,13 @@ Revision: 6c36bc71fc4a
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
+Dependency: sigs.k8s.io/structured-merge-diff/v3
+Version: v3.0.0
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
 Dependency: sigs.k8s.io/yaml
-Version: v1.1.1
-Revision: 4cd0c284b15f
+Version: v1.2.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
