@@ -19,9 +19,8 @@ package beater
 
 import (
 	"context"
-	"sync"
-
 	"github.com/elastic/beats/v7/libbeat/version"
+	"sync"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -134,23 +133,16 @@ type beater struct {
 func (bt *beater) Run(b *beat.Beat) error {
 
 	var tracerServer *tracerServer
-	var tracer *apm.Tracer
 	var err error
 
+	tracer := b.Instrumentation.GetTracer()
 	useLegacyTracer := common.MustNewVersion(version.GetDefaultVersion()).LessThan(&common.Version{Major: 8, Minor: 0})
-	if useLegacyTracer {
+
+	if !tracer.Active() && useLegacyTracer {
 		tracer, tracerServer, err = initLegacyTracer(b.Info, bt.config, bt.logger)
 		if err != nil {
 			return err
 		}
-	}
-
-	if tracer == nil {
-		tracerServer, err = newTracerServer(bt.config, b.Instrumentation.Listener)
-		if err != nil {
-			return err
-		}
-		tracer = b.Instrumentation.GetTracer()
 	}
 
 	runServer := runServer
