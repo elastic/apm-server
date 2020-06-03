@@ -4,7 +4,7 @@ import time
 
 apm = "apm"
 apm_prefix = "{}*".format(apm)
-apm_version = "7.7.1"
+apm_version = "7.7.2"
 day = time.strftime("%Y.%m.%d", time.gmtime())
 agentcfg_index = ".apm-agent-configuration"
 default_policy = "apm-rollover-30-days"
