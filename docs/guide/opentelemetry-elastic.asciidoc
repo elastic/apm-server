@@ -11,17 +11,20 @@
 :ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib-dev
 
 Elastic's OpenTelemetry integration allows you to reuse your existing OpenTelemetry
-instrumentation to quickly and easily analyze distributed traces and metrics with the Elastic Stack.
+instrumentation to quickly analyze distributed traces and metrics with the Elastic Stack.
 
+[float]
+[[what-is-otel]]
 === What is OpenTelemetry?
 
-> OpenTelemetry formed through a merger of the OpenTracing and OpenCensus projects.
-It’s a set of APIs, SDKs, tooling, and integrations that enable the creation and
-management of telemetry data.
+> OpenTelemetry is a set of APIs, SDKs, tooling, and integrations that enable the creation and
+management of telemetry data. It formed through a merger of the OpenTracing and OpenCensus projects.
 
 OpenTelemetry is an open-source project that provides the components necessary to observe your applications and services.
-Learn more in the {ot-spec}[spec].
+If you're unfamiliar with the project, see the {ot-spec}[spec] for more information.
 
+[float]
+[[open-telemetry-elastic-exporter]]
 === Elastic exporter
 
 Elastic's integration is designed to drop into your current OpenTelemetry setup.
@@ -30,8 +33,6 @@ This exporter translates the OpenTelemetry trace data collected from your servic
 before sending the data to the Elastic Stack.
 By extending the OpenTelemetry collector,
 no changes are needed in your instrumented services in order to begin using the Elastic Stack.
-
-Here's an architecture overview:
 
 *************
 Instrumented with
@@ -47,23 +48,26 @@ Service 3  --->  ┘            └───────────────
                    Protocol                       Protocol
 *************
 
+[float]
+[[open-telemetry-elastic-works]]
 === How the OpenTelemetry Collector works
 
 The OpenTelemetry collector uses three different types of components to handle data: `receivers`, `processors`, and `exporters`.
 
-* `receivers`: Configures how data gets to the collector. At least one receiver must be configured.
-* `processors`: Defines optional transformation that occurs between receiving and exporting data.
+* `receivers`: Configure how data gets to the collector. At least one receiver must be configured.
+* `processors`: Defines optional transformations that occurs between receiving and exporting data.
 * `exporters`: Configures how data is sent to its destination--in this case, the Elastic Stack.
 
-Once a `receiver`, `processor`, and `exporter` is defined, `pipelines` can be configured in the `services` section of your configuration. Specifically, a `traces` pipeline will define the path of data through your collector, and bring all three of these components together.
+Once a `receiver`, `processor`, and `exporter` is defined, `pipelines` can be configured in the `services` section of your configuration. Specifically, a `traces` pipeline will define the path of trace data through your collector, and bring all three of these components together.
 
-More information is available in the
+TIP: More information is available in the
 {ot-pipelines}[OpenTelemetry pipeline docs]
 
 A final note: `extensions` can also be enabled for tasks like monitoring your collectors health.
 See the {ot-extension}[OpenTelemetry extension readme]
 for a list of supported extensions.
 
+[[open-telemetry-elastic-get-started]]
 === Get started
 
 NOTE: This guide assumes you've already instrumented your services with the OpenTelemetry API and/or SDK.
@@ -72,26 +76,32 @@ If you haven't, see the Elastic APM <<install-and-run,install and run guide>> to
 ==== Deployment planning
 
 OpenTelemetry Collectors can be run as an Agent, or as standalone collectors.
-They can be deployed in as many clusters, data centers, or regions as necessary,
-and scaled up or out as needed.
+They can be deployed as often as necessary and scaled up or out.
 
-See OpenTelemetry's {ot-scaling}[Collector Performance] documentation for recommendations
-on the number of maximum spans per second per collector.
+Deployment planning resources are available in OpenTelemetry's {ot-collector}[Getting Started]
+documentation, and {ot-scaling}[Collector Performance] research.
 
 ==== Download the collector
 
 The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
 and the latest release can be downloaded from {ot-repo}/releases[GitHub releases page].
-Docker images are available on {ot-dockerhub}[dockerhub].
+You can also build the collector-contrib repository by cloning it and running:
 
-[source,console]
+[source,bash]
+----
+make otelcontribcol
+----
+
+Docker images are available on {ot-dockerhub}[dockerhub]:
+
+[source,bash]
 ----
 docker pull otel/opentelemetry-collector-contrib-dev
 ----
 
 ==== Configure the collector
 
-Next, create a yaml configuration file. We'll call ours `elastic-collector.yaml`.
+Next, create a yaml configuration file.
 
 At a minimum, you must define the URL of the APM Server instance you are sending data to.
 Additional configuration options for API keys, secret tokens, and TLS settings are also available.
@@ -109,6 +119,17 @@ For example:
 
 [source,yml]
 ----
+service:
+  pipelines:
+    traces:
+      exporters: [elastic]
+----
+
+If we put everything together, here's an example configuration file that accepts input from an OpenTelemetry Agent,
+processes the data, and sends it to an {ess} instance.
+
+[source,yml]
+----
 receivers:
   otlp:
     endpoint: localhost:55680
@@ -119,7 +140,7 @@ processors:
 exporters:
   elastic:
     apm_server_url: "https://elasticapm.example.com"
-    secret_token: "hunter2"
+    secret_token: "ESS_TOKEN"
 service:
   pipelines:
     traces:
@@ -128,26 +149,14 @@ service:
       exporters: [elastic]
 ----
 
-==== Deploy the collector
+==== Quickstart?
 
-[source,console]
-----
-Some command here where we pass in the config `elastic-collector.yaml`
-----
-
-[source,console]
-----
-Some docker command here?
-----
-
-[source,console]
-----
-Some Kubernetes config here?
-----
+Do we want to provide some sort of dockerized quickstart that uses a load generator to send data to ESS?
 
 For more information about getting started with an OpenTelemetry Collector,
 see the {ot-collector}[OpenTelemetry collector] docs.
 
+[[open-telemetry-elastic-config]]
 === Elastic exporter configuration reference
 
 ==== `apm_server_url`

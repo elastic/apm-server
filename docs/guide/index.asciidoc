@@ -23,7 +23,7 @@ include::./rum.asciidoc[]
 
 include::./opentracing.asciidoc[]
 
-include::./oepntelemetry-elastic.asciidoc[]
+include::./opentelemetry-elastic.asciidoc[]
 
 include::./obs-integrations.asciidoc[]
 
