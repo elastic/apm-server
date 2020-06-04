@@ -40,6 +40,7 @@ No significant changes.
 === APM Server version 6.8.7
 
 https://github.com/elastic/apm-server/compare/v6.8.6\...v6.8.7[View commits]
+
 No significant changes.
 
 [[release-notes-6.8.6]]
