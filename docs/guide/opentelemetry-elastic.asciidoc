@@ -34,19 +34,7 @@ before sending the data to the Elastic Stack.
 By extending the OpenTelemetry collector,
 no changes are needed in your instrumented services in order to begin using the Elastic Stack.
 
-*************
-Instrumented with
-OpenTelemetry
-    ↓
-    ↓                       OpenTelemetry Collector                   The Elastic Stack [ESS]
-Service 1  --->  ┐            ┌────────────────┐            ┌─────────────────────────────────────────┐
-Service 2  --->  ┤     --->   |Elastic Exporter|    --->    |APM Server --> Elasticsearch --> APM app)|
-Service 3  --->  ┘            └────────────────┘            └─────────────────────────────────────────┘
-                        ↑                            ↑
-                        ↑                            ↑
-                   OpenTelemetry                  Elastic
-                   Protocol                       Protocol
-*************
+image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
 
 [float]
 [[open-telemetry-elastic-works]]
