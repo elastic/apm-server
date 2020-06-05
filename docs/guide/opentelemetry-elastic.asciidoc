@@ -62,7 +62,7 @@ NOTE: This guide assumes you've already instrumented your services with the Open
 If you haven't, see the Elastic APM <<install-and-run,install and run guide>> to get started with Elastic APM Agents instead.
 
 [[open-telemetry-elastic-deployment-planning]]
-==== Deployment planning
+==== Plan your deployment
 
 OpenTelemetry Collectors can be run as an Agent, or as standalone collectors.
 They can be deployed as often as necessary and scaled up or out.
@@ -93,10 +93,9 @@ make otelcontribcol
 [[open-telemetry-elastic-configure]]
 ==== Configure the collector
 
-Next, create a yaml configuration file.
+Create a `yaml` configuration file.
 
 At a minimum, you must define the URL of the APM Server instance you are sending data to.
-Additional configuration options for API keys, secret tokens, and TLS settings are also available.
 For example:
 
 [source,yml]
@@ -105,6 +104,9 @@ exporters:
   elastic:
     apm_server_url: "https://elasticapm.example.com"
 ----
+
+See the <<open-telemetry-elastic-config-ref,configuration reference>> for additional configuration options,
+like specifying an API key, secret token, or TLS settings.
 
 The Elastic exporter must also be defined in `service.pipelines.traces.exporters`.
 For example:
@@ -140,6 +142,9 @@ service:
       processors: [batch]
       exporters: [elastic]
 ----
+
+NOTE: For more information about getting started with an OpenTelemetry Collector,
+see the {ot-collector}[OpenTelemetry collector] docs.
 
 [[open-telemetry-elastic-config-ref]]
 === Elastic exporter configuration reference
