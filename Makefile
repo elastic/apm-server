@@ -170,8 +170,7 @@ BEATS_MODULE=$(shell go list -m -f {{.Path}} all | grep github.com/elastic/beats
 
 .PHONY: update-beats
 update-beats: update-beats-module update
-	@echo --- Use this commit message: Update beats framework to \
-		$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
+	@echo --- Use this commit message: Update to elastic/beats@$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
 
 .PHONY: update-beats-module
 update-beats-module:
