@@ -14,7 +14,7 @@ Elastic's OpenTelemetry integration allows you to reuse your existing OpenTeleme
 instrumentation to quickly analyze distributed traces and metrics with the Elastic Stack.
 
 [float]
-[[what-is-otel]]
+[[what-is-opentelemetry]]
 === What is OpenTelemetry?
 
 > OpenTelemetry is a set of APIs, SDKs, tooling, and integrations that enable the creation and
@@ -61,6 +61,7 @@ for a list of supported extensions.
 NOTE: This guide assumes you've already instrumented your services with the OpenTelemetry API and/or SDK.
 If you haven't, see the Elastic APM <<install-and-run,install and run guide>> to get started with Elastic APM Agents instead.
 
+[[open-telemetry-elastic-deployment-planning]]
 ==== Deployment planning
 
 OpenTelemetry Collectors can be run as an Agent, or as standalone collectors.
@@ -69,6 +70,7 @@ They can be deployed as often as necessary and scaled up or out.
 Deployment planning resources are available in OpenTelemetry's {ot-collector}[Getting Started]
 documentation, and {ot-scaling}[Collector Performance] research.
 
+[[open-telemetry-elastic-download]]
 ==== Download the collector
 
 The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
@@ -88,6 +90,7 @@ You can also build the collector-contrib repository by cloning it and running:
 make otelcontribcol
 ----
 
+[[open-telemetry-elastic-configure]]
 ==== Configure the collector
 
 Next, create a yaml configuration file.
@@ -138,28 +141,35 @@ service:
       exporters: [elastic]
 ----
 
-[[open-telemetry-elastic-config]]
+[[open-telemetry-elastic-config-ref]]
 === Elastic exporter configuration reference
 
+[[open-telemetry-config-url]]
 ==== `apm_server_url`
 Elastic APM Server URL. (required)
 
+[[open-telemetry-config-api-key]]
 ==== `api_key`
 Credential for {apm-server-ref-v}/api-key.html[API key authorization].
 Must also be enabled in Elastic APM Server. (optional)
 
+[[open-telemetry-config-secret-token]]
 ==== `secret_token`
 Credential for {apm-server-ref-v}/secret-token.html[secret token authorization].
 Must also be enabled in Elastic APM Server. (optional)
 
+[[open-telemetry-config-ca-file]]
 ==== `ca_file`
 Root Certificate Authority (CA) certificate, for verifying the server's identity if TLS is enabled. (optional)
 
+[[open-telemetry-config-cert-file]]
 ==== `cert_file`
 Client TLS certificate. (optional)
 
+[[open-telemetry-config-key-file]]
 ==== `key_file`
 Client TLS key. (optional)
 
+[[open-telemetry-config-insecure]]
 ==== `insecure`
 Disable verification of the server's identity if TLS is enabled. (optional)
