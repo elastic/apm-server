@@ -30,6 +30,7 @@ import (
 	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
+	tracetranslator "github.com/open-telemetry/opentelemetry-collector/translator/trace"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -81,14 +82,43 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 			continue
 		}
 
-		var parentID *string
 		root := len(otelSpan.ParentSpanId) == 0
-		if !root {
-			str := fmt.Sprintf("%x", otelSpan.ParentSpanId)
-			parentID = &str
+
+		var parentID, spanID, traceID string
+		if td.SourceFormat == sourceFormatJaeger {
+			if !root {
+				jaegerParentSpanID, err := tracetranslator.BytesToUInt64SpanID(otelSpan.ParentSpanId)
+				if err != nil {
+					parentID = fmt.Sprintf("%x", otelSpan.ParentSpanId)
+				} else {
+					parentID = fmt.Sprintf("%x", jaegerParentSpanID)
+				}
+			}
+
+			jaegerTraceIDHigh, jaegerTraceIDLow, err := tracetranslator.BytesToUInt64TraceID(otelSpan.TraceId)
+			if err != nil {
+				traceID = fmt.Sprintf("%x", otelSpan.TraceId)
+			} else if jaegerTraceIDHigh == 0 {
+				traceID = fmt.Sprintf("%x", jaegerTraceIDLow)
+			} else {
+				traceID = fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
+			}
+
+			jaegerSpanID, err := tracetranslator.BytesToUInt64SpanID(otelSpan.SpanId)
+			if err != nil {
+				spanID = fmt.Sprintf("%x", otelSpan.SpanId)
+			} else {
+				spanID = fmt.Sprintf("%x", jaegerSpanID)
+			}
+		} else {
+			if !root {
+				parentID = fmt.Sprintf("%x", otelSpan.ParentSpanId)
+			}
+
+			traceID = fmt.Sprintf("%x", otelSpan.TraceId)
+			spanID = fmt.Sprintf("%x", otelSpan.SpanId)
 		}
-		traceID := fmt.Sprintf("%x", otelSpan.TraceId)
-		spanID := fmt.Sprintf("%x", otelSpan.SpanId)
+
 		startTime := parseTimestamp(otelSpan.StartTime)
 		var duration float64
 		if otelSpan.EndTime != nil && !startTime.IsZero() {
@@ -99,7 +129,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 			transaction := model.Transaction{
 				Metadata:  md,
 				ID:        spanID,
-				ParentID:  parentID,
+				ParentID:  &parentID,
 				TraceID:   traceID,
 				Timestamp: startTime,
 				Duration:  duration,
@@ -116,7 +146,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 			span := model.Span{
 				Metadata:  md,
 				ID:        spanID,
-				ParentID:  parentID,
+				ParentID:  &parentID,
 				TraceID:   &traceID,
 				Timestamp: startTime,
 				Duration:  duration,

@@ -122,6 +122,22 @@ func TestConsumer_Metadata(t *testing.T) {
 			},
 		},
 	}, {
+		name: "jaeger_full-traceid",
+		td: consumerdata.TraceData{
+			SourceFormat: "jaeger",
+			Spans: []*tracepb.Span{{
+				TraceId:   []byte{0, 0, 0, 0, 70, 70, 120, 48, 0, 0, 0, 0, 70, 70, 120, 48},
+				SpanId:    []byte{0, 0, 0, 0, 65, 65, 70, 70},
+				Kind:      tracepb.Span_CLIENT,
+				StartTime: testStartTime(),
+			}},
+			Node: &commonpb.Node{
+				Identifier:  &commonpb.ProcessIdentifier{},
+				LibraryInfo: &commonpb.LibraryInfo{},
+				ServiceInfo: &commonpb.ServiceInfo{},
+			},
+		},
+	}, {
 		name: "minimal",
 		td:   consumerdata.TraceData{SourceFormat: "foo", Spans: spans},
 	}} {
