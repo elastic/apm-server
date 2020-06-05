@@ -52,7 +52,7 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 			SourceFormat: "jaeger",
 			Spans: []*tracepb.Span{
 				{Kind: tracepb.Span_SERVER, StartTime: &timestamp.Timestamp{Seconds: 1576500418, Nanos: 768068}},
-				{ParentSpanId: []byte("FF0X"), StartTime: &timestamp.Timestamp{Seconds: 1576500418, Nanos: 768068}},
+				{ParentSpanId: []byte{0, 0, 0, 0, 70, 70, 48, 88}, StartTime: &timestamp.Timestamp{Seconds: 1576500418, Nanos: 768068}},
 			}}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -69,8 +69,8 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 
 func TestConsumer_Metadata(t *testing.T) {
 	spans := []*tracepb.Span{{
-		TraceId:   []byte("FFx0"),
-		SpanId:    []byte("AAFF"),
+		TraceId:   []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 70, 120, 48},
+		SpanId:    []byte{0, 0, 0, 0, 65, 65, 70, 70},
 		Kind:      tracepb.Span_CLIENT,
 		StartTime: testStartTime(),
 	}}
@@ -146,8 +146,8 @@ func TestConsumer_Transaction(t *testing.T) {
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
 				Spans: []*tracepb.Span{{
-					TraceId:                 []byte("FFx0"),
-					SpanId:                  []byte("AAFF"),
+					TraceId:                 []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 70, 120, 48},
+					SpanId:                  []byte{0, 0, 0, 0, 65, 65, 70, 70},
 					StartTime:               testStartTime(),
 					EndTime:                 testEndTime(),
 					Name:                    testTruncatableString("HTTP GET"),
@@ -173,7 +173,7 @@ func TestConsumer_Transaction(t *testing.T) {
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
 				Spans: []*tracepb.Span{{
-					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_SERVER,
+					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_SERVER,
 					StartTime: testStartTime(),
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
 						"http.status_code": testAttributeIntValue(200),
@@ -184,7 +184,7 @@ func TestConsumer_Transaction(t *testing.T) {
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
 				Spans: []*tracepb.Span{{
-					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_SERVER,
+					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_SERVER,
 					StartTime: testStartTime(),
 					Status:    &tracepb.Status{Code: 200},
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
@@ -239,7 +239,7 @@ func TestConsumer_Span(t *testing.T) {
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
 				Spans: []*tracepb.Span{{
-					TraceId: []byte("FFx0"), SpanId: []byte("AAFF"), ParentSpanId: []byte("XXXX"),
+					TraceId: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 70, 120, 48}, SpanId: []byte{0, 0, 0, 0, 65, 65, 70, 70}, ParentSpanId: []byte{0, 0, 0, 0, 88, 88, 88, 88},
 					StartTime: testStartTime(), EndTime: testEndTime(),
 					Name: testTruncatableString("HTTP GET"),
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
@@ -264,7 +264,7 @@ func TestConsumer_Span(t *testing.T) {
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
 				Spans: []*tracepb.Span{{
-					TraceId: []byte("FFx0"), SpanId: []byte("AAFF"), ParentSpanId: []byte("XXXX"),
+					TraceId: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 70, 120, 48}, SpanId: []byte{0, 0, 0, 0, 65, 65, 70, 70}, ParentSpanId: []byte{0, 0, 0, 0, 88, 88, 88, 88},
 					StartTime: testStartTime(), EndTime: testEndTime(),
 					Name: testTruncatableString("HTTP GET"),
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
@@ -277,7 +277,7 @@ func TestConsumer_Span(t *testing.T) {
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
 				Spans: []*tracepb.Span{{
-					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_CLIENT,
+					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_CLIENT,
 					StartTime: testStartTime(), Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
 						"db.statement": testAttributeStringValue("GET * from users"),
 						"db.instance":  testAttributeStringValue("db01"),
@@ -290,7 +290,7 @@ func TestConsumer_Span(t *testing.T) {
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
 				Spans: []*tracepb.Span{{
-					ParentSpanId: []byte("abcd"), Kind: tracepb.Span_CLIENT,
+					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_CLIENT,
 					StartTime: testStartTime()}}}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
