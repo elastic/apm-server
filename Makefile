@@ -175,6 +175,8 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	go get -d -u $(BEATS_MODULE)@$(BEATS_VERSION)
+	diff -u .go-version $$(go list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version \
+		|| { code=$$?; echo ".go-version out of sync with Beats"; exit $$code; }
 	rsync -crv --delete $$(go list -m -f {{.Dir}} $(BEATS_MODULE))/testing/environments testing/
 
 ##############################################################################
