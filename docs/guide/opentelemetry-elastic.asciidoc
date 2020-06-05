@@ -73,18 +73,19 @@ documentation, and {ot-scaling}[Collector Performance] research.
 
 The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
 and the latest release can be downloaded from {ot-repo}/releases[GitHub releases page].
-You can also build the collector-contrib repository by cloning it and running:
-
-[source,bash]
-----
-make otelcontribcol
-----
 
 Docker images are available on {ot-dockerhub}[dockerhub]:
 
 [source,bash]
 ----
 docker pull otel/opentelemetry-collector-contrib-dev
+----
+
+You can also build the collector-contrib repository by cloning it and running:
+
+[source,bash]
+----
+make otelcontribcol
 ----
 
 ==== Configure the collector
@@ -137,13 +138,6 @@ service:
       exporters: [elastic]
 ----
 
-==== Quickstart?
-
-Do we want to provide some sort of dockerized quickstart that uses a load generator to send data to ESS?
-
-For more information about getting started with an OpenTelemetry Collector,
-see the {ot-collector}[OpenTelemetry collector] docs.
-
 [[open-telemetry-elastic-config]]
 === Elastic exporter configuration reference
 
@@ -151,10 +145,12 @@ see the {ot-collector}[OpenTelemetry collector] docs.
 Elastic APM Server URL. (required)
 
 ==== `api_key`
-Credential for API Key authorization. Must also be enabled in Elastic APM Server. (optional)
+Credential for {apm-server-ref-v}/api-key.html[API key authorization].
+Must also be enabled in Elastic APM Server. (optional)
 
 ==== `secret_token`
-Credential for Secret Token authorization. Must also be enabled in Elastic APM Server. (optional)
+Credential for {apm-server-ref-v}/secret-token.html[secret token authorization].
+Must also be enabled in Elastic APM Server. (optional)
 
 ==== `ca_file`
 Root Certificate Authority (CA) certificate, for verifying the server's identity if TLS is enabled. (optional)
