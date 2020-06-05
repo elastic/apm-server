@@ -28,7 +28,7 @@ If you're unfamiliar with the project, see the {ot-spec}[spec] for more informat
 === Elastic exporter
 
 Elastic's integration is designed to drop into your current OpenTelemetry setup.
-We've done this by extending the default OpenTelemetry collector and adding an Elastic exporter.
+We've done this by extending the "contrib" OpenTelemetry collector and adding an Elastic exporter.
 This exporter translates the OpenTelemetry trace data collected from your services to Elastic's protocol,
 before sending the data to the Elastic Stack.
 By extending the OpenTelemetry collector,
