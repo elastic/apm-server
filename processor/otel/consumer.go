@@ -87,29 +87,11 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 		var parentID, spanID, traceID string
 		if td.SourceFormat == sourceFormatJaeger {
 			if !root {
-				jaegerParentSpanID, err := tracetranslator.BytesToUInt64SpanID(otelSpan.ParentSpanId)
-				if err != nil {
-					parentID = fmt.Sprintf("%x", otelSpan.ParentSpanId)
-				} else {
-					parentID = fmt.Sprintf("%x", jaegerParentSpanID)
-				}
+				parentID = formatJaegerSpanID(otelSpan.ParentSpanId)
 			}
 
-			jaegerTraceIDHigh, jaegerTraceIDLow, err := tracetranslator.BytesToUInt64TraceID(otelSpan.TraceId)
-			if err != nil {
-				traceID = fmt.Sprintf("%x", otelSpan.TraceId)
-			} else if jaegerTraceIDHigh == 0 {
-				traceID = fmt.Sprintf("%x", jaegerTraceIDLow)
-			} else {
-				traceID = fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
-			}
-
-			jaegerSpanID, err := tracetranslator.BytesToUInt64SpanID(otelSpan.SpanId)
-			if err != nil {
-				spanID = fmt.Sprintf("%x", otelSpan.SpanId)
-			} else {
-				spanID = fmt.Sprintf("%x", jaegerSpanID)
-			}
+			traceID = formatJaegerTraceID(otelSpan.TraceId)
+			spanID = formatJaegerSpanID(otelSpan.SpanId)
 		} else {
 			if !root {
 				parentID = fmt.Sprintf("%x", otelSpan.ParentSpanId)
@@ -620,4 +602,28 @@ func truncate(s string) string {
 		j++
 	}
 	return s
+}
+
+// formatJaegerTraceID returns the traceID as string in Jaeger format (hexadecimal without leading zeros)
+func formatJaegerTraceID(traceID []byte) string {
+	jaegerTraceIDHigh, jaegerTraceIDLow, err := tracetranslator.BytesToUInt64TraceID(traceID)
+	if err != nil {
+		return fmt.Sprintf("%x", traceID)
+	}
+
+	if jaegerTraceIDHigh == 0 {
+		return fmt.Sprintf("%x", jaegerTraceIDLow)
+	} else {
+		return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
+	}
+}
+
+// formatJaegerSpanID returns the spanID as string in Jaeger format (hexadecimal without leading zeros)
+func formatJaegerSpanID(spanID []byte) string {
+	jaegerSpanID, err := tracetranslator.BytesToUInt64SpanID(spanID)
+	if err != nil {
+		return fmt.Sprintf("%x", spanID)
+	}
+
+	return fmt.Sprintf("%x", jaegerSpanID)
 }
