@@ -17,3 +17,4 @@ https://github.com/elastic/apm-server/compare/7.8\...master[View commits]
 ==== Added
 * Support configurable response headers for the RUM endpoints {pull}3820[3820]
 * Support custom ILM rollover aliases {pull}3826[3826]
+* Jaeger traceIds/spanIds are formatted without leading zeros {pull}3849[3849]
