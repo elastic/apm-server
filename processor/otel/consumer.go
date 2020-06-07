@@ -613,9 +613,9 @@ func formatJaegerTraceID(traceID []byte) string {
 
 	if jaegerTraceIDHigh == 0 {
 		return fmt.Sprintf("%x", jaegerTraceIDLow)
-	} else {
-		return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
 	}
+
+	return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
 }
 
 // formatJaegerSpanID returns the spanID as string in Jaeger format (hexadecimal without leading zeros)
