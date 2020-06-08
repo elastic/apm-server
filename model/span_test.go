@@ -73,8 +73,8 @@ func TestSpanTransform(t *testing.T) {
 			Span: Span{
 				Metadata:   metadata,
 				ID:         hexID,
-				TraceID:    &traceID,
-				ParentID:   &parentID,
+				TraceID:    traceID,
+				ParentID:   parentID,
 				Name:       "myspan",
 				Type:       "myspantype",
 				Subtype:    &subtype,

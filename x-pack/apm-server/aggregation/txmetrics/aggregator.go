@@ -264,7 +264,7 @@ func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, 
 				Container:        model.Container{ID: key.containerID},
 				Kubernetes:       model.Kubernetes{PodName: key.kubernetesPodName},
 			},
-			User: model.User{UserAgent: key.userAgent},
+			// TODO(axw) include browser name, by parsing the user agent
 			// TODO(axw) include client.geo.country_iso_code somewhere
 		},
 		Transaction: model.MetricsetTransaction{
@@ -304,6 +304,8 @@ type metricsMapEntry struct {
 type transactionAggregationKey struct {
 	traceRoot bool
 	agentName string
+	// TODO(axw) requires User-Agent parsing in apm-server.
+	//browserName string
 	// TODO(axw) requires geoIP lookup in apm-server.
 	//clientCountryISOCode string
 	containerID        string
@@ -315,7 +317,6 @@ type transactionAggregationKey struct {
 	transactionName    string
 	transactionResult  string
 	transactionType    string
-	userAgent          string
 }
 
 func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregationKey {
@@ -326,7 +327,7 @@ func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregation
 		return ""
 	}
 	return transactionAggregationKey{
-		traceRoot:         tx.ParentID == nil,
+		traceRoot:         tx.ParentID == "",
 		transactionName:   deref(tx.Name),
 		transactionResult: deref(tx.Result),
 		transactionType:   tx.Type,
@@ -339,8 +340,8 @@ func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregation
 		hostname:          tx.Metadata.System.Hostname(),
 		containerID:       tx.Metadata.System.Container.ID,
 		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
-		userAgent:         tx.Metadata.User.UserAgent,
 
+		// TODO(axw) browser name, requires parsing User-Agent in apm-server.
 		// TODO(axw) clientCountryISOCode, requires geoIP lookup in apm-server.
 	}
 }
@@ -352,6 +353,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 		h.WriteString("1")
 	}
 	h.WriteString(k.agentName)
+	// TODO(axw) browserName
 	// TODO(axw) clientCountryISOCode
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
@@ -362,7 +364,6 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.transactionName)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
-	h.WriteString(k.userAgent)
 	return h.Sum64()
 }
 

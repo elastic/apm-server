@@ -30,6 +30,7 @@ import (
 	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
+	tracetranslator "github.com/open-telemetry/opentelemetry-collector/translator/trace"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -81,14 +82,25 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 			continue
 		}
 
-		var parentID *string
 		root := len(otelSpan.ParentSpanId) == 0
-		if !root {
-			str := fmt.Sprintf("%x", otelSpan.ParentSpanId)
-			parentID = &str
+
+		var parentID, spanID, traceID string
+		if td.SourceFormat == sourceFormatJaeger {
+			if !root {
+				parentID = formatJaegerSpanID(otelSpan.ParentSpanId)
+			}
+
+			traceID = formatJaegerTraceID(otelSpan.TraceId)
+			spanID = formatJaegerSpanID(otelSpan.SpanId)
+		} else {
+			if !root {
+				parentID = fmt.Sprintf("%x", otelSpan.ParentSpanId)
+			}
+
+			traceID = fmt.Sprintf("%x", otelSpan.TraceId)
+			spanID = fmt.Sprintf("%x", otelSpan.SpanId)
 		}
-		traceID := fmt.Sprintf("%x", otelSpan.TraceId)
-		spanID := fmt.Sprintf("%x", otelSpan.SpanId)
+
 		startTime := parseTimestamp(otelSpan.StartTime)
 		var duration float64
 		if otelSpan.EndTime != nil && !startTime.IsZero() {
@@ -117,7 +129,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Metadata:  md,
 				ID:        spanID,
 				ParentID:  parentID,
-				TraceID:   &traceID,
+				TraceID:   traceID,
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
@@ -467,9 +479,9 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 
 func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
 	err.Metadata = transaction.Metadata
-	err.TransactionID = &transaction.ID
-	err.TraceID = &transaction.TraceID
-	err.ParentID = &transaction.ID
+	err.TransactionID = transaction.ID
+	err.TraceID = transaction.TraceID
+	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
 	err.URL = transaction.URL
 	err.TransactionType = &transaction.Type
@@ -479,7 +491,7 @@ func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 	err.Metadata = span.Metadata
 	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID
-	err.ParentID = &span.ID
+	err.ParentID = span.ID
 	if span.HTTP != nil {
 		err.HTTP = &model.Http{}
 		if span.HTTP.StatusCode != nil {
@@ -590,4 +602,28 @@ func truncate(s string) string {
 		j++
 	}
 	return s
+}
+
+// formatJaegerTraceID returns the traceID as string in Jaeger format (hexadecimal without leading zeros)
+func formatJaegerTraceID(traceID []byte) string {
+	jaegerTraceIDHigh, jaegerTraceIDLow, err := tracetranslator.BytesToUInt64TraceID(traceID)
+	if err != nil {
+		return fmt.Sprintf("%x", traceID)
+	}
+
+	if jaegerTraceIDHigh == 0 {
+		return fmt.Sprintf("%x", jaegerTraceIDLow)
+	}
+
+	return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
+}
+
+// formatJaegerSpanID returns the spanID as string in Jaeger format (hexadecimal without leading zeros)
+func formatJaegerSpanID(spanID []byte) string {
+	jaegerSpanID, err := tracetranslator.BytesToUInt64SpanID(spanID)
+	if err != nil {
+		return fmt.Sprintf("%x", spanID)
+	}
+
+	return fmt.Sprintf("%x", jaegerSpanID)
 }
