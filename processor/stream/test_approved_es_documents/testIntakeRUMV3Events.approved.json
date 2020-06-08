@@ -109,6 +109,14 @@
                 },
                 "type": "p-load"
             },
+            "url": {
+                "domain": "localhost",
+                "full": "http://localhost:8000/test/e2e/general-usecase/",
+                "original": "http://localhost:8000/test/e2e/general-usecase/",
+                "path": "/test/e2e/general-usecase/",
+                "port": 8000,
+                "scheme": "http"
+            },
             "user": {
                 "email": "em",
                 "id": "uId",

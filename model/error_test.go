@@ -357,7 +357,7 @@ func TestEvents(t *testing.T) {
 				TransactionID:      trID,
 				TransactionSampled: &sampledTrue,
 				Labels:             &labels,
-				Page:               &Page{Url: &url, Referer: &referer},
+				Page:               &Page{URL: &URL{Original: &url}, Referer: &referer},
 				Custom:             &custom,
 			},
 
@@ -388,6 +388,7 @@ func TestEvents(t *testing.T) {
 					}},
 					"page": common.MapStr{"url": url, "referer": referer},
 				},
+				"url":         common.MapStr{"original": url},
 				"processor":   common.MapStr{"event": "error", "name": "error"},
 				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79", "sampled": true},
 				"timestamp":   common.MapStr{"us": timestampUs},
@@ -529,6 +530,62 @@ func TestCulprit(t *testing.T) {
 			assert.Equal(t, test.culprit, *test.event.Culprit,
 				fmt.Sprintf("(%v) %s: expected <%v>, received <%v>", idx, test.msg, test.culprit, *test.event.Culprit))
 		})
+	}
+}
+
+func TestErrorTransformPage(t *testing.T) {
+	id := "123"
+	urlExample := "http://example.com/path"
+
+	tests := []struct {
+		Error  Error
+		Output common.MapStr
+		Msg    string
+	}{
+		{
+			Error: Error{
+				ID: &id,
+				Page: &Page{
+					URL:     ParseURL(urlExample, ""),
+					Referer: nil,
+				},
+			},
+			Output: common.MapStr{
+				"domain":   "example.com",
+				"full":     "http://example.com/path",
+				"original": "http://example.com/path",
+				"path":     "/path",
+				"scheme":   "http",
+			},
+			Msg: "With page URL",
+		},
+		{
+			Error: Error{
+				ID:        &id,
+				Timestamp: time.Now(),
+				URL:       ParseURL("https://localhost:8200/", ""),
+				Page: &Page{
+					URL:     ParseURL(urlExample, ""),
+					Referer: nil,
+				},
+			},
+			Output: common.MapStr{
+				"domain":   "localhost",
+				"full":     "https://localhost:8200/",
+				"original": "https://localhost:8200/",
+				"path":     "/",
+				"port":     8200,
+				"scheme":   "https",
+			},
+			Msg: "With Page URL and Request URL",
+		},
+	}
+
+	tctx := &transform.Context{}
+
+	for idx, test := range tests {
+		output := test.Error.Transform(context.Background(), tctx)
+		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
