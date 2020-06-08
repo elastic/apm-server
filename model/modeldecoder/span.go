@@ -53,11 +53,6 @@ func DecodeSpan(input Input, batch *model.Batch) error {
 	return nil
 }
 
-type decodedSpan struct {
-	*model.Span
-	parentIndex int
-}
-
 func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIndex int, _ error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
