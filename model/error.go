@@ -132,8 +132,8 @@ func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 		utility.Set(fields, "transaction", transaction)
 	}
 
-	utility.AddId(fields, "parent", e.ParentID)
-	utility.AddId(fields, "trace", e.TraceID)
+	utility.AddID(fields, "parent", e.ParentID)
+	utility.AddID(fields, "trace", e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{

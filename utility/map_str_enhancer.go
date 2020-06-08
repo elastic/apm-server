@@ -209,7 +209,7 @@ func Prune(m common.MapStr) common.MapStr {
 	return m
 }
 
-func AddId(fields common.MapStr, key, id string) {
+func AddID(fields common.MapStr, key, id string) {
 	if id != "" {
 		fields[key] = common.MapStr{"id": id}
 	}
