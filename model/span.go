@@ -45,11 +45,11 @@ var (
 type Span struct {
 	Metadata      Metadata
 	ID            string
-	TransactionID *string
-	ParentID      *string
+	TransactionID string
+	ParentID      string
 	ChildIDs      []string
 	ParentIdx     *int
-	TraceID       *string
+	TraceID       string
 
 	Timestamp time.Time
 

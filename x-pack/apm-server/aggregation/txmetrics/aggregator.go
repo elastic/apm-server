@@ -326,7 +326,7 @@ func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregation
 		return ""
 	}
 	return transactionAggregationKey{
-		traceRoot:         tx.ParentID == nil,
+		traceRoot:         tx.ParentID == "",
 		transactionName:   deref(tx.Name),
 		transactionResult: deref(tx.Result),
 		transactionType:   tx.Type,

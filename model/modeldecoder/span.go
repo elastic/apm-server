@@ -68,16 +68,16 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 		Sync:      decoder.BoolPtr(raw, fieldName("sync")),
 		Timestamp: decoder.TimeEpochMicro(raw, fieldName("timestamp")),
 		ID:        decoder.String(raw, fieldName("id")),
-		ParentID:  decoder.StringPtr(raw, "parent_id"),
 		ChildIDs:  decoder.StringArr(raw, "child_ids"),
 		// ParentIdx comes from RUM V3 payloads only, and used to populate ParentID
-		ParentIdx:     decoder.IntPtr(raw, fieldName("parent_idx")),
-		TraceID:       decoder.StringPtr(raw, "trace_id"),
-		TransactionID: decoder.StringPtr(raw, "transaction_id"),
-		Type:          decoder.String(raw, fieldName("type")),
-		Subtype:       decoder.StringPtr(raw, fieldName("subtype")),
-		Action:        decoder.StringPtr(raw, fieldName("action")),
+		ParentIdx: decoder.IntPtr(raw, fieldName("parent_idx")),
+		Type:      decoder.String(raw, fieldName("type")),
+		Subtype:   decoder.StringPtr(raw, fieldName("subtype")),
+		Action:    decoder.StringPtr(raw, fieldName("action")),
 	}
+	decodeString(raw, fieldName("parent_id"), &event.ParentID)
+	decodeString(raw, fieldName("trace_id"), &event.TraceID)
+	decodeString(raw, fieldName("transaction_id"), &event.TransactionID)
 
 	ctx := decoder.MapStr(raw, fieldName("context"))
 	if ctx != nil {

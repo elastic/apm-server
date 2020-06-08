@@ -51,9 +51,9 @@ const (
 
 type Error struct {
 	ID            *string
-	TransactionID *string
-	TraceID       *string
-	ParentID      *string
+	TransactionID string
+	TraceID       string
+	ParentID      string
 
 	Timestamp time.Time
 	Metadata  Metadata
@@ -122,9 +122,11 @@ func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
-	if e.TransactionSampled != nil || e.TransactionType != nil || (e.TransactionID != nil && *e.TransactionID != "") {
+	if e.TransactionSampled != nil || e.TransactionType != nil || e.TransactionID != "" {
 		transaction := common.MapStr{}
-		utility.Set(transaction, "id", e.TransactionID)
+		if e.TransactionID != "" {
+			transaction["id"] = e.TransactionID
+		}
 		utility.Set(transaction, "type", e.TransactionType)
 		utility.Set(transaction, "sampled", e.TransactionSampled)
 		utility.Set(fields, "transaction", transaction)
