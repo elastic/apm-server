@@ -217,7 +217,7 @@ func TestEventFields(t *testing.T) {
 				Culprit:       &culprit,
 				Exception:     &exception,
 				Log:           &log,
-				TransactionID: &trID,
+				TransactionID: trID,
 
 				// Service name and version are required for sourcemapping.
 				Metadata: Metadata{
@@ -354,7 +354,7 @@ func TestEvents(t *testing.T) {
 					Message:    &exMsg,
 					Stacktrace: Stacktrace{&StacktraceFrame{Filename: tests.StringPtr("myFile")}},
 				},
-				TransactionID:      &trID,
+				TransactionID:      trID,
 				TransactionSampled: &sampledTrue,
 				Labels:             &labels,
 				Page:               &Page{Url: &url, Referer: &referer},

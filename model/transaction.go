@@ -44,7 +44,7 @@ type Transaction struct {
 	Metadata Metadata
 
 	ID       string
-	ParentID *string
+	ParentID string
 	TraceID  string
 
 	Timestamp time.Time
@@ -120,8 +120,8 @@ func (e *Transaction) Transform(ctx context.Context, tctx *transform.Context) []
 	utility.Set(fields, "source", fields["client"])
 
 	// then merge event specific information
-	utility.AddId(fields, "parent", e.ParentID)
-	utility.AddId(fields, "trace", &e.TraceID)
+	utility.AddID(fields, "parent", e.ParentID)
+	utility.AddID(fields, "trace", e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
