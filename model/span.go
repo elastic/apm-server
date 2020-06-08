@@ -45,11 +45,10 @@ var (
 type Span struct {
 	Metadata      Metadata
 	ID            string
-	TransactionID *string
-	ParentID      *string
+	TransactionID string
+	ParentID      string
 	ChildIDs      []string
-	ParentIdx     *int
-	TraceID       *string
+	TraceID       string
 
 	Timestamp time.Time
 
@@ -191,12 +190,12 @@ func (e *Span) Transform(ctx context.Context, tctx *transform.Context) []beat.Ev
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels)
-	utility.AddId(fields, "parent", e.ParentID)
+	utility.AddID(fields, "parent", e.ParentID)
 	if e.ChildIDs != nil {
 		utility.Set(fields, "child", common.MapStr{"id": e.ChildIDs})
 	}
-	utility.AddId(fields, "trace", e.TraceID)
-	utility.AddId(fields, "transaction", e.TransactionID)
+	utility.AddID(fields, "trace", e.TraceID)
+	utility.AddID(fields, "transaction", e.TransactionID)
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))

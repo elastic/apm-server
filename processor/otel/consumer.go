@@ -111,7 +111,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 			transaction := model.Transaction{
 				Metadata:  md,
 				ID:        spanID,
-				ParentID:  &parentID,
+				ParentID:  parentID,
 				TraceID:   traceID,
 				Timestamp: startTime,
 				Duration:  duration,
@@ -128,8 +128,8 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 			span := model.Span{
 				Metadata:  md,
 				ID:        spanID,
-				ParentID:  &parentID,
-				TraceID:   &traceID,
+				ParentID:  parentID,
+				TraceID:   traceID,
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
@@ -479,9 +479,9 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 
 func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
 	err.Metadata = transaction.Metadata
-	err.TransactionID = &transaction.ID
-	err.TraceID = &transaction.TraceID
-	err.ParentID = &transaction.ID
+	err.TransactionID = transaction.ID
+	err.TraceID = transaction.TraceID
+	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
 	err.URL = transaction.URL
 	err.TransactionType = &transaction.Type
@@ -491,7 +491,7 @@ func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 	err.Metadata = span.Metadata
 	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID
-	err.ParentID = &span.ID
+	err.ParentID = span.ID
 	if span.HTTP != nil {
 		err.HTTP = &model.Http{}
 		if span.HTTP.StatusCode != nil {
