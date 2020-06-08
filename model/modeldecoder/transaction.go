@@ -95,7 +95,7 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
 	var spans = make([]*model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
-		span, err := decodeRUMV3Span(Input{
+		span, parentIndex, err := decodeRUMV3Span(Input{
 			Raw:         rawSpan,
 			RequestTime: input.RequestTime,
 			Metadata:    input.Metadata,
@@ -106,10 +106,10 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 		}
 		span.TransactionID = tr.ID
 		span.TraceID = tr.TraceID
-		if span.ParentIdx == nil {
+		if parentIndex >= 0 && parentIndex < idx {
+			span.ParentID = spans[parentIndex].ID
+		} else {
 			span.ParentID = tr.ID
-		} else if *span.ParentIdx < idx {
-			span.ParentID = spans[*span.ParentIdx].ID
 		}
 		spans[idx] = span
 	}

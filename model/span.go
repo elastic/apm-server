@@ -48,7 +48,6 @@ type Span struct {
 	TransactionID string
 	ParentID      string
 	ChildIDs      []string
-	ParentIdx     *int
 	TraceID       string
 
 	Timestamp time.Time
