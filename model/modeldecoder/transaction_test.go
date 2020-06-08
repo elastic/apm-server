@@ -333,7 +333,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Type:      trType,
 				Name:      &name,
 				Result:    &result,
-				ParentID:  &parentID,
+				ParentID:  parentID,
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
