@@ -93,6 +93,11 @@
                     "url": "http://localhost:8000/test/e2e/general-usecase/"
                 }
             },
+            "http": {
+                "request": {
+                    "referrer": "http://localhost:8000/test/e2e/"
+                }
+            },
             "processor": {
                 "event": "error",
                 "name": "error"

@@ -211,7 +211,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"labels": common.MapStr{"a": "b"},
 		"url":    common.MapStr{"original": url},
 		"http": common.MapStr{
-			"request":  common.MapStr{"method": "post"},
+			"request":  common.MapStr{"method": "post", "referrer": referer},
 			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}}},
 	})
 }

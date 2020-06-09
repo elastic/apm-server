@@ -126,10 +126,15 @@ func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
-	if urlFields := e.URL.Fields(); urlFields != nil {
+	urlFields := e.URL.Fields()
+	if urlFields != nil {
 		utility.Set(fields, "url", e.URL.Fields())
-	} else if e.Page != nil {
-		utility.Set(fields, "url", e.Page.URL.Fields())
+	}
+	if e.Page != nil {
+		utility.DeepUpdate(fields, "http.request.referrer", e.Page.Referer)
+		if urlFields == nil {
+			utility.Set(fields, "url", e.Page.URL.Fields())
+		}
 	}
 	utility.Set(fields, "experimental", e.Experimental)
 

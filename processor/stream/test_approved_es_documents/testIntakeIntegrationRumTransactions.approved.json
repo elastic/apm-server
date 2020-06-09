@@ -9,6 +9,11 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "http": {
+                "request": {
+                    "referrer": "http://localhost:8000/test/e2e/"
+                }
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"

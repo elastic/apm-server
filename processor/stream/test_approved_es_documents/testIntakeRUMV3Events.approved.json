@@ -13,7 +13,8 @@
                             "application/json"
                         ]
                     },
-                    "method": "get"
+                    "method": "get",
+                    "referrer": "http://localhost:8000/test/e2e/"
                 },
                 "response": {
                     "decoded_body_size": 690,

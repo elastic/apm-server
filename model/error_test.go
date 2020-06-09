@@ -388,6 +388,11 @@ func TestEvents(t *testing.T) {
 					}},
 					"page": common.MapStr{"url": url, "referer": referer},
 				},
+				"http": common.MapStr{
+					"request": common.MapStr{
+						"referrer": referer,
+					},
+				},
 				"url":         common.MapStr{"original": url},
 				"processor":   common.MapStr{"event": "error", "name": "error"},
 				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79", "sampled": true},
