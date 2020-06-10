@@ -148,7 +148,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		Labels:       ctx.Labels,
 		Page:         ctx.Page,
 		HTTP:         ctx.Http,
-		URL:          ctx.Url,
+		URL:          ctx.URL,
 		Custom:       ctx.Custom,
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,

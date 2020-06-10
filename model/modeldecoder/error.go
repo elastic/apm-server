@@ -73,7 +73,7 @@ func decodeError(input Input, schema *jsonschema.Schema) (*m.Error, error) {
 		Labels:             ctx.Labels,
 		Page:               ctx.Page,
 		HTTP:               ctx.Http,
-		URL:                ctx.Url,
+		URL:                ctx.URL,
 		Custom:             ctx.Custom,
 		Experimental:       ctx.Experimental,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
