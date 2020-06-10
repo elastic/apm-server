@@ -20,8 +20,6 @@ package otel
 import (
 	"context"
 	"fmt"
-	"net"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -245,7 +243,7 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 				http.Request = &model.Req{Method: truncate(v.StringValue.Value)}
 				isHTTP = true
 			case "http.url", "http.path":
-				event.URL = parseURL(v.StringValue.Value, hostname)
+				event.URL = model.ParseURL(v.StringValue.Value, hostname)
 				isHTTP = true
 			case "http.status_code":
 				if intv, err := strconv.Atoi(v.StringValue.Value); err == nil {
@@ -501,7 +499,7 @@ func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 			err.HTTP.Request = &model.Req{Method: *span.HTTP.Method}
 		}
 		if span.HTTP.URL != nil {
-			err.URL = parseURL(*span.HTTP.URL, hostname)
+			err.URL = model.ParseURL(*span.HTTP.URL, hostname)
 		}
 	}
 }
@@ -515,49 +513,6 @@ func parseTimestamp(timestampT *timestamp.Timestamp) time.Time {
 		return time.Time{}
 	}
 	return time.Unix(timestampT.Seconds, int64(timestampT.Nanos)).UTC()
-}
-
-func parseURL(original, hostname string) *model.Url {
-	original = truncate(original)
-	url, err := url.Parse(original)
-	if err != nil {
-		return &model.Url{Original: &original}
-	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
-	}
-	if url.Host == "" {
-		url.Host = hostname
-	}
-	full := truncate(url.String())
-	out := &model.Url{
-		Original: &original,
-		Scheme:   &url.Scheme,
-		Full:     &full,
-	}
-	if path := truncate(url.Path); path != "" {
-		out.Path = &path
-	}
-	if query := truncate(url.RawQuery); query != "" {
-		out.Query = &query
-	}
-	if fragment := url.Fragment; fragment != "" {
-		out.Fragment = &fragment
-	}
-	host, port, err := net.SplitHostPort(url.Host)
-	if err != nil {
-		host = truncate(url.Host)
-		port = ""
-	}
-	if host = truncate(host); host != "" {
-		out.Domain = &host
-	}
-	if port = truncate(port); port != "" {
-		if intv, err := strconv.Atoi(port); err == nil {
-			out.Port = &intv
-		}
-	}
-	return out
 }
 
 var languageName = map[commonpb.LibraryInfo_Language]string{

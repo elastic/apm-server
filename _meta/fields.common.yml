@@ -96,6 +96,11 @@
             description: >
               The canonical headers of the monitored HTTP request.
 
+          - name: referrer
+            type: keyword
+            ignore_above: 1024
+            description: Referrer for this HTTP request.
+            
        - name: response
          type: group
          fields:
