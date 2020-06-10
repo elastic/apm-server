@@ -512,7 +512,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 2c8f3147d1b7
+Revision: a516c366f471
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2220,7 +2220,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/prometheus/procfs
-Version: v0.0.11
+Version: v0.1.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -2776,7 +2776,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 06a226fb4e37
+Revision: 70a84ac30bf9
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -2912,7 +2912,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 8d3cce7afc34
+Revision: 6fdc65e7d980
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
