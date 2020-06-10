@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/7.7\...7.8[View commits]
 
 * <<release-notes-7.8.0>>
 
+[float]
 [[release-notes-7.8.0]]
 === APM Server version 7.8.0
 
