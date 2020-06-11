@@ -73,7 +73,7 @@ func TestDecodeContext(t *testing.T) {
 			input: map[string]interface{}{
 				"request": map[string]interface{}{
 					"url": map[string]interface{}{"raw": "127.0.0.1"}}},
-			errOut: utility.ErrFetch.Error(),
+			errOut: utility.ErrFetch("method", nil).Error(),
 		},
 		"no_url_protocol": {
 			input: map[string]interface{}{
