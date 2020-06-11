@@ -54,7 +54,7 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadat
 
 	ctx := model.Context{
 		Http:         http,
-		Url:          url,
+		URL:          url,
 		Page:         page,
 		Custom:       custom,
 		Message:      message,
@@ -87,7 +87,7 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadat
 	return &ctx, nil
 }
 
-func decodeURL(raw common.MapStr, err error) (*model.Url, error) {
+func decodeURL(raw common.MapStr, err error) (*model.URL, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func decodeURL(raw common.MapStr, err error) (*model.Url, error) {
 	}
 
 	inpURL := decoder.MapStr(req, "url")
-	url := model.Url{
+	url := model.URL{
 		Original: decoder.StringPtr(inpURL, "raw"),
 		Full:     decoder.StringPtr(inpURL, "full"),
 		Domain:   decoder.StringPtr(inpURL, "hostname"),
@@ -217,10 +217,13 @@ func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.P
 		return nil, nil
 	}
 	decoder := utility.ManualDecoder{}
-	return &model.Page{
-		Url:     decoder.StringPtr(pageInput, fieldName("url")),
+	page := &model.Page{
 		Referer: decoder.StringPtr(pageInput, fieldName("referer")),
-	}, decoder.Err
+	}
+	if pageURL := decoder.StringPtr(pageInput, fieldName("url")); pageURL != nil {
+		page.URL = model.ParseURL(*pageURL, "")
+	}
+	return page, decoder.Err
 }
 
 func decodeCustom(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Custom, error) {
