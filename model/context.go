@@ -19,6 +19,8 @@ package model
 
 import (
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
@@ -28,7 +30,7 @@ import (
 // Context holds all information sent under key context
 type Context struct {
 	Http         *Http
-	Url          *Url
+	URL          *URL
 	Labels       *Labels
 	Page         *Page
 	Custom       *Custom
@@ -43,8 +45,8 @@ type Http struct {
 	Response *Resp
 }
 
-// Url describes request URL and its components
-type Url struct {
+// URL describes an URL and its components
+type URL struct {
 	Original *string
 	Scheme   *string
 	Full     *string
@@ -55,9 +57,59 @@ type Url struct {
 	Fragment *string
 }
 
-// Page consists of Url string and referer
+func ParseURL(original, hostname string) *URL {
+	original = truncate(original)
+	url, err := url.Parse(original)
+	if err != nil {
+		return &URL{Original: &original}
+	}
+	if url.Scheme == "" {
+		url.Scheme = "http"
+	}
+	if url.Host == "" {
+		url.Host = hostname
+	}
+	full := truncate(url.String())
+	out := &URL{
+		Original: &original,
+		Scheme:   &url.Scheme,
+		Full:     &full,
+	}
+	if path := truncate(url.Path); path != "" {
+		out.Path = &path
+	}
+	if query := truncate(url.RawQuery); query != "" {
+		out.Query = &query
+	}
+	if fragment := url.Fragment; fragment != "" {
+		out.Fragment = &fragment
+	}
+	if host := truncate(url.Hostname()); host != "" {
+		out.Domain = &host
+	}
+	if port := truncate(url.Port()); port != "" {
+		if intv, err := strconv.Atoi(port); err == nil {
+			out.Port = &intv
+		}
+	}
+	return out
+}
+
+// truncate returns s truncated at n runes, and the number of runes in the resulting string (<= n).
+func truncate(s string) string {
+	var j int
+	for i := range s {
+		if j == 1024 {
+			return s[:i]
+		}
+		j++
+	}
+	return s
+}
+
+// Page consists of URL and referer
 type Page struct {
-	Url     *string
+	URL     *URL
 	Referer *string
 }
 
@@ -102,7 +154,7 @@ type MinimalResp struct {
 }
 
 // Fields returns common.MapStr holding transformed data for attribute url.
-func (url *Url) Fields() common.MapStr {
+func (url *URL) Fields() common.MapStr {
 	if url == nil {
 		return nil
 	}
@@ -146,7 +198,10 @@ func (page *Page) Fields() common.MapStr {
 		return nil
 	}
 	var fields = common.MapStr{}
-	utility.Set(fields, "url", page.Url)
+	// Remove in 8.0
+	if page.URL != nil {
+		utility.Set(fields, "url", page.URL.Original)
+	}
 	utility.Set(fields, "referer", page.Referer)
 	return fields
 }

@@ -62,7 +62,7 @@ type Error struct {
 	Labels  *Labels
 	Page    *Page
 	HTTP    *Http
-	URL     *Url
+	URL     *URL
 	Custom  *Custom
 
 	Exception *Exception
@@ -117,7 +117,16 @@ func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
-	utility.Set(fields, "url", e.URL.Fields())
+	urlFields := e.URL.Fields()
+	if urlFields != nil {
+		utility.Set(fields, "url", e.URL.Fields())
+	}
+	if e.Page != nil {
+		utility.DeepUpdate(fields, "http.request.referrer", e.Page.Referer)
+		if urlFields == nil {
+			utility.Set(fields, "url", e.Page.URL.Fields())
+		}
+	}
 	utility.Set(fields, "experimental", e.Experimental)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
