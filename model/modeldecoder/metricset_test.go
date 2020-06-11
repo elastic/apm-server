@@ -23,12 +23,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
 )
 
 // assertMetricsMatch is an equality test for a metricset as sample order is not important
@@ -55,13 +54,12 @@ func TestDecode(t *testing.T) {
 
 	for _, test := range []struct {
 		input     map[string]interface{}
-		err       error
+		err       bool
 		metricset *model.Metricset
 	}{
-		{input: nil, err: nil, metricset: nil},
+		{input: nil, metricset: nil},
 		{
 			input:     map[string]interface{}{},
-			err:       nil,
 			metricset: nil,
 		},
 		{
@@ -69,8 +67,6 @@ func TestDecode(t *testing.T) {
 				"timestamp": tsFormat(timestampParsed),
 				"samples":   map[string]interface{}{},
 			},
-
-			err: nil,
 			metricset: &model.Metricset{
 				Metadata:  metadata,
 				Timestamp: timestampParsed,
@@ -85,7 +81,7 @@ func TestDecode(t *testing.T) {
 					},
 				},
 			},
-			err: utility.ErrFetch,
+			err: true,
 		},
 		{
 			input: map[string]interface{}{
@@ -111,7 +107,6 @@ func TestDecode(t *testing.T) {
 					},
 				},
 			},
-			err: nil,
 			metricset: &model.Metricset{
 				Metadata: metadata,
 				Samples: []model.Sample{
@@ -150,7 +145,6 @@ func TestDecode(t *testing.T) {
 					"name": trName,
 				},
 			},
-			err: nil,
 			metricset: &model.Metricset{
 				Metadata: metadata,
 				Samples: []model.Sample{
@@ -174,7 +168,7 @@ func TestDecode(t *testing.T) {
 			RequestTime: requestTime,
 			Metadata:    metadata,
 		}, batch)
-		if test.err != nil {
+		if test.err == true {
 			assert.Error(t, err)
 		}
 		if test.metricset != nil {
