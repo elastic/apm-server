@@ -35,7 +35,7 @@ For a full list of changes, see the
 // tag::notable-v78-highlights[]
 Service maps::
 
-Service maps now integrate with machine learning—​offering real-time health indicators, based
+Service maps now integrate with machine learning, offering real-time health indicators based
 on anomaly detection scores, to help you quickly assess the status and health of your services.
 +
 Specifically, machine learning jobs can be created to calculate anomaly scores on APM transaction
