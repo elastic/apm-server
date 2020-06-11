@@ -33,9 +33,12 @@ type ManualDecoder struct {
 	Err error
 }
 
-var (
-	ErrFetch = errors.New("error fetching field")
-)
+func ErrFetch(field string, path []string) error {
+	if path != nil {
+		field = strings.Join(path, ".") + "." + field
+	}
+	return errors.New("error fetching field " + field)
+}
 
 func (d *ManualDecoder) Float64(base map[string]interface{}, key string, keys ...string) float64 {
 	val := getDeep(base, keys...)[key]
@@ -49,7 +52,7 @@ func (d *ManualDecoder) Float64(base map[string]interface{}, key string, keys ..
 		}
 	}
 
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return 0.0
 }
 
@@ -67,7 +70,7 @@ func (d *ManualDecoder) Float64Ptr(base map[string]interface{}, key string, keys
 		}
 	}
 
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -93,7 +96,7 @@ func (d *ManualDecoder) IntPtr(base map[string]interface{}, key string, keys ...
 			return &valInt
 		}
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -114,7 +117,7 @@ func (d *ManualDecoder) Int64Ptr(base map[string]interface{}, key string, keys .
 			return &valInt
 		}
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -122,7 +125,7 @@ func (d *ManualDecoder) Int(base map[string]interface{}, key string, keys ...str
 	if val := d.IntPtr(base, key, keys...); val != nil {
 		return *val
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return 0
 }
 
@@ -134,7 +137,7 @@ func (d *ManualDecoder) StringPtr(base map[string]interface{}, key string, keys 
 	if valStr, ok := val.(string); ok {
 		return &valStr
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -142,7 +145,7 @@ func (d *ManualDecoder) String(base map[string]interface{}, key string, keys ...
 	if val := d.StringPtr(base, key, keys...); val != nil {
 		return *val
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return ""
 }
 
@@ -156,7 +159,7 @@ func (d *ManualDecoder) NetIP(base map[string]interface{}, key string, keys ...s
 	if valStr, ok := val.(string); ok {
 		return ParseIP(valStr)
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -172,7 +175,7 @@ func (d *ManualDecoder) StringArr(base map[string]interface{}, key string, keys 
 			if valStr, ok := v.(string); ok {
 				strArr[idx] = valStr
 			} else {
-				d.Err = ErrFetch
+				d.Err = ErrFetch(key, keys)
 				return nil
 			}
 		}
@@ -181,7 +184,7 @@ func (d *ManualDecoder) StringArr(base map[string]interface{}, key string, keys 
 	if strArr, ok := arr.([]string); ok {
 		return strArr
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -196,7 +199,7 @@ func (d *ManualDecoder) InterfaceArr(base map[string]interface{}, key string, ke
 	} else if valArr, ok := val.([]interface{}); ok {
 		return valArr
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -207,7 +210,7 @@ func (d *ManualDecoder) BoolPtr(base map[string]interface{}, key string, keys ..
 	} else if valBool, ok := val.(bool); ok {
 		return &valBool
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -218,7 +221,7 @@ func (d *ManualDecoder) MapStr(base map[string]interface{}, key string, keys ...
 	} else if valMapStr, ok := val.(map[string]interface{}); ok {
 		return valMapStr
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return nil
 }
 
@@ -232,7 +235,7 @@ func (d *ManualDecoder) TimeRFC3339(base map[string]interface{}, key string, key
 			return valTime
 		}
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return time.Time{}
 }
 
@@ -249,7 +252,7 @@ func (d *ManualDecoder) TimeEpochMicro(base map[string]interface{}, key string, 
 			return time.Unix(sec, microsec*1000).UTC()
 		}
 	}
-	d.Err = ErrFetch
+	d.Err = ErrFetch(key, keys)
 	return time.Time{}
 }
 
