@@ -212,10 +212,11 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 func parseTransaction(span *tracepb.Span, hostname string, event *model.Transaction) {
 	labels := make(common.MapStr)
 	var http model.Http
+	var message model.Message
 	var component string
 	var result string
 	var hasFailed bool
-	var isHTTP bool
+	var isHTTP, isMessaging bool
 	for kDots, v := range span.Attributes.GetAttributeMap() {
 		k := replaceDots(kDots)
 		switch v := v.Value.(type) {
@@ -259,6 +260,9 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 					utility.DeepUpdate(labels, k, v.StringValue.Value)
 				}
 				isHTTP = true
+			case "message_bus.destination":
+				message.QueueName = &v.StringValue.Value
+				isMessaging = true
 			case "type":
 				event.Type = truncate(v.StringValue.Value)
 			case "component":
@@ -273,6 +277,8 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 	if event.Type == "" {
 		if isHTTP {
 			event.Type = "request"
+		} else if isMessaging {
+			event.Type = "messaging"
 		} else if component != "" {
 			event.Type = component
 		} else {
@@ -288,6 +294,8 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 			}
 		}
 		event.HTTP = &http
+	} else if isMessaging {
+		event.Message = &message
 	}
 
 	if result == "" {
@@ -310,9 +318,10 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 	labels := make(common.MapStr)
 
 	var http model.HTTP
+	var message model.Message
 	var db model.DB
 	var destination model.Destination
-	var isDBSpan, isHTTPSpan bool
+	var isDBSpan, isHTTPSpan, isMessagingSpan bool
 	var component string
 	for kDots, v := range span.Attributes.GetAttributeMap() {
 		k := replaceDots(kDots)
@@ -366,6 +375,9 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			case "peer.address":
 				val := truncate(v.StringValue.Value)
 				destination.Address = &val
+			case "message_bus.destination":
+				message.QueueName = &v.StringValue.Value
+				isMessagingSpan = true
 			case "component":
 				component = truncate(v.StringValue.Value)
 				fallthrough
@@ -396,6 +408,9 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			event.Subtype = db.Type
 		}
 		event.DB = &db
+	case isMessagingSpan:
+		event.Type = "messaging"
+		event.Message = &message
 	default:
 		event.Type = "custom"
 		if component != "" {
