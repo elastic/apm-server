@@ -25,6 +25,7 @@ const (
 	defaultAggregationInterval                       = 1 * time.Minute
 	defaultAggregationMaxTransactionGroups           = 1000
 	defaultAggregationHDRHistogramSignificantFigures = 2
+	defaultAggregationRUMUserAgentLRUSize            = 5000
 )
 
 // AggregationConfig holds configuration related to metrics aggregation.
@@ -33,6 +34,7 @@ type AggregationConfig struct {
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
 	MaxTransactionGroups           int           `config:"max_transaction_groups" validate:"min=1"`
 	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
+	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size"`
 }
 
 func defaultAggregationConfig() AggregationConfig {
@@ -40,5 +42,6 @@ func defaultAggregationConfig() AggregationConfig {
 		Interval:                       defaultAggregationInterval,
 		MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
 		HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
+		RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
 	}
 }

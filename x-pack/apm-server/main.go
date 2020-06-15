@@ -34,6 +34,7 @@ func runServerWithAggregator(ctx context.Context, runServer beater.RunServerFunc
 		MaxTransactionGroups:           args.Config.Aggregation.MaxTransactionGroups,
 		MetricsInterval:                args.Config.Aggregation.Interval,
 		HDRHistogramSignificantFigures: args.Config.Aggregation.HDRHistogramSignificantFigures,
+		RUMUserAgentLRUSize:            args.Config.Aggregation.RUMUserAgentLRUSize,
 	})
 	if err != nil {
 		return errors.Wrap(err, "error creating aggregator")
