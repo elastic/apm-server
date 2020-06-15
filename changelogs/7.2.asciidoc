@@ -6,6 +6,7 @@ https://github.com/elastic/apm-server/compare/7.1\...7.2[View commits]
 * <<release-notes-7.2.1>>
 * <<release-notes-7.2.0>>
 
+[float]
 [[release-notes-7.2.1]]
 === APM Server version 7.2.1
 
@@ -15,6 +16,7 @@ https://github.com/elastic/apm-server/compare/v7.2.0\...v7.2.1[View commits]
 ==== Bug fixes
 - Update `apm-server.yml` to reflect pipeline overwrite behavior {pull}2452[2452].
 
+[float]
 [[release-notes-7.2.0]]
 === APM Server version 7.2.0
 

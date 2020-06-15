@@ -7,6 +7,7 @@ https://github.com/elastic/apm-server/compare/6.6\...6.7[View commits]
 * <<release-notes-6.7.1>>
 * <<release-notes-6.7.0>>
 
+[float]
 [[release-notes-6.7.2]]
 === APM Server version 6.7.2
 
@@ -17,6 +18,7 @@ https://github.com/elastic/apm-server/compare/v6.7.1\...v6.7.2[View commits]
 
 - Fix numeric user id decoding {pull}2147[2147].
 
+[float]
 [[release-notes-6.7.1]]
 === APM Server version 6.7.1
 
@@ -27,6 +29,7 @@ https://github.com/elastic/apm-server/compare/v6.7.0\...v6.7.1[View commits]
 
 - Remove IP fields from query in index pattern {pull}2046[2046].
 
+[float]
 [[release-notes-6.7.0]]
 === APM Server version 6.7.0
 
@@ -43,4 +46,3 @@ https://github.com/elastic/apm-server/compare/v6.6.0\...v6.7.0[View commits]
 ==== Removed
 - Remove support for using dots in tags for experimental metricset endpoint {pull}1712[1712].
 - Remove formatting of `duration.us` to milliseconds in index pattern {pull}1717[1717].
-
