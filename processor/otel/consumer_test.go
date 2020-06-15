@@ -206,6 +206,15 @@ func TestConsumer_Transaction(t *testing.T) {
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
 						"http.url": testAttributeStringValue("localhost:8080"),
 					}}}}}},
+		{name: "jaeger_type_messaging",
+			td: consumerdata.TraceData{SourceFormat: "jaeger",
+				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
+				Spans: []*tracepb.Span{{
+					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_SERVER,
+					StartTime: testStartTime(),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"message_bus.destination": testAttributeStringValue("queue-abc"),
+					}}}}}},
 		{name: "jaeger_type_component",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
 				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
@@ -301,6 +310,18 @@ func TestConsumer_Span(t *testing.T) {
 						"db.user":      testAttributeStringValue("admin"),
 						"component":    testAttributeStringValue("foo"),
 					}},
+				}}}},
+		{name: "jaeger_messaging",
+			td: consumerdata.TraceData{SourceFormat: "jaeger",
+				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
+				Spans: []*tracepb.Span{{
+					TraceId: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 70, 120, 48}, SpanId: []byte{0, 0, 0, 0, 65, 65, 70, 70}, ParentSpanId: []byte{0, 0, 0, 0, 88, 88, 88, 88},
+					StartTime: testStartTime(), EndTime: testEndTime(),
+					Name: testTruncatableString("Message receive"),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"message_bus.destination": testAttributeStringValue("queue-abc"),
+					}},
+					Status: &tracepb.Status{Code: 202},
 				}}}},
 		{name: "jaeger_custom",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
