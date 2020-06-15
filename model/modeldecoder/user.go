@@ -31,7 +31,6 @@ func decodeUser(input map[string]interface{}, hasShortFieldNames bool, out *mode
 	}
 
 	fieldName := field.Mapper(hasShortFieldNames)
-	decodeString(input, "user-agent", &out.UserAgent)
 	decodeString(input, fieldName("username"), &out.Name)
 	decodeString(input, fieldName("email"), &out.Email)
 

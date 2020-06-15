@@ -22,10 +22,9 @@ import (
 )
 
 type User struct {
-	ID        string
-	Email     string
-	Name      string
-	UserAgent string
+	ID    string
+	Email string
+	Name  string
 }
 
 func (u *User) Fields() common.MapStr {
@@ -37,11 +36,4 @@ func (u *User) Fields() common.MapStr {
 	user.maybeSetString("email", u.Email)
 	user.maybeSetString("name", u.Name)
 	return common.MapStr(user)
-}
-
-func (u *User) UserAgentFields() common.MapStr {
-	if u == nil || u.UserAgent == "" {
-		return nil
-	}
-	return common.MapStr{"original": u.UserAgent}
 }
