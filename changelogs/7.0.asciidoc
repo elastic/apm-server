@@ -11,6 +11,7 @@ https://github.com/elastic/apm-server/compare/6.8\...7.0[View commits]
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
+[float]
 [[release-notes-7.0.1]]
 === APM Server version 7.0.1
 
@@ -20,6 +21,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0\...v7.0.1[View commits]
 ==== Bug fixes
 - Set user/group under systemd {pull}2101[2101].
 
+[float]
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
 
@@ -75,6 +77,7 @@ Also see:
 - Change `transaction.name` to keyword, add `transaction.name.text` {pull}1859[1859].
 - Change `error.culprit` to keyword, limit length on intake {pull}1859[1859].
 
+[float]
 [[release-notes-7.0.0-rc2]]
 === APM Server version 7.0.0-rc2
 
@@ -82,6 +85,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-rc1\...v7.0.0-rc2[View comm
 
 No significant changes.
 
+[float]
 [[release-notes-7.0.0-rc1]]
 === APM Server version 7.0.0-rc1
 
@@ -97,6 +101,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-beta1\...v7.0.0-rc1[View co
 - Request and Response headers are stored in a canonicalized way {pull}1966[1966].
 - Use changed processor handling from libbeat {pull}1982[1982].
 
+[float]
 [[release-notes-7.0.0-beta1]]
 === APM Server version 7.0.0-beta1
 
@@ -131,6 +136,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2\...v7.0.0-beta1[View
 - Remove `metrics.enabled` setting {pull}1759[1759].
 - Remove dashboards from being shipped with APM Server and all logic around them {pull}[1815].
 
+[float]
 [[release-notes-7.0.0-alpha2]]
 === APM Server version 7.0.0-alpha2
 
@@ -145,6 +151,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha1\...v7.0.0-alpha2[Vie
 - Build default distribution under the Elastic License. {pull}1645[1645].
 - Log to journald under systemd by default rather than file. To revert this behaviour override BEAT_LOG_OPTS with an empty value https://github.com/elastic/beats/pull/8942[beats/8942] via {pull}1645[1645].
 
+[float]
 [[release-notes-7.0.0-alpha1]]
 === APM Server version 7.0.0-alpha1
 
