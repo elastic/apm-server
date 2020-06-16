@@ -7,6 +7,7 @@ https://github.com/elastic/apm-server/compare/7.5\...7.6[View commits]
 * <<release-notes-7.6.1>>
 * <<release-notes-7.6.0>>
 
+[float]
 [[release-notes-7.6.2]]
 === APM Server version 7.6.2
 
@@ -14,6 +15,7 @@ https://github.com/elastic/apm-server/compare/v7.6.1\...v7.6.2[View commits]
 
 No significant changes.
 
+[float]
 [[release-notes-7.6.1]]
 === APM Server version 7.6.1
 
@@ -23,7 +25,7 @@ https://github.com/elastic/apm-server/compare/v7.6.0\...v7.6.1[View commits]
 ==== Added
 * Upgrade Go to 1.13.8 {pull}3326[3326]
 
-
+[float]
 [[release-notes-7.6.0]]
 === APM Server version 7.6.0
 
