@@ -47,6 +47,7 @@ var libbeatConfigOverrides = common.MustNewConfigFrom(map[string]interface{}{
 		"files": map[string]interface{}{
 			"rotateeverybytes": 10 * 1024 * 1024,
 		},
+		"ecs": true,
 	},
 	"setup": map[string]interface{}{
 		"template": map[string]interface{}{
