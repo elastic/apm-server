@@ -113,7 +113,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				TraceID:   traceID,
 				Timestamp: startTime,
 				Duration:  duration,
-				Name:      &name,
+				Name:      name,
 			}
 			parseTransaction(otelSpan, hostname, &transaction)
 			batch.Transactions = append(batch.Transactions, &transaction)
@@ -305,7 +305,7 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 			result = "Success"
 		}
 	}
-	event.Result = &result
+	event.Result = result
 
 	if len(labels) == 0 {
 		return

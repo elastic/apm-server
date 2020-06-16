@@ -18,6 +18,8 @@
 package modeldecoder
 
 import (
+	"encoding/json"
+
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -26,7 +28,6 @@ import (
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var (
@@ -36,6 +37,7 @@ var (
 
 // DecodeRUMV3Transaction decodes a v3 RUM transaction.
 func DecodeRUMV3Transaction(input Input, batch *model.Batch) error {
+	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	transaction, err := decodeTransaction(input, rumV3TransactionSchema)
 	if err != nil {
 		return err
@@ -45,11 +47,7 @@ func DecodeRUMV3Transaction(input Input, batch *model.Batch) error {
 	if err != nil {
 		return err
 	}
-	marks, err := decodeRUMV3Marks(raw, input.Config)
-	if err != nil {
-		return err
-	}
-	transaction.Marks = marks
+	transaction.Marks = decodeRUMV3Marks(getObject(raw, fieldName("marks")), input.Config)
 	metricsets, err := decodeRUMV3Metricsets(raw, input, transaction)
 	if err != nil {
 		return nil
@@ -76,13 +74,9 @@ func decodeRUMV3Metricsets(raw map[string]interface{}, input Input, tr *model.Tr
 			return metricsets, err
 		}
 		metricset.Transaction = model.MetricsetTransaction{
-			Type: tr.Type,
-		}
-		if tr.Name != nil {
-			metricset.Transaction.Name = *tr.Name
-		}
-		if tr.Result != nil {
-			metricset.Transaction.Result = *tr.Result
+			Type:   tr.Type,
+			Name:   tr.Name,
+			Result: tr.Result,
 		}
 		metricsets[idx] = metricset
 	}
@@ -140,11 +134,6 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	decoder := utility.ManualDecoder{}
 	e := model.Transaction{
 		Metadata:     input.Metadata,
-		ID:           decoder.String(raw, "id"),
-		Type:         decoder.String(raw, fieldName("type")),
-		Name:         decoder.StringPtr(raw, fieldName("name")),
-		Result:       decoder.StringPtr(raw, fieldName("result")),
-		Duration:     decoder.Float64(raw, fieldName("duration")),
 		Labels:       ctx.Labels,
 		Page:         ctx.Page,
 		HTTP:         ctx.Http,
@@ -153,65 +142,100 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,
 		Sampled:      decoder.BoolPtr(raw, fieldName("sampled")),
-		Marks:        decoder.MapStr(raw, fieldName("marks")),
+		Marks:        decodeV2Marks(getObject(raw, fieldName("marks"))),
 		Timestamp:    decoder.TimeEpochMicro(raw, fieldName("timestamp")),
 		SpanCount: model.SpanCount{
 			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
 			Started: decoder.IntPtr(raw, fieldName("started"), fieldName("span_count"))},
-		TraceID: decoder.String(raw, fieldName("trace_id")),
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
+	decodeString(raw, "id", &e.ID)
+	decodeString(raw, fieldName("trace_id"), &e.TraceID)
 	decodeString(raw, fieldName("parent_id"), &e.ParentID)
+	decodeString(raw, fieldName("type"), &e.Type)
+	decodeString(raw, fieldName("type"), &e.Type)
+	decodeString(raw, fieldName("name"), &e.Name)
+	decodeString(raw, fieldName("result"), &e.Result)
+	decodeFloat64(raw, fieldName("duration"), &e.Duration)
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}
 	return &e, nil
 }
 
-func decodeRUMV3Marks(raw map[string]interface{}, cfg Config) (common.MapStr, error) {
+func decodeV2Marks(raw map[string]interface{}) model.TransactionMarks {
+	if len(raw) == 0 {
+		return nil
+	}
+	marks := make(model.TransactionMarks, len(raw))
+	for group, v := range raw {
+		groupObj, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		groupMarks := make(model.TransactionMark, len(groupObj))
+		for k, v := range groupObj {
+			switch v := v.(type) {
+			case json.Number:
+				if f, err := v.Float64(); err == nil {
+					groupMarks[k] = f
+				}
+			case float64:
+				groupMarks[k] = v
+			}
+		}
+		marks[group] = groupMarks
+	}
+	return marks
+}
 
-	decoder := &utility.ManualDecoder{}
+func decodeRUMV3Marks(raw map[string]interface{}, cfg Config) model.TransactionMarks {
 	fieldName := field.Mapper(cfg.HasShortFieldNames)
-
-	decodeMark := func(m common.MapStr, key, parent string) {
-		if f := decoder.Float64Ptr(raw, fieldName(key), fieldName("marks"), fieldName(parent)); f != nil {
-			m[key] = f
+	marks := make(model.TransactionMarks)
+	decodeMarks := func(group string, names ...string) {
+		groupObj := getObject(raw, fieldName(group))
+		if groupObj == nil {
+			return
+		}
+		groupMarks := make(model.TransactionMark, len(groupObj))
+		for _, name := range names {
+			var v float64
+			if decodeFloat64(groupObj, fieldName(name), &v) {
+				groupMarks[name] = v
+			}
+		}
+		if len(groupMarks) != 0 {
+			marks[group] = groupMarks
 		}
 	}
 
-	agentMarks := common.MapStr{}
-	decodeMark(agentMarks, "domComplete", "agent")
-	decodeMark(agentMarks, "domInteractive", "agent")
-	decodeMark(agentMarks, "domContentLoadedEventStart", "agent")
-	decodeMark(agentMarks, "domContentLoadedEventEnd", "agent")
-	decodeMark(agentMarks, "timeToFirstByte", "agent")
-	decodeMark(agentMarks, "firstContentfulPaint", "agent")
-	decodeMark(agentMarks, "largestContentfulPaint", "agent")
-
-	navigationTiming := common.MapStr{}
-	decodeMark(navigationTiming, "fetchStart", "navigationTiming")
-	decodeMark(navigationTiming, "domainLookupStart", "navigationTiming")
-	decodeMark(navigationTiming, "domainLookupEnd", "navigationTiming")
-	decodeMark(navigationTiming, "connectStart", "navigationTiming")
-	decodeMark(navigationTiming, "connectEnd", "navigationTiming")
-	decodeMark(navigationTiming, "requestStart", "navigationTiming")
-	decodeMark(navigationTiming, "responseStart", "navigationTiming")
-	decodeMark(navigationTiming, "responseEnd", "navigationTiming")
-	decodeMark(navigationTiming, "domComplete", "navigationTiming")
-	decodeMark(navigationTiming, "domInteractive", "navigationTiming")
-	decodeMark(navigationTiming, "domLoading", "navigationTiming")
-	decodeMark(navigationTiming, "domContentLoadedEventStart", "navigationTiming")
-	decodeMark(navigationTiming, "domContentLoadedEventEnd", "navigationTiming")
-	decodeMark(navigationTiming, "loadEventStart", "navigationTiming")
-	decodeMark(navigationTiming, "loadEventEnd", "navigationTiming")
-
-	if err := decoder.Err; err != nil {
-		return nil, err
-	}
-	return common.MapStr{
-		"agent":            agentMarks,
-		"navigationTiming": navigationTiming,
-	}, nil
+	decodeMarks("agent",
+		"domComplete",
+		"domInteractive",
+		"domContentLoadedEventStart",
+		"domContentLoadedEventEnd",
+		"timeToFirstByte",
+		"firstContentfulPaint",
+		"largestContentfulPaint",
+	)
+	decodeMarks("navigationTiming",
+		"fetchStart",
+		"domainLookupStart",
+		"domainLookupEnd",
+		"connectStart",
+		"connectEnd",
+		"requestStart",
+		"responseStart",
+		"responseEnd",
+		"domComplete",
+		"domInteractive",
+		"domLoading",
+		"domContentLoadedEventStart",
+		"domContentLoadedEventEnd",
+		"loadEventStart",
+		"loadEventEnd",
+	)
+	return marks
 }
