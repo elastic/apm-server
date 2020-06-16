@@ -32,21 +32,18 @@ import (
 
 // LogMiddleware returns a middleware taking care of logging processing a request in the middleware and the request handler
 func LogMiddleware() Middleware {
-	logger := logp.NewLogger(logs.Request)
 	return func(h request.Handler) (request.Handler, error) {
-
 		return func(c *request.Context) {
-			args, err := requestArgs(c, logger.ECSEnabled())
-			if err != nil {
+			c.Logger = loggerWithContext(c)
+			var err error
+			if c.Logger, err = loggerWithTraceContext(c); err != nil {
 				id := request.IDResponseErrorsInternal
-				logger.Errorw(request.MapResultIDToStatus[id].Keyword, "error", err)
+				c.Logger.Error(request.MapResultIDToStatus[id].Keyword, logp.Error(err))
 				c.Result.SetWithError(id, err)
 				c.Write()
 				return
 			}
-			c.Logger = logger.With(args...)
 			h(c)
-
 			if c.MultipleWriteAttempts() {
 				c.Logger.Warn("multiple write attempts")
 			}
@@ -54,79 +51,55 @@ func LogMiddleware() Middleware {
 			if keyword == "" {
 				keyword = "handled request"
 			}
-			args = resultArgs(c, logger.ECSEnabled())
+			c.Logger = loggerWithResult(c)
 			if c.Result.Failure() {
-				c.Logger.Errorw(keyword, args...)
+				c.Logger.Error(keyword)
 				return
 			}
-			c.Logger.Infow(keyword, args...)
+			c.Logger.Info(keyword)
 		}, nil
 	}
 }
 
-func requestArgs(c *request.Context, ecsEnabled bool) ([]interface{}, error) {
-	var reqID, transactionID, traceID string
-	tx := apm.TransactionFromContext(c.Request.Context())
-	if tx != nil {
-		// This request is being traced, grab its IDs to add to logs.
-		traceContext := tx.TraceContext()
-		transactionID = traceContext.Span.String()
-		traceID = traceContext.Trace.String()
-		reqID = transactionID
-	} else {
-		uuid, err := uuid.NewV4()
-		if err != nil {
-			return nil, err
-		}
-		reqID = uuid.String()
-	}
-
-	args := []interface{}{
-		"http", map[string]interface{}{
-			"request": map[string]interface{}{
-				"id":     reqID, //not defined in ECS but fits here best
-				"method": c.Request.Method,
-				"body":   map[string]interface{}{"bytes": c.Request.ContentLength}}},
-		"source", map[string]interface{}{"address": utility.RemoteAddr(c.Request)},
-		"user_agent", map[string]interface{}{"original": c.Request.Header.Get(headers.UserAgent)},
-	}
-	if traceID != "" {
-		args = append(args,
-			"trace", map[string]interface{}{"id": traceID},
-			"transaction", map[string]interface{}{"id": transactionID})
-	}
-	// avoid conflicts on existing log keys
-	if ecsEnabled {
-		return append(args, "url", map[string]string{"original": c.Request.URL.String()}), nil
-	}
-	return append(args, "URL", c.Request.URL), nil
+func loggerWithContext(c *request.Context) *logp.Logger {
+	return logp.NewLogger(logs.Request).With(
+		"http.request.method", c.Request.Method,
+		"http.request.body.bytes", c.Request.ContentLength,
+		"source.address", utility.RemoteAddr(c.Request),
+		"user_agent.original", c.Request.Header.Get(headers.UserAgent),
+		"url.original", c.Request.URL.String())
 }
 
-func resultArgs(c *request.Context, ecsEnabled bool) []interface{} {
-	args := []interface{}{
-		// http key will be duplicated at this point
-		"http", map[string]interface{}{
-			"response": map[string]interface{}{
-				"status_code": c.Result.StatusCode}}}
-	if c.Result.Err == nil && c.Result.Stacktrace == "" {
-		return args
+func loggerWithTraceContext(c *request.Context) (*logp.Logger, error) {
+	tx := apm.TransactionFromContext(c.Request.Context())
+	if tx == nil {
+		uuid, err := uuid.NewV4()
+		if err != nil {
+			return c.Logger, err
+		}
+		return c.Logger.With("http.request.id", uuid.String()), nil
 	}
+	// This request is being traced, grab its IDs to add to logs.
+	traceContext := tx.TraceContext()
+	transactionID := traceContext.Span.String()
+	return c.Logger.With(
+		"trace.id", traceContext.Trace.String(),
+		"transaction.id", transactionID,
+		"http.request.id", transactionID,
+	), nil
+}
 
-	if ecsEnabled {
-		err := map[string]interface{}{}
-		if c.Result.Err != nil {
-			err["message"] = c.Result.Err.Error()
-		}
-		if c.Result.Stacktrace != "" {
-			err["stacktrace"] = c.Result.Stacktrace
-		}
-		return append(args, "error", err)
+func loggerWithResult(c *request.Context) *logp.Logger {
+	logger := c.Logger.With(
+		"http.response.status_code", c.Result.StatusCode)
+	if c.Result.Err == nil && c.Result.Stacktrace == "" {
+		return logger
 	}
 	if c.Result.Err != nil {
-		args = append(args, "error", c.Result.Err)
+		logger = logger.With("error.message", c.Result.Err.Error())
 	}
 	if c.Result.Stacktrace != "" {
-		args = append(args, "stacktrace", c.Result.Stacktrace)
+		logger = logger.With("error.stacktrace", c.Result.Stacktrace)
 	}
-	return args
+	return logger
 }

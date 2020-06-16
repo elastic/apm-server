@@ -18,7 +18,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -47,7 +46,7 @@ func TestLogMiddleware(t *testing.T) {
 		handler       request.Handler
 		code          int
 		traced        bool
-		keys, ecsKeys []string
+		ecsKeys       []string
 	}{
 		{
 			name:    "Accepted",
@@ -55,7 +54,6 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.InfoLevel,
 			handler: beatertest.Handler202,
 			code:    http.StatusAccepted,
-			keys:    []string{"URL"},
 			ecsKeys: []string{"url.original"},
 		},
 		{
@@ -64,7 +62,6 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.InfoLevel,
 			handler: beatertest.Handler202,
 			code:    http.StatusAccepted,
-			keys:    []string{"URL", "trace.id", "transaction.id"},
 			ecsKeys: []string{"url.original", "trace.id", "transaction.id"},
 			traced:  true,
 		},
@@ -74,7 +71,6 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.ErrorLevel,
 			handler: beatertest.Handler403,
 			code:    http.StatusForbidden,
-			keys:    []string{"URL", "error"},
 			ecsKeys: []string{"url.original", "error.message"},
 		},
 		{
@@ -83,7 +79,6 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.ErrorLevel,
 			handler: Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
 			code:    http.StatusInternalServerError,
-			keys:    []string{"URL", "error", "stacktrace"},
 			ecsKeys: []string{"url.original", "error.message", "error.stacktrace"},
 		},
 		{
@@ -95,53 +90,49 @@ func TestLogMiddleware(t *testing.T) {
 				c.Write()
 			},
 			code:    http.StatusForbidden,
-			keys:    []string{"URL"},
 			ecsKeys: []string{"url.original"},
 		},
 	}
 
 	for _, tc := range testCases {
-		for _, withECS := range []bool{true, false} {
-			name := fmt.Sprintf("%sWithECS%v", tc.name, withECS)
-			t.Run(name, func(t *testing.T) {
-				if withECS {
-					configure.Logging("APM Server test",
-						common.MustNewConfigFrom(`{"ecs":true}`))
-				}
-				err := logp.DevelopmentSetup(logp.ToObserverOutput())
-				require.NoError(t, err)
-				c, rec := beatertest.DefaultContextWithResponseRecorder()
-				c.Request.Header.Set(headers.UserAgent, tc.name)
-				if tc.traced {
-					tx := apmtest.DiscardTracer.StartTransaction("name", "type")
-					c.Request = c.Request.WithContext(apm.ContextWithTransaction(c.Request.Context(), tx))
-					defer tx.End()
-				}
-				Apply(LogMiddleware(), tc.handler)(c)
+		t.Run(tc.name, func(t *testing.T) {
+			// log setup
+			configure.Logging("APM Server test",
+				common.MustNewConfigFrom(`{"ecs":true}`))
+			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
-				assert.Equal(t, tc.code, rec.Code)
-				entries := logp.ObserverLogs().TakeAll()
-				require.Equal(t, 1, len(entries))
-				entry := entries[0]
-				assert.Equal(t, logs.Request, entry.LoggerName)
-				assert.Equal(t, tc.level, entry.Level)
-				assert.Equal(t, tc.message, entry.Message)
+			// prepare and record request
+			c, rec := beatertest.DefaultContextWithResponseRecorder()
+			c.Request.Header.Set(headers.UserAgent, tc.name)
+			if tc.traced {
+				tx := apmtest.DiscardTracer.StartTransaction("name", "type")
+				c.Request = c.Request.WithContext(apm.ContextWithTransaction(c.Request.Context(), tx))
+				defer tx.End()
+			}
+			Apply(LogMiddleware(), tc.handler)(c)
 
-				encoder := zapcore.NewMapObjectEncoder()
-				ec := common.MapStr{}
-				for _, f := range entry.Context {
-					f.AddTo(encoder)
-					ec.DeepUpdate(encoder.Fields)
-				}
-				keys := []string{"http", "http.request.id", "http.request.method", "http.request.body",
-					"source.address", "user_agent.original", "http.response.status_code"}
-				keys = append(keys, tc.keys...)
-				for _, key := range keys {
-					ok, _ := ec.HasKey(key)
-					assert.True(t, ok, key)
-				}
-			})
+			// check log lines
+			assert.Equal(t, tc.code, rec.Code)
+			entries := logp.ObserverLogs().TakeAll()
+			require.Equal(t, 1, len(entries))
+			entry := entries[0]
+			assert.Equal(t, logs.Request, entry.LoggerName)
+			assert.Equal(t, tc.level, entry.Level)
+			assert.Equal(t, tc.message, entry.Message)
 
-		}
+			encoder := zapcore.NewMapObjectEncoder()
+			ec := common.MapStr{}
+			for _, f := range entry.Context {
+				f.AddTo(encoder)
+				ec.DeepUpdate(encoder.Fields)
+			}
+			keys := []string{"http.request.id", "http.request.method", "http.request.body.bytes",
+				"source.address", "user_agent.original", "http.response.status_code"}
+			keys = append(keys, tc.ecsKeys...)
+			for _, key := range keys {
+				ok, _ := ec.HasKey(key)
+				assert.True(t, ok, key)
+			}
+		})
 	}
 }
