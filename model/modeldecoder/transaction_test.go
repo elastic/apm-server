@@ -194,7 +194,8 @@ func TestTransactionEventDecode(t *testing.T) {
 	inputMetadata := model.Metadata{Service: model.Service{Name: "foo"}}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID}
+	mergedMetadata.UserAgent.Original = ua
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.

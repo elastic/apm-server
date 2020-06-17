@@ -59,7 +59,11 @@ func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonsche
 	decodeService(getObject(raw, fieldName("service")), hasShortFieldNames, &out.Service)
 	decodeSystem(getObject(raw, "system"), &out.System)
 	decodeProcess(getObject(raw, "process"), &out.Process)
-	decodeUser(getObject(raw, fieldName("user")), hasShortFieldNames, &out.User, &out.Client)
+	if userObj := getObject(raw, fieldName("user")); userObj != nil {
+		decodeUser(userObj, hasShortFieldNames, &out.User, &out.Client)
+		// TODO(axw) stop decoding user.user-agent here (see #3885)
+		decodeString(userObj, "user-agent", &out.UserAgent.Original)
+	}
 	decodeCloud(getObject(raw, "cloud"), &out.Cloud)
 	decodeLabels(getObject(raw, fieldName("labels")), &out.Labels)
 	return nil

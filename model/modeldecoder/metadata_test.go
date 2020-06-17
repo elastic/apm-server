@@ -171,10 +171,12 @@ func TestDecodeMetadata(t *testing.T) {
 			},
 		},
 		User: model.User{
-			ID:        uid,
-			Email:     mail,
-			Name:      username,
-			UserAgent: userAgent,
+			ID:    uid,
+			Email: mail,
+			Name:  username,
+		},
+		UserAgent: model.UserAgent{
+			Original: userAgent,
 		},
 		Client: model.Client{
 			IP: net.ParseIP(userIP),

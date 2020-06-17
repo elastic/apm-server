@@ -18,42 +18,22 @@
 package model
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestUserFields(t *testing.T) {
-	id := "1234"
-	email := "test@mail.co"
-	name := "user123"
+type UserAgent struct {
+	// Original holds the original, full, User-Agent string.
+	Original string
 
-	tests := []struct {
-		User   User
-		Output common.MapStr
-	}{
-		{
-			User:   User{},
-			Output: nil,
-		},
-		{
-			User: User{
-				ID:    id,
-				Email: email,
-				Name:  name,
-			},
-			Output: common.MapStr{
-				"id":    "1234",
-				"email": "test@mail.co",
-				"name":  "user123",
-			},
-		},
-	}
+	// Name holds the user_agent.name value from the parsed User-Agent string.
+	// If Original is set, then this should typically not be set, as the full
+	// User-Agent string can be parsed by ingest node.
+	Name string
+}
 
-	for _, test := range tests {
-		output := test.User.Fields()
-		assert.Equal(t, test.Output, output)
-	}
+func (u *UserAgent) fields() common.MapStr {
+	var fields mapStr
+	fields.maybeSetString("original", u.Original)
+	fields.maybeSetString("name", u.Name)
+	return common.MapStr(fields)
 }
