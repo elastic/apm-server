@@ -32,3 +32,16 @@ class Test(ElasticTest):
             # @timestamp is dynamic, so set it to something known.
             doc['_source']['@timestamp'] = '2020-04-14T08:56:03.100Z'
         self.approve_docs('transaction_histogram_metrics', metric_docs)
+
+    def test_rum_transaction_metrics(self):
+        self.load_docs_with_template(self.get_payload_path("transactions_spans_rum.ndjson"),
+                                     self.intake_url, 'transaction', 2)
+        self.assert_no_logged_warnings()
+
+        self.wait_for_events('transaction', 1, index=index_transaction)
+
+        metric_docs = self.wait_for_events('metric', 1, index=index_metric)
+        for doc in metric_docs:
+            # @timestamp is dynamic, so set it to something known.
+            doc['_source']['@timestamp'] = '2020-04-14T08:56:03.100Z'
+        self.approve_docs('rum_transaction_histogram_metrics', metric_docs)
