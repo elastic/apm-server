@@ -73,16 +73,16 @@ func decodeError(input Input, schema *jsonschema.Schema) (*m.Error, error) {
 		Labels:             ctx.Labels,
 		Page:               ctx.Page,
 		HTTP:               ctx.Http,
-		URL:                ctx.Url,
+		URL:                ctx.URL,
 		Custom:             ctx.Custom,
 		Experimental:       ctx.Experimental,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
-		TransactionID:      decoder.StringPtr(raw, fieldName("transaction_id")),
-		ParentID:           decoder.StringPtr(raw, fieldName("parent_id")),
-		TraceID:            decoder.StringPtr(raw, fieldName("trace_id")),
 		TransactionSampled: decoder.BoolPtr(raw, fieldName("sampled"), fieldName("transaction")),
 		TransactionType:    decoder.StringPtr(raw, fieldName("type"), fieldName("transaction")),
 	}
+	decodeString(raw, fieldName("parent_id"), &e.ParentID)
+	decodeString(raw, fieldName("trace_id"), &e.TraceID)
+	decodeString(raw, fieldName("transaction_id"), &e.TransactionID)
 
 	ex := decoder.MapStr(raw, fieldName("exception"))
 	e.Exception = decodeException(&decoder, input.Config.HasShortFieldNames)(ex)

@@ -47,18 +47,19 @@ func TestErrorEventDecode(t *testing.T) {
 	transactionType := "request"
 	labels := m.Labels{"ab": "c"}
 	ua := "go-1.1"
-	page := m.Page{Url: &pURL, Referer: &referer}
+	page := m.Page{URL: m.ParseURL(pURL, ""), Referer: &referer}
 	custom := m.Custom{"a": "b"}
 	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}
 	response := m.Resp{Finished: new(bool), MinimalResp: m.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := m.Http{Request: &request, Response: &response}
-	ctxURL := m.Url{Original: &origURL}
+	ctxURL := m.URL{Original: &origURL}
 	inputMetadata := m.Metadata{
 		Service: m.Service{Name: "foo"},
 	}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = m.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = m.User{Name: name, Email: email, ID: userID}
+	mergedMetadata.UserAgent.Original = ua
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -217,11 +218,11 @@ func TestErrorEventDecode(t *testing.T) {
 					},
 				},
 				ID:                 &id,
-				TransactionID:      &transactionID,
+				TransactionID:      transactionID,
 				TransactionSampled: &transactionSampled,
 				TransactionType:    &transactionType,
-				ParentID:           &parentID,
-				TraceID:            &traceID,
+				ParentID:           parentID,
+				TraceID:            traceID,
 				Culprit:            &culprit,
 			},
 		},

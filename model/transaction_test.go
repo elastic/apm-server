@@ -155,9 +155,10 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Architecture:       architecture,
 			Platform:           platform,
 		},
-		User:   User{ID: id, Name: name, UserAgent: userAgent},
-		Client: Client{IP: net.ParseIP(ip)},
-		Labels: common.MapStr{"a": true},
+		User:      User{ID: id, Name: name},
+		UserAgent: UserAgent{Original: userAgent},
+		Client:    Client{IP: net.ParseIP(ip)},
+		Labels:    common.MapStr{"a": true},
 	}
 
 	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}}
@@ -166,9 +167,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
 		Labels:    &Labels{"a": "b"},
-		Page:      &Page{Url: &url, Referer: &referer},
+		Page:      &Page{URL: &URL{Original: &url}, Referer: &referer},
 		HTTP:      &Http{Request: &request, Response: &response},
-		URL:       &Url{Original: &url},
+		URL:       &URL{Original: &url},
 		Custom:    &Custom{"foo": "bar"},
 		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
 	}
@@ -211,7 +212,67 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"labels": common.MapStr{"a": "b"},
 		"url":    common.MapStr{"original": url},
 		"http": common.MapStr{
-			"request":  common.MapStr{"method": "post"},
+			"request":  common.MapStr{"method": "post", "referrer": referer},
 			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}}},
 	})
+}
+
+func TestTransactionTransformPage(t *testing.T) {
+	id := "123"
+	urlExample := "http://example.com/path"
+
+	tests := []struct {
+		Transaction Transaction
+		Output      common.MapStr
+		Msg         string
+	}{
+		{
+			Transaction: Transaction{
+				ID:       id,
+				Type:     "tx",
+				Duration: 65.98,
+				Page: &Page{
+					URL:     ParseURL(urlExample, ""),
+					Referer: nil,
+				},
+			},
+			Output: common.MapStr{
+				"domain":   "example.com",
+				"full":     "http://example.com/path",
+				"original": "http://example.com/path",
+				"path":     "/path",
+				"scheme":   "http",
+			},
+			Msg: "With page URL",
+		},
+		{
+			Transaction: Transaction{
+				ID:        id,
+				Type:      "tx",
+				Timestamp: time.Now(),
+				Duration:  65.98,
+				URL:       ParseURL("https://localhost:8200/", ""),
+				Page: &Page{
+					URL:     ParseURL(urlExample, ""),
+					Referer: nil,
+				},
+			},
+			Output: common.MapStr{
+				"domain":   "localhost",
+				"full":     "https://localhost:8200/",
+				"original": "https://localhost:8200/",
+				"path":     "/",
+				"port":     8200,
+				"scheme":   "https",
+			},
+			Msg: "With Page URL and Request URL",
+		},
+	}
+
+	tctx := &transform.Context{}
+
+	for idx, test := range tests {
+		output := test.Transaction.Transform(context.Background(), tctx)
+		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+	}
 }

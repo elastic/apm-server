@@ -182,17 +182,18 @@ func TestTransactionEventDecode(t *testing.T) {
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
-	page := model.Page{Url: &url, Referer: &referer}
+	page := model.Page{URL: model.ParseURL(url, ""), Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
 	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
 	h := model.Http{Request: &request, Response: &response}
-	ctxURL := model.Url{Original: &origURL}
+	ctxURL := model.URL{Original: &origURL}
 	custom := model.Custom{"abc": 1}
 
 	inputMetadata := model.Metadata{Service: model.Service{Name: "foo"}}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID}
+	mergedMetadata.UserAgent.Original = ua
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -331,7 +332,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Type:      trType,
 				Name:      &name,
 				Result:    &result,
-				ParentID:  &parentID,
+				ParentID:  parentID,
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,

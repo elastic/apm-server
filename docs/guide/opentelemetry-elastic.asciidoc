@@ -1,0 +1,180 @@
+[[open-telemetry-elastic]]
+== OpenTelemetry integration
+
+:ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
+:ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
+:ot-pipelines:  {ot-repo}/blob/master/docs/pipelines.md
+:ot-extension:  {ot-repo}/blob/master/extension/README.md
+:ot-scaling:    {ot-repo}/blob/master/docs/performance.md
+
+:ot-collector:  https://opentelemetry.io/docs/collector/about/
+:ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib-dev
+
+Elastic's OpenTelemetry integration allows you to reuse your existing OpenTelemetry
+instrumentation to quickly analyze distributed traces and metrics with the Elastic Stack.
+
+[float]
+[[what-is-opentelemetry]]
+=== What is OpenTelemetry?
+
+> OpenTelemetry is a set of APIs, SDKs, tooling, and integrations that enable the creation and
+management of telemetry data. It formed through a merger of the OpenTracing and OpenCensus projects.
+
+OpenTelemetry is an open-source project that provides the components necessary to observe your applications and services.
+If you're unfamiliar with the project, see the {ot-spec}[spec] for more information.
+
+[float]
+[[open-telemetry-elastic-exporter]]
+=== Elastic exporter
+
+Elastic's integration is designed to drop into your current OpenTelemetry setup.
+We've done this by extending the "contrib" OpenTelemetry collector and adding an Elastic exporter.
+This exporter translates the OpenTelemetry trace data collected from your services to Elastic's protocol,
+before sending the data to the Elastic Stack.
+By extending the OpenTelemetry collector,
+no changes are needed in your instrumented services in order to begin using the Elastic Stack.
+
+image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
+
+[float]
+[[open-telemetry-elastic-works]]
+=== How the OpenTelemetry Collector works
+
+The OpenTelemetry collector uses three different types of components to handle data: `receivers`, `processors`, and `exporters`.
+
+* `receivers`: Configure how data gets to the collector. At least one receiver must be configured.
+* `processors`: Defines optional transformations that occurs between receiving and exporting data.
+* `exporters`: Configures how data is sent to its destination--in this case, the Elastic Stack.
+
+Once a `receiver`, `processor`, and `exporter` is defined, `pipelines` can be configured in the `services` section of your configuration. Specifically, a `traces` pipeline will define the path of trace data through your collector, and bring all three of these components together.
+
+TIP: More information is available in the
+{ot-pipelines}[OpenTelemetry pipeline docs]
+
+A final note: `extensions` can also be enabled for tasks like monitoring your collectors health.
+See the {ot-extension}[OpenTelemetry extension readme]
+for a list of supported extensions.
+
+[[open-telemetry-elastic-get-started]]
+=== Get started
+
+NOTE: This guide assumes you've already instrumented your services with the OpenTelemetry API and/or SDK.
+If you haven't, see the Elastic APM <<install-and-run,install and run guide>> to get started with Elastic APM Agents instead.
+
+[[open-telemetry-elastic-deployment-planning]]
+==== Plan your deployment
+
+OpenTelemetry Collectors can be run as an Agent, or as standalone collectors.
+They can be deployed as often as necessary and scaled up or out.
+
+Deployment planning resources are available in OpenTelemetry's {ot-collector}[Getting Started]
+documentation, and {ot-scaling}[Collector Performance] research.
+
+[[open-telemetry-elastic-download]]
+==== Download the collector
+
+The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
+and the latest release can be downloaded from {ot-repo}/releases[GitHub releases page].
+
+Docker images are available on {ot-dockerhub}[dockerhub]:
+
+[source,bash]
+----
+docker pull otel/opentelemetry-collector-contrib-dev
+----
+
+You can also build the collector-contrib repository by cloning it and running:
+
+[source,bash]
+----
+make otelcontribcol
+----
+
+[[open-telemetry-elastic-configure]]
+==== Configure the collector
+
+Create a `yaml` configuration file.
+
+At a minimum, you must define the URL of the APM Server instance you are sending data to.
+For example:
+
+[source,yml]
+----
+exporters:
+  elastic:
+    apm_server_url: "https://elasticapm.example.com"
+----
+
+See the <<open-telemetry-elastic-config-ref,configuration reference>> for additional configuration options,
+like specifying an API key, secret token, or TLS settings.
+
+The Elastic exporter must also be defined in `service.pipelines.traces.exporters`.
+For example:
+
+[source,yml]
+----
+service:
+  pipelines:
+    traces:
+      exporters: [elastic]
+----
+
+If we put everything together, here's an example configuration file that accepts input from an OpenTelemetry Agent,
+processes the data, and sends it to an {ess} instance.
+
+[source,yml]
+----
+receivers:
+  otlp:
+    endpoint: localhost:55680
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+exporters:
+  elastic:
+    apm_server_url: "https://elasticapm.example.com"
+    secret_token: "ESS_TOKEN"
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elastic]
+----
+
+NOTE: For more information about getting started with an OpenTelemetry Collector,
+see the {ot-collector}[OpenTelemetry collector] docs.
+
+[[open-telemetry-elastic-config-ref]]
+=== Elastic exporter configuration reference
+
+[[open-telemetry-config-url]]
+==== `apm_server_url`
+Elastic APM Server URL. (required)
+
+[[open-telemetry-config-api-key]]
+==== `api_key`
+Credential for {apm-server-ref-v}/api-key.html[API key authorization].
+Must also be enabled in Elastic APM Server. (optional)
+
+[[open-telemetry-config-secret-token]]
+==== `secret_token`
+Credential for {apm-server-ref-v}/secret-token.html[secret token authorization].
+Must also be enabled in Elastic APM Server. (optional)
+
+[[open-telemetry-config-ca-file]]
+==== `ca_file`
+Root Certificate Authority (CA) certificate, for verifying the server's identity if TLS is enabled. (optional)
+
+[[open-telemetry-config-cert-file]]
+==== `cert_file`
+Client TLS certificate. (optional)
+
+[[open-telemetry-config-key-file]]
+==== `key_file`
+Client TLS key. (optional)
+
+[[open-telemetry-config-insecure]]
+==== `insecure`
+Disable verification of the server's identity if TLS is enabled. (optional)

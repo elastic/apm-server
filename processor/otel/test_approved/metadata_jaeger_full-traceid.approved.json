@@ -1,0 +1,37 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "464678300000000046467830"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 0
+                },
+                "id": "41414646",
+                "name": "",
+                "result": "Success",
+                "sampled": true,
+                "type": "custom"
+            }
+        }
+    ]
+}

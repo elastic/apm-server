@@ -177,6 +177,15 @@ Object is not enabled.
 
 --
 
+*`http.request.referrer`*::
++
+--
+Referrer for this HTTP request.
+
+type: keyword
+
+--
+
 
 *`http.response.status_code`*::
 +

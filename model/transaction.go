@@ -44,7 +44,7 @@ type Transaction struct {
 	Metadata Metadata
 
 	ID       string
-	ParentID *string
+	ParentID string
 	TraceID  string
 
 	Timestamp time.Time
@@ -63,7 +63,7 @@ type Transaction struct {
 	SpanCount SpanCount
 	Page      *Page
 	HTTP      *Http
-	URL       *Url
+	URL       *URL
 	Labels    *Labels
 	Custom    *Custom
 
@@ -75,7 +75,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) fields(tctx *transform.Context) common.MapStr {
+func (e *Transaction) fields() common.MapStr {
 	tx := common.MapStr{"id": e.ID}
 	utility.Set(tx, "name", e.Name)
 	utility.Set(tx, "duration", utility.MillisAsMicros(e.Duration))
@@ -107,12 +107,12 @@ func (e *Transaction) fields(tctx *transform.Context) common.MapStr {
 	return tx
 }
 
-func (e *Transaction) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.Event {
 	transactionTransformations.Inc()
 
 	fields := common.MapStr{
 		"processor":        transactionProcessorEntry,
-		transactionDocType: e.fields(tctx),
+		transactionDocType: e.fields(),
 	}
 
 	// first set generic metadata (order is relevant)
@@ -120,13 +120,22 @@ func (e *Transaction) Transform(ctx context.Context, tctx *transform.Context) []
 	utility.Set(fields, "source", fields["client"])
 
 	// then merge event specific information
-	utility.AddId(fields, "parent", e.ParentID)
-	utility.AddId(fields, "trace", &e.TraceID)
+	utility.AddID(fields, "parent", e.ParentID)
+	utility.AddID(fields, "trace", e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
-	utility.Set(fields, "url", e.URL.Fields())
+	urlFields := e.URL.Fields()
+	if urlFields != nil {
+		utility.Set(fields, "url", e.URL.Fields())
+	}
+	if e.Page != nil {
+		utility.DeepUpdate(fields, "http.request.referrer", e.Page.Referer)
+		if urlFields == nil {
+			utility.Set(fields, "url", e.Page.URL.Fields())
+		}
+	}
 	utility.Set(fields, "experimental", e.Experimental)
 
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}

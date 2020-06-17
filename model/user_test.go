@@ -29,7 +29,6 @@ func TestUserFields(t *testing.T) {
 	id := "1234"
 	email := "test@mail.co"
 	name := "user123"
-	userAgent := "rum-1.0"
 
 	tests := []struct {
 		User   User
@@ -41,10 +40,9 @@ func TestUserFields(t *testing.T) {
 		},
 		{
 			User: User{
-				ID:        id,
-				Email:     email,
-				Name:      name,
-				UserAgent: userAgent,
+				ID:    id,
+				Email: email,
+				Name:  name,
 			},
 			Output: common.MapStr{
 				"id":    "1234",
@@ -56,37 +54,6 @@ func TestUserFields(t *testing.T) {
 
 	for _, test := range tests {
 		output := test.User.Fields()
-		assert.Equal(t, test.Output, output)
-	}
-}
-
-func TestUserAgentFields(t *testing.T) {
-	id := "1234"
-	email := "test@mail.co"
-	name := "user123"
-	userAgent := "rum-1.0"
-
-	tests := []struct {
-		User   User
-		Output common.MapStr
-	}{
-		{
-			User:   User{},
-			Output: nil,
-		},
-		{
-			User: User{
-				ID:        id,
-				Email:     email,
-				Name:      name,
-				UserAgent: userAgent,
-			},
-			Output: common.MapStr{"original": "rum-1.0"},
-		},
-	}
-
-	for _, test := range tests {
-		output := test.User.UserAgentFields()
 		assert.Equal(t, test.Output, output)
 	}
 }

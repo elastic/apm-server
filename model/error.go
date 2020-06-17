@@ -51,9 +51,9 @@ const (
 
 type Error struct {
 	ID            *string
-	TransactionID *string
-	TraceID       *string
-	ParentID      *string
+	TransactionID string
+	TraceID       string
+	ParentID      string
 
 	Timestamp time.Time
 	Metadata  Metadata
@@ -62,7 +62,7 @@ type Error struct {
 	Labels  *Labels
 	Page    *Page
 	HTTP    *Http
-	URL     *Url
+	URL     *URL
 	Custom  *Custom
 
 	Exception *Exception
@@ -117,21 +117,32 @@ func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
-	utility.Set(fields, "url", e.URL.Fields())
+	urlFields := e.URL.Fields()
+	if urlFields != nil {
+		utility.Set(fields, "url", e.URL.Fields())
+	}
+	if e.Page != nil {
+		utility.DeepUpdate(fields, "http.request.referrer", e.Page.Referer)
+		if urlFields == nil {
+			utility.Set(fields, "url", e.Page.URL.Fields())
+		}
+	}
 	utility.Set(fields, "experimental", e.Experimental)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
-	if e.TransactionSampled != nil || e.TransactionType != nil || (e.TransactionID != nil && *e.TransactionID != "") {
+	if e.TransactionSampled != nil || e.TransactionType != nil || e.TransactionID != "" {
 		transaction := common.MapStr{}
-		utility.Set(transaction, "id", e.TransactionID)
+		if e.TransactionID != "" {
+			transaction["id"] = e.TransactionID
+		}
 		utility.Set(transaction, "type", e.TransactionType)
 		utility.Set(transaction, "sampled", e.TransactionSampled)
 		utility.Set(fields, "transaction", transaction)
 	}
 
-	utility.AddId(fields, "parent", e.ParentID)
-	utility.AddId(fields, "trace", e.TraceID)
+	utility.AddID(fields, "parent", e.ParentID)
+	utility.AddID(fields, "trace", e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{

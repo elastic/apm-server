@@ -37,14 +37,15 @@ var (
 	rumV3SpanSchema = validation.CreateSchema(schema.RUMV3Schema, "span")
 )
 
-// decodeRUMV3Span decodes a v3 RUM span.
-func decodeRUMV3Span(input Input) (*model.Span, error) {
+// decodeRUMV3Span decodes a v3 RUM span, and optional parent index.
+// If parent index wasn't specified, then the value will be negative.
+func decodeRUMV3Span(input Input) (_ *model.Span, parentIndex int, _ error) {
 	return decodeSpan(input, rumV3SpanSchema)
 }
 
 // DecodeSpan decodes a span.
 func DecodeSpan(input Input, batch *model.Batch) error {
-	span, err := decodeSpan(input, spanSchema)
+	span, _, err := decodeSpan(input, spanSchema)
 	if err != nil {
 		return err
 	}
@@ -52,10 +53,10 @@ func DecodeSpan(input Input, batch *model.Batch) error {
 	return nil
 }
 
-func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
+func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIndex int, _ error) {
 	raw, err := validation.ValidateObject(input.Raw, schema)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate span")
+		return nil, -1, errors.Wrap(err, "failed to validate span")
 	}
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
@@ -68,16 +69,14 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 		Sync:      decoder.BoolPtr(raw, fieldName("sync")),
 		Timestamp: decoder.TimeEpochMicro(raw, fieldName("timestamp")),
 		ID:        decoder.String(raw, fieldName("id")),
-		ParentID:  decoder.StringPtr(raw, "parent_id"),
 		ChildIDs:  decoder.StringArr(raw, "child_ids"),
-		// ParentIdx comes from RUM V3 payloads only, and used to populate ParentID
-		ParentIdx:     decoder.IntPtr(raw, fieldName("parent_idx")),
-		TraceID:       decoder.StringPtr(raw, "trace_id"),
-		TransactionID: decoder.StringPtr(raw, "transaction_id"),
-		Type:          decoder.String(raw, fieldName("type")),
-		Subtype:       decoder.StringPtr(raw, fieldName("subtype")),
-		Action:        decoder.StringPtr(raw, fieldName("action")),
+		Type:      decoder.String(raw, fieldName("type")),
+		Subtype:   decoder.StringPtr(raw, fieldName("subtype")),
+		Action:    decoder.StringPtr(raw, fieldName("action")),
 	}
+	decodeString(raw, fieldName("parent_id"), &event.ParentID)
+	decodeString(raw, fieldName("trace_id"), &event.TraceID)
+	decodeString(raw, fieldName("transaction_id"), &event.TransactionID)
 
 	ctx := decoder.MapStr(raw, fieldName("context"))
 	if ctx != nil {
@@ -87,19 +86,19 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 
 		db, err := decodeDB(ctx, decoder.Err)
 		if err != nil {
-			return nil, err
+			return nil, -1, err
 		}
 		event.DB = db
 
 		http, err := decodeSpanHTTP(ctx, input.Config.HasShortFieldNames, decoder.Err)
 		if err != nil {
-			return nil, err
+			return nil, -1, err
 		}
 		event.HTTP = http
 
 		dest, destService, err := decodeDestination(ctx, input.Config.HasShortFieldNames, decoder.Err)
 		if err != nil {
-			return nil, err
+			return nil, -1, err
 		}
 		event.Destination = dest
 		event.DestinationService = destService
@@ -111,7 +110,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 		}
 
 		if event.Message, err = decodeMessage(ctx, decoder.Err); err != nil {
-			return nil, err
+			return nil, -1, err
 		}
 
 		if input.Config.Experimental {
@@ -124,7 +123,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 	var stacktr *m.Stacktrace
 	stacktr, decoder.Err = decodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 	if decoder.Err != nil {
-		return nil, decoder.Err
+		return nil, -1, decoder.Err
 	}
 	if stacktr != nil {
 		event.Stacktrace = *stacktr
@@ -152,7 +151,13 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (*model.Span, error) {
 		event.Timestamp = timestamp
 	}
 
-	return &event, nil
+	// parent_idx comes from RUM V3 payloads only. It is used only during
+	// decoding to populate ParentID. We initialise to -1 to indicate lack
+	// of parent index.
+	parentIndex = -1
+	decodeInt(raw, fieldName("parent_idx"), &parentIndex)
+
+	return &event, parentIndex, nil
 }
 
 func decodeDB(input interface{}, err error) (*model.DB, error) {

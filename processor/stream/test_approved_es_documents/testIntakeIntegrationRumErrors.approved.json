@@ -93,6 +93,11 @@
                     "url": "http://localhost:8000/test/e2e/general-usecase/"
                 }
             },
+            "http": {
+                "request": {
+                    "referrer": "http://localhost:8000/test/e2e/"
+                }
+            },
             "processor": {
                 "event": "error",
                 "name": "error"
@@ -106,6 +111,14 @@
             },
             "timestamp": {
                 "us": 1512735530291000
+            },
+            "url": {
+                "domain": "localhost",
+                "full": "http://localhost:8000/test/e2e/general-usecase/",
+                "original": "http://localhost:8000/test/e2e/general-usecase/",
+                "path": "/test/e2e/general-usecase/",
+                "port": 8000,
+                "scheme": "http"
             },
             "user_agent": {
                 "original": "rum-2.0"

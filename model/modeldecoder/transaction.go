@@ -95,7 +95,7 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 	rawSpans := decoder.InterfaceArr(raw, fieldName("span"))
 	var spans = make([]*model.Span, len(rawSpans))
 	for idx, rawSpan := range rawSpans {
-		span, err := decodeRUMV3Span(Input{
+		span, parentIndex, err := decodeRUMV3Span(Input{
 			Raw:         rawSpan,
 			RequestTime: input.RequestTime,
 			Metadata:    input.Metadata,
@@ -104,12 +104,12 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 		if err != nil {
 			return spans, err
 		}
-		span.TransactionID = &tr.ID
-		span.TraceID = &tr.TraceID
-		if span.ParentIdx == nil {
-			span.ParentID = &tr.ID
-		} else if *span.ParentIdx < idx {
-			span.ParentID = &spans[*span.ParentIdx].ID
+		span.TransactionID = tr.ID
+		span.TraceID = tr.TraceID
+		if parentIndex >= 0 && parentIndex < idx {
+			span.ParentID = spans[parentIndex].ID
+		} else {
+			span.ParentID = tr.ID
 		}
 		spans[idx] = span
 	}
@@ -148,7 +148,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		Labels:       ctx.Labels,
 		Page:         ctx.Page,
 		HTTP:         ctx.Http,
-		URL:          ctx.Url,
+		URL:          ctx.URL,
 		Custom:       ctx.Custom,
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,
@@ -158,12 +158,12 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		SpanCount: model.SpanCount{
 			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
 			Started: decoder.IntPtr(raw, fieldName("started"), fieldName("span_count"))},
-		ParentID: decoder.StringPtr(raw, fieldName("parent_id")),
-		TraceID:  decoder.String(raw, fieldName("trace_id")),
+		TraceID: decoder.String(raw, fieldName("trace_id")),
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
+	decodeString(raw, fieldName("parent_id"), &e.ParentID)
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}

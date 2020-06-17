@@ -20,8 +20,6 @@ package otel
 import (
 	"context"
 	"fmt"
-	"net"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +28,7 @@ import (
 	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
+	tracetranslator "github.com/open-telemetry/opentelemetry-collector/translator/trace"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -81,14 +80,25 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 			continue
 		}
 
-		var parentID *string
 		root := len(otelSpan.ParentSpanId) == 0
-		if !root {
-			str := fmt.Sprintf("%x", otelSpan.ParentSpanId)
-			parentID = &str
+
+		var parentID, spanID, traceID string
+		if td.SourceFormat == sourceFormatJaeger {
+			if !root {
+				parentID = formatJaegerSpanID(otelSpan.ParentSpanId)
+			}
+
+			traceID = formatJaegerTraceID(otelSpan.TraceId)
+			spanID = formatJaegerSpanID(otelSpan.SpanId)
+		} else {
+			if !root {
+				parentID = fmt.Sprintf("%x", otelSpan.ParentSpanId)
+			}
+
+			traceID = fmt.Sprintf("%x", otelSpan.TraceId)
+			spanID = fmt.Sprintf("%x", otelSpan.SpanId)
 		}
-		traceID := fmt.Sprintf("%x", otelSpan.TraceId)
-		spanID := fmt.Sprintf("%x", otelSpan.SpanId)
+
 		startTime := parseTimestamp(otelSpan.StartTime)
 		var duration float64
 		if otelSpan.EndTime != nil && !startTime.IsZero() {
@@ -117,7 +127,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Metadata:  md,
 				ID:        spanID,
 				ParentID:  parentID,
-				TraceID:   &traceID,
+				TraceID:   traceID,
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
@@ -202,10 +212,11 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 func parseTransaction(span *tracepb.Span, hostname string, event *model.Transaction) {
 	labels := make(common.MapStr)
 	var http model.Http
+	var message model.Message
 	var component string
 	var result string
 	var hasFailed bool
-	var isHTTP bool
+	var isHTTP, isMessaging bool
 	for kDots, v := range span.Attributes.GetAttributeMap() {
 		k := replaceDots(kDots)
 		switch v := v.Value.(type) {
@@ -233,7 +244,7 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 				http.Request = &model.Req{Method: truncate(v.StringValue.Value)}
 				isHTTP = true
 			case "http.url", "http.path":
-				event.URL = parseURL(v.StringValue.Value, hostname)
+				event.URL = model.ParseURL(v.StringValue.Value, hostname)
 				isHTTP = true
 			case "http.status_code":
 				if intv, err := strconv.Atoi(v.StringValue.Value); err == nil {
@@ -249,6 +260,9 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 					utility.DeepUpdate(labels, k, v.StringValue.Value)
 				}
 				isHTTP = true
+			case "message_bus.destination":
+				message.QueueName = &v.StringValue.Value
+				isMessaging = true
 			case "type":
 				event.Type = truncate(v.StringValue.Value)
 			case "component":
@@ -263,6 +277,8 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 	if event.Type == "" {
 		if isHTTP {
 			event.Type = "request"
+		} else if isMessaging {
+			event.Type = "messaging"
 		} else if component != "" {
 			event.Type = component
 		} else {
@@ -278,6 +294,8 @@ func parseTransaction(span *tracepb.Span, hostname string, event *model.Transact
 			}
 		}
 		event.HTTP = &http
+	} else if isMessaging {
+		event.Message = &message
 	}
 
 	if result == "" {
@@ -300,9 +318,10 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 	labels := make(common.MapStr)
 
 	var http model.HTTP
+	var message model.Message
 	var db model.DB
 	var destination model.Destination
-	var isDBSpan, isHTTPSpan bool
+	var isDBSpan, isHTTPSpan, isMessagingSpan bool
 	var component string
 	for kDots, v := range span.Attributes.GetAttributeMap() {
 		k := replaceDots(kDots)
@@ -356,6 +375,9 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			case "peer.address":
 				val := truncate(v.StringValue.Value)
 				destination.Address = &val
+			case "message_bus.destination":
+				message.QueueName = &v.StringValue.Value
+				isMessagingSpan = true
 			case "component":
 				component = truncate(v.StringValue.Value)
 				fallthrough
@@ -386,6 +408,9 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			event.Subtype = db.Type
 		}
 		event.DB = &db
+	case isMessagingSpan:
+		event.Type = "messaging"
+		event.Message = &message
 	default:
 		event.Type = "custom"
 		if component != "" {
@@ -467,9 +492,9 @@ func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*
 
 func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
 	err.Metadata = transaction.Metadata
-	err.TransactionID = &transaction.ID
-	err.TraceID = &transaction.TraceID
-	err.ParentID = &transaction.ID
+	err.TransactionID = transaction.ID
+	err.TraceID = transaction.TraceID
+	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
 	err.URL = transaction.URL
 	err.TransactionType = &transaction.Type
@@ -479,7 +504,7 @@ func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 	err.Metadata = span.Metadata
 	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID
-	err.ParentID = &span.ID
+	err.ParentID = span.ID
 	if span.HTTP != nil {
 		err.HTTP = &model.Http{}
 		if span.HTTP.StatusCode != nil {
@@ -489,7 +514,7 @@ func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 			err.HTTP.Request = &model.Req{Method: *span.HTTP.Method}
 		}
 		if span.HTTP.URL != nil {
-			err.URL = parseURL(*span.HTTP.URL, hostname)
+			err.URL = model.ParseURL(*span.HTTP.URL, hostname)
 		}
 	}
 }
@@ -503,49 +528,6 @@ func parseTimestamp(timestampT *timestamp.Timestamp) time.Time {
 		return time.Time{}
 	}
 	return time.Unix(timestampT.Seconds, int64(timestampT.Nanos)).UTC()
-}
-
-func parseURL(original, hostname string) *model.Url {
-	original = truncate(original)
-	url, err := url.Parse(original)
-	if err != nil {
-		return &model.Url{Original: &original}
-	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
-	}
-	if url.Host == "" {
-		url.Host = hostname
-	}
-	full := truncate(url.String())
-	out := &model.Url{
-		Original: &original,
-		Scheme:   &url.Scheme,
-		Full:     &full,
-	}
-	if path := truncate(url.Path); path != "" {
-		out.Path = &path
-	}
-	if query := truncate(url.RawQuery); query != "" {
-		out.Query = &query
-	}
-	if fragment := url.Fragment; fragment != "" {
-		out.Fragment = &fragment
-	}
-	host, port, err := net.SplitHostPort(url.Host)
-	if err != nil {
-		host = truncate(url.Host)
-		port = ""
-	}
-	if host = truncate(host); host != "" {
-		out.Domain = &host
-	}
-	if port = truncate(port); port != "" {
-		if intv, err := strconv.Atoi(port); err == nil {
-			out.Port = &intv
-		}
-	}
-	return out
 }
 
 var languageName = map[commonpb.LibraryInfo_Language]string{
@@ -590,4 +572,28 @@ func truncate(s string) string {
 		j++
 	}
 	return s
+}
+
+// formatJaegerTraceID returns the traceID as string in Jaeger format (hexadecimal without leading zeros)
+func formatJaegerTraceID(traceID []byte) string {
+	jaegerTraceIDHigh, jaegerTraceIDLow, err := tracetranslator.BytesToUInt64TraceID(traceID)
+	if err != nil {
+		return fmt.Sprintf("%x", traceID)
+	}
+
+	if jaegerTraceIDHigh == 0 {
+		return fmt.Sprintf("%x", jaegerTraceIDLow)
+	}
+
+	return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
+}
+
+// formatJaegerSpanID returns the spanID as string in Jaeger format (hexadecimal without leading zeros)
+func formatJaegerSpanID(spanID []byte) string {
+	jaegerSpanID, err := tracetranslator.BytesToUInt64SpanID(spanID)
+	if err != nil {
+		return fmt.Sprintf("%x", spanID)
+	}
+
+	return fmt.Sprintf("%x", jaegerSpanID)
 }
