@@ -18,7 +18,7 @@ to determine if you need to upgrade Elasticsearch and Kibana.
 
 . Upgrade {ref}/setup-upgrade.html[Elasticsearch].
 . Upgrade {kibana-ref}/upgrade.html[Kibana].
-. Ensure all of your APM agents are upgraded to a version that supports APM Server >= 6.5.
+. Ensure all of your APM agents are upgraded to a version that supports APM Server ≥ 6.5.
 The {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
 will help determine compatibility.
 . Upgrade APM Server (see below if upgrading from an RPM or Deb install).
