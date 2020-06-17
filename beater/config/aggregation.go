@@ -34,7 +34,7 @@ type AggregationConfig struct {
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
 	MaxTransactionGroups           int           `config:"max_transaction_groups" validate:"min=1"`
 	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
-	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size"`
+	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size" validate:"min=1"`
 }
 
 func defaultAggregationConfig() AggregationConfig {
