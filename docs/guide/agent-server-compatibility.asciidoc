@@ -8,38 +8,38 @@ The chart below outlines the compatibility between different versions of the APM
 |Agent |Agent Version |APM Server Version
 // Go
 .1+|**Go Agent**
-|`1.x` |>= `6.5`
+|`1.x` |≥ `6.5`
 
 // Java
 .1+|**Java Agent**
-|`1.x`|>= `6.5`
+|`1.x`|≥ `6.5`
 
 // .NET
 .1+|**.NET Agent**
-|`1.x` |>= `6.5`
+|`1.x` |≥ `6.5`
 
 // Node
 .3+|**Node.js Agent**
 |`1.x` |`6.2`-`6.x`
-|`2.x` |>= `6.5`
-|`3.x` |>= `6.6`
+|`2.x` |≥ `6.5`
+|`3.x` |≥ `6.6`
 
 // Python
 .3+|**Python Agent**
 |`2.x`, `3.x` |`6.2`-`6.x`
-|`4.x` |>= `6.5`
-|`5.x` |>= `6.6`
+|`4.x` |≥ `6.5`
+|`5.x` |≥ `6.6`
 
 // Ruby
 .3+|**Ruby Agent**
 |`1.x` |`6.4`-`6.x`
-|`2.x` |>= `6.5`
-|`3.x` |>= `6.5`
+|`2.x` |≥ `6.5`
+|`3.x` |≥ `6.5`
 
 // RUM
 .4+|**JavaScript RUM Agent**
 |`0.x` |`6.3`-`6.4`
 |`1.x` |`6.4`
-|`2.x`, `3.x`, `4.x` |>= `6.5`
-|`5.x` |>= `7.0`
+|`2.x`, `3.x`, `4.x` |≥ `6.5`
+|`5.x` |≥ `7.0`
 |====
