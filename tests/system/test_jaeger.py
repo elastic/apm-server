@@ -33,6 +33,7 @@ class JaegerBaseTest(ElasticTest):
             # check that the authorization tag is always removed,
             # even if there's no secret token / API Key auth.
             "jaeger_grpc_auth_tag": "authorization",
+            "logging_ecs_disabled": "true",
         })
         return cfg
 

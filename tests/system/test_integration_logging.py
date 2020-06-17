@@ -20,9 +20,9 @@ class LoggingIntegrationTest(ElasticTest):
             assert len(intake_request_logs) == 1, "multiple requests found"
             req = intake_request_logs[0]
             self.assertDictContainsSubset({
-                "level": "info",
+                "log.level": "info",
                 "message": "request accepted",
-                "response_code": 202,
+                "http.response.status_code": 202,
             }, req)
 
     def test_log_invalid_event(self):
@@ -35,11 +35,11 @@ class LoggingIntegrationTest(ElasticTest):
             assert len(intake_request_logs) == 1, "multiple requests found"
             req = intake_request_logs[0]
             self.assertDictContainsSubset({
-                "level": "error",
+                "log.level": "error",
                 "message": "data validation error",
-                "response_code": 400,
+                "http.response.status_code": 400,
             }, req)
-            error = req.get("error")
+            error = req.get("error.message")
             assert error.startswith("failed to validate transaction: error validating JSON:"), json.dumps(req)
 
 
@@ -60,11 +60,11 @@ class LoggingIntegrationEventSizeTest(ElasticTest):
             assert len(intake_request_logs) == 1, "multiple requests found"
             req = intake_request_logs[0]
             self.assertDictContainsSubset({
-                "level": "error",
+                "log.level": "error",
                 "message": "request body too large",
-                "response_code": 400,
+                "http.response.status_code": 400,
             }, req)
-            error = req.get("error")
+            error = req.get("error.message")
             assert error.startswith("event exceeded the permitted size."), json.dumps(req)
 
 
@@ -86,7 +86,7 @@ class LoggingIntegrationTraceCorrelationTest(ElasticTest):
             req = intake_request_logs[0]
             self.assertIn("trace.id", req)
             self.assertIn("transaction.id", req)
-            self.assertEqual(req["transaction.id"], req["request_id"])
+            self.assertEqual(req["transaction.id"], req["http.request.id"])
 
 
 class LoggingToEnvContainer(ServerBaseTest):
