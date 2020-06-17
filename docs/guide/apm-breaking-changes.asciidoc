@@ -101,7 +101,7 @@ APM Server::
 +
 [[breaking-remove-v1]]
 **Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server,
-ensure all APM agents are upgraded to a version that supports APM Server >= 6.5.
+ensure all APM agents are upgraded to a version that supports APM Server ≥ 6.5.
 View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
 to determine if your agent versions are compatible.
 +
