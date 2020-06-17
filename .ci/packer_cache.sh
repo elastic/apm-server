@@ -19,8 +19,9 @@ docker.elastic.co/beats-dev/golang-crossbuild:${GO_VERSION}-ppc
 docker.elastic.co/beats-dev/golang-crossbuild:${GO_VERSION}-s390x
 golang:${GO_VERSION}
 "
-
-for image in ${DOCKER_IMAGES}
-do
-(retry 2 docker pull ${image}) || echo "Error pulling ${image} Docker image, we continue"
-done
+if [ -x "$(command -v docker)" ]; then
+  for image in ${DOCKER_IMAGES}
+  do
+  (retry 2 docker pull ${image}) || echo "Error pulling ${image} Docker image, we continue"
+  done
+fi
