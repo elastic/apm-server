@@ -3,6 +3,7 @@
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
 
+* <<breaking-7.8.0>>
 * <<breaking-7.7.0>>
 * <<breaking-7.6.0>>
 * <<breaking-7.5.0>>
@@ -24,6 +25,13 @@ Also see <<apm-release-notes>>.
 // tag::notable-v8-breaking-changes[]
 
 // end::notable-v8-breaking-changes[]
+
+[[breaking-7.8.0]]
+=== 7.8.0 APM Breaking changes
+
+// tag::notable-v78-breaking-changes[]
+No breaking changes.
+// end::notable-v78-breaking-changes[]
 
 [[breaking-7.7.0]]
 === 7.7.0 APM Breaking changes
@@ -93,7 +101,7 @@ APM Server::
 +
 [[breaking-remove-v1]]
 **Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server,
-ensure all APM agents are upgraded to a version that supports APM Server >= 6.5.
+ensure all APM agents are upgraded to a version that supports APM Server ≥ 6.5.
 View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
 to determine if your agent versions are compatible.
 +
