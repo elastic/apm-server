@@ -34,7 +34,7 @@ import (
 func LogMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			c.Logger = loggerWithContext(c)
+			c.Logger = loggerWithRequestContext(c)
 			var err error
 			if c.Logger, err = loggerWithTraceContext(c); err != nil {
 				id := request.IDResponseErrorsInternal
@@ -61,13 +61,16 @@ func LogMiddleware() Middleware {
 	}
 }
 
-func loggerWithContext(c *request.Context) *logp.Logger {
-	return logp.NewLogger(logs.Request).With(
+func loggerWithRequestContext(c *request.Context) *logp.Logger {
+	logger := logp.NewLogger(logs.Request).With(
+		"url.original", c.Request.URL.String(),
 		"http.request.method", c.Request.Method,
-		"http.request.body.bytes", c.Request.ContentLength,
-		"source.address", utility.RemoteAddr(c.Request),
 		"user_agent.original", c.Request.Header.Get(headers.UserAgent),
-		"url.original", c.Request.URL.String())
+		"source.address", utility.RemoteAddr(c.Request))
+	if c.Request.ContentLength != -1 {
+		logger = logger.With("http.request.body.bytes", c.Request.ContentLength)
+	}
+	return logger
 }
 
 func loggerWithTraceContext(c *request.Context) (*logp.Logger, error) {
@@ -92,14 +95,11 @@ func loggerWithTraceContext(c *request.Context) (*logp.Logger, error) {
 func loggerWithResult(c *request.Context) *logp.Logger {
 	logger := c.Logger.With(
 		"http.response.status_code", c.Result.StatusCode)
-	if c.Result.Err == nil && c.Result.Stacktrace == "" {
-		return logger
-	}
 	if c.Result.Err != nil {
 		logger = logger.With("error.message", c.Result.Err.Error())
 	}
 	if c.Result.Stacktrace != "" {
-		logger = logger.With("error.stacktrace", c.Result.Stacktrace)
+		logger = logger.With("error.stack_trace", c.Result.Stacktrace)
 	}
 	return logger
 }

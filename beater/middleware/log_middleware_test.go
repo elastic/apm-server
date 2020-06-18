@@ -79,7 +79,7 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.ErrorLevel,
 			handler: Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
 			code:    http.StatusInternalServerError,
-			ecsKeys: []string{"url.original", "error.message", "error.stacktrace"},
+			ecsKeys: []string{"url.original", "error.message", "error.stack_trace"},
 		},
 		{
 			name:    "Error without keyword",
