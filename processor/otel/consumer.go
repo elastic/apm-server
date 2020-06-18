@@ -321,6 +321,7 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 	var message model.Message
 	var db model.DB
 	var destination model.Destination
+	var destinationService model.DestinationService
 	var isDBSpan, isHTTPSpan, isMessagingSpan bool
 	var component string
 	for kDots, v := range span.Attributes.GetAttributeMap() {
@@ -375,6 +376,8 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			case "peer.address":
 				val := truncate(v.StringValue.Value)
 				destination.Address = &val
+			case "peer.service":
+				destinationService.Name = &v.StringValue.Value
 			case "message_bus.destination":
 				message.QueueName = &v.StringValue.Value
 				isMessagingSpan = true
@@ -389,6 +392,10 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 
 	if destination != (model.Destination{}) {
 		event.Destination = &destination
+	}
+
+	if destinationService != (model.DestinationService{}) {
+		event.DestinationService = &destinationService
 	}
 
 	switch {
