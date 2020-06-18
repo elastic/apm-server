@@ -51,16 +51,16 @@ apm-server:
       mapping:
         - event_type: "error"
           policy_name: "apm-rollover-30-days"
-          rollover_alias: "apm-%{[observer.version]}-error"
+          index_suffix: ""
         - event_type: "span"
           policy_name: "apm-rollover-30-days"
-          rollover_alias: "apm-%{[observer.version]}-span"
+          index_suffix: ""
         - event_type: "transaction"
           policy_name: "apm-rollover-30-days"
-          rollover_alias: "apm-%{[observer.version]}-transaction"
+          index_suffix: ""
         - event_type: "metric"
           policy_name: "apm-rollover-30-days"
-          rollover_alias: "apm-%{[observer.version]}-metric"
+          index_suffix: ""
       policies:
         - name: "apm-rollover-30-days"
           policy:
@@ -213,11 +213,13 @@ APM Server will still make use of ILM and connect your template with the defined
 [[ilm-setup-mapping-config]]
 ===== `apm-server.ilm.setup.mapping`
 
-Maps each event type to a corresponding `policy_name` and `rollover_alias`.
+Maps each event type to a corresponding `policy_name` and `index_suffix`.
 APM event types can only be `error`, `span`, `transaction`, and `metric`.
 If you attempt to map an index lifecycle policy to a different event type, APM Server will not start.
 If you only map a subset of APM event types, the default values will be used for omitted event types.
 If a policy is defined, it must be mapped to an event type to take effect.
-When customizing `rollover_alias`, it is strongly recommended to keep the prefix `apm-%{[observer.version]}` unchanged;
- if the prefix must be changed, `setup.template.name` and `setup.template.pattern` need to be changed accordingly,
-to match the created indices.
+
+By default the APM Server creates a template without a custom index suffix per event type. When defining custom
+index suffixes, always ensure that templates, that might have been set up previously, are removed or do not conflict.
+Check out the section about <<custom-ilm-index-suffix,customizing an index suffix>> for more details about what to
+look out for.

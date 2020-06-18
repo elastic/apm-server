@@ -14,7 +14,7 @@ All of this can be done directly from the `apm-server.yml` file.
 
 * <<ilm-enable>>
 * <<ilm-setup>>
-* <<custom-ilm-alias>>
+* <<custom-ilm-index-suffix>>
 * <<custom-ilm-policy>>
 * <<example-ilm-config>>
 * <<map-ilm-policy>>
@@ -61,29 +61,43 @@ apm-server:
 ILM can now be customized via the remaining `apm-server.ilm.setup.*` configuration options.
 
 [float]
-[[custom-ilm-alias]]
-==== Create a custom ILM `rollover_alias`
+[[custom-ilm-index-suffix]]
+==== Create a custom ILM `index_suffix`
 
-You can define a custom rollover alias per event type. The rollover alias can only contain a
+You can define a custom index suffix per event type. The index suffix can only contain a
 restricted set of variables, limited to variables concerning `observer.*`. In case other
 variables are configured, the server will refuse to start.
+The resulting rollover alias and index name will be of type `apm-{version}-{event_type}-{custom_index_suffix},
+e.g. `apm-7.9.0-span-foo`.
 The related ILM policy can specify a rollover action, e.g. when an index reaches a size of 50GB
-it should roll over to create a new index. The `rollover_alias` abstracts away the concrete write index, while
+it should roll over to create a new index. The rollover alias abstracts away the concrete write index, while
 automatically being updated and keeping track of the current write index.
-This allows to use the `rollover_alias` instead of specific indices in queries.
+This allows to use the rollover alias instead of specific indices in queries.
 
-For example when defining a rollover alias with name `apm-7.8.0-transaction`, an alias pointing to a write index
-`apm-7.8.0-transaction-000001` is created. When the index reaches the defined size or age it will roll over to
+For example the default rollover alias for event type `transaction` would be `apm-7.8.0-transaction` and points
+to a write index `apm-7.8.0-transaction-000001`. When the index reaches the defined size or age it will roll over to
 a new index `apm-7.8.0-transaction-000002`. The rollover alias `apm-7.8.0-transaction` keeps
 track of which index is the write index when ingesting data.
 
-NOTE: Ensure that the configured `rollover_alias` for all event types start with the same prefix,
-and that this prefix is also configured for `setup.template.name` and `setup.template.pattern`.
-If the template configuration is not accordingly changed, the Elasticsearch index template with
-the predefined mappings will not match against created indices, leading to indexing issues.
+NOTE: Manually ensure that templates containing customized index information do not conflict with each other
+or the default templates.
 
-The example below shows how to change the `rollover_alias` to a custom value,
-and set the template configuration to a matching name and pattern.
+By default the APM Server creates a template without a custom index suffix per event type. When defining custom
+index suffixes, always ensure that templates, that might have been set up previously, are removed or do not conflict.
+A conflicting behavior could occur when an index matches multiple templates with the same `order`.
+For example, the APM Server was started without any customization, leading to a default index setup. Afterwards the
+Server configuration is customized for the event type `span` to set up a custom index suffix `production`.
+When restarting the Server it will set up the new index template considering the custom part.
+A newly created index `apm-server-7.9.0-span-production` would now match the default template with the index pattern
+`apm-server-7.9.0-span*` but also the new template with the index pattern `apm-server-7.9.0-span-production*`.
+In such a case the old template needs to be manually deleted,
+or the `index_pattern` or the `order` need to be changed to avoid conflicts.
+
+NOTE: In case you customize the configuration for `setup.template.pattern`, ensure that the configured pattern
+still matches the rollover aliases. Otherwise the Elasticsearch index template with the predefined mappings will
+not match against created indices, leading to indexing issues.
+
+The example below shows how to change the `index_suffix` to a custom value.
 
 [source,yml]
 ----
@@ -93,16 +107,13 @@ apm-server:
     setup:
       mapping:
         - event_type: "error"
-          rollover_alias: "apm-dev-error"
+          index_suffix: "dev"
         - event_type: "span"
-          rollover_alias: "apm-dev-span"
+          index_suffix: "dev"
         - event_type: "transaction"
-          rollover_alias: "apm-dev-transaction"
+          index_suffix: "dev"
         - event_type: "metric"
-          rollover_alias: "apm-dev-metric"
-
-setup.template.name: "apm-dev"
-setup.template.pattern: "apm-dev*"
+          index_suffix: "dev"
 ----
 
 [float]
@@ -253,16 +264,16 @@ Additionally this example shows how to set custom rollover aliases.
       mapping:
         - event_type: "error"
           policy_name: "apm-error-span-policy"
-          rollover_alias: "apm-%{[observer.version]}-development-error"
+          index_suffix: "development"
         - event_type: "span"
           policy_name: "apm-error-span-policy"
-          rollover_alias: "apm-%{[observer.version]}-development-span"
+          index_suffix: "development"
         - event_type: "transaction"
           policy_name: "apm-transaction-metric-policy"
-          rollover_alias: "apm-%{[observer.version]}-development-transaction"
+          index_suffix: "development"
         - event_type: "metric"
           policy_name: "apm-transaction-metric-policy"
-          rollover_alias: "apm-%{[observer.version]}-development-metric"
+          index_suffix: "development"
       enabled: true
       policies:
         - name: "apm-error-span-policy"
