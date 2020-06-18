@@ -76,8 +76,8 @@
                         "domContentLoadedEventEnd": 110,
                         "domContentLoadedEventStart": 100,
                         "domInteractive": 120,
-                        "firstContentfulPaint": 70.82500003930181,
-                        "largestContentfulPaint": 131.03000004775822,
+                        "firstContentfulPaint": 70.825,
+                        "largestContentfulPaint": 131.03,
                         "timeToFirstByte": 5
                     },
                     "navigationTiming": {
