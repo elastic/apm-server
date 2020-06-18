@@ -122,6 +122,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 				Counts: []int64{1},
 				Values: []float64{float64(time.Minute / time.Microsecond)},
 			}},
+			TimeseriesInstance: ":baz:bc30224a3738a508",
 		}, m)
 	}
 }

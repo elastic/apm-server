@@ -82,11 +82,13 @@ func TestTransform(t *testing.T) {
 					Result: trResult,
 					Root:   true,
 				},
+				TimeseriesInstance: "foo",
 			},
 			Output: []common.MapStr{
 				{
-					"processor": common.MapStr{"event": "metric", "name": "metric"},
-					"service":   common.MapStr{"name": "myservice"},
+					"processor":  common.MapStr{"event": "metric", "name": "metric"},
+					"service":    common.MapStr{"name": "myservice"},
+					"timeseries": common.MapStr{"instance": "foo"},
 					"transaction": common.MapStr{
 						"name":   trName,
 						"type":   trType,
