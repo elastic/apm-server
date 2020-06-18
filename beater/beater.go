@@ -19,8 +19,9 @@ package beater
 
 import (
 	"context"
-	"github.com/elastic/beats/v7/libbeat/version"
 	"sync"
+
+	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -132,10 +133,12 @@ type beater struct {
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
 
-	var tracerServer *tracerServer
-	var err error
+	tracerServer, err := newTracerServer(bt.config, b.Instrumentation.Listener())
+	if err != nil {
+		return err
+	}
 
-	tracer := b.Instrumentation.GetTracer()
+	tracer := b.Instrumentation.Tracer()
 	useLegacyTracer := common.MustNewVersion(version.GetDefaultVersion()).LessThan(&common.Version{Major: 8, Minor: 0})
 
 	if !tracer.Active() && useLegacyTracer {
@@ -145,10 +148,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		}
 	}
 
-	runServer := runServer
-	if tracerServer != nil {
-		runServer = runServerWithTracerServer(runServer, tracerServer, tracer)
-	}
+	runServer := runServerWithTracerServer(runServer, tracerServer, tracer)
 	if bt.wrapRunServer != nil {
 		// Wrap runServer function, enabling injection of
 		// behaviour into the processing/reporting pipeline.

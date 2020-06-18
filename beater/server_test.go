@@ -29,6 +29,8 @@ import (
 	"testing"
 	"time"
 
+	"go.elastic.co/apm"
+
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -516,11 +518,37 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, 
 
 	// create a beat
 	apmBeat := &beat.Beat{
-		Publisher: pub,
-		Info:      info,
-		Config:    beatConfig,
+		Publisher:       pub,
+		Info:            info,
+		Config:          beatConfig,
+		Instrumentation: newInstrumentation(t, info),
 	}
 	return setupBeater(t, apmBeat, baseConfig, beatConfig)
+}
+
+type instrumentation struct {
+	tracer   *apm.Tracer
+	listener net.Listener
+}
+
+func newInstrumentation(t *testing.T, info beat.Info) instrumentation {
+	tracerServer, err := newTracerServer(config.DefaultConfig(info.Version), nil)
+	require.NoError(t, err)
+	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
+		ServiceName:    info.Beat,
+		ServiceVersion: info.Version,
+		Transport:      tracerServer.transport,
+	})
+	require.NoError(t, err)
+	return instrumentation{tracer: tracer, listener: tracerServer.listener}
+}
+
+func (i instrumentation) Tracer() *apm.Tracer {
+	return i.tracer
+}
+
+func (i instrumentation) Listener() net.Listener {
+	return i.listener
 }
 
 var testData = func() []byte {
