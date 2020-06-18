@@ -105,9 +105,9 @@ func TestTransactionTransform(t *testing.T) {
 		{
 			Transaction: Transaction{
 				ID:        id,
-				Name:      &name,
+				Name:      name,
 				Type:      "tx",
-				Result:    &result,
+				Result:    result,
 				Timestamp: time.Now(),
 				Duration:  65.98,
 				Sampled:   &sampled,
