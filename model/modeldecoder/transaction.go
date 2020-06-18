@@ -155,7 +155,6 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	decodeString(raw, fieldName("trace_id"), &e.TraceID)
 	decodeString(raw, fieldName("parent_id"), &e.ParentID)
 	decodeString(raw, fieldName("type"), &e.Type)
-	decodeString(raw, fieldName("type"), &e.Type)
 	decodeString(raw, fieldName("name"), &e.Name)
 	decodeString(raw, fieldName("result"), &e.Result)
 	decodeFloat64(raw, fieldName("duration"), &e.Duration)
