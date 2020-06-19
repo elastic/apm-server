@@ -87,8 +87,8 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 	// as we have configured the txmetrics with a maximum of two buckets.
 	var input []transform.Transformable
 	for i := 0; i < 10; i++ {
-		input = append(input, &model.Transaction{Name: newString("foo")})
-		input = append(input, &model.Transaction{Name: newString("bar")})
+		input = append(input, &model.Transaction{Name: "foo"})
+		input = append(input, &model.Transaction{Name: "bar"})
 	}
 	output := agg.AggregateTransformables(input)
 	assert.Equal(t, input, output)
@@ -96,7 +96,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 	// The third transaction group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
 		input = append(input, &model.Transaction{
-			Name:     newString("baz"),
+			Name:     "baz",
 			Duration: float64(time.Minute / time.Millisecond),
 		})
 	}
@@ -138,11 +138,11 @@ func TestAggregatorRun(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 1000; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-1000")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
 		require.Nil(t, metricset)
 	}
 	for i := 0; i < 800; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-800")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-800"})
 		require.Nil(t, metricset)
 	}
 
@@ -201,7 +201,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	defer stopAggregator()
 
 	for i := 0; i < 2; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-1000")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
 		require.Nil(t, metricset)
 		expectPublish(t, reqs)
 	}
@@ -252,7 +252,7 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101111 * time.Microsecond,
 		} {
 			metricset := agg.AggregateTransaction(&model.Transaction{
-				Name:     newString("T-1000"),
+				Name:     "T-1000",
 				Duration: durationMillis(duration),
 			})
 			require.Nil(t, metricset)
@@ -282,7 +282,7 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	require.NoError(b, err)
 
 	tx := &model.Transaction{
-		Name:     newString("T-1000"),
+		Name:     "T-1000",
 		Duration: 1,
 	}
 
@@ -304,7 +304,7 @@ func BenchmarkAggregateTransactionUserAgent(b *testing.B) {
 	require.NoError(b, err)
 
 	tx := &model.Transaction{
-		Name:     newString("T-1000"),
+		Name:     "T-1000",
 		Duration: 1,
 	}
 	tx.Metadata.UserAgent.Original = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0) Gecko/20110408 conkeror/0.9.3"
@@ -352,8 +352,4 @@ func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingRe
 		t.Fatal("expected publish")
 	}
 	panic("unreachable")
-}
-
-func newString(s string) *string {
-	return &s
 }

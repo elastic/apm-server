@@ -262,13 +262,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, dur
 }
 
 func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transactionAggregationKey {
-	deref := func(s *string) string {
-		if s != nil {
-			return *s
-		}
-		return ""
-	}
-
 	var userAgentName string
 	if tx.Type == "page-load" {
 		// The APM app in Kibana has a special case for "page-load"
@@ -280,8 +273,8 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 
 	return transactionAggregationKey{
 		traceRoot:         tx.ParentID == "",
-		transactionName:   deref(tx.Name),
-		transactionResult: deref(tx.Result),
+		transactionName:   tx.Name,
+		transactionResult: tx.Result,
 		transactionType:   tx.Type,
 
 		agentName:          tx.Metadata.Service.Agent.Name,
