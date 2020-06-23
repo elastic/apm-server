@@ -117,21 +117,21 @@ func TestConfig_Valid(t *testing.T) {
 
 		expected Config
 	}{
-		{name: "new policy and rollover_alias",
-			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","rollover_alias":"apm-metric"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
+		{name: "new policy and index suffix",
+			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","index_suffix":"production"},{"event_type":"error","index_suffix":"%{[observer.name]}"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
 					Mappings: map[string]Mapping{
 						"error": {EventType: "error", PolicyName: defaultPolicyName,
-							RolloverAlias: "apm-9.9.9-error"},
+							Index: "apm-9.9.9-error-mockapm", IndexSuffix: "%{[observer.name]}"},
 						"span": {EventType: "span", PolicyName: "spanPolicy",
-							RolloverAlias: "apm-9.9.9-span"},
+							Index: "apm-9.9.9-span"},
 						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
-							RolloverAlias: "apm-9.9.9-transaction"},
+							Index: "apm-9.9.9-transaction"},
 						"metric": {EventType: "metric", PolicyName: defaultPolicyName,
-							RolloverAlias: "apm-metric"},
+							Index: "apm-9.9.9-metric-production", IndexSuffix: "production"},
 						"profile": {EventType: "profile", PolicyName: defaultPolicyName,
-							RolloverAlias: "apm-9.9.9-profile"},
+							Index: "apm-9.9.9-profile"},
 					},
 					Policies: map[string]Policy{
 						defaultPolicyName: defaultPolicies()[defaultPolicyName],
@@ -160,7 +160,7 @@ func TestConfig_Valid(t *testing.T) {
 					Mappings: func() map[string]Mapping {
 						m := defaultMappingsResolved(mockBeatInfo)
 						m["error"] = Mapping{EventType: "error", PolicyName: "errorPolicy",
-							RolloverAlias: "apm-9.9.9-error"}
+							Index: "apm-9.9.9-error"}
 						return m
 					}(),
 					Policies: defaultPolicies(),
@@ -188,9 +188,9 @@ func TestConfig_Invalid(t *testing.T) {
 		{name: "invalid policy",
 			cfg:    `{"setup":{"mapping":[{"event_type":"span","policy_name":"xyz"}]}}`,
 			errMsg: "policy 'xyz' not configured"},
-		{name: "invalid rollover_alias",
-			cfg:    `{"setup":{"mapping":[{"event_type":"span","rollover_alias":"apm-%{[foo.version]}"}]}}`,
-			errMsg: "rollover_alias cannot be resolved"},
+		{name: "invalid index suffix",
+			cfg:    `{"setup":{"mapping":[{"event_type":"span","index_suffix":"%{[foo.version]}"}]}}`,
+			errMsg: "index suffix cannot be resolved"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := NewConfig(mockBeatInfo, common.MustNewConfigFrom(tc.cfg))
@@ -203,7 +203,7 @@ func TestConfig_Invalid(t *testing.T) {
 func defaultMappingsResolved(info beat.Info) map[string]Mapping {
 	m := defaultMappings()
 	for k, v := range m {
-		v.RolloverAlias = fmt.Sprintf("apm-%s-%s", info.Version, k)
+		v.Index = fmt.Sprintf("apm-%s-%s", info.Version, k)
 		m[k] = v
 	}
 	return m

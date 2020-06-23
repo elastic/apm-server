@@ -42,7 +42,7 @@ func MakeDefaultSupporter(
 
 	for _, m := range ilmConfig.Setup.Mappings {
 		policy := ilmConfig.Setup.Policies[m.PolicyName]
-		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: m.RolloverAlias, Pattern: pattern},
+		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: m.Index, Pattern: pattern},
 			libilm.Policy{Name: policy.Name, Body: policy.Body}, ilmConfig.Setup.Overwrite, true)
 		supporters = append(supporters, supporter)
 	}
