@@ -39,7 +39,6 @@
                     "us": 0
                 },
                 "id": "",
-                "name": "",
                 "result": "HTTP 2xx",
                 "sampled": true,
                 "type": "request"

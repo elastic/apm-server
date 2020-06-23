@@ -29,26 +29,26 @@ import (
 
 func TestFlattenCommonMapStr(t *testing.T) {
 	emptyBlacklist := NewSet()
-	blacklist := NewSet("a.bMap", "f")
+	excluded := NewSet("a.bMap", "f")
 	expectedAll := NewSet("a", "a.bStr", "a.bMap", "a.bMap.cMap", "a.bMap.cMap.d", "a.bMap.cStr", "a.bAnotherMap", "a.bAnotherMap.e", "f")
 	expectedWoBlacklisted := NewSet("a", "a.bStr", "a.bMap.cStr", "a.bMap.cMap", "a.bMap.cMap.d", "a.bAnotherMap", "a.bAnotherMap.e")
 	expectedAllPrefixed := NewSet("pre", "pre.a", "pre.a.bStr", "pre.a.bMap", "pre.a.bMap.cMap", "pre.a.bMap.cMap.d", "pre.a.bMap.cStr", "pre.a.bAnotherMap", "pre.a.bAnotherMap.e", "pre.f")
 	expectedWithFilledInput := NewSet("prefilled", "a", "a.bStr", "a.bAnotherMap", "a.bAnotherMap.e", "a.bMap.cMap.d", "a.bMap.cStr", "a.bMap.cMap")
 	for idx, dataRow := range []struct {
-		mapData   common.MapStr
-		prefix    string
-		blacklist *Set
-		input     *Set
-		retVal    *Set
+		mapData  common.MapStr
+		prefix   string
+		excluded *Set
+		input    *Set
+		retVal   *Set
 	}{
 		{common.MapStr{}, "whatever", emptyBlacklist, NewSet(), NewSet("whatever")},
-		{common.MapStr{}, "", blacklist, NewSet(), NewSet()},
+		{common.MapStr{}, "", excluded, NewSet(), NewSet()},
 		{commonMapStr(), "", emptyBlacklist, NewSet(), expectedAll},
-		{commonMapStr(), "", blacklist, NewSet(), expectedWoBlacklisted},
+		{commonMapStr(), "", excluded, NewSet(), expectedWoBlacklisted},
 		{commonMapStr(), "pre", emptyBlacklist, NewSet(), expectedAllPrefixed},
-		{commonMapStr(), "", blacklist, NewSet("prefilled"), expectedWithFilledInput},
+		{commonMapStr(), "", excluded, NewSet("prefilled"), expectedWithFilledInput},
 	} {
-		FlattenMapStr(dataRow.mapData, dataRow.prefix, dataRow.blacklist, dataRow.input)
+		FlattenMapStr(dataRow.mapData, dataRow.prefix, dataRow.excluded, dataRow.input)
 		expected := dataRow.retVal
 		diff := SymmDifference(dataRow.input, expected)
 

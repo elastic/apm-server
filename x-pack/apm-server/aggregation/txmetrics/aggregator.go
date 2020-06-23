@@ -6,6 +6,8 @@ package txmetrics
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -148,7 +150,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	for hash, entries := range a.inactive.m {
 		for _, entry := range entries {
 			counts, values := entry.transactionMetrics.histogramBuckets()
-			metricset := makeMetricset(entry.transactionAggregationKey, now, counts, values)
+			metricset := makeMetricset(entry.transactionAggregationKey, hash, now, counts, values)
 			metricsets = append(metricsets, &metricset)
 		}
 		delete(a.inactive.m, hash)
@@ -189,8 +191,9 @@ func (a *Aggregator) AggregateTransformables(in []transform.Transformable) []tra
 // transaction. Otherwise, the returned metricset will be nil.
 func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricset {
 	key := a.makeTransactionAggregationKey(tx)
+	hash := key.hash()
 	duration := time.Duration(tx.Duration * float64(time.Millisecond))
-	if a.updateTransactionMetrics(key, duration) {
+	if a.updateTransactionMetrics(key, hash, duration) {
 		return nil
 	}
 	// Too many aggregation keys: could not update metrics, so immediately
@@ -199,12 +202,11 @@ func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricse
 	// TODO(axw) log a warning with a rate-limit, increment a counter.
 	counts := []int64{1}
 	values := []float64{float64(durationMicros(duration))}
-	metricset := makeMetricset(key, time.Now(), counts, values)
+	metricset := makeMetricset(key, hash, time.Now(), counts, values)
 	return &metricset
 }
 
-func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, duration time.Duration) bool {
-	hash := key.hash()
+func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, duration time.Duration) bool {
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
@@ -262,13 +264,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, dur
 }
 
 func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transactionAggregationKey {
-	deref := func(s *string) string {
-		if s != nil {
-			return *s
-		}
-		return ""
-	}
-
 	var userAgentName string
 	if tx.Type == "page-load" {
 		// The APM app in Kibana has a special case for "page-load"
@@ -280,8 +275,8 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 
 	return transactionAggregationKey{
 		traceRoot:         tx.ParentID == "",
-		transactionName:   deref(tx.Name),
-		transactionResult: deref(tx.Result),
+		transactionName:   tx.Name,
+		transactionResult: tx.Result,
 		transactionType:   tx.Type,
 
 		agentName:          tx.Metadata.Service.Agent.Name,
@@ -300,7 +295,7 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 }
 
 // makeMetricset makes a Metricset from key, counts, and values, with timestamp ts.
-func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, values []float64) model.Metricset {
+func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, counts []int64, values []float64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: ts,
 		Metadata: model.Metadata{
@@ -332,6 +327,16 @@ func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, 
 			Values: values,
 		}},
 	}
+
+	// Record an timeseries instance ID, which should be uniquely identify the aggregation key.
+	var timeseriesInstanceID strings.Builder
+	timeseriesInstanceID.WriteString(key.serviceName)
+	timeseriesInstanceID.WriteRune(':')
+	timeseriesInstanceID.WriteString(key.transactionName)
+	timeseriesInstanceID.WriteRune(':')
+	timeseriesInstanceID.WriteString(fmt.Sprintf("%x", hash))
+	out.TimeseriesInstanceID = timeseriesInstanceID.String()
+
 	return out
 }
 
