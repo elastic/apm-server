@@ -336,13 +336,13 @@ func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, cou
 	}
 
 	// Record an timeseries instance ID, which should be uniquely identify the aggregation key.
-	var timeseriesInstance strings.Builder
-	timeseriesInstance.WriteString(key.serviceName)
-	timeseriesInstance.WriteRune(':')
-	timeseriesInstance.WriteString(key.transactionName)
-	timeseriesInstance.WriteRune(':')
-	timeseriesInstance.WriteString(fmt.Sprintf("%x", hash))
-	out.TimeseriesInstance = timeseriesInstance.String()
+	var timeseriesInstanceID strings.Builder
+	timeseriesInstanceID.WriteString(key.serviceName)
+	timeseriesInstanceID.WriteRune(':')
+	timeseriesInstanceID.WriteString(key.transactionName)
+	timeseriesInstanceID.WriteRune(':')
+	timeseriesInstanceID.WriteString(fmt.Sprintf("%x", hash))
+	out.TimeseriesInstanceID = timeseriesInstanceID.String()
 
 	return out
 }

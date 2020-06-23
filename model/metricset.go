@@ -69,10 +69,10 @@ type Metricset struct {
 	// Samples holds the metrics in the set.
 	Samples []Sample
 
-	// TimeseriesInstance holds an optional identifier for the timeseries
+	// TimeseriesInstanceID holds an optional identifier for the timeseries
 	// instance, such as a hash of the labels used for aggregating the
 	// metrics.
-	TimeseriesInstance string
+	TimeseriesInstanceID string
 }
 
 // Sample represents a single named metric.
@@ -155,8 +155,8 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", me.Labels)
 
-	if me.TimeseriesInstance != "" {
-		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstance}
+	if me.TimeseriesInstanceID != "" {
+		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}
 	}
 
 	return []beat.Event{{

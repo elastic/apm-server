@@ -82,7 +82,7 @@ func TestTransform(t *testing.T) {
 					Result: trResult,
 					Root:   true,
 				},
-				TimeseriesInstance: "foo",
+				TimeseriesInstanceID: "foo",
 			},
 			Output: []common.MapStr{
 				{
