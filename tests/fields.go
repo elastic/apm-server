@@ -115,7 +115,7 @@ func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields,
 	assertEmptySet(t, missing, fmt.Sprintf("Fields missing in event: %v", missing))
 }
 
-func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *Set {
+func fetchFields(t *testing.T, p TestProcessor, path string, excludedKeys *Set) *Set {
 	buf, err := loader.LoadDataAsBytes(path)
 	require.NoError(t, err)
 	events, err := p.Process(buf)
@@ -127,7 +127,7 @@ func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *
 			if k == "@timestamp" {
 				continue
 			}
-			FlattenMapStr(event.Fields[k], k, blacklisted, keys)
+			FlattenMapStr(event.Fields[k], k, excludedKeys, keys)
 		}
 	}
 	sortedKeys := make([]string, keys.Len())
@@ -139,24 +139,24 @@ func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *
 	return keys
 }
 
-func FlattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
+func FlattenMapStr(m interface{}, prefix string, excludedKeys *Set, flattened *Set) {
 	if commonMapStr, ok := m.(common.MapStr); ok {
 		for k, v := range commonMapStr {
-			flattenMapStrStr(k, v, prefix, keysBlacklist, flattened)
+			flattenMapStrStr(k, v, prefix, excludedKeys, flattened)
 		}
 	} else if mapStr, ok := m.(map[string]interface{}); ok {
 		for k, v := range mapStr {
-			flattenMapStrStr(k, v, prefix, keysBlacklist, flattened)
+			flattenMapStrStr(k, v, prefix, excludedKeys, flattened)
 		}
 	}
-	if prefix != "" && !isBlacklistedKey(keysBlacklist, prefix) {
+	if prefix != "" && !isExcludedKey(excludedKeys, prefix) {
 		flattened.Add(prefix)
 	}
 }
 
 func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
 	key := strConcat(prefix, k, ".")
-	if !isBlacklistedKey(keysBlacklist, key) {
+	if !isExcludedKey(keysBlacklist, key) {
 		flattened.Add(key)
 	}
 	switch v := v.(type) {
@@ -171,7 +171,7 @@ func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set
 	}
 }
 
-func isBlacklistedKey(keysBlacklist *Set, key string) bool {
+func isExcludedKey(keysBlacklist *Set, key string) bool {
 	for _, disabledKey := range keysBlacklist.Array() {
 		switch k := disabledKey.(type) {
 		case string:
@@ -183,7 +183,7 @@ func isBlacklistedKey(keysBlacklist *Set, key string) bool {
 				return true
 			}
 		default:
-			panic("blacklist key must be string or Group")
+			panic("excluded key must be string or Group")
 		}
 	}
 	return false

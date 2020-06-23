@@ -159,12 +159,12 @@ apm-server:
   ilm.setup.enabled: {{ ilm_setup_enabled }}
   {% endif %}
 
-  {% if ilm_aliases %}
+  {% if ilm_custom_suffix %}
   ilm.setup.mapping:
     - event_type: "error"
-      rollover_alias: "apm-error-custom"
+      index_suffix: "custom"
     - event_type: "transaction"
-      rollover_alias: "apm-transaction-custom"
+      index_suffix: "foo"
   {% endif %}
 
   {% if ilm_policies %}

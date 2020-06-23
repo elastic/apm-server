@@ -219,7 +219,13 @@ func (custom *Custom) Fields() common.MapStr {
 	if custom == nil {
 		return nil
 	}
-	return common.MapStr(*custom)
+	// We use utility.Set to normalise decoded JSON types,
+	// e.g. json.Number is converted to a float64 if possible.
+	m := make(common.MapStr)
+	for k, v := range *custom {
+		utility.Set(m, k, v)
+	}
+	return m
 }
 
 func (req *Req) fields() common.MapStr {
