@@ -86,7 +86,30 @@ func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
 				return true
 			},
 			Config: libbeatConfigOverrides,
-		}},
+		},
+			{
+				Check: func(cfg *common.Config) bool {
+					if !cfg.HasField("instrumentation") {
+						ok, err := cfg.Has("apm-server.instrumentation", -1)
+						if err != nil {
+							panic(err)
+						}
+						if ok {
+							child, err := cfg.Child("apm-server.instrumentation", -1)
+							if err != nil {
+								panic(err)
+							}
+							err = cfg.SetChild("instrumentation", -1, child)
+							if err != nil {
+								panic(err)
+							}
+						}
+					}
+					return true
+				},
+				Config: common.NewConfig(),
+			},
+		},
 	}
 
 	rootCmd := cmd.GenRootCmdWithSettings(newBeat, settings)

@@ -537,7 +537,6 @@ func newInstrumentation(t *testing.T, info beat.Info) instrumentation {
 	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
 		ServiceName:    info.Beat,
 		ServiceVersion: info.Version,
-		Transport:      tracerServer.transport,
 	})
 	require.NoError(t, err)
 	return instrumentation{tracer: tracer, listener: tracerServer.listener}

@@ -21,8 +21,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/elastic/beats/v7/libbeat/version"
-
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
@@ -136,22 +134,13 @@ func (bt *beater) Run(b *beat.Beat) error {
 	var tracerServer *tracerServer
 	var err error
 	if listener := b.Instrumentation.Listener(); listener != nil {
-		tracerServer, err = newTracerServer(bt.config, b.Instrumentation.Listener())
+		tracerServer, err = newTracerServer(bt.config, listener)
 		if err != nil {
 			return err
 		}
 	}
 
 	tracer := b.Instrumentation.Tracer()
-	useLegacyTracer := common.MustNewVersion(version.GetDefaultVersion()).LessThan(&common.Version{Major: 8, Minor: 0})
-
-	if !tracer.Active() && useLegacyTracer {
-		tracer, tracerServer, err = initLegacyTracer(b.Info, bt.config, bt.logger)
-		if err != nil {
-			return err
-		}
-	}
-
 	runServer := runServer
 	if tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, tracerServer, tracer)
