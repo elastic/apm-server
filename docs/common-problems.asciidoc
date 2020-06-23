@@ -74,7 +74,7 @@ The <<secret-token, secret token>> in the request header doesn't match the confi
 === HTTP 403: Forbidden request
 
 Either you are sending requests to a <<configuration-rum, RUM>> endpoint without RUM enabled, or a request
-is coming from an origin not whitelisted in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
+is coming from an origin not specified in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
 
 [[queue-full]]
 [float]
