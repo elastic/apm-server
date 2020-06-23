@@ -38,9 +38,6 @@ apm-server:
     # Url to expose expvar.
     #url: "/debug/vars"
 
-  # DEPRECATION NOTICE: the `apm-server.instrumentation` configuration block is deprecated, and has been moved to
-  # `instrumentation`, at the top level.
-
   # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
   # Using pipelines involves two steps:
   # (1) registering a pipeline
