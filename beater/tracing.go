@@ -54,7 +54,7 @@ func initLegacyTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (
 	if !cfg.SelfInstrumentation.IsEnabled() {
 		os.Setenv("ELASTIC_APM_ACTIVE", "false")
 		logger.Infof("self instrumentation is disabled")
-		return nil, nil, nil
+		return apm.DefaultTracer, nil, nil
 	} else {
 		os.Setenv("ELASTIC_APM_ACTIVE", "true")
 		logger.Infof("self instrumentation is enabled")
