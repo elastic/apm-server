@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/template"
 
 	"github.com/elastic/apm-server/idxmgmt/ilm"
+	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 )
 
 // The index management supporter holds information around ES template, ILM strategy and index setup for Elasticsearch.
@@ -45,13 +46,13 @@ import (
 const esKey = "elasticsearch"
 
 type supporter struct {
-	log            *logp.Logger
-	info           beat.Info
-	templateConfig template.TemplateConfig
-	ilmConfig      ilm.Config
-	esIdxCfg       *esIndexConfig
-	migration      bool
-	ilmSupporters  []libilm.Supporter
+	log                *logp.Logger
+	info               beat.Info
+	templateConfig     template.TemplateConfig
+	ilmConfig          ilm.Config
+	unmanagedIdxConfig *unmanaged.Config
+	migration          bool
+	ilmSupporters      []libilm.Supporter
 
 	st indexState
 }
@@ -61,12 +62,12 @@ type indexState struct {
 	isSet      atomic.Bool
 }
 
-type defaultIndexSelector outil.Selector
+type unmanagedIndexSelector outil.Selector
 
 type ilmIndexSelector struct {
-	defaultSel defaultIndexSelector
-	ilmSel     outil.Selector
-	st         *indexState
+	unmanagedSel unmanagedIndexSelector
+	ilmSel       outil.Selector
+	st           *indexState
 }
 
 func newSupporter(
@@ -78,43 +79,43 @@ func newSupporter(
 ) (*supporter, error) {
 
 	var (
-		esIdxCfg esIndexConfig
-		mode     = ilmConfig.Mode
-		st       = indexState{}
+		unmanagedIdxCfg unmanaged.Config
+		mode            = ilmConfig.Mode
+		st              = indexState{}
 	)
 
 	if outConfig.Name() == esKey {
-		if err := outConfig.Config().Unpack(&esIdxCfg); err != nil {
+		if err := outConfig.Config().Unpack(&unmanagedIdxCfg); err != nil {
 			return nil, fmt.Errorf("unpacking output elasticsearch index config fails: %+v", err)
 		}
 
-		if err := checkTemplateESSettings(templateConfig, &esIdxCfg); err != nil {
+		if err := checkTemplateESSettings(templateConfig, &unmanagedIdxCfg); err != nil {
 			return nil, err
 		}
 	}
 
 	if outConfig.Name() != esKey ||
 		ilmConfig.Mode == libilm.ModeDisabled ||
-		ilmConfig.Mode == libilm.ModeAuto && esIdxCfg.customized() {
+		ilmConfig.Mode == libilm.ModeAuto && unmanagedIdxCfg.Customized() {
 
 		mode = libilm.ModeDisabled
 		st.isSet.CAS(false, true)
 	}
 
-	ilmSupporters, err := ilm.MakeDefaultSupporter(log, info, mode, ilmConfig, eventIdxNames(false))
+	ilmSupporters, err := ilm.MakeDefaultSupporter(log, mode, ilmConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	return &supporter{
-		log:            log,
-		info:           info,
-		templateConfig: templateConfig,
-		ilmConfig:      ilmConfig,
-		esIdxCfg:       &esIdxCfg,
-		migration:      false,
-		st:             st,
-		ilmSupporters:  ilmSupporters,
+		log:                log,
+		info:               info,
+		templateConfig:     templateConfig,
+		ilmConfig:          ilmConfig,
+		unmanagedIdxConfig: &unmanagedIdxCfg,
+		migration:          false,
+		st:                 st,
+		ilmSupporters:      ilmSupporters,
 	}, nil
 }
 
@@ -140,28 +141,28 @@ func (s *supporter) Manager(
 }
 
 // BuildSelector returns an index selector instance,
-// depending on the supporter's config an ILM instance or an ordinary index selector instance is returned.
+// depending on the supporter's config an ILM instance or an unmanaged index selector instance is returned.
 // The ILM instance decides on every Select call whether or not to return ILM indices or regular ones.
 func (s *supporter) BuildSelector(_ *common.Config) (outputs.IndexSelector, error) {
-	sel, err := s.buildSelector(indices(s.esIdxCfg))
+	sel, err := s.buildSelector(s.unmanagedIdxConfig.SelectorConfig())
 	if err != nil {
 		return nil, err
 	}
-	ordIdxSel := defaultIndexSelector(sel)
+	unmanagedSel := unmanagedIndexSelector(sel)
 
 	if s.st.isSet.Load() && !s.st.ilmEnabled.Load() {
-		return ordIdxSel, nil
+		return unmanagedSel, nil
 	}
 
-	ilmSel, err := s.buildSelector(ilmIndices())
+	ilmSel, err := s.buildSelector(s.ilmConfig.SelectorConfig())
 	if err != nil {
 		return nil, err
 	}
 
 	return &ilmIndexSelector{
-		defaultSel: ordIdxSel,
-		ilmSel:     ilmSel,
-		st:         &s.st,
+		unmanagedSel: unmanagedSel,
+		ilmSel:       ilmSel,
+		st:           &s.st,
 	}, nil
 }
 
@@ -214,12 +215,12 @@ func (s *ilmIndexSelector) Select(evt *beat.Event) (string, error) {
 	if s.st.ilmEnabled.Load() {
 		return s.ilmSel.Select(evt)
 	}
-	return s.defaultSel.Select(evt)
+	return s.unmanagedSel.Select(evt)
 }
 
 // Select either returns the index from the event's metadata or
 // the regular index.
-func (s defaultIndexSelector) Select(evt *beat.Event) (string, error) {
+func (s unmanagedIndexSelector) Select(evt *beat.Event) (string, error) {
 	if idx := getEventCustomIndex(evt); idx != "" {
 		return idx, nil
 	}
@@ -251,12 +252,12 @@ func getEventCustomIndex(evt *beat.Event) string {
 	return ""
 }
 
-func checkTemplateESSettings(tmplCfg template.TemplateConfig, esIndexCfg *esIndexConfig) error {
-	if !tmplCfg.Enabled || esIndexCfg == nil {
+func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanaged.Config) error {
+	if !tmplCfg.Enabled || indexCfg == nil {
 		return nil
 	}
 
-	if esIndexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
+	if indexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
 		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
 	}
 	return nil
