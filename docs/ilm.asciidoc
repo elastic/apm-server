@@ -64,37 +64,36 @@ ILM can now be customized via the remaining `apm-server.ilm.setup.*` configurati
 [[custom-ilm-index-suffix]]
 ==== Create a custom ILM `index_suffix`
 
-You can define a custom index suffix per event type. The index suffix can only contain a
-restricted set of variables, limited to variables concerning `observer.*`. In case other
-variables are configured, the server will refuse to start.
+You can define a custom index suffix for each event type. The index suffix is limited to variables
+concerning `observer.*`; if other variables are configured, the server will refuse to start.
 The resulting rollover alias and index name will be of type `apm-{version}-{event_type}-{custom_index_suffix},
-e.g. `apm-7.9.0-span-foo`.
-The related ILM policy can specify a rollover action, e.g. when an index reaches a size of 50GB
+e.g., `apm-7.9.0-span-foo`.
+The mapped ILM policy can specify a rollover action, e.g., when an index reaches a size of 50GB,
 it should roll over to create a new index. The rollover alias abstracts away the concrete write index, while
 automatically being updated and keeping track of the current write index.
-This allows to use the rollover alias instead of specific indices in queries.
+This allows you to use the rollover alias instead of specific indices in queries.
 
-For example the default rollover alias for event type `transaction` would be `apm-7.8.0-transaction` and points
-to a write index `apm-7.8.0-transaction-000001`. When the index reaches the defined size or age it will roll over to
-a new index `apm-7.8.0-transaction-000002`. The rollover alias `apm-7.8.0-transaction` keeps
-track of which index is the write index when ingesting data.
+For example, the default rollover alias for event type `transaction` would be `apm-7.8.0-transaction`. This alias points
+to a write index named `apm-7.8.0-transaction-000001`. When this index reaches its defined size or age, it will roll over to
+a new index named `apm-7.8.0-transaction-000002`. The rollover alias of `apm-7.8.0-transaction` keeps
+track of which index is the current write index while ingesting data.
 
 NOTE: Manually ensure that templates containing customized index information do not conflict with each other
 or the default templates.
 
-By default the APM Server creates a template without a custom index suffix per event type. When defining custom
+By default, the APM Server creates a template without a custom index suffix per event type. When defining custom
 index suffixes, always ensure that templates, that might have been set up previously, are removed or do not conflict.
 A conflicting behavior could occur when an index matches multiple templates with the same `order`.
-For example, the APM Server was started without any customization, leading to a default index setup. Afterwards the
-Server configuration is customized for the event type `span` to set up a custom index suffix `production`.
-When restarting the Server it will set up the new index template considering the custom part.
-A newly created index `apm-server-7.9.0-span-production` would now match the default template with the index pattern
-`apm-server-7.9.0-span*` but also the new template with the index pattern `apm-server-7.9.0-span-production*`.
-In such a case the old template needs to be manually deleted,
-or the `index_pattern` or the `order` need to be changed to avoid conflicts.
+For example, the APM Server was started without any customization, leading to a default index setup. Afterward, the
+Server configuration is customized to add the index suffix `production` for the event type `span`.
+When the Server restarts, it will set up a new index template based on the new custom index suffix.
+A newly created index named `apm-server-7.9.0-span-production` would now match the default template with the index pattern of
+`apm-server-7.9.0-span*`, but also the new template with the index pattern `apm-server-7.9.0-span-production*`.
+In this case, the old template needs to be manually deleted,
+or the `index_pattern` or `order` need to be changed to avoid conflicts.
 
-NOTE: In case you customize the configuration for `setup.template.pattern`, ensure that the configured pattern
-still matches the rollover aliases. Otherwise the Elasticsearch index template with the predefined mappings will
+NOTE: If you customize `setup.template.pattern`, ensure that the configured pattern
+still matches the rollover aliases. If it doesn't, the Elasticsearch index template with the predefined mappings will
 not match against created indices, leading to indexing issues.
 
 The example below shows how to change the `index_suffix` to a custom value.

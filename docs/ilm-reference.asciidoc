@@ -219,7 +219,6 @@ If you attempt to map an index lifecycle policy to a different event type, APM S
 If you only map a subset of APM event types, the default values will be used for omitted event types.
 If a policy is defined, it must be mapped to an event type to take effect.
 
-By default the APM Server creates a template without a custom index suffix per event type. When defining custom
+By default, the APM Server creates a template without a custom index suffix per event type. When defining custom
 index suffixes, always ensure that templates, that might have been set up previously, are removed or do not conflict.
-Check out the section about <<custom-ilm-index-suffix,customizing an index suffix>> for more details about what to
-look out for.
+See <<custom-ilm-index-suffix,customizing an index suffix>> for more information.
