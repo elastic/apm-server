@@ -133,9 +133,13 @@ type beater struct {
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
 
-	tracerServer, err := newTracerServer(bt.config, b.Instrumentation.Listener())
-	if err != nil {
-		return err
+	var tracerServer *tracerServer
+	var err error
+	if listener := b.Instrumentation.Listener(); listener != nil {
+		tracerServer, err = newTracerServer(bt.config, b.Instrumentation.Listener())
+		if err != nil {
+			return err
+		}
 	}
 
 	tracer := b.Instrumentation.Tracer()
@@ -148,7 +152,10 @@ func (bt *beater) Run(b *beat.Beat) error {
 		}
 	}
 
-	runServer := runServerWithTracerServer(runServer, tracerServer, tracer)
+	runServer := runServer
+	if tracerServer != nil {
+		runServer = runServerWithTracerServer(runServer, tracerServer, tracer)
+	}
 	if bt.wrapRunServer != nil {
 		// Wrap runServer function, enabling injection of
 		// behaviour into the processing/reporting pipeline.
