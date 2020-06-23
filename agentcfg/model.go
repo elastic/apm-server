@@ -34,8 +34,9 @@ const (
 )
 
 var (
-	// WhitelistedSettings are settings considered safe to be returned to all requesters, including unauthenticated ones such as RUM.
-	WhitelistedSettings = []string{"transaction_sample_rate"}
+	// UnrestrictedSettings are settings considered safe to be returned to all requesters,
+	// including unauthenticated ones such as RUM.
+	UnrestrictedSettings = []string{"transaction_sample_rate"}
 )
 
 // Result models a Kibana response
@@ -71,9 +72,9 @@ type Query struct {
 	// agent name matches any of the specified prefixes.
 	//
 	// If InsecureAgents is non-empty, and any of the prefixes matches the result,
-	// then the resulting settings will be restricted to those identified by
-	// WhitelistedSettings. Otherwise, if InsecureAgents is empty, the agent name
-	// is ignored and no restrictions are applied.
+	// then the resulting settings will be filtered down to the subset of settings
+	// identified by UnrestrictedSettings. Otherwise, if InsecureAgents is empty,
+	// the agent name is ignored and no restrictions are applied.
 	InsecureAgents []string `json:"-"`
 }
 
