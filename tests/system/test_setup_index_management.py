@@ -304,7 +304,7 @@ class TestILMConfiguredPolicies(ElasticTest):
 
 @integration_test
 class TestILMCustomAlias(ElasticTest):
-    config_overrides = {"ilm_aliases": True}
+    config_overrides = {"ilm_custom_suffix": True}
 
     def setUp(self):
         super(TestILMCustomAlias, self).setUp()
@@ -312,7 +312,7 @@ class TestILMCustomAlias(ElasticTest):
 
     def test_ilm_loaded(self):
         # aliasnames configured in apm-server.yml.j2
-        aliases = ["apm-error-custom", "apm-transaction-custom",
+        aliases = [index_error + "-custom", index_transaction + "-foo",
                    index_metric, index_profile, index_span]
         self.idxmgmt.wait_until_created(templates=[index_name] + aliases, aliases=aliases)
         self.idxmgmt.assert_event_template(with_ilm=True, event_templates=aliases)
