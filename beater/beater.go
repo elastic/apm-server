@@ -134,10 +134,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	var tracerServer *tracerServer
 	var err error
 	if listener := b.Instrumentation.Listener(); listener != nil {
-		tracerServer, err = newTracerServer(bt.config, listener)
-		if err != nil {
-			return err
-		}
+		tracerServer = newTracerServer(bt.config, listener)
 	}
 
 	tracer := b.Instrumentation.Tracer()

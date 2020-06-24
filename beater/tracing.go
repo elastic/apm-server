@@ -19,9 +19,10 @@ package beater
 
 import (
 	"context"
-	"go.elastic.co/apm"
 	"net"
 	"net/http"
+
+	"go.elastic.co/apm"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 
@@ -42,7 +43,7 @@ type tracerServer struct {
 	listener net.Listener
 }
 
-func newTracerServer(cfg *config.Config, listener net.Listener) (*tracerServer, error) {
+func newTracerServer(cfg *config.Config, listener net.Listener) *tracerServer {
 	cfgCopy := *cfg // Copy cfg so we can disable auth
 	cfg = &cfgCopy
 	cfg.SecretToken = ""
@@ -60,7 +61,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener) (*tracerServer, 
 		logger:   logp.NewLogger(logs.Beater),
 		server:   server,
 		listener: listener,
-	}, nil
+	}
 }
 
 func (s *tracerServer) serve(report publish.Reporter) error {
