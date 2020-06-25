@@ -266,6 +266,81 @@ const RUMV3Schema = `{
                         "string",
                         "null"
                     ]
+                },
+                "ni": {
+                    "description": "networkInfo",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "et": {
+                            "description": "effectiveType",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "rtt": {
+                            "description": "roundTripTime",
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "dlk": {
+                            "description": "downlink",
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "dlkm": {
+                            "description": "downlinkMax",
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "t": {
+                            "description": "type",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "svd": {
+                            "description": "saveData",
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "ssw": {
+                    "description": "servedViaServiceWorker",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 1024
+                },
+                "scc": {
+                    "description": "system.cpu.cores",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "smt": {
+                    "description": "system.memory.total",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
                 }
             }
         },

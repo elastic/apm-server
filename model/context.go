@@ -107,10 +107,37 @@ func truncate(s string) string {
 	return s
 }
 
+type NetworkInfo struct {
+	EffectiveType *string
+	RoundTripTime *int64
+	Downlink      *int64
+	DownlinkMax   *int64
+	SaveData      *bool
+	Type          *string
+}
+
+func (ni *NetworkInfo) fields() common.MapStr {
+	fields := common.MapStr{}
+	if ni == nil {
+		return fields
+	}
+	utility.Set(fields, "type", ni.Type)
+	utility.Set(fields, "downlink", ni.Downlink)
+	utility.Set(fields, "downlinkMax", ni.DownlinkMax)
+	utility.Set(fields, "effectiveType", ni.EffectiveType)
+	utility.Set(fields, "roundTripTime", ni.RoundTripTime)
+	utility.Set(fields, "saveData", ni.SaveData)
+	return fields
+}
+
 // Page consists of URL and referer
 type Page struct {
-	URL     *URL
-	Referer *string
+	URL                    *URL
+	Referer                *string
+	NetworkInfo            *NetworkInfo
+	Cores                  *int
+	Memory                 *int
+	ServedViaServiceWorker *string
 }
 
 // Labels holds user defined information nested under key tags
@@ -203,6 +230,10 @@ func (page *Page) Fields() common.MapStr {
 		utility.Set(fields, "url", page.URL.Original)
 	}
 	utility.Set(fields, "referer", page.Referer)
+	utility.Set(fields, "system.cpu.cores", page.Cores)
+	utility.Set(fields, "system.memory.total", page.Memory)
+	utility.Set(fields, "servedViaServiceWorker", page.ServedViaServiceWorker)
+	utility.Set(fields, "networkInfo", page.NetworkInfo.fields())
 	return fields
 }
 

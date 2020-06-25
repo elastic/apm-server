@@ -218,12 +218,37 @@ func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.P
 	}
 	decoder := utility.ManualDecoder{}
 	page := &model.Page{
-		Referer: decoder.StringPtr(pageInput, fieldName("referer")),
+		Referer:                decoder.StringPtr(pageInput, fieldName("referer")),
+		Cores:                  decoder.IntPtr(pageInput, fieldName("system.cpu.cores")),
+		Memory:                 decoder.IntPtr(pageInput, fieldName("system.memory.total")),
+		ServedViaServiceWorker: decoder.StringPtr(pageInput, fieldName("servedViaServiceWorker")),
 	}
 	if pageURL := decoder.StringPtr(pageInput, fieldName("url")); pageURL != nil {
 		page.URL = model.ParseURL(*pageURL, "")
 	}
+	networkInfoInput, ok := pageInput[fieldName("networkInfo")]
+	if ok {
+		networkInfo, err := decodeNetworkInfo(networkInfoInput.(map[string]interface{}), hasShortFieldNames)
+		if err != nil {
+			return nil, err
+		}
+		page.NetworkInfo = networkInfo
+	}
 	return page, decoder.Err
+}
+
+func decodeNetworkInfo(raw map[string]interface{}, hasShortFieldNames bool) (*model.NetworkInfo, error) {
+	decoder := utility.ManualDecoder{}
+	fieldName := field.Mapper(hasShortFieldNames)
+	networkInfo := &model.NetworkInfo{
+		EffectiveType: decoder.StringPtr(raw, fieldName("effectiveType")),
+		RoundTripTime: decoder.Int64Ptr(raw, fieldName("roundTripTime")),
+		Downlink:      decoder.Int64Ptr(raw, fieldName("downlink")),
+		DownlinkMax:   decoder.Int64Ptr(raw, fieldName("downlinkMax")),
+		SaveData:      decoder.BoolPtr(raw, fieldName("saveData")),
+		Type:          decoder.StringPtr(raw, fieldName("referer")),
+	}
+	return networkInfo, decoder.Err
 }
 
 func decodeCustom(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Custom, error) {

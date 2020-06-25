@@ -122,6 +122,15 @@ var rumV3Mapping = map[string]string{
 	"username":                    "un",
 	"value":                       "v",
 	"version":                     "ve",
+	"networkInfo":                 "ni",
+	"effectiveType":               "et",
+	"roundTripTime":               "rtt",
+	"downlink":                    "dlk",
+	"downlinkMax":                 "dlkm",
+	"saveData":                    "svd",
+	"system.cpu.cores":            "scc",
+	"system.memory.total":         "smt",
+	"servedViaServiceWorker":      "ssw",
 }
 
 var rumV3InverseMapping = make(map[string]string)

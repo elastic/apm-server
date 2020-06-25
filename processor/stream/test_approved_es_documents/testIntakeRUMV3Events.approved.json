@@ -100,7 +100,17 @@
                 },
                 "name": "general-usecase-initial-p-load",
                 "page": {
+                    "networkInfo": {
+                        "downlink": 10,
+                        "downlinkMax": 10000,
+                        "effectiveType": "4g",
+                        "roundTripTime": 50,
+                        "saveData": false
+                    },
                     "referer": "http://localhost:8000/test/e2e/",
+                    "servedViaServiceWorker": "notsupported",
+                    "system.cpu.cores": 4,
+                    "system.memory.total": 8192,
                     "url": "http://localhost:8000/test/e2e/general-usecase/"
                 },
                 "sampled": true,
