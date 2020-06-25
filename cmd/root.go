@@ -73,6 +73,7 @@ var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 	}),
 },
 	{
+		// TODO update libbeat to perform config mutations on a separate step
 		Check: func(cfg *common.Config) bool {
 			if !cfg.HasField("instrumentation") {
 				ok, err := cfg.Has("apm-server.instrumentation", -1)

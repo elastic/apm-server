@@ -27,7 +27,7 @@ import (
 )
 
 func TestOverrideLegacyInstrumentationConfig(t *testing.T) {
-	cfg, err := cfgfile.Load("tests/legacy_instrumentation.yml", libbeatConfigOverrides)
+	cfg, err := cfgfile.Load("testdata/legacy_instrumentation.yml", libbeatConfigOverrides)
 	require.NoError(t, err)
 	assert.True(t, cfg.HasField("instrumentation"))
 
@@ -37,7 +37,7 @@ func TestOverrideLegacyInstrumentationConfig(t *testing.T) {
 }
 
 func TestConflictInstrumentationConfig(t *testing.T) {
-	cfg, err := cfgfile.Load("tests/conflict_instrumentation.yml", libbeatConfigOverrides)
+	cfg, err := cfgfile.Load("testdata/conflict_instrumentation.yml", libbeatConfigOverrides)
 	require.NoError(t, err)
 	assert.True(t, cfg.HasField("instrumentation"))
 
