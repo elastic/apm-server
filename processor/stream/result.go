@@ -18,7 +18,6 @@
 package stream
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
@@ -31,9 +30,6 @@ type Error struct {
 }
 
 func (s *Error) Error() string {
-	if s.Document != "" {
-		return fmt.Sprintf("%s [%s]", s.Message, string(s.Document))
-	}
 	return s.Message
 }
 
