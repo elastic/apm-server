@@ -35,6 +35,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	pubs "github.com/elastic/beats/v7/libbeat/publisher"
@@ -514,11 +515,15 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, 
 		pub = dummyPipeline(cfg, info)
 	}
 
+	instrumentation, err := instrumentation.New(baseConfig, info.Beat, info.Version)
+	require.NoError(t, err)
+
 	// create a beat
 	apmBeat := &beat.Beat{
-		Publisher: pub,
-		Info:      info,
-		Config:    beatConfig,
+		Publisher:       pub,
+		Info:            info,
+		Config:          beatConfig,
+		Instrumentation: instrumentation,
 	}
 	return setupBeater(t, apmBeat, baseConfig, beatConfig)
 }

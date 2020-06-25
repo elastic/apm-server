@@ -39,34 +39,63 @@ const (
 	apmIndexPattern = "apm"
 )
 
-var libbeatConfigOverrides = common.MustNewConfigFrom(map[string]interface{}{
-	"logging": map[string]interface{}{
-		"metrics": map[string]interface{}{
-			"enabled": false,
-		},
-		"files": map[string]interface{}{
-			"rotateeverybytes": 10 * 1024 * 1024,
-		},
+var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
+	Check: func(_ *common.Config) bool {
+		return true
 	},
-	"setup": map[string]interface{}{
-		"template": map[string]interface{}{
-			"settings": map[string]interface{}{
-				"index": map[string]interface{}{
-					"codec": "best_compression",
-					"mapping": map[string]interface{}{
-						"total_fields": map[string]int{
-							"limit": 2000,
+	Config: common.MustNewConfigFrom(map[string]interface{}{
+		"logging": map[string]interface{}{
+			"metrics": map[string]interface{}{
+				"enabled": false,
+			},
+			"files": map[string]interface{}{
+				"rotateeverybytes": 10 * 1024 * 1024,
+			},
+		},
+		"setup": map[string]interface{}{
+			"template": map[string]interface{}{
+				"settings": map[string]interface{}{
+					"index": map[string]interface{}{
+						"codec": "best_compression",
+						"mapping": map[string]interface{}{
+							"total_fields": map[string]int{
+								"limit": 2000,
+							},
 						},
+						"number_of_shards": 1,
 					},
-					"number_of_shards": 1,
-				},
-				"_source": map[string]interface{}{
-					"enabled": true,
+					"_source": map[string]interface{}{
+						"enabled": true,
+					},
 				},
 			},
 		},
+	}),
+},
+	{
+		// TODO update libbeat to perform config mutations on a separate step
+		Check: func(cfg *common.Config) bool {
+			if !cfg.HasField("instrumentation") {
+				ok, err := cfg.Has("apm-server.instrumentation", -1)
+				if err != nil {
+					panic(err)
+				}
+				if ok {
+					child, err := cfg.Child("apm-server.instrumentation", -1)
+					if err != nil {
+						panic(err)
+					}
+					err = cfg.SetChild("instrumentation", -1, child)
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+			return true
+		},
+		Config: common.NewConfig(),
 	},
-})
+}
 
 // NewRootCommand returns the "apm-server" root command.
 func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
@@ -81,12 +110,7 @@ func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 		Processing:      processing.MakeDefaultObserverSupport(false),
-		ConfigOverrides: []cfgfile.ConditionalOverride{{
-			Check: func(_ *common.Config) bool {
-				return true
-			},
-			Config: libbeatConfigOverrides,
-		}},
+		ConfigOverrides: libbeatConfigOverrides,
 	}
 
 	rootCmd := cmd.GenRootCmdWithSettings(newBeat, settings)

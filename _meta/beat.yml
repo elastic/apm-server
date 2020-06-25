@@ -38,39 +38,6 @@ apm-server:
     # Url to expose expvar.
     #url: "/debug/vars"
 
-  # Instrumentation support for the server's HTTP endpoints and event publisher.
-  #instrumentation:
-    # Set to true to enable instrumentation of the APM Server itself.
-    #enabled: false
-
-    # Environment in which the APM Server is running on (eg: staging, production, etc.)
-    #environment: ""
-
-    # Remote hosts to report instrumentation results to.
-    #hosts:
-    #  - http://remote-apm-server:8200
-
-    # API Key for the remote APM Server(s).
-    # If api_key is set then secret_token will be ignored.
-    #api_key:
-
-    # Secret token for the remote APM Server(s).
-    #secret_token:
-
-    # Enable profiling of the server, recording profile samples as events.
-    #
-    # This feature is experimental.
-    #profiling:
-      #cpu:
-        # Set to true to enable CPU profiling.
-        #enabled: false
-        #interval: 60s
-        #duration: 10s
-      #heap:
-        # Set to true to enable heap profiling.
-        #enabled: false
-        #interval: 60s
-
   # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
   # Using pipelines involves two steps:
   # (1) registering a pipeline
@@ -982,6 +949,43 @@ output.elasticsearch:
 
   # Kerberos realm.
   #kerberos.realm: ELASTIC
+
+#============================= Instrumentation =============================
+
+# Instrumentation support for the server's HTTP endpoints and event publisher.
+#instrumentation:
+
+  # Set to true to enable instrumentation of the APM Server itself.
+  #enabled: false
+
+  # Environment in which the APM Server is running on (eg: staging, production, etc.)
+  #environment: ""
+
+  # Hosts to report instrumentation results to.
+  # For reporting to itself, leave this field commented
+  #hosts:
+  #  - http://remote-apm-server:8200
+
+  # API Key for the remote APM Server(s).
+  # If api_key is set then secret_token will be ignored.
+  #api_key:
+
+  # Secret token for the remote APM Server(s).
+  #secret_token:
+
+  # Enable profiling of the server, recording profile samples as events.
+  #
+  # This feature is experimental.
+  #profiling:
+    #cpu:
+      # Set to true to enable CPU profiling.
+      #enabled: false
+      #interval: 60s
+      #duration: 10s
+  #heap:
+    # Set to true to enable heap profiling.
+    #enabled: false
+    #interval: 60s
 
 #================================= Paths ==================================
 
