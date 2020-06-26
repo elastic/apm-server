@@ -47,6 +47,7 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadat
 	url, err := decodeURL(input, err)
 	custom, err := decodeCustom(input, cfg.HasShortFieldNames, err)
 	page, err := decodePage(input, cfg.HasShortFieldNames, err)
+	device, err := decodeDevice(input, cfg.HasShortFieldNames, err)
 	message, err := decodeMessage(input, err)
 	if err != nil {
 		return nil, err
@@ -56,6 +57,7 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadat
 		Http:         http,
 		URL:          url,
 		Page:         page,
+		Device:       device,
 		Custom:       custom,
 		Message:      message,
 		Experimental: experimental,
@@ -207,6 +209,32 @@ func decodeMinimalHTTPResponse(raw common.MapStr, hasShortFieldNames bool, err e
 	}, decoder.Err
 }
 
+func decodeDevice(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Device, error) {
+	if err != nil {
+		return nil, err
+	}
+	fieldName := field.Mapper(hasShortFieldNames)
+	deviceInput, ok := raw[fieldName("device")].(map[string]interface{})
+	if !ok {
+		return nil, nil
+	}
+	decoder := utility.ManualDecoder{}
+	device := &model.Device{
+		Cores:                  decoder.IntPtr(deviceInput, fieldName("system.cpu.cores")),
+		Memory:                 decoder.Float64Ptr(deviceInput, fieldName("system.memory.total")),
+		ServedViaServiceWorker: decoder.StringPtr(deviceInput, fieldName("servedViaServiceWorker")),
+	}
+	networkInfoInput, ok := deviceInput[fieldName("network")]
+	if ok {
+		networkInfo, err := decodeNetworkInfo(networkInfoInput.(map[string]interface{}), hasShortFieldNames)
+		if err != nil {
+			return nil, err
+		}
+		device.NetworkInfo = networkInfo
+	}
+	return device, decoder.Err
+}
+
 func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Page, error) {
 	if err != nil {
 		return nil, err
@@ -218,21 +246,10 @@ func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.P
 	}
 	decoder := utility.ManualDecoder{}
 	page := &model.Page{
-		Referer:                decoder.StringPtr(pageInput, fieldName("referer")),
-		Cores:                  decoder.IntPtr(pageInput, fieldName("system.cpu.cores")),
-		Memory:                 decoder.IntPtr(pageInput, fieldName("system.memory.total")),
-		ServedViaServiceWorker: decoder.StringPtr(pageInput, fieldName("servedViaServiceWorker")),
+		Referer: decoder.StringPtr(pageInput, fieldName("referer")),
 	}
 	if pageURL := decoder.StringPtr(pageInput, fieldName("url")); pageURL != nil {
 		page.URL = model.ParseURL(*pageURL, "")
-	}
-	networkInfoInput, ok := pageInput[fieldName("networkInfo")]
-	if ok {
-		networkInfo, err := decodeNetworkInfo(networkInfoInput.(map[string]interface{}), hasShortFieldNames)
-		if err != nil {
-			return nil, err
-		}
-		page.NetworkInfo = networkInfo
 	}
 	return page, decoder.Err
 }
@@ -241,12 +258,12 @@ func decodeNetworkInfo(raw map[string]interface{}, hasShortFieldNames bool) (*mo
 	decoder := utility.ManualDecoder{}
 	fieldName := field.Mapper(hasShortFieldNames)
 	networkInfo := &model.NetworkInfo{
-		EffectiveType: decoder.StringPtr(raw, fieldName("effectiveType")),
-		RoundTripTime: decoder.Int64Ptr(raw, fieldName("roundTripTime")),
-		Downlink:      decoder.Int64Ptr(raw, fieldName("downlink")),
-		DownlinkMax:   decoder.Int64Ptr(raw, fieldName("downlinkMax")),
+		EffectiveType: decoder.StringPtr(raw, fieldName("effective_type")),
+		RoundTripTime: decoder.Int64Ptr(raw, fieldName("rtt")),
+		Downlink:      decoder.Float64Ptr(raw, fieldName("downlink")),
+		DownlinkMax:   decoder.Float64Ptr(raw, fieldName("downlink_max")),
 		SaveData:      decoder.BoolPtr(raw, fieldName("saveData")),
-		Type:          decoder.StringPtr(raw, fieldName("referer")),
+		PhysicalLayer: decoder.StringPtr(raw, fieldName("physical")),
 	}
 	return networkInfo, decoder.Err
 }

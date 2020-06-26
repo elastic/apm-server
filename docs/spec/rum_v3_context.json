@@ -134,7 +134,7 @@
             "$ref": "rum_v3_user.json"
         },
         "p": {
-            "description": "",
+            "description": "page",
             "type": [
                 "object",
                 "null"
@@ -153,16 +153,25 @@
                         "string",
                         "null"
                     ]
-                },
-                "ni": {
-                    "description": "networkInfo",
+                }
+            }
+        },
+        "dev": {
+            "description": "device",
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "nw": {
+                    "description": "network",
                     "type": [
                         "object",
                         "null"
                     ],
                     "properties": {
                         "et": {
-                            "description": "effectiveType",
+                            "description": "effective_type",
                             "type": [
                                 "string",
                                 "null"
@@ -170,7 +179,7 @@
                             "maxLength": 1024
                         },
                         "rtt": {
-                            "description": "roundTripTime",
+                            "description": "round trip time",
                             "type": [
                                 "integer",
                                 "null"
@@ -179,19 +188,19 @@
                         "dlk": {
                             "description": "downlink",
                             "type": [
-                                "integer",
+                                "number",
                                 "null"
                             ]
                         },
                         "dlkm": {
-                            "description": "downlinkMax",
+                            "description": "downlink_max",
                             "type": [
-                                "integer",
+                                "number",
                                 "null"
                             ]
                         },
-                        "t": {
-                            "description": "type",
+                        "ph": {
+                            "description": "physical layer",
                             "type": [
                                 "string",
                                 "null"
@@ -225,7 +234,7 @@
                 "smt": {
                     "description": "system.memory.total",
                     "type": [
-                        "integer",
+                        "number",
                         "null"
                     ]
                 }

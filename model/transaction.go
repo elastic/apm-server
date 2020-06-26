@@ -62,6 +62,7 @@ type Transaction struct {
 	Sampled   *bool
 	SpanCount SpanCount
 	Page      *Page
+	Device    *Device
 	HTTP      *Http
 	URL       *URL
 	Labels    *Labels
@@ -85,6 +86,7 @@ func (e *Transaction) fields() common.MapStr {
 	fields.maybeSetString("result", e.Result)
 	fields.maybeSetMapStr("marks", e.Marks.fields())
 	fields.maybeSetMapStr("page", e.Page.Fields())
+	fields.maybeSetMapStr("device", e.Device.Fields())
 	fields.maybeSetMapStr("custom", e.Custom.Fields())
 	fields.maybeSetMapStr("message", e.Message.Fields())
 	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {

@@ -247,7 +247,7 @@ const RUMV3Schema = `{
     }
         },
         "p": {
-            "description": "",
+            "description": "page",
             "type": [
                 "object",
                 "null"
@@ -266,16 +266,25 @@ const RUMV3Schema = `{
                         "string",
                         "null"
                     ]
-                },
-                "ni": {
-                    "description": "networkInfo",
+                }
+            }
+        },
+        "dev": {
+            "description": "device",
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "nw": {
+                    "description": "network",
                     "type": [
                         "object",
                         "null"
                     ],
                     "properties": {
                         "et": {
-                            "description": "effectiveType",
+                            "description": "effective_type",
                             "type": [
                                 "string",
                                 "null"
@@ -283,7 +292,7 @@ const RUMV3Schema = `{
                             "maxLength": 1024
                         },
                         "rtt": {
-                            "description": "roundTripTime",
+                            "description": "round trip time",
                             "type": [
                                 "integer",
                                 "null"
@@ -292,19 +301,19 @@ const RUMV3Schema = `{
                         "dlk": {
                             "description": "downlink",
                             "type": [
-                                "integer",
+                                "number",
                                 "null"
                             ]
                         },
                         "dlkm": {
-                            "description": "downlinkMax",
+                            "description": "downlink_max",
                             "type": [
-                                "integer",
+                                "number",
                                 "null"
                             ]
                         },
-                        "t": {
-                            "description": "type",
+                        "ph": {
+                            "description": "physical layer",
                             "type": [
                                 "string",
                                 "null"
@@ -338,7 +347,7 @@ const RUMV3Schema = `{
                 "smt": {
                     "description": "system.memory.total",
                     "type": [
-                        "integer",
+                        "number",
                         "null"
                     ]
                 }

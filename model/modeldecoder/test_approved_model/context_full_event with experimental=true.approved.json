@@ -2,6 +2,7 @@
     "Custom": {
         "a": "b"
     },
+    "Device": null,
     "Experimental": {
         "foo": "bar"
     },
@@ -60,11 +61,7 @@
         "QueueName": "order"
     },
     "Page": {
-        "Cores": null,
-        "Memory": null,
-        "NetworkInfo": null,
         "Referer": "http://refer.example.com",
-        "ServedViaServiceWorker": null,
         "URL": {
             "Domain": "example.com",
             "Fragment": null,

@@ -34,6 +34,7 @@ type Context struct {
 	Labels       *Labels
 	Page         *Page
 	Custom       *Custom
+	Device       *Device
 	Message      *Message
 	Experimental interface{}
 }
@@ -110,33 +111,36 @@ func truncate(s string) string {
 type NetworkInfo struct {
 	EffectiveType *string
 	RoundTripTime *int64
-	Downlink      *int64
-	DownlinkMax   *int64
+	Downlink      *float64
+	DownlinkMax   *float64
 	SaveData      *bool
-	Type          *string
+	PhysicalLayer *string
 }
 
 func (ni *NetworkInfo) fields() common.MapStr {
-	fields := common.MapStr{}
 	if ni == nil {
-		return fields
+		return nil
 	}
-	utility.Set(fields, "type", ni.Type)
+	fields := common.MapStr{}
+	utility.Set(fields, "physical", ni.PhysicalLayer)
 	utility.Set(fields, "downlink", ni.Downlink)
-	utility.Set(fields, "downlinkMax", ni.DownlinkMax)
-	utility.Set(fields, "effectiveType", ni.EffectiveType)
-	utility.Set(fields, "roundTripTime", ni.RoundTripTime)
+	utility.Set(fields, "downlink_max", ni.DownlinkMax)
+	utility.Set(fields, "effective_type", ni.EffectiveType)
+	utility.Set(fields, "rtt", ni.RoundTripTime)
 	utility.Set(fields, "saveData", ni.SaveData)
 	return fields
 }
 
 // Page consists of URL and referer
 type Page struct {
-	URL                    *URL
-	Referer                *string
+	URL     *URL
+	Referer *string
+}
+
+type Device struct {
 	NetworkInfo            *NetworkInfo
 	Cores                  *int
-	Memory                 *int
+	Memory                 *float64
 	ServedViaServiceWorker *string
 }
 
@@ -230,10 +234,18 @@ func (page *Page) Fields() common.MapStr {
 		utility.Set(fields, "url", page.URL.Original)
 	}
 	utility.Set(fields, "referer", page.Referer)
-	utility.Set(fields, "system.cpu.cores", page.Cores)
-	utility.Set(fields, "system.memory.total", page.Memory)
-	utility.Set(fields, "servedViaServiceWorker", page.ServedViaServiceWorker)
-	utility.Set(fields, "networkInfo", page.NetworkInfo.fields())
+	return fields
+}
+
+func (d *Device) Fields() common.MapStr {
+	if d == nil {
+		return nil
+	}
+	var fields = common.MapStr{}
+	utility.Set(fields, "system.cpu.cores", d.Cores)
+	utility.Set(fields, "system.memory.total", d.Memory)
+	utility.Set(fields, "servedViaServiceWorker", d.ServedViaServiceWorker)
+	utility.Set(fields, "network", d.NetworkInfo.fields())
 	return fields
 }
 
