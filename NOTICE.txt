@@ -401,7 +401,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dop251/goja_nodejs
-Revision: 2d688c7e0ac4
+Revision: 3e6a054e8447
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -534,7 +534,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 1498938e22f3
+Revision: 5426df01489e
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -848,7 +848,7 @@ Contents of "NOTICE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-structform
-Version: v0.0.6
+Version: v0.0.7
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -2238,7 +2238,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/mattn/go-colorable
-Version: v0.1.6
+Version: v0.1.7
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -3086,7 +3086,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 627f9648deb9
+Revision: 4c5254603344
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3188,7 +3188,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: ed371f2e16b4
+Revision: ddb9806d33ae
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
