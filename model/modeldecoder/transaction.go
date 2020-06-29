@@ -127,7 +127,8 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	}
 
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
-	ctx, err := decodeContext(getObject(raw, fieldName("context")), input.Config, &input.Metadata)
+	context := getObject(raw, fieldName("context"))
+	ctx, err := decodeContext(context, input.Config, &input.Metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -151,6 +152,16 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+	if n := getObject(context, fieldName("network")); n != nil {
+		var network model.Network
+		decodeNetwork(n, input.Config.HasShortFieldNames, &network)
+		e.Network = &network
+	}
+	if s := getObject(context, fieldName("system")); s != nil {
+		var system model.System
+		decodeSystem(s, input.Config.HasShortFieldNames, &system)
+		e.System = &system
 	}
 	decodeString(raw, "id", &e.ID)
 	decodeString(raw, fieldName("trace_id"), &e.TraceID)

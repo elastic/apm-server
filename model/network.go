@@ -30,6 +30,9 @@ type Network struct {
 }
 
 func (nw *Network) fields() common.MapStr {
+	if nw == nil {
+		return nil
+	}
 	var fields mapStr
 	fields.maybeSetString("physical", nw.PhysicalLayer)
 	fields.maybeSetFloat64("downlink", nw.Downlink)

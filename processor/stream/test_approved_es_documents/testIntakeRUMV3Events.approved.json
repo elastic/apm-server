@@ -33,7 +33,7 @@
                 "testTagKey": "testTagValue"
             },
             "network": {
-                "downlink": 10,
+                "downlink": 6.66,
                 "downlink_max": 9999.9,
                 "effective_type": "4g",
                 "physical": "wifi",
@@ -65,7 +65,7 @@
             },
             "system": {
                 "cpu.cores": 4,
-                "memory.total": 8192.5
+                "memory.total": 4096
             },
             "timestamp": {
                 "us": 1533117600000000

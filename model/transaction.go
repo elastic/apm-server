@@ -62,6 +62,8 @@ type Transaction struct {
 	Sampled   *bool
 	SpanCount SpanCount
 	Page      *Page
+	Network   *Network
+	System    *System
 	Device    *Device
 	HTTP      *Http
 	URL       *URL
@@ -123,6 +125,10 @@ func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
+	// merges with metadata network fields
+	utility.DeepUpdate(fields, "network", e.Network.fields())
+	// merges with metadata system fields
+	utility.DeepUpdate(fields, "system", e.System.systemFields())
 	utility.Set(fields, "http", e.HTTP.Fields())
 	urlFields := e.URL.Fields()
 	if urlFields != nil {

@@ -1,0 +1,25 @@
+{
+    "$id": "docs/spec/rum_v3_system.json",
+    "title": "System",
+    "description": "System info captured by RUM agent.",
+    "type": [
+        "object",
+        "null"
+    ],
+    "properties": {
+        "cc": {
+            "description": "cpu.cores",
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "mm": {
+            "description": "memory.total",
+            "type": [
+                "number",
+                "null"
+            ]
+        }
+    }
+}

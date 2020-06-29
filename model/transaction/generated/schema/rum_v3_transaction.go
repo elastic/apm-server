@@ -682,6 +682,79 @@ const RUMV3Schema = `{
         }
     }
         },
+        "nw": {
+                "$id": "docs/spec/rum_v3_network.json",
+    "title": "Network",
+    "description": "Network related info.",
+    "type": [
+        "object",
+        "null"
+    ],
+    "properties": {
+        "et": {
+            "description": "effective_type",
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 1024
+        },
+        "rtt": {
+            "description": "round trip time",
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "dlk": {
+            "description": "downlink",
+            "type": [
+                "number",
+                "null"
+            ]
+        },
+        "dlkm": {
+            "description": "downlink_max",
+            "type": [
+                "number",
+                "null"
+            ]
+        },
+        "ph": {
+            "description": "physical layer",
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 1024
+        }
+    }
+        },
+        "ss": {
+                "$id": "docs/spec/rum_v3_system.json",
+    "title": "System",
+    "description": "System info captured by RUM agent.",
+    "type": [
+        "object",
+        "null"
+    ],
+    "properties": {
+        "cc": {
+            "description": "cpu.cores",
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "mm": {
+            "description": "memory.total",
+            "type": [
+                "number",
+                "null"
+            ]
+        }
+    }
+        },
         "p": {
             "description": "page",
             "type": [

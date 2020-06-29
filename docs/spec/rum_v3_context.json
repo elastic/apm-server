@@ -133,6 +133,12 @@
         "u": {
             "$ref": "rum_v3_user.json"
         },
+        "nw": {
+            "$ref": "rum_v3_network.json"
+        },
+        "ss": {
+            "$ref": "rum_v3_system.json"
+        },
         "p": {
             "description": "page",
             "type": [
