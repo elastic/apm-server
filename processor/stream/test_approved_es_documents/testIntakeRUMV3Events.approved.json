@@ -32,6 +32,13 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
+            },
             "parent": {
                 "id": "1ef08ac234fca23b455d9e27c660f1ab"
             },
@@ -71,14 +78,6 @@
                     "testContext": "testContext"
                 },
                 "device": {
-                    "network": {
-                        "downlink": 10,
-                        "downlink_max": 9999.9,
-                        "effective_type": "4g",
-                        "physical": "wifi",
-                        "rtt": 50,
-                        "saveData": false
-                    },
                     "servedViaServiceWorker": "notsupported"
                 },
                 "duration": {
@@ -116,6 +115,7 @@
                 "name": "general-usecase-initial-p-load",
                 "page": {
                     "referer": "http://localhost:8000/test/e2e/",
+                    "saveData": false,
                     "url": "http://localhost:8000/test/e2e/general-usecase/"
                 },
                 "sampled": true,
@@ -147,6 +147,13 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -211,6 +218,13 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -279,6 +293,13 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -361,6 +382,13 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
+            },
             "parent": {
                 "id": "ec2e280be8345240"
             },
@@ -427,6 +455,13 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -513,6 +548,13 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
+            },
             "parent": {
                 "id": "ec2e280be8345240"
             },
@@ -598,6 +640,13 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
+            },
             "parent": {
                 "id": "bbd8bcc3be14d814"
             },
@@ -679,6 +728,13 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
             },
             "parent": {
                 "id": "ec2e280be8345240"
@@ -766,6 +822,13 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
+            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
@@ -818,6 +881,13 @@
             },
             "labels": {
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
             },
             "processor": {
                 "event": "metric",
@@ -872,6 +942,13 @@
             "labels": {
                 "testTagKey": "testTagValue"
             },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
+            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
@@ -925,6 +1002,13 @@
             "labels": {
                 "tag1": "value1",
                 "testTagKey": "testTagValue"
+            },
+            "network": {
+                "downlink": 10,
+                "downlink_max": 9999.9,
+                "effective_type": "4g",
+                "physical": "wifi",
+                "rtt": 50
             },
             "processor": {
                 "event": "metric",

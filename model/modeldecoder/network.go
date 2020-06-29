@@ -15,55 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modeldecoder
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import (
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
+)
 
-type mapStr common.MapStr
-
-func (m *mapStr) set(k string, v interface{}) {
-	if *m == nil {
-		*m = make(mapStr)
+func decodeNetwork(input map[string]interface{}, hasShortFieldNames bool, out *model.Network) {
+	if input == nil {
+		return
 	}
-	(*m)[k] = v
-}
-
-func (m *mapStr) maybeSetString(k, v string) bool {
-	if v != "" {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetInt(k string, v int) bool {
-	if v != 0 {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetInt64(k string, v int64) bool {
-	if v != 0 {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetFloat64(k string, v float64) bool {
-	if v != 0.0 {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetMapStr(k string, v common.MapStr) bool {
-	if len(v) > 0 {
-		m.set(k, v)
-		return true
-	}
-	return false
+	fieldName := field.Mapper(hasShortFieldNames)
+	decodeString(input, fieldName("effective_type"), &out.EffectiveType)
+	decodeString(input, fieldName("physical"), &out.PhysicalLayer)
+	decodeInt64(input, fieldName("rtt"), &out.RoundTripTime)
+	decodeFloat64(input, fieldName("downlink"), &out.Downlink)
+	decodeFloat64(input, fieldName("downlink_max"), &out.DownlinkMax)
 }

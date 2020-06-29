@@ -108,37 +108,14 @@ func truncate(s string) string {
 	return s
 }
 
-type NetworkInfo struct {
-	EffectiveType *string
-	RoundTripTime *int64
-	Downlink      *float64
-	DownlinkMax   *float64
-	SaveData      *bool
-	PhysicalLayer *string
-}
-
-func (ni *NetworkInfo) fields() common.MapStr {
-	if ni == nil {
-		return nil
-	}
-	fields := common.MapStr{}
-	utility.Set(fields, "physical", ni.PhysicalLayer)
-	utility.Set(fields, "downlink", ni.Downlink)
-	utility.Set(fields, "downlink_max", ni.DownlinkMax)
-	utility.Set(fields, "effective_type", ni.EffectiveType)
-	utility.Set(fields, "rtt", ni.RoundTripTime)
-	utility.Set(fields, "saveData", ni.SaveData)
-	return fields
-}
-
 // Page consists of URL and referer
 type Page struct {
-	URL     *URL
-	Referer *string
+	URL      *URL
+	Referer  *string
+	SaveData *bool
 }
 
 type Device struct {
-	NetworkInfo            *NetworkInfo
 	ServedViaServiceWorker *string
 }
 
@@ -232,6 +209,7 @@ func (page *Page) Fields() common.MapStr {
 		utility.Set(fields, "url", page.URL.Original)
 	}
 	utility.Set(fields, "referer", page.Referer)
+	utility.Set(fields, "saveData", page.SaveData)
 	return fields
 }
 
@@ -241,7 +219,6 @@ func (d *Device) Fields() common.MapStr {
 	}
 	var fields = common.MapStr{}
 	utility.Set(fields, "servedViaServiceWorker", d.ServedViaServiceWorker)
-	utility.Set(fields, "network", d.NetworkInfo.fields())
 	return fields
 }
 

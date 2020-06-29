@@ -59,6 +59,7 @@ func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonsche
 	decodeService(getObject(raw, fieldName("service")), hasShortFieldNames, &out.Service)
 	decodeSystem(getObject(raw, fieldName("system")), hasShortFieldNames, &out.System)
 	decodeProcess(getObject(raw, "process"), &out.Process)
+	decodeNetwork(getObject(raw, fieldName("network")), hasShortFieldNames, &out.Network)
 	if userObj := getObject(raw, fieldName("user")); userObj != nil {
 		decodeUser(userObj, hasShortFieldNames, &out.User, &out.Client)
 		// TODO(axw) stop decoding user.user-agent here (see #3885)

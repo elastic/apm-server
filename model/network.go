@@ -17,53 +17,24 @@
 
 package model
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import (
+	"github.com/elastic/beats/v7/libbeat/common"
+)
 
-type mapStr common.MapStr
-
-func (m *mapStr) set(k string, v interface{}) {
-	if *m == nil {
-		*m = make(mapStr)
-	}
-	(*m)[k] = v
+type Network struct {
+	EffectiveType string
+	RoundTripTime int64
+	Downlink      float64
+	DownlinkMax   float64
+	PhysicalLayer string
 }
 
-func (m *mapStr) maybeSetString(k, v string) bool {
-	if v != "" {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetInt(k string, v int) bool {
-	if v != 0 {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetInt64(k string, v int64) bool {
-	if v != 0 {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetFloat64(k string, v float64) bool {
-	if v != 0.0 {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetMapStr(k string, v common.MapStr) bool {
-	if len(v) > 0 {
-		m.set(k, v)
-		return true
-	}
-	return false
+func (nw *Network) fields() common.MapStr {
+	var fields mapStr
+	fields.maybeSetString("physical", nw.PhysicalLayer)
+	fields.maybeSetFloat64("downlink", nw.Downlink)
+	fields.maybeSetFloat64("downlink_max", nw.DownlinkMax)
+	fields.maybeSetString("effective_type", nw.EffectiveType)
+	fields.maybeSetInt64("rtt", nw.RoundTripTime)
+	return common.MapStr(fields)
 }

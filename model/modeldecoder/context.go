@@ -220,17 +220,7 @@ func decodeDevice(raw common.MapStr, hasShortFieldNames bool, err error) (*model
 	}
 	decoder := utility.ManualDecoder{}
 	device := &model.Device{
-		//Cores:                  decoder.IntPtr(deviceInput, fieldName("system.cpu.cores")),
-		//Memory:                 decoder.Float64Ptr(deviceInput, fieldName("system.memory.total")),
 		ServedViaServiceWorker: decoder.StringPtr(deviceInput, fieldName("servedViaServiceWorker")),
-	}
-	networkInfoInput, ok := deviceInput[fieldName("network")]
-	if ok {
-		networkInfo, err := decodeNetworkInfo(networkInfoInput.(map[string]interface{}), hasShortFieldNames)
-		if err != nil {
-			return nil, err
-		}
-		device.NetworkInfo = networkInfo
 	}
 	return device, decoder.Err
 }
@@ -246,26 +236,13 @@ func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.P
 	}
 	decoder := utility.ManualDecoder{}
 	page := &model.Page{
-		Referer: decoder.StringPtr(pageInput, fieldName("referer")),
+		Referer:  decoder.StringPtr(pageInput, fieldName("referer")),
+		SaveData: decoder.BoolPtr(pageInput, fieldName("saveData")),
 	}
 	if pageURL := decoder.StringPtr(pageInput, fieldName("url")); pageURL != nil {
 		page.URL = model.ParseURL(*pageURL, "")
 	}
 	return page, decoder.Err
-}
-
-func decodeNetworkInfo(raw map[string]interface{}, hasShortFieldNames bool) (*model.NetworkInfo, error) {
-	decoder := utility.ManualDecoder{}
-	fieldName := field.Mapper(hasShortFieldNames)
-	networkInfo := &model.NetworkInfo{
-		EffectiveType: decoder.StringPtr(raw, fieldName("effective_type")),
-		RoundTripTime: decoder.Int64Ptr(raw, fieldName("rtt")),
-		Downlink:      decoder.Float64Ptr(raw, fieldName("downlink")),
-		DownlinkMax:   decoder.Float64Ptr(raw, fieldName("downlink_max")),
-		SaveData:      decoder.BoolPtr(raw, fieldName("saveData")),
-		PhysicalLayer: decoder.StringPtr(raw, fieldName("physical")),
-	}
-	return networkInfo, decoder.Err
 }
 
 func decodeCustom(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Custom, error) {

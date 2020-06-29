@@ -702,6 +702,13 @@ const RUMV3Schema = `{
                         "string",
                         "null"
                     ]
+                },
+                "svd": {
+                    "description": "saveData",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
                 }
             }
         },
@@ -712,59 +719,6 @@ const RUMV3Schema = `{
                 "null"
             ],
             "properties": {
-                "nw": {
-                    "description": "network",
-                    "type": [
-                        "object",
-                        "null"
-                    ],
-                    "properties": {
-                        "et": {
-                            "description": "effective_type",
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "maxLength": 1024
-                        },
-                        "rtt": {
-                            "description": "round trip time",
-                            "type": [
-                                "integer",
-                                "null"
-                            ]
-                        },
-                        "dlk": {
-                            "description": "downlink",
-                            "type": [
-                                "number",
-                                "null"
-                            ]
-                        },
-                        "dlkm": {
-                            "description": "downlink_max",
-                            "type": [
-                                "number",
-                                "null"
-                            ]
-                        },
-                        "ph": {
-                            "description": "physical layer",
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "maxLength": 1024
-                        },
-                        "svd": {
-                            "description": "saveData",
-                            "type": [
-                                "boolean",
-                                "null"
-                            ]
-                        }
-                    }
-                },
                 "ssw": {
                     "description": "servedViaServiceWorker",
                     "type": [

@@ -27,6 +27,7 @@ type Metadata struct {
 	Service   Service
 	Process   Process
 	System    System
+	Network   Network
 	User      User
 	UserAgent UserAgent
 	Client    Client
@@ -40,6 +41,7 @@ func (m *Metadata) Set(out common.MapStr) common.MapStr {
 	fields.maybeSetMapStr("agent", m.Service.AgentFields())
 	fields.maybeSetMapStr("host", m.System.hostFields())
 	fields.maybeSetMapStr("system", m.System.systemFields())
+	fields.maybeSetMapStr("network", m.Network.fields())
 	fields.maybeSetMapStr("process", m.Process.fields())
 	fields.maybeSetMapStr("user", m.User.Fields())
 	fields.maybeSetMapStr("client", m.Client.fields())

@@ -41,6 +41,15 @@ func decodeInt(obj map[string]interface{}, key string, out *int) bool {
 	return false
 }
 
+func decodeInt64(obj map[string]interface{}, key string, out *int64) bool {
+	var f float64
+	if decodeFloat64(obj, key, &f) {
+		*out = int64(f)
+		return true
+	}
+	return false
+}
+
 func decodeFloat64(obj map[string]interface{}, key string, out *float64) bool {
 	switch value := obj[key].(type) {
 	case json.Number:
