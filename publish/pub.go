@@ -44,8 +44,11 @@ type Publisher struct {
 	pendingRequests chan PendingReq
 	tracer          *apm.Tracer
 	client          beat.Client
-	m               sync.RWMutex
-	stopped         bool
+
+	wg       sync.WaitGroup
+	stopOnce sync.Once
+	mu       sync.RWMutex
+	stopped  bool
 }
 
 type PendingReq struct {
@@ -106,6 +109,7 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	}
 
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
+		p.wg.Add(1)
 		go p.run()
 	}
 
@@ -118,26 +122,33 @@ func (p *Publisher) Client() beat.Client {
 }
 
 // Stop closes all channels and waits for the the worker to stop.
-// The worker will drain the queue on shutdown, but no more pending requests
-// will be published.
+//
+// The worker will drain the queue on shutdown, but no more requests
+// will be published after Stop returns.
 func (p *Publisher) Stop() {
-	p.m.Lock()
-	p.stopped = true
-	p.m.Unlock()
-	close(p.pendingRequests)
-	p.client.Close()
+	p.stopOnce.Do(func() {
+		p.mu.Lock()
+		p.stopped = true
+		p.mu.Unlock()
+		close(p.pendingRequests)
+		// Wait for goroutines to stop before closing the client,
+		// to ensure previously enqueued requests are published.
+		p.wg.Wait()
+		p.client.Close()
+	})
 }
 
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,
 // an error is returned.
-// Calling send after Stop will return an error.
+//
+// Calling Send after Stop will return an error without enqueuing the request.
 func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 	if len(req.Transformables) == 0 {
 		return nil
 	}
 
-	p.m.RLock()
-	defer p.m.RUnlock()
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	if p.stopped {
 		return ErrChannelClosed
 	}
@@ -153,6 +164,7 @@ func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 }
 
 func (p *Publisher) run() {
+	defer p.wg.Done()
 	ctx := context.Background()
 	for req := range p.pendingRequests {
 		p.processPendingReq(ctx, req)
