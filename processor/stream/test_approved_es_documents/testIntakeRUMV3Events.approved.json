@@ -77,9 +77,6 @@
                 "custom": {
                     "testContext": "testContext"
                 },
-                "device": {
-                    "servedViaServiceWorker": "notsupported"
-                },
                 "duration": {
                     "us": 295000
                 },
@@ -116,6 +113,7 @@
                 "page": {
                     "referer": "http://localhost:8000/test/e2e/",
                     "saveData": false,
+                    "servedViaServiceWorker": "notsupported",
                     "url": "http://localhost:8000/test/e2e/general-usecase/"
                 },
                 "sampled": true,

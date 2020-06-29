@@ -122,7 +122,6 @@ var rumV3Mapping = map[string]string{
 	"username":                    "un",
 	"value":                       "v",
 	"version":                     "ve",
-	"device":                      "dev",
 	"network":                     "nw",
 	"physical":                    "ph",
 	"effective_type":              "et",

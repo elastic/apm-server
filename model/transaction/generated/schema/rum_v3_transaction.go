@@ -776,22 +776,6 @@ const RUMV3Schema = `{
                         "null"
                     ]
                 },
-                "svd": {
-                    "description": "saveData",
-                    "type": [
-                        "boolean",
-                        "null"
-                    ]
-                }
-            }
-        },
-        "dev": {
-            "description": "device",
-            "type": [
-                "object",
-                "null"
-            ],
-            "properties": {
                 "ssw": {
                     "description": "servedViaServiceWorker",
                     "type": [
@@ -799,6 +783,13 @@ const RUMV3Schema = `{
                         "null"
                     ],
                     "maxLength": 1024
+                },
+                "svd": {
+                    "description": "saveData",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
                 }
             }
         },

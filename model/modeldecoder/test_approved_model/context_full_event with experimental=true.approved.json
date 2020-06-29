@@ -2,7 +2,6 @@
     "Custom": {
         "a": "b"
     },
-    "Device": null,
     "Experimental": {
         "foo": "bar"
     },
@@ -63,6 +62,7 @@
     "Page": {
         "Referer": "http://refer.example.com",
         "SaveData": null,
+        "ServedViaServiceWorker": null,
         "URL": {
             "Domain": "example.com",
             "Fragment": null,

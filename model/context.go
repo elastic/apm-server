@@ -34,7 +34,6 @@ type Context struct {
 	Labels       *Labels
 	Page         *Page
 	Custom       *Custom
-	Device       *Device
 	Message      *Message
 	Experimental interface{}
 }
@@ -110,12 +109,9 @@ func truncate(s string) string {
 
 // Page consists of URL and referer
 type Page struct {
-	URL      *URL
-	Referer  *string
-	SaveData *bool
-}
-
-type Device struct {
+	URL                    *URL
+	Referer                *string
+	SaveData               *bool
 	ServedViaServiceWorker *string
 }
 
@@ -210,15 +206,7 @@ func (page *Page) Fields() common.MapStr {
 	}
 	utility.Set(fields, "referer", page.Referer)
 	utility.Set(fields, "saveData", page.SaveData)
-	return fields
-}
-
-func (d *Device) Fields() common.MapStr {
-	if d == nil {
-		return nil
-	}
-	var fields = common.MapStr{}
-	utility.Set(fields, "servedViaServiceWorker", d.ServedViaServiceWorker)
+	utility.Set(fields, "servedViaServiceWorker", page.ServedViaServiceWorker)
 	return fields
 }
 

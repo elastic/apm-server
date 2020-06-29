@@ -47,7 +47,6 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadat
 	url, err := decodeURL(input, err)
 	custom, err := decodeCustom(input, cfg.HasShortFieldNames, err)
 	page, err := decodePage(input, cfg.HasShortFieldNames, err)
-	device, err := decodeDevice(input, cfg.HasShortFieldNames, err)
 	message, err := decodeMessage(input, err)
 	if err != nil {
 		return nil, err
@@ -57,7 +56,6 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadat
 		Http:         http,
 		URL:          url,
 		Page:         page,
-		Device:       device,
 		Custom:       custom,
 		Message:      message,
 		Experimental: experimental,
@@ -209,22 +207,6 @@ func decodeMinimalHTTPResponse(raw common.MapStr, hasShortFieldNames bool, err e
 	}, decoder.Err
 }
 
-func decodeDevice(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Device, error) {
-	if err != nil {
-		return nil, err
-	}
-	fieldName := field.Mapper(hasShortFieldNames)
-	deviceInput, ok := raw[fieldName("device")].(map[string]interface{})
-	if !ok {
-		return nil, nil
-	}
-	decoder := utility.ManualDecoder{}
-	device := &model.Device{
-		ServedViaServiceWorker: decoder.StringPtr(deviceInput, fieldName("servedViaServiceWorker")),
-	}
-	return device, decoder.Err
-}
-
 func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.Page, error) {
 	if err != nil {
 		return nil, err
@@ -236,8 +218,9 @@ func decodePage(raw common.MapStr, hasShortFieldNames bool, err error) (*model.P
 	}
 	decoder := utility.ManualDecoder{}
 	page := &model.Page{
-		Referer:  decoder.StringPtr(pageInput, fieldName("referer")),
-		SaveData: decoder.BoolPtr(pageInput, fieldName("saveData")),
+		Referer:                decoder.StringPtr(pageInput, fieldName("referer")),
+		SaveData:               decoder.BoolPtr(pageInput, fieldName("saveData")),
+		ServedViaServiceWorker: decoder.StringPtr(pageInput, fieldName("servedViaServiceWorker")),
 	}
 	if pageURL := decoder.StringPtr(pageInput, fieldName("url")); pageURL != nil {
 		page.URL = model.ParseURL(*pageURL, "")

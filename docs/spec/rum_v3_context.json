@@ -160,22 +160,6 @@
                         "null"
                     ]
                 },
-                "svd": {
-                    "description": "saveData",
-                    "type": [
-                        "boolean",
-                        "null"
-                    ]
-                }
-            }
-        },
-        "dev": {
-            "description": "device",
-            "type": [
-                "object",
-                "null"
-            ],
-            "properties": {
                 "ssw": {
                     "description": "servedViaServiceWorker",
                     "type": [
@@ -183,6 +167,13 @@
                         "null"
                     ],
                     "maxLength": 1024
+                },
+                "svd": {
+                    "description": "saveData",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
                 }
             }
         },
