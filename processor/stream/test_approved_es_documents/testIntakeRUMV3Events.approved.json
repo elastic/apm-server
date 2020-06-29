@@ -56,6 +56,10 @@
                 },
                 "version": "0.0.1"
             },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
+            },
             "timestamp": {
                 "us": 1533117600000000
             },
@@ -75,9 +79,7 @@
                         "rtt": 50,
                         "saveData": false
                     },
-                    "servedViaServiceWorker": "notsupported",
-                    "system.cpu.cores": 4,
-                    "system.memory.total": 8192.5
+                    "servedViaServiceWorker": "notsupported"
                 },
                 "duration": {
                     "us": 295000
@@ -182,6 +184,10 @@
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
+            },
             "timestamp": {
                 "us": 1533117600004000
             },
@@ -241,6 +247,10 @@
                 },
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
+            },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
             },
             "timestamp": {
                 "us": 1533117600014000
@@ -323,6 +333,10 @@
                 "subtype": "script",
                 "type": "rc"
             },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
+            },
             "timestamp": {
                 "us": 1533117600022534
             },
@@ -381,6 +395,10 @@
                     "us": 96929
                 },
                 "type": "cu"
+            },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
             },
             "timestamp": {
                 "us": 1533117600096929
@@ -463,6 +481,10 @@
                 "sync": true,
                 "type": "external"
             },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
+            },
             "timestamp": {
                 "us": 1533117600098940
             },
@@ -543,6 +565,10 @@
                 "subtype": "h",
                 "sync": true,
                 "type": "external"
+            },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
             },
             "timestamp": {
                 "us": 1533117600106520
@@ -626,6 +652,10 @@
                 "sync": false,
                 "type": "external"
             },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
+            },
             "timestamp": {
                 "us": 1533117600119935
             },
@@ -708,6 +738,10 @@
                 "subtype": "browser-timing",
                 "type": "hard-navigation"
             },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
+            },
             "timestamp": {
                 "us": 1533117600120000
             },
@@ -752,6 +786,10 @@
                     "version": "8.0"
                 },
                 "version": "0.0.1"
+            },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
             },
             "transaction": {
                 "breakdown": {
@@ -811,6 +849,10 @@
                 },
                 "type": "Request"
             },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
+            },
             "transaction": {
                 "name": "general-usecase-initial-p-load",
                 "type": "p-load"
@@ -859,6 +901,10 @@
                     }
                 },
                 "type": "Response"
+            },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
             },
             "transaction": {
                 "name": "general-usecase-initial-p-load",
@@ -910,6 +956,10 @@
                 },
                 "subtype": "subtype",
                 "type": "Processing"
+            },
+            "system": {
+                "cpu.cores": 4,
+                "memory.total": 8192.5
             },
             "user": {
                 "email": "user@email.com",

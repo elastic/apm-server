@@ -212,6 +212,29 @@ const RUMV3Schema = `{
         }
     }
         },
+        "ss": {
+            "description": "system",
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "cc": {
+                    "description": "cpu.cores",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "mm": {
+                    "description": "memory.total",
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                }
+            }
+        },
         "l": {
                 "$id": "docs/spec/tags.json",
     "title": "Tags",

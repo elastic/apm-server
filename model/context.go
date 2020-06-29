@@ -139,8 +139,6 @@ type Page struct {
 
 type Device struct {
 	NetworkInfo            *NetworkInfo
-	Cores                  *int
-	Memory                 *float64
 	ServedViaServiceWorker *string
 }
 
@@ -242,8 +240,6 @@ func (d *Device) Fields() common.MapStr {
 		return nil
 	}
 	var fields = common.MapStr{}
-	utility.Set(fields, "system.cpu.cores", d.Cores)
-	utility.Set(fields, "system.memory.total", d.Memory)
 	utility.Set(fields, "servedViaServiceWorker", d.ServedViaServiceWorker)
 	utility.Set(fields, "network", d.NetworkInfo.fields())
 	return fields

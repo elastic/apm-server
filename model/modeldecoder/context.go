@@ -220,8 +220,8 @@ func decodeDevice(raw common.MapStr, hasShortFieldNames bool, err error) (*model
 	}
 	decoder := utility.ManualDecoder{}
 	device := &model.Device{
-		Cores:                  decoder.IntPtr(deviceInput, fieldName("system.cpu.cores")),
-		Memory:                 decoder.Float64Ptr(deviceInput, fieldName("system.memory.total")),
+		//Cores:                  decoder.IntPtr(deviceInput, fieldName("system.cpu.cores")),
+		//Memory:                 decoder.Float64Ptr(deviceInput, fieldName("system.memory.total")),
 		ServedViaServiceWorker: decoder.StringPtr(deviceInput, fieldName("servedViaServiceWorker")),
 	}
 	networkInfoInput, ok := deviceInput[fieldName("network")]

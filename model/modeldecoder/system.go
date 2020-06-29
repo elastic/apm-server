@@ -20,13 +20,16 @@ package modeldecoder
 import (
 	"net"
 
+	"github.com/elastic/apm-server/model/modeldecoder/field"
+
 	"github.com/elastic/apm-server/model"
 )
 
-func decodeSystem(input map[string]interface{}, out *model.System) {
+func decodeSystem(input map[string]interface{}, hasShortFieldNames bool, out *model.System) {
 	if input == nil {
 		return
 	}
+	fieldName := field.Mapper(hasShortFieldNames)
 	decodeString(input, "platform", &out.Platform)
 	decodeString(input, "architecture", &out.Architecture)
 
@@ -43,4 +46,7 @@ func decodeSystem(input map[string]interface{}, out *model.System) {
 	if out.DetectedHostname == "" && out.ConfiguredHostname == "" {
 		decodeString(input, "hostname", &out.DetectedHostname)
 	}
+
+	decodeInt(input, fieldName("cpu.cores"), &out.Cores)
+	decodeFloat64(input, fieldName("memory.total"), &out.Memory)
 }

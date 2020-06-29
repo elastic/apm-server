@@ -57,7 +57,7 @@ func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonsche
 	}
 	fieldName := field.Mapper(hasShortFieldNames)
 	decodeService(getObject(raw, fieldName("service")), hasShortFieldNames, &out.Service)
-	decodeSystem(getObject(raw, "system"), &out.System)
+	decodeSystem(getObject(raw, fieldName("system")), hasShortFieldNames, &out.System)
 	decodeProcess(getObject(raw, "process"), &out.Process)
 	if userObj := getObject(raw, fieldName("user")); userObj != nil {
 		decodeUser(userObj, hasShortFieldNames, &out.User, &out.Client)

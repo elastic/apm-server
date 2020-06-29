@@ -35,6 +35,29 @@
         "u": {
             "$ref": "rum_v3_user.json"
         },
+        "ss": {
+            "description": "system",
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "cc": {
+                    "description": "cpu.cores",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "mm": {
+                    "description": "memory.total",
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                }
+            }
+        },
         "l": {
             "$ref": "tags.json"
         }

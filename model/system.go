@@ -28,6 +28,8 @@ type System struct {
 	ConfiguredHostname string
 	Architecture       string
 	Platform           string
+	Cores              int
+	Memory             float64
 	IP                 net.IP
 
 	Container  Container
@@ -62,7 +64,7 @@ func (s *System) Hostname() string {
 	return s.DetectedHostname
 }
 
-func (s *System) fields() common.MapStr {
+func (s *System) hostFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
@@ -76,6 +78,18 @@ func (s *System) fields() common.MapStr {
 	if s.IP != nil {
 		system.set("ip", s.IP.String())
 	}
+	return common.MapStr(system)
+}
+
+// For RUM V3 only
+func (s *System) systemFields() common.MapStr {
+	if s == nil {
+		return nil
+	}
+	var system mapStr
+	// these fields are aligned with metricbeat, even if not in ECS yet
+	system.maybeSetInt("cpu.cores", s.Cores)
+	system.maybeSetFloat64("memory.total", s.Memory)
 	return common.MapStr(system)
 }
 

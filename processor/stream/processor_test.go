@@ -209,8 +209,8 @@ func TestRUMV3(t *testing.T) {
 		path string
 		name string
 	}{
-		{path: "rum_errors.ndjson", name: "RUMV3Errors"},
 		{path: "rum_events.ndjson", name: "RUMV3Events"},
+		{path: "rum_errors.ndjson", name: "RUMV3Errors"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v3/", test.path))

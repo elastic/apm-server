@@ -76,7 +76,7 @@ type SpanCount struct {
 	Started *int
 }
 
-// fields creates the fields to populate in the top-level "transaction" object field.
+// hostFields creates the hostFields to populate in the top-level "transaction" object field.
 func (e *Transaction) fields() common.MapStr {
 	var fields mapStr
 	fields.set("id", e.ID)

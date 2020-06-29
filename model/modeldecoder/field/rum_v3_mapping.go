@@ -130,8 +130,9 @@ var rumV3Mapping = map[string]string{
 	"downlink":                    "dlk",
 	"downlink_max":                "dlkm",
 	"saveData":                    "svd",
-	"system.cpu.cores":            "scc",
-	"system.memory.total":         "smt",
+	"system":                      "ss",
+	"cpu.cores":                   "cc",
+	"memory.total":                "mm",
 	"servedViaServiceWorker":      "ssw",
 }
 

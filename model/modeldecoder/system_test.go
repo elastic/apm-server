@@ -180,7 +180,7 @@ func TestSystem(t *testing.T) {
 
 		t.Run(name, func(t *testing.T) {
 			var system model.System
-			decodeSystem(test.input, &system)
+			decodeSystem(test.input, true, &system)
 			assert.Equal(t, test.s, system)
 
 			resultName := fmt.Sprintf("test_approved_system/transform_%s", strings.ReplaceAll(name, " ", "_"))

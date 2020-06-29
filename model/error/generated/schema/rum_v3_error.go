@@ -336,20 +336,6 @@ const RUMV3Schema = `{
                         "null"
                     ],
                     "maxLength": 1024
-                },
-                "scc": {
-                    "description": "system.cpu.cores",
-                    "type": [
-                        "integer",
-                        "null"
-                    ]
-                },
-                "smt": {
-                    "description": "system.memory.total",
-                    "type": [
-                        "number",
-                        "null"
-                    ]
                 }
             }
         },

@@ -36,6 +36,22 @@ func (m *mapStr) maybeSetString(k, v string) bool {
 	return false
 }
 
+func (m *mapStr) maybeSetInt(k string, v int) bool {
+	if v != 0 {
+		m.set(k, v)
+		return true
+	}
+	return false
+}
+
+func (m *mapStr) maybeSetFloat64(k string, v float64) bool {
+	if v != 0.0 {
+		m.set(k, v)
+		return true
+	}
+	return false
+}
+
 func (m *mapStr) maybeSetMapStr(k string, v common.MapStr) bool {
 	if len(v) > 0 {
 		m.set(k, v)
