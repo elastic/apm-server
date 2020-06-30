@@ -55,7 +55,6 @@ func init() {
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
-	mage.UseVendor = false
 	mage.CrossBuildMountModcache = true
 }
 
