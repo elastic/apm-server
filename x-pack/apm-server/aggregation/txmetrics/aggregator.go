@@ -7,6 +7,7 @@ package txmetrics
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -26,6 +27,15 @@ import (
 const (
 	minDuration time.Duration = 0
 	maxDuration time.Duration = time.Hour
+
+	// We scale transaction counts in the histogram, which only permits storing
+	// tnteger counts, to allow for fractional transactions due to sampling.
+	//
+	// e.g. if the sampling rate is 0.4, then each sampled transaction has a
+	// representative count of 2.5 (1/0.4). If we receive two such transactions
+	// we will record a count of 5000 (2 * 2.5 * histogramCountScale). When we
+	// publish metrics, we will scale down to 5 (5000 / histogramCountScale).
+	histogramCountScale = 1000
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
@@ -192,21 +202,22 @@ func (a *Aggregator) AggregateTransformables(in []transform.Transformable) []tra
 func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricset {
 	key := a.makeTransactionAggregationKey(tx)
 	hash := key.hash()
+	count := transactionCount(tx)
 	duration := time.Duration(tx.Duration * float64(time.Millisecond))
-	if a.updateTransactionMetrics(key, hash, duration) {
+	if a.updateTransactionMetrics(key, hash, count, duration) {
 		return nil
 	}
 	// Too many aggregation keys: could not update metrics, so immediately
 	// publish a single-value metric document.
 	//
 	// TODO(axw) log a warning with a rate-limit, increment a counter.
-	counts := []int64{1}
+	counts := []int64{int64(math.Round(count))}
 	values := []float64{float64(durationMicros(duration))}
 	metricset := makeMetricset(key, hash, time.Now(), counts, values)
 	return &metricset
 }
 
-func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, duration time.Duration) bool {
+func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration time.Duration) bool {
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
@@ -224,7 +235,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	if ok {
 		for offset = range entries {
 			if entries[offset].transactionAggregationKey == key {
-				entries[offset].recordDuration(duration)
+				entries[offset].recordDuration(duration, count)
 				return true
 			}
 		}
@@ -237,7 +248,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		for i := range entries[offset:] {
 			if entries[offset+i].transactionAggregationKey == key {
 				m.mu.Unlock()
-				entries[offset+i].recordDuration(duration)
+				entries[offset+i].recordDuration(duration, count)
 				return true
 			}
 		}
@@ -256,7 +267,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	} else {
 		entry.transactionMetrics.histogram.Reset()
 	}
-	entry.recordDuration(duration)
+	entry.recordDuration(duration, count)
 	m.m[hash] = append(entries, entry)
 	m.entries++
 	m.mu.Unlock()
@@ -401,8 +412,9 @@ type transactionMetrics struct {
 	histogram *hdrhistogram.Histogram
 }
 
-func (m *transactionMetrics) recordDuration(d time.Duration) {
-	m.histogram.RecordValueAtomic(durationMicros(d))
+func (m *transactionMetrics) recordDuration(d time.Duration, n float64) {
+	count := int64(math.Round(n * histogramCountScale))
+	m.histogram.RecordValuesAtomic(durationMicros(d), count)
 }
 
 func (m *transactionMetrics) histogramBuckets() (counts []int64, values []float64) {
@@ -418,10 +430,18 @@ func (m *transactionMetrics) histogramBuckets() (counts []int64, values []float6
 		if b.Count <= 0 {
 			continue
 		}
-		counts = append(counts, b.Count)
+		count := math.Round(float64(b.Count) / histogramCountScale)
+		counts = append(counts, int64(count))
 		values = append(values, float64(b.To))
 	}
 	return counts, values
+}
+
+func transactionCount(tx *model.Transaction) float64 {
+	if tx.RepresentativeCount > 0 {
+		return tx.RepresentativeCount
+	}
+	return 1
 }
 
 func durationMicros(d time.Duration) int64 {
