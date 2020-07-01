@@ -7,10 +7,10 @@
 
 You can use the {stack} {monitor-features} to gain insight into the health of
 ifndef::apm-server[]
-{beatname_uc} instances running in your environment. 
+{beatname_uc} instances running in your environment.
 endif::[]
 ifdef::apm-server[]
-{beatname_uc}. 
+{beatname_uc}.
 endif::[]
 
 To monitor {beatname_uc}, make sure monitoring is enabled on your {es} cluster,
@@ -27,8 +27,8 @@ ifndef::serverless[]
 * <<monitoring-metricbeat-collection, {metricbeat} collection>>
 endif::[]
 
-To learn about monitoring in general, see 
-{stack-ov}/xpack-monitoring.html[Monitoring the {stack}]. 
+To learn about monitoring in general, see
+{ref}/monitor-elasticsearch-cluster.html[Monitoring the {stack}].
 
 --
 
