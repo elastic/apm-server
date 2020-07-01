@@ -41,14 +41,15 @@ type Reporter func(context.Context, PendingReq) error
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
-	pendingRequests chan PendingReq
+	stopped         chan struct{}
 	tracer          *apm.Tracer
 	client          beat.Client
+	shutdownTimeout time.Duration
+	waitPublished   *waitPublishedAcker
 
-	wg       sync.WaitGroup
-	stopOnce sync.Once
-	mu       sync.RWMutex
-	stopped  bool
+	mu              sync.RWMutex
+	stopping        bool
+	pendingRequests chan PendingReq
 }
 
 type PendingReq struct {
@@ -89,29 +90,40 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
 	}
-	client, err := pipeline.ConnectWith(beat.ClientConfig{
-		PublishMode: beat.GuaranteedSend,
-		// If set >0 `Close` will block for the duration or until pipeline is empty
-		WaitClose:  cfg.ShutdownTimeout,
-		Processing: processingCfg,
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	p := &Publisher{
-		tracer: tracer,
-		client: client,
+		tracer:          tracer,
+		stopped:         make(chan struct{}),
+		shutdownTimeout: cfg.ShutdownTimeout, // TODO(axw) remove this
+		waitPublished:   newWaitPublishedAcker(),
 
 		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
 		pendingRequests: make(chan PendingReq, runtime.GOMAXPROCS(0)),
 	}
 
-	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
-		p.wg.Add(1)
-		go p.run()
+	client, err := pipeline.ConnectWith(beat.ClientConfig{
+		PublishMode: beat.GuaranteedSend,
+		Processing:  processingCfg,
+		ACKHandler:  p.waitPublished,
+	})
+	if err != nil {
+		return nil, err
 	}
+	p.client = client
+
+	var wg sync.WaitGroup
+	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			p.run()
+		}()
+	}
+	go func() {
+		defer close(p.stopped)
+		wg.Wait()
+	}()
 
 	return p, nil
 }
@@ -121,21 +133,42 @@ func (p *Publisher) Client() beat.Client {
 	return p.client
 }
 
-// Stop closes all channels and waits for the the worker to stop.
+// Stop closes all channels and waits for the the worker to stop, or for the
+// context to be signalled. If the context is never cancelled, Stop may block
+// indefinitely.
 //
-// The worker will drain the queue on shutdown, but no more requests
-// will be published after Stop returns.
-func (p *Publisher) Stop() {
-	p.stopOnce.Do(func() {
-		p.mu.Lock()
-		p.stopped = true
-		p.mu.Unlock()
+// The worker will drain the queue on shutdown, but no more requests will be
+// published after Stop returns.
+func (p *Publisher) Stop(ctx context.Context) error {
+	// TODO(axw) move timeout to outside responsibility
+	if p.shutdownTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, p.shutdownTimeout)
+		defer cancel()
+	}
+
+	// Prevent additional requests from being enqueued.
+	p.mu.Lock()
+	if !p.stopping {
+		p.stopping = true
 		close(p.pendingRequests)
-		// Wait for goroutines to stop before closing the client,
-		// to ensure previously enqueued requests are published.
-		p.wg.Wait()
-		p.client.Close()
-	})
+	}
+	p.mu.Unlock()
+
+	// Wait for enqueued events to be published. Order of events is
+	// important here:
+	//   (1) wait for pendingRequests to be drained and published (p.stopped)
+	//   (2) close the beat.Client to prevent more events being published
+	//   (3) wait for published events to be acknowledged
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-p.stopped:
+	}
+	if err := p.client.Close(); err != nil {
+		return err
+	}
+	return p.waitPublished.Wait(ctx)
 }
 
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,
@@ -149,7 +182,7 @@ func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	if p.stopped {
+	if p.stopping {
 		return ErrChannelClosed
 	}
 
@@ -158,13 +191,15 @@ func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 		return ctx.Err()
 	case p.pendingRequests <- req:
 		return nil
-	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
+	case <-time.After(time.Second * 1):
+		// TODO(axw) instead of having an arbitrary delay here,
+		// make it the caller's responsibility to use a context
+		// with a timeout.
 		return ErrFull
 	}
 }
 
 func (p *Publisher) run() {
-	defer p.wg.Done()
 	ctx := context.Background()
 	for req := range p.pendingRequests {
 		p.processPendingReq(ctx, req)

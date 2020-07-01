@@ -157,7 +157,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	if err != nil {
 		return err
 	}
-	defer publisher.Stop()
+	defer publisher.Stop(context.Background())
 
 	reporter := publisher.Send
 	if !bt.config.Sampling.KeepUnsampled {
