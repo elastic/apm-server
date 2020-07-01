@@ -349,9 +349,9 @@ endif::apm-server[]
 ==== Learn more about users and roles
 
 Want to learn more about creating users and roles? See
-{stack-ov}/elasticsearch-security.html[Securing the {stack}]. Also see:
+{ref}/elasticsearch-security.html[Securing the {stack}]. Also see:
 
-* {stack-ov}/security-privileges.html[Security privileges] for a description of
+* {ref}/security-privileges.html[Security privileges] for a description of
 available privileges
-* {stack-ov}/built-in-roles.html[Built-in roles] for a description of roles that
+* {ref}/built-in-roles.html[Built-in roles] for a description of roles that
 you can assign to users
