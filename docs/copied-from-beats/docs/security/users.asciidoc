@@ -145,9 +145,9 @@ ifndef::serverless[]
 ===== {metricbeat} collection
 
 For <<monitoring-metricbeat-collection,{metricbeat} collection>>, {security}
-provides the `remote_monitoring_user` {stack-ov}/built-in-users.html[built-in
+provides the `remote_monitoring_user` {ref}/built-in-users.html[built-in
 user], and the `remote_monitoring_collector` and `remote_monitoring_agent`
-{stack-ov}/built-in-roles.html[built-in roles] for collecting and sending
+{ref}/built-in-roles.html[built-in roles] for collecting and sending
 monitoring information. You can use the built-in user, or
 create a user who has the privileges needed to collect and send monitoring
 information.
