@@ -28,7 +28,8 @@ const (
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
 type Aggregator struct {
-	config AggregatorConfig
+	config          AggregatorConfig
+	userAgentLookup *userAgentLookup
 
 	mu               sync.RWMutex
 	active, inactive *metrics
@@ -59,6 +60,10 @@ type AggregatorConfig struct {
 	// to maintain in the HDR Histograms. HDRHistogramSignificantFigures
 	// must be in the range [1,5].
 	HDRHistogramSignificantFigures int
+
+	// RUMUserAgentLRUSize is the size of the LRU cache for mapping RUM
+	// page-load User-Agent strings to browser names.
+	RUMUserAgentLRUSize int
 }
 
 // Validate validates the aggregator config.
@@ -75,6 +80,9 @@ func (config AggregatorConfig) Validate() error {
 	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
 		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
 	}
+	if config.RUMUserAgentLRUSize <= 0 {
+		return errors.New("RUMUserAgentLRUSize unspecified or negative")
+	}
 	return nil
 }
 
@@ -86,10 +94,15 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
+	ual, err := newUserAgentLookup(config.RUMUserAgentLRUSize)
+	if err != nil {
+		return nil, err
+	}
 	return &Aggregator{
-		config:   config,
-		active:   newMetrics(config.MaxTransactionGroups),
-		inactive: newMetrics(config.MaxTransactionGroups),
+		config:          config,
+		userAgentLookup: ual,
+		active:          newMetrics(config.MaxTransactionGroups),
+		inactive:        newMetrics(config.MaxTransactionGroups),
 	}, nil
 }
 
@@ -175,7 +188,7 @@ func (a *Aggregator) AggregateTransformables(in []transform.Transformable) []tra
 // be returned which should be published immediately, along with the
 // transaction. Otherwise, the returned metricset will be nil.
 func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricset {
-	key := makeTransactionAggregationKey(tx)
+	key := a.makeTransactionAggregationKey(tx)
 	duration := time.Duration(tx.Duration * float64(time.Millisecond))
 	if a.updateTransactionMetrics(key, duration) {
 		return nil
@@ -248,6 +261,37 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, dur
 	return true
 }
 
+func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transactionAggregationKey {
+	var userAgentName string
+	if tx.Type == "page-load" {
+		// The APM app in Kibana has a special case for "page-load"
+		// transaction types, rendering distributions by country and
+		// browser. We use the same logic to decide whether or not
+		// to include user_agent.name in the aggregation key.
+		userAgentName = a.userAgentLookup.getUserAgentName(tx.Metadata.UserAgent.Original)
+	}
+
+	return transactionAggregationKey{
+		traceRoot:         tx.ParentID == "",
+		transactionName:   tx.Name,
+		transactionResult: tx.Result,
+		transactionType:   tx.Type,
+
+		agentName:          tx.Metadata.Service.Agent.Name,
+		serviceEnvironment: tx.Metadata.Service.Environment,
+		serviceName:        tx.Metadata.Service.Name,
+		serviceVersion:     tx.Metadata.Service.Version,
+
+		hostname:          tx.Metadata.System.Hostname(),
+		containerID:       tx.Metadata.System.Container.ID,
+		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
+
+		userAgentName: userAgentName,
+
+		// TODO(axw) clientCountryISOCode, requires geoIP lookup in apm-server.
+	}
+}
+
 // makeMetricset makes a Metricset from key, counts, and values, with timestamp ts.
 func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, values []float64) model.Metricset {
 	out := model.Metricset{
@@ -264,7 +308,9 @@ func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, 
 				Container:        model.Container{ID: key.containerID},
 				Kubernetes:       model.Kubernetes{PodName: key.kubernetesPodName},
 			},
-			// TODO(axw) include browser name, by parsing the user agent
+			UserAgent: model.UserAgent{
+				Name: key.userAgentName,
+			},
 			// TODO(axw) include client.geo.country_iso_code somewhere
 		},
 		Transaction: model.MetricsetTransaction{
@@ -304,8 +350,6 @@ type metricsMapEntry struct {
 type transactionAggregationKey struct {
 	traceRoot bool
 	agentName string
-	// TODO(axw) requires User-Agent parsing in apm-server.
-	//browserName string
 	// TODO(axw) requires geoIP lookup in apm-server.
 	//clientCountryISOCode string
 	containerID        string
@@ -317,33 +361,7 @@ type transactionAggregationKey struct {
 	transactionName    string
 	transactionResult  string
 	transactionType    string
-}
-
-func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregationKey {
-	deref := func(s *string) string {
-		if s != nil {
-			return *s
-		}
-		return ""
-	}
-	return transactionAggregationKey{
-		traceRoot:         tx.ParentID == "",
-		transactionName:   deref(tx.Name),
-		transactionResult: deref(tx.Result),
-		transactionType:   tx.Type,
-
-		agentName:          tx.Metadata.Service.Agent.Name,
-		serviceEnvironment: tx.Metadata.Service.Environment,
-		serviceName:        tx.Metadata.Service.Name,
-		serviceVersion:     tx.Metadata.Service.Version,
-
-		hostname:          tx.Metadata.System.Hostname(),
-		containerID:       tx.Metadata.System.Container.ID,
-		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
-
-		// TODO(axw) browser name, requires parsing User-Agent in apm-server.
-		// TODO(axw) clientCountryISOCode, requires geoIP lookup in apm-server.
-	}
+	userAgentName      string
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
@@ -353,7 +371,6 @@ func (k *transactionAggregationKey) hash() uint64 {
 		h.WriteString("1")
 	}
 	h.WriteString(k.agentName)
-	// TODO(axw) browserName
 	// TODO(axw) clientCountryISOCode
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
@@ -364,6 +381,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.transactionName)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
+	h.WriteString(k.userAgentName)
 	return h.Sum64()
 }
 

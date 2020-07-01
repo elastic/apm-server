@@ -28,7 +28,7 @@ import (
 )
 
 func TestUserDecode(t *testing.T) {
-	id, mail, name, ip, agent := "12", "m@g.dk", "foo", "127.0.0.1", "ruby"
+	id, mail, name, ip := "12", "m@g.dk", "foo", "127.0.0.1"
 	for _, test := range []struct {
 		input  map[string]interface{}
 		user   model.User
@@ -45,9 +45,9 @@ func TestUserDecode(t *testing.T) {
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "email": mail, "username": name, "ip": ip, "user-agent": agent,
+				"id": id, "email": mail, "username": name, "ip": ip,
 			},
-			user:   model.User{ID: id, Email: mail, Name: name, UserAgent: agent},
+			user:   model.User{ID: id, Email: mail, Name: name},
 			client: model.Client{IP: net.ParseIP(ip)},
 		},
 	} {

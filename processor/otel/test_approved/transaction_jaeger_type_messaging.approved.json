@@ -6,6 +6,13 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "host": {
+                "hostname": "host-abc",
+                "name": "host-abc"
+            },
+            "parent": {
+                "id": "61626364"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -14,22 +21,27 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "node": {
+                    "name": "host-abc"
+                }
             },
             "timestamp": {
                 "us": 1576500418000768
-            },
-            "trace": {
-                "id": "46467830"
             },
             "transaction": {
                 "duration": {
                     "us": 0
                 },
-                "id": "41414646",
+                "id": "",
+                "message": {
+                    "queue": {
+                        "name": "queue-abc"
+                    }
+                },
                 "result": "Success",
                 "sampled": true,
-                "type": "custom"
+                "type": "messaging"
             }
         }
     ]

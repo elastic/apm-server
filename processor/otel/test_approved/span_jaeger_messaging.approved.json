@@ -10,11 +10,11 @@
                 "hostname": "host-abc",
                 "name": "host-abc"
             },
-            "labels": {
-                "error": true
+            "parent": {
+                "id": "58585858"
             },
             "processor": {
-                "event": "transaction",
+                "event": "span",
                 "name": "transaction"
             },
             "service": {
@@ -26,17 +26,24 @@
                     "name": "host-abc"
                 }
             },
-            "timestamp": {
-                "us": 1576500418000768
-            },
-            "transaction": {
+            "span": {
                 "duration": {
                     "us": 79000000
                 },
-                "id": "",
-                "result": "Error",
-                "sampled": true,
-                "type": "custom"
+                "id": "41414646",
+                "message": {
+                    "queue": {
+                        "name": "queue-abc"
+                    }
+                },
+                "name": "Message receive",
+                "type": "messaging"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "46467830"
             }
         }
     ]

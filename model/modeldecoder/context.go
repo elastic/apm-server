@@ -73,7 +73,7 @@ func decodeContext(input map[string]interface{}, cfg Config, meta *model.Metadat
 		decodeUser(userInp, cfg.HasShortFieldNames, &meta.User, &meta.Client)
 	}
 	if ua := http.UserAgent(); ua != "" {
-		meta.User.UserAgent = ua
+		meta.UserAgent.Original = ua
 	}
 	if meta.Client.IP == nil {
 		meta.Client.IP = getHTTPClientIP(http)

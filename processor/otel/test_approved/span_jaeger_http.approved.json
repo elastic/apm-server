@@ -20,7 +20,6 @@
                 "error": true,
                 "hasErrors": true,
                 "int_a": 148,
-                "peer_service": "sql",
                 "string_a_b": "some note",
                 "type": "db_request"
             },
@@ -41,6 +40,11 @@
                 }
             },
             "span": {
+                "destination": {
+                    "service": {
+                        "name": "sql"
+                    }
+                },
                 "duration": {
                     "us": 79000000
                 },

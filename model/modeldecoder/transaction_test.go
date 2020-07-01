@@ -28,8 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/tests"
 )
@@ -50,7 +48,7 @@ var (
 
 	marks = map[string]interface{}{"navigationTiming": map[string]interface{}{
 		"appBeforeBootstrap": 608.9300000000001,
-		"navigationStart":    -21,
+		"navigationStart":    -21.0,
 	}}
 
 	trUserName  = "jane"
@@ -143,27 +141,26 @@ func TestDecodeTransactionInvalid(t *testing.T) {
 }
 
 func TestTransactionDecodeRUMV3Marks(t *testing.T) {
+	// TODO use DecodeRUMV3Transaction to ensure we test with completely valid input data.
+
 	// unknown fields are ignored
 	input := map[string]interface{}{
-		"k": map[string]interface{}{
+		"foo": 0,
+		"a": map[string]interface{}{
 			"foo": 0,
-			"a": map[string]interface{}{
-				"foo": 0,
-				"dc":  1.2,
-			},
-			"nt": map[string]interface{}{
-				"foo": 0,
-				"dc":  1.2,
-			},
+			"dc":  1.2,
+		},
+		"nt": map[string]interface{}{
+			"foo": 0,
+			"dc":  1.2,
 		},
 	}
-	marks, err := decodeRUMV3Marks(input, Config{HasShortFieldNames: true})
-	require.Nil(t, err)
+	marks := decodeRUMV3Marks(input, Config{HasShortFieldNames: true})
 
 	var f = 1.2
-	assert.Equal(t, common.MapStr{
-		"agent":            common.MapStr{"domComplete": &f},
-		"navigationTiming": common.MapStr{"domComplete": &f},
+	assert.Equal(t, model.TransactionMarks{
+		"agent":            {"domComplete": f},
+		"navigationTiming": {"domComplete": f},
 	}, marks)
 }
 
@@ -177,10 +174,6 @@ func TestTransactionEventDecode(t *testing.T) {
 	dropped, started, duration := 12, 6, 1.67
 	name, userID, email, userIP := "jane", "abc123", "j@d.com", "127.0.0.1"
 	url, referer, origURL := "https://mypage.com", "http:mypage.com", "127.0.0.1"
-	marks := map[string]interface{}{"navigationTiming": map[string]interface{}{
-		"appBeforeBootstrap": 608.9300000000001,
-		"navigationStart":    -21,
-	}}
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
@@ -194,7 +187,8 @@ func TestTransactionEventDecode(t *testing.T) {
 	inputMetadata := model.Metadata{Service: model.Service{Name: "foo"}}
 
 	mergedMetadata := inputMetadata
-	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID, UserAgent: ua}
+	mergedMetadata.User = model.User{Name: name, Email: email, ID: userID}
+	mergedMetadata.UserAgent.Original = ua
 	mergedMetadata.Client.IP = net.ParseIP(userIP)
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -214,7 +208,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Metadata:  inputMetadata,
 				ID:        id,
 				Type:      trType,
-				Name:      &name,
+				Name:      name,
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: requestTime,
@@ -231,7 +225,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Metadata:  inputMetadata,
 				ID:        id,
 				Type:      trType,
-				Name:      &name,
+				Name:      name,
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
@@ -248,7 +242,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Metadata:  inputMetadata,
 				ID:        id,
 				Type:      trType,
-				Name:      &name,
+				Name:      name,
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
@@ -265,7 +259,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Metadata:     inputMetadata,
 				ID:           id,
 				Type:         trType,
-				Name:         &name,
+				Name:         name,
 				TraceID:      traceID,
 				Duration:     duration,
 				Timestamp:    timestampParsed,
@@ -289,7 +283,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			e: &model.Transaction{
 				Metadata:  inputMetadata,
 				ID:        id,
-				Name:      &name,
+				Name:      name,
 				Type:      "messaging",
 				TraceID:   traceID,
 				Duration:  duration,
@@ -331,13 +325,18 @@ func TestTransactionEventDecode(t *testing.T) {
 				Metadata:  mergedMetadata,
 				ID:        id,
 				Type:      trType,
-				Name:      &name,
-				Result:    &result,
+				Name:      name,
+				Result:    result,
 				ParentID:  parentID,
 				TraceID:   traceID,
 				Duration:  duration,
 				Timestamp: timestampParsed,
-				Marks:     marks,
+				Marks: model.TransactionMarks{
+					"navigationTiming": model.TransactionMark{
+						"appBeforeBootstrap": 608.9300000000001,
+						"navigationStart":    -21,
+					},
+				},
 				Sampled:   &sampled,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Labels:    &labels,

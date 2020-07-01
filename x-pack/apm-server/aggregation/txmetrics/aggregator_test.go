@@ -55,6 +55,14 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 			HDRHistogramSignificantFigures: 6,
 		},
 		err: "HDRHistogramSignificantFigures (6) outside range [1,5]",
+	}, {
+		config: txmetrics.AggregatorConfig{
+			Report:                         report,
+			MaxTransactionGroups:           1,
+			MetricsInterval:                time.Nanosecond,
+			HDRHistogramSignificantFigures: 5,
+		},
+		err: "RUMUserAgentLRUSize unspecified or negative",
 	}} {
 		agg, err := txmetrics.NewAggregator(test.config)
 		require.Error(t, err)
@@ -71,6 +79,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 		MaxTransactionGroups:           2,
 		MetricsInterval:                time.Microsecond,
 		HDRHistogramSignificantFigures: 1,
+		RUMUserAgentLRUSize:            1,
 	})
 	require.NoError(t, err)
 
@@ -78,8 +87,8 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 	// as we have configured the txmetrics with a maximum of two buckets.
 	var input []transform.Transformable
 	for i := 0; i < 10; i++ {
-		input = append(input, &model.Transaction{Name: newString("foo")})
-		input = append(input, &model.Transaction{Name: newString("bar")})
+		input = append(input, &model.Transaction{Name: "foo"})
+		input = append(input, &model.Transaction{Name: "bar"})
 	}
 	output := agg.AggregateTransformables(input)
 	assert.Equal(t, input, output)
@@ -87,7 +96,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 	// The third transaction group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
 		input = append(input, &model.Transaction{
-			Name:     newString("baz"),
+			Name:     "baz",
 			Duration: float64(time.Minute / time.Millisecond),
 		})
 	}
@@ -124,15 +133,16 @@ func TestAggregatorRun(t *testing.T) {
 		MaxTransactionGroups:           2,
 		MetricsInterval:                10 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
+		RUMUserAgentLRUSize:            1,
 	})
 	require.NoError(t, err)
 
 	for i := 0; i < 1000; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-1000")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
 		require.Nil(t, metricset)
 	}
 	for i := 0; i < 800; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-800")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-800"})
 		require.Nil(t, metricset)
 	}
 
@@ -182,6 +192,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 		MaxTransactionGroups:           2,
 		MetricsInterval:                10 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
+		RUMUserAgentLRUSize:            1,
 		Logger:                         logger,
 	})
 	require.NoError(t, err)
@@ -190,7 +201,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	defer stopAggregator()
 
 	for i := 0; i < 2; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-1000")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
 		require.Nil(t, metricset)
 		expectPublish(t, reqs)
 	}
@@ -223,6 +234,7 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			MaxTransactionGroups:           2,
 			MetricsInterval:                10 * time.Millisecond,
 			HDRHistogramSignificantFigures: sigfigs,
+			RUMUserAgentLRUSize:            1,
 		})
 		require.NoError(t, err)
 
@@ -240,7 +252,7 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101111 * time.Microsecond,
 		} {
 			metricset := agg.AggregateTransaction(&model.Transaction{
-				Name:     newString("T-1000"),
+				Name:     "T-1000",
 				Duration: durationMillis(duration),
 			})
 			require.Nil(t, metricset)
@@ -265,13 +277,37 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 		MaxTransactionGroups:           1000,
 		MetricsInterval:                time.Minute,
 		HDRHistogramSignificantFigures: 2,
+		RUMUserAgentLRUSize:            1,
 	})
 	require.NoError(b, err)
 
 	tx := &model.Transaction{
-		Name:     newString("T-1000"),
+		Name:     "T-1000",
 		Duration: 1,
 	}
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			agg.AggregateTransaction(tx)
+		}
+	})
+}
+
+func BenchmarkAggregateTransactionUserAgent(b *testing.B) {
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		Report:                         makeErrReporter(nil),
+		MaxTransactionGroups:           1000,
+		MetricsInterval:                time.Minute,
+		HDRHistogramSignificantFigures: 2,
+		RUMUserAgentLRUSize:            1,
+	})
+	require.NoError(b, err)
+
+	tx := &model.Transaction{
+		Name:     "T-1000",
+		Duration: 1,
+	}
+	tx.Metadata.UserAgent.Original = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0) Gecko/20110408 conkeror/0.9.3"
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -316,8 +352,4 @@ func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingRe
 		t.Fatal("expected publish")
 	}
 	panic("unreachable")
-}
-
-func newString(s string) *string {
-	return &s
 }

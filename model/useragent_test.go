@@ -25,35 +25,23 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestUserFields(t *testing.T) {
-	id := "1234"
-	email := "test@mail.co"
-	name := "user123"
-
+func TestUserAgentFields(t *testing.T) {
 	tests := []struct {
-		User   User
-		Output common.MapStr
-	}{
-		{
-			User:   User{},
-			Output: nil,
-		},
-		{
-			User: User{
-				ID:    id,
-				Email: email,
-				Name:  name,
-			},
-			Output: common.MapStr{
-				"id":    "1234",
-				"email": "test@mail.co",
-				"name":  "user123",
-			},
-		},
-	}
+		UserAgent UserAgent
+		Output    common.MapStr
+	}{{
+		UserAgent: UserAgent{},
+		Output:    nil,
+	}, {
+		UserAgent: UserAgent{Original: "rum-1.0"},
+		Output:    common.MapStr{"original": "rum-1.0"},
+	}, {
+		UserAgent: UserAgent{Name: "mosaic"},
+		Output:    common.MapStr{"name": "mosaic"},
+	}}
 
 	for _, test := range tests {
-		output := test.User.Fields()
+		output := test.UserAgent.fields()
 		assert.Equal(t, test.Output, output)
 	}
 }

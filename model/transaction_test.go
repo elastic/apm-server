@@ -105,9 +105,9 @@ func TestTransactionTransform(t *testing.T) {
 		{
 			Transaction: Transaction{
 				ID:        id,
-				Name:      &name,
+				Name:      name,
 				Type:      "tx",
-				Result:    &result,
+				Result:    result,
 				Timestamp: time.Now(),
 				Duration:  65.98,
 				Sampled:   &sampled,
@@ -155,9 +155,10 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Architecture:       architecture,
 			Platform:           platform,
 		},
-		User:   User{ID: id, Name: name, UserAgent: userAgent},
-		Client: Client{IP: net.ParseIP(ip)},
-		Labels: common.MapStr{"a": true},
+		User:      User{ID: id, Name: name},
+		UserAgent: UserAgent{Original: userAgent},
+		Client:    Client{IP: net.ParseIP(ip)},
+		Labels:    common.MapStr{"a": true},
 	}
 
 	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}}
