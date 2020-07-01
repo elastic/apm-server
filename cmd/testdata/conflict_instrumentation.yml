@@ -1,0 +1,6 @@
+apm-server:
+  instrumentation:
+    enabled: true
+
+instrumentation:
+  enabled: false
