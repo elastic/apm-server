@@ -28,9 +28,8 @@ const (
 	minDuration time.Duration = 0
 	maxDuration time.Duration = time.Hour
 
-	// We scale transaction counts in the the histogram, which only permits
-	// storing integer counts, to allow for fractional transactions due to
-	// sampling.
+	// We scale transaction counts in the histogram, which only permits storing
+	// tnteger counts, to allow for fractional transactions due to sampling.
 	//
 	// e.g. if the sampling rate is 0.4, then each sampled transaction has a
 	// representative count of 2.5 (1/0.4). If we receive two such transactions

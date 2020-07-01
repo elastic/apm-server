@@ -277,6 +277,10 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 	stopAggregator := runAggregator(agg)
 	defer stopAggregator()
 
+	// Check the fractional transaction counts for the "fnord" transaction
+	// group were accumulated with some degree of accuracy. i.e. we should
+	// receive round(1+1.5)=3; the fractional values should not have been
+	// truncated.
 	req := expectPublish(t, reqs)
 	require.Len(t, req.Transformables, 1)
 	metricset := req.Transformables[0].(*model.Metricset)
