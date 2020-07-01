@@ -157,11 +157,11 @@ func TestDecodeContext(t *testing.T) {
 					"cookies": map[string]interface{}{"c1": "b", "c2": "c"}},
 				"tags": map[string]interface{}{"ab": "c", "status": 200, "success": false},
 				"user": map[string]interface{}{
-					"username":   "john",
-					"email":      "doe",
-					"ip":         "192.158.0.1",
-					"id":         "12345678ab",
-					"user-agent": "go-1.1"},
+					"username": "john",
+					"email":    "doe",
+					"ip":       "192.158.0.1",
+					"id":       "12345678ab",
+				},
 				"service": map[string]interface{}{
 					"name":        "myService",
 					"version":     "5.1.3",
@@ -234,19 +234,17 @@ func TestDecodeContextMetadata(t *testing.T) {
 		// ID is missing because per-event user metadata
 		// replaces stream user metadata. This is unlike
 		// service metadata above, which is merged.
-		Name:      "john",
-		Email:     "john.doe@testing.invalid",
-		UserAgent: "go-1.1",
+		Name:  "john",
+		Email: "john.doe@testing.invalid",
 	}
 	mergedMetadata.Client.IP = net.ParseIP("10.1.1.1")
 
 	input := map[string]interface{}{
 		"tags": map[string]interface{}{"ab": "c", "status": 200, "success": false},
 		"user": map[string]interface{}{
-			"username":   mergedMetadata.User.Name,
-			"email":      mergedMetadata.User.Email,
-			"ip":         mergedMetadata.Client.IP.String(),
-			"user-agent": mergedMetadata.User.UserAgent,
+			"username": mergedMetadata.User.Name,
+			"email":    mergedMetadata.User.Email,
+			"ip":       mergedMetadata.Client.IP.String(),
 		},
 		"service": map[string]interface{}{
 			"version":     mergedMetadata.Service.Version,

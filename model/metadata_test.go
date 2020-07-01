@@ -155,10 +155,12 @@ func BenchmarkMetadataSet(b *testing.B) {
 			},
 		},
 		User: User{
-			ID:        "123",
-			Email:     "me@example.com",
-			Name:      "bob",
-			UserAgent: "user-agent",
+			ID:    "123",
+			Email: "me@example.com",
+			Name:  "bob",
+		},
+		UserAgent: UserAgent{
+			Original: "user-agent",
 		},
 		Client: Client{
 			IP: net.ParseIP("10.1.1.2"),
