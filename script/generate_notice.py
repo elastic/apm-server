@@ -115,7 +115,7 @@ def gather_modules(main_packages, build_tags):
             }
 
             if license["license_summary"] == "UNKNOWN":
-                print("WARNING: Unknown license for {}: {}".format(modpath, license_path))
+                print("WARNING: Unknown license for {}: {}".format(modpath, os.path.join(root, filename)))
             module["licenses"] = module.get("licenses", []) + [license]
 
     return modules
@@ -290,10 +290,6 @@ ISC_LICENSE_TITLE = [
     "ISC License",
 ]
 
-ELASTIC_LICENSE_TITLE = [
-    "ELASTIC LICENSE AGREEMENT",
-]
-
 
 # return SPDX identifiers from https://spdx.org/licenses/
 def detect_license_summary(content):
@@ -322,8 +318,6 @@ def detect_license_summary(content):
         return "UPL-1.0"
     if any(sentence in content[0:1500] for sentence in ISC_LICENSE_TITLE):
         return "ISC"
-    if any(sentence in content[0:1500] for sentence in ELASTIC_LICENSE_TITLE):
-        return "ELASTIC"
 
     return "UNKNOWN"
 
@@ -337,7 +331,6 @@ ACCEPTED_LICENSES = [
     "MIT",
     "MPL-2.0",
     "UPL-1.0",
-    "ELASTIC",
 ]
 
 if __name__ == "__main__":
