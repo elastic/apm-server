@@ -56,10 +56,9 @@ type Policies map[string]Policy
 
 //Mapping binds together an ILM policy's name and body with an event type
 type Mapping struct {
-	EventType   string `config:"event_type"`
-	PolicyName  string `config:"policy_name"`
-	IndexSuffix string `config:"index_suffix"`
-	Index       string `config:"-"`
+	EventType     string `config:"event_type"`
+	PolicyName    string `config:"policy_name"`
+	RolloverAlias string `config:"rollover_alias"`
 }
 
 // Policy contains information about an ILM policy and the name
@@ -87,11 +86,11 @@ func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
 	// replace variable rollover_alias parts with beat information if available
 	// otherwise fail as the full alias needs to be known during setup.
 	for et, m := range config.Setup.Mappings {
-		idx, err := applyStaticFmtstr(info, m.Index)
+		rolloverAlias, err := applyStaticFmtstr(info, m.RolloverAlias)
 		if err != nil {
-			return Config{}, errors.Wrap(err, "variable part of index suffix cannot be resolved")
+			return Config{}, errors.Wrap(err, "variable part of rollover_alias cannot be resolved")
 		}
-		m.Index = idx
+		m.RolloverAlias = rolloverAlias
 		config.Setup.Mappings[et] = m
 	}
 	if len(config.Setup.Policies) == 0 {
@@ -122,12 +121,12 @@ func (m *Mappings) Unpack(cfg *libcommon.Config) error {
 			if mapping.PolicyName == "" {
 				mapping.PolicyName = existing.PolicyName
 			}
-			mapping.Index = existing.Index
-		}
-		if mapping.IndexSuffix != "" {
-			mapping.Index = fmt.Sprintf("%s-%s", mapping.Index, mapping.IndexSuffix)
+			if mapping.RolloverAlias == "" {
+				mapping.RolloverAlias = existing.RolloverAlias
+			}
 		}
 		(*m)[mapping.EventType] = mapping
+
 	}
 	return nil
 }
@@ -158,6 +157,9 @@ func validate(c *Config) error {
 		}
 		if m.PolicyName == "" {
 			return errors.New("empty policy_name not supported for ILM setup")
+		}
+		if m.RolloverAlias == "" {
+			return errors.New("empty rollover_alias not supported for ILM setup")
 		}
 		if !c.Setup.RequirePolicy {
 			// `require_policy=false` indicates that policies are set up outside
@@ -212,7 +214,7 @@ func defaultMappings() map[string]Mapping {
 	m := map[string]Mapping{}
 	for _, et := range common.EventTypes {
 		m[et] = Mapping{EventType: et, PolicyName: defaultPolicyName,
-			Index: fmt.Sprintf("%s-%s", common.APMPrefix, et)}
+			RolloverAlias: fmt.Sprintf("%s-%s", common.APMPrefix, et)}
 	}
 	return m
 }
@@ -257,7 +259,7 @@ func (c *Config) conditionalIndices() []map[string]interface{} {
 		common.ConditionalSourcemapIndex(),
 	}
 	for _, m := range c.Setup.Mappings {
-		conditions = append(conditions, common.Condition(m.EventType, m.Index))
+		conditions = append(conditions, common.Condition(m.EventType, m.RolloverAlias))
 	}
 	return conditions
 }
