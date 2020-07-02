@@ -130,14 +130,12 @@ type beater struct {
 // Run runs the APM Server, blocking until the beater's Stop method is called,
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
-
-	var tracerServer *tracerServer
-	var err error
-	if listener := b.Instrumentation.Listener(); listener != nil {
-		tracerServer = newTracerServer(bt.config, listener)
+	tracer, tracerServer, err := initTracer(b.Info, bt.config, bt.logger)
+	if err != nil {
+		return err
 	}
+	defer tracer.Close()
 
-	tracer := b.Instrumentation.Tracer()
 	runServer := runServer
 	if tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, tracerServer, tracer)

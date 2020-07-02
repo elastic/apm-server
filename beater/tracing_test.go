@@ -18,6 +18,8 @@
 package beater
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -74,6 +76,68 @@ func TestServerTracingEnabled(t *testing.T) {
 		case <-time.After(time.Second):
 			return
 		}
+	}
+}
+
+func TestServerTracingExternal(t *testing.T) {
+	t.Run("no_auth", func(t *testing.T) {
+		testServerTracingExternal(t, "" /* Expecting no Authorization header */)
+	})
+	t.Run("secret_token_auth", func(t *testing.T) {
+		const secretToken = "s3cr3t"
+		testServerTracingExternal(t, "Bearer "+secretToken, m{"instrumentation": m{"secret_token": secretToken}})
+	})
+	t.Run("api_key_auth", func(t *testing.T) {
+		const apiKey = "bjB0czNjcjN0OnMzY3IzdA=="
+		testServerTracingExternal(t, "ApiKey "+apiKey, m{"instrumentation": m{"api_key": apiKey}})
+	})
+}
+
+func testServerTracingExternal(t *testing.T, expectedAuthorization string, extraConfigs ...map[string]interface{}) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	os.Setenv("ELASTIC_APM_API_REQUEST_TIME", "100ms")
+	defer os.Unsetenv("ELASTIC_APM_API_REQUEST_TIME")
+
+	// start up a fake remote apm-server
+	requests := make(chan *http.Request)
+	remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusAccepted)
+		requests <- r
+	}))
+	defer remote.Close()
+
+	// start a test apm-server
+	ucfg := common.MustNewConfigFrom(m{"instrumentation": m{
+		"enabled": true,
+		"hosts":   []string{"http://" + remote.Listener.Addr().String()},
+	}})
+	for _, extra := range extraConfigs {
+		err := ucfg.Merge(extra)
+		require.NoError(t, err)
+	}
+
+	apm, err := setupServer(t, ucfg, nil, nil)
+	require.NoError(t, err)
+	defer apm.Stop()
+
+	// make a transaction request
+	req := makeTransactionRequest(t, apm.baseURL)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	res, err := apm.client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
+
+	// ensure the transaction is reported to the remote apm-server
+	select {
+	case r := <-requests:
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, api.IntakePath, r.RequestURI)
+		assert.Equal(t, expectedAuthorization, r.Header.Get("Authorization"))
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for transaction to be received")
 	}
 }
 
