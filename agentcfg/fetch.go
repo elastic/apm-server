@@ -107,7 +107,7 @@ func sanitize(insecureAgents []string, result Result) Result {
 	}
 	settings := Settings{}
 	for k, v := range result.Source.Settings {
-		if utility.Contains(k, WhitelistedSettings) {
+		if utility.Contains(k, UnrestrictedSettings) {
 			settings[k] = v
 		}
 	}

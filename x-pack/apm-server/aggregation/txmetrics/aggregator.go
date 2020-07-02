@@ -6,6 +6,9 @@ package txmetrics
 
 import (
 	"context"
+	"fmt"
+	"math"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +27,15 @@ import (
 const (
 	minDuration time.Duration = 0
 	maxDuration time.Duration = time.Hour
+
+	// We scale transaction counts in the histogram, which only permits storing
+	// tnteger counts, to allow for fractional transactions due to sampling.
+	//
+	// e.g. if the sampling rate is 0.4, then each sampled transaction has a
+	// representative count of 2.5 (1/0.4). If we receive two such transactions
+	// we will record a count of 5000 (2 * 2.5 * histogramCountScale). When we
+	// publish metrics, we will scale down to 5 (5000 / histogramCountScale).
+	histogramCountScale = 1000
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
@@ -148,7 +160,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	for hash, entries := range a.inactive.m {
 		for _, entry := range entries {
 			counts, values := entry.transactionMetrics.histogramBuckets()
-			metricset := makeMetricset(entry.transactionAggregationKey, now, counts, values)
+			metricset := makeMetricset(entry.transactionAggregationKey, hash, now, counts, values)
 			metricsets = append(metricsets, &metricset)
 		}
 		delete(a.inactive.m, hash)
@@ -189,22 +201,23 @@ func (a *Aggregator) AggregateTransformables(in []transform.Transformable) []tra
 // transaction. Otherwise, the returned metricset will be nil.
 func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricset {
 	key := a.makeTransactionAggregationKey(tx)
+	hash := key.hash()
+	count := transactionCount(tx)
 	duration := time.Duration(tx.Duration * float64(time.Millisecond))
-	if a.updateTransactionMetrics(key, duration) {
+	if a.updateTransactionMetrics(key, hash, count, duration) {
 		return nil
 	}
 	// Too many aggregation keys: could not update metrics, so immediately
 	// publish a single-value metric document.
 	//
 	// TODO(axw) log a warning with a rate-limit, increment a counter.
-	counts := []int64{1}
+	counts := []int64{int64(math.Round(count))}
 	values := []float64{float64(durationMicros(duration))}
-	metricset := makeMetricset(key, time.Now(), counts, values)
+	metricset := makeMetricset(key, hash, time.Now(), counts, values)
 	return &metricset
 }
 
-func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, duration time.Duration) bool {
-	hash := key.hash()
+func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration time.Duration) bool {
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
@@ -222,7 +235,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, dur
 	if ok {
 		for offset = range entries {
 			if entries[offset].transactionAggregationKey == key {
-				entries[offset].recordDuration(duration)
+				entries[offset].recordDuration(duration, count)
 				return true
 			}
 		}
@@ -235,7 +248,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, dur
 		for i := range entries[offset:] {
 			if entries[offset+i].transactionAggregationKey == key {
 				m.mu.Unlock()
-				entries[offset+i].recordDuration(duration)
+				entries[offset+i].recordDuration(duration, count)
 				return true
 			}
 		}
@@ -254,7 +267,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, dur
 	} else {
 		entry.transactionMetrics.histogram.Reset()
 	}
-	entry.recordDuration(duration)
+	entry.recordDuration(duration, count)
 	m.m[hash] = append(entries, entry)
 	m.entries++
 	m.mu.Unlock()
@@ -262,13 +275,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, dur
 }
 
 func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transactionAggregationKey {
-	deref := func(s *string) string {
-		if s != nil {
-			return *s
-		}
-		return ""
-	}
-
 	var userAgentName string
 	if tx.Type == "page-load" {
 		// The APM app in Kibana has a special case for "page-load"
@@ -280,8 +286,8 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 
 	return transactionAggregationKey{
 		traceRoot:         tx.ParentID == "",
-		transactionName:   deref(tx.Name),
-		transactionResult: deref(tx.Result),
+		transactionName:   tx.Name,
+		transactionResult: tx.Result,
 		transactionType:   tx.Type,
 
 		agentName:          tx.Metadata.Service.Agent.Name,
@@ -300,7 +306,7 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 }
 
 // makeMetricset makes a Metricset from key, counts, and values, with timestamp ts.
-func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, values []float64) model.Metricset {
+func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, counts []int64, values []float64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: ts,
 		Metadata: model.Metadata{
@@ -332,6 +338,16 @@ func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, 
 			Values: values,
 		}},
 	}
+
+	// Record an timeseries instance ID, which should be uniquely identify the aggregation key.
+	var timeseriesInstanceID strings.Builder
+	timeseriesInstanceID.WriteString(key.serviceName)
+	timeseriesInstanceID.WriteRune(':')
+	timeseriesInstanceID.WriteString(key.transactionName)
+	timeseriesInstanceID.WriteRune(':')
+	timeseriesInstanceID.WriteString(fmt.Sprintf("%x", hash))
+	out.TimeseriesInstanceID = timeseriesInstanceID.String()
+
 	return out
 }
 
@@ -396,8 +412,9 @@ type transactionMetrics struct {
 	histogram *hdrhistogram.Histogram
 }
 
-func (m *transactionMetrics) recordDuration(d time.Duration) {
-	m.histogram.RecordValueAtomic(durationMicros(d))
+func (m *transactionMetrics) recordDuration(d time.Duration, n float64) {
+	count := int64(math.Round(n * histogramCountScale))
+	m.histogram.RecordValuesAtomic(durationMicros(d), count)
 }
 
 func (m *transactionMetrics) histogramBuckets() (counts []int64, values []float64) {
@@ -413,10 +430,18 @@ func (m *transactionMetrics) histogramBuckets() (counts []int64, values []float6
 		if b.Count <= 0 {
 			continue
 		}
-		counts = append(counts, b.Count)
+		count := math.Round(float64(b.Count) / histogramCountScale)
+		counts = append(counts, int64(count))
 		values = append(values, float64(b.To))
 	}
 	return counts, values
+}
+
+func transactionCount(tx *model.Transaction) float64 {
+	if tx.RepresentativeCount > 0 {
+		return tx.RepresentativeCount
+	}
+	return 1
 }
 
 func durationMicros(d time.Duration) int64 {

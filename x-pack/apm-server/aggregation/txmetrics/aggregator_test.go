@@ -87,8 +87,8 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 	// as we have configured the txmetrics with a maximum of two buckets.
 	var input []transform.Transformable
 	for i := 0; i < 10; i++ {
-		input = append(input, &model.Transaction{Name: newString("foo")})
-		input = append(input, &model.Transaction{Name: newString("bar")})
+		input = append(input, &model.Transaction{Name: "foo"})
+		input = append(input, &model.Transaction{Name: "bar"})
 	}
 	output := agg.AggregateTransformables(input)
 	assert.Equal(t, input, output)
@@ -96,7 +96,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 	// The third transaction group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
 		input = append(input, &model.Transaction{
-			Name:     newString("baz"),
+			Name:     "baz",
 			Duration: float64(time.Minute / time.Millisecond),
 		})
 	}
@@ -122,6 +122,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 				Counts: []int64{1},
 				Values: []float64{float64(time.Minute / time.Microsecond)},
 			}},
+			TimeseriesInstanceID: ":baz:bc30224a3738a508",
 		}, m)
 	}
 }
@@ -138,11 +139,11 @@ func TestAggregatorRun(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 1000; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-1000")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
 		require.Nil(t, metricset)
 	}
 	for i := 0; i < 800; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-800")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-800"})
 		require.Nil(t, metricset)
 	}
 
@@ -201,7 +202,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	defer stopAggregator()
 
 	for i := 0; i < 2; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: newString("T-1000")})
+		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
 		require.Nil(t, metricset)
 		expectPublish(t, reqs)
 	}
@@ -216,6 +217,75 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 		assert.Equal(t, "error", record.Context[0].Key)
 		assert.Equal(t, reportErr, record.Context[0].Interface)
 	}
+}
+
+func TestAggregateRepresentativeCount(t *testing.T) {
+	reqs := make(chan publish.PendingReq, 1)
+
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		Report:                         makeChanReporter(reqs),
+		MaxTransactionGroups:           1,
+		MetricsInterval:                time.Microsecond,
+		HDRHistogramSignificantFigures: 1,
+		RUMUserAgentLRUSize:            1,
+	})
+	require.NoError(t, err)
+
+	// Record a transaction group so subsequent calls yield immediate metricsets,
+	// and to demonstrate that fractional transaction counts are accumulated.
+	agg.AggregateTransaction(&model.Transaction{Name: "fnord", RepresentativeCount: 1})
+	agg.AggregateTransaction(&model.Transaction{Name: "fnord", RepresentativeCount: 1.5})
+
+	for _, test := range []struct {
+		representativeCount float64
+		expectedCount       int64
+	}{{
+		representativeCount: 0,
+		expectedCount:       1,
+	}, {
+		representativeCount: -1,
+		expectedCount:       1,
+	}, {
+		representativeCount: 2,
+		expectedCount:       2,
+	}, {
+		representativeCount: 1.50, // round half away from zero
+		expectedCount:       2,
+	}} {
+		m := agg.AggregateTransaction(&model.Transaction{
+			Name:                "foo",
+			RepresentativeCount: test.representativeCount,
+		})
+		require.NotNil(t, m)
+
+		m.Timestamp = time.Time{}
+		assert.Equal(t, &model.Metricset{
+			Metadata:             model.Metadata{},
+			TimeseriesInstanceID: ":foo:1db641f187113b17",
+			Transaction: model.MetricsetTransaction{
+				Name: "foo",
+				Root: true,
+			},
+			Samples: []model.Sample{{
+				Name:   "transaction.duration.histogram",
+				Counts: []int64{test.expectedCount},
+				Values: []float64{0},
+			}},
+		}, m)
+	}
+
+	stopAggregator := runAggregator(agg)
+	defer stopAggregator()
+
+	// Check the fractional transaction counts for the "fnord" transaction
+	// group were accumulated with some degree of accuracy. i.e. we should
+	// receive round(1+1.5)=3; the fractional values should not have been
+	// truncated.
+	req := expectPublish(t, reqs)
+	require.Len(t, req.Transformables, 1)
+	metricset := req.Transformables[0].(*model.Metricset)
+	require.Len(t, metricset.Samples, 1)
+	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, metricset.Samples[0].Counts)
 }
 
 func TestHDRHistogramSignificantFigures(t *testing.T) {
@@ -252,7 +322,7 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101111 * time.Microsecond,
 		} {
 			metricset := agg.AggregateTransaction(&model.Transaction{
-				Name:     newString("T-1000"),
+				Name:     "T-1000",
 				Duration: durationMillis(duration),
 			})
 			require.Nil(t, metricset)
@@ -282,7 +352,7 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	require.NoError(b, err)
 
 	tx := &model.Transaction{
-		Name:     newString("T-1000"),
+		Name:     "T-1000",
 		Duration: 1,
 	}
 
@@ -304,7 +374,7 @@ func BenchmarkAggregateTransactionUserAgent(b *testing.B) {
 	require.NoError(b, err)
 
 	tx := &model.Transaction{
-		Name:     newString("T-1000"),
+		Name:     "T-1000",
 		Duration: 1,
 	}
 	tx.Metadata.UserAgent.Original = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0) Gecko/20110408 conkeror/0.9.3"
@@ -345,6 +415,7 @@ func makeChanReporter(ch chan<- publish.PendingReq) publish.Reporter {
 }
 
 func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingReq {
+	t.Helper()
 	select {
 	case req := <-ch:
 		return req
@@ -352,8 +423,4 @@ func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingRe
 		t.Fatal("expected publish")
 	}
 	panic("unreachable")
-}
-
-func newString(s string) *string {
-	return &s
 }

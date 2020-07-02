@@ -38,39 +38,6 @@ apm-server:
     # Url to expose expvar.
     #url: "/debug/vars"
 
-  # Instrumentation support for the server's HTTP endpoints and event publisher.
-  #instrumentation:
-    # Set to true to enable instrumentation of the APM Server itself.
-    #enabled: false
-
-    # Environment in which the APM Server is running on (eg: staging, production, etc.)
-    #environment: ""
-
-    # Remote hosts to report instrumentation results to.
-    #hosts:
-    #  - http://remote-apm-server:8200
-
-    # API Key for the remote APM Server(s).
-    # If api_key is set then secret_token will be ignored.
-    #api_key:
-
-    # Secret token for the remote APM Server(s).
-    #secret_token:
-
-    # Enable profiling of the server, recording profile samples as events.
-    #
-    # This feature is experimental.
-    #profiling:
-      #cpu:
-        # Set to true to enable CPU profiling.
-        #enabled: false
-        #interval: 60s
-        #duration: 10s
-      #heap:
-        # Set to true to enable heap profiling.
-        #enabled: false
-        #interval: 60s
-
   # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
   # Using pipelines involves two steps:
   # (1) registering a pipeline
@@ -382,25 +349,27 @@ apm-server:
       # Default value is `true`.
       #require_policy: true
 
-      # The configured event types, policies and rollover_aliases will be merged with
-      # the default setup. Only configure the mappings that should be customized.
-      # NOTICE: when customizing `rollover_alias`, it is strongly recommended to keep
-      # the prefix "apm-%{[observer.version]}" unchanged;
-      # in case the prefix is changed, `setup.template.name` and `setup.template.pattern`
-      # need to be changed accordingly to match the created indices
+      # Customized mappings will be merged with the default setup, so you only need to configure mappings for the
+      # event types, policies, and index suffixes that you want to customize.
+      # Indices are named in this way: `apm-%{[observer.version]}-%{[event.type]}-{index_suffix}`,
+      # e.g., apm-7.9.0-span-custom*. The `index_suffix` is optional.
+      # NOTE: When configuring an `index_suffix`, ensure that no previously set up templates conflict with the
+      #       newly configured ones. If an index matches multiple templates with the same order, the settings of
+      #       the templates will override each other. Any conflicts need to be cleaned up manually.
+      # NOTE: When customizing `setup.template.name` and `setup.template.pattern`, ensure they still match the indices.
       #mapping:
         #- event_type: "error"
         #  policy_name: "apm-rollover-30-days"
-        #  rollover_alias: "apm-%{[observer.version]}-error"
+        #  index_suffix: ""
         #- event_type: "span"
         #  policy_name: "apm-rollover-30-days"
-        #  rollover_alias: "apm-%{[observer.version]}-span"
+        #  index_suffix: ""
         #- event_type: "transaction"
         #  policy_name: "apm-rollover-30-days"
-        #  rollover_alias: "apm-%{[observer.version]}-transaction"
+        #  index_suffix: ""
         #- event_type: "metric"
         #  policy_name: "apm-rollover-30-days"
-        #  rollover_alias: "apm-%{[observer.version]}-metric"
+        #  index_suffix: ""
 
       # Configured policies are added to pre-defined default policies.
       # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.
@@ -493,14 +462,12 @@ apm-server:
 #setup.template.enabled: true
 
 # Template name. By default the template name is "apm-%{[observer.version]}"
-# The template name and pattern has to be set in case the elasticsearch index pattern is modified,
-# or the `apm-server.ilm.setup.mapping` rollover_aliases are changed.
+# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
 #setup.template.name: "apm-%{[observer.version]}"
 
 # Template pattern. By default the template pattern is "apm-%{[observer.version]}-*" to apply to the default index settings.
 # The first part is the version of apm-server and then -* is used to match all daily indices.
-# The template name and pattern has to be set in case the elasticsearch index pattern is modified,
-# or the `apm-server.ilm.setup.mapping` rollover_aliases are changed.
+# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
 #setup.template.pattern: "apm-%{[observer.version]}-*"
 
 # Path to fields.yml file to generate the template.
@@ -982,6 +949,43 @@ output.elasticsearch:
 
   # Kerberos realm.
   #kerberos.realm: ELASTIC
+
+#============================= Instrumentation =============================
+
+# Instrumentation support for the server's HTTP endpoints and event publisher.
+#instrumentation:
+
+  # Set to true to enable instrumentation of the APM Server itself.
+  #enabled: false
+
+  # Environment in which the APM Server is running on (eg: staging, production, etc.)
+  #environment: ""
+
+  # Hosts to report instrumentation results to.
+  # For reporting to itself, leave this field commented
+  #hosts:
+  #  - http://remote-apm-server:8200
+
+  # API Key for the remote APM Server(s).
+  # If api_key is set then secret_token will be ignored.
+  #api_key:
+
+  # Secret token for the remote APM Server(s).
+  #secret_token:
+
+  # Enable profiling of the server, recording profile samples as events.
+  #
+  # This feature is experimental.
+  #profiling:
+    #cpu:
+      # Set to true to enable CPU profiling.
+      #enabled: false
+      #interval: 60s
+      #duration: 10s
+  #heap:
+    # Set to true to enable heap profiling.
+    #enabled: false
+    #interval: 60s
 
 #================================= Paths ==================================
 

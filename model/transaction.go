@@ -49,15 +49,11 @@ type Transaction struct {
 
 	Timestamp time.Time
 
-	// TODO(axw) record the sampling rate in effect at the time the
-	// transaction was recorded, in order to extrapolate transaction
-	// count statistics. We would use this for Jaeger, OTel, etc.
-
 	Type      string
-	Name      *string
-	Result    *string
+	Name      string
+	Result    string
 	Duration  float64
-	Marks     common.MapStr
+	Marks     TransactionMarks
 	Message   *Message
 	Sampled   *bool
 	SpanCount SpanCount
@@ -68,6 +64,12 @@ type Transaction struct {
 	Custom    *Custom
 
 	Experimental interface{}
+
+	// RepresentativeCount, if positive, holds the approximate number of
+	// transactions that this transaction represents for aggregation.
+	//
+	// This may be used for scaling metrics; it is not indexed.
+	RepresentativeCount float64
 }
 
 type SpanCount struct {
@@ -75,36 +77,32 @@ type SpanCount struct {
 	Started *int
 }
 
+// fields creates the fields to populate in the top-level "transaction" object field.
 func (e *Transaction) fields() common.MapStr {
-	tx := common.MapStr{"id": e.ID}
-	utility.Set(tx, "name", e.Name)
-	utility.Set(tx, "duration", utility.MillisAsMicros(e.Duration))
-	utility.Set(tx, "type", e.Type)
-	utility.Set(tx, "result", e.Result)
-	utility.Set(tx, "marks", e.Marks)
-	utility.Set(tx, "page", e.Page.Fields())
-	utility.Set(tx, "custom", e.Custom.Fields())
-	utility.Set(tx, "message", e.Message.Fields())
-
-	if e.Sampled == nil {
-		utility.Set(tx, "sampled", true)
-	} else {
-		utility.Set(tx, "sampled", e.Sampled)
-	}
-
+	var fields mapStr
+	fields.set("id", e.ID)
+	fields.set("type", e.Type)
+	fields.set("duration", utility.MillisAsMicros(e.Duration))
+	fields.maybeSetString("name", e.Name)
+	fields.maybeSetString("result", e.Result)
+	fields.maybeSetMapStr("marks", e.Marks.fields())
+	fields.maybeSetMapStr("page", e.Page.Fields())
+	fields.maybeSetMapStr("custom", e.Custom.Fields())
+	fields.maybeSetMapStr("message", e.Message.Fields())
 	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
 		spanCount := common.MapStr{}
-
 		if e.SpanCount.Dropped != nil {
-			utility.Set(spanCount, "dropped", *e.SpanCount.Dropped)
+			spanCount["dropped"] = *e.SpanCount.Dropped
 		}
 		if e.SpanCount.Started != nil {
-			utility.Set(spanCount, "started", *e.SpanCount.Started)
+			spanCount["started"] = *e.SpanCount.Started
 		}
-		utility.Set(tx, "span_count", spanCount)
+		fields.set("span_count", spanCount)
 	}
-
-	return tx
+	// TODO(axw) change Sampled to be non-pointer, and set its final value when
+	// instantiating the model type.
+	fields.set("sampled", e.Sampled == nil || *e.Sampled)
+	return common.MapStr(fields)
 }
 
 func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.Event {
@@ -139,4 +137,30 @@ func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.
 	utility.Set(fields, "experimental", e.Experimental)
 
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
+}
+
+type TransactionMarks map[string]TransactionMark
+
+func (m TransactionMarks) fields() common.MapStr {
+	if len(m) == 0 {
+		return nil
+	}
+	out := make(mapStr, len(m))
+	for k, v := range m {
+		out.maybeSetMapStr(k, v.fields())
+	}
+	return common.MapStr(out)
+}
+
+type TransactionMark map[string]float64
+
+func (m TransactionMark) fields() common.MapStr {
+	if len(m) == 0 {
+		return nil
+	}
+	out := make(common.MapStr, len(m))
+	for k, v := range m {
+		out[k] = common.Float(v)
+	}
+	return out
 }
