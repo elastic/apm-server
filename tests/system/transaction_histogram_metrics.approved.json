@@ -38,9 +38,6 @@
             },
             "version": "5.1.3"
         },
-        "timeseries": {
-            "instance": "1234_service-12a3:GET /api/types:95818d7bc9580d28"
-        },
         "transaction": {
             "duration": {
                 "histogram": {
@@ -96,9 +93,6 @@
                 "name": "container-id"
             },
             "version": "5.1.3"
-        },
-        "timeseries": {
-            "instance": "1234_service-12a3:GET /api/types:2d9c304bd7ae1b2d"
         },
         "transaction": {
             "duration": {
@@ -156,9 +150,6 @@
             },
             "version": "5.1.3"
         },
-        "timeseries": {
-            "instance": "serviceabc:GET /api/types:eaedcae530dae5c2"
-        },
         "transaction": {
             "duration": {
                 "histogram": {
@@ -174,6 +165,13 @@
             "result": "success",
             "root": true,
             "type": "request"
+        },
+        "user_agent": {
+            "device": {
+                "name": "Other"
+            },
+            "name": "Other",
+            "original": "Mozilla Chrome Edge"
         }
     }
 ]

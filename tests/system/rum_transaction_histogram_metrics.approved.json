@@ -26,9 +26,6 @@
             "name": "apm-agent-js",
             "version": "1.0.0"
         },
-        "timeseries": {
-            "instance": "apm-agent-js::2ac4d2f17a65a386"
-        },
         "transaction": {
             "duration": {
                 "histogram": {
