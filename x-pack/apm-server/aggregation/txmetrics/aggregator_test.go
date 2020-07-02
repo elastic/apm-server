@@ -219,6 +219,75 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	}
 }
 
+func TestAggregateRepresentativeCount(t *testing.T) {
+	reqs := make(chan publish.PendingReq, 1)
+
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		Report:                         makeChanReporter(reqs),
+		MaxTransactionGroups:           1,
+		MetricsInterval:                time.Microsecond,
+		HDRHistogramSignificantFigures: 1,
+		RUMUserAgentLRUSize:            1,
+	})
+	require.NoError(t, err)
+
+	// Record a transaction group so subsequent calls yield immediate metricsets,
+	// and to demonstrate that fractional transaction counts are accumulated.
+	agg.AggregateTransaction(&model.Transaction{Name: "fnord", RepresentativeCount: 1})
+	agg.AggregateTransaction(&model.Transaction{Name: "fnord", RepresentativeCount: 1.5})
+
+	for _, test := range []struct {
+		representativeCount float64
+		expectedCount       int64
+	}{{
+		representativeCount: 0,
+		expectedCount:       1,
+	}, {
+		representativeCount: -1,
+		expectedCount:       1,
+	}, {
+		representativeCount: 2,
+		expectedCount:       2,
+	}, {
+		representativeCount: 1.50, // round half away from zero
+		expectedCount:       2,
+	}} {
+		m := agg.AggregateTransaction(&model.Transaction{
+			Name:                "foo",
+			RepresentativeCount: test.representativeCount,
+		})
+		require.NotNil(t, m)
+
+		m.Timestamp = time.Time{}
+		assert.Equal(t, &model.Metricset{
+			Metadata:             model.Metadata{},
+			TimeseriesInstanceID: ":foo:1db641f187113b17",
+			Transaction: model.MetricsetTransaction{
+				Name: "foo",
+				Root: true,
+			},
+			Samples: []model.Sample{{
+				Name:   "transaction.duration.histogram",
+				Counts: []int64{test.expectedCount},
+				Values: []float64{0},
+			}},
+		}, m)
+	}
+
+	stopAggregator := runAggregator(agg)
+	defer stopAggregator()
+
+	// Check the fractional transaction counts for the "fnord" transaction
+	// group were accumulated with some degree of accuracy. i.e. we should
+	// receive round(1+1.5)=3; the fractional values should not have been
+	// truncated.
+	req := expectPublish(t, reqs)
+	require.Len(t, req.Transformables, 1)
+	metricset := req.Transformables[0].(*model.Metricset)
+	require.Len(t, metricset.Samples, 1)
+	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, metricset.Samples[0].Counts)
+}
+
 func TestHDRHistogramSignificantFigures(t *testing.T) {
 	testHDRHistogramSignificantFigures(t, 1)
 	testHDRHistogramSignificantFigures(t, 2)
@@ -346,6 +415,7 @@ func makeChanReporter(ch chan<- publish.PendingReq) publish.Reporter {
 }
 
 func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingReq {
+	t.Helper()
 	select {
 	case req := <-ch:
 		return req

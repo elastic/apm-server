@@ -68,13 +68,6 @@ To enable the kibana endpoint, set <<kibana-enabled>> to `true`, and point <<kib
 The default sampling ratio, as well as per-service sampling rates,
 can then be configured via the {kibana-ref}/agent-configuration.html[Agent configuration] page in the APM app.
 
-WARNING: If a sampling rate smaller than `1.0` (100%) is configured,
-transactions per minute will be incorrectly calculated in the APM app.
-This is because Elastic APM data model is fundamentally different from the Jaeger data model.
-In the Elastic ecosystem, sampling only impacts spans; transactions are always sampled at 100%.
-The Jaeger data structure, however, does not have the concept of transactions.
-Because of this, sampling decisions will apply to both transactions and spans.
-
 [float]
 [[jaeger-configure-sampling-local]]
 ===== Local sampling

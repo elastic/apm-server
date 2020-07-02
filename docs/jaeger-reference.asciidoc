@@ -50,8 +50,7 @@ There are some limitations and differences between Elastic APM and Jaeger that y
 
 * Because Jaeger has its own trace context header, and does not currently support W3C trace context headers,
 it is not possible to mix and match the use of Elastic's APM Agents and Jaeger's Clients.
-* Elastic APM only supports probabilistic sampling. Because of differences in the Jaeger and Elastic data structures,
-sampling at a value below `1.0` (100%), will cause inaccuracies in the APM app. See <<jaeger-configure-sampling>> for more information.
+* Elastic APM only supports probabilistic sampling.
 * We currently only support exception logging. Span logs are not supported.
 
 *Differences between APM Agents and Jaeger Clients:*
