@@ -33,10 +33,8 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/approvals"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestConsumer_ConsumeTraceData(t *testing.T) {
@@ -255,34 +253,6 @@ func TestConsumer_Transaction(t *testing.T) {
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
 		})
 	}
-}
-
-func TestConsumer_TransactionSampleRate(t *testing.T) {
-	var transformables []transform.Transformable
-	reporter := func(ctx context.Context, req publish.PendingReq) error {
-		transformables = append(transformables, req.Transformables...)
-		events := transformAll(ctx, req)
-		assert.NoError(t, approvals.ApproveEvents(events, file("transaction_jaeger_sampling_rate")))
-		return nil
-	}
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), consumerdata.TraceData{
-		SourceFormat: "jaeger",
-		Node: &commonpb.Node{
-			Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"},
-		},
-		Spans: []*tracepb.Span{{
-			Kind:      tracepb.Span_SERVER,
-			StartTime: testStartTime(), EndTime: testEndTime(),
-			Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-				"sampler.type":  testAttributeStringValue("probabilistic"),
-				"sampler.param": testAttributeDoubleValue(0.8),
-			}},
-		}},
-	}))
-
-	require.Len(t, transformables, 1)
-	tx := transformables[0].(*model.Transaction)
-	assert.Equal(t, 1.25 /* 1/0.8 */, tx.RepresentativeCount)
 }
 
 func TestConsumer_Span(t *testing.T) {

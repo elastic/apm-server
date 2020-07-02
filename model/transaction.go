@@ -49,6 +49,10 @@ type Transaction struct {
 
 	Timestamp time.Time
 
+	// TODO(axw) record the sampling rate in effect at the time the
+	// transaction was recorded, in order to extrapolate transaction
+	// count statistics. We would use this for Jaeger, OTel, etc.
+
 	Type      string
 	Name      string
 	Result    string
@@ -64,12 +68,6 @@ type Transaction struct {
 	Custom    *Custom
 
 	Experimental interface{}
-
-	// RepresentativeCount, if positive, holds the approximate number of
-	// transactions that this transaction represents for aggregation.
-	//
-	// This may be used for scaling metrics; it is not indexed.
-	RepresentativeCount float64
 }
 
 type SpanCount struct {

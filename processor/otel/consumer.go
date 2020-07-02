@@ -115,7 +115,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Duration:  duration,
 				Name:      name,
 			}
-			parseTransaction(otelSpan, td.SourceFormat, hostname, &transaction)
+			parseTransaction(otelSpan, hostname, &transaction)
 			batch.Transactions = append(batch.Transactions, &transaction)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addTransactionCtxToErr(transaction, err)
@@ -209,7 +209,7 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 	}
 }
 
-func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, event *model.Transaction) {
+func parseTransaction(span *tracepb.Span, hostname string, event *model.Transaction) {
 	labels := make(common.MapStr)
 	var http model.Http
 	var message model.Message
@@ -217,19 +217,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	var result string
 	var hasFailed bool
 	var isHTTP, isMessaging bool
-	var samplerType, samplerParam *tracepb.AttributeValue
 	for kDots, v := range span.Attributes.GetAttributeMap() {
-		if sourceFormat == sourceFormatJaeger {
-			switch kDots {
-			case "sampler.type":
-				samplerType = v
-				continue
-			case "sampler.param":
-				samplerParam = v
-				continue
-			}
-		}
-
 		k := replaceDots(kDots)
 		switch v := v.Value.(type) {
 		case *tracepb.AttributeValue_BoolValue:
@@ -318,26 +306,6 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 		}
 	}
 	event.Result = result
-
-	if samplerType != nil && samplerParam != nil {
-		// The client has reported its sampling rate, so
-		// we can use it to extrapolate transaction metrics.
-		switch samplerType.GetStringValue().GetValue() {
-		case "probabilistic":
-			probability := samplerParam.GetDoubleValue()
-			if probability > 0 && probability < 1 {
-				event.RepresentativeCount = 1 / probability
-			}
-		default:
-			utility.DeepUpdate(labels, "sampler_type", samplerType.GetStringValue().GetValue())
-			switch v := samplerParam.Value.(type) {
-			case *tracepb.AttributeValue_BoolValue:
-				utility.DeepUpdate(labels, "sampler_param", v.BoolValue)
-			case *tracepb.AttributeValue_DoubleValue:
-				utility.DeepUpdate(labels, "sampler_param", v.DoubleValue)
-			}
-		}
-	}
 
 	if len(labels) == 0 {
 		return
