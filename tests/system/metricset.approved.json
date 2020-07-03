@@ -20,6 +20,9 @@
                 }
             }
         },
+        "host": {
+            "ip": "127.0.0.1"
+        },
         "labels": {
             "tag1": "one",
             "tag2": 2
@@ -74,6 +77,9 @@
             "ingested": "2020-04-22T14:55:05.368308Z"
         },
         "float_gauge": 9.16,
+        "host": {
+            "ip": "127.0.0.1"
+        },
         "integer_gauge": 42767,
         "labels": {
             "code": 200,
