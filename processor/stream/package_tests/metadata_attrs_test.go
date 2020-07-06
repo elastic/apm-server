@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/processor/stream"
@@ -53,8 +54,7 @@ func (p *MetadataProcessor) Validate(data interface{}) error {
 		}
 
 		// validate the metadata object against our jsonschema
-		_, err := modeldecoder.DecodeMetadata(rawMetadata, false)
-		if err != nil {
+		if err := modeldecoder.DecodeMetadata(rawMetadata, false, &model.Metadata{}); err != nil {
 			return err
 		}
 	}

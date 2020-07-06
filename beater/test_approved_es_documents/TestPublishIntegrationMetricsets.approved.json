@@ -23,6 +23,9 @@
                 "version": "1.5.0"
             },
             "float_gauge": 9.16,
+            "host": {
+                "ip": "127.0.0.1"
+            },
             "integer_gauge": 42767,
             "labels": {
                 "code": 200,
@@ -128,6 +131,9 @@
                         }
                     }
                 }
+            },
+            "host": {
+                "ip": "127.0.0.1"
             },
             "labels": {
                 "tag1": "one",
