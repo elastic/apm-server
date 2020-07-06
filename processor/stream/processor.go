@@ -47,7 +47,7 @@ const (
 	batchSize = 10
 )
 
-type decodeMetadataFunc func(interface{}, bool) (*model.Metadata, error)
+type decodeMetadataFunc func(interface{}, bool, *model.Metadata) error
 
 // functions with the decodeEventFunc signature decode their input argument into their batch argument (output)
 type decodeEventFunc func(modeldecoder.Input, *model.Batch) error
@@ -105,7 +105,7 @@ func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	}
 }
 
-func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamReader) (*model.Metadata, error) {
+func (p *Processor) readMetadata(metadata *model.Metadata, reader *streamReader) (*model.Metadata, error) {
 	rawModel, err := reader.Read()
 	if err != nil {
 		if err == io.EOF {
@@ -127,12 +127,8 @@ func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader *streamR
 			Document: string(reader.LatestLine()),
 		}
 	}
-	for k, v := range reqMeta {
-		utility.InsertInMap(rawMetadata, k, v.(map[string]interface{}))
-	}
 
-	metadata, err := p.decodeMetadata(rawMetadata, p.Mconfig.HasShortFieldNames)
-	if err != nil {
+	if err := p.decodeMetadata(rawMetadata, p.Mconfig.HasShortFieldNames, metadata); err != nil {
 		var ve *validation.Error
 		if errors.As(err, &ve) {
 			return nil, &Error{
@@ -224,7 +220,7 @@ func (p *Processor) readBatch(
 }
 
 // HandleStream processes a stream of events
-func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
+func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
 	sr := p.getStreamReader(reader)

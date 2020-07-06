@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.8\...master[View commits]
 [float]
 ==== Bug fixes
 * Ensure unique names in dynamic templates for fields {pull}3832[3832]
+* Process `user_agent` and `client.ip` for RUM Intake v3 requests {pull}3943[3943]
 
 [float]
 ==== Intake API Changes
