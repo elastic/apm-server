@@ -370,14 +370,14 @@ func TestTransactionEventDecode(t *testing.T) {
 }
 
 func BenchmarkDecodeTransaction(b *testing.B) {
-	fullMetadata, err := DecodeMetadata(fullInput, false)
-	require.NoError(b, err)
+	var fullMetadata model.Metadata
+	require.NoError(b, DecodeMetadata(fullInput, false, &fullMetadata))
 
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		if err := DecodeTransaction(Input{
-			Metadata: *fullMetadata,
+			Metadata: fullMetadata,
 			Raw:      fullTransactionInput,
 		}, &model.Batch{}); err != nil {
 			b.Fatal(err)

@@ -14,6 +14,9 @@
             },
             "double_gauge": 3.141592653589793,
             "float_gauge": 9.16,
+            "host": {
+                "ip": "192.0.0.1"
+            },
             "integer_gauge": 42767,
             "labels": {
                 "code": 200,
@@ -102,6 +105,9 @@
                         }
                     }
                 }
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "tag1": "one",

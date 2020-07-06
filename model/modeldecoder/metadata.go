@@ -33,21 +33,13 @@ var (
 )
 
 // DecodeRUMV3Metadata decodes v3 RUM metadata.
-func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool) (*model.Metadata, error) {
-	var out model.Metadata
-	if err := decodeMetadata(input, hasShortFieldNames, rumV3MetadataSchema, &out); err != nil {
-		return nil, err
-	}
-	return &out, nil
+func DecodeRUMV3Metadata(input interface{}, hasShortFieldNames bool, out *model.Metadata) error {
+	return decodeMetadata(input, hasShortFieldNames, rumV3MetadataSchema, out)
 }
 
 // DecodeMetadata decodes v2 metadata.
-func DecodeMetadata(input interface{}, hasShortFieldNames bool) (*model.Metadata, error) {
-	var out model.Metadata
-	if err := decodeMetadata(input, hasShortFieldNames, metadataSchema, &out); err != nil {
-		return nil, err
-	}
-	return &out, nil
+func DecodeMetadata(input interface{}, hasShortFieldNames bool, out *model.Metadata) error {
+	return decodeMetadata(input, hasShortFieldNames, metadataSchema, out)
 }
 
 func decodeMetadata(input interface{}, hasShortFieldNames bool, schema *jsonschema.Schema, out *model.Metadata) error {
