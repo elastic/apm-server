@@ -295,9 +295,10 @@ func TestEvents(t *testing.T) {
 		Labels: common.MapStr{"label": 101},
 	}
 
-	mdWithUser := md
-	mdWithUser.User = User{ID: uid, Email: email, UserAgent: userAgent}
-	mdWithUser.Client.IP = net.ParseIP(userIP)
+	mdWithContext := md
+	mdWithContext.User = User{ID: uid, Email: email}
+	mdWithContext.Client.IP = net.ParseIP(userIP)
+	mdWithContext.UserAgent.Original = userAgent
 
 	for name, tc := range map[string]struct {
 		Transformable transform.Transformable
@@ -348,7 +349,7 @@ func TestEvents(t *testing.T) {
 		"withContext": {
 			Transformable: &Error{
 				Timestamp: timestamp,
-				Metadata:  mdWithUser,
+				Metadata:  mdWithContext,
 				Log:       baseLog(),
 				Exception: &Exception{
 					Message:    &exMsg,

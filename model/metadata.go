@@ -24,13 +24,14 @@ import (
 )
 
 type Metadata struct {
-	Service Service
-	Process Process
-	System  System
-	User    User
-	Client  Client
-	Cloud   Cloud
-	Labels  common.MapStr
+	Service   Service
+	Process   Process
+	System    System
+	User      User
+	UserAgent UserAgent
+	Client    Client
+	Cloud     Cloud
+	Labels    common.MapStr
 }
 
 func (m *Metadata) Set(out common.MapStr) common.MapStr {
@@ -41,7 +42,7 @@ func (m *Metadata) Set(out common.MapStr) common.MapStr {
 	fields.maybeSetMapStr("process", m.Process.fields())
 	fields.maybeSetMapStr("user", m.User.Fields())
 	fields.maybeSetMapStr("client", m.Client.fields())
-	fields.maybeSetMapStr("user_agent", m.User.UserAgentFields())
+	fields.maybeSetMapStr("user_agent", m.UserAgent.fields())
 	fields.maybeSetMapStr("container", m.System.containerFields())
 	fields.maybeSetMapStr("kubernetes", m.System.kubernetesFields())
 	fields.maybeSetMapStr("cloud", m.Cloud.fields())

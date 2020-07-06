@@ -264,7 +264,7 @@ func makeMetricset(key transactionAggregationKey, ts time.Time, counts []int64, 
 				Container:        model.Container{ID: key.containerID},
 				Kubernetes:       model.Kubernetes{PodName: key.kubernetesPodName},
 			},
-			User: model.User{UserAgent: key.userAgent},
+			UserAgent: model.UserAgent{Original: key.userAgent},
 			// TODO(axw) include client.geo.country_iso_code somewhere
 		},
 		Transaction: model.MetricsetTransaction{
@@ -339,7 +339,7 @@ func makeTransactionAggregationKey(tx *model.Transaction) transactionAggregation
 		hostname:          tx.Metadata.System.Hostname(),
 		containerID:       tx.Metadata.System.Container.ID,
 		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
-		userAgent:         tx.Metadata.User.UserAgent,
+		userAgent:         tx.Metadata.UserAgent.Original,
 
 		// TODO(axw) clientCountryISOCode, requires geoIP lookup in apm-server.
 	}
