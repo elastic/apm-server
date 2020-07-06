@@ -28,6 +28,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 )
@@ -66,7 +67,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 				b.StopTimer()
 				r.Reset(data)
 				b.StartTimer()
-				processor.HandleStream(context.Background(), rl, map[string]interface{}{}, r, report)
+				processor.HandleStream(context.Background(), rl, &model.Metadata{}, r, report)
 			}
 		}
 	}

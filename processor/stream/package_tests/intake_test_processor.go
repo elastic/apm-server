@@ -106,7 +106,7 @@ func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 	var reqs []publish.PendingReq
 	report := tests.TestReporter(&reqs)
 
-	result := p.HandleStream(context.TODO(), nil, nil, bytes.NewBuffer(buf), report)
+	result := p.HandleStream(context.TODO(), nil, &model.Metadata{}, bytes.NewBuffer(buf), report)
 	var events []beat.Event
 	for _, req := range reqs {
 		if req.Transformables != nil {

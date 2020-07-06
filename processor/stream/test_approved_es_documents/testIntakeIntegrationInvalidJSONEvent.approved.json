@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "host": {
+                "ip": "192.0.0.1"
+            },
             "parent": {
                 "id": "abcdef0123456789"
             },
