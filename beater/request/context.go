@@ -19,6 +19,7 @@ package request
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
 	"strings"
 
@@ -42,23 +43,29 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Request       *http.Request
-	Logger        *logp.Logger
-	RateLimiter   *rate.Limiter
-	Authorization authorization.Authorization
-	IsRum         bool
-	Result        Result
-
-	// RequestMetadata contains metadata extracted from the request
-	// by middleware, and should be merged into event metadata.
-	RequestMetadata map[string]interface{}
+	Request         *http.Request
+	Logger          *logp.Logger
+	RateLimiter     *rate.Limiter
+	Authorization   authorization.Authorization
+	IsRum           bool
+	Result          Result
+	RequestMetadata Metadata
 
 	w             http.ResponseWriter
 	writeAttempts int
 }
 
+// Metadata contains metadata extracted from the request by middleware,
+// and should be merged into the event metadata.
+type Metadata struct {
+	ClientIP  net.IP
+	SystemIP  net.IP
+	UserAgent string
+}
+
+// NewContext creates an empty Context struct
 func NewContext() *Context {
-	return &Context{RequestMetadata: make(map[string]interface{})}
+	return &Context{}
 }
 
 // Reset allows to reuse a context by removing all request specific information
@@ -69,12 +76,17 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Authorization = &authorization.AllowAuth{}
 	c.IsRum = false
 	c.Result.Reset()
-	for k := range c.RequestMetadata {
-		delete(c.RequestMetadata, k)
-	}
+	c.RequestMetadata.Reset()
 
 	c.w = w
 	c.writeAttempts = 0
+}
+
+// Reset sets all attribtues of the Metadata instance to it's zero value
+func (m *Metadata) Reset() {
+	m.ClientIP = nil
+	m.SystemIP = nil
+	m.UserAgent = ""
 }
 
 // Header returns the http.Header of the context's writer

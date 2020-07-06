@@ -28,13 +28,8 @@ func UserMetadataMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			dec := utility.ManualDecoder{}
-			user := map[string]interface{}{
-				"user-agent": dec.UserAgentHeader(c.Request.Header),
-			}
-			if ip := utility.ExtractIP(c.Request); ip != nil {
-				user["ip"] = ip.String()
-			}
-			c.RequestMetadata["user"] = user
+			c.RequestMetadata.UserAgent = dec.UserAgentHeader(c.Request.Header)
+			c.RequestMetadata.ClientIP = utility.ExtractIP(c.Request)
 			h(c)
 		}, nil
 	}
@@ -45,10 +40,7 @@ func UserMetadataMiddleware() Middleware {
 func SystemMetadataMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			if ip := utility.ExtractIP(c.Request); ip != nil {
-				system := map[string]interface{}{"ip": ip.String()}
-				c.RequestMetadata["system"] = system
-			}
+			c.RequestMetadata.SystemIP = utility.ExtractIP(c.Request)
 			h(c)
 		}, nil
 	}
