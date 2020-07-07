@@ -19,7 +19,10 @@ package beater
 
 import (
 	"context"
+	"net"
 	"sync"
+
+	"github.com/elastic/beats/v7/libbeat/instrumentation"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -131,13 +134,11 @@ type beater struct {
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
 
-	var tracerServer *tracerServer
-	var err error
-	if listener := b.Instrumentation.Listener(); listener != nil {
-		tracerServer = newTracerServer(bt.config, listener)
+	tracer, tracerServer, err := bt.initTracing(b)
+	if err != nil {
+		return err
 	}
 
-	tracer := b.Instrumentation.Tracer()
 	runServer := runServer
 	if tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, tracerServer, tracer)
@@ -215,6 +216,32 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 		return pipeline.RegisterPipelines(conn, overwrite, path)
 	})
 	return err
+}
+
+func (bt *beater) initTracing(b *beat.Beat) (*apm.Tracer, *tracerServer, error) {
+	var err error
+	tracer := b.Instrumentation.Tracer()
+	listener := b.Instrumentation.Listener()
+
+	if !tracer.Active() && bt.config.SelfInstrumentation.IsEnabled() {
+		tracer, listener, err = initLegacyTracer(b.Info, bt.config)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	tracerServer := newTracerServer(bt.config, listener)
+	return tracer, tracerServer, nil
+}
+
+// initLegacyTracer exists for backwards compatibility and it should be removed in 8.0
+// it does not instrument the beat output
+func initLegacyTracer(info beat.Info, cfg *config.Config) (*apm.Tracer, net.Listener, error) {
+	config := common.MustNewConfigFrom(cfg.SelfInstrumentation)
+	parent := common.NewConfig()
+	parent.SetChild("instrumentation", -1, config)
+	instr, err := instrumentation.New(parent, info.Beat, info.Version)
+	return instr.Tracer(), instr.Listener(), err
 }
 
 // Stop stops the beater gracefully.
