@@ -223,7 +223,7 @@ func (bt *beater) initTracing(b *beat.Beat) (*apm.Tracer, *tracerServer, error) 
 	tracer := b.Instrumentation.Tracer()
 	listener := b.Instrumentation.Listener()
 
-	if !tracer.Active() && bt.config.SelfInstrumentation.IsEnabled() {
+	if !tracer.Active() && bt.config != nil {
 		tracer, listener, err = initLegacyTracer(b.Info, bt.config)
 		if err != nil {
 			return nil, nil, err
@@ -237,11 +237,30 @@ func (bt *beater) initTracing(b *beat.Beat) (*apm.Tracer, *tracerServer, error) 
 // initLegacyTracer exists for backwards compatibility and it should be removed in 8.0
 // it does not instrument the beat output
 func initLegacyTracer(info beat.Info, cfg *config.Config) (*apm.Tracer, net.Listener, error) {
-	config := common.MustNewConfigFrom(cfg.SelfInstrumentation)
+	selfInstrumentation := cfg.SelfInstrumentation
+	if selfInstrumentation == nil || !selfInstrumentation.IsEnabled() {
+		return apm.DefaultTracer, nil, nil
+	}
+	conf := common.MustNewConfigFrom(cfg.SelfInstrumentation)
+	// this is needed because `hosts` strings are unpacked as URL's, so we need to covert them back to strings
+	// to not break ucfg - this code path is exercised in TestExternalTracing* system tests
+	for idx, h := range selfInstrumentation.Hosts {
+		err := conf.SetString("hosts", idx, h.String())
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 	parent := common.NewConfig()
-	parent.SetChild("instrumentation", -1, config)
+	err := parent.SetChild("instrumentation", -1, conf)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	instr, err := instrumentation.New(parent, info.Beat, info.Version)
-	return instr.Tracer(), instr.Listener(), err
+	if err != nil {
+		return nil, nil, err
+	}
+	return instr.Tracer(), instr.Listener(), nil
 }
 
 // Stop stops the beater gracefully.
