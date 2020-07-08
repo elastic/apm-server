@@ -91,15 +91,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		{IntakeRUMPath, rumIntakeHandler},
 		{IntakeRUMV3Path, rumV3IntakeHandler},
 		{IntakePath, backendIntakeHandler},
-	}
-
-	// Profiling is currently experimental, and intended for profiling the
-	// server itself, so we only add the route if self-profiling is enabled.
-	if beaterConfig.SelfInstrumentation.IsEnabled() {
-		if beaterConfig.SelfInstrumentation.Profiling.CPU.IsEnabled() ||
-			beaterConfig.SelfInstrumentation.Profiling.Heap.IsEnabled() {
-			routeMap = append(routeMap, route{ProfilePath, profileHandler})
-		}
+		{ProfilePath, profileHandler},
 	}
 
 	for _, route := range routeMap {
