@@ -14,10 +14,9 @@ from es_helper import index_profile, index_transaction
 # to be ingested.
 os.environ["ELASTIC_APM_API_REQUEST_TIME"] = "1s"
 
+# This exercises the instrumentation.* config
+# When updating this file, consider test_instrumentation.py
 
-# Exercises the DEPRECATED apm-server.instrumentation.* config
-# When updating this file, consider test_libbeat_instrumentation.py
-# Remove in 8.0
 
 def get_instrumentation_event(es, index):
     query = {"term": {"service.name": "apm-server"}}
@@ -30,7 +29,7 @@ class TestInMemoryTracingAPIKey(APIKeyBaseTest):
         cfg = super(TestInMemoryTracingAPIKey, self).config()
         cfg.update({
             "api_key_enabled": True,
-            "instrumentation_enabled": "true",
+            "libbeat_instrumentation_enabled": "true",
         })
         return cfg
 
@@ -55,14 +54,14 @@ class TestExternalTracingAPIKey(APIKeyBaseTest):
         api_key = self.create_apm_api_key([self.privilege_event], self.resource_any)
         cfg.update({
             "api_key_enabled": True,
-            "instrumentation_enabled": "true",
-            "instrumentation_api_key": api_key,
+            "libbeat_instrumentation_enabled": "true",
+            "libbeat_instrumentation_api_key": api_key,
             # Set instrumentation.hosts to the same APM Server.
             #
             # Explicitly specifying hosts configures the tracer to
             # behave as if it's sending to an external server, rather
             # than using the in-memory transport that bypasses auth.
-            "instrumentation_host": APIKeyBaseTest.host,
+            "libbeat_instrumentation_host": APIKeyBaseTest.host,
         })
         return cfg
 
@@ -84,14 +83,14 @@ class TestExternalTracingSecretToken(ElasticTest):
         secret_token = "abc123"
         cfg.update({
             "secret_token": secret_token,
-            "instrumentation_enabled": "true",
-            "instrumentation_secret_token": secret_token,
+            "libbeat_instrumentation_enabled": "true",
+            "libbeat_instrumentation_secret_token": secret_token,
             # Set instrumentation.hosts to the same APM Server.
             #
             # Explicitly specifying hosts configures the tracer to
             # behave as if it's sending to an external server, rather
             # than using the in-memory transport that bypasses auth.
-            "instrumentation_host": ElasticTest.host,
+            "libbeat_instrumentation_host": ElasticTest.host,
         })
         return cfg
 
@@ -125,10 +124,10 @@ class ProfilingTest(ElasticTest):
 @integration_test
 class TestCPUProfiling(ProfilingTest):
     config_overrides = {
-        "instrumentation_enabled": "true",
-        "profiling_cpu_enabled": "true",
-        "profiling_cpu_interval": "1s",
-        "profiling_cpu_duration": "5s",
+        "libbeat_instrumentation_enabled": "true",
+        "libbeat_profiling_cpu_enabled": "true",
+        "libbeat_profiling_cpu_interval": "1s",
+        "libbeat_profiling_cpu_duration": "5s",
     }
 
     def test_self_profiling(self):
@@ -156,9 +155,9 @@ class TestCPUProfiling(ProfilingTest):
 @integration_test
 class TestHeapProfiling(ProfilingTest):
     config_overrides = {
-        "instrumentation_enabled": "true",
-        "profiling_heap_enabled": "true",
-        "profiling_heap_interval": "1s",
+        "libbeat_instrumentation_enabled": "true",
+        "libbeat_profiling_heap_enabled": "true",
+        "libbeat_profiling_heap_interval": "1s",
     }
 
     def test_self_profiling(self):
