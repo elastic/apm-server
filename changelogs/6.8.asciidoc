@@ -16,7 +16,6 @@ https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
 * <<release-notes-6.8.1>>
 * <<release-notes-6.8.0>>
 
-[float]
 [[release-notes-6.8.11]]
 === APM Server version 6.8.11
 
@@ -24,7 +23,6 @@ https://github.com/elastic/apm-server/compare/v6.8.10\...v6.8.11[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.10]]
 === APM Server version 6.8.10
 
@@ -32,7 +30,6 @@ https://github.com/elastic/apm-server/compare/v6.8.9\...v6.8.10[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.9]]
 === APM Server version 6.8.9
 
@@ -40,7 +37,6 @@ https://github.com/elastic/apm-server/compare/v6.8.8\...v6.8.9[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.8]]
 === APM Server version 6.8.8
 
@@ -48,7 +44,6 @@ https://github.com/elastic/apm-server/compare/v6.8.7\...v6.8.8[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.7]]
 === APM Server version 6.8.7
 
@@ -56,7 +51,6 @@ https://github.com/elastic/apm-server/compare/v6.8.6\...v6.8.7[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.6]]
 === APM Server version 6.8.6
 
@@ -64,7 +58,6 @@ https://github.com/elastic/apm-server/compare/v6.8.5\...v6.8.6[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.5]]
 === APM Server version 6.8.5
 
@@ -72,7 +65,6 @@ https://github.com/elastic/apm-server/compare/v6.8.4\...v6.8.5[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.4]]
 === APM Server version 6.8.4
 
@@ -80,7 +72,6 @@ https://github.com/elastic/apm-server/compare/v6.8.3\...v6.8.4[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.3]]
 === APM Server version 6.8.3
 
@@ -88,7 +79,6 @@ https://github.com/elastic/apm-server/compare/v6.8.2\...v6.8.3[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.2]]
 === APM Server version 6.8.2
 
@@ -96,7 +86,6 @@ https://github.com/elastic/apm-server/compare/v6.8.1\...v6.8.2[View commits]
 
 No significant changes.
 
-[float]
 [[release-notes-6.8.1]]
 === APM Server version 6.8.1
 
