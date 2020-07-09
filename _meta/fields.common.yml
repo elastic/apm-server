@@ -99,8 +99,9 @@
           - name: referrer
             type: keyword
             ignore_above: 1024
+            overwrite: true
             description: Referrer for this HTTP request.
-            
+
        - name: response
          type: group
          fields:
