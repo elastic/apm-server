@@ -241,7 +241,10 @@ func initLegacyTracer(info beat.Info, cfg *config.Config) (*apm.Tracer, net.List
 	if selfInstrumentation == nil || !selfInstrumentation.IsEnabled() {
 		return apm.DefaultTracer, nil, nil
 	}
-	conf := common.MustNewConfigFrom(cfg.SelfInstrumentation)
+	conf, err := common.NewConfigFrom(cfg.SelfInstrumentation)
+	if err != nil {
+		return nil, nil, err
+	}
 	// this is needed because `hosts` strings are unpacked as URL's, so we need to covert them back to strings
 	// to not break ucfg - this code path is exercised in TestExternalTracing* system tests
 	for idx, h := range selfInstrumentation.Hosts {
@@ -251,7 +254,7 @@ func initLegacyTracer(info beat.Info, cfg *config.Config) (*apm.Tracer, net.List
 		}
 	}
 	parent := common.NewConfig()
-	err := parent.SetChild("instrumentation", -1, conf)
+	err = parent.SetChild("instrumentation", -1, conf)
 	if err != nil {
 		return nil, nil, err
 	}

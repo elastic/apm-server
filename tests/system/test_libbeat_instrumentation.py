@@ -15,6 +15,7 @@ from es_helper import index_profile, index_transaction
 os.environ["ELASTIC_APM_API_REQUEST_TIME"] = "1s"
 
 # This exercises the instrumentation.* config
+# When updating this file, consider test_instrumentation.py
 
 
 def get_instrumentation_event(es, index):

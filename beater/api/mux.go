@@ -91,6 +91,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		{IntakeRUMPath, rumIntakeHandler},
 		{IntakeRUMV3Path, rumV3IntakeHandler},
 		{IntakePath, backendIntakeHandler},
+		// The profile endpoint is in Beta
 		{ProfilePath, profileHandler},
 	}
 
