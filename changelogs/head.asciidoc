@@ -26,3 +26,4 @@ https://github.com/elastic/apm-server/compare/7.8\...master[View commits]
 * Add timeseries.instance to transaction.duration.histogram docs {pull}3904[3904]
 * Uses `instrumentation` config and APM tracer from libbeat, deprecating `apm-server.instrumentation` {pull}3836[3836]
 * Scale Jaeger transaction counts by inverse sampling rate in histogram metrics {pull}3722[3722]
+* Upgrade Go to 1.14.4 {pull}3960[3960].
