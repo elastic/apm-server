@@ -65,7 +65,7 @@ SYSTEM_TEST_TARGET?=./tests/system
 NOSETESTS_OPTIONS?=--process-timeout=90 --with-timer -v --with-xunit --xunit-file=build/TEST-system.xml
 
 .PHONY: check-full
-check-full: update check golint staticcheck
+check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)

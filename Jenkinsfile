@@ -481,6 +481,17 @@ pipeline {
         }
       }
     }
+    stage('Lint'){
+      steps {
+        withGithubNotify(context: 'Lint') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh(label: 'Run lint', script: './script/jenkins/lint.sh')
+          }
+        }
+      }
+    }
   }
   post {
     cleanup {
