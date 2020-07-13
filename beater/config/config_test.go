@@ -20,7 +20,6 @@ package config
 import (
 	"crypto/tls"
 	"fmt"
-	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -33,6 +32,11 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch"
 )
+
+var testdataCertificateConfig = tlscommon.CertificateConfig{
+	Certificate: "../../testdata/tls/certificate.pem",
+	Key:         "../../testdata/tls/key.pem",
+}
 
 func Test_UnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
@@ -63,9 +67,9 @@ func Test_UnpackConfig(t *testing.T) {
 				"secret_token":          "1234random",
 				"ssl": map[string]interface{}{
 					"enabled":                 true,
-					"key":                     path.Join("../..", "testdata", "tls", "key.pem"),
-					"certificate":             path.Join("../..", "testdata", "tls", "certificate.pem"),
-					"certificate_authorities": []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
+					"key":                     "../../testdata/tls/key.pem",
+					"certificate":             "../../testdata/tls/certificate.pem",
+					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
 					"client_authentication":   "required",
 				},
 				"expvar": map[string]interface{}{
@@ -131,12 +135,10 @@ func Test_UnpackConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				TLS: &tlscommon.ServerConfig{
-					Enabled: &truthy,
-					Certificate: tlscommon.CertificateConfig{
-						Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
-						Key:         path.Join("../..", "testdata", "tls", "key.pem")},
-					ClientAuth: 4,
-					CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
+					Enabled:     &truthy,
+					Certificate: testdataCertificateConfig,
+					ClientAuth:  4,
+					CAs:         []string{"../../testdata/tls/ca.crt.pem"},
 				},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
@@ -185,12 +187,10 @@ func Test_UnpackConfig(t *testing.T) {
 						Host:    "localhost:12345",
 						TLS: func() *tls.Config {
 							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
-								Enabled: &truthy,
-								Certificate: tlscommon.CertificateConfig{
-									Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
-									Key:         path.Join("../..", "testdata", "tls", "key.pem")},
-								ClientAuth: 4,
-								CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")}})
+								Enabled:     &truthy,
+								Certificate: testdataCertificateConfig,
+								ClientAuth:  4,
+								CAs:         []string{"../../testdata/tls/ca.crt.pem"}})
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:12345")
 						}(),
@@ -226,7 +226,9 @@ func Test_UnpackConfig(t *testing.T) {
 				"host":         "localhost:3000",
 				"secret_token": "1234random",
 				"ssl": map[string]interface{}{
-					"enabled": true,
+					"enabled":     true,
+					"certificate": "../../testdata/tls/certificate.pem",
+					"key":         "../../testdata/tls/key.pem",
 				},
 				"expvar": map[string]interface{}{
 					"enabled": true,
@@ -265,8 +267,9 @@ func Test_UnpackConfig(t *testing.T) {
 				SecretToken:     "1234random",
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
-					Certificate: tlscommon.CertificateConfig{Certificate: "", Key: ""},
-					ClientAuth:  0},
+					Certificate: testdataCertificateConfig,
+					ClientAuth:  0,
+				},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
@@ -309,7 +312,7 @@ func Test_UnpackConfig(t *testing.T) {
 						TLS: func() *tls.Config {
 							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
 								Enabled:     &truthy,
-								Certificate: tlscommon.CertificateConfig{Certificate: "", Key: ""},
+								Certificate: testdataCertificateConfig,
 								ClientAuth:  0})
 							require.NoError(t, err)
 							return tlsServerConfig.BuildModuleConfig("localhost:14250")
@@ -404,27 +407,45 @@ func TestTLSSettings(t *testing.T) {
 			tls *tlscommon.ServerConfig
 		}{
 			"Defaults": {
-				config: map[string]interface{}{"ssl.enabled": true},
-				tls:    &tlscommon.ServerConfig{ClientAuth: 0},
+				config: map[string]interface{}{"ssl": map[string]interface{}{
+					"enabled":     true,
+					"key":         "../../testdata/tls/key.pem",
+					"certificate": "../../testdata/tls/certificate.pem",
+				}},
+				tls: &tlscommon.ServerConfig{ClientAuth: 0, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredToRequired": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{"client_authentication": "required"}},
-				tls:    &tlscommon.ServerConfig{ClientAuth: 4},
+				config: map[string]interface{}{"ssl": map[string]interface{}{
+					"client_authentication": "required",
+					"key":                   "../../testdata/tls/key.pem",
+					"certificate":           "../../testdata/tls/certificate.pem",
+				}},
+				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredToOptional": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{"client_authentication": "optional"}},
-				tls:    &tlscommon.ServerConfig{ClientAuth: 3},
+				config: map[string]interface{}{"ssl": map[string]interface{}{
+					"client_authentication": "optional",
+					"key":                   "../../testdata/tls/key.pem",
+					"certificate":           "../../testdata/tls/certificate.pem",
+				}},
+				tls: &tlscommon.ServerConfig{ClientAuth: 3, Certificate: testdataCertificateConfig},
 			},
 			"DefaultRequiredByCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
-					"certificate_authorities": []string{path.Join("..", "..", "testdata", "tls", "./ca.crt.pem")}}},
-				tls: &tlscommon.ServerConfig{ClientAuth: 4},
+					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
+					"key":                     "../../testdata/tls/key.pem",
+					"certificate":             "../../testdata/tls/certificate.pem",
+				}},
+				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredWithCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
-					"certificate_authorities": []string{path.Join("..", "..", "testdata", "tls", "./ca.crt.pem")},
-					"client_authentication":   "none"}},
-				tls: &tlscommon.ServerConfig{ClientAuth: 0},
+					"client_authentication":   "none",
+					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
+					"key":                     "../../testdata/tls/key.pem",
+					"certificate":             "../../testdata/tls/certificate.pem",
+				}},
+				tls: &tlscommon.ServerConfig{ClientAuth: 0, Certificate: testdataCertificateConfig},
 			},
 		} {
 			t.Run(name, func(t *testing.T) {
