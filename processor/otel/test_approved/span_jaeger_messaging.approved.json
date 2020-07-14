@@ -6,6 +6,10 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "destination": {
+                "address": "mq",
+                "port": 1234
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"
