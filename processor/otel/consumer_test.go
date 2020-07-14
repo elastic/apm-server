@@ -309,6 +309,7 @@ func TestConsumer_Span(t *testing.T) {
 						"type":             testAttributeStringValue("db_request"),
 						"component":        testAttributeStringValue("foo"),
 						"string.a.b":       testAttributeStringValue("some note"),
+						"peer.hostname":    testAttributeStringValue("db"),
 						"peer.port":        testAttributeIntValue(3306),
 						"peer.address":     testAttributeStringValue("mysql://db:3306"),
 						"peer.service":     testAttributeStringValue("sql"),
@@ -349,6 +350,8 @@ func TestConsumer_Span(t *testing.T) {
 					StartTime: testStartTime(), EndTime: testEndTime(),
 					Name: testTruncatableString("Message receive"),
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"peer.hostname":           testAttributeStringValue("mq"),
+						"peer.port":               testAttributeIntValue(1234),
 						"message_bus.destination": testAttributeStringValue("queue-abc"),
 					}},
 					Status: &tracepb.Status{Code: 202},
