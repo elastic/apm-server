@@ -14,6 +14,7 @@ This section describes common problems you might encounter with APM Server.
 * <<field-limit-exceeded>>
 * <<io-timeout>>
 * <<server-es-down>>
+* <<server-resource-exists-not-alias>>
 
 [[no-data-indexed]]
 [float]
@@ -272,3 +273,65 @@ with configurable size and time between flushes.
 {apm-ruby-ref}/configuration.html#config-api-buffer-size[`api_buffer_size`].
 * **RUM Agent** - No internal queue. Data is lost.
 * **.NET Agent** - No internal queue. Data is lost.
+
+[[server-resource-exists-not-alias]]
+[float]
+=== +resource \'apm-{version}-$type' exists, but it is not an alias+
+
+This error occurs when APM Server attempts to write to an index instead of an alias.
+One way this can happen, is when indices are manually deleted after APM Server's setup process.
+Another possibility is that indices were manually set up, but not properly linked with ILM.
+
+To fix this issue, perform the steps below. This example assumes +apm-{version}-transaction+ is the problem index.
+Update the steps with the index version and type that are specific to your error.
+
+. Block writes to the index:
++
+["source","sh",subs="attributes"]
+----
+PUT apm-{version}-transaction/_settings
+{
+  "settings": {
+    "index.blocks.write": true
+  }
+}
+----
+
+. Clone the index to retain data (optional)
++
+["source","sh",subs="attributes"]
+----
+POST apm-{version}-transaction/_clone/apm-{version}-transaction-original
+----
++
+You can check the progress of the clone with:
++
+["source","sh",subs="attributes"]
+----
+GET _cat/recovery/apm*transaction*?s=index&v=true&h=index,stage
+----
++
+When `stage: done`, you're ready to move on.
+
+. Delete the index that should be a write alias
++
+["source","sh",subs="attributes"]
+----
+DELETE apm-{version}-transaction
+----
+
+. On the next connection attempt, APM Server will attempt to create a new write alias.
+Confirm that APM Server successfully created the write alias with:
++
+["source","sh",subs="attributes"]
+----
+GET _cat/aliases/apm*transaction*?s=index&v=true&h=alias,index,is_write_index
+----
++
+If successful, you'll see the following:
++
+["source","sh",subs="attributes"]
+----
+alias                 index                        is_write_index
+apm-{version}-transaction apm-{version}-transaction-000001 true
+----
