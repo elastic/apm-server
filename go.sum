@@ -246,6 +246,8 @@ github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200630133628-33505124b741 h1:/1hIk
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200630133628-33505124b741/go.mod h1:zhm78HkOliXFWa3ejRQQkXLIw2QUpABc4D3FMxZzcRg=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200715054451-5c2863902fb0 h1:ulvp/LXC6mGHR9iH1z57IFYNSIJPz3qKH3VUBP/W5+Q=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200715054451-5c2863902fb0/go.mod h1:UQazNYihDNvX0rYZ98pq1ol8AbEA0LY+ehLLuySQIqQ=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200715112753-8d01efa2caf0 h1:Z+ZVk7e5d7WpoPAVJWI9ywIytYDXo6WakCAFeX0zspU=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200715112753-8d01efa2caf0/go.mod h1:UQazNYihDNvX0rYZ98pq1ol8AbEA0LY+ehLLuySQIqQ=
 github.com/elastic/ecs v1.5.0 h1:/VEIBsRU4ecq2+U3RPfKNc6bFyomP6qnthYEcQZu8GU=
 github.com/elastic/ecs v1.5.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20200601155656-d6a9eb4f6d07 h1:s/41t2QLLkaa83VlS5UuyKH0ctX3bG4RMnE3Eha+8fU=
