@@ -1273,6 +1273,27 @@ Profiling-specific data for APM.
 
 
 
+*`profile.id`*::
++
+--
+Unique ID the profile, shared by all samples within the profile.
+
+
+type: keyword
+
+--
+
+*`profile.duration`*::
++
+--
+Duration of the profile, in microseconds.
+All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+
+
+type: long
+
+--
+
 
 *`profile.cpu.ns`*::
 +
@@ -1333,16 +1354,6 @@ type: long
 +
 --
 Amount of memory allocated, in bytes, and currently in use.
-
-
-type: long
-
---
-
-*`profile.duration`*::
-+
---
-Duration of the profile, in microseconds.
 
 
 type: long

@@ -791,7 +791,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-elasticsearch/v7
-Version: v7.5.0
+Version: v7.8.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -1184,7 +1184,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/google/pprof
-Revision: d4f498aebedc
+Revision: 1a94d8640e99
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3188,7 +3188,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: ddb9806d33ae
+Revision: cb9d2d5c5666
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 

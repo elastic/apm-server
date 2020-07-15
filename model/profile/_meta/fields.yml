@@ -6,6 +6,21 @@
       type: group
       dynamic: false
       fields:
+        - name: id
+          type: keyword
+          count: 1
+          description: >
+            Unique ID the profile, shared by all samples within the profile.
+
+        - name: duration
+          type: long
+          count: 1
+          description: >
+            Duration of the profile, in microseconds.
+
+            All samples within a profile will have the same duration.
+            To aggregate durations, you should first group by the profile ID.
+
         - name: cpu
           type: group
           fields:
@@ -59,12 +74,6 @@
               count: 1
               description: >
                 Amount of memory allocated, in bytes, and currently in use.
-
-        - name: duration
-          type: long
-          count: 1
-          description: >
-            Duration of the profile, in microseconds.
 
         - name: top
           type: group
