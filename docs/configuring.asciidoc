@@ -18,6 +18,7 @@ include::{libbeat-dir}/shared-configuring.asciidoc[]
 * <<configuration-logging>>
 * <<setup-kibana-endpoint>>
 * <<configuration-rum>>
+* <<configuration-instrumentation>>
 * <<configuration-path>>
 * <<using-environ-vars>>
 
@@ -62,6 +63,8 @@ include::{libbeat-dir}/loggingconfig.asciidoc[]
 include::./configure-kibana-endpoint.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
+
+include::{libbeat-dir}/shared-instrumentation.asciidoc[]
 
 include::{libbeat-dir}/shared-path-config.asciidoc[]
 
