@@ -178,7 +178,7 @@ enabling you to hunt for security threats with your APM data.
 The SIEM Detections feature automatically searches for threats and creates signals when they are detected.
 The SIEM app ships with four prebuilt rules, specifically for the APM use case: No User Agent, POST Request Declined, Unauthorized Method, and sqlmap User Agent.
 +
-See the {siem-guide}/siem-ui-overview.html[SIEM hosts UI] and {siem-guide}/prebuilt-rules.html[SIEM prebuilt rules]
+See the {security-guide}/siem-ui-overview.html[SIEM hosts UI] and {security-guide}/prebuilt-rules.html[SIEM prebuilt rules]
 for more information on using the SIEM app.
 +
 [role="screenshot"]
