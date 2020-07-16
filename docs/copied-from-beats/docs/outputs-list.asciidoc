@@ -87,4 +87,5 @@ ifndef::no_kerberos[]
 include::{libbeat-dir}/shared-kerberos-config.asciidoc[]
 endif::[]
 
+
 //# end::outputs-include[]
