@@ -142,7 +142,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 
 |=======================================================================
 
-TIP: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch.
+TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of Elasticsearch.
 
 [[choose-service-name]]
 [float]

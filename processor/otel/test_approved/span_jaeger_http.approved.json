@@ -42,7 +42,8 @@
             "span": {
                 "destination": {
                     "service": {
-                        "name": "sql"
+                        "name": "sql",
+                        "resource": "mysql://db:3306"
                     }
                 },
                 "duration": {
