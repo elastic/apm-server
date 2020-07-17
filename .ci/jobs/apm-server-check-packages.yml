@@ -1,0 +1,39 @@
+---
+- job:
+    name: apm-server/apm-server-check-packages-mbp
+    display-name: APM Server check packages MBP
+    description: APM Server check packages MBP
+    project-type: multibranch
+    script-path: .ci/check-changelogs.groovy
+    scm:
+    - github:
+        branch-discovery: no-pr
+        discover-pr-forks-strategy: merge-current
+        discover-pr-forks-trust: permission
+        discover-pr-origin: merge-current
+        discover-tags: false
+        notification-context: 'apm-ci'
+        property-strategies:
+          all-branches:
+          - suppress-scm-triggering: true
+        repo: apm-server
+        repo-owner: elastic
+        credentials-id: 2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken
+        ssh-checkout:
+          credentials: f6c7695a-671e-4f4f-a331-acdce44ff9ba
+        clean:
+          after: true
+          before: true
+        prune: true
+        shallow-clone: true
+        depth: 3
+        do-not-fetch-tags: true
+        submodule:
+          disable: false
+          recursive: true
+          parent-credentials: true
+          timeout: 100
+        timeout: '15'
+        use-author: true
+        wipe-workspace: 'True'
+    periodic-folder-trigger: 1w
