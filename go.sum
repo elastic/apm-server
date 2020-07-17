@@ -246,6 +246,8 @@ github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200630133628-33505124b741 h1:/1hIk
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200630133628-33505124b741/go.mod h1:zhm78HkOliXFWa3ejRQQkXLIw2QUpABc4D3FMxZzcRg=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200715054451-5c2863902fb0 h1:ulvp/LXC6mGHR9iH1z57IFYNSIJPz3qKH3VUBP/W5+Q=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200715054451-5c2863902fb0/go.mod h1:UQazNYihDNvX0rYZ98pq1ol8AbEA0LY+ehLLuySQIqQ=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200717134138-f5f1f7de6c8d h1:2B1UFdRTRQPEOnYl0zDoV/ptO7uxubYGzxvQi1k6qZ4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200717134138-f5f1f7de6c8d/go.mod h1:JLlGGkT7OiXRU/QAlK7MPb7GIXd+1RZzoXET2l5XE4s=
 github.com/elastic/ecs v1.5.0 h1:/VEIBsRU4ecq2+U3RPfKNc6bFyomP6qnthYEcQZu8GU=
 github.com/elastic/ecs v1.5.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20200601155656-d6a9eb4f6d07 h1:s/41t2QLLkaa83VlS5UuyKH0ctX3bG4RMnE3Eha+8fU=
@@ -261,6 +263,7 @@ github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde/go.mod
 github.com/elastic/go-hdrhistogram v0.1.0 h1:7UVeQ9MsO5c9h8RJeH2S2lXCGi9hQB/94W6Pjjqprc4=
 github.com/elastic/go-hdrhistogram v0.1.0/go.mod h1:NEl0wZTQXzwq7X2WBZGl5G3efcKbvv+r9mTZpXrIs78=
 github.com/elastic/go-libaudit/v2 v2.0.0-20200515221334-92371bef3fb8/go.mod h1:j2CZcVcluWDGhQTnq1SOPy1NKEIa74FtQ39Nnz87Jxk=
+github.com/elastic/go-libaudit/v2 v2.0.0/go.mod h1:u100Al3gXDlDelEutZ0CZ6BMM+LsRFqdi7kzdrn6g7o=
 github.com/elastic/go-licenser v0.2.1 h1:K76YI6XR2LRpewLGwhrTqasXZcNJG2yHY4/jit/IXGY=
 github.com/elastic/go-licenser v0.2.1/go.mod h1:D8eNQk70FOCVBl3smCGQt/lv7meBeQno2eI1S5apiHQ=
 github.com/elastic/go-licenser v0.3.1 h1:RmRukU/JUmts+rpexAw0Fvt2ly7VVu6mw8z4HrEzObU=
@@ -1222,6 +1225,7 @@ golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200602100848-8d3cce7afc34 h1:u6CI7A++8r4SItZHYe2cWeAEndN4p1p+3Oum/Ft2EzM=
 golang.org/x/sys v0.0.0-20200602100848-8d3cce7afc34/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae h1:Ih9Yo4hSPImZOpfGuA4bR/ORKTAbhZo2AbWNRCnevdo=
 golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20160726164857-2910a502d2bf/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
@@ -1288,6 +1292,8 @@ golang.org/x/tools v0.0.0-20200701041122-1837592efa10 h1:/dVa/Kj8QBudsXg83xokTME
 golang.org/x/tools v0.0.0-20200701041122-1837592efa10/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/tools v0.0.0-20200714190737-9048b464a08d h1:hYhnolbefSSt3WZp66sgmgnEOFv5PD6a5PIcnKJ8jdU=
 golang.org/x/tools v0.0.0-20200714190737-9048b464a08d/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
+golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6 h1:nULzSsKgihxFGLnQFv2T7lE5vIhOtg8ZPpJHapEt7o0=
+golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=

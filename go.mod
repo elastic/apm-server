@@ -12,7 +12,7 @@ require (
 	github.com/dop251/goja v0.0.0-20200714104027-1f8a2ffe986f // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200706082813-b2775b86b9e0 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200715054451-5c2863902fb0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200717134138-f5f1f7de6c8d
 	github.com/elastic/go-elasticsearch/v7 v7.5.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -67,7 +67,7 @@ require (
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200714190737-9048b464a08d // indirect
+	golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6 // indirect
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
