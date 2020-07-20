@@ -3,7 +3,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { label 'metal' }
   environment {
     BASE_DIR = 'src'
     PIPELINE_LOG_LEVEL = 'INFO'
