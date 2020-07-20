@@ -1,17 +1,13 @@
 [[span-indices]]
-== Span Indices
+== Example span documents
 
-Spans are stored in separate indices of the format `apm-[version]-span-[date]`.
-Conceptually, spans are part of transactions.
+++++
+<titleabbrev>Span documents</titleabbrev>
+++++
 
-[[span-example]]
-[float]
-=== Example documents
-
-See how span documents can look like when indexed in Elasticsearch:
+This example shows what span documents can look like when indexed in Elasticsearch:
 
 [source,json]
 ----
 include::./data/elasticsearch/generated/spans.json[]
 ----
-
