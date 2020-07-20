@@ -10,9 +10,9 @@
       lightweight-checkout: false
       scm:
         - git:
-            url: "https://github.com/cachedout/apm-server.git"
+            url: "https://github.com/elastic/apm-server.git"
             basedir: "apm-server"
             wipe-workspace: true
             branches:
-                - "smoke"
+                - "master"
       script-path: apm-server/.ci/check-packages.groovy
