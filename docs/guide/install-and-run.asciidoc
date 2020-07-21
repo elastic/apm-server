@@ -146,8 +146,6 @@ and configuring it with the address of your APM Server, a secret token (if neces
 
 TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of Elasticsearch.
 
-
-
 [[choose-service-name]]
 [float]
 ==== Choose a service name
@@ -169,7 +167,6 @@ spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
 Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
 Luckily, there are many different ways to tweak and tune the Elastic ecosystem to adapt it to your needs.
-
 
 [float]
 ==== Configure APM agents
@@ -195,7 +192,6 @@ a|
 A select number of configuration options can be changed directly in Kibana, without needing to redeploy the Agent.
 See {apm-app-ref}/agent-configuration.html[Agent configuration in Kibana] for more information.
 
-
 [float]
 ==== Configure Elastic Cloud
 
@@ -203,7 +199,6 @@ If you're running APM Server in Elastic cloud, you can configure your own user s
 Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
 
 Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
-
 
 [float]
 ==== Configure a self installation
@@ -215,7 +210,6 @@ Don't forget to also read about
 {apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
 {apm-server-ref-v}/monitoring.html[monitoring APM Server].
 // end::configure-agents[]
-
 
 [[quick-start-overview]]
 === Quick start development environment
