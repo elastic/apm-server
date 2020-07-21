@@ -1,13 +1,11 @@
 [[metricset-indices]]
-== Metric Indices
+== Example metric documents
 
-By default, metrics are stored to indices of the format `apm-[version]-metric-[date]`.
+++++
+<titleabbrev>Metrics documents</titleabbrev>
+++++
 
-[[metricset-example]]
-[float]
-=== Example Documents
-
-Here's what a metric document looks like when indexed in Elasticsearch:
+This example shows what metric documents can look like when indexed in Elasticsearch:
 
 [source,json]
 ----
