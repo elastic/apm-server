@@ -44,7 +44,7 @@ pipeline {
       matrix {
         // TODO: when the infra is ready with the 'nested-virtualization' then we can use that label
         // agent { label 'nested-virtualization' }
-        agent { label 'metal' }
+        agent { label 'linux && immutable' }
         axes {
           axis {
             name 'GROUPS'
@@ -75,7 +75,9 @@ pipeline {
                 dir("${BASE_DIR}"){
                   junit(allowEmptyResults: true, keepLongStdio: true, testResults: "logs/*.xml")
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'logs/**')
-                  sh(label: 'make clean', script: 'make clean')
+                  withGoEnv(){
+                    sh(label: 'make clean', script: 'make clean')
+                  }
                 }
               }
               cleanup {
