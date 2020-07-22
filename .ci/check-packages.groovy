@@ -15,7 +15,7 @@ pipeline {
     // The build parameters
     BEATS_URL_BASE = 'https://storage.googleapis.com/beats-ci-artifacts/snapshots'
     APM_URL_BASE = 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'
-    BRANCH_NAME = 'master'
+    // BRANCH_NAME = 'master'
   }
   options {
     timeout(time: 4, unit: 'HOURS')
