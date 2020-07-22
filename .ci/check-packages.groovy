@@ -60,12 +60,14 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'make batch',
-                  script: """#!/bin/bash
-                    echo "beats_url_base: ${BEATS_URL_BASE}" > run-settings-jenkins.yml
-                    echo "apm_url_base: ${APM_URL_BASE}" >> run-settings-jenkins.yml
-                    echo "version: ${VERSION}" >> run-settings-jenkins.yml
-                    RUN_SETTINGS=jenkins make batch""")
+                withGoEnv(){
+                  sh(label: 'make batch',
+                    script: """#!/bin/bash
+                      echo "beats_url_base: ${BEATS_URL_BASE}" > run-settings-jenkins.yml
+                      echo "apm_url_base: ${APM_URL_BASE}" >> run-settings-jenkins.yml
+                      echo "version: ${VERSION}" >> run-settings-jenkins.yml
+                      RUN_SETTINGS=jenkins make batch""")
+                }
               }
             }
             post {
