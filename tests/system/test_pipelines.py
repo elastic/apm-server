@@ -86,7 +86,7 @@ class PipelineRegisterTest(ElasticTest):
                 assert ua["os"]["name"] == "Mac OS X"
                 assert ua["os"]["version"] == "10.10.5"
                 assert ua["os"]["full"] == "Mac OS X 10.10.5"
-                assert ua["device"]["name"] == "Other"
+                assert ua["device"]["name"] == "Mac"
         assert ua_found
 
 
