@@ -15,7 +15,7 @@ pipeline {
     // The build parameters
     BEATS_URL_BASE = 'https://storage.googleapis.com/beats-ci-artifacts/snapshots'
     APM_URL_BASE = 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'
-    BRANCH_NAME = 'master'
+    // BRANCH_NAME = 'master'
   }
   options {
     timeout(time: 4, unit: 'HOURS')
@@ -36,7 +36,7 @@ pipeline {
       steps {
         pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}", repo: 'git@github.com:elastic/beats-tester.git')
+        gitCheckout(basedir: "${BASE_DIR}", repo: 'git@github.com:elastic/beats-tester.git', branch: 'master', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba')
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
@@ -44,7 +44,7 @@ pipeline {
       matrix {
         // TODO: when the infra is ready with the 'nested-virtualization' then we can use that label
         // agent { label 'nested-virtualization' }
-        agent { label 'metal' }
+        agent { label 'linux && immutable' }
         axes {
           axis {
             name 'GROUPS'
@@ -60,12 +60,14 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'make batch',
-                  script: """#!/bin/bash
-                    echo "beats_url_base: ${BEATS_URL_BASE}" > run-settings-jenkins.yml
-                    echo "apm_url_base: ${APM_URL_BASE}" >> run-settings-jenkins.yml
-                    echo "version: ${VERSION}" >> run-settings-jenkins.yml
-                    RUN_SETTINGS=jenkins make batch""")
+                withGoEnv(){
+                  sh(label: 'make batch',
+                    script: """#!/bin/bash
+                      echo "beats_url_base: ${BEATS_URL_BASE}" > run-settings-jenkins.yml
+                      echo "apm_url_base: ${APM_URL_BASE}" >> run-settings-jenkins.yml
+                      echo "version: ${VERSION}" >> run-settings-jenkins.yml
+                      RUN_SETTINGS=jenkins make batch""")
+                }
               }
             }
             post {
@@ -73,7 +75,9 @@ pipeline {
                 dir("${BASE_DIR}"){
                   junit(allowEmptyResults: true, keepLongStdio: true, testResults: "logs/*.xml")
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'logs/**')
-                  sh(label: 'make clean', script: 'make clean')
+                  withGoEnv(){
+                    sh(label: 'make clean', script: 'make clean')
+                  }
                 }
               }
               cleanup {
