@@ -41,11 +41,10 @@ type Reporter func(context.Context, PendingReq) error
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
-	stopped         chan struct{}
-	tracer          *apm.Tracer
-	client          beat.Client
-	shutdownTimeout time.Duration
-	waitPublished   *waitPublishedAcker
+	stopped       chan struct{}
+	tracer        *apm.Tracer
+	client        beat.Client
+	waitPublished *waitPublishedAcker
 
 	mu              sync.RWMutex
 	stopping        bool
@@ -61,9 +60,8 @@ type PendingReq struct {
 // PublisherConfig is a struct holding configuration information for the publisher,
 // such as shutdown timeout, default pipeline name and beat info.
 type PublisherConfig struct {
-	Info            beat.Info
-	ShutdownTimeout time.Duration
-	Pipeline        string
+	Info     beat.Info
+	Pipeline string
 }
 
 var (
@@ -92,10 +90,9 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	}
 
 	p := &Publisher{
-		tracer:          tracer,
-		stopped:         make(chan struct{}),
-		shutdownTimeout: cfg.ShutdownTimeout, // TODO(axw) remove this
-		waitPublished:   newWaitPublishedAcker(),
+		tracer:        tracer,
+		stopped:       make(chan struct{}),
+		waitPublished: newWaitPublishedAcker(),
 
 		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
@@ -140,13 +137,6 @@ func (p *Publisher) Client() beat.Client {
 // The worker will drain the queue on shutdown, but no more requests will be
 // published after Stop returns.
 func (p *Publisher) Stop(ctx context.Context) error {
-	// TODO(axw) move timeout to outside responsibility
-	if p.shutdownTimeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, p.shutdownTimeout)
-		defer cancel()
-	}
-
 	// Prevent additional requests from being enqueued.
 	p.mu.Lock()
 	if !p.stopping {
