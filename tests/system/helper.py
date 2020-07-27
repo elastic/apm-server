@@ -1,6 +1,20 @@
 from datetime import datetime, timedelta
+import os
 import time
 from beat.beat import TimeoutError
+
+
+def get_version():
+    """
+    parse the version out of version/version.go
+    """
+    version_go = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "version", "version.go"))
+    match = "const defaultBeatVersion = \""
+    with open(version_go) as f:
+        for line in f:
+            if line.startswith(match):
+                return line[len(match):-2]
+    raise Exception("version not found")
 
 
 def wait_until(cond, max_timeout=10, poll_interval=0.25, name="cond"):
