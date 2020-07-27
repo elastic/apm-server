@@ -4,7 +4,7 @@ import time
 
 apm = "apm"
 apm_prefix = "{}*".format(apm)
-apm_version = "7.8.1"
+apm_version = "7.8.2"
 day = time.strftime("%Y.%m.%d", time.gmtime())
 default_policy = "apm-rollover-30-days"
 policy_url = "/_ilm/policy/"
