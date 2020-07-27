@@ -5,7 +5,7 @@
                 "beat": "apm-test",
                 "pipeline": "apm",
                 "type": "_doc",
-                "version": "7.8.1"
+                "version": "7.8.2"
             },
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "agent": {
@@ -50,7 +50,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.8.1",
+                "version": "7.8.2",
                 "version_major": 7
             },
             "process": {
@@ -110,7 +110,7 @@
                 "beat": "apm-test",
                 "pipeline": "apm",
                 "type": "_doc",
-                "version": "7.8.1"
+                "version": "7.8.2"
             },
             "@timestamp": "2017-05-30T18:53:41.364Z",
             "agent": {
@@ -138,7 +138,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.8.1",
+                "version": "7.8.2",
                 "version_major": 7
             },
             "process": {
