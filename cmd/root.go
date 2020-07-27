@@ -19,6 +19,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/elastic/apm-server/version"
 
 	"github.com/spf13/pflag"
 
@@ -80,7 +81,7 @@ func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
 	settings := instance.Settings{
 		Name:        beatName,
 		IndexPrefix: apmIndexPattern,
-		Version:     "",
+		Version:     version.Version,
 		RunFlags:    runFlags,
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",

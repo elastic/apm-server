@@ -45,7 +45,7 @@ import (
 
 func init() {
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
-		BeatVersion: mage.DefaultBeatBuildVariableSources.BeatVersion,
+		BeatVersion: "version/version.go",
 		GoVersion:   ".go-version",
 		DocBranch:   "docs/version.asciidoc",
 	})
