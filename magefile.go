@@ -66,7 +66,9 @@ func Build() error {
 // GolangCrossBuild build the Beat binary inside of the golang-builder.
 // Do not use directly, use crossBuild instead.
 func GolangCrossBuild() error {
-	return mage.GolangCrossBuild(mage.DefaultGolangCrossBuildArgs())
+	args := mage.DefaultGolangCrossBuildArgs()
+	args.WinMetadata = false
+	return mage.GolangCrossBuild(args)
 }
 
 // BuildGoDaemon builds the go-daemon binary (use crossBuildGoDaemon).
