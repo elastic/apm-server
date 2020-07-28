@@ -19,7 +19,6 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/elastic/apm-server/version"
 
 	"github.com/spf13/pflag"
 
@@ -33,6 +32,7 @@ import (
 
 	"github.com/elastic/apm-server/idxmgmt"
 	_ "github.com/elastic/apm-server/include" // include assets
+	"github.com/elastic/apm-server/version"
 )
 
 const (
