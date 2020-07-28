@@ -118,6 +118,7 @@ func TestLogMiddleware(t *testing.T) {
 				assert.NotEmpty(t, ec["method"])
 				assert.Equal(t, c.Request.URL.String(), ec["URL"])
 				assert.NotEmpty(t, ec["remote_address"])
+				assert.NotEmpty(t, ec["event.duration"])
 				assert.Equal(t, c.Request.Header.Get(headers.UserAgent), ec["user-agent"])
 				// zap encoded type
 				assert.Equal(t, tc.code, int(ec["response_code"].(int64)))
