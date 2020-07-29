@@ -10,7 +10,7 @@ This is accomplished by tracing all of the requests - from the initial web reque
 This makes finding possible bottlenecks throughout your application much easier and faster.
 Best of all, there's no additional configuration needed for distributed tracing, just ensure you're using the latest version of the applicable {apm-agents-ref}/index.html[agent].
 
-The APM UI in Kibana also supports distributed tracing.
+The APM app in Kibana also supports distributed tracing.
 The Timeline visualization has been redesigned to show all of the transactions from individual services that are connected in a trace:
 
 [role="screenshot"]
