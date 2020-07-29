@@ -1,7 +1,7 @@
 [[opentracing]]
 == OpenTracing bridge
 
-All Elastic APM agents have https://opentracing.io/[OpenTracing] compatible bridges.
+Most Elastic APM agents have https://opentracing.io/[OpenTracing] compatible bridges.
 
 The OpenTracing bridge allows you to create Elastic APM <<transactions,transactions>> and <<transaction-spans,spans>> using the OpenTracing API.
 This means you can reuse your existing OpenTracing instrumentation to quickly and easily begin using Elastic APM.
