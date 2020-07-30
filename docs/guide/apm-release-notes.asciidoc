@@ -7,6 +7,7 @@ For a full list of changes, see the
 {apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
+* <<release-highlights-7.9.0>>
 * <<release-highlights-7.8.0>>
 * <<release-highlights-7.7.0>>
 * <<release-highlights-7.6.0>>
@@ -28,6 +29,13 @@ For a full list of changes, see the
 // tag::notable-v8-highlights[]
 
 // end::notable-v8-highlights[]
+
+[[release-highlights-7.9.0]]
+=== APM version 7.9.0
+
+// tag::notable-v79-highlights[]
+// Coming soon...
+// end::notable-v79-highlights[]
 
 [[release-highlights-7.8.0]]
 === APM version 7.8.0
