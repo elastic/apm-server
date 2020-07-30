@@ -81,7 +81,7 @@ func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
 	settings := instance.Settings{
 		Name:        beatName,
 		IndexPrefix: apmIndexPattern,
-		Version:     "",
+		Version:     defaultBeatVersion,
 		RunFlags:    runFlags,
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",

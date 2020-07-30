@@ -1,10 +1,10 @@
 from elasticsearch import NotFoundError, RequestError
-from helper import wait_until
+from helper import get_version, wait_until
 import time
 
 apm = "apm"
 apm_prefix = "{}*".format(apm)
-apm_version = "7.10.0"
+apm_version = get_version()
 day = time.strftime("%Y.%m.%d", time.gmtime())
 default_policy = "apm-rollover-30-days"
 policy_url = "/_ilm/policy/"
