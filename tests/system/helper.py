@@ -6,9 +6,9 @@ from beat.beat import TimeoutError
 
 def get_version():
     """
-    parse the version out of version/version.go
+    parse the version out of cmd/version.go
     """
-    version_go = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "version", "version.go"))
+    version_go = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "cmd", "version.go"))
     match = "const defaultBeatVersion = \""
     with open(version_go) as f:
         for line in f:

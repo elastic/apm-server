@@ -49,7 +49,7 @@ func init() {
 		panic(err)
 	}
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
-		BeatVersion: filepath.Join(repo.RootDir, "version", "version.go"),
+		BeatVersion: filepath.Join(repo.RootDir, "cmd", "version.go"),
 		GoVersion:   filepath.Join(repo.RootDir, ".go-version"),
 		DocBranch:   filepath.Join(repo.RootDir, "docs/version.asciidoc"),
 	})

@@ -32,7 +32,6 @@ import (
 
 	"github.com/elastic/apm-server/idxmgmt"
 	_ "github.com/elastic/apm-server/include" // include assets
-	"github.com/elastic/apm-server/version"
 )
 
 const (
@@ -81,7 +80,7 @@ func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
 	settings := instance.Settings{
 		Name:        beatName,
 		IndexPrefix: apmIndexPattern,
-		Version:     version.Version,
+		Version:     defaultBeatVersion,
 		RunFlags:    runFlags,
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",

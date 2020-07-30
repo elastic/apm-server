@@ -15,10 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package version
+package cmd
 
 // name matches github.com/elastic/beats/v7/dev-tools/mage/settings.go parseBeatVersion
 const defaultBeatVersion = "8.0.0"
-
-// Version exports defaultBeatVersion since that variable name is significant to the build process
-const Version = defaultBeatVersion
