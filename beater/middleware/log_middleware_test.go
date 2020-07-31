@@ -114,6 +114,8 @@ func TestLogMiddleware(t *testing.T) {
 				assert.Equal(t, tc.message, entry.Message)
 
 				ec := entry.ContextMap()
+				t.Logf("context map: %v", ec)
+
 				assert.NotEmpty(t, ec["request_id"])
 				assert.NotEmpty(t, ec["method"])
 				assert.Equal(t, c.Request.URL.String(), ec["URL"])
