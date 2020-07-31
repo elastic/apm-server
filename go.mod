@@ -9,14 +9,15 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
-	github.com/dop251/goja v0.0.0-20200714104027-1f8a2ffe986f // indirect
+	github.com/dop251/goja v0.0.0-20200721192441-a695b0cdd498 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200706082813-b2775b86b9e0 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200717134138-f5f1f7de6c8d
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200730184742-a4d090eaaecd
 	github.com/elastic/go-elasticsearch/v7 v7.5.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
+	github.com/elastic/go-sysinfo v1.4.0 // indirect
 	github.com/elastic/go-ucfg v0.8.3
 	github.com/fatih/color v1.9.0
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -60,14 +61,14 @@ require (
 	go.elastic.co/fastjson v1.1.0 // indirect
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect
+	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
+	golang.org/x/sys v0.0.0-20200728102440-3e129f6d46b1 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6 // indirect
+	golang.org/x/tools v0.0.0-20200730221956-1ac65761fe2c // indirect
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
