@@ -534,7 +534,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: f5f1f7de6c8d
+Revision: a4d090eaaecd
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -853,7 +853,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-sysinfo
-Version: v1.3.0
+Version: v1.4.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE.txt":
 
@@ -3763,7 +3763,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 948cd5f35899
+Revision: 123391ffb6de
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3899,7 +3899,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: ddb9806d33ae
+Revision: 3e129f6d46b1
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
