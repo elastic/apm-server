@@ -7,18 +7,15 @@
                 "version": "unknown"
             },
             "destination": {
-                "address": "db",
-                "port": 3306
+                "address": "foo.bar.com",
+                "port": 443
             },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"
             },
-            "labels": {
-                "component": "foo"
-            },
             "parent": {
-                "id": "61626364"
+                "id": "58585858"
             },
             "processor": {
                 "event": "span",
@@ -34,30 +31,31 @@
                 }
             },
             "span": {
-                "db": {
-                    "instance": "db01",
-                    "statement": "GET * from users",
-                    "type": "mysql",
-                    "user": {
-                        "name": "admin"
-                    }
-                },
                 "destination": {
                     "service": {
-                        "name": "sql",
-                        "resource": "mysql://db:3306",
-                        "type": "db"
+                        "name": "https://foo.bar.com",
+                        "resource": "foo.bar.com:443",
+                        "type": "external"
                     }
                 },
                 "duration": {
-                    "us": 0
+                    "us": 79000000
                 },
-                "name": "",
-                "subtype": "mysql",
-                "type": "db"
+                "http": {
+                    "url": {
+                        "original": "https://foo.bar.com:443?a=12"
+                    }
+                },
+                "id": "41414646",
+                "name": "HTTPS GET",
+                "subtype": "http",
+                "type": "external"
             },
             "timestamp": {
                 "us": 1576500418000768
+            },
+            "trace": {
+                "id": "46467830"
             }
         }
     ]

@@ -6,6 +6,10 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "destination": {
+                "address": "foo.bar.com",
+                "port": 80
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"
@@ -27,6 +31,13 @@
                 }
             },
             "span": {
+                "destination": {
+                    "service": {
+                        "name": "http://foo.bar.com",
+                        "resource": "foo.bar.com:80",
+                        "type": "external"
+                    }
+                },
                 "duration": {
                     "us": 79000000
                 },
