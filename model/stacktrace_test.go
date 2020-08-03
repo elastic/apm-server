@@ -110,7 +110,7 @@ func TestStacktraceTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Stacktrace.Transform(context.Background(), &transform.Context{}, &service)
+		output := test.Stacktrace.transform(context.Background(), &transform.Context{}, &service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -256,9 +256,9 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 				Config: transform.Config{SourcemapStore: testSourcemapStore(t, test.ESClientWithValidSourcemap(t))},
 			}
 
-			// run `Stacktrace.Transform` twice to ensure method is idempotent
-			tc.Stacktrace.Transform(context.Background(), tctx, &service)
-			output := tc.Stacktrace.Transform(context.Background(), tctx, &service)
+			// run `Stacktrace.transform` twice to ensure method is idempotent
+			tc.Stacktrace.transform(context.Background(), tctx, &service)
+			output := tc.Stacktrace.transform(context.Background(), tctx, &service)
 			assert.Equal(t, tc.Output, output)
 		})
 	}

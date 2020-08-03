@@ -228,7 +228,7 @@ func (e *Error) addException(ctx context.Context, tctx *transform.Context, chain
 			utility.Set(ex, "code", code.String())
 		}
 
-		st := exception.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
+		st := exception.Stacktrace.transform(ctx, tctx, &e.Metadata.Service)
 		utility.Set(ex, "stacktrace", st)
 
 		result = append(result, ex)
@@ -246,7 +246,7 @@ func (e *Error) addLog(ctx context.Context, tctx *transform.Context) {
 	utility.Set(log, "param_message", e.Log.ParamMessage)
 	utility.Set(log, "logger_name", e.Log.LoggerName)
 	utility.Set(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
+	st := e.Log.Stacktrace.transform(ctx, tctx, &e.Metadata.Service)
 	utility.Set(log, "stacktrace", st)
 
 	e.add("log", log)

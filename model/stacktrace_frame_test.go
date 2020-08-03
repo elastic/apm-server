@@ -100,7 +100,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	tctx := transform.Context{}
 
 	for idx, test := range tests {
-		output := (&test.StFrame).Transform(&tctx)
+		output := test.StFrame.transform(&tctx)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -324,7 +324,7 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 			Config: transform.Config{ExcludeFromGrouping: excludePattern},
 		}
 
-		out := test.fr.Transform(&tctx)
+		out := test.fr.transform(&tctx)
 		exclude := out["exclude_from_grouping"]
 		assert.Equal(t, test.exclude, exclude,
 			fmt.Sprintf("(%v): Pattern: %v, Filename: %v, expected to be excluded: %v", idx, test.pattern, test.fr.Filename, test.exclude))
@@ -409,7 +409,7 @@ func TestLibraryFrame(t *testing.T) {
 		tctx := transform.Context{
 			Config: test.conf,
 		}
-		out := test.fr.Transform(&tctx)["library_frame"]
+		out := test.fr.transform(&tctx)["library_frame"]
 		libFrame := test.fr.LibraryFrame
 		origLibFrame := test.fr.Original.LibraryFrame
 		if test.libraryFrame == nil {

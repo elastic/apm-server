@@ -68,7 +68,7 @@ type Original struct {
 	sourcemapCopied bool
 }
 
-func (s *StacktraceFrame) Transform(tctx *transform.Context) common.MapStr {
+func (s *StacktraceFrame) transform(tctx *transform.Context) common.MapStr {
 	m := common.MapStr{}
 	utility.Set(m, "filename", s.Filename)
 	utility.Set(m, "classname", s.Classname)
