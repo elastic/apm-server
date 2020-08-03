@@ -452,12 +452,7 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			if portString != "" {
 				port, _ = strconv.Atoi(portString)
 			} else {
-				switch url.Scheme {
-				case "http":
-					port = 80
-				case "https":
-					port = 443
-				}
+				port = schemeDefaultPort(url.Scheme)
 			}
 
 			// Set destination.{address,port} from the HTTP URL,
