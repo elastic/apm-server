@@ -176,18 +176,18 @@ You can now secure the communication between APM Agents and APM Server with
 {apm-server-ref-v}/api-key.html[API keys].
 API keys are easy to create and manage, and provide finer authorization rules than secret tokens.
 
-SIEM integration::
+Elastic Security integration::
 
-There are two, brand-new integrations with Elastic SIEM:
+There are two, brand-new integrations with Elastic Security:
 +
-HTTP data collected with Elastic APM is now available in the SIEM app,
+HTTP data collected with Elastic APM is now available in the Security app,
 enabling you to hunt for security threats with your APM data.
 +
-The SIEM Detections feature automatically searches for threats and creates signals when they are detected.
-The SIEM app ships with four prebuilt rules, specifically for the APM use case: No User Agent, POST Request Declined, Unauthorized Method, and sqlmap User Agent.
+The Detections feature automatically searches for threats and creates alerts when they are detected.
+Elastic Security ships with four prebuilt rules, specifically for the APM use case: No User Agent, POST Request Declined, Unauthorized Method, and sqlmap User Agent.
 +
-See the {security-guide}/siem-ui-overview.html[SIEM hosts UI] and {security-guide}/prebuilt-rules.html[SIEM prebuilt rules]
-for more information on using the SIEM app.
+See the {security-guide}/siem-ui-overview.html[Security hosts UI] and {security-guide}/prebuilt-rules.html[Security prebuilt rules]
+for more information on using Elastic Security.
 +
 [role="screenshot"]
 image::images/siem-apm-integration.png[Chained exceptions]
