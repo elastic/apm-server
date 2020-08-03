@@ -181,7 +181,7 @@ func TestIntegrationRum(t *testing.T) {
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
-			p := RUMProcessor(&config.Config{MaxEventSize: 100 * 1024}, &transform.Config{})
+			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024}, &transform.Config{})
 			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, report)
 			assertApproveResult(t, actualResult, test.name)
 		})

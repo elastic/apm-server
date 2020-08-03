@@ -70,6 +70,10 @@ type Span struct {
 	Destination        *Destination
 	DestinationService *DestinationService
 
+	// RUM records whether or not this is a RUM span,
+	// and should have its stack frames sourcemapped.
+	RUM bool
+
 	Experimental interface{}
 }
 

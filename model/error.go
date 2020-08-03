@@ -71,6 +71,10 @@ type Error struct {
 	TransactionSampled *bool
 	TransactionType    *string
 
+	// RUM records whether or not this is a RUM error,
+	// and should have its stack frames sourcemapped.
+	RUM bool
+
 	Experimental interface{}
 	data         common.MapStr
 }

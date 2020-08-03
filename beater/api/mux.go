@@ -129,7 +129,7 @@ func rumIntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter pub
 	if err != nil {
 		return nil, err
 	}
-	h := intake.Handler(stream.RUMProcessor(cfg, tcfg), reporter)
+	h := intake.Handler(stream.RUMV2Processor(cfg, tcfg), reporter)
 	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
 

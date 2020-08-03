@@ -76,17 +76,17 @@ func BackendProcessor(cfg *config.Config) *Processor {
 	}
 }
 
-func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
+func RUMV2Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
 	return &Processor{
 		Tconfig:        *tcfg,
 		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: modeldecoder.DecodeMetadata,
 		models: map[string]decodeEventFunc{
-			"transaction": modeldecoder.DecodeTransaction,
-			"span":        modeldecoder.DecodeSpan,
-			"metricset":   modeldecoder.DecodeMetricset,
-			"error":       modeldecoder.DecodeError,
+			"transaction": modeldecoder.DecodeRUMV2Transaction,
+			"span":        modeldecoder.DecodeRUMV2Span,
+			"metricset":   modeldecoder.DecodeRUMV2Metricset,
+			"error":       modeldecoder.DecodeRUMV2Error,
 		},
 	}
 }
