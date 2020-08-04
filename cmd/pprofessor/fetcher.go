@@ -45,14 +45,14 @@ type fetcher struct {
 }
 
 const fetcherUsage = `    -start                Start time for profile aggregation (defaults to now()-duration)
-    -service              Profiled service name`
+    -service              Profiled service name (defaults to "apm-server")`
 
 func newFetcher(flags driver.FlagSet) driver.Fetcher {
 	flags.AddExtraUsage(fetcherUsage)
 	return &fetcher{
 		flags:       flags,
 		startTime:   flags.String("start", "", "Start time for profile aggregation"),
-		serviceName: flags.String("service", "", "Profiled service name"),
+		serviceName: flags.String("service", "apm-server", "Profiled service name"),
 	}
 }
 
