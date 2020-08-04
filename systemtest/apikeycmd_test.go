@@ -18,7 +18,9 @@
 package systemtest_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"strings"
 	"testing"
 
@@ -84,8 +86,29 @@ func TestAPIKeyInvalidateName(t *testing.T) {
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err)
 
-	var m map[string]interface{}
-	err = json.Unmarshal(out, &m)
+	result := decodeJSONMap(t, bytes.NewReader(out))
+	assert.Len(t, result["invalidated_api_keys"], 2)
+	assert.Equal(t, float64(0), result["error_count"])
+}
+
+func TestAPIKeyInvalidateID(t *testing.T) {
+	cmd := apiKeyCommand("create", "--json")
+	out, err := cmd.CombinedOutput()
 	require.NoError(t, err)
-	assert.Len(t, m["invalidated_api_keys"], 2)
+	attrs := decodeJSONMap(t, bytes.NewReader(out))
+
+	cmd = apiKeyCommand("invalidate", "--json", "--id", attrs["id"].(string))
+	out, err = cmd.CombinedOutput()
+	require.NoError(t, err)
+	result := decodeJSONMap(t, bytes.NewReader(out))
+
+	assert.Equal(t, []interface{}{attrs["id"]}, result["invalidated_api_keys"])
+	assert.Equal(t, float64(0), result["error_count"])
+}
+
+func decodeJSONMap(t *testing.T, r io.Reader) map[string]interface{} {
+	var m map[string]interface{}
+	err := json.NewDecoder(r).Decode(&m)
+	require.NoError(t, err)
+	return m
 }

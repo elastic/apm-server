@@ -50,13 +50,6 @@ class APIKeyHelper(object):
         self.wait_until_created(resp.json()["id"])
         return resp.json()
 
-    def invalidate(self, name):
-        resp = requests.delete(self.api_key_url,
-                               data=json.dumps({'name': name}),
-                               headers={'content-type': 'application/json'})
-        self.wait_until_invalidated(name=name)
-        return resp.json()
-
 
 class APIKeyCommandBaseTest(BaseTest):
     apikey_name = "apm_integration_key"
@@ -132,37 +125,12 @@ class APIKeyCommandTest(APIKeyCommandBaseTest):
         invalidated = self.invalidate_by_name(self.apikey_name)
         assert invalidated.get("error_count") == 0
 
-    def test_create(self):
-        apikey = self.create()
-
-        assert apikey.get("name") == self.apikey_name, apikey
-
-        for attr in ["id", "api_key", "credentials"]:
-            assert apikey.get(attr) != "", apikey
-
     def test_create_with_settings_override(self):
         apikey = self.create(
             "-E", "output.elasticsearch.enabled=false",
             "-E", "apm-server.api_key.elasticsearch.hosts=[{}]".format(self.es_url)
         )
         assert apikey.get("credentials") is not None, apikey
-
-    def test_create_with_expiration(self):
-        apikey = self.create("--expiration", "1d")
-        assert apikey.get("expiration") is not None, apikey
-
-    def test_invalidate_by_id(self):
-        apikey = self.create()
-        invalidated = self.invalidate_by_id(apikey["id"])
-        assert invalidated.get("invalidated_api_keys") == [apikey["id"]], invalidated
-        assert invalidated.get("error_count") == 0, invalidated
-
-    def test_invalidate_by_name(self):
-        self.create()
-        self.create()
-        invalidated = self.invalidate_by_name(self.apikey_name)
-        assert len(invalidated.get("invalidated_api_keys")) == 2, invalidated
-        assert invalidated.get("error_count") == 0, invalidated
 
     def test_info_by_id(self):
         self.create()
