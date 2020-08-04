@@ -50,6 +50,13 @@ class APIKeyHelper(object):
         self.wait_until_created(resp.json()["id"])
         return resp.json()
 
+    def invalidate(self, name):
+        resp = requests.delete(self.api_key_url,
+                               data=json.dumps({'name': name}),
+                               headers={'content-type': 'application/json'})
+        self.wait_until_invalidated(name=name)
+        return resp.json()
+
 
 class APIKeyCommandBaseTest(BaseTest):
     apikey_name = "apm_integration_key"
