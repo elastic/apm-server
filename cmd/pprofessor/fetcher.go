@@ -55,7 +55,7 @@ func newFetcher(flags driver.FlagSet) driver.Fetcher {
 }
 
 // Fetch fetches a profile from Elasticsearch, by aggregating samples for a specified service name and time range.
-func (f *fetcher) Fetch(src string, duration, timeout time.Duration) (*profile.Profile, string, error) {
+func (f *fetcher) Fetch(address string, duration, timeout time.Duration) (*profile.Profile, string, error) {
 	if *f.serviceName == "" {
 		return nil, "", errors.New("-service is required")
 	}
@@ -87,7 +87,7 @@ func (f *fetcher) Fetch(src string, duration, timeout time.Duration) (*profile.P
 		startTime = "now-" + durationString
 	}
 
-	cfg := elasticsearch.Config{Addresses: []string{src}}
+	cfg := elasticsearch.Config{Addresses: []string{address}}
 	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
 		return nil, "", err
@@ -96,7 +96,7 @@ func (f *fetcher) Fetch(src string, duration, timeout time.Duration) (*profile.P
 	if err != nil {
 		return nil, "", err
 	}
-	return p, src, nil
+	return p, address, nil
 }
 
 func (f *fetcher) fetchProfile(
