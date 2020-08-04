@@ -443,7 +443,7 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 		}
 	}
 
-	if http.URL != nil && (destination.Address == nil || destination.Port == nil) {
+	if http.URL != nil {
 		if fullURL, err := url.Parse(*http.URL); err == nil {
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
 			hostname := truncate(url.Hostname())
@@ -456,11 +456,9 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			}
 
 			// Set destination.{address,port} from the HTTP URL,
-			// if no peer.* attributes were specified.
-			if destination.Address == nil {
-				destination.Address = &hostname
-			}
-			if destination.Port == nil && port > 0 {
+			// replacing peer.* based values to ensure consistency.
+			destination = model.Destination{Address: &hostname}
+			if port > 0 {
 				destination.Port = &port
 			}
 
