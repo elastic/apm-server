@@ -1,31 +1,18 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/7.8\...master[View commits]
+https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 
 [float]
 ==== Breaking Changes
 
 [float]
 ==== Bug fixes
-* Ensure unique names in dynamic templates for fields {pull}3832[3832]
-* Process `user_agent` and `client.ip` for RUM Intake v3 requests {pull}3943[3943]
 
 [float]
 ==== Intake API Changes
 
 [float]
 ==== Added
-* Support configurable response headers for the RUM endpoints {pull}3820[3820]
-* Support custom ILM index suffix {pull}3826[3826],{pull}3905[3905]
-* Jaeger traceIds/spanIds are formatted without leading zeros {pull}3849[3849]
-* Index Page URL and referer as ECS fields {pull}3857[3857]
-* Map the Jaeger attribute message_bus.destination to the Elastic APM type messaging {pull}3884[3884]
-* Added user_agent.name to grouping key for page-load transaction metrics {pull}3886[3886]
-* Map the Jaeger attribute peer.service to span.destination.service.name {pull}3897[3897]
-* Add timeseries.instance to transaction.duration.histogram docs {pull}3904[3904]
-* Uses `instrumentation` config and APM tracer from libbeat, deprecating `apm-server.instrumentation` {pull}3836[3836]
-* Scale Jaeger transaction counts by inverse sampling rate in histogram metrics {pull}3722[3722]
-* Use peer.hostname for destination.address if peer.address is not given on Jaeger span {pull}3969[3969]
-* Upgrade Go to 1.14.4 {pull}3961[3961]
+
 * Use peer.address for destinationService.Resource if peer.address is not given on Jaeger span {pull}3975[3975]

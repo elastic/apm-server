@@ -4,6 +4,10 @@ APM Server is built on top of {beats-ref}/index.html[libbeat].
 As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
+=== 7.9
+There are no breaking changes in APM Server.
+
+[float]
 === 7.8
 There are no breaking changes in APM Server.
 
