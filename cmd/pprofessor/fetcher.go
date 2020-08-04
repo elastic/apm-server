@@ -21,9 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"github.com/google/pprof/driver"
@@ -89,22 +87,7 @@ func (f *fetcher) Fetch(src string, duration, timeout time.Duration) (*profile.P
 		startTime = "now-" + durationString
 	}
 
-	// Honour the -tls_ca flag defined by pprof.
-	var caCert []byte
-	if flag := flag.Lookup("tls_ca"); flag != nil && flag.Value != nil {
-		if filename := flag.Value.String(); filename != "" {
-			data, err := ioutil.ReadFile(filename)
-			if err != nil {
-				return nil, "", err
-			}
-			caCert = data
-		}
-	}
-
-	cfg := elasticsearch.Config{
-		Addresses: []string{src},
-		CACert:    caCert,
-	}
+	cfg := elasticsearch.Config{Addresses: []string{src}}
 	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
 		return nil, "", err
