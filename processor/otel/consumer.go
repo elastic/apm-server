@@ -428,7 +428,7 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 				destinationService.Name = &val
 				if destinationService.Resource == nil {
 					// Prefer using peer.address for resource.
-					destinationService.Resource = &v.StringValue.Value
+					destinationService.Resource = &val
 				}
 			case "message_bus.destination":
 				val := truncate(v.StringValue.Value)
