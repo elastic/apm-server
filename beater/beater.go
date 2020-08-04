@@ -150,14 +150,23 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 
 	publisher, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
-		Info:            b.Info,
-		ShutdownTimeout: bt.config.ShutdownTimeout,
-		Pipeline:        bt.config.Pipeline,
+		Info:     b.Info,
+		Pipeline: bt.config.Pipeline,
 	})
 	if err != nil {
 		return err
 	}
-	defer publisher.Stop()
+
+	// shutdownContext may be updated by stopServer below,
+	// to initiate the shutdown timeout.
+	shutdownContext := context.Background()
+	var cancelShutdownContext context.CancelFunc
+	defer func() {
+		if cancelShutdownContext != nil {
+			defer cancelShutdownContext()
+		}
+		publisher.Stop(shutdownContext)
+	}()
 
 	reporter := publisher.Send
 	if !bt.config.Sampling.KeepUnsampled {
@@ -174,6 +183,11 @@ func (bt *beater) Run(b *beat.Beat) error {
 	var stopOnce sync.Once
 	stopServer := func() {
 		stopOnce.Do(func() {
+			if bt.config.ShutdownTimeout > 0 {
+				shutdownContext, cancelShutdownContext = context.WithTimeout(
+					shutdownContext, bt.config.ShutdownTimeout,
+				)
+			}
 			cancelContext()
 			<-stopped
 		})
@@ -273,8 +287,10 @@ func (bt *beater) Stop() {
 	if bt.stopped || bt.stopServer == nil {
 		return
 	}
-	bt.logger.Infof("stopping apm-server... waiting maximum of %v seconds for queues to drain",
-		bt.config.ShutdownTimeout.Seconds())
+	bt.logger.Infof(
+		"stopping apm-server... waiting maximum of %v seconds for queues to drain",
+		bt.config.ShutdownTimeout.Seconds(),
+	)
 	bt.stopServer()
 	bt.stopped = true
 }

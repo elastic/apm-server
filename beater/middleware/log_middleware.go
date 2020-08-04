@@ -18,6 +18,8 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/gofrs/uuid"
 
 	"go.elastic.co/apm"
@@ -37,6 +39,7 @@ func LogMiddleware() Middleware {
 
 		return func(c *request.Context) {
 			var reqID, transactionID, traceID string
+			start := time.Now()
 			tx := apm.TransactionFromContext(c.Request.Context())
 			if tx != nil {
 				// This request is being traced, grab its IDs to add to logs.
@@ -73,6 +76,7 @@ func LogMiddleware() Middleware {
 
 			c.Logger = reqLogger
 			h(c)
+			reqLogger = reqLogger.With("event.duration", time.Since(start))
 
 			if c.MultipleWriteAttempts() {
 				reqLogger.Warn("multiple write attempts")
