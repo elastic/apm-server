@@ -33,8 +33,6 @@ import (
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 
-// TODO(axw) test sampling
-
 func TestJaegerGRPC(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
@@ -66,6 +64,8 @@ func TestJaegerGRPC(t *testing.T) {
 		},
 	}).Do(context.Background(), &result, estest.WithCondition(result.Hits.NonEmptyCondition()))
 	require.NoError(t, err)
+
+	// TODO(axw) check document contents. We currently do this in beater/jaeger.
 }
 
 func TestJaegerGRPCSampling(t *testing.T) {
