@@ -16,3 +16,4 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 ==== Added
 
 * Use peer.address for destinationService.Resource if peer.address is not given on Jaeger span {pull}3975[3975]
+* Add event.duration to API request logs {pull}4030[4030]
