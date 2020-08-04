@@ -9,6 +9,8 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 [float]
 ==== Bug fixes
 
+* Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
+
 [float]
 ==== Intake API Changes
 
@@ -16,4 +18,5 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 ==== Added
 
 * Use peer.address for destinationService.Resource if peer.address is not given on Jaeger span {pull}3975[3975]
+* Add event.duration to API request logs {pull}4030[4030]
 * Set destination.service.* from http.url for Jaeger spans {pull}4046[4046]

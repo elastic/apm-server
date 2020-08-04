@@ -40,6 +40,10 @@ const (
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
 type Aggregator struct {
+	stopMu   sync.Mutex
+	stopping chan struct{}
+	stopped  chan struct{}
+
 	config          AggregatorConfig
 	userAgentLookup *userAgentLookup
 
@@ -111,6 +115,8 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		return nil, err
 	}
 	return &Aggregator{
+		stopping:        make(chan struct{}),
+		stopped:         make(chan struct{}),
 		config:          config,
 		userAgentLookup: ual,
 		active:          newMetrics(config.MaxTransactionGroups),
@@ -118,24 +124,59 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}, nil
 }
 
-// Run runs the Aggregator, periodically publishing and clearing
-// aggregated metrics. Run returns when either a fatal error occurs,
-// or the context is cancelled.
-func (a *Aggregator) Run(ctx context.Context) error {
+// Run runs the Aggregator, periodically publishing and clearing aggregated
+// metrics. Run returns when either a fatal error occurs, or the Aggregator's
+// Stop method is invoked.
+func (a *Aggregator) Run() error {
 	ticker := time.NewTicker(a.config.MetricsInterval)
 	defer ticker.Stop()
-	for {
+	defer func() {
+		a.stopMu.Lock()
+		defer a.stopMu.Unlock()
 		select {
-		case <-ctx.Done():
-			return ctx.Err()
+		case <-a.stopped:
+		default:
+			close(a.stopped)
+		}
+	}()
+	var stop bool
+	for !stop {
+		select {
+		case <-a.stopping:
+			stop = true
 		case <-ticker.C:
 		}
-		if err := a.publish(ctx); err != nil {
+		if err := a.publish(context.Background()); err != nil {
 			a.config.Logger.With(logp.Error(err)).Warnf(
 				"publishing transaction metrics failed: %s", err,
 			)
 		}
 	}
+	return nil
+}
+
+// Stop stops the Aggregator if it is running, waiting for it to flush any
+// aggregated metrics and return, or for the context to be cancelled.
+//
+// After Stop has been called the aggregator cannot be reused, as the Run
+// method will always return immediately.
+func (a *Aggregator) Stop(ctx context.Context) error {
+	a.stopMu.Lock()
+	select {
+	case <-a.stopped:
+	case <-a.stopping:
+		// Already stopping/stopped.
+	default:
+		close(a.stopping)
+	}
+	a.stopMu.Unlock()
+
+	select {
+	case <-a.stopped:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return nil
 }
 
 func (a *Aggregator) publish(ctx context.Context) error {
