@@ -9,16 +9,6 @@ from es_helper import index_smap, index_metric, index_transaction, index_error, 
 @integration_test
 class Test(ElasticTest):
 
-    def test_onboarding_doc(self):
-        """
-        This test starts the beat and checks that the onboarding doc has been published to ES
-        """
-        wait_until(lambda: self.es.indices.exists(index_onboarding), name="onboarding index created")
-        wait_until(lambda: (self.es.count(index=index_onboarding)['count'] == 1))
-
-        # Makes sure no error or warnings were logged
-        self.assert_no_logged_warnings()
-
     def test_template(self):
         """
         This test starts the beat and checks that the template has been loaded to ES
