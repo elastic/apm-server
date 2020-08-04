@@ -3,6 +3,7 @@
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
 
+* <<breaking-7.9.0>>
 * <<breaking-7.8.0>>
 * <<breaking-7.7.0>>
 * <<breaking-7.6.0>>
@@ -25,6 +26,13 @@ Also see <<apm-release-notes>>.
 // tag::notable-v8-breaking-changes[]
 
 // end::notable-v8-breaking-changes[]
+
+[[breaking-7.9.0]]
+=== 7.9.0 APM Breaking changes
+
+// tag::notable-v79-breaking-changes[]
+No breaking changes.
+// end::notable-v79-breaking-changes[]
 
 [[breaking-7.8.0]]
 === 7.8.0 APM Breaking changes
