@@ -19,7 +19,6 @@ package api
 
 import (
 	"net/http"
-	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -39,7 +38,6 @@ import (
 	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 const (
@@ -113,7 +111,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 }
 
 func profileHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := profile.Handler(transform.Config{}, reporter)
+	h := profile.Handler(reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, profile.MonitoringMap)...)
 }
@@ -125,29 +123,17 @@ func backendIntakeHandler(cfg *config.Config, builder *authorization.Builder, re
 }
 
 func rumIntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	tcfg, err := rumTransformConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-	h := intake.Handler(stream.RUMV2Processor(cfg, tcfg), reporter)
+	h := intake.Handler(stream.RUMV2Processor(cfg), reporter)
 	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
 
 func rumV3IntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	tcfg, err := rumTransformConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-	h := intake.Handler(stream.RUMV3Processor(cfg, tcfg), reporter)
+	h := intake.Handler(stream.RUMV3Processor(cfg), reporter)
 	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
 }
 
 func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	tcfg, err := rumTransformConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-	h := sourcemap.Handler(sourcemap.DecodeSourcemapFormData, psourcemap.Processor, *tcfg, reporter)
+	h := sourcemap.Handler(sourcemap.DecodeSourcemapFormData, psourcemap.Processor, reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
 	return middleware.Wrap(h, sourcemapMiddleware(cfg, authHandler)...)
 }
@@ -230,16 +216,4 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []midd
 func rootMiddleware(_ *config.Config, auth *authorization.Handler) []middleware.Middleware {
 	return append(apmMiddleware(root.MonitoringMap),
 		middleware.AuthorizationMiddleware(auth, false))
-}
-
-func rumTransformConfig(beaterConfig *config.Config) (*transform.Config, error) {
-	store, err := beaterConfig.RumConfig.MemoizedSourcemapStore()
-	if err != nil {
-		return nil, err
-	}
-	return &transform.Config{
-		SourcemapStore:      store,
-		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
-		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
-	}, nil
 }

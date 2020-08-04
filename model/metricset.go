@@ -129,7 +129,7 @@ type MetricsetSpan struct {
 	Subtype string
 }
 
-func (me *Metricset) Transform(ctx context.Context, _ *transform.Context) []beat.Event {
+func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
 	metricsetTransformations.Inc()
 	if me == nil {
 		return nil

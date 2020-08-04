@@ -174,7 +174,7 @@ func (d *DestinationService) fields() common.MapStr {
 	return fields
 }
 
-func (e *Span) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	spanTransformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		spanStacktraceCounter.Inc()
@@ -183,7 +183,7 @@ func (e *Span) Transform(ctx context.Context, tctx *transform.Context) []beat.Ev
 
 	fields := common.MapStr{
 		"processor": spanProcessorEntry,
-		spanDocType: e.fields(ctx, tctx),
+		spanDocType: e.fields(ctx, cfg),
 	}
 
 	// first set the generic metadata
@@ -212,7 +212,7 @@ func (e *Span) Transform(ctx context.Context, tctx *transform.Context) []beat.Ev
 	}
 }
 
-func (e *Span) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
+func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr {
 	if e == nil {
 		return nil
 	}
@@ -242,7 +242,7 @@ func (e *Span) fields(ctx context.Context, tctx *transform.Context) common.MapSt
 
 	// TODO(axw) we should be using a merged service object, combining
 	// the stream metadata and event-specific service info.
-	st := e.Stacktrace.transform(ctx, tctx, &e.Metadata.Service)
+	st := e.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service)
 	utility.Set(fields, "stacktrace", st)
 	return fields
 }

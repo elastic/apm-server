@@ -97,10 +97,9 @@ func TestStacktraceFrameTransform(t *testing.T) {
 			Msg: "Full StacktraceFrame",
 		},
 	}
-	tctx := transform.Context{}
 
 	for idx, test := range tests {
-		output := test.StFrame.transform(&tctx)
+		output := test.StFrame.transform(&transform.Config{}, true)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -320,11 +319,10 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 		if test.pattern != "" {
 			excludePattern = regexp.MustCompile(test.pattern)
 		}
-		tctx := transform.Context{
-			Config: transform.Config{ExcludeFromGrouping: excludePattern},
-		}
 
-		out := test.fr.transform(&tctx)
+		out := test.fr.transform(&transform.Config{
+			RUM: transform.RUMConfig{ExcludeFromGrouping: excludePattern},
+		}, true)
 		exclude := out["exclude_from_grouping"]
 		assert.Equal(t, test.exclude, exclude,
 			fmt.Sprintf("(%v): Pattern: %v, Filename: %v, expected to be excluded: %v", idx, test.pattern, test.fr.Filename, test.exclude))
@@ -338,78 +336,78 @@ func TestLibraryFrame(t *testing.T) {
 	path := "/~/a/b"
 	tests := []struct {
 		fr               StacktraceFrame
-		conf             transform.Config
+		libraryPattern   *regexp.Regexp
 		libraryFrame     *bool
 		origLibraryFrame *bool
 		msg              string
 	}{
 		{fr: StacktraceFrame{},
-			conf:             transform.Config{},
 			libraryFrame:     nil,
 			origLibraryFrame: nil,
 			msg:              "Empty StacktraceFrame, empty config"},
 		{fr: StacktraceFrame{AbsPath: &path},
-			conf:             transform.Config{LibraryPattern: nil},
 			libraryFrame:     nil,
 			origLibraryFrame: nil,
 			msg:              "No pattern"},
 		{fr: StacktraceFrame{AbsPath: &path},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("")},
+			libraryPattern:   regexp.MustCompile(""),
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "Empty pattern"},
 		{fr: StacktraceFrame{LibraryFrame: &falsy},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~")},
+			libraryPattern:   regexp.MustCompile("~"),
 			libraryFrame:     &falsy,
 			origLibraryFrame: &falsy,
 			msg:              "Empty StacktraceFrame"},
 		{fr: StacktraceFrame{AbsPath: &path, LibraryFrame: &truthy},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			libraryPattern:   regexp.MustCompile("^~/"),
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "AbsPath given, no Match"},
 		{fr: StacktraceFrame{Filename: tests.StringPtr("myFile.js"), LibraryFrame: &truthy},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			libraryPattern:   regexp.MustCompile("^~/"),
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "Filename given, no Match"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: tests.StringPtr("myFile.js")},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			libraryPattern:   regexp.MustCompile("^~/"),
 			libraryFrame:     &falsy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath and Filename given, no Match"},
 		{fr: StacktraceFrame{Filename: tests.StringPtr("/tmp")},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("/tmp")},
+			libraryPattern:   regexp.MustCompile("/tmp"),
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "Filename matching"},
 		{fr: StacktraceFrame{AbsPath: &path, LibraryFrame: &falsy},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~/")},
+			libraryPattern:   regexp.MustCompile("~/"),
 			libraryFrame:     &truthy,
 			origLibraryFrame: &falsy,
 			msg:              "AbsPath matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: tests.StringPtr("/a/b/c")},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~/")},
+			libraryPattern:   regexp.MustCompile("~/"),
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath matching, Filename not matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: tests.StringPtr("/a/b/c")},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("/a/b/c")},
+			libraryPattern:   regexp.MustCompile("/a/b/c"),
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath not matching, Filename matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: tests.StringPtr("~/a/b/c")},
-			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~/")},
+			libraryPattern:   regexp.MustCompile("~/"),
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath and Filename matching"},
 	}
 
 	for _, test := range tests {
-		tctx := transform.Context{
-			Config: test.conf,
+		cfg := transform.Config{
+			RUM: transform.RUMConfig{
+				LibraryPattern: test.libraryPattern,
+			},
 		}
-		out := test.fr.transform(&tctx)["library_frame"]
+		out := test.fr.transform(&cfg, true)["library_frame"]
 		libFrame := test.fr.LibraryFrame
 		origLibFrame := test.fr.Original.LibraryFrame
 		if test.libraryFrame == nil {

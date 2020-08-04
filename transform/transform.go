@@ -27,20 +27,16 @@ import (
 )
 
 type Transformable interface {
-	Transform(context.Context, *Context) []beat.Event
+	Transform(context.Context, *Config) []beat.Event
 }
 
-// Context holds event-specific transformation context.
-//
-// TODO(axw) get rid of transform.Context, since it now holds only
-// static configuration. Introduce a "Transformer" type which can
-// be configured; we would have separate Transformers for RUM and
-// non-RUM.
-type Context struct {
-	Config Config
-}
-
+// Config holds general transformation configuration.
 type Config struct {
+	RUM RUMConfig
+}
+
+// RUMConfig holds RUM-related transformation configuration.
+type RUMConfig struct {
 	LibraryPattern      *regexp.Regexp
 	ExcludeFromGrouping *regexp.Regexp
 	SourcemapStore      *sourcemap.Store

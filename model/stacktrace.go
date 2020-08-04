@@ -34,7 +34,7 @@ var (
 
 type Stacktrace []*StacktraceFrame
 
-func (st *Stacktrace) transform(ctx context.Context, tctx *transform.Context, service *Service) []common.MapStr {
+func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum bool, service *Service) []common.MapStr {
 	if st == nil {
 		return nil
 	}
@@ -55,20 +55,20 @@ func (st *Stacktrace) transform(ctx context.Context, tctx *transform.Context, se
 	// - abs_path is set to the cleaned abs_path
 	// - sourcmeap.updated is set to true
 
-	if tctx.Config.SourcemapStore == nil {
-		return st.transformFrames(tctx, noSourcemapping)
+	if !rum || cfg.RUM.SourcemapStore == nil {
+		return st.transformFrames(cfg, rum, noSourcemapping)
 	}
 	if service == nil || service.Name == "" || service.Version == "" {
 		logp.NewLogger(logs.Stacktrace).Warn(msgServiceInvalidForSourcemapping)
-		return st.transformFrames(tctx, noSourcemapping)
+		return st.transformFrames(cfg, rum, noSourcemapping)
 	}
 
 	var errMsg string
 	var sourcemapErrorSet = map[string]interface{}{}
 	logger := logp.NewLogger(logs.Stacktrace)
 	fct := "<anonymous>"
-	return st.transformFrames(tctx, func(frame *StacktraceFrame) {
-		fct, errMsg = frame.applySourcemap(ctx, tctx.Config.SourcemapStore, service, fct)
+	return st.transformFrames(cfg, rum, func(frame *StacktraceFrame) {
+		fct, errMsg = frame.applySourcemap(ctx, cfg.RUM.SourcemapStore, service, fct)
 		if errMsg != "" {
 			if _, ok := sourcemapErrorSet[errMsg]; !ok {
 				logger.Warn(errMsg)
@@ -78,7 +78,7 @@ func (st *Stacktrace) transform(ctx context.Context, tctx *transform.Context, se
 	})
 }
 
-func (st *Stacktrace) transformFrames(ctx *transform.Context, apply func(*StacktraceFrame)) []common.MapStr {
+func (st *Stacktrace) transformFrames(cfg *transform.Config, rum bool, apply func(*StacktraceFrame)) []common.MapStr {
 	frameCount := len(*st)
 	if frameCount == 0 {
 		return nil
@@ -89,7 +89,7 @@ func (st *Stacktrace) transformFrames(ctx *transform.Context, apply func(*Stackt
 	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = (*st)[idx]
 		apply(fr)
-		frames[idx] = fr.transform(ctx)
+		frames[idx] = fr.transform(cfg, rum)
 	}
 	return frames
 }

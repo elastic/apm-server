@@ -98,7 +98,7 @@ func TestIntegrationESOutput(t *testing.T) {
 	report := func(ctx context.Context, p publish.PendingReq) error {
 		var events []beat.Event
 		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, p.Tcontext)...)
+			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
 		}
 		name := ctx.Value("name").(string)
 		verifyErr := approvals.ApproveEvents(events, name)
@@ -150,7 +150,7 @@ func TestIntegrationRum(t *testing.T) {
 	report := func(ctx context.Context, p publish.PendingReq) error {
 		var events []beat.Event
 		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, p.Tcontext)...)
+			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
 		}
 		name := ctx.Value("name").(string)
 		verifyErr := approvals.ApproveEvents(events, name)
@@ -181,7 +181,7 @@ func TestIntegrationRum(t *testing.T) {
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
-			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024}, &transform.Config{})
+			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
 			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, report)
 			assertApproveResult(t, actualResult, test.name)
 		})
@@ -194,7 +194,7 @@ func TestRUMV3(t *testing.T) {
 	reporter := func(name string) publish.Reporter {
 		return func(ctx context.Context, p publish.PendingReq) error {
 			for _, transformable := range p.Transformables {
-				resultEvents = append(resultEvents, transformable.Transform(ctx, p.Tcontext)...)
+				resultEvents = append(resultEvents, transformable.Transform(ctx, &transform.Config{})...)
 			}
 			return nil
 		}
@@ -219,7 +219,7 @@ func TestRUMV3(t *testing.T) {
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
-			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024}, &transform.Config{})
+			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
 			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, reporter(name))
 			assertApproveResult(t, actualResult, test.name)
 

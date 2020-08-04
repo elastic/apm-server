@@ -56,18 +56,18 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 
 func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("OffRum", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(beatertest.MockBeatVersion()), AssetSourcemapPath)
+		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("OffSourcemap", func(t *testing.T) {
-		cfg := config.DefaultConfig(beatertest.MockBeatVersion())
+		cfg := config.DefaultConfig()
 		rum := true
 		cfg.RumConfig.Enabled = &rum
 		cfg.RumConfig.SourceMapping.Enabled = new(bool)
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(beatertest.MockBeatVersion()), AssetSourcemapPath)
+		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())

@@ -126,10 +126,8 @@ func TestTransactionTransform(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{}
-
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), tctx)
+		output := test.Transaction.Transform(context.Background(), &transform.Config{})
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -173,7 +171,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    &Custom{"foo": "bar"},
 		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
 	}
-	events := txWithContext.Transform(context.Background(), &transform.Context{})
+	events := txWithContext.Transform(context.Background(), &transform.Config{})
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
@@ -269,10 +267,8 @@ func TestTransactionTransformPage(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{}
-
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), tctx)
+		output := test.Transaction.Transform(context.Background(), &transform.Config{})
 		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

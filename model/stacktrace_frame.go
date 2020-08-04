@@ -68,7 +68,7 @@ type Original struct {
 	sourcemapCopied bool
 }
 
-func (s *StacktraceFrame) transform(tctx *transform.Context) common.MapStr {
+func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapStr {
 	m := common.MapStr{}
 	utility.Set(m, "filename", s.Filename)
 	utility.Set(m, "classname", s.Classname)
@@ -76,13 +76,13 @@ func (s *StacktraceFrame) transform(tctx *transform.Context) common.MapStr {
 	utility.Set(m, "module", s.Module)
 	utility.Set(m, "function", s.Function)
 	utility.Set(m, "vars", s.Vars)
-	if tctx.Config.LibraryPattern != nil {
-		s.setLibraryFrame(tctx.Config.LibraryPattern)
+	if rum && cfg.RUM.LibraryPattern != nil {
+		s.setLibraryFrame(cfg.RUM.LibraryPattern)
 	}
 	utility.Set(m, "library_frame", s.LibraryFrame)
 
-	if tctx.Config.ExcludeFromGrouping != nil {
-		s.setExcludeFromGrouping(tctx.Config.ExcludeFromGrouping)
+	if rum && cfg.RUM.ExcludeFromGrouping != nil {
+		s.setExcludeFromGrouping(cfg.RUM.ExcludeFromGrouping)
 	}
 	utility.Set(m, "exclude_from_grouping", s.ExcludeFromGrouping)
 

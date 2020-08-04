@@ -56,7 +56,7 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 
 func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("Off", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(beatertest.MockBeatVersion()), AgentConfigPath)
+		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AgentConfigPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
@@ -96,7 +96,7 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 }
 
 func configEnabledConfigAgent() *config.Config {
-	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
+	cfg := config.DefaultConfig()
 	cfg.Kibana.Enabled = true
 	cfg.Kibana.Host = "localhost:foo"
 	return cfg
