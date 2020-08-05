@@ -7,8 +7,8 @@
                 "version": "unknown"
             },
             "destination": {
-                "address": "mysql://db:3306",
-                "port": 3306
+                "address": "foo.bar.com",
+                "port": 80
             },
             "host": {
                 "hostname": "host-abc",
@@ -20,8 +20,7 @@
                 "error": true,
                 "hasErrors": true,
                 "int_a": 148,
-                "string_a_b": "some note",
-                "type": "db_request"
+                "string_a_b": "some note"
             },
             "parent": {
                 "id": "58585858"
@@ -42,8 +41,9 @@
             "span": {
                 "destination": {
                     "service": {
-                        "name": "sql",
-                        "resource": "mysql://db:3306"
+                        "name": "http://foo.bar.com",
+                        "resource": "foo.bar.com:80",
+                        "type": "external"
                     }
                 },
                 "duration": {
