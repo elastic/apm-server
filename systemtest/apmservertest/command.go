@@ -28,6 +28,8 @@ import (
 	"sync"
 )
 
+// TODO(axw): add support for building/running the OSS apm-server.
+
 // ServerCommand returns a ServerCmd (wrapping os/exec) for running
 // apm-server with args.
 func ServerCommand(subcommand string, args ...string) *ServerCmd {
