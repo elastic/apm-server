@@ -272,8 +272,12 @@ func (f *fetcher) fetchProfile(
 		}
 
 		// Paginate.
-		profilesComposite["after"] = result.Aggregations.Profiles.AfterKey
-		stacksComposite["after"] = result.Aggregations.Stacks.AfterKey
+		if result.Aggregations.Profiles.AfterKey != nil {
+			profilesComposite["after"] = result.Aggregations.Profiles.AfterKey
+		}
+		if result.Aggregations.Stacks.AfterKey != nil {
+			stacksComposite["after"] = result.Aggregations.Stacks.AfterKey
+		}
 	}
 
 	p := &profile.Profile{
@@ -293,13 +297,15 @@ func (f *fetcher) fetchProfile(
 			// that a profile spans multiple builds, when it does.
 			{ID: 1, File: serviceName},
 		},
-		Comments: []string{
-			fmt.Sprintf(
-				"Aggregated from %d doc%s, %d profile%s",
-				totalDocs, plural(totalDocs),
-				totalProfiles, plural(totalProfiles),
-			),
-		},
+	}
+	if len(profileNodes) == 0 || totalDocs > 0 {
+		// If totalDocs is 0, but len(profileNodes) > 0,
+		// then the index template is probably out of date.
+		p.Comments = append(p.Comments, fmt.Sprintf(
+			"Aggregated from %d doc%s, %d profile%s",
+			totalDocs, plural(totalDocs),
+			totalProfiles, plural(totalProfiles),
+		))
 	}
 
 	locations := make(map[string]*profile.Location)
