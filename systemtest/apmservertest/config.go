@@ -152,11 +152,11 @@ func flattenConfig(cfg Config, extra map[string]interface{}) ([]string, error) {
 	}
 
 	m := make(map[string]interface{})
-	for k, v := range extra {
-		m[k] = v
-	}
 	if err := json.Unmarshal(data, &m); err != nil {
 		return nil, err
+	}
+	for k, v := range extra {
+		m[k] = v
 	}
 
 	var kv []string
