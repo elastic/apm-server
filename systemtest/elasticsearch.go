@@ -19,7 +19,6 @@ package systemtest
 
 import (
 	"context"
-	"net"
 	"net/http"
 	"net/url"
 	"testing"
@@ -29,16 +28,16 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v7/esutil"
 
+	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 
 const (
-	defaultElasticsearchHost = "localhost"
-	defaultElasticsearchPort = "9200"
-	adminElasticsearchUser   = "admin"
-	adminElasticsearchPass   = "changeme"
-	maxElasticsearchBackoff  = time.Second
+	adminElasticsearchUser  = "admin"
+	adminElasticsearchPass  = "changeme"
+	maxElasticsearchBackoff = time.Second
 )
 
 var (
@@ -47,12 +46,36 @@ var (
 )
 
 func init() {
-	hostport := net.JoinHostPort(defaultElasticsearchHost, defaultElasticsearchPort)
-	esURL := url.URL{Scheme: "http", Host: hostport}
-	cfg := elasticsearch.Config{
-		Addresses: []string{esURL.String()},
-		Username:  adminElasticsearchUser,
-		Password:  adminElasticsearchPass,
+	cfg := newElasticsearchConfig()
+	cfg.Username = adminElasticsearchUser
+	cfg.Password = adminElasticsearchPass
+	client, err := elasticsearch.NewClient(cfg)
+	if err != nil {
+		panic(err)
+	}
+	Elasticsearch = &estest.Client{Client: client}
+}
+
+// NewElasticsearchClientWithAPIKey returns a new estest.Client,
+// configured to use apiKey for authentication.
+func NewElasticsearchClientWithAPIKey(apiKey string) *estest.Client {
+	cfg := newElasticsearchConfig()
+	cfg.APIKey = apiKey
+	client, err := elasticsearch.NewClient(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return &estest.Client{Client: client}
+}
+
+func newElasticsearchConfig() elasticsearch.Config {
+	var addresses []string
+	for _, host := range apmservertest.DefaultConfig().Output.Elasticsearch.Hosts {
+		u := url.URL{Scheme: "http", Host: host}
+		addresses = append(addresses, u.String())
+	}
+	return elasticsearch.Config{
+		Addresses: addresses,
 		RetryBackoff: func(attempt int) time.Duration {
 			backoff := time.Duration(attempt*100) * time.Millisecond
 			if backoff > maxElasticsearchBackoff {
@@ -60,19 +83,7 @@ func init() {
 			}
 			return backoff
 		},
-		/*
-			Logger: &estransport.ColorLogger{
-				Output:             os.Stdout,
-				EnableRequestBody:  true,
-				EnableResponseBody: true,
-			},
-		*/
 	}
-	client, err := elasticsearch.NewClient(cfg)
-	if err != nil {
-		panic(err)
-	}
-	Elasticsearch = &estest.Client{Client: client}
 }
 
 // CleanupElasticsearch deletes all indices, index templates,
@@ -106,6 +117,18 @@ func CleanupElasticsearch(t testing.TB) {
 	// Delete the ILM policy last or we'll get an error due to it being in use.
 	err := doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"})
 	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// InvalidateAPIKeys invalidates all API Keys for the apm-server user.
+func InvalidateAPIKeys(t testing.TB) {
+	req := esapi.SecurityInvalidateAPIKeyRequest{
+		Body: esutil.NewJSONReader(map[string]interface{}{
+			"username": apmservertest.DefaultConfig().Output.Elasticsearch.Username,
+		}),
+	}
+	if _, err := Elasticsearch.Do(context.Background(), req, nil); err != nil {
 		t.Fatal(err)
 	}
 }
