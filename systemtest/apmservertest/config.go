@@ -32,6 +32,11 @@ const (
 	defaultElasticsearchPort = "9200"
 	defaultElasticsearchUser = "apm_server_user"
 	defaultElasticsearchPass = "changeme"
+
+	defaultKibanaHost = "localhost"
+	defaultKibanaPort = "5601"
+	defaultKibanaUser = "apm_user_ro"
+	defaultKibanaPass = "changeme"
 )
 
 // Config holds APM Server configuration.
@@ -188,12 +193,12 @@ func DefaultConfig() Config {
 			Host: (&url.URL{
 				Scheme: "http",
 				Host: net.JoinHostPort(
-					getenvDefault("KIBANA_HOST", "localhost"),
-					getenvDefault("KIBANA_HOST", "5601"),
+					getenvDefault("KIBANA_HOST", defaultKibanaHost),
+					getenvDefault("KIBANA_PORT", defaultKibanaPort),
 				),
 			}).String(),
-			Username: getenvDefault("KIBANA_USER", "apm_user_ro"),
-			Password: getenvDefault("KIBANA_PASS", "changeme"),
+			Username: getenvDefault("KIBANA_USER", defaultKibanaUser),
+			Password: getenvDefault("KIBANA_PASS", defaultKibanaPass),
 		},
 		Output: OutputConfig{
 			Elasticsearch: &ElasticsearchOutputConfig{
