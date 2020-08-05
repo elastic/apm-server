@@ -1276,7 +1276,8 @@ Profiling-specific data for APM.
 *`profile.id`*::
 +
 --
-Unique ID the profile, shared by all samples within the profile.
+Unique ID for the profile.
+All samples within a profile will have the same profile ID.
 
 
 type: keyword

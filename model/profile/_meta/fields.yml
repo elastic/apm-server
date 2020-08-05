@@ -10,7 +10,9 @@
           type: keyword
           count: 1
           description: >
-            Unique ID the profile, shared by all samples within the profile.
+            Unique ID for the profile.
+
+            All samples within a profile will have the same profile ID.
 
         - name: duration
           type: long
