@@ -34,6 +34,7 @@ before sending the data to the Elastic Stack.
 By extending the OpenTelemetry collector,
 no changes are needed in your instrumented services in order to begin using the Elastic Stack.
 
+[role="screenshot"]
 image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
 
 [float]
