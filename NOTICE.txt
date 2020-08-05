@@ -1186,7 +1186,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/google/pprof
-Revision: d4f498aebedc
+Revision: 1a94d8640e99
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
