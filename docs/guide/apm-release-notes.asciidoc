@@ -43,7 +43,8 @@ Elastic’s integration is designed to drop right into your current OpenTelemetr
 [role="screenshot"]
 image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
 +
-See <<open-telemetry-elastic>> for more information.
+See {apm-overview-ref-v}/open-telemetry-elastic.html[OpenTelemetry integration]
+for more information.
 
 Machine learning integration improvements::
 
