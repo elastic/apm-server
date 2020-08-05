@@ -30,3 +30,4 @@ html_docs
 /x-pack/apm-server/logs
 /docker-compose.override.yml
 /config.mk
+/systemtest/logs
