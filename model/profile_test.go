@@ -89,6 +89,11 @@ func TestPprofProfileTransform(t *testing.T) {
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 
+	if profileMap, ok := output[0].Fields["profile"].(common.MapStr); ok {
+		assert.NotZero(t, profileMap["id"])
+		profileMap["id"] = "random"
+	}
+
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
 		Fields: common.MapStr{
@@ -102,6 +107,7 @@ func TestPprofProfileTransform(t *testing.T) {
 				"key2": []string{"ghi"},
 			},
 			"profile": common.MapStr{
+				"id":                "random",
 				"duration":          int64(10 * time.Second),
 				"cpu.ns":            int64(123),
 				"inuse_space.bytes": int64(456),
