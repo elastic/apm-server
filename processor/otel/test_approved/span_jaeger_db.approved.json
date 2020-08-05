@@ -6,6 +6,10 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "destination": {
+                "address": "db",
+                "port": 3306
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"
@@ -36,6 +40,13 @@
                     "type": "mysql",
                     "user": {
                         "name": "admin"
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "name": "sql",
+                        "resource": "mysql://db:3306",
+                        "type": "db"
                     }
                 },
                 "duration": {

@@ -7,13 +7,14 @@ require (
 	github.com/apache/thrift v0.0.0-20161221203622-b2a4d4ae21c7
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cespare/xxhash/v2 v2.1.1
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
 	github.com/dop251/goja v0.0.0-20200721192441-a695b0cdd498 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200706082813-b2775b86b9e0 // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200731030034-2ced45488460
-	github.com/elastic/go-elasticsearch/v7 v7.5.0
+	github.com/elastic/go-elasticsearch/v7 v7.8.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
@@ -26,8 +27,9 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/google/addlicense v0.0.0-20190907113143-be125746c2c4 // indirect
 	github.com/google/go-cmp v0.4.0
-	github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc
+	github.com/google/pprof v0.0.0-20200708004538-1a94d8640e99
 	github.com/hashicorp/golang-lru v0.5.3
+	github.com/ianlancetaylor/demangle v0.0.0-20200715173712-053cf528c12f // indirect
 	github.com/jaegertracing/jaeger v1.16.0
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect

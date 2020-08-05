@@ -49,14 +49,24 @@ func runServerWithAggregator(ctx context.Context, runServer beater.RunServerFunc
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		args.Logger.Infof("aggregator started with config: %+v", args.Config.Aggregation)
-		switch err := agg.Run(ctx); err {
-		case nil, context.Canceled:
-			args.Logger.Infof("aggregator stopped")
-			return nil
-		default:
+		if err := agg.Run(); err != nil {
 			args.Logger.Errorf("aggregator aborted", logp.Error(err))
 			return err
 		}
+		args.Logger.Infof("aggregator stopped")
+		return nil
+	})
+	g.Go(func() error {
+		<-ctx.Done()
+		stopctx := context.Background()
+		if args.Config.ShutdownTimeout > 0 {
+			// On shutdown wait for the aggregator to stop
+			// in order to flush any accumulated metrics.
+			var cancel context.CancelFunc
+			stopctx, cancel = context.WithTimeout(stopctx, args.Config.ShutdownTimeout)
+			defer cancel()
+		}
+		return agg.Stop(stopctx)
 	})
 	g.Go(func() error {
 		return runServer(ctx, args)

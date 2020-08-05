@@ -23,6 +23,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -40,12 +42,12 @@ const ApprovedSuffix = ".approved.json"
 const ReceivedSuffix = ".received.json"
 
 // AssertApproveResult tests that given result equals an already approved result, and fails otherwise.
-func AssertApproveResult(t *testing.T, name string, actualResult []byte) {
+func AssertApproveResult(t *testing.T, name string, actualResult []byte, ignored ...string) {
 	var resultmap map[string]interface{}
 	err := json.Unmarshal(actualResult, &resultmap)
 	require.NoError(t, err)
 
-	verifyErr := ApproveJSON(resultmap, name)
+	verifyErr := ApproveJSON(resultmap, name, ignored...)
 	if verifyErr != nil {
 		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
 	}
@@ -128,14 +130,32 @@ func readApproved(path string) interface{} {
 // CompareObjects compares two given objects, returning a
 // diff if not equal, and an empty string if they are equal.
 func CompareObjects(received, approved interface{}, ignoredFields ...string) (diff string) {
-	ignored := make(map[string]bool)
-	for _, field := range ignoredFields {
-		ignored[field] = true
+	ignored := make([][]string, len(ignoredFields))
+	for i, field := range ignoredFields {
+		ignored[i] = strings.Split(field, ".")
 	}
+	sort.Slice(ignored, func(i, j int) bool {
+		return len(ignored[i]) < len(ignored[j])
+	})
+
 	opts := []cmp.Option{
 		cmp.FilterPath(func(p cmp.Path) bool {
-			if mi, ok := p.Last().(cmp.MapIndex); ok {
-				return ignored[mi.Key().String()]
+			for _, ignored := range ignored {
+				if len(ignored) > len(p) {
+					continue
+				}
+				for i := 0; i < len(ignored); i++ {
+					mi, ok := p.Index(-i - 1).(cmp.MapIndex)
+					if !ok {
+						break
+					}
+					if mi.Key().String() != ignored[len(ignored)-1-i] {
+						break
+					}
+					if i == 0 {
+						return true
+					}
+				}
 			}
 			return false
 		}, cmp.Ignore()),
