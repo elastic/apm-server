@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 )
 
@@ -111,7 +112,7 @@ func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 	for _, req := range reqs {
 		if req.Transformables != nil {
 			for _, transformable := range req.Transformables {
-				events = append(events, transformable.Transform(context.Background(), req.Tcontext)...)
+				events = append(events, transformable.Transform(context.Background(), &transform.Config{})...)
 			}
 		}
 	}

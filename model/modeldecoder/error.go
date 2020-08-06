@@ -43,6 +43,17 @@ func DecodeRUMV3Error(input Input, batch *m.Batch) error {
 	return nil
 }
 
+// DecodeRUMV2Error decodes a v2 RUM error.
+func DecodeRUMV2Error(input Input, batch *m.Batch) error {
+	apmError, err := decodeError(input, errorSchema)
+	if err != nil {
+		return err
+	}
+	apmError.RUM = true
+	batch.Errors = append(batch.Errors, apmError)
+	return nil
+}
+
 // DecodeError decodes a v2 error.
 func DecodeError(input Input, batch *m.Batch) error {
 	apmError, err := decodeError(input, errorSchema)

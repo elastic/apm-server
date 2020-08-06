@@ -57,7 +57,6 @@ func TestSourcemapProcessorOK(t *testing.T) {
 
 	for _, info := range data {
 		p := sourcemap.Processor
-		tctx := transform.Context{}
 
 		data, err := loader.LoadData(info.Path)
 		require.NoError(t, err)
@@ -70,7 +69,7 @@ func TestSourcemapProcessorOK(t *testing.T) {
 
 		var events []beat.Event
 		for _, transformable := range payload {
-			events = append(events, transformable.Transform(context.Background(), &tctx)...)
+			events = append(events, transformable.Transform(context.Background(), &transform.Config{})...)
 		}
 		verifyErr := approvals.ApproveEvents(events, info.Name, "@timestamp")
 		if verifyErr != nil {

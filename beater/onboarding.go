@@ -35,7 +35,6 @@ func notifyListening(ctx context.Context, listenAddr net.Addr, reporter publish.
 	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
 	reporter(ctx, publish.PendingReq{
 		Transformables: []transform.Transformable{onboardingDoc{listenAddr: listenAddr.String()}},
-		Tcontext:       &transform.Context{},
 	})
 }
 
@@ -43,7 +42,7 @@ type onboardingDoc struct {
 	listenAddr string
 }
 
-func (o onboardingDoc) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+func (o onboardingDoc) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	return []beat.Event{{
 		Timestamp: time.Now(),
 		Fields: common.MapStr{

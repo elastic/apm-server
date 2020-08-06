@@ -71,6 +71,10 @@ type Error struct {
 	TransactionSampled *bool
 	TransactionType    *string
 
+	// RUM records whether or not this is a RUM error,
+	// and should have its stack frames sourcemapped.
+	RUM bool
+
 	Experimental interface{}
 	data         common.MapStr
 }
@@ -95,7 +99,7 @@ type Log struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	errorTransformations.Inc()
 
 	if e.Exception != nil {
@@ -106,7 +110,7 @@ func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	}
 
 	fields := common.MapStr{
-		"error":     e.fields(ctx, tctx),
+		"error":     e.fields(ctx, cfg),
 		"processor": errorProcessorEntry,
 	}
 
@@ -153,16 +157,16 @@ func (e *Error) Transform(ctx context.Context, tctx *transform.Context) []beat.E
 	}
 }
 
-func (e *Error) fields(ctx context.Context, tctx *transform.Context) common.MapStr {
+func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.ID)
 	e.add("page", e.Page.Fields())
 
 	exceptionChain := flattenExceptionTree(e.Exception)
-	e.addException(ctx, tctx, exceptionChain)
-	e.addLog(ctx, tctx)
+	e.addException(ctx, cfg, exceptionChain)
+	e.addLog(ctx, cfg)
 
-	e.updateCulprit(tctx)
+	e.updateCulprit(cfg)
 	e.add("culprit", e.Culprit)
 	e.add("custom", e.Custom.Fields())
 
@@ -171,8 +175,8 @@ func (e *Error) fields(ctx context.Context, tctx *transform.Context) common.MapS
 	return e.data
 }
 
-func (e *Error) updateCulprit(tctx *transform.Context) {
-	if tctx.Config.SourcemapStore == nil {
+func (e *Error) updateCulprit(cfg *transform.Config) {
+	if cfg.RUM.SourcemapStore == nil {
 		return
 	}
 	var fr *StacktraceFrame
@@ -206,7 +210,7 @@ func findSmappedNonLibraryFrame(frames []*StacktraceFrame) *StacktraceFrame {
 	return nil
 }
 
-func (e *Error) addException(ctx context.Context, tctx *transform.Context, chain []Exception) {
+func (e *Error) addException(ctx context.Context, cfg *transform.Config, chain []Exception) {
 	var result []common.MapStr
 	for _, exception := range chain {
 		ex := common.MapStr{}
@@ -228,7 +232,7 @@ func (e *Error) addException(ctx context.Context, tctx *transform.Context, chain
 			utility.Set(ex, "code", code.String())
 		}
 
-		st := exception.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
+		st := exception.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service)
 		utility.Set(ex, "stacktrace", st)
 
 		result = append(result, ex)
@@ -237,7 +241,7 @@ func (e *Error) addException(ctx context.Context, tctx *transform.Context, chain
 	e.add("exception", result)
 }
 
-func (e *Error) addLog(ctx context.Context, tctx *transform.Context) {
+func (e *Error) addLog(ctx context.Context, cfg *transform.Config) {
 	if e.Log == nil {
 		return
 	}
@@ -246,7 +250,7 @@ func (e *Error) addLog(ctx context.Context, tctx *transform.Context) {
 	utility.Set(log, "param_message", e.Log.ParamMessage)
 	utility.Set(log, "logger_name", e.Log.LoggerName)
 	utility.Set(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(ctx, tctx, &e.Metadata.Service)
+	st := e.Log.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service)
 	utility.Set(log, "stacktrace", st)
 
 	e.add("log", log)

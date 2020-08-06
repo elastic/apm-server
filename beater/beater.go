@@ -20,9 +20,9 @@ package beater
 import (
 	"context"
 	"net"
+	"regexp"
+	"strings"
 	"sync"
-
-	"github.com/elastic/beats/v7/libbeat/instrumentation"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
@@ -32,14 +32,18 @@ import (
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
+	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
+	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -68,7 +72,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			esOutputCfg = b.Config.Output.Config()
 		}
 
-		beaterConfig, err := config.NewConfig(b.Info.Version, ucfg, esOutputCfg)
+		beaterConfig, err := config.NewConfig(ucfg, esOutputCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -149,10 +153,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		runServer = bt.wrapRunServer(runServer)
 	}
 
-	publisher, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
-		Info:     b.Info,
-		Pipeline: bt.config.Pipeline,
-	})
+	publisher, err := newPublisher(b, bt.config, tracer)
 	if err != nil {
 		return err
 	}
@@ -226,7 +227,7 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 		return pipeline.RegisterPipelines(conn, overwrite, path)
 	}
 	// ensure pipelines are registered when new ES connection is established.
-	_, err := elasticsearch.RegisterConnectCallback(func(conn *eslegclient.Connection) error {
+	_, err := esoutput.RegisterConnectCallback(func(conn *eslegclient.Connection) error {
 		return pipeline.RegisterPipelines(conn, overwrite, path)
 	})
 	return err
@@ -317,4 +318,44 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 		})
 		return g.Wait()
 	}
+}
+
+func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publish.Publisher, error) {
+	transformConfig, err := newTransformConfig(b.Info, cfg)
+	if err != nil {
+		return nil, err
+	}
+	return publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
+		Info:            b.Info,
+		Pipeline:        cfg.Pipeline,
+		TransformConfig: transformConfig,
+	})
+}
+
+func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
+	transformConfig := &transform.Config{
+		RUM: transform.RUMConfig{
+			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
+			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
+		},
+	}
+
+	if cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled() && cfg.RumConfig.SourceMapping.ESConfig != nil {
+		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping)
+		if err != nil {
+			return nil, err
+		}
+		transformConfig.RUM.SourcemapStore = store
+	}
+
+	return transformConfig, nil
+}
+
+func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcemap.Store, error) {
+	esClient, err := elasticsearch.NewClient(cfg.ESConfig)
+	if err != nil {
+		return nil, err
+	}
+	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
+	return sourcemap.NewStore(esClient, index, cfg.Cache.Expiration)
 }
