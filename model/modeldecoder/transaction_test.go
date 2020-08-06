@@ -89,6 +89,12 @@ var fullTransactionInput = map[string]interface{}{
 			"headers":  map[string]interface{}{"Content-Type": "text/html"},
 		},
 	},
+	"experience": map[string]interface{}{
+		"cls":     1,
+		"fid":     2,
+		"tbt":     3,
+		"ignored": 4,
+	},
 }
 
 func TestDecodeTransactionInvalid(t *testing.T) {
@@ -318,6 +324,11 @@ func TestTransactionEventDecode(t *testing.T) {
 						"headers":  map[string]interface{}{"Content-Type": "text/html"},
 					},
 				},
+				"experience": map[string]interface{}{
+					"cls":     1.0,
+					"fid":     2.3,
+					"ignored": 4,
+				},
 			},
 			e: &model.Transaction{
 				Metadata:  mergedMetadata,
@@ -342,6 +353,11 @@ func TestTransactionEventDecode(t *testing.T) {
 				Custom:    &custom,
 				HTTP:      &h,
 				URL:       &ctxURL,
+				UserExperience: &model.UserExperience{
+					CumulativeLayoutShift: 1,
+					FirstInputDelay:       2.3,
+					TotalBlockingTime:     -1, // undefined
+				},
 			},
 		},
 	} {
