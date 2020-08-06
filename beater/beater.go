@@ -72,6 +72,8 @@ func NewCreator(args CreatorParams) beat.Creator {
 		if err != nil {
 			return nil, err
 		}
+		// send configs to telemetry
+		recordConfigs(b.Info, beaterConfig, ucfg)
 
 		bt := &beater{
 			config:        beaterConfig,
