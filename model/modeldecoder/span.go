@@ -40,10 +40,26 @@ var (
 // decodeRUMV3Span decodes a v3 RUM span, and optional parent index.
 // If parent index wasn't specified, then the value will be negative.
 func decodeRUMV3Span(input Input) (_ *model.Span, parentIndex int, _ error) {
-	return decodeSpan(input, rumV3SpanSchema)
+	span, parentIndex, err := decodeSpan(input, rumV3SpanSchema)
+	if err != nil {
+		return nil, -1, err
+	}
+	span.RUM = true
+	return span, parentIndex, nil
 }
 
-// DecodeSpan decodes a span.
+// DecodeRUMV2Span decodes a v2 RUM span.
+func DecodeRUMV2Span(input Input, batch *model.Batch) error {
+	span, _, err := decodeSpan(input, spanSchema)
+	if err != nil {
+		return err
+	}
+	span.RUM = true
+	batch.Spans = append(batch.Spans, span)
+	return nil
+}
+
+// DecodeSpan decodes a v2 span.
 func DecodeSpan(input Input, batch *model.Batch) error {
 	span, _, err := decodeSpan(input, spanSchema)
 	if err != nil {

@@ -48,7 +48,7 @@ type PprofProfile struct {
 }
 
 // Transform transforms a Profile into a sequence of beat.Events: one per profile sample.
-func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Context) []beat.Event {
+func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
 	profileTimestamp := time.Unix(0, pp.Profile.TimeNanos)

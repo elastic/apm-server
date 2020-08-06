@@ -85,7 +85,7 @@ func TestPprofProfileTransform(t *testing.T) {
 		},
 	}
 
-	output := pp.Transform(context.Background(), &transform.Context{})
+	output := pp.Transform(context.Background(), &transform.Config{})
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 

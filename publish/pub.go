@@ -41,10 +41,11 @@ type Reporter func(context.Context, PendingReq) error
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
-	stopped       chan struct{}
-	tracer        *apm.Tracer
-	client        beat.Client
-	waitPublished *waitPublishedAcker
+	stopped         chan struct{}
+	tracer          *apm.Tracer
+	client          beat.Client
+	waitPublished   *waitPublishedAcker
+	transformConfig *transform.Config
 
 	mu              sync.RWMutex
 	stopping        bool
@@ -53,15 +54,21 @@ type Publisher struct {
 
 type PendingReq struct {
 	Transformables []transform.Transformable
-	Tcontext       *transform.Context
 	Trace          bool
 }
 
-// PublisherConfig is a struct holding configuration information for the publisher,
-// such as shutdown timeout, default pipeline name and beat info.
+// PublisherConfig is a struct holding configuration information for the publisher.
 type PublisherConfig struct {
-	Info     beat.Info
-	Pipeline string
+	Info            beat.Info
+	Pipeline        string
+	TransformConfig *transform.Config
+}
+
+func (cfg *PublisherConfig) Validate() error {
+	if cfg.TransformConfig == nil {
+		return errors.New("TransfromConfig unspecified")
+	}
+	return nil
 }
 
 var (
@@ -73,6 +80,10 @@ var (
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
 func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
+	if err := cfg.Validate(); err != nil {
+		return nil, errors.Wrap(err, "invalid config")
+	}
+
 	processingCfg := beat.ProcessingConfig{
 		Fields: common.MapStr{
 			"observer": common.MapStr{
@@ -90,9 +101,10 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	}
 
 	p := &Publisher{
-		tracer:        tracer,
-		stopped:       make(chan struct{}),
-		waitPublished: newWaitPublishedAcker(),
+		tracer:          tracer,
+		stopped:         make(chan struct{}),
+		waitPublished:   newWaitPublishedAcker(),
+		transformConfig: cfg.TransformConfig,
 
 		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
@@ -205,15 +217,15 @@ func (p *Publisher) processPendingReq(ctx context.Context, req PendingReq) {
 	}
 
 	for _, transformable := range req.Transformables {
-		events := transformTransformable(ctx, transformable, req.Tcontext)
+		events := transformTransformable(ctx, transformable, p.transformConfig)
 		span := tx.StartSpan("PublishAll", "Publisher", nil)
 		p.client.PublishAll(events)
 		span.End()
 	}
 }
 
-func transformTransformable(ctx context.Context, t transform.Transformable, tctx *transform.Context) []beat.Event {
+func transformTransformable(ctx context.Context, t transform.Transformable, cfg *transform.Config) []beat.Event {
 	span, ctx := apm.StartSpan(ctx, "Transform", "Publisher")
 	defer span.End()
-	return t.Transform(ctx, tctx)
+	return t.Transform(ctx, cfg)
 }
