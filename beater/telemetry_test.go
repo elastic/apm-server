@@ -20,7 +20,7 @@ package beater
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -55,38 +55,38 @@ func TestRecordConfigs(t *testing.T) {
 	})
 	recordConfigs(info, apmCfg, rootCfg)
 
-	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.rumEnabled.Get(), int64(0))
-	assert.Equal(t, configMonitors.apiKeysEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.kibanaEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.pipelinesEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.pipelinesOverwrite.Get(), int64(0))
-	assert.Equal(t, configMonitors.setupTemplateEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.setupTemplateOverwrite.Get(), int64(1))
-	assert.Equal(t, configMonitors.setupTemplateAppendFields.Get(), int64(0))
-	assert.Equal(t, configMonitors.ilmEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.ilmSetupOverwrite.Get(), int64(1))
-	assert.Equal(t, configMonitors.ilmSetupRequirePolicy.Get(), int64(0))
-	assert.Equal(t, configMonitors.jaegerGRPCEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.jaegerHTTPEnabled.Get(), int64(1))
-	assert.Equal(t, configMonitors.sslEnabled.Get(), int64(0))
+	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
+	assert.Equal(t, configMonitors.rumEnabled.Get(), false)
+	assert.Equal(t, configMonitors.apiKeysEnabled.Get(), true)
+	assert.Equal(t, configMonitors.kibanaEnabled.Get(), true)
+	assert.Equal(t, configMonitors.pipelinesEnabled.Get(), true)
+	assert.Equal(t, configMonitors.pipelinesOverwrite.Get(), false)
+	assert.Equal(t, configMonitors.setupTemplateEnabled.Get(), true)
+	assert.Equal(t, configMonitors.setupTemplateOverwrite.Get(), true)
+	assert.Equal(t, configMonitors.setupTemplateAppendFields.Get(), false)
+	assert.Equal(t, configMonitors.ilmEnabled.Get(), true)
+	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
+	assert.Equal(t, configMonitors.ilmSetupOverwrite.Get(), true)
+	assert.Equal(t, configMonitors.ilmSetupRequirePolicy.Get(), false)
+	assert.Equal(t, configMonitors.jaegerGRPCEnabled.Get(), true)
+	assert.Equal(t, configMonitors.jaegerHTTPEnabled.Get(), true)
+	assert.Equal(t, configMonitors.sslEnabled.Get(), false)
 }
 
 func resetCounters() {
-	configMonitors.rumEnabled.Set(0)
-	configMonitors.apiKeysEnabled.Set(0)
-	configMonitors.kibanaEnabled.Set(0)
-	configMonitors.jaegerHTTPEnabled.Set(0)
-	configMonitors.jaegerGRPCEnabled.Set(0)
-	configMonitors.sslEnabled.Set(0)
-	configMonitors.pipelinesEnabled.Set(0)
-	configMonitors.pipelinesOverwrite.Set(0)
-	configMonitors.setupTemplateEnabled.Set(0)
-	configMonitors.setupTemplateOverwrite.Set(0)
-	configMonitors.setupTemplateAppendFields.Set(0)
-	configMonitors.ilmSetupEnabled.Set(0)
-	configMonitors.ilmSetupOverwrite.Set(0)
-	configMonitors.ilmSetupRequirePolicy.Set(0)
-	configMonitors.ilmEnabled.Set(0)
+	configMonitors.rumEnabled.Set(false)
+	configMonitors.apiKeysEnabled.Set(false)
+	configMonitors.kibanaEnabled.Set(false)
+	configMonitors.jaegerHTTPEnabled.Set(false)
+	configMonitors.jaegerGRPCEnabled.Set(false)
+	configMonitors.sslEnabled.Set(false)
+	configMonitors.pipelinesEnabled.Set(false)
+	configMonitors.pipelinesOverwrite.Set(false)
+	configMonitors.setupTemplateEnabled.Set(false)
+	configMonitors.setupTemplateOverwrite.Set(false)
+	configMonitors.setupTemplateAppendFields.Set(false)
+	configMonitors.ilmSetupEnabled.Set(false)
+	configMonitors.ilmSetupOverwrite.Set(false)
+	configMonitors.ilmSetupRequirePolicy.Set(false)
+	configMonitors.ilmEnabled.Set(false)
 }

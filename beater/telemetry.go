@@ -27,92 +27,62 @@ import (
 )
 
 var apmRegistry = monitoring.GetNamespace("state").GetRegistry().NewRegistry("apm-server")
-var configRegistry = apmRegistry.NewRegistry("configuration")
 
 type configTelemetry struct {
-	rumEnabled                *monitoring.Int
-	apiKeysEnabled            *monitoring.Int
-	kibanaEnabled             *monitoring.Int
-	pipelinesEnabled          *monitoring.Int
-	pipelinesOverwrite        *monitoring.Int
-	setupTemplateEnabled      *monitoring.Int
-	setupTemplateOverwrite    *monitoring.Int
-	setupTemplateAppendFields *monitoring.Int
-	ilmEnabled                *monitoring.Int
-	ilmSetupEnabled           *monitoring.Int
-	ilmSetupOverwrite         *monitoring.Int
-	ilmSetupRequirePolicy     *monitoring.Int
-	jaegerGRPCEnabled         *monitoring.Int
-	jaegerHTTPEnabled         *monitoring.Int
-	sslEnabled                *monitoring.Int
+	rumEnabled                *monitoring.Bool
+	apiKeysEnabled            *monitoring.Bool
+	kibanaEnabled             *monitoring.Bool
+	pipelinesEnabled          *monitoring.Bool
+	pipelinesOverwrite        *monitoring.Bool
+	setupTemplateEnabled      *monitoring.Bool
+	setupTemplateOverwrite    *monitoring.Bool
+	setupTemplateAppendFields *monitoring.Bool
+	ilmEnabled                *monitoring.Bool
+	ilmSetupEnabled           *monitoring.Bool
+	ilmSetupOverwrite         *monitoring.Bool
+	ilmSetupRequirePolicy     *monitoring.Bool
+	jaegerGRPCEnabled         *monitoring.Bool
+	jaegerHTTPEnabled         *monitoring.Bool
+	sslEnabled                *monitoring.Bool
 }
 
 var configMonitors = &configTelemetry{
-	rumEnabled:                monitoring.NewInt(configRegistry, "rumEnabled"),
-	apiKeysEnabled:            monitoring.NewInt(configRegistry, "apiKeysEnabled"),
-	kibanaEnabled:             monitoring.NewInt(configRegistry, "kibanaEnabled"),
-	pipelinesEnabled:          monitoring.NewInt(configRegistry, "pipelinesEnabled"),
-	pipelinesOverwrite:        monitoring.NewInt(configRegistry, "pipelineOverwrite"),
-	setupTemplateEnabled:      monitoring.NewInt(configRegistry, "setupTemplateEnabled"),
-	setupTemplateOverwrite:    monitoring.NewInt(configRegistry, "setupTemplateOverwrite"),
-	setupTemplateAppendFields: monitoring.NewInt(configRegistry, "setupTemplateAppendFields"),
-	ilmEnabled:                monitoring.NewInt(configRegistry, "ilmEnabled"),
-	ilmSetupEnabled:           monitoring.NewInt(configRegistry, "ilmSetupEnabled"),
-	ilmSetupOverwrite:         monitoring.NewInt(configRegistry, "ilmSetupOverwrite"),
-	ilmSetupRequirePolicy:     monitoring.NewInt(configRegistry, "ilmSetupRequirePolicy"),
-	jaegerGRPCEnabled:         monitoring.NewInt(configRegistry, "jaegerGRPCEnabled"),
-	jaegerHTTPEnabled:         monitoring.NewInt(configRegistry, "jaegerHTTPEnabled"),
-	sslEnabled:                monitoring.NewInt(configRegistry, "sslEnabled"),
+	rumEnabled:                monitoring.NewBool(apmRegistry, "rum.enabled"),
+	apiKeysEnabled:            monitoring.NewBool(apmRegistry, "api_key.enabled"),
+	kibanaEnabled:             monitoring.NewBool(apmRegistry, "kibana.enabled"),
+	pipelinesEnabled:          monitoring.NewBool(apmRegistry, "register.ingest.pipeline.enabled"),
+	pipelinesOverwrite:        monitoring.NewBool(apmRegistry, "register.ingest.pipeline.overwrite"),
+	setupTemplateEnabled:      monitoring.NewBool(apmRegistry, "setup.template.enabled"),
+	setupTemplateOverwrite:    monitoring.NewBool(apmRegistry, "setup.template.overwrite"),
+	setupTemplateAppendFields: monitoring.NewBool(apmRegistry, "setup.template.append_files"),
+	ilmEnabled:                monitoring.NewBool(apmRegistry, "ilm.enabled"),
+	ilmSetupEnabled:           monitoring.NewBool(apmRegistry, "ilm.setup.enabled"),
+	ilmSetupOverwrite:         monitoring.NewBool(apmRegistry, "ilm.setup.overwrite"),
+	ilmSetupRequirePolicy:     monitoring.NewBool(apmRegistry, "ilm.setup.require.policy"),
+	jaegerGRPCEnabled:         monitoring.NewBool(apmRegistry, "jaeger.grpc.enabled"),
+	jaegerHTTPEnabled:         monitoring.NewBool(apmRegistry, "jaeger.http.enabled"),
+	sslEnabled:                monitoring.NewBool(apmRegistry, "ssl.enabled"),
 }
 
 func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config) {
-	if apmCfg.RumConfig.IsEnabled() {
-		configMonitors.rumEnabled.Inc()
-	}
-	if apmCfg.APIKeyConfig.IsEnabled() {
-		configMonitors.apiKeysEnabled.Inc()
-	}
-	if apmCfg.Kibana.Enabled {
-		configMonitors.kibanaEnabled.Inc()
-	}
-	if apmCfg.JaegerConfig.HTTP.Enabled {
-		configMonitors.jaegerHTTPEnabled.Inc()
-	}
-	if apmCfg.JaegerConfig.GRPC.Enabled {
-		configMonitors.jaegerGRPCEnabled.Inc()
-	}
-	if apmCfg.TLS.IsEnabled() {
-		configMonitors.sslEnabled.Inc()
-	}
-	if apmCfg.Register.Ingest.Pipeline.IsEnabled() {
-		configMonitors.pipelinesEnabled.Inc()
-	}
-	if apmCfg.Register.Ingest.Pipeline.ShouldOverwrite() {
-		configMonitors.pipelinesOverwrite.Inc()
-	}
+	configMonitors.rumEnabled.Set(apmCfg.RumConfig.IsEnabled())
+	configMonitors.apiKeysEnabled.Set(apmCfg.APIKeyConfig.IsEnabled())
+	configMonitors.kibanaEnabled.Set(apmCfg.Kibana.Enabled)
+	configMonitors.jaegerHTTPEnabled.Set(apmCfg.JaegerConfig.HTTP.Enabled)
+	configMonitors.jaegerGRPCEnabled.Set(apmCfg.JaegerConfig.GRPC.Enabled)
+	configMonitors.sslEnabled.Set(apmCfg.TLS.IsEnabled())
+	configMonitors.pipelinesEnabled.Set(apmCfg.Register.Ingest.Pipeline.IsEnabled())
+	configMonitors.pipelinesOverwrite.Set(apmCfg.Register.Ingest.Pipeline.ShouldOverwrite())
 	indexManagementCfg, err := idxmgmt.NewIndexManagementConfig(info, rootCfg)
 	if err != nil {
 		return
 	}
-	if indexManagementCfg.Template.Enabled {
-		configMonitors.setupTemplateEnabled.Inc()
-	}
-	if indexManagementCfg.Template.Overwrite {
-		configMonitors.setupTemplateOverwrite.Inc()
-	}
-	if len(indexManagementCfg.Template.AppendFields.GetKeys()) > 0 {
-		configMonitors.setupTemplateAppendFields.Inc()
-	}
-	if indexManagementCfg.ILM.Setup.Enabled {
-		configMonitors.ilmSetupEnabled.Inc()
-	}
-	if indexManagementCfg.ILM.Setup.Overwrite {
-		configMonitors.ilmSetupOverwrite.Inc()
-	}
-	if indexManagementCfg.ILM.Setup.RequirePolicy {
-		configMonitors.ilmSetupRequirePolicy.Inc()
-	}
-	if mode := indexManagementCfg.ILM.Mode; mode == ilm.ModeAuto || mode == ilm.ModeEnabled {
-		configMonitors.ilmEnabled.Inc()
-	}
+	configMonitors.setupTemplateEnabled.Set(indexManagementCfg.Template.Enabled)
+	configMonitors.setupTemplateOverwrite.Set(indexManagementCfg.Template.Overwrite)
+	configMonitors.setupTemplateAppendFields.Set(len(indexManagementCfg.Template.AppendFields.GetKeys()) > 0)
+	configMonitors.ilmSetupEnabled.Set(indexManagementCfg.ILM.Setup.Enabled)
+	configMonitors.ilmSetupOverwrite.Set(indexManagementCfg.ILM.Setup.Overwrite)
+	configMonitors.ilmSetupRequirePolicy.Set(indexManagementCfg.ILM.Setup.RequirePolicy)
+	mode := indexManagementCfg.ILM.Mode
+	configMonitors.ilmEnabled.Set(mode == ilm.ModeAuto || mode == ilm.ModeEnabled)
 }
