@@ -254,14 +254,14 @@ class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
 
     def test_https_unsupported_cipher(self):
         # client only offers unsupported cipher
-        with self.assertRaisesRegexp(ssl.SSLError, 'SSLV3_ALERT_HANDSHAKE_FAILURE'):
+        with self.assertRaisesRegex(ssl.SSLError, 'SSLV3_ALERT_HANDSHAKE_FAILURE'):
             self.ssl_connect(max_version=ssl.TLSVersion.TLSv1_2,
                              ciphers='ECDHE-RSA-AES256-SHA384',
                              cert=self.server_cert, key=self.server_key)
 
     def test_https_no_cipher_selected(self):
         # client provides invalid cipher
-        with self.assertRaisesRegexp(ssl.SSLError, 'No cipher can be selected'):
+        with self.assertRaisesRegex(ssl.SSLError, 'No cipher can be selected'):
             self.ssl_connect(max_version=ssl.TLSVersion.TLSv1_2,
                              ciphers='AES1sd28-CCM8',
                              cert=self.server_cert, key=self.server_key)

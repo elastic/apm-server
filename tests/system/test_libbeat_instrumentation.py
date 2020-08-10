@@ -135,7 +135,7 @@ class TestCPUProfiling(ProfilingTest):
 
         def create_load():
             payload_path = self.get_payload_path("transactions_spans.ndjson")
-            with open(payload_path) as f:
+            with open(payload_path, 'rb') as f:
                 requests.post(self.intake_url, data=f, headers={'content-type': 'application/x-ndjson'})
 
         # Wait for profiling to begin, and then start sending data
