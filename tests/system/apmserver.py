@@ -11,7 +11,6 @@ import unittest
 from urllib.parse import urlparse
 
 from elasticsearch import Elasticsearch, NotFoundError
-from nose.tools import nottest
 import requests
 
 # Add libbeat/tests/system to the import path.
@@ -127,7 +126,6 @@ class BaseTest(TestCase):
     def get_payload_path(self, name):
         return self.get_testdata_path('intake-v2', name)
 
-    @nottest
     def get_testdata_path(self, *names):
         return self._beat_path_join('testdata', *names)
 
@@ -226,7 +224,7 @@ class ServerBaseTest(BaseTest):
         log = self.get_log()
         for s in suppress:
             log = re.sub(s, "", log)
-        self.assertNotRegexpMatches(log, "ERR|WARN")
+        self.assertNotRegex(log, "ERR|WARN")
 
     def request_intake(self, data=None, url=None, headers=None):
         if not url:
@@ -279,7 +277,7 @@ class ElasticTest(ServerBaseTest):
         wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
-                                query_index=None, max_timeout=10, extra_headers=None, file_mode="r"):
+                                query_index=None, max_timeout=10, extra_headers=None, file_mode="rb"):
 
         if query_index is None:
             query_index = apm_prefix
