@@ -6,6 +6,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"

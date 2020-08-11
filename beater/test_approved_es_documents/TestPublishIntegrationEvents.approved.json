@@ -22,6 +22,9 @@
             "ecs": {
                 "version": "1.5.0"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
@@ -217,6 +220,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "amd64",

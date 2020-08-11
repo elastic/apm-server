@@ -6,6 +6,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"

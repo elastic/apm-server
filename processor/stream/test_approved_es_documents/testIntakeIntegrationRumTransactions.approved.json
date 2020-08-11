@@ -9,6 +9,9 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "http": {
                 "request": {
                     "referrer": "http://localhost:8000/test/e2e/"
@@ -71,6 +74,9 @@
             },
             "client": {
                 "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "parent": {
                 "id": "611f4fa950f04631"
