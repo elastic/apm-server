@@ -52,6 +52,7 @@ type Transaction struct {
 	Type           string
 	Name           string
 	Result         string
+	Outcome        string
 	Duration       float64
 	Marks          TransactionMarks
 	Message        *Message
@@ -136,6 +137,7 @@ func (e *Transaction) Transform(_ context.Context, _ *transform.Config) []beat.E
 			utility.Set(fields, "url", e.Page.URL.Fields())
 		}
 	}
+	utility.DeepUpdate(fields, "event.outcome", e.Outcome)
 	utility.Set(fields, "experimental", e.Experimental)
 
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
