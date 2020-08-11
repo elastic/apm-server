@@ -126,7 +126,9 @@ func TestAPIKeyInvalidateID(t *testing.T) {
 	es := systemtest.NewElasticsearchClientWithAPIKey(attrs["credentials"].(string))
 	assertAuthenticateSucceeds(t, es)
 
-	cmd = apiKeyCommand("invalidate", "--json", "--id", attrs["id"].(string))
+	// NOTE(axw) it is important to use "--id=<id>" rather than "--id" <id>,
+	// as API keys may begin with a hyphen and be interpreted as flags.
+	cmd = apiKeyCommand("invalidate", "--json", "--id="+attrs["id"].(string))
 	out, err = cmd.CombinedOutput()
 	require.NoError(t, err)
 	result := decodeJSONMap(t, bytes.NewReader(out))
