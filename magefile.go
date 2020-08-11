@@ -339,7 +339,7 @@ func GoTestIntegration(ctx context.Context) error {
 
 // PythonUnitTest executes the python system tests.
 func PythonUnitTest() error {
-	return mage.PythonNoseTest(mage.DefaultPythonTestUnitArgs())
+	return mage.PythonTest(mage.DefaultPythonTestUnitArgs())
 }
 
 // -----------------------------------------------------------------------------
@@ -457,7 +457,7 @@ func DumpVariables() error {
 func Check() error {
 	fmt.Println(">> check: Checking source code for common problems")
 
-	mg.Deps(mage.GoVet, mage.CheckNosetestsNotExecutable, mage.CheckYAMLNotExecutable)
+	mg.Deps(mage.GoVet, mage.CheckPythonTestNotExecutable, mage.CheckYAMLNotExecutable)
 
 	changes, err := mage.GitDiffIndex()
 	if err != nil {

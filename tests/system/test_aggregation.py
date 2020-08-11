@@ -65,5 +65,5 @@ class TestShutdown(ElasticTest):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
-        self.apmserver_proc.kill() # Stop server to ensure metrics are flushed on shutdown
+        self.apmserver_proc.kill()  # Stop server to ensure metrics are flushed on shutdown
         self.wait_for_events('metric', 3, index=index_metric)
