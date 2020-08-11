@@ -24,18 +24,18 @@ import (
 	"io"
 )
 
-// NewNDJSONStreamReader returns a NDJSONStreamReader which reads
+// NewNDJSONStreamDecoder returns a NewNDJSONStreamDecoder which decodes
 // ND-JSON lines from r, with a maximum line length of maxLineLength.
-func NewNDJSONStreamReader(r io.Reader, maxLineLength int) *NDJSONStreamReader {
-	var sr NDJSONStreamReader
-	sr.bufioReader = bufio.NewReaderSize(r, maxLineLength)
-	sr.lineReader = NewLineReader(sr.bufioReader, maxLineLength)
-	sr.resetDecoder()
-	return &sr
+func NewNDJSONStreamDecoder(r io.Reader, maxLineLength int) *NDJSONStreamDecoder {
+	var dec NDJSONStreamDecoder
+	dec.bufioReader = bufio.NewReaderSize(r, maxLineLength)
+	dec.lineReader = NewLineReader(dec.bufioReader, maxLineLength)
+	dec.resetDecoder()
+	return &dec
 }
 
-// NDJSONStreamReader reads and decodes a stream of ND-JSON lines from an io.Reader.
-type NDJSONStreamReader struct {
+// NDJSONStreamDecoder decodes a stream of ND-JSON lines from an io.Reader.
+type NDJSONStreamDecoder struct {
 	bufioReader *bufio.Reader
 	lineReader  *LineReader
 
@@ -46,43 +46,47 @@ type NDJSONStreamReader struct {
 }
 
 // Reset sets sr's underlying io.Reader to r, and resets any reading/decoding state.
-func (sr *NDJSONStreamReader) Reset(r io.Reader) {
-	sr.bufioReader.Reset(r)
-	sr.lineReader.Reset(sr.bufioReader)
-	sr.isEOF = false
-	sr.latestLine = nil
-	sr.latestLineReader.Reset(nil)
+func (dec *NDJSONStreamDecoder) Reset(r io.Reader) {
+	dec.bufioReader.Reset(r)
+	dec.lineReader.Reset(dec.bufioReader)
+	dec.isEOF = false
+	dec.latestLine = nil
+	dec.latestLineReader.Reset(nil)
 }
 
-func (sr *NDJSONStreamReader) resetDecoder() {
-	sr.decoder = NewJSONDecoder(&sr.latestLineReader)
+func (dec *NDJSONStreamDecoder) resetDecoder() {
+	dec.decoder = NewJSONDecoder(&dec.latestLineReader)
 }
 
-func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
-	buf, readErr := sr.readLine()
-	if len(buf) == 0 || (readErr != nil && !sr.isEOF) {
-		return nil, readErr
+// Decode decodes the next line into the given interfacedec
+func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
+	buf, readErr := dec.readLine()
+	if len(buf) == 0 || (readErr != nil && !dec.isEOF) {
+		return readErr
 	}
-	decoded := make(map[string]interface{})
-	if err := sr.decoder.Decode(&decoded); err != nil {
-		sr.resetDecoder() // clear out decoding state
-		return nil, JSONDecodeError("data read error: " + err.Error())
+	if err := dec.decoder.Decode(v); err != nil {
+		dec.resetDecoder() // clear out decoding state
+		return JSONDecodeError("data read error: " + err.Error())
 	}
-	return decoded, readErr // this might be io.EOF
+	return readErr // this might be io.EOF
 }
 
-func (sr *NDJSONStreamReader) readLine() ([]byte, error) {
+func (dec *NDJSONStreamDecoder) readLine() ([]byte, error) {
 	// readLine can return valid data in `buf` _and_ also an io.EOF
-	line, readErr := sr.lineReader.ReadLine()
-	sr.latestLine = line
-	sr.latestLineReader.Reset(sr.latestLine)
-	sr.isEOF = readErr == io.EOF
+	line, readErr := dec.lineReader.ReadLine()
+	dec.latestLine = line
+	dec.latestLineReader.Reset(dec.latestLine)
+	dec.isEOF = readErr == io.EOF
 	return line, readErr
 }
 
-func (sr *NDJSONStreamReader) IsEOF() bool        { return sr.isEOF }
-func (sr *NDJSONStreamReader) LatestLine() []byte { return sr.latestLine }
+// IsEOF signals whether the underlying reader reached the end
+func (dec *NDJSONStreamDecoder) IsEOF() bool { return dec.isEOF }
 
+// LatestLine returns the latest line read as []byte
+func (dec *NDJSONStreamDecoder) LatestLine() []byte { return dec.latestLine }
+
+// JSONDecodeError is a custom error that can occur during JSON decoding
 type JSONDecodeError string
 
 func (s JSONDecodeError) Error() string { return string(s) }

@@ -36,7 +36,7 @@ type MetadataProcessor struct {
 }
 
 func (p *MetadataProcessor) LoadPayload(path string) (interface{}, error) {
-	ndjson, err := p.getReader(path)
+	ndjson, err := p.getDecoder(path)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +82,8 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/only-metadata.ndjson")
 	require.NoError(t, err)
 
-	metadata, err := decoder.NewNDJSONStreamReader(payloadStream, lrSize).Read()
-	require.NoError(t, err)
+	var metadata map[string]interface{}
+	require.NoError(t, decoder.NewNDJSONStreamDecoder(payloadStream, lrSize).Decode(&metadata))
 
 	contextMetadata := metadata["metadata"]
 
