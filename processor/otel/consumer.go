@@ -274,6 +274,8 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 				isMessaging = true
 			case "type":
 				event.Type = truncate(v.StringValue.Value)
+			case "service.version":
+				event.Metadata.Service.Version = truncate(v.StringValue.Value)
 			case "component":
 				component = truncate(v.StringValue.Value)
 				fallthrough

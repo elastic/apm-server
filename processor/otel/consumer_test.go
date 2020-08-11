@@ -184,6 +184,7 @@ func TestConsumer_Transaction(t *testing.T) {
 						"type":             testAttributeStringValue("http_request"),
 						"component":        testAttributeStringValue("foo"),
 						"string.a.b":       testAttributeStringValue("some note"),
+						"service.version":  testAttributeStringValue("1.0"),
 					}},
 					TimeEvents: testTimeEvents(),
 				}}}},
