@@ -1,8 +1,7 @@
 import datetime
-
+import pytest
 from apmserver import ElasticTest, SubCommandTest, TimeoutError, integration_test
 from elasticsearch import Elasticsearch
-from nose.tools import raises
 from es_helper import wait_until_pipelines_deleted, wait_until_pipelines
 from helper import wait_until
 from es_helper import index_transaction
@@ -122,12 +121,12 @@ class PipelineDisableRegisterTest(ElasticTest):
     """
     config_overrides = {"register_pipeline_enabled": "false"}
 
-    @raises(TimeoutError)
     def test_pipeline_not_registered(self):
         wait_until_pipelines(self.es, [])
         # events do not get stored when pipeline is missing
-        self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 4)
+        with pytest.raises(TimeoutError):
+            self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
+                                         self.intake_url, 'transaction', 4)
 
 
 class PipelineOverwriteBase(ElasticTest):
