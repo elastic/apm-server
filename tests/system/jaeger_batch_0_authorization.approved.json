@@ -10,7 +10,8 @@
             "version": "1.5.0"
         },
         "event": {
-            "ingested": "2020-04-22T14:57:50.071712Z"
+            "ingested": "2020-08-11T09:59:10.729866Z",
+            "outcome": "unknown"
         },
         "host": {
             "hostname": "host01",
@@ -85,7 +86,7 @@
             }
         },
         "event": {
-            "ingested": "2020-04-22T14:57:50.128105Z"
+            "ingested": "2020-08-11T09:59:10.788604Z"
         },
         "host": {
             "hostname": "host01",
@@ -93,9 +94,9 @@
             "name": "host01"
         },
         "observer": {
-            "ephemeral_id": "f672294a-23de-44c6-82c1-5a1487d72e4a",
-            "hostname": "ix.lan",
-            "id": "09366851-25e3-463f-bc4a-28c00c792112",
+            "ephemeral_id": "f2414fe9-88b3-4a35-ad5a-6951ba183d43",
+            "hostname": "goat",
+            "id": "78749c0f-d2f4-42e7-a8c2-a276a77f2555",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8
@@ -149,7 +150,7 @@
             }
         },
         "event": {
-            "ingested": "2020-04-22T14:57:50.133443Z"
+            "ingested": "2020-08-11T09:59:10.794738Z"
         },
         "host": {
             "hostname": "host01",
@@ -157,9 +158,9 @@
             "name": "host01"
         },
         "observer": {
-            "ephemeral_id": "f672294a-23de-44c6-82c1-5a1487d72e4a",
-            "hostname": "ix.lan",
-            "id": "09366851-25e3-463f-bc4a-28c00c792112",
+            "ephemeral_id": "f2414fe9-88b3-4a35-ad5a-6951ba183d43",
+            "hostname": "goat",
+            "id": "78749c0f-d2f4-42e7-a8c2-a276a77f2555",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8
@@ -213,7 +214,7 @@
             }
         },
         "event": {
-            "ingested": "2020-04-22T14:57:50.133822Z"
+            "ingested": "2020-08-11T09:59:10.794838Z"
         },
         "host": {
             "hostname": "host01",
@@ -221,9 +222,9 @@
             "name": "host01"
         },
         "observer": {
-            "ephemeral_id": "f672294a-23de-44c6-82c1-5a1487d72e4a",
-            "hostname": "ix.lan",
-            "id": "09366851-25e3-463f-bc4a-28c00c792112",
+            "ephemeral_id": "f2414fe9-88b3-4a35-ad5a-6951ba183d43",
+            "hostname": "goat",
+            "id": "78749c0f-d2f4-42e7-a8c2-a276a77f2555",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8

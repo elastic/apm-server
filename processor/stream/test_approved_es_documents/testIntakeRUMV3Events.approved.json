@@ -718,7 +718,7 @@
                 "ip": "192.0.0.1"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"

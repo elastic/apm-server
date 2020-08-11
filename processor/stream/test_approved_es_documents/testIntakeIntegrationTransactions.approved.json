@@ -146,6 +146,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "success"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
