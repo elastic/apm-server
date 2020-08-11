@@ -1,7 +1,7 @@
 import json
 import requests
 
-from apmserver import ElasticTest, ServerBaseTest, integration_test, is_subset
+from apmserver import ElasticTest, ServerBaseTest, integration_test
 
 
 @integration_test
@@ -24,7 +24,7 @@ class LoggingIntegrationTest(ElasticTest):
                 "message": "request accepted",
                 "response_code": 202,
             }
-            assert is_subset(subset, req)
+            assert set(subset).issubset(req)
 
     def test_log_invalid_event(self):
         with open(self.get_payload_path("invalid-event.ndjson"), 'rb') as f:
@@ -40,7 +40,7 @@ class LoggingIntegrationTest(ElasticTest):
                 "message": "data validation error",
                 "response_code": 400,
             }
-            assert is_subset(subset, req)
+            assert set(subset).issubset(req)
             error = req.get("error")
             assert error.startswith("failed to validate transaction: error validating JSON:"), json.dumps(req)
 
@@ -66,6 +66,6 @@ class LoggingIntegrationEventSizeTest(ElasticTest):
                 "message": "request body too large",
                 "response_code": 400,
             }
-            assert is_subset(subset, req)
+            assert set(subset).issubset(req)
             error = req.get("error")
             assert error.startswith("event exceeded the permitted size."), json.dumps(req)

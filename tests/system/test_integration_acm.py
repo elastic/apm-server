@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 import uuid
 import requests
 
-from apmserver import ElasticTest, integration_test, is_subset
+from apmserver import ElasticTest, integration_test
 
 
 class AgentConfigurationTest(ElasticTest):
@@ -167,7 +167,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
         assert len(config_request_logs) == len(expect_log)
         for want, got in zip(expect_log, config_request_logs):
-            assert is_subset(want, got)
+            assert set(want).issubset(got)
 
     def test_rum_disabled(self):
         r = requests.get(self.rum_agent_config_url,
@@ -206,17 +206,17 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
 
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
         assert len(config_request_logs) == 2, config_request_logs
-        assert is_subset({
+        assert set({
             "level": "error",
             "message": "unauthorized",
             "error": "unauthorized",
             "response_code": 401,
-        }, config_request_logs[0])
-        assert is_subset({
+        }).issubset(config_request_logs[0])
+        assert set({
             "level": "error",
             "message": "unable to retrieve connection to Kibana",
             "response_code": 503,
-        }, config_request_logs[1])
+        }).issubset(config_request_logs[1])
 
 
 @integration_test
@@ -233,11 +233,11 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
                          })
         assert r.status_code == 403, r.status_code
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
-        assert is_subset({
+        assert set({
             "level": "error",
             "message": "forbidden request",
             "response_code": 403,
-        }, config_request_logs[0])
+        }).issubset(config_request_logs[0])
 
 
 @integration_test

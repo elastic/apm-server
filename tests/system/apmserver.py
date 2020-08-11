@@ -29,10 +29,6 @@ integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
 
 
-def is_subset(s, d):
-    return all(d.get(key, None) == val for key, val in s.items())
-
-
 class BaseTest(TestCase):
     maxDiff = None
 
