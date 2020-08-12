@@ -2867,8 +2867,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/klauspost/compress
-Version: v1.9.3
-Revision: c099ac9f21dd
+Version: v1.10.1
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 

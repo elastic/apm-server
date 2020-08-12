@@ -41,7 +41,7 @@ func testdata(t *testing.T) io.Reader {
 func TestIsSet(t *testing.T) {
 	data := `{"se":{"n":"user-service"}}`
 	var m metadata
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(data)).Decode(&m))
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(data)).Decode(&m))
 	assert.True(t, m.IsSet())
 	assert.True(t, m.Service.IsSet())
 	assert.True(t, m.Service.Name.IsSet())
@@ -50,7 +50,8 @@ func TestIsSet(t *testing.T) {
 
 func TestSetReset(t *testing.T) {
 	var m metadataRoot
-	require.NoError(t, decoder.NewJSONIteratorDecoder(testdata(t)).Decode(&m))
+
+	require.NoError(t, decoder.NewJSONDecoder(testdata(t)).Decode(&m))
 	require.True(t, m.IsSet())
 	require.NotEmpty(t, m.Metadata.Labels)
 	require.True(t, m.Metadata.Service.IsSet())
@@ -82,7 +83,7 @@ func TestValidationRules(t *testing.T) {
 		// load data
 		// set testcase data for given key
 		var data map[string]interface{}
-		require.NoError(t, decoder.NewJSONIteratorDecoder(testdata(t)).Decode(&data))
+		require.NoError(t, decoder.NewJSONDecoder(testdata(t)).Decode(&data))
 		meta := data["m"].(map[string]interface{})
 		var keyData map[string]interface{}
 		require.NoError(t, json.Unmarshal([]byte(tc.data), &keyData))
@@ -92,7 +93,7 @@ func TestValidationRules(t *testing.T) {
 		var m metadata
 		b, err := json.Marshal(meta)
 		require.NoError(t, err)
-		require.NoError(t, decoder.NewJSONIteratorDecoder(bytes.NewReader(b)).Decode(&m))
+		require.NoError(t, decoder.NewJSONDecoder(bytes.NewReader(b)).Decode(&m))
 		// run validation and checks
 		err = m.validate()
 		if tc.errorKey == "" {

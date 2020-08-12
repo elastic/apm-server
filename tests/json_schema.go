@@ -160,6 +160,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 			func(k string) (bool, []string) {
 				errMsgs := []string{
 					fmt.Sprintf("missing properties: \"%s\"", keyLast),
+					fmt.Sprintf("'%s'", key),
 					"did not recognize object type",
 				}
 
@@ -298,12 +299,12 @@ func (ps *ProcessorSetup) changePayload(
 	} else {
 		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v>, but received no error.`, key)) {
 			for _, errMsg := range errMsgs {
-				if strings.Contains(strings.ToLower(err.Error()), errMsg) {
+				if strings.Contains(strings.ToLower(err.Error()), strings.ToLower(errMsg)) {
 					return
 				}
 			}
 			wantLog = true
-			assert.Fail(t, fmt.Sprintf("Expected error to be one of %v, but was %v", errMsgs, err.Error()))
+			assert.Fail(t, fmt.Sprintf("Expected error to be one of <%v>, but was <%v>", errMsgs, err.Error()))
 		} else {
 			wantLog = true
 		}

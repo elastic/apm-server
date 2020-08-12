@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "message": "EOF while reading metadata"
+            "message": "decode error EOF"
         }
     ]
 }

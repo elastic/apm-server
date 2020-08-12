@@ -49,8 +49,8 @@ func TestNDStreamReader(t *testing.T) {
 			latestLine: `{"key": "value2", "t`,
 		},
 		{
-			out:        nil,
-			errPattern: "invalid character",
+			out:        map[string]interface{}{},
+			errPattern: "data read error",
 			latestLine: `{invalid-json}`,
 		},
 		{

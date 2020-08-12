@@ -2,6 +2,7 @@
     "accepted": 0,
     "errors": [
         {
+            "document": "{\"metadata",
             "message": "event exceeded the permitted size."
         }
     ]

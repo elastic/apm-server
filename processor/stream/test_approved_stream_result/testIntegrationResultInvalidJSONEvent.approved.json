@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{ \"invalid-json\" }",
-            "message": "data read error: invalid character '}' after object key"
+            "message": "data read error: ReadMapCB: expect : after object field, but found }, error found in #10 byte of ...|id-json\" }|..., bigger context ...|{ \"invalid-json\" }|..."
         }
     ]
 }

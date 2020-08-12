@@ -38,7 +38,7 @@ require (
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
 	github.com/json-iterator/go v1.1.10
 	github.com/jstemmer/go-junit-report v0.9.1
-	github.com/klauspost/compress v1.9.3-0.20191122130757-c099ac9f21dd // indirect
+	github.com/klauspost/compress v1.10.1 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/magefile/mage v1.10.0
 	github.com/mattn/go-colorable v0.1.7 // indirect

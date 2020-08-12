@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{\"not\": \"metadata\"}",
-            "message": "did not recognize object type"
+            "message": "validation error 'metadata' required"
         }
     ]
 }

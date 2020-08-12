@@ -445,14 +445,13 @@ func TestTransactionEventDecode(t *testing.T) {
 }
 
 func BenchmarkDecodeTransaction(b *testing.B) {
-	var fullMetadata model.Metadata
-	require.NoError(b, DecodeMetadata(fullInput, false, &fullMetadata))
+	metadata := model.Metadata{Service: model.Service{Agent: model.Agent{Name: "java", Version: "1.2.0"}}}
 
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		if err := DecodeTransaction(Input{
-			Metadata: fullMetadata,
+			Metadata: metadata,
 			Raw:      fullTransactionInput,
 		}, &model.Batch{}); err != nil {
 			b.Fatal(err)

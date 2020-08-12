@@ -34,7 +34,7 @@ import (
 func TestResetModelOnRelease(t *testing.T) {
 	inp := `{"m":{"se":{"n":"service-a"}}}`
 	m := fetchMetadataRoot()
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(m))
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(m))
 	require.True(t, m.IsSet())
 	releaseMetadataRoot(m)
 	assert.False(t, m.IsSet())
@@ -44,13 +44,13 @@ func TestDecodeNestedMetadata(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		var out model.Metadata
 		testMinValidMetadata := `{"m":{"se":{"n":"name","a":{"n":"go","ve":"1.0.0"}}}}`
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(testMinValidMetadata))
+		dec := decoder.NewJSONDecoder(strings.NewReader(testMinValidMetadata))
 		require.NoError(t, DecodeNestedMetadata(dec, &out))
 		assert.Equal(t, model.Metadata{Service: model.Service{
 			Name:  "name",
 			Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
 
-		err := DecodeNestedMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &out)
+		err := DecodeNestedMetadata(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "decode")
 	})
@@ -58,7 +58,7 @@ func TestDecodeNestedMetadata(t *testing.T) {
 	t.Run("validate", func(t *testing.T) {
 		inp := `{}`
 		var out model.Metadata
-		err := DecodeNestedMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(inp)), &out)
+		err := DecodeNestedMetadata(decoder.NewJSONDecoder(strings.NewReader(inp)), &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
 	})

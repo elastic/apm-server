@@ -20,8 +20,9 @@ package decoder
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"io"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // NewNDJSONStreamDecoder returns a new NDJSONStreamDecoder which decodes
@@ -42,7 +43,7 @@ type NDJSONStreamDecoder struct {
 	isEOF            bool
 	latestLine       []byte
 	latestLineReader bytes.Reader
-	decoder          *json.Decoder
+	decoder          *jsoniter.Decoder
 }
 
 // Reset sets sr's underlying io.Reader to r, and resets any reading/decoding state.
@@ -55,12 +56,13 @@ func (dec *NDJSONStreamDecoder) Reset(r io.Reader) {
 }
 
 func (dec *NDJSONStreamDecoder) resetDecoder() {
-	dec.decoder = NewJSONDecoder(&dec.latestLineReader)
+	dec.decoder = json.NewDecoder(&dec.latestLineReader)
+	dec.decoder.UseNumber()
 }
 
 // Decode decodes the next line into v.
 func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
-	buf, readErr := dec.readLine()
+	buf, readErr := dec.Read()
 	if len(buf) == 0 || (readErr != nil && !dec.isEOF) {
 		return readErr
 	}
@@ -71,7 +73,7 @@ func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
 	return readErr // this might be io.EOF
 }
 
-func (dec *NDJSONStreamDecoder) readLine() ([]byte, error) {
+func (dec *NDJSONStreamDecoder) Read() ([]byte, error) {
 	// readLine can return valid data in `buf` _and_ also an io.EOF
 	line, readErr := dec.lineReader.ReadLine()
 	dec.latestLine = line
