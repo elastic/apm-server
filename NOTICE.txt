@@ -401,7 +401,8 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dop251/goja_nodejs
-Revision: b2775b86b9e0
+Replacement: github.com/dop251/goja_nodejs
+Revision: adff31b136e6
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -534,7 +535,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 2ced45488460
+Revision: cf959bfb535e
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3909,7 +3910,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 3e129f6d46b1
+Revision: 1b9f1253b3ed
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
