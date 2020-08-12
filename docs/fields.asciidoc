@@ -1694,6 +1694,34 @@ type: object
 --
 
 
+*`transaction.experience.cls`*::
++
+--
+The Cumulative Layout Shift metric
+
+type: scaled_float
+
+--
+
+*`transaction.experience.fid`*::
++
+--
+The First Input Delay metric
+
+type: scaled_float
+
+--
+
+*`transaction.experience.tbt`*::
++
+--
+The Total Blocking Time metric
+
+type: scaled_float
+
+--
+
+
 *`transaction.span_count.dropped`*::
 +
 --

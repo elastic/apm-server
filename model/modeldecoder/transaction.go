@@ -164,6 +164,13 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	decodeString(raw, fieldName("name"), &e.Name)
 	decodeString(raw, fieldName("result"), &e.Result)
 	decodeFloat64(raw, fieldName("duration"), &e.Duration)
+
+	if obj := getObject(raw, fieldName("experience")); obj != nil {
+		var experience model.UserExperience
+		decodeUserExperience(obj, &experience)
+		e.UserExperience = &experience
+	}
+
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}
