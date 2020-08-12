@@ -59,7 +59,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
             "message": "request ok",
             "response_code": 200,
         })
-        self.assertDictEqual({}, r2.json())
+        self.assertEqual({}, r2.json())
 
         self.create_service_config({"transaction_sample_rate": "0.05"}, service_name)
 
@@ -74,7 +74,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
             "message": "request ok",
             "response_code": 200,
         })
-        self.assertDictEqual({"transaction_sample_rate": "0.05"}, r3.json())
+        self.assertEqual({"transaction_sample_rate": "0.05"}, r3.json())
 
         # not modified on re-request
         r3_again = requests.get(self.agent_config_url,
@@ -101,7 +101,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                           },
                           headers={"Content-Type": "application/json"})
         assert r4.status_code == 200, r4.status_code
-        self.assertDictEqual({"transaction_sample_rate": "0.15"}, r4.json())
+        self.assertEqual({"transaction_sample_rate": "0.15"}, r4.json())
         expect_log.append({
             "level": "info",
             "message": "request ok",
@@ -142,7 +142,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                                           "If-None-Match": r4.headers["Etag"],
                                       })
         assert r4_post_update.status_code == 200, r4_post_update.status_code
-        self.assertDictEqual({"transaction_sample_rate": "0.99"}, r4_post_update.json())
+        self.assertEqual({"transaction_sample_rate": "0.99"}, r4_post_update.json())
         expect_log.append({
             "level": "info",
             "message": "request ok",
@@ -162,12 +162,12 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
             "message": "request ok",
             "response_code": 200,
         })
-        self.assertDictEqual({"transaction_sample_rate": "0.05"}, r5.json())
+        self.assertEqual({"transaction_sample_rate": "0.05"}, r5.json())
 
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
         assert len(config_request_logs) == len(expect_log)
         for want, got in zip(expect_log, config_request_logs):
-            self.assertDictContainsSubset(want, got)
+            assert set(want).issubset(got)
 
     def test_rum_disabled(self):
         r = requests.get(self.rum_agent_config_url,
@@ -206,17 +206,17 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
 
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
         assert len(config_request_logs) == 2, config_request_logs
-        self.assertDictContainsSubset({
+        assert set({
             "level": "error",
             "message": "unauthorized",
             "error": "unauthorized",
             "response_code": 401,
-        }, config_request_logs[0])
-        self.assertDictContainsSubset({
+        }).issubset(config_request_logs[0])
+        assert set({
             "level": "error",
             "message": "unable to retrieve connection to Kibana",
             "response_code": 503,
-        }, config_request_logs[1])
+        }).issubset(config_request_logs[1])
 
 
 @integration_test
@@ -233,11 +233,11 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
                          })
         assert r.status_code == 403, r.status_code
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
-        self.assertDictContainsSubset({
+        assert set({
             "level": "error",
             "message": "forbidden request",
             "response_code": 403,
-        }, config_request_logs[0])
+        }).issubset(config_request_logs[0])
 
 
 @integration_test
