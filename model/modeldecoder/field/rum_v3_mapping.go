@@ -51,6 +51,7 @@ var rumV3Mapping = map[string]string{
 	"environment":                 "en",
 	"error":                       "e",
 	"exception":                   "ex",
+	"experience":                  "exp",
 	"fetchStart":                  "fs",
 	"filename":                    "f",
 	"firstContentfulPaint":        "fp",
