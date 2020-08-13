@@ -53,6 +53,9 @@ type Config struct {
 	// We always enable JSON output, and log to stderr.
 	Logging *LoggingConfig `json:"logging,omitempty"`
 
+	// Monitoring holds configuration for stack monitoring.
+	Monitoring *MonitoringConfig `json:"monitoring,omitempty"`
+
 	// Output holds configuration for the libbeat output.
 	Output OutputConfig `json:"output"`
 
@@ -132,9 +135,52 @@ type QueueConfig struct {
 
 // MemoryQueueConfig holds APM Server libbeat in-memory queue configuration.
 type MemoryQueueConfig struct {
-	Events         int           `json:"events"`
-	FlushMinEvents int           `json:"flush.min_events"`
-	FlushTimeout   time.Duration `json:"flush.timeout"`
+	Events         int
+	FlushMinEvents int
+	FlushTimeout   time.Duration
+}
+
+func (m *MemoryQueueConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Events         int      `json:"events"`
+		FlushMinEvents int      `json:"flush.min_events"`
+		FlushTimeout   duration `json:"flush.timeout"`
+	}
+	return json.Marshal(config{
+		Events:         m.Events,
+		FlushMinEvents: m.FlushMinEvents,
+		FlushTimeout:   duration(m.FlushTimeout),
+	})
+}
+
+// MonitoringConfig holds APM Server stack monitoring configuration.
+type MonitoringConfig struct {
+	Enabled       bool
+	MetricsPeriod time.Duration
+	StatePeriod   time.Duration
+}
+
+func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled       bool     `json:"enabled"`
+		MetricsPeriod duration `json:"elasticsearch.metrics.period,omitempty"`
+		StatePeriod   duration `json:"elasticsearch.state.period,omitempty"`
+	}
+	return json.Marshal(config{
+		Enabled:       m.Enabled,
+		MetricsPeriod: duration(m.MetricsPeriod),
+		StatePeriod:   duration(m.StatePeriod),
+	})
+}
+
+type duration time.Duration
+
+func (d duration) MarshalText() (text []byte, err error) {
+	return []byte(time.Duration(d).String()), nil
 }
 
 func configArgs(cfg Config, extra map[string]interface{}) ([]string, error) {

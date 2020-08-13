@@ -56,6 +56,11 @@ type Server struct {
 	// The temporary directory will be removed when the server is closed.
 	Dir string
 
+	// BeatUUID will be populated with the server's Beat UUID after the
+	// Start returns successfully. This can be used to search for documents
+	// corresponding to this test server instance.
+	BeatUUID string
+
 	// Logs provides access to the apm-server log entries.
 	Logs LogEntries
 
@@ -195,6 +200,16 @@ func (s *Server) waitUntilListening(logs *LogEntryIterator) error {
 		if s.Config.Jaeger.HTTPEnabled {
 			prefixes["Listening for Jaeger HTTP requests on"] = &jaegerHTTPListeningAddr
 		}
+	}
+
+	// First wait for the Beat UUID to be logged.
+	for entry := range logs.C() {
+		const prefix = "Beat ID: "
+		if entry.Level != zapcore.InfoLevel || !strings.HasPrefix(entry.Message, prefix) {
+			continue
+		}
+		s.BeatUUID = entry.Message[len(prefix):]
+		break
 	}
 
 	for entry := range logs.C() {
