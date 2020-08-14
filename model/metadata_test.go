@@ -18,16 +18,13 @@
 package model
 
 import (
-	"bytes"
 	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.elastic.co/apm/model"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -170,26 +167,4 @@ func BenchmarkMetadataSet(b *testing.B) {
 		},
 		Labels: common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
 	})
-}
-
-func BenchmarkMetadataDecode(b *testing.B) {
-	maxEventSize := 307200
-	input := []byte(`{"metadata":{"process":{"pid":1234,"title":"/usr/lib/jvm/java-10-openjdk-amd64/bin/java","ppid":1,"argv":["-v"]},"system":{"architecture":"amd64","detected_hostname":"8ec7ceb99074","configured_hostname":"host1","platform":"Linux","container":{"id":"8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"},"kubernetes":{"namespace":"default","pod":{"uid":"b17f231da0ad128dc6c6c0b2e82f6f303d3893e3","name":"instrumented-java-service"},"node":{"name":"node-name"}}},"service":{"name":"1234_service-12a3","version":"4.3.0","node":{"configured_name":"8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"},"environment":"production","language":{"name":"Java","version":"10.0.2"},"agent":{"version":"1.10.0","name":"java","ephemeral_id":"e71be9ac-93b0-44b9-a997-5638f6ccfc36"},"framework":{"name":"spring","version":"5.0.0"},"runtime":{"name":"Java","version":"10.0.2"}},"labels":{"group":"experimental","ab_testing":true,"segment":5}}}`)
-
-	reader := bytes.NewReader(input)
-	var dec *decoder.NDJSONStreamDecoder
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		reader.Reset(input)
-		dec = decoder.NewNDJSONStreamDecoder(reader, maxEventSize)
-		b.StartTimer()
-
-		for !dec.IsEOF() {
-			var span model.Span
-			if err := dec.Decode(&span); err != nil && !dec.IsEOF() {
-				panic(err.Error())
-			}
-		}
-	}
 }
