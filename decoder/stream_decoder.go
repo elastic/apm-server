@@ -24,7 +24,7 @@ import (
 	"io"
 )
 
-// NewNDJSONStreamDecoder returns a NewNDJSONStreamDecoder which decodes
+// NewNDJSONStreamDecoder returns a new NDJSONStreamDecoder which decodes
 // ND-JSON lines from r, with a maximum line length of maxLineLength.
 func NewNDJSONStreamDecoder(r io.Reader, maxLineLength int) *NDJSONStreamDecoder {
 	var dec NDJSONStreamDecoder
@@ -58,7 +58,7 @@ func (dec *NDJSONStreamDecoder) resetDecoder() {
 	dec.decoder = NewJSONDecoder(&dec.latestLineReader)
 }
 
-// Decode decodes the next line into the given interfacedec
+// Decode decodes the next line into v.
 func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
 	buf, readErr := dec.readLine()
 	if len(buf) == 0 || (readErr != nil && !dec.isEOF) {
