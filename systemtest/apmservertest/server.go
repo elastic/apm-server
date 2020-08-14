@@ -150,15 +150,26 @@ func (s *Server) Start() error {
 	s.tb.Cleanup(func() { s.Close() })
 
 	logfile := createLogfile(s.tb, "apm-server")
+	closeLogfile := true
 	s.tb.Cleanup(func() {
 		if s.tb.Failed() {
 			s.tb.Logf("log file: %s", logfile.Name())
 		}
 	})
+	defer func() {
+		if closeLogfile {
+			// Server failed to start, close the log file.
+			logfile.Close()
+		}
+	}()
 
 	// Write the apm-server command line to the top of the log file.
 	s.printCmdline(logfile, args)
-	go s.consumeStderr(io.TeeReader(stderr, logfile))
+	closeLogfile = false
+	go func() {
+		defer logfile.Close()
+		s.consumeStderr(io.TeeReader(stderr, logfile))
+	}()
 
 	logs := s.Logs.Iterator()
 	defer logs.Close()

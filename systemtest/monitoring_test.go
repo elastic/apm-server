@@ -33,9 +33,6 @@ import (
 )
 
 func TestAPMServerMonitoring(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	defer systemtest.CleanupElasticsearch(t)
-
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
 		Enabled:       true,
@@ -58,9 +55,6 @@ func TestAPMServerMonitoring(t *testing.T) {
 }
 
 func TestAPMServerMonitoringBuiltinUser(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	defer systemtest.CleanupElasticsearch(t)
-
 	// This test is about ensuring the "apm_system" built-in user
 	// has sufficient privileges to index monitoring data.
 	const username = "apm_system"
