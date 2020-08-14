@@ -158,6 +158,7 @@ func (m *MemoryQueueConfig) MarshalJSON() ([]byte, error) {
 // MonitoringConfig holds APM Server stack monitoring configuration.
 type MonitoringConfig struct {
 	Enabled       bool
+	Elasticsearch *ElasticsearchOutputConfig
 	MetricsPeriod time.Duration
 	StatePeriod   time.Duration
 }
@@ -166,12 +167,14 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled       bool     `json:"enabled"`
-		MetricsPeriod duration `json:"elasticsearch.metrics.period,omitempty"`
-		StatePeriod   duration `json:"elasticsearch.state.period,omitempty"`
+		Enabled       bool                       `json:"enabled"`
+		Elasticsearch *ElasticsearchOutputConfig `json:"elasticsearch,omitempty"`
+		MetricsPeriod duration                   `json:"elasticsearch.metrics.period,omitempty"`
+		StatePeriod   duration                   `json:"elasticsearch.state.period,omitempty"`
 	}
 	return json.Marshal(config{
 		Enabled:       m.Enabled,
+		Elasticsearch: m.Elasticsearch,
 		MetricsPeriod: duration(m.MetricsPeriod),
 		StatePeriod:   duration(m.StatePeriod),
 	})

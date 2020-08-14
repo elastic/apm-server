@@ -34,6 +34,8 @@ import (
 
 func TestAPMServerMonitoring(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
+	defer systemtest.CleanupElasticsearch(t)
+
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
 		Enabled:       true,
@@ -53,6 +55,30 @@ func TestAPMServerMonitoring(t *testing.T) {
 
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	assert.Contains(t, doc.Metrics, "apm-server")
+}
+
+func TestAPMServerMonitoringBuiltinUser(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	defer systemtest.CleanupElasticsearch(t)
+
+	// This test is about ensuring the "apm_system" built-in user
+	// has sufficient privileges to index monitoring data.
+	const username = "apm_system"
+	const password = "changeme"
+	systemtest.ChangeUserPassword(t, username, password)
+
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
+		Enabled:     true,
+		StatePeriod: time.Duration(time.Second),
+		Elasticsearch: &apmservertest.ElasticsearchOutputConfig{
+			Username: username,
+			Password: password,
+		},
+	}
+	require.NoError(t, srv.Start())
+
+	getBeatsMonitoringState(t, srv, nil)
 }
 
 func getBeatsMonitoringState(t testing.TB, srv *apmservertest.Server, out interface{}) *beatsMonitoringDoc {
