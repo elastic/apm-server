@@ -61,10 +61,11 @@ func TestNDStreamReader(t *testing.T) {
 		},
 	}
 	buf := bytes.NewBufferString(strings.Join(lines, "\n"))
-	n := NewNDJSONStreamReader(buf, 20)
+	n := NewNDJSONStreamDecoder(buf, 20)
 
 	for idx, test := range expected {
-		out, err := n.Read()
+		var out map[string]interface{}
+		err := n.Decode(&out)
 		assert.Equal(t, test.out, out, "Failed at idx %v", idx)
 		if test.errPattern == "" {
 			assert.Nil(t, err)

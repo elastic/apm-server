@@ -47,24 +47,23 @@ type intakeTestProcessor struct {
 
 const lrSize = 100 * 1024
 
-func (v *intakeTestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, error) {
+func (v *intakeTestProcessor) getDecoder(path string) (*decoder.NDJSONStreamDecoder, error) {
 	reader, err := loader.LoadDataAsStream(path)
 	if err != nil {
 		return nil, err
 	}
-	return decoder.NewNDJSONStreamReader(reader, lrSize), nil
+	return decoder.NewNDJSONStreamDecoder(reader, lrSize), nil
 }
 
-func (v *intakeTestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]interface{}, error) {
+func (v *intakeTestProcessor) readEvents(dec *decoder.NDJSONStreamDecoder) ([]interface{}, error) {
 	var (
 		err    error
-		e      map[string]interface{}
 		events []interface{}
 	)
 
 	for err != io.EOF {
-		e, err = reader.Read()
-		if err != nil && err != io.EOF {
+		var e map[string]interface{}
+		if err = dec.Decode(&e); err != nil && err != io.EOF {
 			return events, err
 		}
 		if e != nil {
@@ -75,13 +74,14 @@ func (v *intakeTestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]
 }
 
 func (p *intakeTestProcessor) LoadPayload(path string) (interface{}, error) {
-	ndjson, err := p.getReader(path)
+	ndjson, err := p.getDecoder(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// read and discard metadata
-	ndjson.Read()
+	var m map[string]interface{}
+	ndjson.Decode(&m)
 
 	return p.readEvents(ndjson)
 }
