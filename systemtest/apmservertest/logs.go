@@ -180,14 +180,11 @@ func (t *logpTimestamp) UnmarshalText(text []byte) error {
 // createLogfile creates a log file in apm-server/systemtest/logs,
 // under a sub-directory named after the test, and with the given
 // filename.
-//
-// The returned file will be closed when the test ends.
 func createLogfile(tb testing.TB, filename string) *os.File {
 	f, err := os.Create(filepath.Join(getTestLogsDir(tb), filename))
 	if err != nil {
 		tb.Fatal(err)
 	}
-	tb.Cleanup(func() { f.Close() })
 	return f
 }
 

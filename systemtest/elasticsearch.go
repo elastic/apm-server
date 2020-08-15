@@ -121,12 +121,33 @@ func CleanupElasticsearch(t testing.TB) {
 	}
 }
 
+// ChangeUserPassword changes the password for a given user.
+func ChangeUserPassword(t testing.TB, username, password string) {
+	req := esapi.SecurityChangePasswordRequest{
+		Username: username,
+		Body:     esutil.NewJSONReader(map[string]interface{}{"password": password}),
+	}
+	if _, err := Elasticsearch.Do(context.Background(), req, nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // InvalidateAPIKeys invalidates all API Keys for the apm-server user.
 func InvalidateAPIKeys(t testing.TB) {
 	req := esapi.SecurityInvalidateAPIKeyRequest{
 		Body: esutil.NewJSONReader(map[string]interface{}{
 			"username": apmservertest.DefaultConfig().Output.Elasticsearch.Username,
 		}),
+	}
+	if _, err := Elasticsearch.Do(context.Background(), req, nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// InvalidateAPIKey invalidates the API Key with the given ID.
+func InvalidateAPIKey(t testing.TB, id string) {
+	req := esapi.SecurityInvalidateAPIKeyRequest{
+		Body: esutil.NewJSONReader(map[string]interface{}{"id": id}),
 	}
 	if _, err := Elasticsearch.Do(context.Background(), req, nil); err != nil {
 		t.Fatal(err)
