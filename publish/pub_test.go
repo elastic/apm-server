@@ -42,20 +42,7 @@ import (
 func TestPublisherStop(t *testing.T) {
 	// Create a pipeline with a limited queue size and no outputs,
 	// so we can simulate a pipeline that blocks indefinitely.
-	pipeline, err := pipeline.New(
-		beat.Info{},
-		pipeline.Monitors{},
-		func(lis queue.ACKListener) (queue.Queue, error) {
-			return memqueue.NewQueue(nil, memqueue.Settings{
-				ACKListener: lis,
-				Events:      1,
-			}), nil
-		},
-		outputs.Group{},
-		pipeline.Settings{},
-	)
-	require.NoError(t, err)
-
+	pipeline := newBlockingPipeline(t)
 	publisher, err := publish.NewPublisher(
 		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{
 			TransformConfig: &transform.Config{},
@@ -98,6 +85,38 @@ func TestPublisherStop(t *testing.T) {
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	assert.NoError(t, publisher.Stop(ctx))
+}
+
+func TestPublisherStopShutdownInactive(t *testing.T) {
+	publisher, err := publish.NewPublisher(
+		newBlockingPipeline(t),
+		apmtest.DiscardTracer,
+		&publish.PublisherConfig{
+			TransformConfig: &transform.Config{},
+		},
+	)
+	require.NoError(t, err)
+
+	// There are no active events, so the publisher should stop immediately
+	// and not wait for the context to be cancelled.
+	assert.NoError(t, publisher.Stop(context.Background()))
+}
+
+func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
+	pipeline, err := pipeline.New(
+		beat.Info{},
+		pipeline.Monitors{},
+		func(lis queue.ACKListener) (queue.Queue, error) {
+			return memqueue.NewQueue(nil, memqueue.Settings{
+				ACKListener: lis,
+				Events:      1,
+			}), nil
+		},
+		outputs.Group{},
+		pipeline.Settings{},
+	)
+	require.NoError(t, err)
+	return pipeline
 }
 
 func makeTransformable(events ...beat.Event) transform.Transformable {
