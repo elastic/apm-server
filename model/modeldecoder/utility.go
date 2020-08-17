@@ -54,3 +54,10 @@ func decodeFloat64(obj map[string]interface{}, key string, out *float64) bool {
 	}
 	return false
 }
+
+func safeInverse(f float64) float64 {
+	if f == 0 {
+		return 0
+	}
+	return 1 / f
+}

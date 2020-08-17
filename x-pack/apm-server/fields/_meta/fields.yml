@@ -17,3 +17,29 @@
           type: histogram
           description: >
             Pre-aggregated histogram of transaction durations.
+
+- key: apm-span-metrics-xpack
+  title: "APM Span Metrics"
+  description: >
+    APM span metrics are used for showing rate of requests and latency between instrumented services.
+  short_config: true
+  fields:
+    - name: service
+      type: group
+      dynamic: false
+      fields:
+        - name: name
+          type: keyword
+        - name: environment
+          type: keyword
+
+    - name: destination.service
+      type: group
+      dynamic: false
+      fields:
+        - name: resource
+          type: keyword
+        - name: respose_time.count
+          type: long
+        - name: response_time.sum.us
+          type: long

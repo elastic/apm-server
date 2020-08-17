@@ -127,6 +127,9 @@ type MetricsetSpan struct {
 
 	// Subtype holds the span subtype: "http", "sql", etc.
 	Subtype string
+
+	// DestinationService holds information about the target of outgoing requests
+	DestinationService DestinationService
 }
 
 func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.Event {

@@ -28,8 +28,13 @@ const (
 	defaultAggregationRUMUserAgentLRUSize            = 5000
 )
 
-// AggregationConfig holds configuration related to metrics aggregation.
-type AggregationConfig struct {
+type Aggregation struct {
+	TransactionConfig TransactionConfig `config:"transaction"`
+	SpanConfig        SpanConfig        `config:"span"`
+}
+
+// TransactionConfig holds configuration related to transaction metrics aggregation for histograms.
+type TransactionConfig struct {
 	Enabled                        bool          `config:"enabled"`
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
 	MaxTransactionGroups           int           `config:"max_transaction_groups" validate:"min=1"`
@@ -37,11 +42,23 @@ type AggregationConfig struct {
 	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size" validate:"min=1"`
 }
 
-func defaultAggregationConfig() AggregationConfig {
-	return AggregationConfig{
-		Interval:                       defaultAggregationInterval,
-		MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
-		HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
-		RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
+// SpanConfig holds configuration related to span metrics aggregation for service maps.
+type SpanConfig struct {
+	Enabled  bool          `config:"enabled"`
+	Interval time.Duration `config:"interval" validate:"min=1"`
+}
+
+func defaultAggregationConfig() Aggregation {
+	return Aggregation{
+		TransactionConfig: TransactionConfig{
+			Interval:                       defaultAggregationInterval,
+			MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
+			HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
+			RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
+		},
+		SpanConfig: SpanConfig{
+			Enabled:  true,
+			Interval: defaultAggregationInterval,
+		},
 	}
 }

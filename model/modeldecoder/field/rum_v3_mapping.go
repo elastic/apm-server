@@ -96,6 +96,7 @@ var rumV3Mapping = map[string]string{
 	"runtime":                     "ru",
 	"sampled":                     "sm",
 	"samples":                     "sa",
+	"sample_rate":                 "sr",
 	"server-timing":               "set",
 	"service":                     "se",
 	"span":                        "y",

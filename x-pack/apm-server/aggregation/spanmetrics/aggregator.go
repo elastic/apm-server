@@ -1,0 +1,243 @@
+// Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
+// or more contributor license agreements. Licensed under the Elastic License;
+// you may not use this file except in compliance with the Elastic License.
+
+package spanmetrics
+
+import (
+	"context"
+	"sync"
+	"time"
+
+	"github.com/cespare/xxhash/v2"
+
+	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/beats/v7/libbeat/logp"
+)
+
+// AggregatorConfig holds configuration for creating an Aggregator.
+type AggregatorConfig struct {
+	Report   publish.Reporter
+	Logger   *logp.Logger
+	Interval time.Duration
+}
+
+// Aggregator aggregates transaction durations, periodically publishing histogram spanMetrics.
+type Aggregator struct {
+	stopMu           sync.Mutex
+	stopping         chan struct{}
+	stopped          chan struct{}
+	config           AggregatorConfig
+	mu               sync.RWMutex
+	active, inactive *metricsBuffer
+}
+
+// NewAggregator returns a new Aggregator with the given config.
+func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
+	if config.Logger == nil {
+		config.Logger = logp.NewLogger(logs.SpanMetrics)
+	}
+	return &Aggregator{
+		stopping: make(chan struct{}),
+		stopped:  make(chan struct{}),
+		config:   config,
+		active:   newMetricsBuffer(),
+		inactive: newMetricsBuffer(),
+	}, nil
+}
+
+func (a Aggregator) Run() error {
+	ticker := time.NewTicker(a.config.Interval)
+	defer ticker.Stop()
+	defer func() {
+		a.stopMu.Lock()
+		defer a.stopMu.Unlock()
+		select {
+		case <-a.stopped:
+		default:
+			close(a.stopped)
+		}
+	}()
+	var stop bool
+	for !stop {
+		select {
+		case <-a.stopping:
+			stop = true
+		case <-ticker.C:
+		}
+		if err := a.publish(context.Background()); err != nil {
+			a.config.Logger.With(logp.Error(err)).Warnf(
+				"publishing span metrics failed: %s", err,
+			)
+		}
+	}
+	return nil
+}
+
+// Stop stops the Aggregator if it is running, waiting for it to flush any
+// aggregated metrics and return, or for the context to be cancelled.
+//
+// After Stop has been called the aggregator cannot be reused, as the Run
+// method will always return immediately.
+func (a *Aggregator) Stop(ctx context.Context) error {
+	a.stopMu.Lock()
+	select {
+	case <-a.stopped:
+	case <-a.stopping:
+		// Already stopping/stopped.
+	default:
+		close(a.stopping)
+	}
+	a.stopMu.Unlock()
+
+	select {
+	case <-a.stopped:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return nil
+}
+
+func (a *Aggregator) publish(ctx context.Context) error {
+	// We hold a.mu only long enough to swap the spanMetrics. This will
+	// be blocked by spanMetrics updates, which is OK, as we prefer not
+	// to block spanMetrics updaters. After the lock is released nothing
+	// will be accessing a.inactive.
+	a.mu.Lock()
+	a.active, a.inactive = a.inactive, a.active
+	a.mu.Unlock()
+
+	size := a.inactive.size()
+	if size == 0 {
+		a.config.Logger.Debugf("no span metrics to publish")
+		return nil
+	}
+
+	now := time.Now()
+	metricsets := make([]transform.Transformable, 0, size)
+	for hash, metrics := range a.inactive.m {
+		metricset := makeMetricset(now, metrics.key, metrics.count, metrics.sum)
+		metricsets = append(metricsets, &metricset)
+		delete(a.inactive.m, hash)
+	}
+
+	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
+	return a.config.Report(ctx, publish.PendingReq{
+		Transformables: metricsets,
+		Trace:          true,
+	})
+}
+
+func (a *Aggregator) AggregateTransformables(in []transform.Transformable) {
+	for _, tf := range in {
+		if span, ok := tf.(*model.Span); ok &&
+			span.DestinationService != nil &&
+			span.DestinationService.Resource != nil {
+			key := aggregationKey{
+				serviceEnvironment: span.Metadata.Service.Environment,
+				serviceName:        span.Metadata.Service.Name,
+				resource:           *span.DestinationService.Resource,
+			}
+			duration := time.Duration(span.Duration * float64(time.Millisecond))
+			metrics := spanMetrics{
+				count: span.RepresentativeCount,
+				sum:   duration.Milliseconds(),
+				key:   key,
+			}
+			a.active.storeOrUpdate(metrics)
+		}
+	}
+}
+
+type metricsBuffer struct {
+	// TODO might need a size cap
+	m  map[uint64]spanMetrics
+	mu sync.RWMutex
+}
+
+func newMetricsBuffer() *metricsBuffer {
+	return &metricsBuffer{
+		m: make(map[uint64]spanMetrics),
+	}
+}
+
+func (mb *metricsBuffer) load(key uint64) (spanMetrics, bool) {
+	mb.mu.RLock()
+	defer mb.mu.RUnlock()
+	result, ok := mb.m[key]
+	return result, ok
+}
+
+func (mb *metricsBuffer) size() int {
+	// TODO might not need to lock
+	mb.mu.RLock()
+	defer mb.mu.RUnlock()
+	size := len(mb.m)
+	return size
+}
+
+func (mb *metricsBuffer) storeOrUpdate(value spanMetrics) {
+	hash := value.key.hash()
+	if data, ok := mb.load(hash); ok {
+		mb.mu.Lock()
+		mb.m[hash] = spanMetrics{count: value.count + data.count, sum: value.sum + data.sum, key: data.key}
+		mb.mu.Unlock()
+		return
+	}
+	mb.mu.Lock()
+	mb.m[hash] = value
+	mb.mu.Unlock()
+}
+
+type aggregationKey struct {
+	// origin
+	serviceName        string
+	serviceEnvironment string
+	// destination
+	resource string
+}
+
+type spanMetrics struct {
+	key aggregationKey
+	// TODO normalize count as per interval
+	count float64
+	sum   int64
+}
+
+func (k *aggregationKey) hash() uint64 {
+	var h xxhash.Digest
+	h.WriteString(k.serviceEnvironment)
+	h.WriteString(k.serviceName)
+	h.WriteString(k.resource)
+	return h.Sum64()
+}
+
+func makeMetricset(timestamp time.Time, key aggregationKey, count float64, sum int64) model.Metricset {
+	out := model.Metricset{
+		Timestamp: timestamp,
+		Metadata: model.Metadata{
+			Service: model.Service{
+				Name:        key.serviceName,
+				Environment: key.serviceEnvironment,
+			},
+		},
+		Span: model.MetricsetSpan{
+			// TODO add span type/subtype?
+			DestinationService: model.DestinationService{Resource: &key.resource},
+		},
+		Samples: []model.Sample{
+			{
+				Name:  "destination.service.response_time.count",
+				Value: count,
+			},
+			{
+				Name:  "destination.service.response_time.sum.us",
+				Value: float64(sum),
+			},
+		},
+	}
+	return out
+}

@@ -15,6 +15,7 @@ import (
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 )
@@ -25,16 +26,21 @@ import (
 // transactions pass through the aggregator before being
 // published to libbeat.
 func runServerWithAggregator(ctx context.Context, runServer beater.RunServerFunc, args beater.ServerParams) error {
-	if !args.Config.Aggregation.Enabled {
-		return runServer(ctx, args)
+
+	txMetricsAggregator, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		Report:                         args.Reporter,
+		MaxTransactionGroups:           args.Config.Aggregation.TransactionConfig.MaxTransactionGroups,
+		MetricsInterval:                args.Config.Aggregation.TransactionConfig.Interval,
+		HDRHistogramSignificantFigures: args.Config.Aggregation.TransactionConfig.HDRHistogramSignificantFigures,
+		RUMUserAgentLRUSize:            args.Config.Aggregation.TransactionConfig.RUMUserAgentLRUSize,
+	})
+	if err != nil {
+		return errors.Wrap(err, "error creating aggregator")
 	}
 
-	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         args.Reporter,
-		MaxTransactionGroups:           args.Config.Aggregation.MaxTransactionGroups,
-		MetricsInterval:                args.Config.Aggregation.Interval,
-		HDRHistogramSignificantFigures: args.Config.Aggregation.HDRHistogramSignificantFigures,
-		RUMUserAgentLRUSize:            args.Config.Aggregation.RUMUserAgentLRUSize,
+	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
+		Report:   args.Reporter,
+		Interval: args.Config.Aggregation.SpanConfig.Interval,
 	})
 	if err != nil {
 		return errors.Wrap(err, "error creating aggregator")
@@ -42,35 +48,72 @@ func runServerWithAggregator(ctx context.Context, runServer beater.RunServerFunc
 
 	origReport := args.Reporter
 	args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
-		req.Transformables = agg.AggregateTransformables(req.Transformables)
+		if args.Config.Aggregation.TransactionConfig.Enabled {
+			req.Transformables = txMetricsAggregator.AggregateTransformables(req.Transformables)
+		}
+		if args.Config.Aggregation.SpanConfig.Enabled {
+			// TODO async?
+			spanAggregator.AggregateTransformables(req.Transformables)
+		}
 		return origReport(ctx, req)
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		args.Logger.Infof("aggregator started with config: %+v", args.Config.Aggregation)
-		if err := agg.Run(); err != nil {
-			args.Logger.Errorf("aggregator aborted", logp.Error(err))
-			return err
-		}
-		args.Logger.Infof("aggregator stopped")
-		return nil
-	})
-	g.Go(func() error {
-		<-ctx.Done()
-		stopctx := context.Background()
-		if args.Config.ShutdownTimeout > 0 {
-			// On shutdown wait for the aggregator to stop
-			// in order to flush any accumulated metrics.
-			var cancel context.CancelFunc
-			stopctx, cancel = context.WithTimeout(stopctx, args.Config.ShutdownTimeout)
-			defer cancel()
-		}
-		return agg.Stop(stopctx)
-	})
+
+	if args.Config.Aggregation.TransactionConfig.Enabled {
+		g.Go(func() error {
+			args.Logger.Infof("aggregator started with config: %+v", args.Config.Aggregation)
+			if err := txMetricsAggregator.Run(); err != nil {
+				args.Logger.Errorf("aggregator aborted", logp.Error(err))
+				return err
+			}
+			args.Logger.Infof("aggregator stopped")
+			return nil
+		})
+
+		g.Go(func() error {
+			<-ctx.Done()
+			stopctx := context.Background()
+			if args.Config.ShutdownTimeout > 0 {
+				// On shutdown wait for the aggregator to stop
+				// in order to flush any accumulated metrics.
+				var cancel context.CancelFunc
+				stopctx, cancel = context.WithTimeout(stopctx, args.Config.ShutdownTimeout)
+				defer cancel()
+			}
+			return txMetricsAggregator.Stop(stopctx)
+		})
+	}
+
+	if args.Config.Aggregation.SpanConfig.Enabled {
+		g.Go(func() error {
+			args.Logger.Infof("aggregator started with config: %+v", args.Config.Aggregation)
+			if err := spanAggregator.Run(); err != nil {
+				args.Logger.Errorf("aggregator aborted", logp.Error(err))
+				return err
+			}
+			args.Logger.Infof("aggregator stopped")
+			return nil
+		})
+
+		g.Go(func() error {
+			<-ctx.Done()
+			stopctx := context.Background()
+			if args.Config.ShutdownTimeout > 0 {
+				// On shutdown wait for the aggregator to stop
+				// in order to flush any accumulated metrics.
+				var cancel context.CancelFunc
+				stopctx, cancel = context.WithTimeout(stopctx, args.Config.ShutdownTimeout)
+				defer cancel()
+			}
+			return spanAggregator.Stop(stopctx)
+		})
+	}
+
 	g.Go(func() error {
 		return runServer(ctx, args)
 	})
+
 	return g.Wait()
 }
 

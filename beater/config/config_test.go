@@ -38,6 +38,7 @@ var testdataCertificateConfig = tlscommon.CertificateConfig{
 	Key:         "../../testdata/tls/key.pem",
 }
 
+// TODO fix
 func Test_UnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
 
@@ -207,13 +208,13 @@ func Test_UnpackConfig(t *testing.T) {
 						Timeout:  5 * time.Second},
 					esConfigured: true,
 				},
-				Aggregation: AggregationConfig{
+				Aggregation: Aggregation{TransactionConfig: TransactionConfig{
 					Enabled:                        true,
 					Interval:                       time.Second,
 					MaxTransactionGroups:           123,
 					HDRHistogramSignificantFigures: 1,
 					RUMUserAgentLRUSize:            123,
-				},
+				}},
 				Sampling: SamplingConfig{
 					KeepUnsampled: true,
 				},
@@ -321,13 +322,13 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 				},
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
-				Aggregation: AggregationConfig{
+				Aggregation: Aggregation{TransactionConfig: TransactionConfig{
 					Enabled:                        true,
 					Interval:                       time.Minute,
 					MaxTransactionGroups:           1000,
 					HDRHistogramSignificantFigures: 2,
 					RUMUserAgentLRUSize:            123,
-				},
+				}},
 				Sampling: SamplingConfig{
 					KeepUnsampled: false,
 				},

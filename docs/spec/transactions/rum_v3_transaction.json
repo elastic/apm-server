@@ -44,6 +44,10 @@
                     "type": ["array", "null"],
                     "$ref": "../metricsets/rum_v3_metricset.json"
                 },
+                "sr": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
+                },
                 "yc": {
                     "type": "object",
                     "properties": {
