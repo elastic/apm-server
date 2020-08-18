@@ -211,7 +211,7 @@ enabling you to hunt for security threats with your APM data.
 The Detections feature automatically searches for threats and creates alerts when they are detected.
 Elastic Security ships with four prebuilt rules, specifically for the APM use case: No User Agent, POST Request Declined, Unauthorized Method, and sqlmap User Agent.
 +
-See the {security-guide}/siem-ui-overview.html[Security hosts UI] and {security-guide}/prebuilt-rules.html[Security prebuilt rules]
+See the {security-guide}/es-ui-overview.html[Security hosts UI] and {security-guide}/prebuilt-rules.html[Security prebuilt rules]
 for more information on using Elastic Security.
 +
 [role="screenshot"]
