@@ -1,0 +1,109 @@
+[
+    {
+        "@timestamp": "dynamic",
+        "agent": {
+            "name": "go"
+        },
+        "ecs": {
+            "version": "dynamic"
+        },
+        "event": {
+            "ingested": "dynamic"
+        },
+        "host": {
+            "hostname": "beowulf",
+            "name": "beowulf"
+        },
+        "observer": {
+            "ephemeral_id": "dynamic",
+            "hostname": "dynamic",
+            "id": "dynamic",
+            "type": "apm-server",
+            "version": "dynamic",
+            "version_major": "dynamic"
+        },
+        "processor": {
+            "event": "metric",
+            "name": "metric"
+        },
+        "service": {
+            "name": "systemtest",
+            "node": {
+                "name": "beowulf"
+            }
+        },
+        "timeseries": {
+            "instance": "systemtest:name:7363045c23d03444"
+        },
+        "transaction": {
+            "duration": {
+                "histogram": {
+                    "counts": [
+                        1
+                    ],
+                    "values": [
+                        1003519
+                    ]
+                }
+            },
+            "name": "name",
+            "root": true,
+            "type": "backend"
+        }
+    },
+    {
+        "@timestamp": "dynamic",
+        "agent": {
+            "name": "go"
+        },
+        "ecs": {
+            "version": "dynamic"
+        },
+        "event": {
+            "ingested": "dynamic"
+        },
+        "host": {
+            "hostname": "beowulf",
+            "name": "beowulf"
+        },
+        "observer": {
+            "ephemeral_id": "dynamic",
+            "hostname": "dynamic",
+            "id": "dynamic",
+            "type": "apm-server",
+            "version": "dynamic",
+            "version_major": "dynamic"
+        },
+        "processor": {
+            "event": "metric",
+            "name": "metric"
+        },
+        "service": {
+            "name": "systemtest",
+            "node": {
+                "name": "beowulf"
+            }
+        },
+        "timeseries": {
+            "instance": "systemtest:name:d1fefeee84e87666"
+        },
+        "transaction": {
+            "duration": {
+                "histogram": {
+                    "counts": [
+                        1
+                    ],
+                    "values": [
+                        1003519
+                    ]
+                }
+            },
+            "name": "name",
+            "root": true,
+            "type": "page-load"
+        },
+        "user_agent": {
+            "name": "Chrome"
+        }
+    }
+]

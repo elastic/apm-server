@@ -40,6 +40,16 @@ func (q BoolQuery) MarshalJSON() ([]byte, error) {
 	return encodeQueryJSON("bool", boolQuery(q))
 }
 
+type ExistsQuery struct {
+	Field string
+}
+
+func (q ExistsQuery) MarshalJSON() ([]byte, error) {
+	return encodeQueryJSON("exists", map[string]interface{}{
+		"field": q.Field,
+	})
+}
+
 type TermQuery struct {
 	Field string
 	Value interface{}

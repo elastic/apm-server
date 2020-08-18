@@ -77,6 +77,15 @@ type Server struct {
 	// JaegerHTTPURL holds the base URL for Jaeger HTTP, if enabled.
 	JaegerHTTPURL string
 
+	// EventMetadataFilter holds an optional EventMetadataFilter, which
+	// can modify event metadata before it is sent to the server.
+	//
+	// New(Unstarted)Server sets a default filter which removes or
+	// replaces environment-specific properties such as host name,
+	// container ID, etc., to enable repeatable tests across different
+	// test environments.
+	EventMetadataFilter EventMetadataFilter
+
 	tb   testing.TB
 	args []string
 	cmd  *ServerCmd
@@ -96,9 +105,10 @@ func NewServer(tb testing.TB, args ...string) *Server {
 // apm-server command.
 func NewUnstartedServer(tb testing.TB, args ...string) *Server {
 	return &Server{
-		Config: DefaultConfig(),
-		tb:     tb,
-		args:   args,
+		Config:              DefaultConfig(),
+		EventMetadataFilter: defaultMetadataFilter{},
+		tb:                  tb,
+		args:                args,
 	}
 }
 
@@ -371,9 +381,15 @@ func (s *Server) Tracer() *apm.Tracer {
 	}
 	httpTransport.SetServerURL(serverURL)
 	httpTransport.SetSecretToken(s.Config.SecretToken)
-	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
-		Transport: httpTransport,
-	})
+
+	var transport transport.Transport = httpTransport
+	if s.EventMetadataFilter != nil {
+		transport = &filteringTransport{
+			HTTPTransport: httpTransport,
+			filter:        s.EventMetadataFilter,
+		}
+	}
+	tracer, err := apm.NewTracerOptions(apm.TracerOptions{Transport: transport})
 	if err != nil {
 		s.tb.Fatal(err)
 	}

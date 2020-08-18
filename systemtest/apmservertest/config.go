@@ -41,9 +41,11 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	SecretToken string        `json:"apm-server.secret_token,omitempty"`
-	Jaeger      *JaegerConfig `json:"apm-server.jaeger,omitempty"`
-	Kibana      *KibanaConfig `json:"apm-server.kibana,omitempty"`
+	SecretToken string                        `json:"apm-server.secret_token,omitempty"`
+	Jaeger      *JaegerConfig                 `json:"apm-server.jaeger,omitempty"`
+	Kibana      *KibanaConfig                 `json:"apm-server.kibana,omitempty"`
+	Aggregation *TransactionAggregationConfig `json:"apm-server.aggregation,omitempty"`
+	Sampling    *SamplingConfig               `json:"apm-server.sampling,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -97,6 +99,11 @@ type JaegerConfig struct {
 	GRPCAuthTag string `json:"grpc.auth_tag,omitempty"`
 	HTTPEnabled bool   `json:"http.enabled,omitempty"`
 	HTTPHost    string `json:"http.host,omitempty"`
+}
+
+// SamplingConfig holds APM Server trace sampling configuration.
+type SamplingConfig struct {
+	KeepUnsampled bool `json:"keep_unsampled"`
 }
 
 // InstrumentationConfig holds APM Server instrumentation configuration.
@@ -177,6 +184,25 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 		Elasticsearch: m.Elasticsearch,
 		MetricsPeriod: duration(m.MetricsPeriod),
 		StatePeriod:   duration(m.StatePeriod),
+	})
+}
+
+// TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
+type TransactionAggregationConfig struct {
+	Enabled  bool
+	Interval time.Duration
+}
+
+func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled  bool     `json:"enabled"`
+		Interval duration `json:"interval,omitempty"`
+	}
+	return json.Marshal(config{
+		Enabled:  m.Enabled,
+		Interval: duration(m.Interval),
 	})
 }
 
