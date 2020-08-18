@@ -215,14 +215,14 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	})
 }
 
-// AggregateTransformables aggregates all transactions contained in
+// ProcessTransformables aggregates all transactions contained in
 // "in", returning the input with any metricsets requiring immediate
 // publication appended.
 //
 // This method is expected to be used immediately prior to publishing
 // the events, so that the metricsets requiring immediate publication
 // can be included in the same batch.
-func (a *Aggregator) AggregateTransformables(in []transform.Transformable) []transform.Transformable {
+func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []transform.Transformable {
 	out := in
 	for _, tf := range in {
 		if tx, ok := tf.(*model.Transaction); ok {
@@ -429,7 +429,6 @@ type transactionAggregationKey struct {
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
-	// TODO(axw) when we upgrade to Go 1.14, change this to maphash.
 	var h xxhash.Digest
 	if k.traceRoot {
 		h.WriteString("1")
