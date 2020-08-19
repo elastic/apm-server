@@ -1,15 +1,31 @@
 [[secure-communication-agents]]
 == Secure communication with APM Agents
 
-There are two ways to secure the communication between APM Agents and the APM Server.
-Both options can be enabled at the same time,
-allowing Elastic APM agents to chose whichever mechanism they support.
+Communication between APM agents and APM Server can be both encrypted and authenticated.
+Encryption is achievable through <<ssl-setup>>.
 
-As soon as secure communication is enabled, requests without a valid token or API key will be denied by APM Server.
-As RUM endpoints cannot be secured, they are exempt from this rule.
+Authentication can be achieved in two main ways:
 
 * <<api-key,API keys>>
 * <<secret-token,Secret token>>
+
+Both options can be enabled at the same time,
+allowing Elastic APM agents to chose whichever mechanism they support.
+In addition, since both mechanisms involve sending a secret as plain text,
+they should be used in combination with SSL/TLS encryption.
+
+As soon as an authenticated communication is enabled, requests without a valid token or API key will be denied by APM Server.
+As RUM endpoints cannot be secured through these mechanisms, they are exempt from this rule.
+
+In addition, there is a less straightforward and more restrictive way to authenticate clients through
+<<ssl-client-authentication,SSL/TLS client authentication>>, which is currently a mainstream option only
+for the RUM agent (through the browser) and the Jaeger agent.
+
+[[ssl-setup]]
+=== SSL/TLS communication
+
+// Use the shared ssl short description
+include::./ssl-input.asciidoc[]
 
 [[api-key]]
 === API keys
@@ -17,27 +33,22 @@ As RUM endpoints cannot be secured, they are exempt from this rule.
 experimental::[]
 
 You can configure an API key to authorize requests to the APM Server.
-API keys are sent as plain-text,
-so they only provide security when used in combination with SSL/TLS.
+
+NOTE: API keys are sent as plain-text,
+so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
+
 By enabling `apm-server.api_key.enabled: true`, you ensure that only agents with a valid API Key
 are able to successfully use APM Server's API (except for RUM endpoints).
 
 To secure the communication between APM Agents and the APM Server with API keys:
 
-. <<ssl-setup-api,Enable SSL/TLS>>
+. Make sure <<ssl-setup,SSL/TLS>> is enabled
 . <<configure-api-key,Enable and configure API keys>>
 . <<create-api-key,Create an API key with APM Server>>
 . <<set-api-key,Set the API key in your APM Agents>>
 
 NOTE: API Keys are not applicable for the RUM Agent,
 as there is no way to prevent them from being publicly exposed.
-
-[[ssl-setup-api]]
-[float]
-=== Enable SSL/TLS communication
-
-// Use the shared ssl short description
-include::./ssl-input-short.asciidoc[]
 
 [[configure-api-key]]
 [float]
@@ -305,24 +316,19 @@ Valid options are `never`, `once`, and `freely`. Default is `never`.
 
 You can configure a secret token to authorize requests to the APM Server.
 This ensures that only your agents are able to send data to your APM servers.
-Both the agents and the APM servers have to be configured with the same secret token,
-and secret tokens only provide security when used in combination with SSL/TLS.
+Both the agents and the APM servers have to be configured with the same secret token.
+
+NOTE: Secret tokens are sent as plain-text,
+so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
 
 To secure the communication between APM Agents and the APM Server with a secret token:
 
-. <<ssl-setup-token,Enable SSL/TLS in APM Server>>
+. Make sure <<ssl-setup,SSL/TLS>> is enabled
 . <<set-secret-token,Set a secret token in your Agents and Server>>
 . <<https-in-agents,Enable HTTPS in your APM Agents>>
 
 NOTE: Secret tokens are not applicable for the RUM Agent,
 as there is no way to prevent them from being publicly exposed.
-
-[[ssl-setup-token]]
-[float]
-=== SSL/TLS communication in APM Server
-
-// Use the shared ssl short description
-include::./ssl-input-short.asciidoc[]
 
 [[set-secret-token]]
 [float]
