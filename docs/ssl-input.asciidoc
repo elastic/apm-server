@@ -52,11 +52,19 @@ When the APM server uses a certificate that is not chained to a publicly-trusted
 * *Python Agent*: certificate pinning through {apm-py-ref}/configuration.html#config-server-cert[`server_cert`]
 * *Ruby Agent*: certificate pinning through {apm-ruby-ref}/configuration.html#config-ssl-ca-cert[`server_ca_cert`]
 * *NodeJS Agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
-* *Java Agent*: adding the certificate to the JVM `trustStore`. See {apm-java-ref}/...[] for more details
+* *Java Agent*: adding the certificate to the JVM `trustStore`.
+See {apm-java-ref}/setup-ssl#ssl-server-authentication[APM Server authentication] for more details.
 
 [[ssl-client-authentication]]
 ==== Client certificate authentication
 
+By default, the APM Server does require agents to provide a certificate for authentication.
+This can be changed through the `ssl.client_authentication` configuration.
+
 There is no dedicated support for SSL/TLS client certificate authentication in Elastic's backend agents,
 so setting it up may require some additional effort. For example - see
-{apm-java-ref}/...[Enabling SSL/TLS client authentication] in the Java agent.
+{apm-java-ref}/setup-ssl#ssl-client-authentication[Java Agent authentication].
+
+If agents are authenticating themselves using a certificate that cannot be authenticated through known
+CAs (e.g. self signed certificates), use the `ssl.certificate_authorities` to set a custom CA.
+This will automatically modify the `ssl.client_authentication` configuration to require authentication.
