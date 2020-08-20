@@ -45,6 +45,10 @@ func Test_UnpackConfig(t *testing.T) {
 	kibanaNoSlashConfig.Kibana.Enabled = true
 	kibanaNoSlashConfig.Kibana.Host = "kibanahost:5601/proxy"
 
+	kibanaHeadersConfig := DefaultConfig()
+	kibanaHeadersConfig.Kibana.Enabled = true
+	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
+
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
 		outCfg *Config
@@ -347,6 +351,17 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 			},
 			outCfg: kibanaNoSlashConfig,
+		},
+		"kibana headers": {
+			inpCfg: map[string]interface{}{
+				"kibana": map[string]interface{}{
+					"enabled": "true",
+					"headers": map[string]interface{}{
+						"foo": "bar",
+					},
+				},
+			},
+			outCfg: kibanaHeadersConfig,
 		},
 	}
 
