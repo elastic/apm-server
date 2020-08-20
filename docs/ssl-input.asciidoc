@@ -1,7 +1,8 @@
 SSL/TLS is disabled by default. Besides enabling it, you need to provide a certificate and a corresponding
 private key as well.
 
-Following is a basic APM Server SSL config with secure communication enabled:
+The following is a basic APM Server SSL config with secure communication enabled.
+This will make APM Server serve HTTPS requests instead of HTTP.
 
 [source,yaml]
 ----
@@ -9,8 +10,6 @@ apm-server.ssl.enabled: true
 apm-server.ssl.certificate: "/path/to/apm-server.crt"
 apm-server.ssl.key: "/path/to/apm-server.key"
 ----
-
-This will make APM Server serve HTTPS requests instead of HTTP.
 
 A full list of configuration options is available in <<agent-server-ssl>>.
 

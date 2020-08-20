@@ -33,14 +33,16 @@ include::./ssl-input.asciidoc[]
 experimental::[]
 
 You can configure an API key to authorize requests to the APM Server.
-API keys are sent as plain-text,
-so they only provide security when used in combination with SSL/TLS.
+
+NOTE: API keys are sent as plain-text,
+so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
+
 By enabling `apm-server.api_key.enabled: true`, you ensure that only agents with a valid API Key
 are able to successfully use APM Server's API (except for RUM endpoints).
 
 To secure the communication between APM Agents and the APM Server with API keys:
 
-. <<ssl-setup,Enable SSL/TLS>>
+. Make sure <<ssl-setup,SSL/TLS>> is enabled
 . <<configure-api-key,Enable and configure API keys>>
 . <<create-api-key,Create an API key with APM Server>>
 . <<set-api-key,Set the API key in your APM Agents>>
@@ -314,12 +316,14 @@ Valid options are `never`, `once`, and `freely`. Default is `never`.
 
 You can configure a secret token to authorize requests to the APM Server.
 This ensures that only your agents are able to send data to your APM servers.
-Both the agents and the APM servers have to be configured with the same secret token,
-and secret tokens only provide security when used in combination with SSL/TLS.
+Both the agents and the APM servers have to be configured with the same secret token.
+
+NOTE: Secret tokens are sent as plain-text,
+so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
 
 To secure the communication between APM Agents and the APM Server with a secret token:
 
-. <<ssl-setup,Enable SSL/TLS in APM Server>>
+. Make sure <<ssl-setup,SSL/TLS>> is enabled
 . <<set-secret-token,Set a secret token in your Agents and Server>>
 . <<https-in-agents,Enable HTTPS in your APM Agents>>
 
