@@ -4,6 +4,7 @@ import json
 import shutil
 from apmserver import SubCommandTest, integration_test
 from es_helper import index_name
+from yaml import Loader
 
 
 class ExportCommandTest(SubCommandTest):
@@ -27,7 +28,7 @@ class ExportConfigDefaultTest(ExportCommandTest):
         """
         Test export default config
         """
-        config = yaml.load(self.command_output)
+        config = yaml.load(self.command_output, Loader=Loader)
         # logging settings
         self.assertDictEqual(
             {"metrics": {"enabled": False}, 'files': {'rotateeverybytes': 10485760}, }, config["logging"]
@@ -70,7 +71,7 @@ class ExportConfigTest(ExportCommandTest):
         """
         Test export customized config
         """
-        config = yaml.load(self.command_output)
+        config = yaml.load(self.command_output, Loader=Loader)
         # logging settings
         assert "metrics" in config["logging"]
         self.assertDictEqual(

@@ -1,7 +1,7 @@
 from apmserver import BaseTest, ElasticTest, integration_test
 import logging
+import pytest
 from elasticsearch import Elasticsearch, NotFoundError, RequestError
-from nose.tools import raises
 from es_helper import cleanup, wait_until_policies, wait_until_aliases, wait_until_templates
 from es_helper import default_policy, index_name
 from es_helper import index_error, index_transaction, index_span, index_metric, index_profile
@@ -220,7 +220,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_policies()
 
-    @raises(RequestError)
     def test_ensure_policy_is_used(self):
         """
         Test setup --index-management actually creates policies that are used
@@ -232,7 +231,8 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_policies()
         # try deleting policy needs to raise an error as it is in use
-        self._es.transport.perform_request('DELETE', "/_ilm/policy/{}".format(default_policy))
+        with pytest.raises(RequestError):
+            self._es.transport.perform_request('DELETE', "/_ilm/policy/{}".format(default_policy))
 
 
 @integration_test
