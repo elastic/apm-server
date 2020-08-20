@@ -15,7 +15,7 @@ require (
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200820005814-38fc1ed06525
 	github.com/elastic/go-elasticsearch/v7 v7.8.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-sysinfo v1.4.0 // indirect
