@@ -18,6 +18,9 @@
 package elasticsearch
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -55,4 +58,22 @@ func TestClient(t *testing.T) {
 			assert.Fail(t, "unknown version ", version.GetDefaultVersion())
 		}
 	})
+}
+
+func TestClientCustomHeaders(t *testing.T) {
+	var requestHeaders http.Header
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestHeaders = r.Header
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Hosts:   Hosts{srv.URL},
+		Headers: map[string]string{"custom": "header"},
+	}
+	client, err := NewClient(&cfg)
+	require.NoError(t, err)
+
+	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
+	assert.Equal(t, "header", requestHeaders.Get("custom"))
 }

@@ -25,11 +25,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/elasticsearch"
-
-	"github.com/pkg/errors"
 )
 
 // Transport can be used to pass to test Elasticsearch Client for more control over client behavior
@@ -67,5 +66,5 @@ func NewTransport(t *testing.T, statusCode int, esBody map[string]interface{}) *
 
 // NewElasticsearchClient creates ES client using the given transport instance
 func NewElasticsearchClient(transport *Transport) (elasticsearch.Client, error) {
-	return elasticsearch.NewVersionedClient("", "", "", []string{}, transport)
+	return elasticsearch.NewVersionedClient("", "", "", []string{}, nil, transport)
 }
