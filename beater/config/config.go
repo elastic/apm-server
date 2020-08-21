@@ -19,7 +19,6 @@ package config
 
 import (
 	"net"
-	"regexp"
 	"strings"
 	"time"
 
@@ -38,10 +37,6 @@ const (
 	DefaultPort = "8200"
 
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
-)
-
-var (
-	regexObserverVersion = regexp.MustCompile("%.*{.*observer.version.?}")
 )
 
 type KibanaConfig struct {
@@ -111,9 +106,9 @@ type Cache struct {
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
-func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
+func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
-	c := DefaultConfig(version)
+	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
@@ -163,7 +158,7 @@ func (c *ExpvarConfig) IsEnabled() bool {
 }
 
 // DefaultConfig returns a config with default settings for `apm-server` config options.
-func DefaultConfig(beatVersion string) *Config {
+func DefaultConfig() *Config {
 	return &Config{
 		Host:            net.JoinHostPort("localhost", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
@@ -178,7 +173,7 @@ func DefaultConfig(beatVersion string) *Config {
 			Enabled: new(bool),
 			URL:     "/debug/vars",
 		},
-		RumConfig:    defaultRum(beatVersion),
+		RumConfig:    defaultRum(),
 		Register:     defaultRegisterConfig(true),
 		Mode:         ModeProduction,
 		Kibana:       defaultKibanaConfig(),

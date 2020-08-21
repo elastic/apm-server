@@ -240,7 +240,7 @@ func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
 	if beat.Config.Output.Name() == "elasticsearch" {
 		esOutputCfg = beat.Config.Output.Config()
 	}
-	beaterConfig, err := config.NewConfig(beat.Info.Version, cfg, esOutputCfg)
+	beaterConfig, err := config.NewConfig(cfg, esOutputCfg)
 	if err != nil {
 		return nil, nil, err
 	}

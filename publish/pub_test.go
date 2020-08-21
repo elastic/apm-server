@@ -43,7 +43,9 @@ func TestPublisherStop(t *testing.T) {
 	// so we can simulate a pipeline that blocks indefinitely.
 	pipeline := newBlockingPipeline(t)
 	publisher, err := publish.NewPublisher(
-		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{},
+		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{
+			TransformConfig: &transform.Config{},
+		},
 	)
 	require.NoError(t, err)
 	defer func() {
@@ -117,15 +119,15 @@ func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
 }
 
 func makeTransformable(events ...beat.Event) transform.Transformable {
-	return transformableFunc(func(ctx context.Context, tctx *transform.Context) []beat.Event {
+	return transformableFunc(func(ctx context.Context, cfg *transform.Config) []beat.Event {
 		return events
 	})
 }
 
-type transformableFunc func(context.Context, *transform.Context) []beat.Event
+type transformableFunc func(context.Context, *transform.Config) []beat.Event
 
-func (f transformableFunc) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	return f(ctx, tctx)
+func (f transformableFunc) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+	return f(ctx, cfg)
 }
 
 type mockClient struct{}
