@@ -75,6 +75,11 @@
                 "duration": {
                     "us": 295000
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "ec2e280be8345240",
                 "marks": {
                     "agent": {

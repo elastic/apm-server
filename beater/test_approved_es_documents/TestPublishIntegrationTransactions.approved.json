@@ -476,6 +476,11 @@
                 "duration": {
                     "us": 13980
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "cdef4340a8e0df19",
                 "marks": {
                     "another_mark": {

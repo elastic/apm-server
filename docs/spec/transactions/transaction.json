@@ -65,6 +65,9 @@
                 "sampled": {
                     "type": ["boolean", "null"],
                     "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+                },
+                "experience": {
+                    "$ref": "../rum_experience.json"
                 }
             },
             "required": ["id", "trace_id", "span_count", "duration", "type"]

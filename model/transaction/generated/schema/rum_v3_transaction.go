@@ -968,6 +968,29 @@ const RUMV3Schema = `{
                         "null"
                     ],
                     "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+                },
+                "exp": {
+                        "$id": "docs/spec/rum_experience.json",
+    "title": "RUM Experience Metrics",
+    "description": "Metrics for measuring real user (browser) experience",
+    "type": ["object", "null"],
+    "properties": {
+        "cls": {
+            "type": ["number", "null"],
+            "description": "The Cumulative Layout Shift metric",
+            "minimum": 0
+        },
+        "tbt": {
+            "type": ["number", "null"],
+            "description": "The Total Blocking Time metric",
+            "minimum": 0
+        },
+        "fid": {
+            "type": ["number", "null"],
+            "description": "The First Input Delay metric",
+            "minimum": 0
+        }
+    }
                 }
             },
             "required": [
