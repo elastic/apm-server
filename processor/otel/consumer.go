@@ -403,6 +403,7 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			case "peer.address":
 				val := truncate(v.StringValue.Value)
 				destination.Address = &val
+				destinationService.Resource = &val
 			case "peer.hostname":
 				if destination.Address == nil {
 					val := truncate(v.StringValue.Value)
