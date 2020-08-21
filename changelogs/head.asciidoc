@@ -6,8 +6,6 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 [float]
 ==== Breaking Changes
 
-* Renamed `transaction.aggregation.*` config to `transaction.aggregation.transactions.*` {pull}4083[4083]
-
 [float]
 ==== Bug fixes
 
