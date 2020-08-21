@@ -45,7 +45,7 @@ func Test_UnpackConfig(t *testing.T) {
 	kibanaNoSlashConfig.Kibana.Enabled = true
 	kibanaNoSlashConfig.Kibana.Host = "kibanahost:5601/proxy"
 
-	kibanaHeadersConfig := DefaultConfig(version)
+	kibanaHeadersConfig := DefaultConfig()
 	kibanaHeadersConfig.Kibana.Enabled = true
 	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
 
