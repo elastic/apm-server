@@ -82,6 +82,7 @@ func TestSpanTransform(t *testing.T) {
 				Timestamp:  timestamp,
 				Start:      &start,
 				Duration:   1.20,
+				RUM:        true,
 				Stacktrace: Stacktrace{{AbsPath: &path}},
 				Labels:     common.MapStr{"label.a": 12},
 				HTTP:       &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
@@ -148,11 +149,10 @@ func TestSpanTransform(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{
-		Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
-	}
 	for _, test := range tests {
-		output := test.Span.Transform(context.Background(), tctx)
+		output := test.Span.Transform(context.Background(), &transform.Config{
+			RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+		})
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields)
 	}

@@ -57,10 +57,7 @@ const (
 )
 
 // Handler returns a request.Handler for managing profile requests.
-func Handler(
-	transformConfig transform.Config,
-	report publish.Reporter,
-) request.Handler {
+func Handler(report publish.Reporter) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
@@ -82,8 +79,6 @@ func Handler(
 				err: errors.New("rate limit exceeded"),
 			}
 		}
-
-		tctx := &transform.Context{Config: transformConfig}
 
 		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
@@ -185,10 +180,7 @@ func Handler(
 			}
 		}
 
-		if err := report(c.Request.Context(), publish.PendingReq{
-			Transformables: transformables,
-			Tcontext:       tctx,
-		}); err != nil {
+		if err := report(c.Request.Context(), publish.PendingReq{Transformables: transformables}); err != nil {
 			switch err {
 			case publish.ErrChannelClosed:
 				return nil, requestError{

@@ -105,7 +105,7 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.Event {
+func (e *Transaction) Transform(_ context.Context, _ *transform.Config) []beat.Event {
 	transactionTransformations.Inc()
 
 	fields := common.MapStr{

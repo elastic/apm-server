@@ -33,7 +33,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -201,7 +200,7 @@ func TestHandler(t *testing.T) {
 			if tc.rateLimit != nil {
 				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
 			}
-			Handler(transform.Config{}, tc.reporter(t))(tc.c)
+			Handler(tc.reporter(t))(tc.c)
 
 			assert.Equal(t, string(tc.id), string(tc.c.Result.ID))
 			resultStatus := request.MapResultIDToStatus[tc.id]

@@ -36,7 +36,6 @@ import (
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -51,19 +50,15 @@ const (
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
 type Consumer struct {
-	TransformConfig transform.Config
-	Reporter        publish.Reporter
+	Reporter publish.Reporter
 }
 
 // ConsumeTraceData consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
 	batch := c.convert(td)
-	transformContext := &transform.Context{Config: c.TransformConfig}
-
 	return c.Reporter(ctx, publish.PendingReq{
 		Transformables: batch.Transformables(),
-		Tcontext:       transformContext,
 		Trace:          true,
 	})
 }
