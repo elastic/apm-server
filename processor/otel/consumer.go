@@ -20,6 +20,8 @@ package otel
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -392,27 +394,40 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 				db.Statement = &v.StringValue.Value
 				isDBSpan = true
 			case "db.instance":
-				db.Instance = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				db.Instance = &val
 				isDBSpan = true
 			case "db.type":
-				db.Type = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				db.Type = &val
 				isDBSpan = true
 			case "db.user":
-				db.UserName = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				db.UserName = &val
 				isDBSpan = true
 			case "peer.address":
 				val := truncate(v.StringValue.Value)
-				destination.Address = &val
 				destinationService.Resource = &val
-			case "peer.hostname":
-				if destination.Address == nil {
-					val := truncate(v.StringValue.Value)
+				if !strings.ContainsRune(val, ':') || net.ParseIP(val) != nil {
+					// peer.address is not necessarily a hostname
+					// or IP address; it could be something like
+					// a JDBC connection string or ip:port. Ignore
+					// values containing colons, except for IPv6.
 					destination.Address = &val
 				}
+			case "peer.hostname", "peer.ipv4", "peer.ipv6":
+				val := truncate(v.StringValue.Value)
+				destination.Address = &val
 			case "peer.service":
-				destinationService.Name = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				destinationService.Name = &val
+				if destinationService.Resource == nil {
+					// Prefer using peer.address for resource.
+					destinationService.Resource = &val
+				}
 			case "message_bus.destination":
-				message.QueueName = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				message.QueueName = &val
 				isMessagingSpan = true
 			case "component":
 				component = truncate(v.StringValue.Value)
@@ -423,12 +438,48 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 		}
 	}
 
-	if destination != (model.Destination{}) {
-		event.Destination = &destination
+	if http.URL != nil {
+		if fullURL, err := url.Parse(*http.URL); err == nil {
+			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
+			hostname := truncate(url.Hostname())
+			var port int
+			portString := url.Port()
+			if portString != "" {
+				port, _ = strconv.Atoi(portString)
+			} else {
+				port = schemeDefaultPort(url.Scheme)
+			}
+
+			// Set destination.{address,port} from the HTTP URL,
+			// replacing peer.* based values to ensure consistency.
+			destination = model.Destination{Address: &hostname}
+			if port > 0 {
+				destination.Port = &port
+			}
+
+			// Set destination.service.* from the HTTP URL,
+			// unless peer.service was specified.
+			if destinationService.Name == nil {
+				resource := url.Host
+				if port > 0 && port == schemeDefaultPort(url.Scheme) {
+					hasDefaultPort := portString != ""
+					if hasDefaultPort {
+						// Remove the default port from destination.service.name.
+						url.Host = hostname
+					} else {
+						// Add the default port to destination.service.resource.
+						resource = fmt.Sprintf("%s:%d", resource, port)
+					}
+				}
+				name := url.String()
+				destinationService.Name = &name
+				destinationService.Resource = &resource
+			}
+		}
 	}
 
-	if destinationService != (model.DestinationService{}) {
-		event.DestinationService = &destinationService
+	if destination != (model.Destination{}) {
+		event.Destination = &destination
 	}
 
 	switch {
@@ -456,6 +507,14 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 		if component != "" {
 			event.Subtype = &component
 		}
+	}
+
+	if destinationService != (model.DestinationService{}) {
+		if destinationService.Type == nil {
+			// Copy span type to destination.service.type.
+			destinationService.Type = &event.Type
+		}
+		event.DestinationService = &destinationService
 	}
 
 	if len(labels) == 0 {
@@ -636,4 +695,14 @@ func formatJaegerSpanID(spanID []byte) string {
 	}
 
 	return fmt.Sprintf("%x", jaegerSpanID)
+}
+
+func schemeDefaultPort(scheme string) int {
+	switch scheme {
+	case "http":
+		return 80
+	case "https":
+		return 443
+	}
+	return 0
 }
