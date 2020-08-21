@@ -147,8 +147,8 @@ func TestAggregatorRun(t *testing.T) {
 		require.Nil(t, metricset)
 	}
 
-	stopAggregator := runAggregator(agg)
-	defer stopAggregator()
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	req := expectPublish(t, reqs)
 	require.Len(t, req.Transformables, 2)
@@ -198,8 +198,8 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	stopAggregator := runAggregator(agg)
-	defer stopAggregator()
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	for i := 0; i < 2; i++ {
 		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
@@ -208,7 +208,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	}
 
 	// Wait for aggregator to stop before checking logs, to ensure we don't race with logging.
-	stopAggregator()
+	assert.NoError(t, agg.Stop(context.Background()))
 
 	logs := observed.FilterMessageSnippet("report failed").All()
 	assert.Len(t, logs, 2)
@@ -274,8 +274,8 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 		}, m)
 	}
 
-	stopAggregator := runAggregator(agg)
-	defer stopAggregator()
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	// Check the fractional transaction counts for the "fnord" transaction
 	// group were accumulated with some degree of accuracy. i.e. we should
@@ -328,8 +328,8 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			require.Nil(t, metricset)
 		}
 
-		stopAggregator := runAggregator(agg)
-		defer stopAggregator()
+		go agg.Run()
+		defer agg.Stop(context.Background())
 
 		req := expectPublish(t, reqs)
 		require.Len(t, req.Transformables, 1)
@@ -384,19 +384,6 @@ func BenchmarkAggregateTransactionUserAgent(b *testing.B) {
 			agg.AggregateTransaction(tx)
 		}
 	})
-}
-
-func runAggregator(agg *txmetrics.Aggregator) func() error {
-	done := make(chan error)
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		defer close(done)
-		done <- agg.Run(ctx)
-	}()
-	return func() error {
-		cancel()
-		return <-done
-	}
 }
 
 func makeErrReporter(err error) publish.Reporter {

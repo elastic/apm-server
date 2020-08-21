@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
@@ -53,7 +52,6 @@ type decodeMetadataFunc func(interface{}, bool, *model.Metadata) error
 type decodeEventFunc func(modeldecoder.Input, *model.Batch) error
 
 type Processor struct {
-	Tconfig          transform.Config
 	Mconfig          modeldecoder.Config
 	MaxEventSize     int
 	streamReaderPool sync.Pool
@@ -63,7 +61,6 @@ type Processor struct {
 
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
-		Tconfig:        transform.Config{},
 		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: modeldecoder.DecodeMetadata,
@@ -76,24 +73,22 @@ func BackendProcessor(cfg *config.Config) *Processor {
 	}
 }
 
-func RUMProcessor(cfg *config.Config, tcfg *transform.Config) *Processor {
+func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Tconfig:        *tcfg,
 		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: modeldecoder.DecodeMetadata,
 		models: map[string]decodeEventFunc{
-			"transaction": modeldecoder.DecodeTransaction,
-			"span":        modeldecoder.DecodeSpan,
-			"metricset":   modeldecoder.DecodeMetricset,
-			"error":       modeldecoder.DecodeError,
+			"transaction": modeldecoder.DecodeRUMV2Transaction,
+			"span":        modeldecoder.DecodeRUMV2Span,
+			"metricset":   modeldecoder.DecodeRUMV2Metricset,
+			"error":       modeldecoder.DecodeRUMV2Error,
 		},
 	}
 }
 
-func RUMV3Processor(cfg *config.Config, tcfg *transform.Config) *Processor {
+func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Tconfig:        *tcfg,
 		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: modeldecoder.DecodeRUMV3Metadata,
@@ -237,7 +232,6 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	}
 
 	requestTime := utility.RequestTime(ctx)
-	tctx := &transform.Context{Config: p.Tconfig}
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
@@ -255,7 +249,6 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 		// which would enable better memory reuse.
 		if err := report(ctx, publish.PendingReq{
 			Transformables: batch.Transformables(),
-			Tcontext:       tctx,
 			Trace:          !sp.Dropped(),
 		}); err != nil {
 			switch err {

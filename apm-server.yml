@@ -84,19 +84,6 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #curve_types: []
 
-    # Following options only concern requiring and verifying client certificates provided by the agents.
-    # Providing a client certificate is currently only supported by the RUM agent through
-    # browser configured certificates and Jaeger agents connecting via gRPC.
-    #
-    # Configure a list of root certificate authorities for verifying client certificates.
-    #certificate_authorities: []
-    #
-    # Configure which type of client authentication is supported.
-    # Options are `none`, `optional`, and `required`.
-    # Default is `none`. If `certificate_authorities` are configured,
-    # the value for `client_authentication` is automatically changed to `required`.
-    #client_authentication: "none"
-
   # The APM Server endpoints can be secured by configuring a secret token or enabling the usage of API keys. Both
   # options can be enabled in parallel, allowing Elastic APM agents to chose whichever mechanism they support.
   # As soon as one of the options is enabled, requests without a valid token are denied by the server. An exception

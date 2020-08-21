@@ -168,7 +168,7 @@ type testcaseIntakeHandler struct {
 
 func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	if tc.processor == nil {
-		cfg := config.DefaultConfig("7.0.0")
+		cfg := config.DefaultConfig()
 		tc.processor = stream.BackendProcessor(cfg)
 	}
 	if tc.reporter == nil {

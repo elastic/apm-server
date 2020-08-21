@@ -15,29 +15,44 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package model
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func TestIsRumEnabled(t *testing.T) {
-	truthy := true
-	for _, td := range []struct {
-		c       *Config
-		enabled bool
-	}{
-		{c: &Config{RumConfig: &RumConfig{Enabled: new(bool)}}, enabled: false},
-		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, enabled: true},
-	} {
-		assert.Equal(t, td.enabled, td.c.RumConfig.IsEnabled())
-
+func TestUserExperienceFields(t *testing.T) {
+	tests := []struct {
+		Input    *UserExperience
+		Expected common.MapStr
+	}{{
+		Input:    nil,
+		Expected: nil,
+	}, {
+		Input: &UserExperience{
+			CumulativeLayoutShift: -1,
+			FirstInputDelay:       -1,
+			TotalBlockingTime:     -1,
+		},
+		Expected: nil,
+	}, {
+		Input: &UserExperience{
+			CumulativeLayoutShift: 1,
+			FirstInputDelay:       2.3,
+			TotalBlockingTime:     4.56,
+		},
+		Expected: common.MapStr{
+			"cls": 1.0,
+			"fid": 2.3,
+			"tbt": 4.56,
+		},
+	}}
+	for _, test := range tests {
+		output := test.Input.Fields()
+		assert.Equal(t, test.Expected, output)
 	}
-}
-
-func TestDefaultRum(t *testing.T) {
-	c := DefaultConfig()
-	assert.Equal(t, defaultRum(), c.RumConfig)
 }

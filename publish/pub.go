@@ -41,25 +41,34 @@ type Reporter func(context.Context, PendingReq) error
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
-	pendingRequests chan PendingReq
+	stopped         chan struct{}
 	tracer          *apm.Tracer
 	client          beat.Client
-	m               sync.RWMutex
-	stopped         bool
+	waitPublished   *waitPublishedAcker
+	transformConfig *transform.Config
+
+	mu              sync.RWMutex
+	stopping        bool
+	pendingRequests chan PendingReq
 }
 
 type PendingReq struct {
 	Transformables []transform.Transformable
-	Tcontext       *transform.Context
 	Trace          bool
 }
 
-// PublisherConfig is a struct holding configuration information for the publisher,
-// such as shutdown timeout, default pipeline name and beat info.
+// PublisherConfig is a struct holding configuration information for the publisher.
 type PublisherConfig struct {
 	Info            beat.Info
-	ShutdownTimeout time.Duration
 	Pipeline        string
+	TransformConfig *transform.Config
+}
+
+func (cfg *PublisherConfig) Validate() error {
+	if cfg.TransformConfig == nil {
+		return errors.New("TransfromConfig unspecified")
+	}
+	return nil
 }
 
 var (
@@ -71,6 +80,10 @@ var (
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
 func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
+	if err := cfg.Validate(); err != nil {
+		return nil, errors.Wrap(err, "invalid config")
+	}
+
 	processingCfg := beat.ProcessingConfig{
 		Fields: common.MapStr{
 			"observer": common.MapStr{
@@ -86,28 +99,40 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
 	}
-	client, err := pipeline.ConnectWith(beat.ClientConfig{
-		PublishMode: beat.GuaranteedSend,
-		// If set >0 `Close` will block for the duration or until pipeline is empty
-		WaitClose:  cfg.ShutdownTimeout,
-		Processing: processingCfg,
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	p := &Publisher{
-		tracer: tracer,
-		client: client,
+		tracer:          tracer,
+		stopped:         make(chan struct{}),
+		waitPublished:   newWaitPublishedAcker(),
+		transformConfig: cfg.TransformConfig,
 
 		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
 		pendingRequests: make(chan PendingReq, runtime.GOMAXPROCS(0)),
 	}
 
-	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
-		go p.run()
+	client, err := pipeline.ConnectWith(beat.ClientConfig{
+		PublishMode: beat.GuaranteedSend,
+		Processing:  processingCfg,
+		ACKHandler:  p.waitPublished,
+	})
+	if err != nil {
+		return nil, err
 	}
+	p.client = client
+
+	var wg sync.WaitGroup
+	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			p.run()
+		}()
+	}
+	go func() {
+		defer close(p.stopped)
+		wg.Wait()
+	}()
 
 	return p, nil
 }
@@ -117,28 +142,49 @@ func (p *Publisher) Client() beat.Client {
 	return p.client
 }
 
-// Stop closes all channels and waits for the the worker to stop.
-// The worker will drain the queue on shutdown, but no more pending requests
-// will be published.
-func (p *Publisher) Stop() {
-	p.m.Lock()
-	p.stopped = true
-	p.m.Unlock()
-	close(p.pendingRequests)
-	p.client.Close()
+// Stop closes all channels and waits for the the worker to stop, or for the
+// context to be signalled. If the context is never cancelled, Stop may block
+// indefinitely.
+//
+// The worker will drain the queue on shutdown, but no more requests will be
+// published after Stop returns.
+func (p *Publisher) Stop(ctx context.Context) error {
+	// Prevent additional requests from being enqueued.
+	p.mu.Lock()
+	if !p.stopping {
+		p.stopping = true
+		close(p.pendingRequests)
+	}
+	p.mu.Unlock()
+
+	// Wait for enqueued events to be published. Order of events is
+	// important here:
+	//   (1) wait for pendingRequests to be drained and published (p.stopped)
+	//   (2) close the beat.Client to prevent more events being published
+	//   (3) wait for published events to be acknowledged
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-p.stopped:
+	}
+	if err := p.client.Close(); err != nil {
+		return err
+	}
+	return p.waitPublished.Wait(ctx)
 }
 
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,
 // an error is returned.
-// Calling send after Stop will return an error.
+//
+// Calling Send after Stop will return an error without enqueuing the request.
 func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 	if len(req.Transformables) == 0 {
 		return nil
 	}
 
-	p.m.RLock()
-	defer p.m.RUnlock()
-	if p.stopped {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	if p.stopping {
 		return ErrChannelClosed
 	}
 
@@ -147,7 +193,10 @@ func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 		return ctx.Err()
 	case p.pendingRequests <- req:
 		return nil
-	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
+	case <-time.After(time.Second * 1):
+		// TODO(axw) instead of having an arbitrary delay here,
+		// make it the caller's responsibility to use a context
+		// with a timeout.
 		return ErrFull
 	}
 }
@@ -168,15 +217,15 @@ func (p *Publisher) processPendingReq(ctx context.Context, req PendingReq) {
 	}
 
 	for _, transformable := range req.Transformables {
-		events := transformTransformable(ctx, transformable, req.Tcontext)
+		events := transformTransformable(ctx, transformable, p.transformConfig)
 		span := tx.StartSpan("PublishAll", "Publisher", nil)
 		p.client.PublishAll(events)
 		span.End()
 	}
 }
 
-func transformTransformable(ctx context.Context, t transform.Transformable, tctx *transform.Context) []beat.Event {
+func transformTransformable(ctx context.Context, t transform.Transformable, cfg *transform.Config) []beat.Event {
 	span, ctx := apm.StartSpan(ctx, "Transform", "Publisher")
 	defer span.End()
-	return t.Transform(ctx, tctx)
+	return t.Transform(ctx, cfg)
 }

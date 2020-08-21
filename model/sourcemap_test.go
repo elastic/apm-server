@@ -54,8 +54,7 @@ func TestTransform(t *testing.T) {
 		Sourcemap:      "mysmap",
 	}
 
-	tctx := &transform.Context{}
-	events := p.Transform(context.Background(), tctx)
+	events := p.Transform(context.Background(), &transform.Config{})
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -101,7 +100,7 @@ func TestInvalidateCache(t *testing.T) {
 		require.NoError(t, err)
 
 		// transform with sourcemap store
-		event.Transform(context.Background(), &transform.Context{Config: transform.Config{SourcemapStore: store}})
+		event.Transform(context.Background(), &transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}})
 
 		logCollection := logp.ObserverLogs().TakeAll()
 		assert.Equal(t, 2, len(logCollection))
@@ -123,8 +122,8 @@ func TestInvalidateCache(t *testing.T) {
 		// collect logs
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
-		// transform with sourcemap store
-		event.Transform(context.Background(), &transform.Context{Config: transform.Config{SourcemapStore: nil}})
+		// transform with no sourcemap store
+		event.Transform(context.Background(), &transform.Config{RUM: transform.RUMConfig{}})
 
 		logCollection := logp.ObserverLogs().TakeAll()
 		assert.Equal(t, 1, len(logCollection))

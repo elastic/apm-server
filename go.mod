@@ -13,8 +13,8 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200820025128-585b952e2009
-	github.com/elastic/go-elasticsearch/v7 v7.5.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200210103600-aff00e5adfde
+	github.com/elastic/go-elasticsearch/v7 v7.9.0
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-sysinfo v1.4.0 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/ua-parser/uap-go v0.0.0-20200325213135-e1c09f13e2fe
 	github.com/uber/tchannel-go v1.16.0 // indirect
-	github.com/urso/ecslog v0.0.1 // indirect
+	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	go.elastic.co/apm v1.8.0
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0

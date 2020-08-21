@@ -53,16 +53,16 @@ type Sourcemap struct {
 	BundleFilepath string
 }
 
-func (pa *Sourcemap) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+func (pa *Sourcemap) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	sourcemapCounter.Inc()
 	if pa == nil {
 		return nil
 	}
 
-	if tctx.Config.SourcemapStore == nil {
+	if cfg.RUM.SourcemapStore == nil {
 		logp.NewLogger(logs.Sourcemap).Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		tctx.Config.SourcemapStore.Added(ctx, pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
+		cfg.RUM.SourcemapStore.Added(ctx, pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
 	}
 
 	ev := beat.Event{

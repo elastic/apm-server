@@ -15,29 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config
+package modeldecoder
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/apm-server/model"
 )
 
-func TestIsRumEnabled(t *testing.T) {
-	truthy := true
-	for _, td := range []struct {
-		c       *Config
-		enabled bool
-	}{
-		{c: &Config{RumConfig: &RumConfig{Enabled: new(bool)}}, enabled: false},
-		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, enabled: true},
-	} {
-		assert.Equal(t, td.enabled, td.c.RumConfig.IsEnabled())
-
+func decodeUserExperience(input map[string]interface{}, out *model.UserExperience) {
+	if input == nil {
+		return
 	}
-}
 
-func TestDefaultRum(t *testing.T) {
-	c := DefaultConfig()
-	assert.Equal(t, defaultRum(), c.RumConfig)
+	if !decodeFloat64(input, "cls", &out.CumulativeLayoutShift) {
+		out.CumulativeLayoutShift = -1
+	}
+	if !decodeFloat64(input, "fid", &out.FirstInputDelay) {
+		out.FirstInputDelay = -1
+	}
+	if !decodeFloat64(input, "tbt", &out.TotalBlockingTime) {
+		out.TotalBlockingTime = -1
+	}
 }

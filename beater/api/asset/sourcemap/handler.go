@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -44,7 +43,7 @@ var (
 type RequestDecoder func(req *http.Request) (map[string]interface{}, error)
 
 // Handler returns a request.Handler for managing asset requests.
-func Handler(dec RequestDecoder, processor asset.Processor, cfg transform.Config, report publish.Reporter) request.Handler {
+func Handler(dec RequestDecoder, processor asset.Processor, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
 		if c.Request.Method != "POST" {
 			c.Result.SetDefault(request.IDResponseErrorsMethodNotAllowed)
@@ -76,8 +75,7 @@ func Handler(dec RequestDecoder, processor asset.Processor, cfg transform.Config
 			return
 		}
 
-		tctx := &transform.Context{Config: cfg}
-		req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
+		req := publish.PendingReq{Transformables: transformables}
 		span, ctx := apm.StartSpan(c.Request.Context(), "Send", "Reporter")
 		defer span.End()
 		req.Trace = !span.Dropped()

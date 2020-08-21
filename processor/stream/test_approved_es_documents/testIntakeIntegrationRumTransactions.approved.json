@@ -35,6 +35,11 @@
                 "duration": {
                     "us": 643000
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "611f4fa950f04631",
                 "page": {
                     "referer": "http://localhost:8000/test/e2e/",
