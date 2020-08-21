@@ -18,6 +18,7 @@
 package agentcfg
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -119,7 +120,7 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		setup := newCacheSetup(b.Name(), exp, false)
 		q := Query{Service: Service{}}
 		for i := 0; i < b.N; i++ {
-			q.Service.Name = string(b.N)
+			q.Service.Name = fmt.Sprintf("%v", b.N)
 			setup.cache.fetch(q, testFn)
 		}
 	})

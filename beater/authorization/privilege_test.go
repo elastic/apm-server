@@ -18,6 +18,7 @@
 package authorization
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -31,7 +32,7 @@ func TestPrivilegesCache(t *testing.T) {
 	cache := newPrivilegesCache(time.Millisecond, n)
 	assert.False(t, cache.isFull())
 	for i := 0; i < n-1; i++ {
-		cache.add(string(i), elasticsearch.Permissions{})
+		cache.add(fmt.Sprintf("%v", i), elasticsearch.Permissions{})
 		assert.False(t, cache.isFull())
 	}
 	cache.add("oneMore", elasticsearch.Permissions{})
