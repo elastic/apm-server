@@ -54,6 +54,7 @@ type Config struct {
 	Username     string            `config:"username"`
 	Password     string            `config:"password"`
 	APIKey       string            `config:"api_key"`
+	Headers      map[string]string `config:"headers"`
 }
 
 // DefaultConfig returns a default config.
@@ -72,16 +73,23 @@ func (h Hosts) Validate() error {
 	return nil
 }
 
-func connectionConfig(config *Config) (http.RoundTripper, []string, error) {
+func connectionConfig(config *Config) (http.RoundTripper, []string, http.Header, error) {
 	addrs, err := addresses(config)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	transp, err := httpTransport(config)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return transp, addrs, nil
+	var headers http.Header
+	if len(config.Headers) > 0 {
+		headers = make(http.Header)
+		for k, v := range config.Headers {
+			headers.Set(k, v)
+		}
+	}
+	return transp, addrs, headers, nil
 }
 
 func httpProxyURL(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
