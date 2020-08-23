@@ -83,45 +83,47 @@ func NewClient(config *Config) (Client, error) {
 	if config == nil {
 		return nil, errConfigMissing
 	}
-	transport, addresses, err := connectionConfig(config)
+	transport, addresses, headers, err := connectionConfig(config)
 	if err != nil {
 		return nil, err
 	}
-	return NewVersionedClient(config.APIKey, config.Username, config.Password, addresses, transport)
+	return NewVersionedClient(config.APIKey, config.Username, config.Password, addresses, headers, transport)
 }
 
 // NewVersionedClient returns the right elasticsearch client for the current Stack version, as an interface
-func NewVersionedClient(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (Client, error) {
+func NewVersionedClient(apikey, user, pwd string, addresses []string, headers http.Header, transport http.RoundTripper) (Client, error) {
 	if apikey != "" {
 		apikey = base64.StdEncoding.EncodeToString([]byte(apikey))
 	}
 	transport = apmelasticsearch.WrapRoundTripper(transport)
 	version := common.MustNewVersion(version.GetDefaultVersion())
 	if version.IsMajor(8) {
-		c, err := newV8Client(apikey, user, pwd, addresses, transport)
+		c, err := newV8Client(apikey, user, pwd, addresses, headers, transport)
 		return clientV8{c}, err
 	}
-	c, err := newV7Client(apikey, user, pwd, addresses, transport)
+	c, err := newV7Client(apikey, user, pwd, addresses, headers, transport)
 	return clientV7{c}, err
 }
 
-func newV7Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*esv7.Client, error) {
+func newV7Client(apikey, user, pwd string, addresses []string, headers http.Header, transport http.RoundTripper) (*esv7.Client, error) {
 	return esv7.NewClient(esv7.Config{
 		APIKey:    apikey,
 		Username:  user,
 		Password:  pwd,
 		Addresses: addresses,
 		Transport: transport,
+		Header:    headers,
 	})
 }
 
-func newV8Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*esv8.Client, error) {
+func newV8Client(apikey, user, pwd string, addresses []string, headers http.Header, transport http.RoundTripper) (*esv8.Client, error) {
 	return esv8.NewClient(esv8.Config{
 		APIKey:    apikey,
 		Username:  user,
 		Password:  pwd,
 		Addresses: addresses,
 		Transport: transport,
+		Header:    headers,
 	})
 }
 

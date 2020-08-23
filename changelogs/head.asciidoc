@@ -10,6 +10,7 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 ==== Bug fixes
 
 * Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
+* Honour output.elasticsearch.headers configuration in API Key auth and source mapping {pull}4090[4090]
 
 [float]
 ==== Intake API Changes
