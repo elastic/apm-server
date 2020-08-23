@@ -35,15 +35,7 @@ location of the output zip archive containing the certificate and the private ke
 ==== Server certificate authentication
 
 By default, when SSL is enabled for APM Server inbound communication, agents will verify the identity
-of the APM Server by authenticating its certificate. It is not recommended to change this default,
-however it is possible through agent configuration:
-
-* *Go Agent*: {apm-go-ref}/configuration.html#config-verify-server-cert[`ELASTIC_APM_VERIFY_SERVER_CERT`]
-* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
-* *Java Agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
-* *Python Agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
-* *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
-* *NodeJS Agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
+of the APM Server by authenticating its certificate.
 
 When the APM server uses a certificate that is not chained to a publicly-trusted certificate
 (e.g. self-signed), additional setting will be required on the agent side:
@@ -54,6 +46,16 @@ When the APM server uses a certificate that is not chained to a publicly-trusted
 * *NodeJS Agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
 * *Java Agent*: adding the certificate to the JVM `trustStore`.
 See {apm-java-ref}/setup-ssl#ssl-server-authentication[APM Server authentication] for more details.
+
+It is not recommended to disable APM Server authentication,
+however it is possible through agents configuration:
+
+* *Go Agent*: {apm-go-ref}/configuration.html#config-verify-server-cert[`ELASTIC_APM_VERIFY_SERVER_CERT`]
+* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
+* *Java Agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
+* *Python Agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
+* *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
+* *NodeJS Agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
 
 [[ssl-client-authentication]]
 ==== Client certificate authentication
