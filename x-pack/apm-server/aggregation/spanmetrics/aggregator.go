@@ -209,7 +209,7 @@ func makeMetricset(timestamp time.Time, key aggregationKey, count, interval, sum
 		Samples: []model.Sample{
 			{
 				Name:  "destination.service.response_time.count",
-				Value: count,
+				Value: math.Round(count),
 			},
 			{
 				Name:  "destination.service.response_time.sum.us",
