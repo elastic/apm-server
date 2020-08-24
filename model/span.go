@@ -77,7 +77,8 @@ type Span struct {
 	Experimental interface{}
 
 	// RepresentativeCount, if positive, holds the approximate number of
-	// transactions that this transaction represents for aggregation.
+	// spans that this span represents for aggregation. This will only be set
+	// when the sampling rate is known.
 	//
 	// This may be used for scaling metrics; it is not indexed.
 	RepresentativeCount float64
