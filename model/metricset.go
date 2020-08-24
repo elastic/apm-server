@@ -180,10 +180,11 @@ func (t *MetricsetTransaction) fields() common.MapStr {
 }
 
 func (s *MetricsetSpan) fields() common.MapStr {
-	var fields mapStr
-	fields.maybeSetString("type", s.Type)
-	fields.maybeSetString("subtype", s.Subtype)
-	return common.MapStr(fields)
+	var fields common.MapStr
+	utility.Set(fields, "type", s.Type)
+	utility.Set(fields, "subtype", s.Subtype)
+	utility.DeepUpdate(fields, "destination.service", s.DestinationService.fields())
+	return fields
 }
 
 func (s *Sample) set(fields common.MapStr) error {

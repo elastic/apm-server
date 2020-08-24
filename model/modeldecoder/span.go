@@ -81,7 +81,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 		Metadata:            input.Metadata,
 		Name:                decoder.String(raw, fieldName("name")),
 		Start:               decoder.Float64Ptr(raw, fieldName("start")),
-		RepresentativeCount: safeInverse(decoder.Float64WithDefault(raw, 1.0, fieldName("sample_rate"))),
+		RepresentativeCount: safeInverse(decoder.Float64Ptr(raw, fieldName("sample_rate"))),
 		Duration:            decoder.Float64(raw, fieldName("duration")),
 		Sync:                decoder.BoolPtr(raw, fieldName("sync")),
 		Timestamp:           decoder.TimeEpochMicro(raw, fieldName("timestamp")),
@@ -262,4 +262,11 @@ func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*
 		Port:    decoder.IntPtr(destinationInput, fieldName("port")),
 	}
 	return &dest, service, decoder.Err
+}
+
+func safeInverse(f *float64) float64 {
+	if f == nil || *f == 0 {
+		return 0
+	}
+	return 1 / *f
 }

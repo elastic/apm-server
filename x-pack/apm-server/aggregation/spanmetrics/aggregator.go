@@ -9,8 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cespare/xxhash/v2"
-
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
@@ -118,12 +116,13 @@ func (a *Aggregator) publish(ctx context.Context) error {
 
 	now := time.Now()
 	metricsets := make([]transform.Transformable, 0, size)
-	for hash, metrics := range a.inactive.m {
-		metricset := makeMetricset(now, metrics.key, metrics.count, metrics.sum)
+	for key, metrics := range a.inactive.m {
+		metricset := makeMetricset(now, key, metrics.count, a.config.Interval.Seconds(), float64(metrics.sum))
 		metricsets = append(metricsets, &metricset)
-		delete(a.inactive.m, hash)
+		a.inactive.mu.Lock()
+		delete(a.inactive.m, key)
+		a.inactive.mu.Unlock()
 	}
-
 	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
 	return a.config.Report(ctx, publish.PendingReq{
 		Transformables: metricsets,
@@ -135,7 +134,8 @@ func (a *Aggregator) AggregateTransformables(in []transform.Transformable) {
 	for _, tf := range in {
 		if span, ok := tf.(*model.Span); ok &&
 			span.DestinationService != nil &&
-			span.DestinationService.Resource != nil {
+			span.DestinationService.Resource != nil &&
+			span.RepresentativeCount > 0 {
 			key := aggregationKey{
 				serviceEnvironment: span.Metadata.Service.Environment,
 				serviceName:        span.Metadata.Service.Name,
@@ -144,52 +144,40 @@ func (a *Aggregator) AggregateTransformables(in []transform.Transformable) {
 			duration := time.Duration(span.Duration * float64(time.Millisecond))
 			metrics := spanMetrics{
 				count: span.RepresentativeCount,
-				sum:   duration.Milliseconds(),
-				key:   key,
+				sum:   duration.Microseconds(),
 			}
-			a.active.storeOrUpdate(metrics)
+			a.active.storeOrUpdate(key, metrics)
 		}
 	}
 }
 
 type metricsBuffer struct {
 	// TODO might need a size cap
-	m  map[uint64]spanMetrics
+	m  map[aggregationKey]spanMetrics
 	mu sync.RWMutex
 }
 
 func newMetricsBuffer() *metricsBuffer {
 	return &metricsBuffer{
-		m: make(map[uint64]spanMetrics),
+		m: make(map[aggregationKey]spanMetrics),
 	}
 }
 
-func (mb *metricsBuffer) load(key uint64) (spanMetrics, bool) {
-	mb.mu.RLock()
-	defer mb.mu.RUnlock()
-	result, ok := mb.m[key]
-	return result, ok
-}
-
 func (mb *metricsBuffer) size() int {
-	// TODO might not need to lock
 	mb.mu.RLock()
 	defer mb.mu.RUnlock()
 	size := len(mb.m)
 	return size
 }
 
-func (mb *metricsBuffer) storeOrUpdate(value spanMetrics) {
-	hash := value.key.hash()
-	if data, ok := mb.load(hash); ok {
-		mb.mu.Lock()
-		mb.m[hash] = spanMetrics{count: value.count + data.count, sum: value.sum + data.sum, key: data.key}
-		mb.mu.Unlock()
+func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value spanMetrics) {
+	mb.mu.Lock()
+	defer mb.mu.Unlock()
+	if data, ok := mb.m[key]; ok {
+		mb.m[key] = spanMetrics{count: value.count + data.count, sum: value.sum + data.sum}
 		return
 	}
-	mb.mu.Lock()
-	mb.m[hash] = value
-	mb.mu.Unlock()
+	mb.m[key] = value
 }
 
 type aggregationKey struct {
@@ -201,21 +189,11 @@ type aggregationKey struct {
 }
 
 type spanMetrics struct {
-	key aggregationKey
-	// TODO normalize count as per interval
 	count float64
 	sum   int64
 }
 
-func (k *aggregationKey) hash() uint64 {
-	var h xxhash.Digest
-	h.WriteString(k.serviceEnvironment)
-	h.WriteString(k.serviceName)
-	h.WriteString(k.resource)
-	return h.Sum64()
-}
-
-func makeMetricset(timestamp time.Time, key aggregationKey, count float64, sum int64) model.Metricset {
+func makeMetricset(timestamp time.Time, key aggregationKey, count, interval, sum float64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: timestamp,
 		Metadata: model.Metadata{
@@ -235,7 +213,11 @@ func makeMetricset(timestamp time.Time, key aggregationKey, count float64, sum i
 			},
 			{
 				Name:  "destination.service.response_time.sum.us",
-				Value: float64(sum),
+				Value: sum,
+			},
+			{
+				Name:  "destination.service.response_time.count_interval",
+				Value: interval,
 			},
 		},
 	}

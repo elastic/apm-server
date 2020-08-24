@@ -208,7 +208,7 @@ func Test_UnpackConfig(t *testing.T) {
 						Timeout:  5 * time.Second},
 					esConfigured: true,
 				},
-				Aggregation: Aggregation{TransactionConfig: TransactionConfig{
+				Aggregation: AggregationConfig{Transactions: TransactionAggregationConfig{
 					Enabled:                        true,
 					Interval:                       time.Second,
 					MaxTransactionGroups:           123,
@@ -322,7 +322,7 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 				},
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
-				Aggregation: Aggregation{TransactionConfig: TransactionConfig{
+				Aggregation: AggregationConfig{Transactions: TransactionAggregationConfig{
 					Enabled:                        true,
 					Interval:                       time.Minute,
 					MaxTransactionGroups:           1000,

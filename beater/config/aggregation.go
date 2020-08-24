@@ -28,13 +28,13 @@ const (
 	defaultAggregationRUMUserAgentLRUSize            = 5000
 )
 
-type Aggregation struct {
-	TransactionConfig TransactionConfig `config:"transaction"`
-	SpanConfig        SpanConfig        `config:"span"`
+type AggregationConfig struct {
+	Transactions        TransactionAggregationConfig        `config:"transactions"`
+	ServiceDestinations ServiceDestinationAggregationConfig `config:"service_destinations"`
 }
 
-// TransactionConfig holds configuration related to transaction metrics aggregation for histograms.
-type TransactionConfig struct {
+// TransactionAggregationConfig holds configuration related to transaction metrics aggregation for histograms.
+type TransactionAggregationConfig struct {
 	Enabled                        bool          `config:"enabled"`
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
 	MaxTransactionGroups           int           `config:"max_transaction_groups" validate:"min=1"`
@@ -42,21 +42,21 @@ type TransactionConfig struct {
 	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size" validate:"min=1"`
 }
 
-// SpanConfig holds configuration related to span metrics aggregation for service maps.
-type SpanConfig struct {
+// ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
+type ServiceDestinationAggregationConfig struct {
 	Enabled  bool          `config:"enabled"`
 	Interval time.Duration `config:"interval" validate:"min=1"`
 }
 
-func defaultAggregationConfig() Aggregation {
-	return Aggregation{
-		TransactionConfig: TransactionConfig{
+func defaultAggregationConfig() AggregationConfig {
+	return AggregationConfig{
+		Transactions: TransactionAggregationConfig{
 			Interval:                       defaultAggregationInterval,
 			MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
 			HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
 			RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
 		},
-		SpanConfig: SpanConfig{
+		ServiceDestinations: ServiceDestinationAggregationConfig{
 			Enabled:  true,
 			Interval: defaultAggregationInterval,
 		},

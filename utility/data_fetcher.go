@@ -56,13 +56,6 @@ func (d *ManualDecoder) Float64(base map[string]interface{}, key string, keys ..
 	return 0.0
 }
 
-func (d *ManualDecoder) Float64WithDefault(base map[string]interface{}, def float64, key string, keys ...string) float64 {
-	if f := d.Float64Ptr(base, key, keys...); f != nil {
-		return *f
-	}
-	return def
-}
-
 func (d *ManualDecoder) Float64Ptr(base map[string]interface{}, key string, keys ...string) *float64 {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
