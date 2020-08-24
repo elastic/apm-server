@@ -52,5 +52,5 @@ class TestConfigWarning(ElasticTest):
         return cfg
 
     def test(self):
-        expected = "apm-server.sampling.keep_unsampled and apm-server.aggregation.enabled are both false, which will lead to incorrect metrics being reported in the APM UI"
+        expected = "apm-server.sampling.keep_unsampled and apm-server.aggregation.transactions.enabled are both false, which will lead to incorrect metrics being reported in the APM UI"
         self.assertIn(expected, self.get_log())

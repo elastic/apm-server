@@ -28,20 +28,27 @@ const (
 	defaultAggregationRUMUserAgentLRUSize            = 5000
 )
 
-// AggregationConfig holds configuration related to metrics aggregation.
+// AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
+	Transactions TransactionAggregationConfig `config:"transactions"`
+}
+
+// TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
+type TransactionAggregationConfig struct {
 	Enabled                        bool          `config:"enabled"`
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
-	MaxTransactionGroups           int           `config:"max_transaction_groups" validate:"min=1"`
+	MaxTransactionGroups           int           `config:"max_groups" validate:"min=1"`
 	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size" validate:"min=1"`
 }
 
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
-		Interval:                       defaultAggregationInterval,
-		MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
-		HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
-		RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
+		Transactions: TransactionAggregationConfig{
+			Interval:                       defaultAggregationInterval,
+			MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
+			HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
+			RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
+		},
 	}
 }

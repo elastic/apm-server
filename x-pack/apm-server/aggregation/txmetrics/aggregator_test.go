@@ -71,7 +71,7 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 	}
 }
 
-func TestAggregateTransformablesOverflow(t *testing.T) {
+func TestProcessTransformablesOverflow(t *testing.T) {
 	reqs := make(chan publish.PendingReq, 1)
 
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
@@ -90,7 +90,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 		input = append(input, &model.Transaction{Name: "foo"})
 		input = append(input, &model.Transaction{Name: "bar"})
 	}
-	output := agg.AggregateTransformables(input)
+	output := agg.ProcessTransformables(input)
 	assert.Equal(t, input, output)
 
 	// The third transaction group will return a metricset for immediate publication.
@@ -100,7 +100,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 			Duration: float64(time.Minute / time.Millisecond),
 		})
 	}
-	output = agg.AggregateTransformables(input)
+	output = agg.ProcessTransformables(input)
 	assert.Len(t, output, len(input)+2)
 	assert.Equal(t, input, output[:len(input)])
 
