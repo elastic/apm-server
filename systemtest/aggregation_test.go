@@ -34,9 +34,11 @@ import (
 func TestTransactionAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Aggregation = &apmservertest.TransactionAggregationConfig{
-		Enabled:  true,
-		Interval: time.Second,
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		Transactions: &apmservertest.TransactionAggregationConfig{
+			Enabled:  true,
+			Interval: time.Second,
+		},
 	}
 	srv.Config.Sampling = &apmservertest.SamplingConfig{
 		// Drop unsampled transaction events, to show
@@ -78,13 +80,15 @@ func TestTransactionAggregation(t *testing.T) {
 func TestTransactionAggregationShutdown(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Aggregation = &apmservertest.TransactionAggregationConfig{
-		Enabled: true,
-		// Set aggregation_interval to something that would cause
-		// a timeout if we were to wait that long. The server
-		// should flush metrics on shutdown without waiting for
-		// the configured interval.
-		Interval: time.Minute,
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		Transactions: &apmservertest.TransactionAggregationConfig{
+			Enabled: true,
+			// Set aggregation_interval to something that would cause
+			// a timeout if we were to wait that long. The server
+			// should flush metrics on shutdown without waiting for
+			// the configured interval.
+			Interval: time.Minute,
+		},
 	}
 	err := srv.Start()
 	require.NoError(t, err)

@@ -41,11 +41,11 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	SecretToken string                        `json:"apm-server.secret_token,omitempty"`
-	Jaeger      *JaegerConfig                 `json:"apm-server.jaeger,omitempty"`
-	Kibana      *KibanaConfig                 `json:"apm-server.kibana,omitempty"`
-	Aggregation *TransactionAggregationConfig `json:"apm-server.aggregation,omitempty"`
-	Sampling    *SamplingConfig               `json:"apm-server.sampling,omitempty"`
+	SecretToken string             `json:"apm-server.secret_token,omitempty"`
+	Jaeger      *JaegerConfig      `json:"apm-server.jaeger,omitempty"`
+	Kibana      *KibanaConfig      `json:"apm-server.kibana,omitempty"`
+	Aggregation *AggregationConfig `json:"apm-server.aggregation,omitempty"`
+	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -185,6 +185,11 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 		MetricsPeriod: duration(m.MetricsPeriod),
 		StatePeriod:   duration(m.StatePeriod),
 	})
+}
+
+// AggregationConfig holds APM Server metrics aggregation configuration.
+type AggregationConfig struct {
+	Transactions *TransactionAggregationConfig `json:"transactions,omitempty"`
 }
 
 // TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
