@@ -388,11 +388,6 @@ type: text
 
 --
 
-[float]
-=== duration
-
-None
-
 
 *`transaction.duration.count`*::
 +
@@ -1661,11 +1656,6 @@ type: long
 Transaction-specific data for APM
 
 
-
-[float]
-=== duration
-
-None
 
 
 *`transaction.duration.us`*::
