@@ -38,13 +38,16 @@ var testdataCertificateConfig = tlscommon.CertificateConfig{
 	Key:         "../../testdata/tls/key.pem",
 }
 
-// TODO fix
 func Test_UnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
 
 	kibanaNoSlashConfig := DefaultConfig()
 	kibanaNoSlashConfig.Kibana.Enabled = true
 	kibanaNoSlashConfig.Kibana.Host = "kibanahost:5601/proxy"
+
+	kibanaHeadersConfig := DefaultConfig()
+	kibanaHeadersConfig.Kibana.Enabled = true
+	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
 
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
@@ -114,13 +117,15 @@ func Test_UnpackConfig(t *testing.T) {
 					"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 				},
 				"aggregation": map[string]interface{}{
-					"enabled":                          true,
-					"interval":                         "1s",
-					"max_transaction_groups":           123,
-					"hdrhistogram_significant_figures": 1,
-					"rum": map[string]interface{}{
-						"user_agent": map[string]interface{}{
-							"lru_size": 123,
+					"transactions": map[string]interface{}{
+						"enabled":                          true,
+						"interval":                         "1s",
+						"max_groups":                       123,
+						"hdrhistogram_significant_figures": 1,
+						"rum": map[string]interface{}{
+							"user_agent": map[string]interface{}{
+								"lru_size": 123,
+							},
 						},
 					},
 				},
@@ -208,13 +213,15 @@ func Test_UnpackConfig(t *testing.T) {
 						Timeout:  5 * time.Second},
 					esConfigured: true,
 				},
-				Aggregation: AggregationConfig{Transactions: TransactionAggregationConfig{
-					Enabled:                        true,
-					Interval:                       time.Second,
-					MaxTransactionGroups:           123,
-					HDRHistogramSignificantFigures: 1,
-					RUMUserAgentLRUSize:            123,
-				}},
+				Aggregation: AggregationConfig{
+					Transactions: TransactionAggregationConfig{
+						Enabled:                        true,
+						Interval:                       time.Second,
+						MaxTransactionGroups:           123,
+						HDRHistogramSignificantFigures: 1,
+						RUMUserAgentLRUSize:            123,
+					},
+				},
 				Sampling: SamplingConfig{
 					KeepUnsampled: true,
 				},
@@ -249,11 +256,11 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled":                 true,
-				"api_key.enabled":                     true,
-				"aggregation.enabled":                 true,
-				"aggregation.rum.user_agent.lru_size": 123,
-				"sampling.keep_unsampled":             false,
+				"jaeger.grpc.enabled":                              true,
+				"api_key.enabled":                                  true,
+				"aggregation.transactions.enabled":                 true,
+				"aggregation.transactions.rum.user_agent.lru_size": 123,
+				"sampling.keep_unsampled":                          false,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -322,13 +329,15 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 				},
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
-				Aggregation: AggregationConfig{Transactions: TransactionAggregationConfig{
-					Enabled:                        true,
-					Interval:                       time.Minute,
-					MaxTransactionGroups:           1000,
-					HDRHistogramSignificantFigures: 2,
-					RUMUserAgentLRUSize:            123,
-				}},
+				Aggregation: AggregationConfig{
+					Transactions: TransactionAggregationConfig{
+						Enabled:                        true,
+						Interval:                       time.Minute,
+						MaxTransactionGroups:           1000,
+						HDRHistogramSignificantFigures: 2,
+						RUMUserAgentLRUSize:            123,
+					},
+				},
 				Sampling: SamplingConfig{
 					KeepUnsampled: false,
 				},
@@ -342,6 +351,17 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 			},
 			outCfg: kibanaNoSlashConfig,
+		},
+		"kibana headers": {
+			inpCfg: map[string]interface{}{
+				"kibana": map[string]interface{}{
+					"enabled": "true",
+					"headers": map[string]interface{}{
+						"foo": "bar",
+					},
+				},
+			},
+			outCfg: kibanaHeadersConfig,
 		},
 	}
 

@@ -138,10 +138,10 @@ apm-server:
   {% endif %}
 
   {% if aggregation_enabled %}
-  aggregation.enabled: {{ aggregation_enabled }}
+  aggregation.transactions.enabled: {{ aggregation_enabled }}
   {% endif %}
   {% if aggregation_interval %}
-  aggregation.interval: {{ aggregation_interval }}
+  aggregation.transactions.interval: {{ aggregation_interval }}
   {% endif %}
 
   sampling:

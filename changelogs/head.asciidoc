@@ -10,6 +10,7 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 ==== Bug fixes
 
 * Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
+* Honour output.elasticsearch.headers configuration in API Key auth and source mapping {pull}4090[4090]
 
 [float]
 ==== Intake API Changes
@@ -23,3 +24,4 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 * Use service.version for Metadata.Service.Version when converting a Jaeger span {pull}4061[4061]
 * Add transaction.experience fields {pull}4056[4056]
 * Upgrade Go to 1.14.7 {pull}4067[4067]
+* Added apm-server.kibana.headers configuration {pull}4087[4087]

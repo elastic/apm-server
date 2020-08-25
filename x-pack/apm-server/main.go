@@ -15,60 +15,72 @@ import (
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 )
 
-// runServerWithAggregation runs the APM Server with additional transactions and spans aggregators
-// if they are enabled. The publish.Reporter will be wrapped such that events pass through the
-// configured aggregators.
-func runServerWithAggregation(ctx context.Context, runServer beater.RunServerFunc, args beater.ServerParams) error {
+type namedProcessor struct {
+	name string
+	processor
+}
 
-	txMetricsAggregator, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         args.Reporter,
-		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
-		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
-		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
-		RUMUserAgentLRUSize:            args.Config.Aggregation.Transactions.RUMUserAgentLRUSize,
-	})
-	if err != nil {
-		return errors.Wrap(err, "error creating transaction aggregator")
+type processor interface {
+	ProcessTransformables([]transform.Transformable) []transform.Transformable
+	Run() error
+	Stop(context.Context) error
+}
+
+// newProcessors returns a list of processors which will process
+// events in sequential order, prior to the events being published.
+func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
+	var processors []namedProcessor
+	if args.Config.Aggregation.Transactions.Enabled {
+		const name = "transaction metrics aggregation"
+		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation)
+		agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+			Report:                         args.Reporter,
+			MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
+			MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
+			HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
+			RUMUserAgentLRUSize:            args.Config.Aggregation.Transactions.RUMUserAgentLRUSize,
+		})
+		if err != nil {
+			return nil, errors.Wrapf(err, "error creating %s", name)
+		}
+		processors = append(processors, namedProcessor{name: name, processor: agg})
 	}
+	return processors, nil
+}
 
-	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
-		Report:   args.Reporter,
-		Interval: args.Config.Aggregation.ServiceDestinations.Interval,
-	})
-	if err != nil {
-		return errors.Wrap(err, "error creating span aggregator")
+// runServerWithProcessors runs the APM Server and the given list of processors.
+//
+// newProcessors returns a list of processors which will process events in
+// sequential order, prior to the events being published.
+func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc, args beater.ServerParams, processors ...namedProcessor) error {
+	if len(processors) == 0 {
+		return runServer(ctx, args)
 	}
 
 	origReport := args.Reporter
 	args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
-		if args.Config.Aggregation.Transactions.Enabled {
-			req.Transformables = txMetricsAggregator.AggregateTransformables(req.Transformables)
-		}
-		if args.Config.Aggregation.ServiceDestinations.Enabled {
-			// TODO async?
-			spanAggregator.AggregateTransformables(req.Transformables)
+		for _, p := range processors {
+			req.Transformables = p.ProcessTransformables(req.Transformables)
 		}
 		return origReport(ctx, req)
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
-
-	if args.Config.Aggregation.Transactions.Enabled {
+	for _, p := range processors {
+		p := p // copy for closure
 		g.Go(func() error {
-			args.Logger.Infof("transaction aggregator started with config: %+v", args.Config.Aggregation)
-			if err := txMetricsAggregator.Run(); err != nil {
-				args.Logger.Errorf("transaction aggregator aborted", logp.Error(err))
+			if err := p.Run(); err != nil {
+				args.Logger.Errorf("%s aborted", p.name, logp.Error(err))
 				return err
 			}
-			args.Logger.Infof("transaction aggregator stopped")
+			args.Logger.Infof("%s stopped", p.name)
 			return nil
 		})
-
 		g.Go(func() error {
 			<-ctx.Done()
 			stopctx := context.Background()
@@ -79,46 +91,23 @@ func runServerWithAggregation(ctx context.Context, runServer beater.RunServerFun
 				stopctx, cancel = context.WithTimeout(stopctx, args.Config.ShutdownTimeout)
 				defer cancel()
 			}
-			return txMetricsAggregator.Stop(stopctx)
+			return p.Stop(stopctx)
 		})
 	}
-
-	if args.Config.Aggregation.ServiceDestinations.Enabled {
-		g.Go(func() error {
-			args.Logger.Infof("span aggregator started with config: %+v", args.Config.Aggregation)
-			if err := spanAggregator.Run(); err != nil {
-				args.Logger.Errorf("span aggregator aborted", logp.Error(err))
-				return err
-			}
-			args.Logger.Infof("span aggregator stopped")
-			return nil
-		})
-
-		g.Go(func() error {
-			<-ctx.Done()
-			stopctx := context.Background()
-			if args.Config.ShutdownTimeout > 0 {
-				// On shutdown wait for the aggregator to stop
-				// in order to flush any accumulated metrics.
-				var cancel context.CancelFunc
-				stopctx, cancel = context.WithTimeout(stopctx, args.Config.ShutdownTimeout)
-				defer cancel()
-			}
-			return spanAggregator.Stop(stopctx)
-		})
-	}
-
 	g.Go(func() error {
 		return runServer(ctx, args)
 	})
-
 	return g.Wait()
 }
 
 var rootCmd = cmd.NewXPackRootCommand(beater.NewCreator(beater.CreatorParams{
 	WrapRunServer: func(runServer beater.RunServerFunc) beater.RunServerFunc {
 		return func(ctx context.Context, args beater.ServerParams) error {
-			return runServerWithAggregation(ctx, runServer, args)
+			processors, err := newProcessors(args)
+			if err != nil {
+				return err
+			}
+			return runServerWithProcessors(ctx, runServer, args, processors...)
 		}
 	},
 }))

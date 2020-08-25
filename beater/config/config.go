@@ -145,7 +145,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		// representation of the latency distribution.
 		logger.Warn("" +
 			"apm-server.sampling.keep_unsampled and " +
-			"apm-server.aggregation.transaction.enabled are both false, " +
+			"apm-server.aggregation.transactions.enabled are both false, " +
 			"which will lead to incorrect metrics being reported in the APM UI",
 		)
 	}

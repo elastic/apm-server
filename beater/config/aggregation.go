@@ -28,16 +28,17 @@ const (
 	defaultAggregationRUMUserAgentLRUSize            = 5000
 )
 
+// AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
-	Transactions        TransactionAggregationConfig        `config:"transactions"`
+	Transactions TransactionAggregationConfig `config:"transactions"`
 	ServiceDestinations ServiceDestinationAggregationConfig `config:"service_destinations"`
 }
 
-// TransactionAggregationConfig holds configuration related to transaction metrics aggregation for histograms.
+// TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
 type TransactionAggregationConfig struct {
 	Enabled                        bool          `config:"enabled"`
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
-	MaxTransactionGroups           int           `config:"max_transaction_groups" validate:"min=1"`
+	MaxTransactionGroups           int           `config:"max_groups" validate:"min=1"`
 	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size" validate:"min=1"`
 }
