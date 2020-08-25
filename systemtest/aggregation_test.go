@@ -95,7 +95,9 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 
 	// Send a transaction to the server to be aggregated.
 	tracer := srv.Tracer()
-	tracer.StartTransaction("name", "type").End()
+	tx := tracer.StartTransaction("name", "type")
+	tx.Duration = time.Second
+	tx.End()
 	tracer.Flush(nil)
 
 	// Stop server to ensure metrics are flushed on shutdown.
@@ -110,4 +112,5 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 		estest.WithCondition(result.Hits.NonEmptyCondition()),
 	)
 	require.NoError(t, err)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
