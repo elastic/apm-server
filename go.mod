@@ -3,16 +3,17 @@ module github.com/elastic/apm-server
 go 1.13
 
 require (
+	github.com/Sirupsen/logrus v1.0.1-0.20170608221441-85b1699d5056 // indirect
 	github.com/akavel/rsrc v0.9.0 // indirect
 	github.com/apache/thrift v0.0.0-20161221203622-b2a4d4ae21c7
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
-	github.com/dlclark/regexp2 v1.2.0 // indirect
-	github.com/dop251/goja v0.0.0-20200818110326-5574b5dbd2b9 // indirect
+	github.com/dlclark/regexp2 v1.2.1 // indirect
+	github.com/dop251/goja v0.0.0-20200824171909-536f9d946569 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200820025128-585b952e2009
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200824160140-74b9d4a0e53a
 	github.com/elastic/go-elasticsearch/v7 v7.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -61,14 +62,14 @@ require (
 	go.elastic.co/fastjson v1.1.0 // indirect
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
-	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
+	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20200819171115-d785dc25833f // indirect
+	golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200820010801-b793a1359eac // indirect
+	golang.org/x/tools v0.0.0-20200823205832-c024452afbcd // indirect
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
