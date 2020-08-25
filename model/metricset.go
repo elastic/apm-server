@@ -183,8 +183,8 @@ func (s *MetricsetSpan) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("type", s.Type)
 	fields.maybeSetString("subtype", s.Subtype)
-	if fields := s.DestinationService.fields(); len(fields) != 0 {
-		fields.set("destination", common.MapStr{"service": fields})
+	if destinationServiceFields := s.DestinationService.fields(); len(destinationServiceFields) != 0 {
+		fields.set("destination", common.MapStr{"service": destinationServiceFields})
 	}
 	return common.MapStr(fields)
 }
