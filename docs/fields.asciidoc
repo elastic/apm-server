@@ -1664,14 +1664,14 @@ APM span metrics are used for showing rate of requests and latency between instr
 
 
 
-*`destination.service.respose_time.count`*::
+*`destination.service.response_time.count`*::
 +
 --
 type: long
 
 --
 
-*`destination.service.response_time.count_interval`*::
+*`destination.service.metricset.period`*::
 +
 --
 type: long

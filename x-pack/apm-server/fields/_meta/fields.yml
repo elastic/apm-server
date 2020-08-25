@@ -28,9 +28,9 @@
       type: group
       dynamic: false
       fields:
-        - name: respose_time.count
+        - name: response_time.count
           type: long
-        - name: response_time.count_interval
+        - name: metricset.period
           type: long
         - name: response_time.sum.us
           type: long

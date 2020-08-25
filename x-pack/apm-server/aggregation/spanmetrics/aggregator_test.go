@@ -81,7 +81,7 @@ func TestAggregatorRun(t *testing.T) {
 	assert.Equal(t, 100.0, metricsets[0].Samples[0].Value)
 	assert.Equal(t, "destination.service.response_time.sum.us", metricsets[0].Samples[1].Name)
 	assert.Equal(t, 10000000.0, metricsets[0].Samples[1].Value)
-	assert.Equal(t, "destination.service.response_time.count_interval", metricsets[0].Samples[2].Name)
+	assert.Equal(t, "metricset.period", metricsets[0].Samples[2].Name)
 	assert.Equal(t, 0.01, metricsets[0].Samples[2].Value)
 
 	assert.Equal(t, "service-A", metricsets[1].Metadata.Service.Name)
@@ -91,7 +91,7 @@ func TestAggregatorRun(t *testing.T) {
 	assert.Equal(t, 300.0, metricsets[1].Samples[0].Value)
 	assert.Equal(t, "destination.service.response_time.sum.us", metricsets[1].Samples[1].Name)
 	assert.Equal(t, 20000000.0, metricsets[1].Samples[1].Value)
-	assert.Equal(t, "destination.service.response_time.count_interval", metricsets[1].Samples[2].Name)
+	assert.Equal(t, "metricset.period", metricsets[1].Samples[2].Name)
 	assert.Equal(t, 0.01, metricsets[1].Samples[2].Value)
 
 	assert.Equal(t, "service-B", metricsets[2].Metadata.Service.Name)
@@ -101,7 +101,7 @@ func TestAggregatorRun(t *testing.T) {
 	assert.Equal(t, 100.0, metricsets[2].Samples[0].Value)
 	assert.Equal(t, "destination.service.response_time.sum.us", metricsets[2].Samples[1].Name)
 	assert.Equal(t, 10000000.0, metricsets[2].Samples[1].Value)
-	assert.Equal(t, "destination.service.response_time.count_interval", metricsets[2].Samples[2].Name)
+	assert.Equal(t, "metricset.period", metricsets[2].Samples[2].Name)
 	assert.Equal(t, 0.01, metricsets[2].Samples[2].Value)
 
 	select {

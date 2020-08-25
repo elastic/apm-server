@@ -109,7 +109,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	a.active, a.inactive = a.inactive, a.active
 	a.mu.Unlock()
 
-	size := a.inactive.size()
+	size := len(a.inactive.m)
 	if size == 0 {
 		a.config.Logger.Debugf("no span metrics to publish")
 		return nil
@@ -166,13 +166,6 @@ func newMetricsBuffer() *metricsBuffer {
 	}
 }
 
-func (mb *metricsBuffer) size() int {
-	mb.mu.RLock()
-	defer mb.mu.RUnlock()
-	size := len(mb.m)
-	return size
-}
-
 func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value spanMetrics) {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
@@ -219,7 +212,7 @@ func makeMetricset(timestamp time.Time, key aggregationKey, count, interval, sum
 				Value: sum,
 			},
 			{
-				Name:  "destination.service.response_time.count_interval",
+				Name:  "metricset.period",
 				Value: interval,
 			},
 		},

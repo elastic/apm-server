@@ -477,7 +477,6 @@ func (m *transactionMetrics) histogramBuckets() (counts []int64, values []float6
 	return counts, values
 }
 
-// TODO not needed / fix
 func transactionCount(tx *model.Transaction) float64 {
 	if tx.RepresentativeCount > 0 {
 		return tx.RepresentativeCount
