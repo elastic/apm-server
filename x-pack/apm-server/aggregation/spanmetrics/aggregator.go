@@ -6,6 +6,7 @@ package spanmetrics
 
 import (
 	"context"
+	"math"
 	"sync"
 	"time"
 
@@ -130,7 +131,8 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	})
 }
 
-func (a *Aggregator) AggregateTransformables(in []transform.Transformable) {
+func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []transform.Transformable {
+	out := in
 	for _, tf := range in {
 		if span, ok := tf.(*model.Span); ok &&
 			span.DestinationService != nil &&
@@ -149,6 +151,7 @@ func (a *Aggregator) AggregateTransformables(in []transform.Transformable) {
 			a.active.storeOrUpdate(key, metrics)
 		}
 	}
+	return out
 }
 
 type metricsBuffer struct {

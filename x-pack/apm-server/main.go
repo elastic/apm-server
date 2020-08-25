@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 )
@@ -37,7 +38,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	var processors []namedProcessor
 	if args.Config.Aggregation.Transactions.Enabled {
 		const name = "transaction metrics aggregation"
-		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation)
+		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.Transactions)
 		agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 			Report:                         args.Reporter,
 			MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
@@ -49,6 +50,18 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 			return nil, errors.Wrapf(err, "error creating %s", name)
 		}
 		processors = append(processors, namedProcessor{name: name, processor: agg})
+	}
+	if args.Config.Aggregation.ServiceDestinations.Enabled {
+		const name = "service destinations aggregation"
+		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.ServiceDestinations)
+		spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
+			Report:   args.Reporter,
+			Interval: args.Config.Aggregation.ServiceDestinations.Interval,
+		})
+		if err != nil {
+			return nil, errors.Wrapf(err, "error creating %s", name)
+		}
+		processors = append(processors, namedProcessor{name: name, processor: spanAggregator})
 	}
 	return processors, nil
 }

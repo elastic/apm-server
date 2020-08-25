@@ -30,7 +30,7 @@ const (
 
 // AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
-	Transactions TransactionAggregationConfig `config:"transactions"`
+	Transactions        TransactionAggregationConfig        `config:"transactions"`
 	ServiceDestinations ServiceDestinationAggregationConfig `config:"service_destinations"`
 }
 

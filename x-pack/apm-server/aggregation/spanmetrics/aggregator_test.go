@@ -33,7 +33,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			agg.AggregateTransformables([]transform.Transformable{span})
+			agg.ProcessTransformables([]transform.Transformable{span})
 		}
 	})
 }
@@ -114,7 +114,7 @@ func TestAggregatorRun(t *testing.T) {
 func sendEvents(wg *sync.WaitGroup, agg *Aggregator, start float64, count float64, serviceName string, resource *string) {
 	defer wg.Done()
 	for i := 0; i < 100; i++ {
-		agg.AggregateTransformables([]transform.Transformable{
+		agg.ProcessTransformables([]transform.Transformable{
 			&model.Span{
 				Metadata: model.Metadata{
 					Service: model.Service{Name: serviceName},
