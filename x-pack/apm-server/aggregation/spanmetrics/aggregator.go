@@ -156,8 +156,8 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 
 type metricsBuffer struct {
 	// TODO might need a size cap
-	m  map[aggregationKey]spanMetrics
 	mu sync.RWMutex
+	m  map[aggregationKey]spanMetrics
 }
 
 func newMetricsBuffer() *metricsBuffer {
@@ -169,11 +169,8 @@ func newMetricsBuffer() *metricsBuffer {
 func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value spanMetrics) {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
-	if data, ok := mb.m[key]; ok {
-		mb.m[key] = spanMetrics{count: value.count + data.count, sum: value.sum + data.sum}
-		return
-	}
-	mb.m[key] = value
+	old := mb.m[key]
+	mb.m[key] = spanMetrics{count: value.count + old.count, sum: value.sum + old.sum}
 }
 
 type aggregationKey struct {
