@@ -146,7 +146,7 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 			duration := time.Duration(span.Duration * float64(time.Millisecond))
 			metrics := spanMetrics{
 				count: span.RepresentativeCount,
-				sum:   duration.Microseconds(),
+				sum:   duration.Microseconds() * int64(span.RepresentativeCount),
 			}
 			a.active.storeOrUpdate(key, metrics)
 		}
