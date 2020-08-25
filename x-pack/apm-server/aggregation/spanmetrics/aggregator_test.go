@@ -74,35 +74,59 @@ func TestAggregatorRun(t *testing.T) {
 			metricsets[j].Metadata.Service.Name+*metricsets[j].Span.DestinationService.Resource
 	})
 
-	assert.Equal(t, "service-A", metricsets[0].Metadata.Service.Name)
-	assert.Equal(t, destinationX, *metricsets[0].Span.DestinationService.Resource)
-	assert.Len(t, metricsets[0].Samples, 3)
-	assert.Equal(t, "destination.service.response_time.count", metricsets[0].Samples[0].Name)
-	assert.Equal(t, 100.0, metricsets[0].Samples[0].Value)
-	assert.Equal(t, "destination.service.response_time.sum.us", metricsets[0].Samples[1].Name)
-	assert.Equal(t, 10000000.0, metricsets[0].Samples[1].Value)
-	assert.Equal(t, "metricset.period", metricsets[0].Samples[2].Name)
-	assert.Equal(t, 0.01, metricsets[0].Samples[2].Value)
+	m := metricsets[0]
+	require.NotNil(t, m)
+	require.False(t, m.Timestamp.IsZero())
+	m.Timestamp = time.Time{}
+	assert.Equal(t, &model.Metricset{
+		Metadata: model.Metadata{
+			Service: model.Service{Name: "service-A"},
+		},
+		Span: model.MetricsetSpan{
+			DestinationService: model.DestinationService{Resource: &destinationX},
+		},
+		Samples: []model.Sample{
+			{Name: "destination.service.response_time.count", Value: 100.0},
+			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
+			{Name: "metricset.period", Value: 0.01},
+		},
+	}, m)
 
-	assert.Equal(t, "service-A", metricsets[1].Metadata.Service.Name)
-	assert.Equal(t, destinationZ, *metricsets[1].Span.DestinationService.Resource)
-	assert.Len(t, metricsets[0].Samples, 3)
-	assert.Equal(t, "destination.service.response_time.count", metricsets[1].Samples[0].Name)
-	assert.Equal(t, 300.0, metricsets[1].Samples[0].Value)
-	assert.Equal(t, "destination.service.response_time.sum.us", metricsets[1].Samples[1].Name)
-	assert.Equal(t, 20000000.0, metricsets[1].Samples[1].Value)
-	assert.Equal(t, "metricset.period", metricsets[1].Samples[2].Name)
-	assert.Equal(t, 0.01, metricsets[1].Samples[2].Value)
+	m = metricsets[1]
+	require.NotNil(t, m)
+	require.False(t, m.Timestamp.IsZero())
+	m.Timestamp = time.Time{}
+	assert.Equal(t, &model.Metricset{
+		Metadata: model.Metadata{
+			Service: model.Service{Name: "service-A"},
+		},
+		Span: model.MetricsetSpan{
+			DestinationService: model.DestinationService{Resource: &destinationZ},
+		},
+		Samples: []model.Sample{
+			{Name: "destination.service.response_time.count", Value: 300.0},
+			{Name: "destination.service.response_time.sum.us", Value: 20000000.0},
+			{Name: "metricset.period", Value: 0.01},
+		},
+	}, m)
 
-	assert.Equal(t, "service-B", metricsets[2].Metadata.Service.Name)
-	assert.Equal(t, destinationZ, *metricsets[2].Span.DestinationService.Resource)
-	assert.Len(t, metricsets[2].Samples, 3)
-	assert.Equal(t, "destination.service.response_time.count", metricsets[2].Samples[0].Name)
-	assert.Equal(t, 100.0, metricsets[2].Samples[0].Value)
-	assert.Equal(t, "destination.service.response_time.sum.us", metricsets[2].Samples[1].Name)
-	assert.Equal(t, 10000000.0, metricsets[2].Samples[1].Value)
-	assert.Equal(t, "metricset.period", metricsets[2].Samples[2].Name)
-	assert.Equal(t, 0.01, metricsets[2].Samples[2].Value)
+	m = metricsets[2]
+	require.NotNil(t, m)
+	require.False(t, m.Timestamp.IsZero())
+	m.Timestamp = time.Time{}
+	assert.Equal(t, &model.Metricset{
+		Metadata: model.Metadata{
+			Service: model.Service{Name: "service-B"},
+		},
+		Span: model.MetricsetSpan{
+			DestinationService: model.DestinationService{Resource: &destinationZ},
+		},
+		Samples: []model.Sample{
+			{Name: "destination.service.response_time.count", Value: 100.0},
+			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
+			{Name: "metricset.period", Value: 0.01},
+		},
+	}, m)
 
 	select {
 	case <-reqs:
