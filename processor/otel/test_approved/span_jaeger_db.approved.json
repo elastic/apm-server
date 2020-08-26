@@ -10,6 +10,9 @@
                 "address": "db",
                 "port": 3306
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"

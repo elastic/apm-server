@@ -163,7 +163,11 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	decodeString(raw, fieldName("type"), &e.Type)
 	decodeString(raw, fieldName("name"), &e.Name)
 	decodeString(raw, fieldName("result"), &e.Result)
+	decodeString(raw, fieldName("outcome"), &e.Outcome)
 	decodeFloat64(raw, fieldName("duration"), &e.Duration)
+	if e.Outcome == "" {
+		e.Outcome = "unknown"
+	}
 
 	if obj := getObject(raw, fieldName("experience")); obj != nil {
 		var experience model.UserExperience

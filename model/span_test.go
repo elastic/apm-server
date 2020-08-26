@@ -55,6 +55,7 @@ func TestSpanTransform(t *testing.T) {
 		Msg    string
 	}{
 		{
+			Msg:  "Span without a Stacktrace",
 			Span: Span{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
@@ -64,29 +65,47 @@ func TestSpanTransform(t *testing.T) {
 					"name":     "",
 					"type":     "",
 				},
+				"event":     common.MapStr{"outcome": ""},
 				"labels":    metadataLabels,
 				"timestamp": common.MapStr{"us": timestampUs},
 			},
-			Msg: "Span without a Stacktrace",
 		},
 		{
+			Msg:  "Span with outcome",
+			Span: Span{Timestamp: timestamp, Metadata: metadata, Outcome: "success"},
+			Output: common.MapStr{
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"span": common.MapStr{
+					"duration": common.MapStr{"us": 0},
+					"name":     "",
+					"type":     "",
+				},
+				"timestamp": common.MapStr{"us": timestampUs},
+				"labels":    metadataLabels,
+				"event":     common.MapStr{"outcome": "success"},
+			},
+		},
+		{
+			Msg: "Full Span",
 			Span: Span{
-				Metadata:            metadata,
-				ID:                  hexID,
-				TraceID:             traceID,
-				ParentID:            parentID,
-				Name:                "myspan",
-				Type:                "myspantype",
-				Subtype:             &subtype,
+				Metadata:   metadata,
+				ID:         hexID,
+				TraceID:    traceID,
+				ParentID:   parentID,
+				Name:       "myspan",
+				Type:       "myspantype",
+				Subtype:    &subtype,
+				Action:     &action,
+				Timestamp:  timestamp,
+				Start:      &start,
+				Outcome:    "unknown",
 				RepresentativeCount: 5,
-				Action:              &action,
-				Timestamp:           timestamp,
-				Start:               &start,
-				Duration:            1.20,
-				RUM:                 true,
-				Stacktrace:          Stacktrace{{AbsPath: &path}},
-				Labels:              common.MapStr{"label.a": 12},
-				HTTP:                &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				Duration:   1.20,
+				RUM:        true,
+				Stacktrace: Stacktrace{{AbsPath: &path}},
+				Labels:     common.MapStr{"label.a": 12},
+				HTTP:       &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
 				DB: &DB{
 					Instance:     &instance,
 					Statement:    &statement,
@@ -145,8 +164,8 @@ func TestSpanTransform(t *testing.T) {
 				"trace":       common.MapStr{"id": traceID},
 				"parent":      common.MapStr{"id": parentID},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
+				"event":       common.MapStr{"outcome": "unknown"},
 			},
-			Msg: "Full Span",
 		},
 	}
 
@@ -155,6 +174,6 @@ func TestSpanTransform(t *testing.T) {
 			RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
 		})
 		fields := output[0].Fields
-		assert.Equal(t, test.Output, fields)
+		assert.Equal(t, test.Output, fields, test.Msg)
 	}
 }

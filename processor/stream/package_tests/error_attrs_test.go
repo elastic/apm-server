@@ -59,6 +59,7 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"view errors", "error id icon",
 		"host.ip", "transaction.name", "source.ip",
+		tests.Group("event"),
 		tests.Group("observer"),
 		tests.Group("user"),
 		tests.Group("client"),
@@ -133,6 +134,7 @@ func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
 		"processor.event", "processor.name", "error.grouping_key",
 		"context.tags", "transaction.name",
+		"event.outcome", // not relevant
 		"view errors", "error id icon",
 		tests.Group("url"),
 		tests.Group("http"),

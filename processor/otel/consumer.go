@@ -111,6 +111,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
+				Outcome:   "unknown",
 			}
 			parseTransaction(otelSpan, td.SourceFormat, hostname, &transaction)
 			batch.Transactions = append(batch.Transactions, &transaction)
@@ -128,6 +129,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
+				Outcome:   "unknown",
 			}
 			parseSpan(otelSpan, &span)
 			batch.Spans = append(batch.Spans, &span)

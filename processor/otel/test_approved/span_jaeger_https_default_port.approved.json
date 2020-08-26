@@ -10,6 +10,9 @@
                 "address": "foo.bar.com",
                 "port": 443
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"

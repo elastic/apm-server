@@ -83,6 +83,10 @@
                     "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
                     "maxLength": 1024
                 },
+                "o": {
+                    "$ref": "../outcome.json",
+                    "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates for incoming requests."
+                },
                 "k": {
                     "type": [
                         "object",

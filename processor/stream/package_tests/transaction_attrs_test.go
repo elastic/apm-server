@@ -110,6 +110,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		"processor.event", "processor.name",
 		"transaction.marks",
 		"context.tags",
+		"event.outcome",
 		tests.Group("observer"),
 		tests.Group("url"),
 		tests.Group("http"),
