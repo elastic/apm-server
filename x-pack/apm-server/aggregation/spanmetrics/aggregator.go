@@ -48,7 +48,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}, nil
 }
 
-func (a Aggregator) Run() error {
+func (a *Aggregator) Run() error {
 	ticker := time.NewTicker(a.config.Interval)
 	defer ticker.Stop()
 	defer func() {
