@@ -98,6 +98,7 @@ func spanJsonSchemaNotInPayloadAttrs() *tests.Set {
 		"span.transaction_id",
 		"span.context.experimental",
 		"span.context.message.body",
+		"span.sample_rate",
 		"span.context.message.headers",
 	)
 }

@@ -38,7 +38,7 @@ var testdataCertificateConfig = tlscommon.CertificateConfig{
 	Key:         "../../testdata/tls/key.pem",
 }
 
-func Test_UnpackConfig(t *testing.T) {
+func TestUnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
 
 	kibanaNoSlashConfig := DefaultConfig()
@@ -221,6 +221,10 @@ func Test_UnpackConfig(t *testing.T) {
 						HDRHistogramSignificantFigures: 1,
 						RUMUserAgentLRUSize:            123,
 					},
+					ServiceDestinations: ServiceDestinationAggregationConfig{
+						Enabled:  true,
+						Interval: 60000000000,
+					},
 				},
 				Sampling: SamplingConfig{
 					KeepUnsampled: true,
@@ -260,6 +264,7 @@ func Test_UnpackConfig(t *testing.T) {
 				"api_key.enabled":                                  true,
 				"aggregation.transactions.enabled":                 true,
 				"aggregation.transactions.rum.user_agent.lru_size": 123,
+				"aggregation.service_destinations.enabled":         false,
 				"sampling.keep_unsampled":                          false,
 			},
 			outCfg: &Config{
@@ -336,6 +341,10 @@ func Test_UnpackConfig(t *testing.T) {
 						MaxTransactionGroups:           1000,
 						HDRHistogramSignificantFigures: 2,
 						RUMUserAgentLRUSize:            123,
+					},
+					ServiceDestinations: ServiceDestinationAggregationConfig{
+						Enabled:  false,
+						Interval: 60000000000,
 					},
 				},
 				Sampling: SamplingConfig{

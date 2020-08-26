@@ -88,7 +88,7 @@ func TestAggregatorRun(t *testing.T) {
 		Samples: []model.Sample{
 			{Name: "destination.service.response_time.count", Value: 100.0},
 			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
-			{Name: "metricset.period", Value: 0.01},
+			{Name: "metricset.period", Value: 10},
 		},
 	}, m)
 
@@ -106,7 +106,7 @@ func TestAggregatorRun(t *testing.T) {
 		Samples: []model.Sample{
 			{Name: "destination.service.response_time.count", Value: 300.0},
 			{Name: "destination.service.response_time.sum.us", Value: 30000000.0},
-			{Name: "metricset.period", Value: 0.01},
+			{Name: "metricset.period", Value: 10},
 		},
 	}, m)
 
@@ -124,7 +124,7 @@ func TestAggregatorRun(t *testing.T) {
 		Samples: []model.Sample{
 			{Name: "destination.service.response_time.count", Value: 100.0},
 			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
-			{Name: "metricset.period", Value: 0.01},
+			{Name: "metricset.period", Value: 10},
 		},
 	}, m)
 

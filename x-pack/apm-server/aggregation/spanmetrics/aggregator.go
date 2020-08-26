@@ -118,11 +118,9 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	now := time.Now()
 	metricsets := make([]transform.Transformable, 0, size)
 	for key, metrics := range a.inactive.m {
-		metricset := makeMetricset(now, key, metrics.count, a.config.Interval.Seconds(), float64(metrics.sum))
+		metricset := makeMetricset(now, key, metrics.count, metrics.sum, a.config.Interval.Milliseconds())
 		metricsets = append(metricsets, &metricset)
-		a.inactive.mu.Lock()
 		delete(a.inactive.m, key)
-		a.inactive.mu.Unlock()
 	}
 	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
 	return a.config.Report(ctx, publish.PendingReq{
@@ -146,7 +144,7 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 			duration := time.Duration(span.Duration * float64(time.Millisecond))
 			metrics := spanMetrics{
 				count: span.RepresentativeCount,
-				sum:   duration.Microseconds() * int64(span.RepresentativeCount),
+				sum:   float64(duration.Microseconds()) * span.RepresentativeCount,
 			}
 			a.active.storeOrUpdate(key, metrics)
 		}
@@ -183,10 +181,10 @@ type aggregationKey struct {
 
 type spanMetrics struct {
 	count float64
-	sum   int64
+	sum   float64
 }
 
-func makeMetricset(timestamp time.Time, key aggregationKey, count, interval, sum float64) model.Metricset {
+func makeMetricset(timestamp time.Time, key aggregationKey, count, sum float64, interval int64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: timestamp,
 		Metadata: model.Metadata{
@@ -206,11 +204,11 @@ func makeMetricset(timestamp time.Time, key aggregationKey, count, interval, sum
 			},
 			{
 				Name:  "destination.service.response_time.sum.us",
-				Value: sum,
+				Value: math.Round(sum),
 			},
 			{
 				Name:  "metricset.period",
-				Value: interval,
+				Value: float64(interval),
 			},
 		},
 	}
