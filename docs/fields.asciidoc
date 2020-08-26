@@ -1125,6 +1125,19 @@ example: us-east1
 
 --
 
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 

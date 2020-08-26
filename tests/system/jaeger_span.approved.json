@@ -10,7 +10,8 @@
             "version": "1.5.0"
         },
         "event": {
-            "ingested": "2020-04-22T14:57:46.610358Z"
+            "ingested": "2020-08-11T09:59:01.990087Z",
+            "outcome": "unknown"
         },
         "host": {
             "hostname": "alloy",

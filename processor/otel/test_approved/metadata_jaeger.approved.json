@@ -7,6 +7,9 @@
                 "name": "Jaeger/C++",
                 "version": "3.2.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host-foo",
                 "ip": "17.0.10.123",

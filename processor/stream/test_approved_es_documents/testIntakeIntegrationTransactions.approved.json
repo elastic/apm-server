@@ -29,6 +29,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -142,6 +145,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
@@ -348,6 +354,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -479,6 +488,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

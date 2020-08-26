@@ -47,6 +47,10 @@
                     "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
                     "maxLength": 1024
                 },
+                "outcome": {
+                    "$ref": "../outcome.json",
+                    "description": "The outcome of the span: success, failure, or unknown. Outcome may be one of a limited set of permitted values describing the success or failure of the span. This field can be used for calculating error rates for outgoing requests."
+                },
                 "context": {
                     "type": ["object", "null"],
                     "description": "Any other arbitrary data captured by the agent, optionally provided by the user",

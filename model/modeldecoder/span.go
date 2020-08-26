@@ -93,6 +93,10 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 	decodeString(raw, fieldName("parent_id"), &event.ParentID)
 	decodeString(raw, fieldName("trace_id"), &event.TraceID)
 	decodeString(raw, fieldName("transaction_id"), &event.TransactionID)
+	decodeString(raw, fieldName("outcome"), &event.Outcome)
+	if event.Outcome == "" {
+		event.Outcome = "unknown"
+	}
 
 	ctx := decoder.MapStr(raw, fieldName("context"))
 	if ctx != nil {

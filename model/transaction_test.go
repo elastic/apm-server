@@ -132,6 +132,13 @@ func TestTransactionTransform(t *testing.T) {
 	}
 }
 
+func TestTransactionTransformOutcome(t *testing.T) {
+	tx := Transaction{Outcome: "success"}
+	events := tx.Transform(context.Background(), &transform.Config{})
+	require.Len(t, events, 1)
+	assert.Equal(t, common.MapStr{"outcome": "success"}, events[0].Fields["event"])
+}
+
 func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
@@ -207,6 +214,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			},
 			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
 		},
+		"event":  common.MapStr{"outcome": ""},
 		"labels": common.MapStr{"a": "b"},
 		"url":    common.MapStr{"original": url},
 		"http": common.MapStr{
