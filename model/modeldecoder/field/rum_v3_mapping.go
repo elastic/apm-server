@@ -78,6 +78,7 @@ var rumV3Mapping = map[string]string{
 	"module":                      "mo",
 	"name":                        "n",
 	"navigationTiming":            "nt",
+	"outcome":                     "o",
 	"page":                        "p",
 	"param_message":               "pmg",
 	"parent_id":                   "pid",

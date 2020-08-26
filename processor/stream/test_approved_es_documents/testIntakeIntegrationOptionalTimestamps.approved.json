@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
@@ -77,6 +80,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

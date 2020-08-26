@@ -7,6 +7,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -52,6 +55,9 @@
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -100,6 +106,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -145,6 +154,9 @@
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -192,6 +204,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -238,6 +253,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -283,6 +301,9 @@
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -331,6 +352,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -376,6 +400,9 @@
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -423,6 +450,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -469,6 +499,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -514,6 +547,9 @@
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -562,6 +598,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",
@@ -607,6 +646,9 @@
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",

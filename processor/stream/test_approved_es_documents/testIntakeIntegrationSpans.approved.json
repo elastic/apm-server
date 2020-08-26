@@ -34,6 +34,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "success"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -145,6 +148,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -258,6 +264,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -375,6 +384,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -494,6 +506,9 @@
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1",
                 "port": 5432
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -686,6 +701,16 @@
             "container": {
                 "id": "container-id"
             },
+<<<<<<< HEAD
+=======
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1"
+            },
+            "event": {
+                "outcome": "unknown"
+            },
+>>>>>>> fa7ee8dc5... Add event.outcome to transactions and spans (#4064)
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
