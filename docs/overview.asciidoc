@@ -25,3 +25,4 @@ The APM Server is a separate component for the following reasons:
 APM Server can buffer data temporarily without adding overhead to the agents.
 * Acts as a middleware for source mapping for JavaScript in the browser.
 * Provides a JSON API for agents to use and thereby improves compatibility across different versions of agents and the Elastic Stack.
+ 
