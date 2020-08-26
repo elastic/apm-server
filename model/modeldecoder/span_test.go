@@ -197,7 +197,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentID, "trace_id": traceID, "transaction_id": transactionID,
-				"outcome": outcome,
+				"outcome":     outcome,
 				"sample_rate": 0.2,
 			},
 			e: &m.Span{
