@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "ip": "192.0.0.1"
             },

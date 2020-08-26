@@ -55,6 +55,7 @@ func TestSpanTransform(t *testing.T) {
 		Msg    string
 	}{
 		{
+			Msg:  "Span without a Stacktrace",
 			Span: Span{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
@@ -64,12 +65,29 @@ func TestSpanTransform(t *testing.T) {
 					"name":     "",
 					"type":     "",
 				},
+				"event":     common.MapStr{"outcome": ""},
 				"labels":    metadataLabels,
 				"timestamp": common.MapStr{"us": timestampUs},
 			},
-			Msg: "Span without a Stacktrace",
 		},
 		{
+			Msg:  "Span with outcome",
+			Span: Span{Timestamp: timestamp, Metadata: metadata, Outcome: "success"},
+			Output: common.MapStr{
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"span": common.MapStr{
+					"duration": common.MapStr{"us": 0},
+					"name":     "",
+					"type":     "",
+				},
+				"timestamp": common.MapStr{"us": timestampUs},
+				"labels":    metadataLabels,
+				"event":     common.MapStr{"outcome": "success"},
+			},
+		},
+		{
+			Msg: "Full Span",
 			Span: Span{
 				Metadata:   metadata,
 				ID:         hexID,
@@ -81,7 +99,9 @@ func TestSpanTransform(t *testing.T) {
 				Action:     &action,
 				Timestamp:  timestamp,
 				Start:      &start,
+				Outcome:    "unknown",
 				Duration:   1.20,
+				RUM:        true,
 				Stacktrace: Stacktrace{{AbsPath: &path}},
 				Labels:     common.MapStr{"label.a": 12},
 				HTTP:       &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
@@ -143,17 +163,16 @@ func TestSpanTransform(t *testing.T) {
 				"trace":       common.MapStr{"id": traceID},
 				"parent":      common.MapStr{"id": parentID},
 				"destination": common.MapStr{"address": address, "ip": address, "port": port},
+				"event":       common.MapStr{"outcome": "unknown"},
 			},
-			Msg: "Full Span",
 		},
 	}
 
-	tctx := &transform.Context{
-		Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
-	}
 	for _, test := range tests {
-		output := test.Span.Transform(context.Background(), tctx)
+		output := test.Span.Transform(context.Background(), &transform.Config{
+			RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+		})
 		fields := output[0].Fields
-		assert.Equal(t, test.Output, fields)
+		assert.Equal(t, test.Output, fields, test.Msg)
 	}
 }

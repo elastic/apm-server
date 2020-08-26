@@ -45,6 +45,7 @@ func TestDecodeSpan(t *testing.T) {
 	instance, statement, dbType, user, link, rowsAffected := "db01", "select *", "sql", "joe", "other.db.com", 34
 	address, port := "localhost", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
+	outcome := "success"
 	context := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag_key": 17},
@@ -101,6 +102,7 @@ func TestDecodeSpan(t *testing.T) {
 				ParentID:  parentID,
 				ID:        id,
 				TraceID:   traceID,
+				Outcome:   "unknown",
 			},
 		},
 		"no timestamp specified, request time + start used": {
@@ -118,6 +120,7 @@ func TestDecodeSpan(t *testing.T) {
 				TraceID:   traceID,
 				Start:     &start,
 				Timestamp: requestTime.Add(time.Duration(start * float64(time.Millisecond))),
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=false": {
@@ -139,6 +142,7 @@ func TestDecodeSpan(t *testing.T) {
 				ID:            id,
 				TraceID:       traceID,
 				TransactionID: transactionID,
+				Outcome:       "unknown",
 			},
 		},
 		"event experimental=true, no experimental payload": {
@@ -160,6 +164,7 @@ func TestDecodeSpan(t *testing.T) {
 				ID:            id,
 				TraceID:       traceID,
 				TransactionID: transactionID,
+				Outcome:       "unknown",
 			},
 			cfg: Config{Experimental: true},
 		},
@@ -183,6 +188,7 @@ func TestDecodeSpan(t *testing.T) {
 				TraceID:       traceID,
 				TransactionID: transactionID,
 				Experimental:  123,
+				Outcome:       "unknown",
 			},
 			cfg: Config{Experimental: true},
 		},
@@ -191,6 +197,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentID, "trace_id": traceID, "transaction_id": transactionID,
+				"outcome": outcome,
 			},
 			e: &m.Span{
 				Metadata:  metadata,
@@ -201,6 +208,7 @@ func TestDecodeSpan(t *testing.T) {
 				Start:     &start,
 				Duration:  duration,
 				Timestamp: spanTime,
+				Outcome:   outcome,
 				Stacktrace: m.Stacktrace{
 					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
 				},
@@ -295,6 +303,10 @@ func TestDecodeSpanInvalid(t *testing.T) {
 		"negative duration": {
 			input: map[string]interface{}{"duration": -1.0},
 			err:   "duration.*must be >= 0 but found -1",
+		},
+		"invalid outcome": {
+			input: map[string]interface{}{"outcome": `¯\_(ツ)_/¯`},
+			err:   `outcome.*must be one of <nil>, "success", "failure", "unknown"`,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

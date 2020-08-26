@@ -388,11 +388,6 @@ type: text
 
 --
 
-[float]
-=== duration
-
-None
-
 
 *`transaction.duration.count`*::
 +
@@ -1130,6 +1125,19 @@ example: us-east1
 
 --
 
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
@@ -1273,6 +1281,28 @@ Profiling-specific data for APM.
 
 
 
+*`profile.id`*::
++
+--
+Unique ID for the profile.
+All samples within a profile will have the same profile ID.
+
+
+type: keyword
+
+--
+
+*`profile.duration`*::
++
+--
+Duration of the profile, in microseconds.
+All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+
+
+type: long
+
+--
+
 
 *`profile.cpu.ns`*::
 +
@@ -1333,16 +1363,6 @@ type: long
 +
 --
 Amount of memory allocated, in bytes, and currently in use.
-
-
-type: long
-
---
-
-*`profile.duration`*::
-+
---
-Duration of the profile, in microseconds.
 
 
 type: long
@@ -1650,11 +1670,6 @@ Transaction-specific data for APM
 
 
 
-[float]
-=== duration
-
-None
-
 
 *`transaction.duration.us`*::
 +
@@ -1690,6 +1705,34 @@ type: object
 +
 --
 type: object
+
+--
+
+
+*`transaction.experience.cls`*::
++
+--
+The Cumulative Layout Shift metric
+
+type: scaled_float
+
+--
+
+*`transaction.experience.fid`*::
++
+--
+The First Input Delay metric
+
+type: scaled_float
+
+--
+
+*`transaction.experience.tbt`*::
++
+--
+The Total Blocking Time metric
+
+type: scaled_float
 
 --
 

@@ -8,9 +8,7 @@
       fields:
         - name: duration
           type: group
-          description:
           fields:
-
             - name: us
               type: long
               description: >
@@ -34,6 +32,23 @@
           scaling_factor: 1000000
           dynamic: true
 
+        - name: experience
+          type: group
+          fields:
+            - name: cls
+              type: scaled_float
+              scaling_factor: 1000000
+              description: The Cumulative Layout Shift metric
+
+            - name: fid
+              type: scaled_float
+              scaling_factor: 1000000
+              description: The First Input Delay metric
+
+            - name: tbt
+              type: scaled_float
+              scaling_factor: 1000000
+              description: The Total Blocking Time metric
 
         - name: span_count
           type: group
@@ -46,11 +61,9 @@
           type: group
           dynamic: false
           fields:
-
             - name: queue
               type: group
               fields:
-
                 - name: name
                   type: keyword
                   description: >
@@ -59,7 +72,6 @@
             - name: age
               type: group
               fields:
-
                 - name: ms
                   type: long
                   description: >

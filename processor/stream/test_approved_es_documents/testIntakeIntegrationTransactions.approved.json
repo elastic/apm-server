@@ -29,6 +29,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -142,6 +145,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
@@ -348,6 +354,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -422,6 +431,11 @@
                 "duration": {
                     "us": 13980
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "cdef4340a8e0df19",
                 "marks": {
                     "another_mark": {
@@ -474,6 +488,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

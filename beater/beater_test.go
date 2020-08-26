@@ -22,10 +22,13 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -133,4 +136,65 @@ func (tb *testBeater) initClient(cfg *config.Config, listenAddr string) {
 		tb.baseURL = scheme + listenAddr
 		tb.client = &http.Client{Transport: transport}
 	}
+}
+
+func TestTransformConfigIndex(t *testing.T) {
+	test := func(t *testing.T, indexPattern, expected string) {
+		var requestPaths []string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestPaths = append(requestPaths, r.URL.Path)
+		}))
+		defer srv.Close()
+
+		cfg := config.DefaultConfig()
+		cfg.RumConfig.Enabled = newBool(true)
+		cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{srv.URL}
+		if indexPattern != "" {
+			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
+		}
+
+		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+		require.NoError(t, err)
+		require.NotNil(t, transformConfig.RUM.SourcemapStore)
+		transformConfig.RUM.SourcemapStore.Added(context.Background(), "name", "version", "path")
+		require.Len(t, requestPaths, 1)
+
+		path := requestPaths[0]
+		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimSuffix(path, "/_search")
+		assert.Equal(t, expected, path)
+	}
+	t.Run("default-pattern", func(t *testing.T) { test(t, "", "apm-*-sourcemap*") })
+	t.Run("with-observer-version", func(t *testing.T) { test(t, "blah-%{[observer.version]}-blah", "blah-1.2.3-blah") })
+}
+
+func TestTransformConfig(t *testing.T) {
+	test := func(rumEnabled, sourcemapEnabled *bool, expectSourcemapStore bool) {
+		cfg := config.DefaultConfig()
+		cfg.RumConfig.Enabled = rumEnabled
+		cfg.RumConfig.SourceMapping.Enabled = sourcemapEnabled
+		transformConfig, err := newTransformConfig(beat.Info{Version: "1.2.3"}, cfg)
+		require.NoError(t, err)
+		if expectSourcemapStore {
+			assert.NotNil(t, transformConfig.RUM.SourcemapStore)
+		} else {
+			assert.Nil(t, transformConfig.RUM.SourcemapStore)
+		}
+	}
+
+	test(nil, nil, false)
+	test(nil, newBool(false), false)
+	test(nil, newBool(true), false)
+
+	test(newBool(false), nil, false)
+	test(newBool(false), newBool(false), false)
+	test(newBool(false), newBool(true), false)
+
+	test(newBool(true), nil, true) // sourcemap.enabled is true by default
+	test(newBool(true), newBool(false), false)
+	test(newBool(true), newBool(true), true)
+}
+
+func newBool(v bool) *bool {
+	return &v
 }

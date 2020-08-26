@@ -52,24 +52,6 @@ class Test(JaegerBaseTest):
         transaction_docs = self.wait_for_events('transaction', 1)
         self.approve_docs('jaeger_span', transaction_docs)
 
-    def test_jaeger_grpc(self):
-        """
-        This test sends a Jaeger batch over gRPC, and verifies that the spans are indexed.
-        """
-        jaeger_request_data = self.get_testdata_path('jaeger', 'batch_0.json')
-
-        client = os.path.join(os.path.dirname(__file__), 'jaegergrpc')
-        subprocess.check_call(['go', 'run', client,
-                               '-addr', self.jaeger_grpc_addr,
-                               '-insecure',
-                               jaeger_request_data,
-                               ])
-
-        self.assert_no_logged_warnings()
-        transaction_docs = self.wait_for_events('transaction', 1)
-        error_docs = self.wait_for_events('error', 3)
-        self.approve_docs('jaeger_batch_0', transaction_docs + error_docs)
-
     def test_jaeger_auth_tag_removed(self):
         """
         This test sends a Jaeger batch over gRPC, with an "authorization" process tag,
@@ -160,15 +142,10 @@ class GRPCSamplingTest(JaegerBaseTest):
         with open(out, "r") as out:
             return out.read()
 
-    def test_jaeger_grpc_sampling_missing(self):
+    def test_jaeger_grpc_sampling(self):
         """
         This test sends Jaeger sampling requests over gRPC, and tests responses
         """
-
-        # test returns an error as no sampling strategy is found
-        expected = "no sampling rate available, check server logs for more details"
-        logged = self.call_sampling_endpoint("foo")
-        assert expected in logged, logged
 
         # test returns a configured default sampling strategy
         service = "all"

@@ -7,6 +7,9 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": "10.0.0.13",

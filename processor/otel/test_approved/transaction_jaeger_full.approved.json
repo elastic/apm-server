@@ -6,6 +6,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"
@@ -38,7 +41,8 @@
                 "name": "unknown",
                 "node": {
                     "name": "host-abc"
-                }
+                },
+                "version": "1.0"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -108,7 +112,8 @@
                 "name": "unknown",
                 "node": {
                     "name": "host-abc"
-                }
+                },
+                "version": "1.0"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -167,7 +172,8 @@
                 "name": "unknown",
                 "node": {
                     "name": "host-abc"
-                }
+                },
+                "version": "1.0"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -228,7 +234,8 @@
                 "name": "unknown",
                 "node": {
                     "name": "host-abc"
-                }
+                },
+                "version": "1.0"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -289,7 +296,8 @@
                 "name": "unknown",
                 "node": {
                     "name": "host-abc"
-                }
+                },
+                "version": "1.0"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -350,7 +358,8 @@
                 "name": "unknown",
                 "node": {
                     "name": "host-abc"
-                }
+                },
+                "version": "1.0"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -409,7 +418,8 @@
                 "name": "unknown",
                 "node": {
                     "name": "host-abc"
-                }
+                },
+                "version": "1.0"
             },
             "timestamp": {
                 "us": 1576500418000768

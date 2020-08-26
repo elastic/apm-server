@@ -110,6 +110,12 @@ func decodeRUMV3Spans(raw map[string]interface{}, input Input, tr *model.Transac
 	return spans, nil
 }
 
+// DecodeRUMV2Transaction decodes a v2 RUM transaction.
+func DecodeRUMV2Transaction(input Input, batch *model.Batch) error {
+	// Identical to backend agent transactions.
+	return DecodeTransaction(input, batch)
+}
+
 // DecodeTransaction decodes a v2 transaction.
 func DecodeTransaction(input Input, batch *model.Batch) error {
 	transaction, err := decodeTransaction(input, transactionSchema)
@@ -157,7 +163,18 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	decodeString(raw, fieldName("type"), &e.Type)
 	decodeString(raw, fieldName("name"), &e.Name)
 	decodeString(raw, fieldName("result"), &e.Result)
+	decodeString(raw, fieldName("outcome"), &e.Outcome)
 	decodeFloat64(raw, fieldName("duration"), &e.Duration)
+	if e.Outcome == "" {
+		e.Outcome = "unknown"
+	}
+
+	if obj := getObject(raw, fieldName("experience")); obj != nil {
+		var experience model.UserExperience
+		decodeUserExperience(obj, &experience)
+		e.UserExperience = &experience
+	}
+
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}

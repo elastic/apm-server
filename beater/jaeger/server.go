@@ -38,7 +38,6 @@ import (
 	"github.com/elastic/apm-server/kibana"
 	processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 // Server manages Jaeger gRPC and HTTP servers, providing methods for starting and stopping them.
@@ -59,10 +58,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	if !cfg.JaegerConfig.GRPC.Enabled && !cfg.JaegerConfig.HTTP.Enabled {
 		return nil, nil
 	}
-	traceConsumer := &processor.Consumer{
-		Reporter:        reporter,
-		TransformConfig: transform.Config{},
-	}
+	traceConsumer := &processor.Consumer{Reporter: reporter}
 
 	srv := &Server{logger: logger}
 	if cfg.JaegerConfig.GRPC.Enabled {

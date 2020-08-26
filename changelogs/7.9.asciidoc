@@ -19,7 +19,7 @@ https://github.com/elastic/apm-server/compare/v7.8.0\...v7.9.0[View commits]
 [float]
 ==== Added
 * Support configurable response headers for the RUM endpoints {pull}3820[3820]
-* Support custom ILM index suffix {pull}3826[3826],{pull}3905[3905]
+* Support custom ILM index suffix {pull}3826[3826], {pull}3905[3905]
 * Jaeger traceIds/spanIds are formatted without leading zeros {pull}3849[3849]
 * Index Page URL and referer as ECS fields {pull}3857[3857]
 * Map the Jaeger attribute message_bus.destination to the Elastic APM type messaging {pull}3884[3884]

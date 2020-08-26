@@ -308,7 +308,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dlclark/regexp2
-Version: v1.2.0
+Version: v1.2.1
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -401,7 +401,8 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dop251/goja_nodejs
-Revision: b2775b86b9e0
+Replacement: github.com/dop251/goja_nodejs
+Revision: adff31b136e6
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -534,7 +535,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 2ced45488460
+Revision: 49e8024953a4
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -791,13 +792,13 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-elasticsearch/v7
-Version: v7.5.0
+Version: v7.8.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-elasticsearch/v8
 Version: v8.0.0
-Revision: aff00e5adfde
+Revision: 59b6a186f8dd
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -1185,7 +1186,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/google/pprof
-Revision: d4f498aebedc
+Revision: 1a94d8640e99
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3773,7 +3774,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 123391ffb6de
+Revision: 5c72a883971a
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3807,7 +3808,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: ab3426394381
+Revision: c89045814202
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3909,7 +3910,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 3e129f6d46b1
+Revision: c12d262b63d8
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 

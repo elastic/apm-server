@@ -25,6 +25,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.elastic.co/apm/apmtest"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/outputs"
@@ -32,7 +34,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
-	"go.elastic.co/apm/apmtest"
 
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -41,22 +42,11 @@ import (
 func TestPublisherStop(t *testing.T) {
 	// Create a pipeline with a limited queue size and no outputs,
 	// so we can simulate a pipeline that blocks indefinitely.
-	pipeline, err := pipeline.New(
-		beat.Info{},
-		pipeline.Monitors{},
-		func(lis queue.ACKListener) (queue.Queue, error) {
-			return memqueue.NewQueue(nil, memqueue.Settings{
-				ACKListener: lis,
-				Events:      1,
-			}), nil
-		},
-		outputs.Group{},
-		pipeline.Settings{},
-	)
-	require.NoError(t, err)
-
+	pipeline := newBlockingPipeline(t)
 	publisher, err := publish.NewPublisher(
-		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{},
+		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{
+			TransformConfig: &transform.Config{},
+		},
 	)
 	require.NoError(t, err)
 	defer func() {
@@ -97,16 +87,48 @@ func TestPublisherStop(t *testing.T) {
 	assert.NoError(t, publisher.Stop(ctx))
 }
 
+func TestPublisherStopShutdownInactive(t *testing.T) {
+	publisher, err := publish.NewPublisher(
+		newBlockingPipeline(t),
+		apmtest.DiscardTracer,
+		&publish.PublisherConfig{
+			TransformConfig: &transform.Config{},
+		},
+	)
+	require.NoError(t, err)
+
+	// There are no active events, so the publisher should stop immediately
+	// and not wait for the context to be cancelled.
+	assert.NoError(t, publisher.Stop(context.Background()))
+}
+
+func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
+	pipeline, err := pipeline.New(
+		beat.Info{},
+		pipeline.Monitors{},
+		func(lis queue.ACKListener) (queue.Queue, error) {
+			return memqueue.NewQueue(nil, memqueue.Settings{
+				ACKListener: lis,
+				Events:      1,
+			}), nil
+		},
+		outputs.Group{},
+		pipeline.Settings{},
+	)
+	require.NoError(t, err)
+	return pipeline
+}
+
 func makeTransformable(events ...beat.Event) transform.Transformable {
-	return transformableFunc(func(ctx context.Context, tctx *transform.Context) []beat.Event {
+	return transformableFunc(func(ctx context.Context, cfg *transform.Config) []beat.Event {
 		return events
 	})
 }
 
-type transformableFunc func(context.Context, *transform.Context) []beat.Event
+type transformableFunc func(context.Context, *transform.Config) []beat.Event
 
-func (f transformableFunc) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
-	return f(ctx, tctx)
+func (f transformableFunc) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+	return f(ctx, cfg)
 }
 
 type mockClient struct{}

@@ -10,6 +10,9 @@
                 "address": "mq",
                 "port": 1234
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"

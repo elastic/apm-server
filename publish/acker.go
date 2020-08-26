@@ -63,8 +63,13 @@ func (w *waitPublishedAcker) ACKEvents(n int) {
 // been acknowledged.
 func (w *waitPublishedAcker) Close() {
 	w.mu.Lock()
-	w.closed = true
-	w.mu.Unlock()
+	defer w.mu.Unlock()
+	if !w.closed {
+		w.closed = true
+		if atomic.LoadInt64(&w.active) == 0 {
+			close(w.done)
+		}
+	}
 }
 
 // Wait waits for w to be closed and all previously published events to be

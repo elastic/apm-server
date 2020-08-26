@@ -41,7 +41,7 @@ func TestBuilder(t *testing.T) {
 	} {
 
 		setup := func() *Builder {
-			cfg := config.DefaultConfig("9.9.9")
+			cfg := config.DefaultConfig()
 
 			if tc.withBearer {
 				cfg.SecretToken = "xvz"

@@ -34,7 +34,32 @@ For a full list of changes, see the
 === APM version 7.9.0
 
 // tag::notable-v79-highlights[]
-// Coming soon...
+OpenTelemetry integration::
+
+Elastic’s OpenTelemetry integration allows you to reuse your existing OpenTelemetry instrumentation to quickly analyze distributed traces and metrics with the Elastic Stack.
++
+Elastic’s integration is designed to drop right into your current OpenTelemetry setup. We’ve done this by extending the "contrib" OpenTelemetry collector and adding an Elastic exporter. This exporter translates the OpenTelemetry trace data collected from your services to Elastic’s protocol, before sending the data to the Elastic Stack. By extending the OpenTelemetry collector, no changes are needed in your instrumented services in order to begin using the Elastic Stack.
++
+[role="screenshot"]
+image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
++
+See {apm-overview-ref-v}/open-telemetry-elastic.html[OpenTelemetry integration]
+for more information.
+
+Machine learning integration improvements::
+
+The Machine learning integration initiates a new job predefined to calculate anomaly scores on APM transaction durations.
+With this integration, you can quickly pinpoint anomalous transactions and see the health of
+any upstream and downstream services.
++
+In previous releases, machine learning jobs were initiated at the service level.
+In 7.9, we've moved jobs to the environment level—this means any new services added to your architecture will automatically be able to take advantage of preexisting machine learning jobs without any additional configuration.
++
+[role="screenshot"]
+image::images/7.8-service-map-anomaly.png[APM Service maps]
++
+See {kibana-ref}/machine-learning-integration.html[machine learning integration] for more information.
+
 // end::notable-v79-highlights[]
 
 [[release-highlights-7.8.0]]
@@ -186,7 +211,7 @@ enabling you to hunt for security threats with your APM data.
 The Detections feature automatically searches for threats and creates alerts when they are detected.
 Elastic Security ships with four prebuilt rules, specifically for the APM use case: No User Agent, POST Request Declined, Unauthorized Method, and sqlmap User Agent.
 +
-See the {security-guide}/siem-ui-overview.html[Security hosts UI] and {security-guide}/prebuilt-rules.html[Security prebuilt rules]
+See the {security-guide}/es-ui-overview.html[Security hosts UI] and {security-guide}/prebuilt-rules.html[Security prebuilt rules]
 for more information on using Elastic Security.
 +
 [role="screenshot"]

@@ -39,27 +39,27 @@ func TestAggregationConfigInvalid(t *testing.T) {
 
 	for _, test := range []test{{
 		name:   "non-positive interval",
-		key:    "aggregation.interval",
+		key:    "aggregation.transactions.interval",
 		value:  "0",
-		expect: "Error processing configuration: requires duration < 1 accessing 'aggregation.interval'",
+		expect: "Error processing configuration: requires duration < 1 accessing 'aggregation.transactions.interval'",
 	}, {
-		name:   "non-positive max_transaction_groups",
-		key:    "aggregation.max_transaction_groups",
+		name:   "non-positive max_groups",
+		key:    "aggregation.transactions.max_groups",
 		value:  float64(0),
-		expect: "Error processing configuration: requires value < 1 accessing 'aggregation.max_transaction_groups'",
+		expect: "Error processing configuration: requires value < 1 accessing 'aggregation.transactions.max_groups'",
 	}, {
 		name:   "non-positive hdrhistogram_significant_figures",
-		key:    "aggregation.hdrhistogram_significant_figures",
+		key:    "aggregation.transactions.hdrhistogram_significant_figures",
 		value:  float64(0),
-		expect: "Error processing configuration: requires value < 1 accessing 'aggregation.hdrhistogram_significant_figures'",
+		expect: "Error processing configuration: requires value < 1 accessing 'aggregation.transactions.hdrhistogram_significant_figures'",
 	}, {
 		name:   "hdrhistogram_significant_figures too high",
-		key:    "aggregation.hdrhistogram_significant_figures",
+		key:    "aggregation.transactions.hdrhistogram_significant_figures",
 		value:  float64(6),
-		expect: "Error processing configuration: requires value > 5 accessing 'aggregation.hdrhistogram_significant_figures'",
+		expect: "Error processing configuration: requires value > 5 accessing 'aggregation.transactions.hdrhistogram_significant_figures'",
 	}} {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := NewConfig("9.9.9", common.MustNewConfigFrom(map[string]interface{}{
+			_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
 				test.key: test.value,
 			}), nil)
 			require.Error(t, err)
@@ -69,7 +69,7 @@ func TestAggregationConfigInvalid(t *testing.T) {
 }
 
 func TestAggregationConfigDefault(t *testing.T) {
-	cfg, err := NewConfig("9.9.9", common.MustNewConfigFrom(map[string]interface{}{}), nil)
+	cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{}), nil)
 	require.NoError(t, err)
 	assert.Equal(t, defaultAggregationConfig(), cfg.Aggregation)
 }

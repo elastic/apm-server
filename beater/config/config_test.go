@@ -40,11 +40,14 @@ var testdataCertificateConfig = tlscommon.CertificateConfig{
 
 func Test_UnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
-	version := "8.0.0"
 
-	kibanaNoSlashConfig := DefaultConfig(version)
+	kibanaNoSlashConfig := DefaultConfig()
 	kibanaNoSlashConfig.Kibana.Enabled = true
 	kibanaNoSlashConfig.Kibana.Host = "kibanahost:5601/proxy"
+
+	kibanaHeadersConfig := DefaultConfig()
+	kibanaHeadersConfig.Kibana.Enabled = true
+	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
 
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
@@ -52,7 +55,7 @@ func Test_UnpackConfig(t *testing.T) {
 	}{
 		"default config": {
 			inpCfg: map[string]interface{}{},
-			outCfg: DefaultConfig(version),
+			outCfg: DefaultConfig(),
 		},
 		"overwrite default": {
 			inpCfg: map[string]interface{}{
@@ -114,13 +117,15 @@ func Test_UnpackConfig(t *testing.T) {
 					"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 				},
 				"aggregation": map[string]interface{}{
-					"enabled":                          true,
-					"interval":                         "1s",
-					"max_transaction_groups":           123,
-					"hdrhistogram_significant_figures": 1,
-					"rum": map[string]interface{}{
-						"user_agent": map[string]interface{}{
-							"lru_size": 123,
+					"transactions": map[string]interface{}{
+						"enabled":                          true,
+						"interval":                         "1s",
+						"max_groups":                       123,
+						"hdrhistogram_significant_figures": 1,
+						"rum": map[string]interface{}{
+							"user_agent": map[string]interface{}{
+								"lru_size": 123,
+							},
 						},
 					},
 				},
@@ -164,7 +169,6 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
-					BeatVersion:         version,
 				},
 				Register: &RegisterConfig{
 					Ingest: &IngestConfig{
@@ -210,11 +214,13 @@ func Test_UnpackConfig(t *testing.T) {
 					esConfigured: true,
 				},
 				Aggregation: AggregationConfig{
-					Enabled:                        true,
-					Interval:                       time.Second,
-					MaxTransactionGroups:           123,
-					HDRHistogramSignificantFigures: 1,
-					RUMUserAgentLRUSize:            123,
+					Transactions: TransactionAggregationConfig{
+						Enabled:                        true,
+						Interval:                       time.Second,
+						MaxTransactionGroups:           123,
+						HDRHistogramSignificantFigures: 1,
+						RUMUserAgentLRUSize:            123,
+					},
 				},
 				Sampling: SamplingConfig{
 					KeepUnsampled: true,
@@ -250,11 +256,11 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled":                 true,
-				"api_key.enabled":                     true,
-				"aggregation.enabled":                 true,
-				"aggregation.rum.user_agent.lru_size": 123,
-				"sampling.keep_unsampled":             false,
+				"jaeger.grpc.enabled":                              true,
+				"api_key.enabled":                                  true,
+				"aggregation.transactions.enabled":                 true,
+				"aggregation.transactions.rum.user_agent.lru_size": 123,
+				"sampling.keep_unsampled":                          false,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -292,7 +298,6 @@ func Test_UnpackConfig(t *testing.T) {
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
-					BeatVersion:         "8.0.0",
 				},
 				Register: &RegisterConfig{
 					Ingest: &IngestConfig{
@@ -325,11 +330,13 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 				Aggregation: AggregationConfig{
-					Enabled:                        true,
-					Interval:                       time.Minute,
-					MaxTransactionGroups:           1000,
-					HDRHistogramSignificantFigures: 2,
-					RUMUserAgentLRUSize:            123,
+					Transactions: TransactionAggregationConfig{
+						Enabled:                        true,
+						Interval:                       time.Minute,
+						MaxTransactionGroups:           1000,
+						HDRHistogramSignificantFigures: 2,
+						RUMUserAgentLRUSize:            123,
+					},
 				},
 				Sampling: SamplingConfig{
 					KeepUnsampled: false,
@@ -345,6 +352,17 @@ func Test_UnpackConfig(t *testing.T) {
 			},
 			outCfg: kibanaNoSlashConfig,
 		},
+		"kibana headers": {
+			inpCfg: map[string]interface{}{
+				"kibana": map[string]interface{}{
+					"enabled": "true",
+					"headers": map[string]interface{}{
+						"foo": "bar",
+					},
+				},
+			},
+			outCfg: kibanaHeadersConfig,
+		},
 	}
 
 	for name, test := range tests {
@@ -352,27 +370,11 @@ func Test_UnpackConfig(t *testing.T) {
 			inpCfg, err := common.NewConfigFrom(test.inpCfg)
 			assert.NoError(t, err)
 
-			cfg, err := NewConfig(version, inpCfg, nil)
+			cfg, err := NewConfig(inpCfg, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
 			assert.Equal(t, test.outCfg, cfg)
 		})
-	}
-}
-
-func TestReplaceBeatVersion(t *testing.T) {
-	cases := []struct {
-		version      string
-		indexPattern string
-		replaced     string
-	}{
-		{version: "", indexPattern: "", replaced: ""},
-		{version: "6.2.0", indexPattern: "apm-%{[observer.version]}", replaced: "apm-6.2.0"},
-		{version: "6.2.0", indexPattern: "apm-sourcemap", replaced: "apm-sourcemap"},
-	}
-	for _, test := range cases {
-		out := replaceVersion(test.indexPattern, test.version)
-		assert.Equal(t, test.replaced, out)
 	}
 }
 
@@ -452,7 +454,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
+				cfg, err := NewConfig(ucfgCfg, nil)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
 			})
@@ -484,41 +486,37 @@ func TestTLSSettings(t *testing.T) {
 
 func TestAgentConfig(t *testing.T) {
 	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		cfg, err := NewConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
+		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("InvalidUnit", func(t *testing.T) {
-		cfg, err := NewConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
+		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		cfg, err := NewConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
+		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
 		require.NoError(t, err)
 		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
 	})
 }
 
 func TestNewConfig_ESConfig(t *testing.T) {
-	version := "8.0.0"
 	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true}`)
 	require.NoError(t, err)
 
 	// no es config given
-	cfg, err := NewConfig(version, ucfg, nil)
+	cfg, err := NewConfig(ucfg, nil)
 	require.NoError(t, err)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.APIKeyConfig.ESConfig)
 
 	// with es config
 	outputESCfg := common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
-	cfg, err = NewConfig(version, ucfg, outputESCfg)
+	cfg, err = NewConfig(ucfg, outputESCfg)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))

@@ -52,6 +52,7 @@ The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key e
 
 The list of root certificates for verifying client certificates.
 If `certificate_authorities` is empty or not set, the trusted certificate authorities of the host system are used.
+If `certificate_authorities` is set, `client_authentication` will be automatically set to `required`.
 Sending client certificates is currently only supported by the RUM agent through the browser
 and by the Jaeger agent.
 
