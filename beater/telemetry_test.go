@@ -20,6 +20,8 @@ package beater
 import (
 	"testing"
 
+	"github.com/elastic/beats/v7/libbeat/logp"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -32,7 +34,7 @@ func TestRecordConfigs(t *testing.T) {
 	defer resetCounters()
 
 	info := beat.Info{Name: "apm-server", Version: "7.x"}
-	apmCfg := config.DefaultConfig(info.Version)
+	apmCfg := config.DefaultConfig()
 	apmCfg.APIKeyConfig.Enabled = true
 	apmCfg.Kibana.Enabled = true
 	apmCfg.JaegerConfig.GRPC.Enabled = true
@@ -53,7 +55,7 @@ func TestRecordConfigs(t *testing.T) {
 			},
 		},
 	})
-	recordConfigs(info, apmCfg, rootCfg)
+	recordConfigs(info, apmCfg, rootCfg, logp.NewLogger("beater"))
 
 	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
 	assert.Equal(t, configMonitors.rumEnabled.Get(), false)

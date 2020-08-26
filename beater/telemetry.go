@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
+	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -54,17 +55,22 @@ var configMonitors = &configTelemetry{
 	pipelinesOverwrite:        monitoring.NewBool(apmRegistry, "register.ingest.pipeline.overwrite"),
 	setupTemplateEnabled:      monitoring.NewBool(apmRegistry, "setup.template.enabled"),
 	setupTemplateOverwrite:    monitoring.NewBool(apmRegistry, "setup.template.overwrite"),
-	setupTemplateAppendFields: monitoring.NewBool(apmRegistry, "setup.template.append_files"),
+	setupTemplateAppendFields: monitoring.NewBool(apmRegistry, "setup.template.append_fields"),
 	ilmEnabled:                monitoring.NewBool(apmRegistry, "ilm.enabled"),
 	ilmSetupEnabled:           monitoring.NewBool(apmRegistry, "ilm.setup.enabled"),
 	ilmSetupOverwrite:         monitoring.NewBool(apmRegistry, "ilm.setup.overwrite"),
-	ilmSetupRequirePolicy:     monitoring.NewBool(apmRegistry, "ilm.setup.require.policy"),
+	ilmSetupRequirePolicy:     monitoring.NewBool(apmRegistry, "ilm.setup.require_policy"),
 	jaegerGRPCEnabled:         monitoring.NewBool(apmRegistry, "jaeger.grpc.enabled"),
 	jaegerHTTPEnabled:         monitoring.NewBool(apmRegistry, "jaeger.http.enabled"),
 	sslEnabled:                monitoring.NewBool(apmRegistry, "ssl.enabled"),
 }
 
-func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config) {
+func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config, logger *logp.Logger) {
+	indexManagementCfg, err := idxmgmt.NewIndexManagementConfig(info, rootCfg)
+	if err != nil {
+		logger.Errorf("Error recording telemetry data", err)
+		return
+	}
 	configMonitors.rumEnabled.Set(apmCfg.RumConfig.IsEnabled())
 	configMonitors.apiKeysEnabled.Set(apmCfg.APIKeyConfig.IsEnabled())
 	configMonitors.kibanaEnabled.Set(apmCfg.Kibana.Enabled)
@@ -73,10 +79,6 @@ func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config
 	configMonitors.sslEnabled.Set(apmCfg.TLS.IsEnabled())
 	configMonitors.pipelinesEnabled.Set(apmCfg.Register.Ingest.Pipeline.IsEnabled())
 	configMonitors.pipelinesOverwrite.Set(apmCfg.Register.Ingest.Pipeline.ShouldOverwrite())
-	indexManagementCfg, err := idxmgmt.NewIndexManagementConfig(info, rootCfg)
-	if err != nil {
-		return
-	}
 	configMonitors.setupTemplateEnabled.Set(indexManagementCfg.Template.Enabled)
 	configMonitors.setupTemplateOverwrite.Set(indexManagementCfg.Template.Overwrite)
 	configMonitors.setupTemplateAppendFields.Set(len(indexManagementCfg.Template.AppendFields.GetKeys()) > 0)
