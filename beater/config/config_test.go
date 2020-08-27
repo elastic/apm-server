@@ -223,7 +223,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						Enabled:  true,
-						Interval: 60000000000,
+						Interval: time.Minute,
 					},
 				},
 				Sampling: SamplingConfig{
