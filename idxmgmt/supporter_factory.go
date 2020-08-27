@@ -32,8 +32,28 @@ import (
 
 // functionality largely copied from libbeat
 
+type IndexManagementConfig struct {
+	Template template.TemplateConfig
+	ILM      ilm.Config
+	Output   common.ConfigNamespace
+}
+
 // MakeDefaultSupporter creates the index management supporter for APM that is passed to libbeat.
 func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.Config) (idxmgmt.Supporter, error) {
+	cfg, err := NewIndexManagementConfig(info, configRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	if log == nil {
+		log = logp.NewLogger(logs.IndexManagement)
+	} else {
+		log = log.Named(logs.IndexManagement)
+	}
+	return newSupporter(log, info, cfg.Template, cfg.ILM, cfg.Output)
+}
+
+func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*IndexManagementConfig, error) {
 	cfg := struct {
 		ILM      *common.Config         `config:"apm-server.ilm"`
 		Template *common.Config         `config:"setup.template"`
@@ -55,12 +75,11 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 		return nil, fmt.Errorf("creating ILM config fails: %v", err)
 	}
 
-	if log == nil {
-		log = logp.NewLogger(logs.IndexManagement)
-	} else {
-		log = log.Named(logs.IndexManagement)
-	}
-	return newSupporter(log, info, tmplConfig, ilmConfig, cfg.Output)
+	return &IndexManagementConfig{
+		Template: tmplConfig,
+		ILM:      ilmConfig,
+		Output:   cfg.Output,
+	}, nil
 }
 
 func unpackTemplateConfig(cfg *common.Config) (template.TemplateConfig, error) {
