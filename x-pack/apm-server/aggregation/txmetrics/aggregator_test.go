@@ -341,6 +341,93 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 	})
 }
 
+func TestAggregationFields(t *testing.T) {
+	reqs := make(chan publish.PendingReq, 1)
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		Report:                         makeChanReporter(reqs),
+		MaxTransactionGroups:           1000,
+		MetricsInterval:                100 * time.Millisecond,
+		HDRHistogramSignificantFigures: 1,
+		RUMUserAgentLRUSize:            1,
+	})
+	require.NoError(t, err)
+	go agg.Run()
+	defer agg.Stop(context.Background())
+
+	input := model.Transaction{RepresentativeCount: 1}
+	inputFields := []*string{
+		&input.Name,
+		&input.Outcome,
+		&input.Result,
+		&input.Type,
+		&input.Metadata.Service.Agent.Name,
+		&input.Metadata.Service.Environment,
+		&input.Metadata.Service.Name,
+		&input.Metadata.Service.Version,
+		&input.Metadata.System.Container.ID,
+		&input.Metadata.System.Kubernetes.PodName,
+	}
+
+	var expected []model.Metricset
+	expectCount := func(expectedCount int64) {
+		expected = append(expected, model.Metricset{
+			Metadata: input.Metadata,
+			Event: model.MetricsetEventCategorization{
+				Outcome: input.Outcome,
+			},
+			Transaction: model.MetricsetTransaction{
+				Name:   input.Name,
+				Type:   input.Type,
+				Result: input.Result,
+				Root:   input.ParentID == "",
+			},
+			Samples: []model.Sample{{
+				Name:   "transaction.duration.histogram",
+				Counts: []int64{expectedCount},
+				Values: []float64{0},
+			}},
+		})
+	}
+	for _, field := range inputFields {
+		for _, value := range []string{"something", "anything"} {
+			*field = value
+			assert.Nil(t, agg.AggregateTransaction(&input))
+			assert.Nil(t, agg.AggregateTransaction(&input))
+			expectCount(2)
+		}
+	}
+
+	// Hostname is complex: if any kubernetes fields are set, then
+	// it is taken from Kubernetes.Node.Name, and DetectedHostname
+	// is ignored.
+	input.Metadata.System.Kubernetes.PodName = ""
+	for _, value := range []string{"something", "anything"} {
+		input.Metadata.System.DetectedHostname = value
+		assert.Nil(t, agg.AggregateTransaction(&input))
+		assert.Nil(t, agg.AggregateTransaction(&input))
+		expectCount(2)
+	}
+
+	// ParentID only impacts aggregation as far as grouping root and
+	// non-root traces.
+	for _, value := range []string{"something", "anything"} {
+		input.ParentID = value
+		assert.Nil(t, agg.AggregateTransaction(&input))
+		assert.Nil(t, agg.AggregateTransaction(&input))
+	}
+	expectCount(4)
+
+	var output []model.Metricset
+	req := expectPublish(t, reqs)
+	for _, tf := range req.Transformables {
+		ms := tf.(*model.Metricset)
+		ms.Timestamp = time.Time{}
+		ms.TimeseriesInstanceID = ""
+		output = append(output, *ms)
+	}
+	assert.ElementsMatch(t, expected, output)
+}
+
 func BenchmarkAggregateTransaction(b *testing.B) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		Report:                         makeErrReporter(nil),
