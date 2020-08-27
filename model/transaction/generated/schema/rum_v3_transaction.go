@@ -79,6 +79,10 @@ const RUMV3Schema = `{
                     ],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 },
+                "sr": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
+                },
                 "t": {
                     "type": "string",
                     "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
@@ -493,6 +497,10 @@ const RUMV3Schema = `{
         }
     },
     "required": ["sa"]
+                },
+                "sr": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
                 },
                 "yc": {
                     "type": "object",
