@@ -17,6 +17,7 @@ grouped in the following categories:
 * <<exported-fields-apm-profile>>
 * <<exported-fields-apm-sourcemap>>
 * <<exported-fields-apm-span>>
+* <<exported-fields-apm-span-metrics-xpack>>
 * <<exported-fields-apm-transaction>>
 * <<exported-fields-apm-transaction-metrics>>
 * <<exported-fields-apm-transaction-metrics-xpack>>
@@ -1652,6 +1653,35 @@ type: keyword
 Age of a message in milliseconds.
 
 
+type: long
+
+--
+
+[[exported-fields-apm-span-metrics-xpack]]
+== APM Span Metrics fields
+
+APM span metrics are used for showing rate of requests and latency between instrumented services.
+
+
+
+*`metricset.period`*::
++
+--
+type: long
+
+--
+
+
+*`destination.service.response_time.count`*::
++
+--
+type: long
+
+--
+
+*`destination.service.response_time.sum.us`*::
++
+--
 type: long
 
 --

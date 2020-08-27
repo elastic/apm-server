@@ -35,6 +35,7 @@ func TestTransform(t *testing.T) {
 	metadata := Metadata{
 		Service: Service{Name: "myservice"},
 	}
+	resource := "external-service"
 
 	const (
 		trType   = "request"
@@ -148,6 +149,40 @@ func TestTransform(t *testing.T) {
 				},
 			},
 			Msg: "Payload with valid metric.",
+		},
+		{
+			Metricset: &Metricset{
+				Timestamp: timestamp,
+				Metadata:  metadata,
+				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
+					Resource: &resource,
+				}},
+				Samples: []Sample{
+					{
+						Name:  "destination.service.response_time.count",
+						Value: 40,
+					},
+					{
+						Name:  "destination.service.response_time.sum.us",
+						Value: 500000,
+					},
+				},
+			},
+			Output: []common.MapStr{
+				{
+					"processor": common.MapStr{"event": "metric", "name": "metric"},
+					"service":   common.MapStr{"name": "myservice"},
+					"span": common.MapStr{"type": spType, "subtype": spSubtype,
+						"destination": common.MapStr{"service": common.MapStr{"resource": resource}}},
+					"destination": common.MapStr{"service": common.MapStr{"response_time": common.MapStr{
+						"count": 40.0,
+						"sum":   common.MapStr{"us": 500000.0},
+					},
+					},
+					},
+				},
+			},
+			Msg: "Payload with destination service.",
 		},
 	}
 

@@ -19,5 +19,5 @@ func init() {
 // AssetXPackFields returns asset data.
 // This is the base64 encoded gzipped contents of x-pack/apm-server.
 func AssetXPackFields() string {
-	return "eJxskUGuozAQRPecopR1nAN4MdIcIFIWsx+17Ma0ArZ/t5F+bv8VAvlEgh1V1c9lt8OdHx5UJ9eUslFoUrKbuKkEc9+Vwr0DmrSRPU5/b1f8+83h+sqdOiCyBZX6lD3+dADwTO+oWKlnUI5HhrPKQXoJqFoqaxO280JS/ppFJSeMEjgbR/RMbVY22BwGkKENjEGslaQ0oRceI9qj8qUDbCja/oeSe0keTWfu8IqYXw5wyDSx37dadCwIj6RlrqsSH5kmCR49jcaruMHW340XZ6Ud7Aj3WWQ//L7N29nmj5yDBWzfTdlRSsqJGsfdK5X+Yw9bW7t0PwEAAP//VQmqXQ=="
+	return "eJycks9unTwQxfc8xSjrwAOw+KTvASJFavfR1D5wRwHbnRk3vW9fQeCW29KqLTvmz/Gxf6elV1x74jK3rpyMg0tO7QxXCdZ+LRxeGyIXn9DTw//PT/Tx+xw9vc89NEQRFlTKUu7pv4aIaJk+qNKm+kic4lmjtYIggwQqmgvUBfa4Kik+V1FJI00SkAyRBrBXhZHVcCE28gvoIuZ5VJ5pEEyR/FrQNUR2yeovIadBxp5cKxp6H7F+PaClxDP6o6u1TqtET6PmWrZKvCaeJfQ08GTYirvY9rvrxap8EDuTuzdyXL7d5tbZ9886JwD271nR8jgqRnbEwyvl4Y7D7ta6pjkkwwr/PhIfCv9JFhadnTWxguoKMuvC522hq+xYTC28YW5rUiZ2pHClT/A3IJEkc60z0nIXg36RAPsrypsHeFegkuMd6imn8W46wlzS+jDddty/ZeNHvgorORleXGZ0IdfkP5G+ufn1otW5q3a++S0AAP//+xA6Bg=="
 }
