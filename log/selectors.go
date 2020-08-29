@@ -34,7 +34,7 @@ const (
 	Server             = "server"
 	Sourcemap          = "sourcemap"
 	Stacktrace         = "stacktrace"
-	Tracing            = "tracing"
 	TransactionMetrics = "txmetrics"
+	SpanMetrics        = "spanmetrics"
 	Transform          = "transform"
 )

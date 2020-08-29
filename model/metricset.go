@@ -142,6 +142,9 @@ type MetricsetSpan struct {
 
 	// Subtype holds the span subtype: "http", "sql", etc.
 	Subtype string
+
+	// DestinationService holds information about the target of outgoing requests
+	DestinationService DestinationService
 }
 
 func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
@@ -204,6 +207,9 @@ func (s *MetricsetSpan) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("type", s.Type)
 	fields.maybeSetString("subtype", s.Subtype)
+	if destinationServiceFields := s.DestinationService.fields(); len(destinationServiceFields) != 0 {
+		fields.set("destination", common.MapStr{"service": destinationServiceFields})
+	}
 	return common.MapStr(fields)
 }
 

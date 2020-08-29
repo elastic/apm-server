@@ -30,7 +30,8 @@ const (
 
 // AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
-	Transactions TransactionAggregationConfig `config:"transactions"`
+	Transactions        TransactionAggregationConfig        `config:"transactions"`
+	ServiceDestinations ServiceDestinationAggregationConfig `config:"service_destinations"`
 }
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
@@ -42,6 +43,12 @@ type TransactionAggregationConfig struct {
 	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size" validate:"min=1"`
 }
 
+// ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
+type ServiceDestinationAggregationConfig struct {
+	Enabled  bool          `config:"enabled"`
+	Interval time.Duration `config:"interval" validate:"min=1"`
+}
+
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
 		Transactions: TransactionAggregationConfig{
@@ -49,6 +56,10 @@ func defaultAggregationConfig() AggregationConfig {
 			MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
 			HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
 			RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
+		},
+		ServiceDestinations: ServiceDestinationAggregationConfig{
+			Enabled:  true,
+			Interval: defaultAggregationInterval,
 		},
 	}
 }
