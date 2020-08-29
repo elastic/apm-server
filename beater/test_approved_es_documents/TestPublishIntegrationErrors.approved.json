@@ -1,12 +1,6 @@
 {
     "events": [
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2017-05-09T15:04:05.999Z",
             "agent": {
                 "ephemeral_id": "abcdef123",
@@ -363,12 +357,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2018-08-09T14:59:05.999Z",
             "agent": {
                 "ephemeral_id": "abcdef123",
@@ -484,12 +472,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2018-08-09T14:59:05.999Z",
             "agent": {
                 "ephemeral_id": "abcdef123",
@@ -601,12 +583,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "ephemeral_id": "justanid",
@@ -724,12 +700,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2018-08-09T15:04:05.999Z",
             "agent": {
                 "ephemeral_id": "abcdef123",
