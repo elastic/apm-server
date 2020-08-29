@@ -19,14 +19,16 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/google/go-cmp/cmp"
 
-	"github.com/elastic/apm-server/tests/approvals"
+	"github.com/elastic/apm-server/approvaltest"
 )
 
 func main() {
@@ -35,16 +37,22 @@ func main() {
 
 func approval() int {
 	cwd, _ := os.Getwd()
-	receivedFiles := findFiles(cwd, approvals.ReceivedSuffix)
+	receivedFiles := findFiles(cwd, approvaltest.ReceivedSuffix)
 
 	for _, rf := range receivedFiles {
-		path := strings.Replace(rf, approvals.ReceivedSuffix, "", 1)
-		_, _, diff, err := approvals.Compare(path)
-		if err != nil {
+		af := strings.TrimSuffix(rf, approvaltest.ReceivedSuffix) + approvaltest.ApprovedSuffix
+
+		var approved, received interface{}
+		if err := decodeJSONFile(rf, &received); err != nil {
+			fmt.Println("Could not create diff ", err)
+			return 3
+		}
+		if err := decodeJSONFile(af, &approved); err != nil && !os.IsNotExist(err) {
 			fmt.Println("Could not create diff ", err)
 			return 3
 		}
 
+		diff := cmp.Diff(approved, received)
 		added := color.New(color.FgBlack, color.BgGreen).SprintFunc()
 		deleted := color.New(color.FgBlack, color.BgRed).SprintFunc()
 		scanner := bufio.NewScanner(strings.NewReader(diff))
@@ -67,7 +75,7 @@ func approval() int {
 		input, _, _ := reader.ReadRune()
 		switch input {
 		case 'y':
-			approvedPath := strings.Replace(rf, approvals.ReceivedSuffix, approvals.ApprovedSuffix, 1)
+			approvedPath := strings.Replace(rf, approvaltest.ReceivedSuffix, approvaltest.ApprovedSuffix, 1)
 			os.Rename(rf, approvedPath)
 		}
 	}
@@ -83,4 +91,16 @@ func findFiles(rootDir string, suffix string) []string {
 		return nil
 	})
 	return files
+}
+
+func decodeJSONFile(path string, out interface{}) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if err := json.NewDecoder(f).Decode(&out); err != nil {
+		return fmt.Errorf("cannot unmarshal file %q: %w", path, err)
+	}
+	return nil
 }
