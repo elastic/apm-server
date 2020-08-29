@@ -369,7 +369,7 @@ func TestAggregationFields(t *testing.T) {
 	}
 
 	var expected []model.Metricset
-	expectCount := func(expectedCount int64) {
+	addExpectedCount := func(expectedCount int64) {
 		expected = append(expected, model.Metricset{
 			Metadata: input.Metadata,
 			Event: model.MetricsetEventCategorization{
@@ -393,7 +393,7 @@ func TestAggregationFields(t *testing.T) {
 			*field = value
 			assert.Nil(t, agg.AggregateTransaction(&input))
 			assert.Nil(t, agg.AggregateTransaction(&input))
-			expectCount(2)
+			addExpectedCount(2)
 		}
 	}
 
@@ -405,7 +405,7 @@ func TestAggregationFields(t *testing.T) {
 		input.Metadata.System.DetectedHostname = value
 		assert.Nil(t, agg.AggregateTransaction(&input))
 		assert.Nil(t, agg.AggregateTransaction(&input))
-		expectCount(2)
+		addExpectedCount(2)
 	}
 
 	// ParentID only impacts aggregation as far as grouping root and
@@ -415,7 +415,7 @@ func TestAggregationFields(t *testing.T) {
 		assert.Nil(t, agg.AggregateTransaction(&input))
 		assert.Nil(t, agg.AggregateTransaction(&input))
 	}
-	expectCount(4)
+	addExpectedCount(4)
 
 	var output []model.Metricset
 	req := expectPublish(t, reqs)
