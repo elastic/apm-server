@@ -24,7 +24,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/santhosh-tekuri/jsonschema"
+	"github.com/elastic/beats/v7/libbeat/beat"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
@@ -33,14 +33,7 @@ import (
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/v7/libbeat/beat"
 )
-
-type TestSetup struct {
-	InputDataPath string
-	TemplatePaths []string
-	Schema        *jsonschema.Schema
-}
 
 type intakeTestProcessor struct {
 	stream.Processor
