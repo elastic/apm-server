@@ -44,6 +44,8 @@ func TestTransform(t *testing.T) {
 
 		spType    = "db"
 		spSubtype = "sql"
+
+		eventOutcome = "success"
 	)
 
 	tests := []struct {
@@ -105,6 +107,28 @@ func TestTransform(t *testing.T) {
 				},
 			},
 			Msg: "Payload with extended transaction metadata.",
+		},
+		{
+			Metricset: &Metricset{
+				Metadata:  metadata,
+				Timestamp: timestamp,
+				Samples: []Sample{{
+					Name:  "metric_field",
+					Value: 123,
+				}},
+				Event: MetricsetEventCategorization{
+					Outcome: eventOutcome,
+				},
+			},
+			Output: []common.MapStr{
+				{
+					"processor":    common.MapStr{"event": "metric", "name": "metric"},
+					"service":      common.MapStr{"name": "myservice"},
+					"event":        common.MapStr{"outcome": eventOutcome},
+					"metric_field": 123.0,
+				},
+			},
+			Msg: "Payload with event categorization metadata.",
 		},
 		{
 			Metricset: &Metricset{
