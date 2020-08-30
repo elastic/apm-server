@@ -326,10 +326,11 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 	}
 
 	return transactionAggregationKey{
-		traceRoot:         tx.ParentID == "",
-		transactionName:   tx.Name,
-		transactionResult: tx.Result,
-		transactionType:   tx.Type,
+		traceRoot:          tx.ParentID == "",
+		transactionName:    tx.Name,
+		transactionOutcome: tx.Outcome,
+		transactionResult:  tx.Result,
+		transactionType:    tx.Type,
 
 		agentName:          tx.Metadata.Service.Agent.Name,
 		serviceEnvironment: tx.Metadata.Service.Environment,
@@ -366,6 +367,9 @@ func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, cou
 				Name: key.userAgentName,
 			},
 			// TODO(axw) include client.geo.country_iso_code somewhere
+		},
+		Event: model.MetricsetEventCategorization{
+			Outcome: key.transactionOutcome,
 		},
 		Transaction: model.MetricsetTransaction{
 			Name:   key.transactionName,
@@ -423,6 +427,7 @@ type transactionAggregationKey struct {
 	serviceName        string
 	serviceVersion     string
 	transactionName    string
+	transactionOutcome string
 	transactionResult  string
 	transactionType    string
 	userAgentName      string
@@ -443,6 +448,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.serviceName)
 	h.WriteString(k.serviceVersion)
 	h.WriteString(k.transactionName)
+	h.WriteString(k.transactionOutcome)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
 	h.WriteString(k.userAgentName)
