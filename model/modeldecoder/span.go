@@ -25,7 +25,6 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/apm-server/model"
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/utility"
@@ -125,7 +124,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 		event.DestinationService = destService
 
 		if s := getObject(ctx, "service"); s != nil {
-			var service m.Service
+			var service model.Service
 			decodeService(s, input.Config.HasShortFieldNames, &service)
 			event.Service = &service
 		}
@@ -141,7 +140,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 		}
 	}
 
-	var stacktr *m.Stacktrace
+	var stacktr *model.Stacktrace
 	stacktr, decoder.Err = decodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 	if decoder.Err != nil {
 		return nil, -1, decoder.Err
