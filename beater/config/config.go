@@ -137,7 +137,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
-	if !c.Sampling.KeepUnsampled && !c.Aggregation.Enabled {
+	if !c.Sampling.KeepUnsampled && !c.Aggregation.Transactions.Enabled {
 		// Unsampled transactions should only be dropped
 		// when transaction aggregation is enabled in the
 		// server. This means the aggregations performed
@@ -145,7 +145,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		// representation of the latency distribution.
 		logger.Warn("" +
 			"apm-server.sampling.keep_unsampled and " +
-			"apm-server.aggregation.enabled are both false, " +
+			"apm-server.aggregation.transactions.enabled are both false, " +
 			"which will lead to incorrect metrics being reported in the APM UI",
 		)
 	}
