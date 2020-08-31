@@ -7,7 +7,7 @@
 <titleabbrev>Configure</titleabbrev>
 ++++
 
-include::{libbeat-dir}/shared-configuring.asciidoc[]
+include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 * <<configuration-process>>
 * <<configuring-output>>
