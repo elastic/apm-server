@@ -701,16 +701,9 @@
             "container": {
                 "id": "container-id"
             },
-<<<<<<< HEAD
-=======
-            "destination": {
-                "address": "0:0::0:1",
-                "ip": "0:0::0:1"
-            },
             "event": {
                 "outcome": "unknown"
             },
->>>>>>> fa7ee8dc5... Add event.outcome to transactions and spans (#4064)
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
