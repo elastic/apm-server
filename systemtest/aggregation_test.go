@@ -74,7 +74,7 @@ func TestTransactionAggregation(t *testing.T) {
 		estest.WithCondition(result.Hits.NonEmptyCondition()),
 	)
 	require.NoError(t, err)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }
 
 func TestTransactionAggregationShutdown(t *testing.T) {
@@ -112,5 +112,5 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 		estest.WithCondition(result.Hits.NonEmptyCondition()),
 	)
 	require.NoError(t, err)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }
