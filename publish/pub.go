@@ -137,11 +137,6 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 	return p, nil
 }
 
-// Client returns the beat client used by the publisher
-func (p *Publisher) Client() beat.Client {
-	return p.client
-}
-
 // Stop closes all channels and waits for the the worker to stop, or for the
 // context to be signalled. If the context is never cancelled, Stop may block
 // indefinitely.
