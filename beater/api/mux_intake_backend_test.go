@@ -25,12 +25,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
@@ -41,7 +41,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
@@ -52,7 +52,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -63,7 +63,7 @@ func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+	approvaltest.ApproveJSON(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
 }
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {

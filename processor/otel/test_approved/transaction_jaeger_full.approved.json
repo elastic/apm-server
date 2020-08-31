@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -68,7 +68,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768091Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -132,7 +132,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768111Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -191,7 +191,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -252,7 +252,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -313,7 +313,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -374,7 +374,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"

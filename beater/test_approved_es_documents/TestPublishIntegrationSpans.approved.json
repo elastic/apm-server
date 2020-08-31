@@ -1,12 +1,6 @@
 {
     "events": [
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
                 "name": "elastic-node",
@@ -138,12 +132,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
                 "name": "elastic-node",
@@ -271,12 +259,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "name": "elastic-node",
@@ -408,12 +390,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "name": "elastic-node",
@@ -541,12 +517,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "ephemeral_id": "justanid",
@@ -758,12 +728,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
                 "name": "elastic-node",

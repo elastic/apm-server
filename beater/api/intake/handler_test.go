@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/ratelimit"
 
 	"github.com/stretchr/testify/assert"
@@ -38,7 +39,6 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/tests/loader"
 )
 
@@ -148,7 +148,7 @@ func TestIntakeHandler(t *testing.T) {
 				assert.NotNil(t, tc.c.Result.Err)
 			}
 			body := tc.w.Body.Bytes()
-			approvals.AssertApproveResult(t, "test_approved/"+name, body)
+			approvaltest.ApproveJSON(t, "test_approved/"+name, body)
 		})
 	}
 }
