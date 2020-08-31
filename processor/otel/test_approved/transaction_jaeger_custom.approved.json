@@ -7,7 +7,7 @@
                 "version": "unknown"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "labels": {
                 "a_b": "foo"
