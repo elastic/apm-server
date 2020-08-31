@@ -138,9 +138,6 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 // WriteTransaction may return before the write is committed to storage.
 // Call Flush to ensure the write is committed.
 func (rw *ReadWriter) WriteTransaction(tx *model.Transaction) error {
-	if tx.Sampled != nil && !*tx.Sampled {
-		return errors.New("transaction is not sampled")
-	}
 	key := append(append([]byte(tx.TraceID), ':'), tx.ID...)
 	data, err := rw.s.codec.EncodeTransaction(tx)
 	if err != nil {
