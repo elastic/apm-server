@@ -44,9 +44,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -72,7 +73,8 @@ func TestApprovals(t *testing.T) {
 			require.NoError(t, json.Unmarshal(data, &request))
 
 			require.NoError(t, tc.sendBatchGRPC(request.Batch))
-			require.NoError(t, approvals.ApproveEvents(tc.events, f))
+			docs := beatertest.EncodeEventDocs(tc.events...)
+			approvaltest.ApproveEventDocs(t, f, docs)
 
 			tc.events = nil
 			thriftBatch := &jaegerthrift.Batch{
@@ -80,7 +82,8 @@ func TestApprovals(t *testing.T) {
 				Spans:   jaegerthriftconv.FromDomain(request.Batch.Spans),
 			}
 			require.NoError(t, tc.sendBatchHTTP(thriftBatch))
-			require.NoError(t, approvals.ApproveEvents(tc.events, f))
+			docs = beatertest.EncodeEventDocs(tc.events...)
+			approvaltest.ApproveEventDocs(t, f, docs)
 		})
 	}
 }

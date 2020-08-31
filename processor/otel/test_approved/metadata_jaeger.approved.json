@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "ephemeral_id": "xxf0",
                 "name": "Jaeger/C++",
