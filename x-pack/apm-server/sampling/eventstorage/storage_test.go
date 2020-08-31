@@ -85,9 +85,9 @@ func testWriteEvents(t *testing.T, numSpans int) {
 
 			var value interface{}
 			switch meta := item.UserMeta(); meta {
-			case 't':
+			case 'T':
 				value = &model.Transaction{}
-			case 's':
+			case 'S':
 				value = &model.Span{}
 			default:
 				t.Fatalf("invalid meta %q", meta)
@@ -135,9 +135,9 @@ func TestWriteTraceSampled(t *testing.T) {
 
 			key := string(item.Key())
 			switch meta := item.UserMeta(); meta {
-			case 'S':
+			case 's':
 				sampled[key] = true
-			case 'U':
+			case 'u':
 				sampled[key] = false
 			default:
 				t.Fatalf("invalid meta %q", meta)
@@ -161,13 +161,13 @@ func TestReadEvents(t *testing.T) {
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		key := append(traceID[:], ":12345678"...)
 		value := []byte(`{"name":"transaction"}`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('t')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('T')); err != nil {
 			return err
 		}
 
 		key = append(traceID[:], ":87654321"...)
 		value = []byte(`{"name":"span"}`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('s')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('S')); err != nil {
 			return err
 		}
 
@@ -175,7 +175,7 @@ func TestReadEvents(t *testing.T) {
 		// proceeding colon, causing it to be ignored.
 		key = append(traceID[:], "nocolon"...)
 		value = []byte(`not-json`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('s')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('S')); err != nil {
 			return err
 		}
 
@@ -206,7 +206,7 @@ func TestReadEventsDecodeError(t *testing.T) {
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		key := append(traceID[:], ":12345678"...)
 		value := []byte(`wat`)
-		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('t')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('T')); err != nil {
 			return err
 		}
 		return nil
@@ -226,10 +226,10 @@ func TestIsTraceSampled(t *testing.T) {
 	store := eventstorage.New(db, eventstorage.JSONCodec{}, ttl)
 
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
-		if err := txn.SetEntry(badger.NewEntry([]byte("sampled_trace_id"), nil).WithMeta('S')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry([]byte("sampled_trace_id"), nil).WithMeta('s')); err != nil {
 			return err
 		}
-		if err := txn.SetEntry(badger.NewEntry([]byte("unsampled_trace_id"), nil).WithMeta('U')); err != nil {
+		if err := txn.SetEntry(badger.NewEntry([]byte("unsampled_trace_id"), nil).WithMeta('u')); err != nil {
 			return err
 		}
 		return nil

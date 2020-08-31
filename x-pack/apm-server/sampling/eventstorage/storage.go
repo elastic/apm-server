@@ -13,15 +13,13 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-// TODO(axw) develop a more efficient codec (protobuf?) for persisting model objects.
-
 const (
 	// NOTE(axw) these values (and their meanings) must remain stable
 	// over time, to avoid misinterpreting historical data.
-	entryMetaTraceSampled   = 'S'
-	entryMetaTraceUnsampled = 'U'
-	entryMetaTransaction    = 't'
-	entryMetaSpan           = 's'
+	entryMetaTraceSampled   = 's'
+	entryMetaTraceUnsampled = 'u'
+	entryMetaTransaction    = 'T'
+	entryMetaSpan           = 'S'
 )
 
 // ErrNotFound is returned by by the Storage.IsTraceSampled method,
