@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2017-05-09T15:04:05.999999Z",
+            "@timestamp": "2017-05-09T15:04:05.999Z",
             "agent": {
                 "ephemeral_id": "abcdef123",
                 "name": "elastic-node",
@@ -550,7 +550,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
