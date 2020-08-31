@@ -262,7 +262,7 @@ $(PYTHON_BIN)/activate: $(MAGE)
 
 .PHONY: $(APPROVALS)
 $(APPROVALS):
-	@go build -o $@ tests/scripts/approvals.go
+	@go build -o $@ github.com/elastic/apm-server/approvaltest/cmd/check-approvals
 
 ##############################################################################
 # Release manager.

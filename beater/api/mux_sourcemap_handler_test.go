@@ -25,12 +25,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
@@ -40,7 +40,7 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
@@ -50,7 +50,7 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithHeader(cfg, AssetSourcemapPath, http.MethodPost, h)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -59,7 +59,7 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("OffSourcemap", func(t *testing.T) {
@@ -70,14 +70,14 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AssetSourcemapPath)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("On", func(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), AssetSourcemapPath)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusForbidden, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -88,7 +88,7 @@ func TestSourcemapHandler_PanicMiddleware(t *testing.T) {
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	require.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+	approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 }
 
 func TestSourcemapHandler_MonitoringMiddleware(t *testing.T) {

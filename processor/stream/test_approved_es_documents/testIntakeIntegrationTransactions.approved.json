@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -443,7 +443,7 @@
                         "some_long": 10
                     },
                     "navigationTiming": {
-                        "appBeforeBootstrap": 608.93,
+                        "appBeforeBootstrap": 608.9300000000001,
                         "navigationStart": -21
                     }
                 },
@@ -461,7 +461,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"

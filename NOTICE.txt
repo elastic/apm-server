@@ -1147,7 +1147,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/google/go-cmp
-Version: v0.4.0
+Version: v0.5.2
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 

@@ -28,8 +28,8 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -203,7 +203,7 @@ func TestDecodeContext(t *testing.T) {
 				resultName := fmt.Sprintf("test_approved_model/context_%s", name)
 				resultJSON, err := json.Marshal(out)
 				require.NoError(t, err)
-				approvals.AssertApproveResult(t, resultName, resultJSON)
+				approvaltest.ApproveJSON(t, resultName, resultJSON)
 			}
 		})
 	}

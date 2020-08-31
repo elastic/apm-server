@@ -29,8 +29,8 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestSystem(t *testing.T) {
@@ -191,7 +191,7 @@ func TestSystem(t *testing.T) {
 
 			resultJSON, err := json.Marshal(fields["host"])
 			require.NoError(t, err)
-			approvals.AssertApproveResult(t, resultName, resultJSON)
+			approvaltest.ApproveJSON(t, resultName, resultJSON)
 		})
 	}
 }
