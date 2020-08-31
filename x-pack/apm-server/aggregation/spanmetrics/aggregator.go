@@ -26,10 +26,12 @@ type AggregatorConfig struct {
 
 // Aggregator aggregates transaction durations, periodically publishing histogram spanMetrics.
 type Aggregator struct {
-	stopMu           sync.Mutex
-	stopping         chan struct{}
-	stopped          chan struct{}
-	config           AggregatorConfig
+	stopMu   sync.Mutex
+	stopping chan struct{}
+	stopped  chan struct{}
+
+	config AggregatorConfig
+
 	mu               sync.RWMutex
 	active, inactive *metricsBuffer
 }
@@ -48,6 +50,9 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}, nil
 }
 
+// Run runs the Aggregator, periodically publishing and clearing aggregated
+// metrics. Run returns when either a fatal error occurs, or the Aggregator's
+// Stop method is invoked.
 func (a *Aggregator) Run() error {
 	ticker := time.NewTicker(a.config.Interval)
 	defer ticker.Stop()
@@ -129,27 +134,47 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	})
 }
 
+// ProcessTransformables aggregates all transactions contained in
+// "in", returning the input.
+//
+// This method is expected to be used immediately prior to publishing
+// the events.
 func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []transform.Transformable {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
 	out := in
 	for _, tf := range in {
-		if span, ok := tf.(*model.Span); ok &&
-			span.DestinationService != nil &&
-			span.DestinationService.Resource != nil &&
-			span.RepresentativeCount > 0 {
-			key := aggregationKey{
-				serviceEnvironment: span.Metadata.Service.Environment,
-				serviceName:        span.Metadata.Service.Name,
-				resource:           *span.DestinationService.Resource,
-			}
-			duration := time.Duration(span.Duration * float64(time.Millisecond))
-			metrics := spanMetrics{
-				count: span.RepresentativeCount,
-				sum:   float64(duration.Microseconds()) * span.RepresentativeCount,
-			}
-			a.active.storeOrUpdate(key, metrics)
+		span, ok := tf.(*model.Span)
+		if !ok {
+			continue
 		}
+		a.processSpan(span)
 	}
 	return out
+}
+
+func (a *Aggregator) processSpan(span *model.Span) {
+	if span.DestinationService == nil || span.DestinationService.Resource == nil {
+		return
+	}
+	if span.RepresentativeCount <= 0 {
+		// RepresentativeCount is zero when the sample rate is unknown.
+		// We cannot calculate accurate span metrics without the sample
+		// rate, so we don't calculate any at all in this case.
+		return
+	}
+
+	key := aggregationKey{
+		serviceEnvironment: span.Metadata.Service.Environment,
+		serviceName:        span.Metadata.Service.Name,
+		resource:           *span.DestinationService.Resource,
+	}
+	duration := time.Duration(span.Duration * float64(time.Millisecond))
+	metrics := spanMetrics{
+		count: span.RepresentativeCount,
+		sum:   float64(duration.Microseconds()) * span.RepresentativeCount,
+	}
+	a.active.storeOrUpdate(key, metrics)
 }
 
 type metricsBuffer struct {

@@ -26,11 +26,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	})
 	require.NoError(b, err)
 
-	span := &model.Span{
-		Name:     "T-1000",
-		Duration: 1,
-	}
-
+	span := makeSpan("test_service", "test_destination", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			agg.ProcessTransformables([]transform.Transformable{span})
@@ -48,19 +44,18 @@ func TestAggregatorRun(t *testing.T) {
 
 	destinationX := "destination-X"
 	destinationZ := "destination-Z"
-	now := float64(time.Now().Unix())
 
 	go agg.Run()
 	defer agg.Stop(context.Background())
 
 	var wg sync.WaitGroup
 	wg.Add(6)
-	go sendEvents(&wg, agg, now, 2, "service-A", &destinationZ)
-	go sendEvents(&wg, agg, now, 1, "service-A", &destinationX)
-	go sendEvents(&wg, agg, now, 1, "service-B", &destinationZ)
-	go sendEvents(&wg, agg, now, 1, "service-A", &destinationZ)
-	go sendEvents(&wg, agg, now, 0, "service-A", &destinationZ)
-	go sendEvents(&wg, agg, now, 1, "service-A", nil)
+	go sendEvents(&wg, agg, 2, "service-A", destinationZ)
+	go sendEvents(&wg, agg, 1, "service-A", destinationX)
+	go sendEvents(&wg, agg, 1, "service-B", destinationZ)
+	go sendEvents(&wg, agg, 1, "service-A", destinationZ)
+	go sendEvents(&wg, agg, 0, "service-A", destinationZ)
+	go sendEvents(&wg, agg, 1, "service-A", "" /* no destination */)
 	wg.Wait()
 	req := expectPublish(t, reqs)
 
@@ -135,22 +130,31 @@ func TestAggregatorRun(t *testing.T) {
 	}
 }
 
-func sendEvents(wg *sync.WaitGroup, agg *Aggregator, start float64, count float64, serviceName string, resource *string) {
+func sendEvents(wg *sync.WaitGroup, agg *Aggregator, count float64, serviceName string, resource string) {
 	defer wg.Done()
+	span := makeSpan(serviceName, resource, 100*time.Millisecond, count)
 	for i := 0; i < 100; i++ {
-		agg.ProcessTransformables([]transform.Transformable{
-			&model.Span{
-				Metadata: model.Metadata{
-					Service: model.Service{Name: serviceName},
-				},
-				Name:                serviceName + "-span",
-				Start:               &start,
-				Duration:            100,
-				RepresentativeCount: count,
-				DestinationService:  &model.DestinationService{Resource: resource},
-			},
-		})
+		agg.ProcessTransformables([]transform.Transformable{span})
 	}
+}
+
+func makeSpan(
+	serviceName string, destinationServiceResource string,
+	duration time.Duration,
+	count float64,
+) *model.Span {
+	span := &model.Span{
+		Metadata:            model.Metadata{Service: model.Service{Name: serviceName}},
+		Name:                serviceName + ":" + destinationServiceResource,
+		Duration:            duration.Seconds() * 1000,
+		RepresentativeCount: count,
+	}
+	if destinationServiceResource != "" {
+		span.DestinationService = &model.DestinationService{
+			Resource: &destinationServiceResource,
+		}
+	}
+	return span
 }
 
 func makeErrReporter(err error) publish.Reporter {
