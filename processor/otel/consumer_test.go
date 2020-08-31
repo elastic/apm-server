@@ -258,12 +258,12 @@ func TestConsumer_Transaction(t *testing.T) {
 	}
 }
 
-func TestConsumer_TransactionSampleRate(t *testing.T) {
+func TestConsumer_SampleRate(t *testing.T) {
 	var transformables []transform.Transformable
 	reporter := func(ctx context.Context, req publish.PendingReq) error {
 		transformables = append(transformables, req.Transformables...)
 		events := transformAll(ctx, req)
-		assert.NoError(t, approvals.ApproveEvents(events, file("transaction_jaeger_sampling_rate")))
+		assert.NoError(t, approvals.ApproveEvents(events, file("jaeger_sampling_rate")))
 		return nil
 	}
 	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), consumerdata.TraceData{
@@ -278,12 +278,22 @@ func TestConsumer_TransactionSampleRate(t *testing.T) {
 				"sampler.type":  testAttributeStringValue("probabilistic"),
 				"sampler.param": testAttributeDoubleValue(0.8),
 			}},
+		}, {
+			Kind:      tracepb.Span_CLIENT,
+			StartTime: testStartTime(), EndTime: testEndTime(),
+			ParentSpanId: []byte{1},
+			Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+				"sampler.type":  testAttributeStringValue("probabilistic"),
+				"sampler.param": testAttributeDoubleValue(0.4),
+			}},
 		}},
 	}))
 
-	require.Len(t, transformables, 1)
+	require.Len(t, transformables, 2)
 	tx := transformables[0].(*model.Transaction)
+	span := transformables[1].(*model.Span)
 	assert.Equal(t, 1.25 /* 1/0.8 */, tx.RepresentativeCount)
+	assert.Equal(t, 2.5 /* 1/0.4 */, span.RepresentativeCount)
 }
 
 func TestConsumer_Span(t *testing.T) {
