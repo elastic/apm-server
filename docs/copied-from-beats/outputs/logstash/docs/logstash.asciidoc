@@ -5,8 +5,8 @@
 <titleabbrev>Logstash</titleabbrev>
 ++++
 
-The Logstash output sends events directly to Logstash by using the lumberjack
-protocol, which runs over TCP. Logstash allows for additional processing and routing of
+The {ls} output sends events directly to {ls} by using the lumberjack
+protocol, which runs over TCP. {ls} allows for additional processing and routing of
 generated events.
 
 // tag::shared-logstash-config[]
@@ -26,11 +26,10 @@ If you want to use {ls} to perform additional processing on the data collected b
 
 To do this, edit the {beatname_uc} configuration file to disable the {es}
 output by commenting it out and enable the {ls} output by uncommenting the
-logstash section:
+{ls} section:
 
 [source,yaml]
 ------------------------------------------------------------------------------
-#----------------------------- Logstash output --------------------------------
 output.logstash:
   hosts: ["127.0.0.1:5044"]
 ------------------------------------------------------------------------------
@@ -71,6 +70,9 @@ for more about the `@metadata` field.
 <2> The default is {beat_default_index_prefix}. To change this value, set the
 <<logstash-index,`index`>> option in the {beatname_uc} config file.
 <3> The current version of {beatname_uc}.
+
+You can access this metadata from within the Logstash config file to set values
+dynamically based on the contents of the metadata.
 endif::[]
 
 ifdef::apm-server[]
@@ -85,7 +87,7 @@ ifdef::apm-server[]
     }
 }
 ------------------------------------------------------------------------------
-<1> {beatname_uc} uses the `@metadata` field to send metadata to Logstash. See the
+<1> {beatname_uc} uses the `@metadata` field to send metadata to {ls}. See the
 {logstash-ref}/event-dependent-configuration.html#metadata[Logstash documentation]
 for more about the `@metadata` field.
 <2> The default is {beat_default_index_prefix}. To change this value, set the
@@ -93,16 +95,16 @@ for more about the `@metadata` field.
 <3> The default pipeline configuration: `apm`. Additional pipelines can be enabled
 with a {logstash-ref}/use-ingest-pipelines.html[Logstash pipeline config].
 <4> The current version of {beatname_uc}.
+
+In addition to metadata, {beatname_uc} provides the `processor.event` field, which
+can be used to separate {apm-overview-ref-v}/apm-data-model.html[event types] into different indices.
 endif::[]
 
-You can access this metadata from within the Logstash config file to set values
-dynamically based on the contents of the metadata.
-
+ifndef::apm-server[]
 For example, the following Logstash configuration file tells
 Logstash to use the index reported by {beatname_uc} for indexing events
 into Elasticsearch:
 
-ifndef::apm-server[]
 [source,logstash]
 ------------------------------------------------------------------------------
 
@@ -126,6 +128,10 @@ the Beat's version. For example:
 endif::[]
 
 ifdef::apm-server[]
+For example, the following {ls} configuration file tells
+{ls} to use the index and event types reported by {beatname_uc} for indexing events
+into Elasticsearch:
+
 [source,logstash]
 ------
 input {
@@ -156,11 +162,11 @@ output {
 }
 ------
 <1> Creates a new field named `@metadata.index`.
-`%{[@metadata][beat]}` sets the first part of the index name to the value of the `beat` metadata field.
+`%{[@metadata][beat]}` sets the first part of the index name to the value of the `metadata.beat` field.
 `%{[@metadata][version]}` sets the second part to {beatname_uc}'s version.
 `%{[processor][event]}` sets the final part based on the APM event type.
 For example: +{beat_default_index_prefix}-{version}-sourcemap+.
-<2> In addition to the above rules, this pattern appends a date to the `index` name so Logstash creates a new index each day.
+<2> In addition to the above rules, this pattern appends a date to the `index` name so {ls} creates a new index each day.
 For example: +{beat_default_index_prefix}-{version}-transaction-{sample_date_0}+.
 endif::[]
 
@@ -172,10 +178,10 @@ NOTE: If ILM is not being used, set `index` to `%{[@metadata][beat]}-%{[@metadat
 endif::[]
 
 ifdef::apm-server[]
-==== Logstash and ILM
+==== {ls} and ILM
 
-When used with {apm-server-ref}/ilm.html[Index lifecycle management], Logstash does not need to create a new index each day.
-Here's a sample Logstash configuration file that would accomplish this:
+When used with {apm-server-ref}/ilm.html[Index lifecycle management], {ls} does not need to create a new index each day.
+Here's a sample {ls} configuration file that would accomplish this:
 
 [source,logstash]
 ------
@@ -188,10 +194,15 @@ input {
 output {
     elasticsearch {
         hosts => ["http://localhost:9200"]
-        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}"
+        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}" <1>
     }
 }
 ------
+<1> Outputs documents to an index:
+`%{[@metadata][beat]}` sets the first part of the index name to the value of the `metadata.beat` field.
+`%{[@metadata][version]}` sets the second part to {beatname_uc}'s version.
+`%{[processor][event]}` sets the final part based on the APM event type.
+For example: +{beat_default_index_prefix}-{version}-sourcemap+.
 endif::[]
 
 ==== Compatibility
@@ -224,14 +235,14 @@ The list of known Logstash servers to connect to. If load balancing is disabled,
 multiple hosts are configured, one host is selected randomly (there is no precedence).
 If one host becomes unreachable, another one is selected randomly.
 
-All entries in this list can contain a port number. The default port number 5044 will be used, if no number is given.
+All entries in this list can contain a port number. The default port number 5044 will be used if no number is given.
 
 ===== `compression_level`
 
 The gzip compression level. Setting this value to 0 disables compression.
 The compression level must be in the range of 1 (best speed) to 9 (best compression).
 
-Increasing the compression level will reduce the network usage but will increase the cpu usage.
+Increasing the compression level will reduce the network usage but will increase the CPU usage.
 
 The default value is 3.
 
@@ -277,7 +288,7 @@ NOTE: The "ttl" option is not yet supported on an async Logstash client (one wit
 
 ===== `pipelining`
 
-Configures number of batches to be sent asynchronously to logstash while waiting
+Configures the number of batches to be sent asynchronously to logstash while waiting
 for ACK from logstash. Output only becomes blocking once number of `pipelining`
 batches have been written. Pipelining is disabled if a value of 0 is
 configured. The default value is 2.
@@ -306,7 +317,7 @@ output.logstash:
 ===== `proxy_use_local_resolver`
 
 The `proxy_use_local_resolver` option determines if Logstash hostnames are
-resolved locally when using a proxy. The default value is false which means
+resolved locally when using a proxy. The default value is false, which means
 that when a proxy is used the name resolution occurs on the proxy server.
 
 [[logstash-index]]
@@ -364,9 +375,9 @@ number of events to be contained in a batch.
 
 ===== `slow_start`
 
-If enabled only a subset of events in a batch of events is transferred per transaction.
+If enabled, only a subset of events in a batch of events is transferred per transaction.
 The number of events to be sent increases up to `bulk_max_size` if no error is encountered.
-On error the number of events per transaction is reduced again.
+On error, the number of events per transaction is reduced again.
 
 The default is `false`.
 
