@@ -6,7 +6,6 @@ package spanmetrics
 
 import (
 	"context"
-	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -26,7 +25,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	})
 	require.NoError(b, err)
 
-	span := makeSpan("test_service", "test_destination", time.Second, 1)
+	span := makeSpan("test_service", "test_destination", "success", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			agg.ProcessTransformables([]transform.Transformable{span})
@@ -42,40 +41,56 @@ func TestAggregatorRun(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	destinationX := "destination-X"
-	destinationZ := "destination-Z"
-
 	go agg.Run()
 	defer agg.Stop(context.Background())
 
-	var wg sync.WaitGroup
-	wg.Add(6)
-	go sendEvents(&wg, agg, 2, "service-A", destinationZ)
-	go sendEvents(&wg, agg, 1, "service-A", destinationX)
-	go sendEvents(&wg, agg, 1, "service-B", destinationZ)
-	go sendEvents(&wg, agg, 1, "service-A", destinationZ)
-	go sendEvents(&wg, agg, 0, "service-A", destinationZ)
-	go sendEvents(&wg, agg, 1, "service-A", "" /* no destination */)
-	wg.Wait()
-	req := expectPublish(t, reqs)
+	type input struct {
+		serviceName string
+		destination string
+		outcome     string
+		count       float64
+	}
 
-	require.Len(t, req.Transformables, 3)
+	destinationX := "destination-X"
+	destinationZ := "destination-Z"
+	inputs := []input{
+		{serviceName: "service-A", destination: destinationZ, outcome: "success", count: 2},
+		{serviceName: "service-A", destination: destinationX, outcome: "success", count: 1},
+		{serviceName: "service-B", destination: destinationZ, outcome: "success", count: 1},
+		{serviceName: "service-A", destination: destinationZ, outcome: "success", count: 1},
+		{serviceName: "service-A", destination: destinationZ, outcome: "success", count: 0},
+		{serviceName: "service-A", outcome: "success", count: 1}, // no destination
+		{serviceName: "service-A", destination: destinationZ, outcome: "failure", count: 1},
+	}
+
+	var wg sync.WaitGroup
+	for _, in := range inputs {
+		wg.Add(1)
+		go func(in input) {
+			defer wg.Done()
+			span := makeSpan(in.serviceName, in.destination, in.outcome, 100*time.Millisecond, in.count)
+			for i := 0; i < 100; i++ {
+				agg.ProcessTransformables([]transform.Transformable{span})
+			}
+		}(in)
+	}
+	wg.Wait()
+
+	req := expectPublish(t, reqs)
 	metricsets := make([]*model.Metricset, len(req.Transformables))
 	for i, tf := range req.Transformables {
-		metricsets[i] = tf.(*model.Metricset)
+		ms := tf.(*model.Metricset)
+		require.NotZero(t, ms.Timestamp)
+		ms.Timestamp = time.Time{}
+		metricsets[i] = ms
 	}
-	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Metadata.Service.Name+*metricsets[i].Span.DestinationService.Resource <
-			metricsets[j].Metadata.Service.Name+*metricsets[j].Span.DestinationService.Resource
-	})
 
-	m := metricsets[0]
-	require.NotNil(t, m)
-	require.False(t, m.Timestamp.IsZero())
-	m.Timestamp = time.Time{}
-	assert.Equal(t, &model.Metricset{
+	assert.ElementsMatch(t, []*model.Metricset{{
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A"},
+		},
+		Event: model.MetricsetEventCategorization{
+			Outcome: "success",
 		},
 		Span: model.MetricsetSpan{
 			DestinationService: model.DestinationService{Resource: &destinationX},
@@ -85,33 +100,12 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
-	}, m)
-
-	m = metricsets[1]
-	require.NotNil(t, m)
-	require.False(t, m.Timestamp.IsZero())
-	m.Timestamp = time.Time{}
-	assert.Equal(t, &model.Metricset{
+	}, {
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A"},
 		},
-		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: &destinationZ},
-		},
-		Samples: []model.Sample{
-			{Name: "destination.service.response_time.count", Value: 300.0},
-			{Name: "destination.service.response_time.sum.us", Value: 30000000.0},
-			{Name: "metricset.period", Value: 10},
-		},
-	}, m)
-
-	m = metricsets[2]
-	require.NotNil(t, m)
-	require.False(t, m.Timestamp.IsZero())
-	m.Timestamp = time.Time{}
-	assert.Equal(t, &model.Metricset{
-		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-B"},
+		Event: model.MetricsetEventCategorization{
+			Outcome: "failure",
 		},
 		Span: model.MetricsetSpan{
 			DestinationService: model.DestinationService{Resource: &destinationZ},
@@ -121,7 +115,37 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
-	}, m)
+	}, {
+		Metadata: model.Metadata{
+			Service: model.Service{Name: "service-A"},
+		},
+		Event: model.MetricsetEventCategorization{
+			Outcome: "success",
+		},
+		Span: model.MetricsetSpan{
+			DestinationService: model.DestinationService{Resource: &destinationZ},
+		},
+		Samples: []model.Sample{
+			{Name: "destination.service.response_time.count", Value: 300.0},
+			{Name: "destination.service.response_time.sum.us", Value: 30000000.0},
+			{Name: "metricset.period", Value: 10},
+		},
+	}, {
+		Metadata: model.Metadata{
+			Service: model.Service{Name: "service-B"},
+		},
+		Event: model.MetricsetEventCategorization{
+			Outcome: "success",
+		},
+		Span: model.MetricsetSpan{
+			DestinationService: model.DestinationService{Resource: &destinationZ},
+		},
+		Samples: []model.Sample{
+			{Name: "destination.service.response_time.count", Value: 100.0},
+			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
+			{Name: "metricset.period", Value: 10},
+		},
+	}}, metricsets)
 
 	select {
 	case <-reqs:
@@ -130,16 +154,8 @@ func TestAggregatorRun(t *testing.T) {
 	}
 }
 
-func sendEvents(wg *sync.WaitGroup, agg *Aggregator, count float64, serviceName string, resource string) {
-	defer wg.Done()
-	span := makeSpan(serviceName, resource, 100*time.Millisecond, count)
-	for i := 0; i < 100; i++ {
-		agg.ProcessTransformables([]transform.Transformable{span})
-	}
-}
-
 func makeSpan(
-	serviceName string, destinationServiceResource string,
+	serviceName string, destinationServiceResource, outcome string,
 	duration time.Duration,
 	count float64,
 ) *model.Span {
@@ -148,6 +164,7 @@ func makeSpan(
 		Name:                serviceName + ":" + destinationServiceResource,
 		Duration:            duration.Seconds() * 1000,
 		RepresentativeCount: count,
+		Outcome:             outcome,
 	}
 	if destinationServiceResource != "" {
 		span.DestinationService = &model.DestinationService{
