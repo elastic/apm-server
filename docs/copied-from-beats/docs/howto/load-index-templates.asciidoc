@@ -83,9 +83,10 @@ The examples here assume that Logstash output is enabled.
 endif::[]
 You can omit the `-E` flags if {es} output is already enabled.
 
-
+ifndef::apm-server[]
 If you are connecting to a secured {es} cluster, make sure you've
 configured credentials as described in the <<{beatname_lc}-installation-configuration>>.
+endif::[]
 
 If the host running {beatname_uc} does not have direct connectivity to
 {es}, see <<load-template-manually-alternate>>.
