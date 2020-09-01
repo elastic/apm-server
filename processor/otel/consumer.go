@@ -130,7 +130,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Name:      name,
 				Outcome:   "unknown",
 			}
-			parseSpan(otelSpan, &span)
+			parseSpan(otelSpan, td.SourceFormat, &span)
 			batch.Spans = append(batch.Spans, &span)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addSpanCtxToErr(span, hostname, err)
@@ -324,22 +324,8 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 
 	if samplerType != nil && samplerParam != nil {
 		// The client has reported its sampling rate, so
-		// we can use it to extrapolate transaction metrics.
-		switch samplerType.GetStringValue().GetValue() {
-		case "probabilistic":
-			probability := samplerParam.GetDoubleValue()
-			if probability > 0 && probability < 1 {
-				event.RepresentativeCount = 1 / probability
-			}
-		default:
-			utility.DeepUpdate(labels, "sampler_type", samplerType.GetStringValue().GetValue())
-			switch v := samplerParam.Value.(type) {
-			case *tracepb.AttributeValue_BoolValue:
-				utility.DeepUpdate(labels, "sampler_param", v.BoolValue)
-			case *tracepb.AttributeValue_DoubleValue:
-				utility.DeepUpdate(labels, "sampler_param", v.DoubleValue)
-			}
-		}
+		// we can use it to extrapolate span metrics.
+		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
 	}
 
 	if len(labels) == 0 {
@@ -349,7 +335,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	event.Labels = &l
 }
 
-func parseSpan(span *tracepb.Span, event *model.Span) {
+func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 	labels := make(common.MapStr)
 
 	var http model.HTTP
@@ -359,7 +345,19 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 	var destinationService model.DestinationService
 	var isDBSpan, isHTTPSpan, isMessagingSpan bool
 	var component string
+	var samplerType, samplerParam *tracepb.AttributeValue
 	for kDots, v := range span.Attributes.GetAttributeMap() {
+		if sourceFormat == sourceFormatJaeger {
+			switch kDots {
+			case "sampler.type":
+				samplerType = v
+				continue
+			case "sampler.param":
+				samplerParam = v
+				continue
+			}
+		}
+
 		k := replaceDots(kDots)
 		switch v := v.Value.(type) {
 		case *tracepb.AttributeValue_BoolValue:
@@ -526,10 +524,34 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 		event.DestinationService = &destinationService
 	}
 
+	if samplerType != nil && samplerParam != nil {
+		// The client has reported its sampling rate, so
+		// we can use it to extrapolate transaction metrics.
+		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
+	}
+
 	if len(labels) == 0 {
 		return
 	}
 	event.Labels = labels
+}
+
+func parseSamplerAttributes(samplerType, samplerParam *tracepb.AttributeValue, representativeCount *float64, labels common.MapStr) {
+	switch samplerType.GetStringValue().GetValue() {
+	case "probabilistic":
+		probability := samplerParam.GetDoubleValue()
+		if probability > 0 && probability <= 1 {
+			*representativeCount = 1 / probability
+		}
+	default:
+		utility.DeepUpdate(labels, "sampler_type", samplerType.GetStringValue().GetValue())
+		switch v := samplerParam.Value.(type) {
+		case *tracepb.AttributeValue_BoolValue:
+			utility.DeepUpdate(labels, "sampler_param", v.BoolValue)
+		case *tracepb.AttributeValue_DoubleValue:
+			utility.DeepUpdate(labels, "sampler_param", v.DoubleValue)
+		}
+	}
 }
 
 func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model.Error {
