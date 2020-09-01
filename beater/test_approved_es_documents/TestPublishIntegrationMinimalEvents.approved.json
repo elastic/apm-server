@@ -15,6 +15,9 @@
             "ecs": {
                 "version": "1.5.0"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "ip": "127.0.0.1"
             },
@@ -69,6 +72,9 @@
             "ecs": {
                 "version": "1.5.0"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "ip": "127.0.0.1"
             },
@@ -122,6 +128,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "ip": "127.0.0.1"

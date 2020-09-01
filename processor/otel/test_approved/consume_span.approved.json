@@ -6,6 +6,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -34,6 +37,9 @@
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "parent": {
                 "id": "46463058"

@@ -9,6 +9,9 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "http": {
                 "request": {
                     "headers": {
@@ -147,6 +150,9 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -212,6 +218,9 @@
             },
             "client": {
                 "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -282,6 +291,9 @@
             "destination": {
                 "address": "localhost",
                 "port": 8000
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -366,6 +378,9 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -434,6 +449,9 @@
             "destination": {
                 "address": "localhost",
                 "port": 8000
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -522,6 +540,9 @@
                 "address": "localhost",
                 "port": 8003
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -609,6 +630,9 @@
                 "address": "localhost",
                 "port": 8003
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -692,6 +716,9 @@
             },
             "client": {
                 "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"

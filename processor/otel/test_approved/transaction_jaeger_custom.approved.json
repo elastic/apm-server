@@ -6,6 +6,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "labels": {
                 "a_b": "foo"
             },

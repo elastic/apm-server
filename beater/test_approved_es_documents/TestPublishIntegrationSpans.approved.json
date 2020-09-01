@@ -43,6 +43,9 @@
             "ecs": {
                 "version": "1.5.0"
             },
+            "event": {
+                "outcome": "success"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -171,6 +174,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -301,6 +307,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -435,6 +444,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -571,6 +583,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -779,6 +794,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

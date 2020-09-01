@@ -33,10 +33,11 @@ import (
 )
 
 var (
-	trID     = "123"
-	trType   = "type"
-	trName   = "foo()"
-	trResult = "555"
+	trID      = "123"
+	trType    = "type"
+	trName    = "foo()"
+	trResult  = "555"
+	trOutcome = "success"
 
 	trDuration = 6.0
 
@@ -68,6 +69,7 @@ var fullTransactionInput = map[string]interface{}{
 	"duration":   trDuration,
 	"timestamp":  timestampEpoch,
 	"result":     trResult,
+	"outcome":    trOutcome,
 	"sampled":    true,
 	"trace_id":   traceID,
 	"parent_id":  parentID,
@@ -124,6 +126,10 @@ func TestDecodeTransactionInvalid(t *testing.T) {
 			input: map[string]interface{}{"duration": -1.0},
 			err:   "duration.*must be >= 0 but found -1",
 		},
+		"invalid outcome": {
+			input: map[string]interface{}{"outcome": `¯\_(ツ)_/¯`},
+			err:   `outcome.*must be one of <nil>, "success", "failure", "unknown"`,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			input := make(map[string]interface{})
@@ -172,6 +178,7 @@ func TestTransactionDecodeRUMV3Marks(t *testing.T) {
 
 func TestTransactionEventDecode(t *testing.T) {
 	id, trType, name, result := "123", "type", "foo()", "555"
+	outcome := "success"
 	requestTime := time.Now()
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
@@ -219,6 +226,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: requestTime,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=true, no experimental payload": {
@@ -236,6 +244,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=false": {
@@ -253,6 +262,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=true": {
@@ -271,6 +281,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Timestamp:    timestampParsed,
 				SpanCount:    model.SpanCount{Dropped: &dropped, Started: &started},
 				Experimental: map[string]interface{}{"foo": "bar"},
+				Outcome:      "unknown",
 			},
 		},
 		"messaging event": {
@@ -295,6 +306,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 				Message: &model.Message{
 					QueueName: tests.StringPtr("order"),
 					Body:      tests.StringPtr("confirmed"),
@@ -307,6 +319,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"timestamp": timestampEpoch,
 				"result":    result,
+				"outcome":   outcome,
 				"sampled":   sampled,
 				"parent_id": parentID,
 				"marks":     marks,
@@ -338,6 +351,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Type:      trType,
 				Name:      name,
 				Result:    result,
+				Outcome:   outcome,
 				ParentID:  parentID,
 				TraceID:   traceID,
 				Duration:  duration,

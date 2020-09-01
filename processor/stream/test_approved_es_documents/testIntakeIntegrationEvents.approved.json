@@ -13,6 +13,9 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
@@ -190,6 +193,9 @@
             },
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "amd64",

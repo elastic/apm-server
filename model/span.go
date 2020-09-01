@@ -54,6 +54,7 @@ type Span struct {
 
 	Message    *Message
 	Name       string
+	Outcome    string
 	Start      *float64
 	Duration   float64
 	Service    *Service
@@ -203,6 +204,7 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 	utility.Set(fields, "experimental", e.Experimental)
 	utility.Set(fields, "destination", e.Destination.fields())
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	utility.DeepUpdate(fields, "event.outcome", e.Outcome)
 
 	return []beat.Event{
 		{
