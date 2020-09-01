@@ -23,9 +23,13 @@ RUN $PYTHON_ENV/build/ve/linux/bin/pip install wheel
 RUN touch -d "Yesterday" $PYTHON_ENV/build/ve/linux/bin/activate
 
 # Download module dependencies.
-COPY go.mod $HOME
 WORKDIR $HOME
+COPY go.mod go.sum ./
+COPY approvaltest/go.mod approvaltest/go.sum ./approvaltest/
+COPY systemtest/go.mod systemtest/go.sum ./systemtest/
 RUN go mod download
+RUN cd approvaltest && go mod download
+RUN cd systemtest && go mod download
 
 # Add healthcheck for docker/healthcheck metricset to check during testing
 HEALTHCHECK CMD exit 0
