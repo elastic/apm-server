@@ -32,7 +32,7 @@ include::./ssl-input.asciidoc[]
 
 experimental::[]
 
-You can configure an API key to authorize requests to the APM Server.
+You can configure API keys to authorize requests to the APM Server.
 
 NOTE: API keys are sent as plain-text,
 so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
@@ -76,9 +76,8 @@ All other configuration options are described in <<api-key-settings>>.
 [float]
 === Create and validate an API key
 
-APM Server provides a command line interface for creating API keys.
+APM Server provides a command line interface for creating, retrieving, invalidating, and verifying API keys.
 Keys created using this method can only be used for Agent/Server communication.
-The user that creates the API key will need to have the privileges they wish to give to the API key.
 
 [[create-api-key-subcommands]]
 [float]
@@ -93,12 +92,12 @@ include::{libbeat-dir}/command-reference.asciidoc[tag=apikey-subcommands]
 There are three unique privileges you can assign to each API keys.
 If privileges are not specified at creation time, the created key will have all privileges.
 
-* *Agent configuration* - Required for agents to read
+* *Agent configuration*: Required for agents to read
 {kibana-ref}/agent-configuration.html[Agent configuration remotely].
 `--agent-config` gives the `config_agent:read` privilege to the created key.
-* *Ingest* - Required for ingesting Agent events.
+* *Ingest*: Required for ingesting Agent events.
 `--ingest` gives the `event:write` privilege to the created key.
-* *Sourcemap* - Required for <<sourcemaps,uploading sourcemaps>>.
+* *Sourcemap*: Required for <<sourcemaps,uploading sourcemaps>>.
 `--sourcemap` gives the `sourcemap:write` privilege to the created key.
 
 [[create-api-key-workflow]]
@@ -117,7 +116,7 @@ and gives the "agent configuration" and "ingest" privileges.
 
 The response will look similar to this:
 
-[source,console-result,subs="attributes,callouts"]
+[source,console-result]
 --------------------------------------------------
 Name ........... java-001
 Expiration ..... never
@@ -138,7 +137,7 @@ The following example verifies that the `java-001` API key has the "agent config
 
 If the API key has the requested privileges, the response will look similar to this:
 
-[source,console-result,subs="attributes,callouts"]
+[source,console-result]
 --------------------------------------------------
 Authorized for privilege "event:write"...:          Yes
 Authorized for privilege "config_agent:read"...:    Yes
@@ -156,7 +155,7 @@ The following example invalidates the `java-001` API key.
 
 The response will look similar to this:
 
-[source,console-result,subs="attributes,callouts"]
+[source,console-result]
 --------------------------------------------------
 Invalidated keys ... qT4tz28B1g59zC3uAXfW
 Error count ........ 0

@@ -9,10 +9,11 @@ requirements and the minimum privileges required to use specific features.
 Typically, you need to create the following separate roles:
 
 * <<privileges-to-setup-beats,Setup role>>: To set up index templates and
-other dependencies
-* <<privileges-to-publish-monitoring,Monitoring role>>: One for sending monitoring
-information, and another for viewing it
+other dependencies.
 * <<privileges-to-publish-events,Writer role>>: To publish events collected by {beatname_uc}.
+* <<privileges-to-publish-monitoring,Monitoring role>>: One for sending monitoring
+information, and another for viewing it.
+* <<privileges-api-key,API key role>>: To create and manage API keys.
 * <<privileges-agent-central-config,Central configuration management role>>: To view
 APM Agent central configurations.
 
@@ -367,6 +368,77 @@ need to view monitoring data for {beatname_uc}:
 |`monitoring_user`
 |Grants access to monitoring indices for {beatname_uc}
 |====
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+[[privileges-api-key]]
+=== Grant privileges and roles needed for API key management
+
+++++
+<titleabbrev>Create an _API key_ user</titleabbrev>
+++++
+
+You can configure <<api-key,API keys>> to authorize requests to APM Server.
+To create an APM Server user with the required privileges for creating and managing API keys:
+
+. Create an **API key role**, called something like `apm_api_key`,
+that has the following `cluster` level privileges:
++
+[options="header"]
+|====
+| Privilege | Purpose
+
+|`manage_api_key`
+|Allow {beatname_uc} to create, retrieve, and invalidate API keys
+|====
+
+. Depending on what the **API key role** will be used for,
+also assign any or all of the following `apm` application level privileges:
++
+* To **manage Agent configuration**, assign `config_agent:read`.
+* To **ingest agent data**, assign `event:write`.
+* To **upload sourcemaps**, assign `sourcemap:write`.
+
+. Assign the **API key role** role to users that need to create and manage API keys.
+
+[float]
+[[privileges-api-key-example]]
+=== Example API key role
+
+The following example assigns the required cluster privileges,
+and all three `apm` API key application privileges to a role named `apm_api_key`:
+
+[source,kibana]
+----
+PUT _security/role/apm_api_key <1>
+{
+  "cluster": [
+    "manage_api_key" <2>
+  ],
+  "applications": [
+    {
+      "application": "apm",
+      "privileges": [
+        "sourcemap:write", <3>
+        "event:write", <4>
+        "config_agent:read" <5>
+      ],
+      "resources": [
+        "*"
+      ]
+    }
+  ]
+}
+----
+<1> `apm_api_key` is the name of the role we're assigning these privileges to. Any name can be used.
+<2> Required cluster privileges.
+<3> Required for API keys that will be used in sourcemap uploads.
+<4> Required for API keys that will be used to ingest agent events.
+<5> Required for API keys that will be used for Agent configuration.
+
 
 ////
 ***********************************  ***********************************
