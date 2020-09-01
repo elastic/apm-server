@@ -176,6 +176,11 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry) error {
 }
 
 // ReadEvents reads events with the given trace ID from storage into a batch.
+//
+// ReadEvents may implicitly commit the current transaction when the number
+// of pending writes exceeds a threshold. This is due to how Badger internally
+// iterates over uncommitted writes, where it will sort keys for each new
+// iterator.
 func (rw *ReadWriter) ReadEvents(traceID string, out *model.Batch) error {
 	opts := badger.DefaultIteratorOptions
 	rw.readKeyBuf = append(append(rw.readKeyBuf[:0], traceID...), ':')
