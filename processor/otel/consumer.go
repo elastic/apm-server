@@ -48,6 +48,10 @@ const (
 	keywordLength      = 1024
 	dot                = "."
 	underscore         = "_"
+
+	outcomeSuccess = "success"
+	outcomeFailure = "failure"
+	outcomeUnknown = "unknown"
 )
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
@@ -128,7 +132,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
-				Outcome:   "unknown",
+				Outcome:   outcomeUnknown,
 			}
 			parseSpan(otelSpan, td.SourceFormat, &span)
 			batch.Spans = append(batch.Spans, &span)
@@ -313,10 +317,10 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	if result == "" {
 		if hasFailed {
 			result = "Error"
-			outcome = "failure"
+			outcome = outcomeFailure
 		} else {
 			result = "Success"
-			outcome = "success"
+			outcome = outcomeSuccess
 		}
 	}
 	event.Result = result
@@ -695,17 +699,17 @@ func statusCodeResult(statusCode int) string {
 // serverStatusCodeOutcome returns the transaction outcome value to use for the given status code.
 func serverStatusCodeOutcome(statusCode int) string {
 	if statusCode >= 500 {
-		return "failure"
+		return outcomeFailure
 	}
-	return "success"
+	return outcomeSuccess
 }
 
 // clientStatusCodeOutcome returns the span outcome value to use for the given status code.
 func clientStatusCodeOutcome(statusCode int) string {
 	if statusCode >= 400 {
-		return "failure"
+		return outcomeFailure
 	}
-	return "success"
+	return outcomeSuccess
 }
 
 // truncate returns s truncated at n runes, and the number of runes in the resulting string (<= n).
