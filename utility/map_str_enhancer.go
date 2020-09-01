@@ -33,12 +33,6 @@ func Set(m common.MapStr, key string, val interface{}) {
 	update(m, key, val, true)
 }
 
-// Update takes a map and changes key to point to the provided value.
-// In case the provided value is nil nothing is changed.
-func Update(m common.MapStr, key string, val interface{}) {
-	update(m, key, val, false)
-}
-
 func update(m common.MapStr, key string, val interface{}, remove bool) {
 	if m == nil || key == "" {
 		return

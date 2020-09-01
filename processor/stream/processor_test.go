@@ -28,20 +28,20 @@ import (
 	"testing/iotest"
 	"time"
 
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
+	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -49,7 +49,7 @@ func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 	resultName := fmt.Sprintf("test_approved_stream_result/testIntegrationResult%s", name)
 	resultJSON, err := json.Marshal(actualResponse)
 	require.NoError(t, err)
-	approvals.AssertApproveResult(t, resultName, resultJSON)
+	approvaltest.ApproveJSON(t, resultName, resultJSON)
 }
 
 func TestHandlerReadStreamError(t *testing.T) {
@@ -95,19 +95,6 @@ func TestHandlerReportingStreamError(t *testing.T) {
 }
 
 func TestIntegrationESOutput(t *testing.T) {
-	report := func(ctx context.Context, p publish.PendingReq) error {
-		var events []beat.Event
-		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
-		}
-		name := ctx.Value("name").(string)
-		verifyErr := approvals.ApproveEvents(events, name)
-		if verifyErr != nil {
-			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
-		}
-		return nil
-	}
-
 	for _, test := range []struct {
 		path string
 		name string
@@ -133,9 +120,9 @@ func TestIntegrationESOutput(t *testing.T) {
 			bodyReader := bytes.NewBuffer(b)
 
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
-			ctx := context.WithValue(context.Background(), "name", name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
-			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
+			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
+			report := makeApproveEventsReporter(t, name)
 
 			reqDecoderMeta := &model.Metadata{System: model.System{IP: net.ParseIP("192.0.0.1")}}
 
@@ -147,19 +134,6 @@ func TestIntegrationESOutput(t *testing.T) {
 }
 
 func TestIntegrationRum(t *testing.T) {
-	report := func(ctx context.Context, p publish.PendingReq) error {
-		var events []beat.Event
-		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
-		}
-		name := ctx.Value("name").(string)
-		verifyErr := approvals.ApproveEvents(events, name)
-		if verifyErr != nil {
-			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
-		}
-		return nil
-	}
-
 	for _, test := range []struct {
 		path string
 		name string
@@ -176,6 +150,7 @@ func TestIntegrationRum(t *testing.T) {
 			ctx := context.WithValue(context.Background(), "name", name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
+			report := makeApproveEventsReporter(t, name)
 
 			reqDecoderMeta := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
@@ -189,17 +164,6 @@ func TestIntegrationRum(t *testing.T) {
 }
 
 func TestRUMV3(t *testing.T) {
-
-	var resultEvents []beat.Event
-	reporter := func(name string) publish.Reporter {
-		return func(ctx context.Context, p publish.PendingReq) error {
-			for _, transformable := range p.Transformables {
-				resultEvents = append(resultEvents, transformable.Transform(ctx, &transform.Config{})...)
-			}
-			return nil
-		}
-	}
-
 	for _, test := range []struct {
 		path string
 		name string
@@ -215,19 +179,15 @@ func TestRUMV3(t *testing.T) {
 			name := fmt.Sprintf("test_approved_es_documents/testIntake%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
+			report := makeApproveEventsReporter(t, name)
+
 			reqDecoderMeta := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, reporter(name))
+			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, report)
 			assertApproveResult(t, actualResult, test.name)
-
-			verifyErr := approvals.ApproveEvents(resultEvents, name)
-			if verifyErr != nil {
-				assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
-			}
-			resultEvents = []beat.Event{}
 		})
 	}
 }
@@ -258,5 +218,17 @@ func TestRateLimiting(t *testing.T) {
 		actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
 			context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), report)
 		assertApproveResult(t, actualResult, test.name)
+	}
+}
+
+func makeApproveEventsReporter(t *testing.T, name string) publish.Reporter {
+	return func(ctx context.Context, p publish.PendingReq) error {
+		var events []beat.Event
+		for _, transformable := range p.Transformables {
+			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
+		}
+		docs := beatertest.EncodeEventDocs(events...)
+		approvaltest.ApproveEventDocs(t, name, docs)
+		return nil
 	}
 }

@@ -19,13 +19,12 @@ package package_tests
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
+	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
-	"github.com/elastic/apm-server/tests/approvals"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/tests/loader"
@@ -56,25 +55,25 @@ func TestSourcemapProcessorOK(t *testing.T) {
 	}
 
 	for _, info := range data {
-		p := sourcemap.Processor
+		t.Run(info.Name, func(t *testing.T) {
+			p := sourcemap.Processor
 
-		data, err := loader.LoadData(info.Path)
-		require.NoError(t, err)
+			data, err := loader.LoadData(info.Path)
+			require.NoError(t, err)
 
-		err = p.Validate(data)
-		require.NoError(t, err)
+			err = p.Validate(data)
+			require.NoError(t, err)
 
-		payload, err := p.Decode(data)
-		require.NoError(t, err)
+			payload, err := p.Decode(data)
+			require.NoError(t, err)
 
-		var events []beat.Event
-		for _, transformable := range payload {
-			events = append(events, transformable.Transform(context.Background(), &transform.Config{})...)
-		}
-		verifyErr := approvals.ApproveEvents(events, info.Name, "@timestamp")
-		if verifyErr != nil {
-			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
-		}
+			var events []beat.Event
+			for _, transformable := range payload {
+				events = append(events, transformable.Transform(context.Background(), &transform.Config{})...)
+			}
+			docs := beatertest.EncodeEventDocs(events...)
+			approvaltest.ApproveEventDocs(t, info.Name, docs, "@timestamp")
+		})
 	}
 }
 

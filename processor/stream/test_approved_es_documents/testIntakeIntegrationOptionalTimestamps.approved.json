@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -76,7 +76,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.01Z",
+            "@timestamp": "2018-08-01T10:00:00.010Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -156,7 +156,7 @@
             }
         },
         {
-            "@timestamp": "2018-01-01T11:00:00Z",
+            "@timestamp": "2018-01-01T11:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"

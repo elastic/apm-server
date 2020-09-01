@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2019-10-21T11:30:44.929001Z",
+            "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
@@ -185,7 +185,7 @@
             }
         },
         {
-            "@timestamp": "2019-10-21T11:30:44.929001Z",
+            "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
@@ -329,7 +329,7 @@
             }
         },
         {
-            "@timestamp": "2019-10-21T11:30:44.929001Z",
+            "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
@@ -451,7 +451,7 @@
             }
         },
         {
-            "@timestamp": "2019-10-21T11:30:44.929001Z",
+            "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",

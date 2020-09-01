@@ -33,9 +33,10 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
+	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -60,7 +61,7 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, p publish.PendingReq) error {
 				events := transformAll(ctx, p)
-				assert.NoError(t, approvals.ApproveEvents(events, file("consume_"+tc.name)))
+				approveEvents(t, "consume_"+tc.name, events)
 				return nil
 			}
 			consumer := Consumer{Reporter: reporter}
@@ -147,7 +148,7 @@ func TestConsumer_Metadata(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.Len(t, req.Transformables, 1)
 				events := transformAll(ctx, req)
-				assert.NoError(t, approvals.ApproveEvents(events, file("metadata_"+tc.name)))
+				approveEvents(t, "metadata_"+tc.name, events)
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -250,7 +251,7 @@ func TestConsumer_Transaction(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
 				events := transformAll(ctx, req)
-				assert.NoError(t, approvals.ApproveEvents(events, file("transaction_"+tc.name)))
+				approveEvents(t, "transaction_"+tc.name, events)
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -263,7 +264,7 @@ func TestConsumer_TransactionSampleRate(t *testing.T) {
 	reporter := func(ctx context.Context, req publish.PendingReq) error {
 		transformables = append(transformables, req.Transformables...)
 		events := transformAll(ctx, req)
-		assert.NoError(t, approvals.ApproveEvents(events, file("transaction_jaeger_sampling_rate")))
+		approveEvents(t, "transaction_jaeger_sampling_rate", events)
 		return nil
 	}
 	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), consumerdata.TraceData{
@@ -378,7 +379,7 @@ func TestConsumer_Span(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
 				events := transformAll(ctx, req)
-				assert.NoError(t, approvals.ApproveEvents(events, file("span_"+tc.name)))
+				approveEvents(t, "span_"+tc.name, events)
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -446,10 +447,6 @@ func testTimeEvents() *tracepb.Span_TimeEvents {
 				}}}}}}}
 }
 
-func file(f string) string {
-	return filepath.Join("test_approved", f)
-}
-
 func testStartTime() *timestamp.Timestamp {
 	return &timestamp.Timestamp{Seconds: 1576500418, Nanos: 768068}
 }
@@ -494,4 +491,13 @@ func transformAll(ctx context.Context, p publish.PendingReq) []beat.Event {
 		events = append(events, transformable.Transform(ctx, &transform.Config{})...)
 	}
 	return events
+}
+
+func approveEvents(t testing.TB, name string, events []beat.Event) {
+	docs := beatertest.EncodeEventDocs(events...)
+	approvaltest.ApproveEventDocs(t, file(name), docs)
+}
+
+func file(f string) string {
+	return filepath.Join("test_approved", f)
 }

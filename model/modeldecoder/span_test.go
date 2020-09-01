@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model"
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -72,8 +71,8 @@ func TestDecodeSpan(t *testing.T) {
 		"filename": "file",
 	}}
 
-	metadata := m.Metadata{
-		Service: m.Service{Name: "foo"},
+	metadata := model.Metadata{
+		Service: model.Service{Name: "foo"},
 	}
 
 	// baseInput holds the minimal valid input. Test-specific input is added to/removed from this.
@@ -91,7 +90,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
@@ -110,7 +109,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "db", "duration": duration, "parent_id": parentID, "trace_id": traceID, "id": id,
 				"start": start,
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
@@ -129,7 +128,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -151,7 +150,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"foo": 123},
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -174,7 +173,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -197,9 +196,10 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentID, "trace_id": traceID, "transaction_id": transactionID,
-				"outcome": outcome,
+				"outcome":     outcome,
+				"sample_rate": 0.2,
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "messaging",
@@ -209,16 +209,17 @@ func TestDecodeSpan(t *testing.T) {
 				Duration:  duration,
 				Timestamp: spanTime,
 				Outcome:   outcome,
-				Stacktrace: m.Stacktrace{
-					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
+				Stacktrace: model.Stacktrace{
+					&model.StacktraceFrame{Filename: tests.StringPtr("file")},
 				},
-				Labels:        common.MapStr{"a": "tag", "tag_key": 17},
-				ID:            id,
-				TraceID:       traceID,
-				ParentID:      parentID,
-				TransactionID: transactionID,
-				HTTP:          &m.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
-				DB: &m.DB{
+				Labels:              common.MapStr{"a": "tag", "tag_key": 17},
+				ID:                  id,
+				TraceID:             traceID,
+				ParentID:            parentID,
+				TransactionID:       transactionID,
+				RepresentativeCount: 5,
+				HTTP:                &model.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				DB: &model.DB{
 					Instance:     &instance,
 					Statement:    &statement,
 					Type:         &dbType,
@@ -226,13 +227,13 @@ func TestDecodeSpan(t *testing.T) {
 					Link:         &link,
 					RowsAffected: &rowsAffected,
 				},
-				Destination: &m.Destination{Address: &address, Port: &port},
-				DestinationService: &m.DestinationService{
+				Destination: &model.Destination{Address: &address, Port: &port},
+				DestinationService: &model.DestinationService{
 					Type:     &destServiceType,
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Message: &m.Message{
+				Message: &model.Message{
 					QueueName: tests.StringPtr("foo"),
 					AgeMillis: tests.IntPtr(1577958057123)},
 			},

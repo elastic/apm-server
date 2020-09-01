@@ -3,8 +3,14 @@ FROM golang:${GO_VERSION}
 
 ENV TOOLS=/tools
 WORKDIR $TOOLS
-COPY go.mod .
+
+COPY go.mod go.sum ./
+COPY approvaltest/go.mod approvaltest/go.sum ./approvaltest/
+COPY systemtest/go.mod systemtest/go.sum ./systemtest/
+
 RUN go mod download
+RUN cd approvaltest && go mod download
+RUN cd systemtest && go mod download
 
 RUN apt-get update -y -qq \
   && apt-get install -y -qq  python3 python3-pip python3-venv \

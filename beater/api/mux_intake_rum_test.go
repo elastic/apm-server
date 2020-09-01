@@ -25,13 +25,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestOPTIONS(t *testing.T) {
@@ -72,7 +72,7 @@ func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
 	require.NoError(t, err)
 	assert.NotEqual(t, http.StatusUnauthorized, rec.Code)
-	approvals.AssertApproveResult(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+	approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
 }
 
 func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
@@ -80,14 +80,14 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("On", func(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.NotEqual(t, http.StatusForbidden, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -111,7 +111,7 @@ func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvals.AssertApproveResult(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+	approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
 }
 
 func TestRumHandler_MonitoringMiddleware(t *testing.T) {

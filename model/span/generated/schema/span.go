@@ -88,6 +88,10 @@ const ModelSchema = `{
                     "type": ["number", "null"],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 },
+                "sample_rate": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
+                },
                 "action": {
                     "type": ["string", "null"],
                     "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",

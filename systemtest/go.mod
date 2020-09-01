@@ -9,6 +9,7 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v7 v7.8.0
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/mitchellh/mapstructure v1.1.2
@@ -16,6 +17,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/stretchr/testify v1.6.1
+	github.com/tidwall/gjson v1.6.0
 	go.elastic.co/apm v1.8.0
 	go.elastic.co/fastjson v1.0.0
 	go.uber.org/zap v1.15.0
@@ -25,4 +27,7 @@ require (
 	gotest.tools v2.2.0+incompatible // indirect
 )
 
-replace github.com/docker/docker => github.com/docker/engine v0.0.0-20191113042239-ea84732a7725
+replace (
+	github.com/docker/docker => github.com/docker/engine v0.0.0-20191113042239-ea84732a7725
+	github.com/elastic/apm-server/approvaltest => ../approvaltest
+)
