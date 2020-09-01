@@ -422,7 +422,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dustin/go-humanize
-Revision: bb3d318650d4
+Version: v1.0.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
