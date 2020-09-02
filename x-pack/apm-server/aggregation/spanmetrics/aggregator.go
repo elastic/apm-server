@@ -79,8 +79,8 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		stopping: make(chan struct{}),
 		stopped:  make(chan struct{}),
 		config:   config,
-		active:   newMetricsBuffer(),
-		inactive: newMetricsBuffer(),
+		active:   newMetricsBuffer(config.MaxGroups),
+		inactive: newMetricsBuffer(config.MaxGroups),
 	}, nil
 }
 
@@ -157,7 +157,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	now := time.Now()
 	metricsets := make([]transform.Transformable, 0, size)
 	for key, metrics := range a.inactive.m {
-		metricset := makeMetricset(now, key, metrics.count, metrics.sum, a.config.Interval.Milliseconds())
+		metricset := makeMetricset(now, key, metrics, a.config.Interval.Milliseconds())
 		metricsets = append(metricsets, &metricset)
 		delete(a.inactive.m, key)
 	}
@@ -178,24 +178,24 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 	defer a.mu.RUnlock()
 	out := in
 	for _, tf := range in {
-		span, ok := tf.(*model.Span)
-		if !ok {
-			continue
+		if span, ok := tf.(*model.Span); ok {
+			if metricset := a.processSpan(span); metricset != nil {
+				out = append(out, metricset)
+			}
 		}
-		a.processSpan(span)
 	}
 	return out
 }
 
-func (a *Aggregator) processSpan(span *model.Span) {
+func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
 	if span.DestinationService == nil || span.DestinationService.Resource == nil {
-		return
+		return nil
 	}
 	if span.RepresentativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.
 		// We cannot calculate accurate span metrics without the sample
 		// rate, so we don't calculate any at all in this case.
-		return
+		return nil
 	}
 
 	key := aggregationKey{
@@ -209,26 +209,36 @@ func (a *Aggregator) processSpan(span *model.Span) {
 		count: span.RepresentativeCount,
 		sum:   float64(duration.Microseconds()) * span.RepresentativeCount,
 	}
-	a.active.storeOrUpdate(key, metrics)
+	if a.active.storeOrUpdate(key, metrics) {
+		return nil
+	}
+	metricset := makeMetricset(time.Now(), key, metrics, 0)
+	return &metricset
 }
 
 type metricsBuffer struct {
-	// TODO might need a size cap
+	maxSize int
+
 	mu sync.RWMutex
 	m  map[aggregationKey]spanMetrics
 }
 
-func newMetricsBuffer() *metricsBuffer {
+func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
-		m: make(map[aggregationKey]spanMetrics),
+		maxSize: maxSize,
+		m:       make(map[aggregationKey]spanMetrics),
 	}
 }
 
-func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value spanMetrics) {
+func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, value spanMetrics) bool {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
-	old := mb.m[key]
+	old, ok := mb.m[key]
+	if !ok && len(mb.m) == mb.maxSize {
+		return false
+	}
 	mb.m[key] = spanMetrics{count: value.count + old.count, sum: value.sum + old.sum}
+	return true
 }
 
 type aggregationKey struct {
@@ -245,7 +255,7 @@ type spanMetrics struct {
 	sum   float64
 }
 
-func makeMetricset(timestamp time.Time, key aggregationKey, count, sum float64, interval int64) model.Metricset {
+func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: timestamp,
 		Metadata: model.Metadata{
@@ -264,17 +274,24 @@ func makeMetricset(timestamp time.Time, key aggregationKey, count, sum float64, 
 		Samples: []model.Sample{
 			{
 				Name:  "destination.service.response_time.count",
-				Value: math.Round(count),
+				Value: math.Round(metrics.count),
 			},
 			{
 				Name:  "destination.service.response_time.sum.us",
-				Value: math.Round(sum),
-			},
-			{
-				Name:  "metricset.period",
-				Value: float64(interval),
+				Value: math.Round(metrics.sum),
 			},
 		},
+	}
+	if interval > 0 {
+		// Only set metricset.period for a positive interval.
+		//
+		// An interval of zero means the metricset is computed
+		// from an instantaneous value, meaning there is no
+		// aggregation period.
+		out.Samples = append(out.Samples, model.Sample{
+			Name:  "metricset.period",
+			Value: float64(interval),
+		})
 	}
 	return out
 }
