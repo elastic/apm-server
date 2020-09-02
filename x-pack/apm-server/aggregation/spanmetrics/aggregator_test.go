@@ -73,9 +73,6 @@ func TestAggregatorRun(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	go agg.Run()
-	defer agg.Stop(context.Background())
-
 	type input struct {
 		serviceName string
 		destination string
@@ -102,11 +99,15 @@ func TestAggregatorRun(t *testing.T) {
 			defer wg.Done()
 			span := makeSpan(in.serviceName, in.destination, in.outcome, 100*time.Millisecond, in.count)
 			for i := 0; i < 100; i++ {
-				agg.ProcessTransformables([]transform.Transformable{span})
+				assert.Len(t, agg.ProcessTransformables([]transform.Transformable{span}), 1)
 			}
 		}(in)
 	}
 	wg.Wait()
+
+	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	req := expectPublish(t, reqs)
 	metricsets := make([]*model.Metricset, len(req.Transformables))
