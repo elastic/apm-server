@@ -60,7 +60,7 @@ however it is possible through agents configuration:
 [[ssl-client-authentication]]
 ==== Client certificate authentication
 
-By default, the APM Server does require agents to provide a certificate for authentication.
+By default, the APM Server does not require agents to provide a certificate for authentication.
 This can be changed through the `ssl.client_authentication` configuration.
 
 There is no dedicated support for SSL/TLS client certificate authentication in Elastic's backend agents,
