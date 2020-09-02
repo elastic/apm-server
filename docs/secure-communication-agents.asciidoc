@@ -102,7 +102,7 @@ If privileges are not specified at creation time, the created key will have all 
 
 [[create-api-key-workflow]]
 [float]
-==== API key example workflow
+==== API key workflow example
 
 Create an API key with the `create` subcommand.
 
@@ -122,7 +122,7 @@ Name ........... java-001
 Expiration ..... never
 Id ............. qT4tz28B1g59zC3uAXfW
 API Key ........ rH55zKd5QT6wvs3UbbkxOA (won't be shown again)
-Credentials .... cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ== (won't be shown again)
+Credentials .... cVQ0dHoyOEIxZzU5ekMzdUFYZlc6ckg1NXpLZDVRVDZ3dnMzVWJia3hPQQ== (won't be shown again)
 --------------------------------------------------
 
 You should always verify the privileges of an API key after creating it.
@@ -132,7 +132,7 @@ The following example verifies that the `java-001` API key has the "agent config
 
 ["source","sh",subs="attributes"]
 -----
-{beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==
+{beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzU5ekMzdUFYZlc6ckg1NXpLZDVRVDZ3dnMzVWJia3hPQQ==
 -----
 
 If the API key has the requested privileges, the response will look similar to this:
@@ -163,6 +163,75 @@ Error count ........ 0
 
 A full list of `apikey` subcommands and flags is available in the <<apikey-command,API key command reference>>.
 
+[[create-api-key-workflow-es]]
+[float]
+==== Alternate API key workflow example
+
+Instead of using the APM Server CLI, it is possible to create API keys using the Elasticsearch
+{ref}/security-api-create-api-key.html[create API key API].
+
+This example creates an API key named `java-002`:
+
+[source,kibana]
+----
+POST /_security/api_key
+{
+  "name": "java-002", <1>
+  "expiration": "1d", <2>
+  "role_descriptors": {
+    "apm": {
+      "applications": [
+        {
+          "application": "apm",
+          "privileges": ["sourcemap:write", "event:write", "config_agent:read"], <2>
+          "resources": ["*"]
+        }
+      ]
+    }
+  }
+}
+----
+<1> The name of the API key
+<2> The expiration time of the API key
+<2> Any assigned privileges
+
+The response will look similar to this:
+
+[source,console-result]
+----
+{
+  "id" : "GnrUT3QB7yZbSNxKET6d",
+  "name" : "java-002",
+  "expiration" : 1599153532262,
+  "api_key" : "RhHKisTmQ1aPCHC_TPwOvw"
+}
+----
+
+The `credential` string, which is what agents use to communicate with APM Server,
+is a base64 encoded representation of the API key's `id:api_key`.
+It can be created like this:
+
+[source,console-result]
+--------------------------------------------------
+echo -n GnrUT3QB7yZbSNxKET6d:RhHKisTmQ1aPCHC_TPwOvw | base64
+--------------------------------------------------
+
+Using the returned string, you can verify the API key has the expected privileges with the APM Server CLI:
+
+["source","sh",subs="attributes"]
+-----
+{beatname_lc} apikey verify --credentials R25yVVQzUUI3eVpiU054S0VUNmQ6UmhIS2lzVG1RMWFQQ0hDX1RQd092dw==
+-----
+
+If the API key has the requested privileges, the response will look similar to this:
+
+[source,console-result]
+----
+Authorized for privilege "config_agent:read"...:  Yes
+Authorized for privilege "event:write"...:        Yes
+Authorized for privilege "sourcemap:write"...:    Yes
+----
+
 [[set-api-key]]
 [float]
 === Set the API key in your APM Agents
@@ -185,14 +254,12 @@ You can specify the following options in the `apm-server.api_key.*` section of t
 +{beatname_lc}.yml+ configuration file.
 They apply to API key communication between the APM Server and APM Agents.
 
-These are different from the API key settings used for the Elasticsearch output and monitoring.
+NOTE: These settings are different from the API key settings used for Elasticsearch output and monitoring.
 
 [float]
 ===== `enabled`
 
 Enable API key authorization by setting `enabled` to `true`.
-Agents will include a valid API key in the following format: `Authorization: ApiKey <token>`.
-The key must be the base64 encoded representation of the API key's `id:name`.
 By default, `enabled` is set to `false`, and API key support is disabled.
 
 [float]
