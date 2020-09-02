@@ -7,7 +7,7 @@
                 "version": "unknown"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "failure"
             },
             "host": {
                 "hostname": "host-abc",

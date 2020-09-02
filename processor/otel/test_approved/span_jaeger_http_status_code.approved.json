@@ -11,7 +11,7 @@
                 "port": 80
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc",
