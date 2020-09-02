@@ -128,6 +128,9 @@ func TestUnpackConfig(t *testing.T) {
 							},
 						},
 					},
+					"service_destinations": map[string]interface{}{
+						"max_groups": 456,
+					},
 				},
 			},
 			outCfg: &Config{
@@ -222,8 +225,9 @@ func TestUnpackConfig(t *testing.T) {
 						RUMUserAgentLRUSize:            123,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Enabled:  true,
-						Interval: time.Minute,
+						Enabled:   true,
+						Interval:  time.Minute,
+						MaxGroups: 456,
 					},
 				},
 				Sampling: SamplingConfig{
@@ -338,13 +342,14 @@ func TestUnpackConfig(t *testing.T) {
 					Transactions: TransactionAggregationConfig{
 						Enabled:                        true,
 						Interval:                       time.Minute,
-						MaxTransactionGroups:           1000,
+						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,
 						RUMUserAgentLRUSize:            123,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Enabled:  false,
-						Interval: time.Minute,
+						Enabled:   false,
+						Interval:  time.Minute,
+						MaxGroups: 10000,
 					},
 				},
 				Sampling: SamplingConfig{

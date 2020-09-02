@@ -7,7 +7,7 @@
                 "version": "unknown"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "failure"
             },
             "host": {
                 "hostname": "host-abc",
@@ -15,7 +15,7 @@
             },
             "http": {
                 "response": {
-                    "status_code": 200
+                    "status_code": 500
                 }
             },
             "labels": {
@@ -45,7 +45,7 @@
                     "us": 0
                 },
                 "id": "",
-                "result": "HTTP 2xx",
+                "result": "HTTP 5xx",
                 "sampled": true,
                 "type": "request"
             },

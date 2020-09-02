@@ -196,7 +196,7 @@ func TestConsumer_Transaction(t *testing.T) {
 					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_SERVER,
 					StartTime: testStartTime(),
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-						"http.status_code": testAttributeIntValue(200),
+						"http.status_code": testAttributeIntValue(500),
 						"http.protocol":    testAttributeStringValue("HTTP"),
 						"http.path":        testAttributeStringValue("http://foo.bar.com?a=12"),
 					}}}}}},
@@ -313,7 +313,7 @@ func TestConsumer_Span(t *testing.T) {
 						"error":            testAttributeBoolValue(true),
 						"hasErrors":        testAttributeBoolValue(true),
 						"double.a":         testAttributeDoubleValue(14.65),
-						"http.status_code": testAttributeIntValue(200),
+						"http.status_code": testAttributeIntValue(400),
 						"int.a":            testAttributeIntValue(148),
 						"span.kind":        testAttributeStringValue("filtered"),
 						"http.url":         testAttributeStringValue("http://foo.bar.com?a=12"),
