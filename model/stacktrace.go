@@ -28,10 +28,6 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
-var (
-	msgServiceInvalidForSourcemapping = "Cannot apply sourcemap without a service name or service version"
-)
-
 type Stacktrace []*StacktraceFrame
 
 func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum bool, service *Service) []common.MapStr {
