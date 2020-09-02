@@ -183,7 +183,7 @@ POST /_security/api_key
       "applications": [
         {
           "application": "apm",
-          "privileges": ["sourcemap:write", "event:write", "config_agent:read"], <2>
+          "privileges": ["sourcemap:write", "event:write", "config_agent:read"], <3>
           "resources": ["*"]
         }
       ]
@@ -193,7 +193,7 @@ POST /_security/api_key
 ----
 <1> The name of the API key
 <2> The expiration time of the API key
-<2> Any assigned privileges
+<3> Any assigned privileges
 
 The response will look similar to this:
 
