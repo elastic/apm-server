@@ -20,8 +20,9 @@ import (
 
 func BenchmarkAggregateSpan(b *testing.B) {
 	agg, err := NewAggregator(AggregatorConfig{
-		Report:   makeErrReporter(nil),
-		Interval: time.Minute,
+		Report:    makeErrReporter(nil),
+		Interval:  time.Minute,
+		MaxGroups: 1000,
 	})
 	require.NoError(b, err)
 
@@ -33,16 +34,44 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	})
 }
 
+func TestNewAggregatorConfigInvalid(t *testing.T) {
+	report := makeErrReporter(nil)
+
+	type test struct {
+		config AggregatorConfig
+		err    string
+	}
+
+	for _, test := range []test{{
+		config: AggregatorConfig{},
+		err:    "Report unspecified",
+	}, {
+		config: AggregatorConfig{
+			Report: report,
+		},
+		err: "MaxGroups unspecified or negative",
+	}, {
+		config: AggregatorConfig{
+			Report:    report,
+			MaxGroups: 1,
+		},
+		err: "Interval unspecified or negative",
+	}} {
+		agg, err := NewAggregator(test.config)
+		require.Error(t, err)
+		require.Nil(t, agg)
+		assert.EqualError(t, err, "invalid aggregator config: "+test.err)
+	}
+}
+
 func TestAggregatorRun(t *testing.T) {
 	reqs := make(chan publish.PendingReq, 1)
 	agg, err := NewAggregator(AggregatorConfig{
-		Report:   makeChanReporter(reqs),
-		Interval: 10 * time.Millisecond,
+		Report:    makeChanReporter(reqs),
+		Interval:  10 * time.Millisecond,
+		MaxGroups: 1000,
 	})
 	require.NoError(t, err)
-
-	go agg.Run()
-	defer agg.Stop(context.Background())
 
 	type input struct {
 		serviceName string
@@ -70,11 +99,15 @@ func TestAggregatorRun(t *testing.T) {
 			defer wg.Done()
 			span := makeSpan(in.serviceName, in.destination, in.outcome, 100*time.Millisecond, in.count)
 			for i := 0; i < 100; i++ {
-				agg.ProcessTransformables([]transform.Transformable{span})
+				assert.Len(t, agg.ProcessTransformables([]transform.Transformable{span}), 1)
 			}
 		}(in)
 	}
 	wg.Wait()
+
+	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	req := expectPublish(t, reqs)
 	metricsets := make([]*model.Metricset, len(req.Transformables))
@@ -154,6 +187,59 @@ func TestAggregatorRun(t *testing.T) {
 	}
 }
 
+func TestAggregatorOverflow(t *testing.T) {
+	reqs := make(chan publish.PendingReq, 1)
+	agg, err := NewAggregator(AggregatorConfig{
+		Report:    makeChanReporter(reqs),
+		Interval:  10 * time.Millisecond,
+		MaxGroups: 2,
+	})
+	require.NoError(t, err)
+
+	// The first two transaction groups will not require immediate publication,
+	// as we have configured the spanmetrics with a maximum of two buckets.
+	var input []transform.Transformable
+	for i := 0; i < 10; i++ {
+		input = append(input, makeSpan("service", "destination1", "success", 100*time.Millisecond, 1))
+		input = append(input, makeSpan("service", "destination2", "success", 100*time.Millisecond, 1))
+	}
+	output := agg.ProcessTransformables(input)
+	assert.Equal(t, input, output)
+
+	// The third group will return a metricset for immediate publication.
+	for i := 0; i < 2; i++ {
+		input = append(input, makeSpan("service", "destination3", "success", 100*time.Millisecond, 1))
+	}
+	output = agg.ProcessTransformables(input)
+	assert.Len(t, output, len(input)+2)
+	assert.Equal(t, input, output[:len(input)])
+
+	for _, tf := range output[len(input):] {
+		m, ok := tf.(*model.Metricset)
+		require.True(t, ok)
+		require.NotNil(t, m)
+		require.False(t, m.Timestamp.IsZero())
+
+		m.Timestamp = time.Time{}
+		assert.Equal(t, &model.Metricset{
+			Metadata: model.Metadata{
+				Service: model.Service{Name: "service"},
+			},
+			Event: model.MetricsetEventCategorization{
+				Outcome: "success",
+			},
+			Span: model.MetricsetSpan{
+				DestinationService: model.DestinationService{Resource: newString("destination3")},
+			},
+			Samples: []model.Sample{
+				{Name: "destination.service.response_time.count", Value: 1.0},
+				{Name: "destination.service.response_time.sum.us", Value: 100000.0},
+				// No metricset.period is recorded as these metrics are instantanous, not aggregated.
+			},
+		}, m)
+	}
+}
+
 func makeSpan(
 	serviceName string, destinationServiceResource, outcome string,
 	duration time.Duration,
@@ -198,4 +284,8 @@ func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingRe
 		t.Fatal("expected publish")
 	}
 	panic("unreachable")
+}
+
+func newString(s string) *string {
+	return &s
 }

@@ -48,6 +48,10 @@ const (
 	keywordLength      = 1024
 	dot                = "."
 	underscore         = "_"
+
+	outcomeSuccess = "success"
+	outcomeFailure = "failure"
+	outcomeUnknown = "unknown"
 )
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
@@ -111,7 +115,6 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
-				Outcome:   "unknown",
 			}
 			parseTransaction(otelSpan, td.SourceFormat, hostname, &transaction)
 			batch.Transactions = append(batch.Transactions, &transaction)
@@ -129,7 +132,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
-				Outcome:   "unknown",
+				Outcome:   outcomeUnknown,
 			}
 			parseSpan(otelSpan, td.SourceFormat, &span)
 			batch.Spans = append(batch.Spans, &span)
@@ -211,9 +214,10 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, event *model.Transaction) {
 	labels := make(common.MapStr)
 	var http model.Http
+	var httpStatusCode int
 	var message model.Message
 	var component string
-	var result string
+	var outcome, result string
 	var hasFailed bool
 	var isHTTP, isMessaging bool
 	var samplerType, samplerParam *tracepb.AttributeValue
@@ -241,9 +245,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 		case *tracepb.AttributeValue_IntValue:
 			switch kDots {
 			case "http.status_code":
-				intv := int(v.IntValue)
-				http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &intv}}
-				result = statusCodeResult(intv)
+				httpStatusCode = int(v.IntValue)
 				isHTTP = true
 			default:
 				utility.DeepUpdate(labels, k, v.IntValue)
@@ -259,8 +261,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 				isHTTP = true
 			case "http.status_code":
 				if intv, err := strconv.Atoi(v.StringValue.Value); err == nil {
-					http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &intv}}
-					result = statusCodeResult(intv)
+					httpStatusCode = intv
 				}
 				isHTTP = true
 			case "http.protocol":
@@ -300,11 +301,13 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	}
 
 	if isHTTP {
-		if code := int(span.GetStatus().GetCode()); code != 0 {
-			result = statusCodeResult(code)
-			if http.Response == nil {
-				http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &code}}
-			}
+		if httpStatusCode == 0 {
+			httpStatusCode = int(span.GetStatus().GetCode())
+		}
+		if httpStatusCode > 0 {
+			http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &httpStatusCode}}
+			result = statusCodeResult(httpStatusCode)
+			outcome = serverStatusCodeOutcome(httpStatusCode)
 		}
 		event.HTTP = &http
 	} else if isMessaging {
@@ -314,11 +317,14 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	if result == "" {
 		if hasFailed {
 			result = "Error"
+			outcome = outcomeFailure
 		} else {
 			result = "Success"
+			outcome = outcomeSuccess
 		}
 	}
 	event.Result = result
+	event.Outcome = outcome
 
 	if samplerType != nil && samplerParam != nil {
 		// The client has reported its sampling rate, so
@@ -490,6 +496,9 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 			if code := int(span.GetStatus().GetCode()); code != 0 {
 				http.StatusCode = &code
 			}
+		}
+		if http.StatusCode != nil {
+			event.Outcome = clientStatusCodeOutcome(*http.StatusCode)
 		}
 		event.Type = "external"
 		subtype := "http"
@@ -685,6 +694,22 @@ func statusCodeResult(statusCode int) string {
 		return standardStatusCodeResults[i-1]
 	}
 	return fmt.Sprintf("HTTP %d", statusCode)
+}
+
+// serverStatusCodeOutcome returns the transaction outcome value to use for the given status code.
+func serverStatusCodeOutcome(statusCode int) string {
+	if statusCode >= 500 {
+		return outcomeFailure
+	}
+	return outcomeSuccess
+}
+
+// clientStatusCodeOutcome returns the span outcome value to use for the given status code.
+func clientStatusCodeOutcome(statusCode int) string {
+	if statusCode >= 400 {
+		return outcomeFailure
+	}
+	return outcomeSuccess
 }
 
 // truncate returns s truncated at n runes, and the number of runes in the resulting string (<= n).

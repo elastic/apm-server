@@ -22,10 +22,13 @@ import (
 )
 
 const (
-	defaultAggregationInterval                       = 1 * time.Minute
-	defaultAggregationMaxTransactionGroups           = 1000
-	defaultAggregationHDRHistogramSignificantFigures = 2
-	defaultAggregationRUMUserAgentLRUSize            = 5000
+	defaultTransactionAggregationInterval                       = time.Minute
+	defaultTransactionAggregationMaxGroups                      = 10000
+	defaultTransactionAggregationHDRHistogramSignificantFigures = 2
+	defaultTransactionAggregationRUMUserAgentLRUSize            = 5000
+
+	defaultServiceDestinationAggregationInterval  = time.Minute
+	defaultServiceDestinationAggregationMaxGroups = 10000
 )
 
 // AggregationConfig holds configuration related to various metrics aggregations.
@@ -45,21 +48,23 @@ type TransactionAggregationConfig struct {
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
 type ServiceDestinationAggregationConfig struct {
-	Enabled  bool          `config:"enabled"`
-	Interval time.Duration `config:"interval" validate:"min=1"`
+	Enabled   bool          `config:"enabled"`
+	Interval  time.Duration `config:"interval" validate:"min=1"`
+	MaxGroups int           `config:"max_groups" validate:"min=1"`
 }
 
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
 		Transactions: TransactionAggregationConfig{
-			Interval:                       defaultAggregationInterval,
-			MaxTransactionGroups:           defaultAggregationMaxTransactionGroups,
-			HDRHistogramSignificantFigures: defaultAggregationHDRHistogramSignificantFigures,
-			RUMUserAgentLRUSize:            defaultAggregationRUMUserAgentLRUSize,
+			Interval:                       defaultTransactionAggregationInterval,
+			MaxTransactionGroups:           defaultTransactionAggregationMaxGroups,
+			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,
+			RUMUserAgentLRUSize:            defaultTransactionAggregationRUMUserAgentLRUSize,
 		},
 		ServiceDestinations: ServiceDestinationAggregationConfig{
-			Enabled:  true,
-			Interval: defaultAggregationInterval,
+			Enabled:   true,
+			Interval:  defaultServiceDestinationAggregationInterval,
+			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
 		},
 	}
 }
