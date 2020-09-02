@@ -11,7 +11,7 @@
                 "port": 80
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "failure"
             },
             "host": {
                 "hostname": "host-abc",
@@ -55,7 +55,7 @@
                 "http": {
                     "method": "get",
                     "response": {
-                        "status_code": 200
+                        "status_code": 400
                     },
                     "url": {
                         "original": "http://foo.bar.com?a=12"
@@ -99,7 +99,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -153,7 +153,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -209,7 +209,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -265,7 +265,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -321,7 +321,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -375,7 +375,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
