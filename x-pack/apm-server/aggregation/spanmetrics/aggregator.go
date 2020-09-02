@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
@@ -19,9 +21,38 @@ import (
 
 // AggregatorConfig holds configuration for creating an Aggregator.
 type AggregatorConfig struct {
-	Report   publish.Reporter
-	Logger   *logp.Logger
+	// Report is a publish.Reporter for reporting metrics documents.
+	Report publish.Reporter
+
+	// MaxGroups is the maximum number of distinct service destination
+	// group metrics to store within an aggregation period. Once this
+	// number of groups is reached, any new aggregation keys will cause
+	// individual metrics documents to be immediately published.
+	MaxGroups int
+
+	// Interval is the interval between publishing of aggregated metrics.
+	// There may be additional metrics reported at arbitrary times if the
+	// aggregation groups fill up.
 	Interval time.Duration
+
+	// Logger is the logger for logging metrics aggregation/publishing.
+	//
+	// If Logger is nil, a new logger will be constructed.
+	Logger *logp.Logger
+}
+
+// Validate validates the aggregator config.
+func (config AggregatorConfig) Validate() error {
+	if config.Report == nil {
+		return errors.New("Report unspecified")
+	}
+	if config.MaxGroups <= 0 {
+		return errors.New("MaxGroups unspecified or negative")
+	}
+	if config.Interval <= 0 {
+		return errors.New("Interval unspecified or negative")
+	}
+	return nil
 }
 
 // Aggregator aggregates transaction durations, periodically publishing histogram spanMetrics.
@@ -38,6 +69,9 @@ type Aggregator struct {
 
 // NewAggregator returns a new Aggregator with the given config.
 func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
+	if err := config.Validate(); err != nil {
+		return nil, errors.Wrap(err, "invalid aggregator config")
+	}
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.SpanMetrics)
 	}

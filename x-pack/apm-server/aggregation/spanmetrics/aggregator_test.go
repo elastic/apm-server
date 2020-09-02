@@ -20,8 +20,9 @@ import (
 
 func BenchmarkAggregateSpan(b *testing.B) {
 	agg, err := NewAggregator(AggregatorConfig{
-		Report:   makeErrReporter(nil),
-		Interval: time.Minute,
+		Report:    makeErrReporter(nil),
+		Interval:  time.Minute,
+		MaxGroups: 1000,
 	})
 	require.NoError(b, err)
 
@@ -33,11 +34,42 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	})
 }
 
+func TestNewAggregatorConfigInvalid(t *testing.T) {
+	report := makeErrReporter(nil)
+
+	type test struct {
+		config AggregatorConfig
+		err    string
+	}
+
+	for _, test := range []test{{
+		config: AggregatorConfig{},
+		err:    "Report unspecified",
+	}, {
+		config: AggregatorConfig{
+			Report: report,
+		},
+		err: "MaxGroups unspecified or negative",
+	}, {
+		config: AggregatorConfig{
+			Report:    report,
+			MaxGroups: 1,
+		},
+		err: "Interval unspecified or negative",
+	}} {
+		agg, err := NewAggregator(test.config)
+		require.Error(t, err)
+		require.Nil(t, agg)
+		assert.EqualError(t, err, "invalid aggregator config: "+test.err)
+	}
+}
+
 func TestAggregatorRun(t *testing.T) {
 	reqs := make(chan publish.PendingReq, 1)
 	agg, err := NewAggregator(AggregatorConfig{
-		Report:   makeChanReporter(reqs),
-		Interval: 10 * time.Millisecond,
+		Report:    makeChanReporter(reqs),
+		Interval:  10 * time.Millisecond,
+		MaxGroups: 1000,
 	})
 	require.NoError(t, err)
 
