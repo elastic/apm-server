@@ -398,7 +398,7 @@ that has the following `cluster` level privileges:
 . Depending on what the **API key role** will be used for,
 also assign any or all of the following `apm` application level privileges:
 +
-* To **manage Agent configuration**, assign `config_agent:read`.
+* To **receiving Agent configuration**, assign `config_agent:read`.
 * To **ingest agent data**, assign `event:write`.
 * To **upload sourcemaps**, assign `sourcemap:write`.
 
