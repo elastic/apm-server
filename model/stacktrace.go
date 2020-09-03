@@ -28,10 +28,6 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
-var (
-	msgServiceInvalidForSourcemapping = "Cannot apply sourcemap without a service name or service version"
-)
-
 type Stacktrace []*StacktraceFrame
 
 func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum bool, service *Service) []common.MapStr {
@@ -59,7 +55,6 @@ func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum 
 		return st.transformFrames(cfg, rum, noSourcemapping)
 	}
 	if service == nil || service.Name == "" || service.Version == "" {
-		logp.NewLogger(logs.Stacktrace).Warn(msgServiceInvalidForSourcemapping)
 		return st.transformFrames(cfg, rum, noSourcemapping)
 	}
 
@@ -69,11 +64,12 @@ func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum 
 	fct := "<anonymous>"
 	return st.transformFrames(cfg, rum, func(frame *StacktraceFrame) {
 		fct, errMsg = frame.applySourcemap(ctx, cfg.RUM.SourcemapStore, service, fct)
-		if errMsg != "" {
-			if _, ok := sourcemapErrorSet[errMsg]; !ok {
-				logger.Warn(errMsg)
-				sourcemapErrorSet[errMsg] = nil
-			}
+		if errMsg == "" || !logger.IsDebug() {
+			return
+		}
+		if _, ok := sourcemapErrorSet[errMsg]; !ok {
+			logger.Debug(errMsg)
+			sourcemapErrorSet[errMsg] = nil
 		}
 	})
 }
