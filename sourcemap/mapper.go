@@ -24,6 +24,7 @@ import (
 )
 
 const sourcemapContentSnippetSize = 5
+const sourcemapLineLimit = 256
 
 // Map sourcemapping for given line and column and return values after sourcemapping
 func Map(mapper *sourcemap.Consumer, lineno, colno int) (
@@ -57,5 +58,13 @@ func subSlice(from, to int, content []string) []string {
 	if to > len(content) {
 		to = len(content)
 	}
-	return content[from:to]
+	var slice = make([]string, to - from)
+	for i, line := range content[from:to] {
+		if len(line) <= sourcemapLineLimit {
+			slice[i] = line
+		} else {
+			slice[i] = line[:sourcemapLineLimit-3] + "..."
+		}
+	}
+	return slice
 }
