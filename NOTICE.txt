@@ -308,7 +308,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dlclark/regexp2
-Version: v1.2.0
+Version: v1.2.1
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -534,8 +534,8 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
-Version: v7.9.1
-Revision: 89a7faf4ad5e
+Version: v7.9.2
+Revision: 3ecdddc81a1a
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3739,7 +3739,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: go.uber.org/zap
-Version: v1.15.0
+Version: v1.16.0
 License type (autodetected): MIT
 Contents of "LICENSE.txt":
 
@@ -3799,7 +3799,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 3edf25e44fcc
+Revision: c89045814202
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3901,7 +3901,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 1fb795427249
+Revision: 196b9ba8737a
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
