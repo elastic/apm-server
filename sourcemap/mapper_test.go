@@ -88,5 +88,6 @@ func TestSubSlice(t *testing.T) {
 		assert.Equal(t, []string{}, subSlice(test.start, test.end, []string{}))
 	}
 
-	assert.Equal(t, []string{strings.Repeat("x", 253) + "..."}, subSlice(0, 1, []string{strings.Repeat("x", 257)}))
+	assert.Equal(t, []string{strings.Repeat("x", sourcemapLineLimit - 3) + "..."},
+		subSlice(0, 1, []string{strings.Repeat("x", sourcemapLineLimit + 1)}))
 }
