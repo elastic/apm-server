@@ -19,6 +19,8 @@ package systemtest_test
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -54,6 +56,7 @@ func TestAPMServerRequestLoggingValid(t *testing.T) {
 	))
 	resp, err = http.Post(eventsURL, "application/x-ndjson", overlargeBody)
 	require.NoError(t, err)
+	io.Copy(ioutil.Discard, resp.Body) // Wait for server to respond
 	resp.Body.Close()
 
 	type requestEntry struct {
