@@ -149,7 +149,8 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		//test sending nil value for key
 		ps.changePayload(t, key, nil, Condition{}, upsertFn,
 			func(k string) (bool, []string) {
-				return !required.ContainsStrPattern(k), []string{keyLast}
+				errMsgs := []string{keyLast, "did not recognize object type"}
+				return !required.ContainsStrPattern(k), errMsgs
 			},
 		)
 

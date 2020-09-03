@@ -2,22 +2,165 @@
     "$id": "docs/spec/metadata.json",
     "title": "Metadata",
     "description": "Metadata concerning the other objects in the stream.",
-    "type": ["object"],
+    "type": "object",
     "properties": {
         "service": {
-            "$ref": "service.json",
-            "type": "object",
-            "required": ["name", "agent"],
-            "properties.name.type": "string",
-            "properties.agent.type": "string",
-            "properties.agent.required": ["name", "version"],
-            "properties.agent.properties.name.type": "string",
-            "properties.agent.properties.version.type": "string",
-            "properties.runtime.required": ["name", "version"],
-            "properties.runtime.properties.name.type": "string",
-            "properties.runtime.properties.version.type": "string",
-            "properties.language.required": ["name"],
-            "properties.language.properties.name.type": "string"
+            "type": [
+                "object"
+            ],
+            "properties": {
+                "agent": {
+                    "description": "Name and version of the Elastic APM agent",
+                    "type": [
+                        "object"
+                    ],
+                    "properties": {
+                        "name": {
+                            "description": "Name of the Elastic APM agent, e.g. \"Python\"",
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "version": {
+                            "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "ephemeral_id": {
+                            "description": "Free format ID used for metrics correlation by some agents",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "version"
+                    ]
+                },
+                "framework": {
+                    "description": "Name and version of the web framework used",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "version": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    }
+                },
+                "language": {
+                    "description": "Name and version of the programming language used",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "version": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "name"
+                    ]
+                },
+                "name": {
+                    "description": "Immutable name of the service emitting this event",
+                    "type": [
+                        "string"
+                    ],
+                    "pattern": "^[a-zA-Z0-9 _-]+$",
+                    "maxLength": 1024
+                },
+                "environment": {
+                    "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 1024
+                },
+                "runtime": {
+                    "description": "Name and version of the language runtime running this service",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "version": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "version"
+                    ]
+                },
+                "version": {
+                    "description": "Version of the service emitting this event",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 1024
+                },
+                "node": {
+                    "description": "Unique meaningful name of the service node.",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "configured_name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    }
+                }
+            },
+            "required": [
+                "name",
+                "agent"
+            ]
         },
         "process": {
             "$ref": "process.json"
@@ -29,12 +172,14 @@
             "description": "Describes the authenticated User for a request.",
             "$ref": "user.json"
         },
-	"cloud": {
+        "cloud": {
             "$ref": "cloud.json"
-	},
+        },
         "labels": {
             "$ref": "tags.json"
         }
     },
-    "required": ["service"]
+    "required": [
+        "service"
+    ]
 }

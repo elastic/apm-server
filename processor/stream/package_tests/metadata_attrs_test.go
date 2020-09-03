@@ -159,6 +159,27 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	)
 }
 
+func metadataRequiredKeys() *tests.Set {
+	return tests.NewSet(
+		"metadata",
+		"metadata.cloud.provider",
+		"metadata.service",
+		"metadata.service.name",
+		"metadata.service.agent",
+		"metadata.service.agent.name",
+		"metadata.service.agent.version",
+		"metadata.service.runtime.name",
+		"metadata.service.runtime.version",
+		"metadata.service.language.name",
+		"metadata.system.container.id",
+		"metadata.process.pid",
+	)
+}
+
+func TestAttrsPresenceInMetadata(t *testing.T) {
+	metadataProcSetup().AttrsPresence(t, metadataRequiredKeys(), nil)
+}
+
 func TestInvalidPayloadsForMetadata(t *testing.T) {
 	type val []interface{}
 
