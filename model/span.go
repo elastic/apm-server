@@ -76,6 +76,13 @@ type Span struct {
 	RUM bool
 
 	Experimental interface{}
+
+	// RepresentativeCount, if positive, holds the approximate number of
+	// spans that this span represents for aggregation. This will only be set
+	// when the sampling rate is known.
+	//
+	// This may be used for scaling metrics; it is not indexed.
+	RepresentativeCount float64
 }
 
 // DB contains information related to a database query of a span event
