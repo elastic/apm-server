@@ -191,6 +191,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	page := model.Page{URL: model.ParseURL(url, ""), Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
 	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
+	badRequestResp, internalErrorResp := 400, 500
 	h := model.Http{Request: &request, Response: &response}
 	ctxURL := model.URL{Original: &origURL}
 	custom := model.Custom{"abc": 1}
@@ -372,6 +373,52 @@ func TestTransactionEventDecode(t *testing.T) {
 					FirstInputDelay:       2.3,
 					TotalBlockingTime:     -1, // undefined
 				},
+			},
+		},
+		"with derived success outcome": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"response": map[string]interface{}{
+						"status_code": json.Number("400"),
+					},
+				},
+			},
+			e: &model.Transaction{
+				Metadata: inputMetadata,
+				ID:       id,
+				Type:     trType,
+				Name:     name,
+				TraceID:  traceID,
+				Duration: duration,
+				HTTP: &model.Http{Response: &model.Resp{
+					MinimalResp: model.MinimalResp{StatusCode: &badRequestResp},
+				}},
+				Timestamp: requestTime,
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "success",
+			},
+		},
+		"with derived failure outcome": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"response": map[string]interface{}{
+						"status_code": json.Number("500"),
+					},
+				},
+			},
+			e: &model.Transaction{
+				Metadata:  inputMetadata,
+				ID:        id,
+				Type:      trType,
+				Name:      name,
+				TraceID:   traceID,
+				Duration:  duration,
+				Timestamp: requestTime,
+				HTTP: &model.Http{Response: &model.Resp{
+					MinimalResp: model.MinimalResp{StatusCode: &internalErrorResp},
+				}},
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "failure",
 			},
 		},
 	} {
