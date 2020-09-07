@@ -20,7 +20,7 @@ package rumv3
 import (
 	"regexp"
 
-	"github.com/elastic/apm-server/model/modeldecoder/typ"
+	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -39,42 +39,42 @@ type metadata struct {
 // metadataService holds information about where the data was collected
 type metadataService struct {
 	Agent       metadataServiceAgent     `json:"a" validate:"required"`
-	Environment typ.String               `json:"en" validate:"max=1024"`
+	Environment nullable.String          `json:"en" validate:"max=1024"`
 	Framework   MetadataServiceFramework `json:"fw"`
 	Language    metadataServiceLanguage  `json:"la"`
-	Name        typ.String               `json:"n" validate:"required,max=1024,pattern=alphaNumericExtRegex"`
+	Name        nullable.String          `json:"n" validate:"required,max=1024,pattern=alphaNumericExtRegex"`
 	Runtime     metadataServiceRuntime   `json:"ru"`
-	Version     typ.String               `json:"ve" validate:"max=1024"`
+	Version     nullable.String          `json:"ve" validate:"max=1024"`
 }
 
 //metadataServiceAgent has a version and a name
 type metadataServiceAgent struct {
-	Name    typ.String `json:"n" validate:"required,max=1024"`
-	Version typ.String `json:"ve" validate:"required,max=1024"`
+	Name    nullable.String `json:"n" validate:"required,max=1024"`
+	Version nullable.String `json:"ve" validate:"required,max=1024"`
 }
 
 //MetadataServiceFramework has a version and name
 type MetadataServiceFramework struct {
-	Name    typ.String `json:"n" validate:"max=1024"`
-	Version typ.String `json:"ve" validate:"max=1024"`
+	Name    nullable.String `json:"n" validate:"max=1024"`
+	Version nullable.String `json:"ve" validate:"max=1024"`
 }
 
 //MetadataLanguage has a version and name
 type metadataServiceLanguage struct {
-	Name    typ.String `json:"n" validate:"required,max=1024"`
-	Version typ.String `json:"ve" validate:"max=1024"`
+	Name    nullable.String `json:"n" validate:"required,max=1024"`
+	Version nullable.String `json:"ve" validate:"max=1024"`
 }
 
 //MetadataRuntime has a version and name
 type metadataServiceRuntime struct {
-	Name    typ.String `json:"n" validate:"required,max=1024"`
-	Version typ.String `json:"ve" validate:"required,max=1024"`
+	Name    nullable.String `json:"n" validate:"required,max=1024"`
+	Version nullable.String `json:"ve" validate:"required,max=1024"`
 }
 
 type metadataUser struct {
-	ID    typ.Interface `json:"id" validate:"max=1024,types=string;int"`
-	Email typ.String    `json:"em" validate:"max=1024"`
-	Name  typ.String    `json:"un" validate:"max=1024"`
+	ID    nullable.Interface `json:"id" validate:"max=1024,types=string;int"`
+	Email nullable.String    `json:"em" validate:"max=1024"`
+	Name  nullable.String    `json:"un" validate:"max=1024"`
 }
 
 type metadataWithKey struct {

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package typ
+package nullable
 
 import (
 	"unsafe"
@@ -24,7 +24,7 @@ import (
 )
 
 func init() {
-	jsoniter.RegisterTypeDecoderFunc("typ.String", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+	jsoniter.RegisterTypeDecoderFunc("nullable.String", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
@@ -34,7 +34,7 @@ func init() {
 		}
 		(*((*String)(ptr))).isSet = true
 	})
-	jsoniter.RegisterTypeDecoderFunc("typ.Int", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+	jsoniter.RegisterTypeDecoderFunc("nullable.Int", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
@@ -44,7 +44,7 @@ func init() {
 		}
 		(*((*Int)(ptr))).isSet = true
 	})
-	jsoniter.RegisterTypeDecoderFunc("typ.Interface", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+	jsoniter.RegisterTypeDecoderFunc("nullable.Interface", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
@@ -116,6 +116,7 @@ func (v *Int) Reset() {
 	v.isNotNil = false
 }
 
+// TODO(simitt): follow up on https://github.com/elastic/apm-server/pull/4154#discussion_r484166721
 type Interface struct {
 	Val             interface{} `json:"val,omitempty"`
 	isSet, isNotNil bool

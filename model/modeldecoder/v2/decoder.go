@@ -28,57 +28,51 @@ import (
 )
 
 func init() {
-	metadataWithKeyPool.New = func() interface{} {
-		return &metadataWithKey{}
+	metadataRootPool.New = func() interface{} {
+		return &metadataRoot{}
 	}
-	metadataNoKeyPool.New = func() interface{} {
-		return &metadataNoKey{}
-	}
+	// metadataNoKeyPool.New = func() interface{} {
+	// 	return &metadataNoKey{}
+	// }
 }
 
-var metadataWithKeyPool, metadataNoKeyPool sync.Pool
+var metadataRootPool sync.Pool
 
-func fetchMetadataWithKey() *metadataWithKey {
-	return metadataWithKeyPool.Get().(*metadataWithKey)
+func fetchMetadataRoot() *metadataRoot {
+	return metadataRootPool.Get().(*metadataRoot)
 }
-func releaseMetadataWithKey(m *metadataWithKey) {
+func releaseMetadataRoot(m *metadataRoot) {
 	m.Reset()
-	metadataWithKeyPool.Put(m)
-}
-
-func fetchMetadataNoKey() *metadataNoKey {
-	return metadataNoKeyPool.Get().(*metadataNoKey)
-}
-func releaseMetadataNoKey(m *metadataNoKey) {
-	m.Reset()
-	metadataNoKeyPool.Put(m)
-}
-
-// DecodeProfileMetadata uses the given decoder to create the input models,
-// then runs the defined validations on the input models
-// and finally maps the values fom the input model to the given *model.Metadata instance
-func DecodeProfileMetadata(d decoder.Decoder, out *model.Metadata) error {
-	var err error
-	m := fetchMetadataNoKey()
-	defer releaseMetadataNoKey(m)
-	if err = d.Decode(&m.Metadata); err != nil {
-		return fmt.Errorf("decode error %w", err)
-	}
-	if err := m.validate(); err != nil {
-		return fmt.Errorf("validation error %w", err)
-	}
-	mapToMetadataModel(&m.Metadata, out)
-	return nil
+	metadataRootPool.Put(m)
 }
 
 // DecodeMetadata uses the given decoder to create the input models,
 // then runs the defined validations on the input models
 // and finally maps the values fom the input model to the given *model.Metadata instance
+//
+// DecodeMetadata should be used when the underlying byte stream does not contain the
+// `metadata` key, but only the metadata.
 func DecodeMetadata(d decoder.Decoder, out *model.Metadata) error {
-	var err error
-	m := fetchMetadataWithKey()
-	defer releaseMetadataWithKey(m)
-	if err = d.Decode(m); err != nil {
+	return decode(func(m *metadataRoot) error {
+		return d.Decode(&m.Metadata)
+	}, out)
+}
+
+// DecodeNestedMetadata uses the given decoder to create the input models,
+// then runs the defined validations on the input models
+// and finally maps the values fom the input model to the given *model.Metadata instance
+//
+// DecodeNestedMetadata should be used when the underlying byte stream does start with the `metadata` key
+func DecodeNestedMetadata(d decoder.Decoder, out *model.Metadata) error {
+	return decode(func(m *metadataRoot) error {
+		return d.Decode(m)
+	}, out)
+}
+
+func decode(decoderFn func(m *metadataRoot) error, out *model.Metadata) error {
+	m := fetchMetadataRoot()
+	defer releaseMetadataRoot(m)
+	if err := decoderFn(m); err != nil {
 		return fmt.Errorf("decode error %w", err)
 	}
 	if err := m.validate(); err != nil {

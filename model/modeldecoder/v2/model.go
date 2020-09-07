@@ -20,7 +20,7 @@ package v2
 import (
 	"regexp"
 
-	"github.com/elastic/apm-server/model/modeldecoder/typ"
+	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -40,119 +40,115 @@ type metadata struct {
 
 type metadataCloud struct {
 	Account          metadataCloudAccount  `json:"account"`
-	AvailabilityZone typ.String            `json:"availability_zone" validate:"max=1024"`
+	AvailabilityZone nullable.String       `json:"availability_zone" validate:"max=1024"`
 	Instance         metadataCloudInstance `json:"instance"`
 	Machine          metadataCloudMachine  `json:"machine"`
 	Project          metadataCloudProject  `json:"project"`
-	Provider         typ.String            `json:"provider" validate:"required,max=1024"`
-	Region           typ.String            `json:"region" validate:"max=1024"`
+	Provider         nullable.String       `json:"provider" validate:"required,max=1024"`
+	Region           nullable.String       `json:"region" validate:"max=1024"`
 }
 
 type metadataCloudAccount struct {
-	ID   typ.String `json:"id" validate:"max=1024"`
-	Name typ.String `json:"name" validate:"max=1024"`
+	ID   nullable.String `json:"id" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"max=1024"`
 }
 
 type metadataCloudInstance struct {
-	ID   typ.String `json:"id" validate:"max=1024"`
-	Name typ.String `json:"name" validate:"max=1024"`
+	ID   nullable.String `json:"id" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"max=1024"`
 }
 
 type metadataCloudMachine struct {
-	Type typ.String `json:"type" validate:"max=1024"`
+	Type nullable.String `json:"type" validate:"max=1024"`
 }
 
 type metadataCloudProject struct {
-	ID   typ.String `json:"id" validate:"max=1024"`
-	Name typ.String `json:"name" validate:"max=1024"`
+	ID   nullable.String `json:"id" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"max=1024"`
 }
 
 type metadataProcess struct {
-	Argv  []string   `json:"argv"`
-	Pid   typ.Int    `json:"pid" validate:"required"`
-	Ppid  typ.Int    `json:"ppid"`
-	Title typ.String `json:"title" validate:"max=1024"`
+	Argv  []string        `json:"argv"`
+	Pid   nullable.Int    `json:"pid" validate:"required"`
+	Ppid  nullable.Int    `json:"ppid"`
+	Title nullable.String `json:"title" validate:"max=1024"`
 }
 
 type metadataService struct {
 	Agent       metadataServiceAgent     `json:"agent" validate:"required"`
-	Environment typ.String               `json:"environment" validate:"max=1024"`
+	Environment nullable.String          `json:"environment" validate:"max=1024"`
 	Framework   metadataServiceFramework `json:"framework"`
 	Language    metadataServiceLanguage  `json:"language"`
-	Name        typ.String               `json:"name" validate:"required,max=1024,pattern=alphaNumericExtRegex"`
+	Name        nullable.String          `json:"name" validate:"required,max=1024,pattern=alphaNumericExtRegex"`
 	Node        metadataServiceNode      `json:"node"`
 	Runtime     metadataServiceRuntime   `json:"runtime"`
-	Version     typ.String               `json:"version" validate:"max=1024"`
+	Version     nullable.String          `json:"version" validate:"max=1024"`
 }
 
 type metadataServiceAgent struct {
-	EphemeralID typ.String `json:"ephemeral_id" validate:"max=1024"`
-	Name        typ.String `json:"name" validate:"required,max=1024"`
-	Version     typ.String `json:"version" validate:"required,max=1024"`
+	EphemeralID nullable.String `json:"ephemeral_id" validate:"max=1024"`
+	Name        nullable.String `json:"name" validate:"required,max=1024"`
+	Version     nullable.String `json:"version" validate:"required,max=1024"`
 }
 
 type metadataServiceFramework struct {
-	Name    typ.String `json:"name" validate:"max=1024"`
-	Version typ.String `json:"version" validate:"max=1024"`
+	Name    nullable.String `json:"name" validate:"max=1024"`
+	Version nullable.String `json:"version" validate:"max=1024"`
 }
 
 type metadataServiceLanguage struct {
-	Name    typ.String `json:"name" validate:"required,max=1024"`
-	Version typ.String `json:"version" validate:"max=1024"`
+	Name    nullable.String `json:"name" validate:"required,max=1024"`
+	Version nullable.String `json:"version" validate:"max=1024"`
 }
 
 type metadataServiceNode struct {
-	Name typ.String `json:"configured_name" validate:"max=1024"`
+	Name nullable.String `json:"configured_name" validate:"max=1024"`
 }
 
 type metadataServiceRuntime struct {
-	Name    typ.String `json:"name" validate:"required,max=1024"`
-	Version typ.String `json:"version" validate:"required,max=1024"`
+	Name    nullable.String `json:"name" validate:"required,max=1024"`
+	Version nullable.String `json:"version" validate:"required,max=1024"`
 }
 
 type metadataSystem struct {
-	Architecture       typ.String               `json:"architecture" validate:"max=1024"`
-	ConfiguredHostname typ.String               `json:"configured_hostname" validate:"max=1024"`
+	Architecture       nullable.String          `json:"architecture" validate:"max=1024"`
+	ConfiguredHostname nullable.String          `json:"configured_hostname" validate:"max=1024"`
 	Container          metadataSystemContainer  `json:"container"`
-	DetectedHostname   typ.String               `json:"detected_hostname" validate:"max=1024"`
-	HostnameDeprecated typ.String               `json:"hostname" validate:"max=1024"`
-	IP                 typ.String               `json:"ip"`
+	DetectedHostname   nullable.String          `json:"detected_hostname" validate:"max=1024"`
+	HostnameDeprecated nullable.String          `json:"hostname" validate:"max=1024"`
+	IP                 nullable.String          `json:"ip"`
 	Kubernetes         metadataSystemKubernetes `json:"kubernetes"`
-	Platform           typ.String               `json:"platform" validate:"max=1024"`
+	Platform           nullable.String          `json:"platform" validate:"max=1024"`
 }
 
 type metadataSystemContainer struct {
 	// `id` is the only field in `system.container`,
 	// if `system.container:{}` is sent, it should be considered valid
 	// if additional attributes are defined in the future, add the required tag
-	ID typ.String `json:"id"` //validate:"required"
+	ID nullable.String `json:"id"` //validate:"required"
 }
 
 type metadataSystemKubernetes struct {
-	Namespace typ.String                   `json:"namespace" validate:"max=1024"`
+	Namespace nullable.String              `json:"namespace" validate:"max=1024"`
 	Node      metadataSystemKubernetesNode `json:"node"`
 	Pod       metadataSystemKubernetesPod  `json:"pod"`
 }
 
 type metadataSystemKubernetesNode struct {
-	Name typ.String `json:"name" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"max=1024"`
 }
 
 type metadataSystemKubernetesPod struct {
-	Name typ.String `json:"name" validate:"max=1024"`
-	UID  typ.String `json:"uid" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"max=1024"`
+	UID  nullable.String `json:"uid" validate:"max=1024"`
 }
 
 type metadataUser struct {
-	ID    typ.Interface `json:"id,omitempty" validate:"max=1024,types=string;int"`
-	Email typ.String    `json:"email" validate:"max=1024"`
-	Name  typ.String    `json:"username" validate:"max=1024"`
+	ID    nullable.Interface `json:"id,omitempty" validate:"max=1024,types=string;int"`
+	Email nullable.String    `json:"email" validate:"max=1024"`
+	Name  nullable.String    `json:"username" validate:"max=1024"`
 }
 
-type metadataWithKey struct {
+type metadataRoot struct {
 	Metadata metadata `json:"metadata" validate:"required"`
-}
-
-type metadataNoKey struct {
-	Metadata metadata `validate:"required"`
 }

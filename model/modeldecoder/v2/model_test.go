@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -29,8 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/model/modeldecoder/typ"
-	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -47,11 +47,12 @@ func TestIsSet(t *testing.T) {
 	assert.True(t, m.Cloud.Instance.ID.IsSet())
 	assert.False(t, m.Cloud.Instance.Name.IsSet())
 }
+
 func TestSetReset(t *testing.T) {
-	var m metadataWithKey
-	inp, err := loader.LoadDataAsStream("../testdata/intake-v2/metadata.ndjson")
+	var m metadataRoot
+	r, err := os.Open("../../../testdata/intake-v2/metadata.ndjson")
 	require.NoError(t, err)
-	require.NoError(t, decoder.NewJSONIteratorDecoder(inp).Decode(&m))
+	require.NoError(t, decoder.NewJSONIteratorDecoder(r).Decode(&m))
 	require.True(t, m.IsSet())
 	require.True(t, m.Metadata.Cloud.IsSet())
 	require.NotEmpty(t, m.Metadata.Labels)
@@ -174,14 +175,44 @@ func TestValidationRules(t *testing.T) {
 	})
 
 	t.Run("required", func(t *testing.T) {
-		// setup: create full metadata struct
+		// setup: create full metadata struct with arbitrary values set
 		typ := reflect.TypeOf(metadata{})
 		val := reflect.New(typ)
-		iterateStruct(typ, val.Elem(), "", true, nil)
-		metadata := val.Interface().(*metadata)
+		iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
+			var newVal interface{}
+			switch val := f.Interface().(type) {
+			case map[string]interface{}:
+				newVal = map[string]interface{}{"k1": "v1"}
+			case common.MapStr:
+				newVal = common.MapStr{"k1": "v1"}
+			case []string:
+				newVal = []string{"a", "b"}
+			case []int:
+				newVal = []int{1, 2, 3}
+			case nullable.String:
+				val.Set("teststring")
+				newVal = val
+			case nullable.Int:
+				val.Set(123)
+				newVal = val
+			case nullable.Interface:
+				val.Set("testinterface")
+				newVal = val
+			default:
+				if f.Type().Kind() == reflect.Struct {
+					return
+				}
+				panic(fmt.Sprintf("initStruct: unhandled type %T", f.Type().Kind()))
+			}
+			f.Set(reflect.ValueOf(newVal))
+		})
+
 		// test vanilla struct is valid
+		metadata := val.Interface().(*metadata)
 		require.NoError(t, metadata.validate())
 
+		// iterate through struct, remove every key one by one
+		// and test that validation behaves as expected
 		requiredKeys := map[string]interface{}{
 			"cloud.provider":          nil,
 			"process.pid":             nil,
@@ -194,8 +225,10 @@ func TestValidationRules(t *testing.T) {
 			"service.runtime.version": nil,
 			"service.name":            nil,
 		}
-		// iterate through struct and remove every key one by one
-		iterateStruct(typ, val.Elem(), "", false, func(key string) {
+		iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
+			original := reflect.ValueOf(f.Interface())
+			defer f.Set(original) // reset original value
+			f.Set(reflect.Zero(f.Type()))
 			err := metadata.validate()
 			if _, ok := requiredKeys[key]; ok {
 				require.Error(t, err, key)
@@ -207,7 +240,8 @@ func TestValidationRules(t *testing.T) {
 	})
 }
 
-func iterateStruct(t reflect.Type, v reflect.Value, key string, init bool, cb func(string)) {
+func iterateStruct(v reflect.Value, key string, cb func(f reflect.Value, fKey string)) {
+	t := v.Type()
 	if t.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("iterateStruct: invalid typ %T", t.Kind()))
 	}
@@ -223,109 +257,19 @@ func iterateStruct(t reflect.Type, v reflect.Value, key string, init bool, cb fu
 		stf := t.Field(i)
 		fTyp := stf.Type
 		fKey = fmt.Sprintf("%s%s", key, jsonName(stf))
-		if init {
-			initStruct(fTyp, f, fKey)
-			continue
+
+		if fTyp.Kind() == reflect.Struct {
+			switch f.Interface().(type) {
+			case nullable.String, nullable.Int, nullable.Interface:
+			default:
+				iterateStruct(f, fKey, cb)
+			}
 		}
-		toZero(fTyp, f, fKey, cb)
+		cb(f, fKey)
 	}
 }
 
-func toZero(fTyp reflect.Type, f reflect.Value, fKey string, cb func(string)) {
-	switch k := fTyp.Kind(); k {
-	case reflect.Map:
-		orig := f.Interface()
-		switch val := f.Interface().(type) {
-		case map[string]interface{}:
-			var m map[string]interface{}
-			f.Set(reflect.ValueOf(m))
-		case common.MapStr:
-			var m common.MapStr
-			f.Set(reflect.ValueOf(m))
-		default:
-			panic(fmt.Sprintf("iterateStruct: unhandled type %T for map", val))
-		}
-		cb(fKey)
-		f.Set(reflect.ValueOf(orig))
-	case reflect.Slice:
-		val := f.Interface()
-		switch f.Interface().(type) {
-		case []string:
-			var arr []string
-			f.Set(reflect.ValueOf(arr))
-		case []int:
-			var arr []int
-			f.Set(reflect.ValueOf(arr))
-		}
-		cb(fKey)
-		f.Set(reflect.ValueOf(val))
-	case reflect.Struct:
-		switch val := f.Interface().(type) {
-		case typ.String:
-			var value typ.String
-			value.Reset()
-			f.Set(reflect.ValueOf(value))
-			cb(fKey)
-			f.Set(reflect.ValueOf(val))
-		case typ.Int:
-			var value typ.Int
-			value.Reset()
-			f.Set(reflect.ValueOf(value))
-			cb(fKey)
-			f.Set(reflect.ValueOf(val))
-		case typ.Interface:
-			var value typ.Interface
-			value.Reset()
-			f.Set(reflect.ValueOf(value))
-			cb(fKey)
-			f.Set(reflect.ValueOf(val))
-		default:
-			iterateStruct(fTyp, f, fKey, false, cb)
-		}
-	default:
-		panic(fmt.Sprintf("iterateStruct: unhandled type %T", k))
-	}
-}
-
-func initStruct(fTyp reflect.Type, f reflect.Value, fKey string) {
-	switch k := fTyp.Kind(); k {
-	case reflect.Map:
-		var m interface{}
-		switch val := f.Interface().(type) {
-		case map[string]interface{}:
-			m = map[string]interface{}{"k1": "v1"}
-		case common.MapStr:
-			m = common.MapStr{"k1": "v1"}
-		default:
-			panic(fmt.Sprintf("iterateStruct: unhandled type %T for map", val))
-		}
-		f.Set(reflect.ValueOf(m))
-	case reflect.Slice:
-		var arr interface{}
-		switch f.Interface().(type) {
-		case []string:
-			arr = []string{"a", "b"}
-		case []int:
-			arr = []int{1, 2, 3}
-		}
-		f.Set(reflect.ValueOf(arr))
-	case reflect.Struct:
-		switch val := f.Interface().(type) {
-		case typ.String:
-			val.Set("teststring")
-			f.Set(reflect.ValueOf(val))
-		case typ.Int:
-			val.Set(123)
-			f.Set(reflect.ValueOf(val))
-		case typ.Interface:
-			val.Set("testinterface")
-			f.Set(reflect.ValueOf(val))
-		default:
-			iterateStruct(fTyp, f, fKey, true, nil)
-		}
-	default:
-		panic(fmt.Sprintf("iterateStruct: unhandled type %T", k))
-	}
+func initStruct(f reflect.Value, fKey string) {
 }
 
 func jsonName(f reflect.StructField) string {

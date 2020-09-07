@@ -33,7 +33,7 @@ const (
 
 var (
 	importPath = filepath.Join(basePath, modeldecoderPath)
-	typPath    = filepath.Join(importPath, "typ")
+	typPath    = filepath.Join(importPath, "nullable")
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 
 func genV2Models() {
 	pkg := "v2"
-	rootObjs := []string{"metadataNoKey", "metadataWithKey"}
+	rootObjs := []string{"metadataRoot"}
 	out := filepath.Join(modeldecoderPath, pkg, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkg, typPath, rootObjs)
 	if err != nil {
