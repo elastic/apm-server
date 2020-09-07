@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
@@ -63,7 +64,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 	var ids []string
 	for i := 0; i < 20; i++ {
-		ids = append(ids, fmt.Sprintf("trace_%d", len(ids)))
+		ids = append(ids, uuid.Must(uuid.NewV4()).String())
 	}
 
 	// Publish in a separate goroutine, as it may get blocked if we don't

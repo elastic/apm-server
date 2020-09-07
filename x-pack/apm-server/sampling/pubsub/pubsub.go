@@ -71,13 +71,18 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceID ...string) 
 			return err
 		}
 		if err := p.indexer.Add(ctx, esutil.BulkIndexerItem{
-			Action: "index",
-			Body:   bytes.NewReader(json.Bytes()),
+			Action:    "index",
+			Body:      bytes.NewReader(json.Bytes()),
+			OnFailure: p.onBulkIndexerItemFailure,
 		}); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (p *Pubsub) onBulkIndexerItemFailure(ctx context.Context, item esutil.BulkIndexerItem, resp esutil.BulkIndexerResponseItem, err error) {
+	p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace ID failed")
 }
 
 // SubscribeSampledTraceIDs subscribes to new sampled trace IDs, sending them to the
@@ -120,8 +125,12 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, lastSeqN
 	searchBody := map[string]interface{}{
 		"size":                1000,
 		"seq_no_primary_term": true,
-		"sort":                []interface{}{map[string]interface{}{"_seq_no": "asc"}},
-		"search_after":        []interface{}{*lastSeqNo - 1},
+
+		// Search from the most recently observed sequence number,
+		// in case _primary_term has increased and _seq_no is reused.
+		"sort":         []interface{}{map[string]interface{}{"_seq_no": "asc"}},
+		"search_after": []interface{}{*lastSeqNo - 1},
+
 		"query": map[string]interface{}{
 			// Filter out local observations.
 			"bool": map[string]interface{}{

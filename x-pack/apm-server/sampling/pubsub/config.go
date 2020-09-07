@@ -29,7 +29,9 @@ type Config struct {
 	// SearchInterval holds the time between searches initiated by the subscriber.
 	//
 	// This controls how long it takes for servers to become aware of each other's
-	// sampled trace IDs.
+	// sampled trace IDs, and so should be in the order of tens of seconds, or low
+	// minutes. In order not to lose sampled trace events, SearchInterval should be
+	// no greater than half of the TTL for events in local storage.
 	SearchInterval time.Duration
 
 	// FlushInterval holds the amount of time to wait before flushing the bulk indexer.
@@ -39,7 +41,7 @@ type Config struct {
 	FlushInterval time.Duration
 
 	// Logger is used for logging publish and subscribe operations -- particularly
-	// errors that occur asyncrhonously.
+	// errors that occur asynchronously.
 	//
 	// If Logger is nil, a new logger will be constructed.
 	Logger *logp.Logger
