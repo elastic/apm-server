@@ -8,7 +8,6 @@
       fields:
         - name: duration
           type: group
-          description:
           fields:
             - name: us
               type: long
