@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/gofrs/uuid"
 	"github.com/google/pprof/profile"
 
 	"github.com/elastic/apm-server/transform"
@@ -58,9 +59,19 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 		valueFieldNames[i] = sampleType.Type + "." + sampleUnit
 	}
 
+	// Generate a unique profile ID shared by all samples in the profile.
+	// If we can't generate a UUID for whatever reason, omit the profile ID.
+	var profileID string
+	if uuid, err := uuid.NewV4(); err == nil {
+		profileID = fmt.Sprintf("%x", uuid)
+	}
+
 	samples := make([]beat.Event, len(pp.Profile.Sample))
 	for i, sample := range pp.Profile.Sample {
 		profileFields := common.MapStr{}
+		if profileID != "" {
+			profileFields["id"] = profileID
+		}
 		if pp.Profile.DurationNanos > 0 {
 			profileFields["duration"] = pp.Profile.DurationNanos
 		}
