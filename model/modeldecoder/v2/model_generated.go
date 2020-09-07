@@ -135,7 +135,7 @@ func (m *metadataCloud) validate() error {
 	if utf8.RuneCountInString(m.Provider.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.cloud.provider'")
 	}
-	if !m.Provider.IsSet() || m.Provider.IsNil() {
+	if !m.Provider.IsSet() {
 		return fmt.Errorf("'metadata.cloud.provider' required")
 	}
 	if utf8.RuneCountInString(m.Region.Val) > 1024 {
@@ -243,7 +243,7 @@ func (m *metadataProcess) validate() error {
 	if !m.IsSet() {
 		return nil
 	}
-	if !m.Pid.IsSet() || m.Pid.IsNil() {
+	if !m.Pid.IsSet() {
 		return fmt.Errorf("'metadata.process.pid' required")
 	}
 	if utf8.RuneCountInString(m.Title.Val) > 1024 {
@@ -292,7 +292,7 @@ func (m *metadataService) validate() error {
 	if !alphaNumericExtRegex.MatchString(m.Name.Val) {
 		return fmt.Errorf("validation rule 'pattern(alphaNumericExtRegex)' violated for 'metadata.service.name'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'metadata.service.name' required")
 	}
 	if err := m.Node.validate(); err != nil {
@@ -327,13 +327,13 @@ func (m *metadataServiceAgent) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.service.agent.name'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'metadata.service.agent.name' required")
 	}
 	if utf8.RuneCountInString(m.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.service.agent.version'")
 	}
-	if !m.Version.IsSet() || m.Version.IsNil() {
+	if !m.Version.IsSet() {
 		return fmt.Errorf("'metadata.service.agent.version' required")
 	}
 	return nil
@@ -377,7 +377,7 @@ func (m *metadataServiceLanguage) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.service.language.name'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'metadata.service.language.name' required")
 	}
 	if utf8.RuneCountInString(m.Version.Val) > 1024 {
@@ -420,13 +420,13 @@ func (m *metadataServiceRuntime) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.service.runtime.name'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'metadata.service.runtime.name' required")
 	}
 	if utf8.RuneCountInString(m.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.service.runtime.version'")
 	}
-	if !m.Version.IsSet() || m.Version.IsNil() {
+	if !m.Version.IsSet() {
 		return fmt.Errorf("'metadata.service.runtime.version' required")
 	}
 	return nil

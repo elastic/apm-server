@@ -363,10 +363,10 @@ default:
 					switch rule {
 					case ruleRequired:
 						fmt.Fprintf(&g.buf, `
-if !m.%s.IsSet() || m.%s.IsNil() {
+if !m.%s.IsSet()  {
 	return fmt.Errorf("'%s' required")
 }
-`[1:], f.name, f.name, flattenedName)
+`[1:], f.name, flattenedName)
 					case ruleMax:
 						fmt.Fprintf(&g.buf, `
 if utf8.RuneCountInString(m.%s.Val) > %s{
@@ -389,10 +389,10 @@ if !%s.MatchString(m.%s.Val){
 					switch rule {
 					case ruleRequired:
 						fmt.Fprintf(&g.buf, `
-if !m.%s.IsSet() || m.%s.IsNil(){
+if !m.%s.IsSet() {
 	return fmt.Errorf("'%s' required")
 }
-`[1:], f.name, f.name, flattenedName)
+`[1:], f.name, flattenedName)
 					case ruleMax:
 						fmt.Fprintf(&g.buf, `
 if m.%s.Val > %s{
@@ -413,10 +413,10 @@ if m.%s.Val > %s{
 					switch rule {
 					case ruleRequired:
 						fmt.Fprintf(&g.buf, `
-if !m.%s.IsSet() || m.%s.IsNil(){
+if !m.%s.IsSet() {
 	return fmt.Errorf("'%s' required")
 }
-`[1:], f.name, f.name, flattenedName)
+`[1:], f.name, flattenedName)
 					case ruleMax:
 						//handled in switch statement for string types
 					case ruleTypes:

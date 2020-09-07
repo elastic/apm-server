@@ -39,14 +39,14 @@ func TestString(t *testing.T) {
 		name  string
 		input string
 
-		val                string
-		isSet, isNil, fail bool
+		val         string
+		isSet, fail bool
 	}{
 		{name: "values", input: `{"s":"agent-go"}`, val: "agent-go", isSet: true},
 		{name: "empty", input: `{"s":""}`, isSet: true},
-		{name: "null", input: `{"s":null}`, isSet: true, isNil: true},
-		{name: "missing", input: `{}`, isNil: true},
-		{name: "invalid", input: `{"s":1234}`, isNil: true, fail: true},
+		{name: "null", input: `{"s":null}`},
+		{name: "missing", input: `{}`},
+		{name: "invalid", input: `{"s":1234}`, fail: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dec := json.NewDecoder(strings.NewReader(tc.input))
@@ -56,18 +56,15 @@ func TestString(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tc.isNil, testStruct.S.IsNil())
 				assert.Equal(t, tc.isSet, testStruct.S.IsSet())
 				assert.Equal(t, tc.val, testStruct.S.Val)
 			}
 
 			testStruct.S.Reset()
-			assert.True(t, testStruct.S.IsNil())
 			assert.False(t, testStruct.S.IsSet())
 			assert.Empty(t, testStruct.S.Val)
 
 			testStruct.S.Set("teststring")
-			assert.False(t, testStruct.S.IsNil())
 			assert.True(t, testStruct.S.IsSet())
 			assert.Equal(t, "teststring", testStruct.S.Val)
 		})
@@ -79,14 +76,14 @@ func TestInt(t *testing.T) {
 		name  string
 		input string
 
-		val                int
-		isSet, isNil, fail bool
+		val         int
+		isSet, fail bool
 	}{
 		{name: "values", input: `{"i":44}`, val: 44, isSet: true},
 		{name: "empty", input: `{"i":0}`, isSet: true},
-		{name: "null", input: `{"i":null}`, isSet: true, isNil: true},
-		{name: "missing", input: `{}`, isNil: true},
-		{name: "invalid", input: `{"i":"1.0.1"}`, isNil: true, fail: true},
+		{name: "null", input: `{"i":null}`, isSet: false},
+		{name: "missing", input: `{}`},
+		{name: "invalid", input: `{"i":"1.0.1"}`, fail: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dec := json.NewDecoder(strings.NewReader(tc.input))
@@ -96,18 +93,15 @@ func TestInt(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tc.isNil, testStruct.I.IsNil())
 				assert.Equal(t, tc.isSet, testStruct.I.IsSet())
 				assert.Equal(t, tc.val, testStruct.I.Val)
 			}
 
 			testStruct.I.Reset()
-			assert.True(t, testStruct.I.IsNil())
 			assert.False(t, testStruct.I.IsSet())
 			assert.Empty(t, testStruct.I.Val)
 
 			testStruct.I.Set(55)
-			assert.False(t, testStruct.I.IsNil())
 			assert.True(t, testStruct.I.IsSet())
 			assert.Equal(t, 55, testStruct.I.Val)
 		})
@@ -119,15 +113,15 @@ func TestInterface(t *testing.T) {
 		name  string
 		input string
 
-		val                interface{}
-		isSet, isNil, fail bool
+		val         interface{}
+		isSet, fail bool
 	}{
 		{name: "integer", input: `{"v":44}`, val: float64(44), isSet: true},
 		{name: "string", input: `{"v":"1.0.1"}`, val: "1.0.1", isSet: true},
 		{name: "bool", input: `{"v":true}`, val: true, isSet: true},
 		{name: "empty", input: `{"v":""}`, val: "", isSet: true},
-		{name: "null", input: `{"v":null}`, isSet: true, isNil: true},
-		{name: "missing", input: `{}`, isNil: true},
+		{name: "null", input: `{"v":null}`},
+		{name: "missing", input: `{}`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dec := json.NewDecoder(strings.NewReader(tc.input))
@@ -137,20 +131,13 @@ func TestInterface(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tc.isNil, testStruct.V.IsNil())
 				assert.Equal(t, tc.isSet, testStruct.V.IsSet())
 				assert.Equal(t, tc.val, testStruct.V.Val)
 			}
 
 			testStruct.V.Reset()
-			assert.True(t, testStruct.V.IsNil())
 			assert.False(t, testStruct.V.IsSet())
 			assert.Empty(t, testStruct.V.Val)
-
-			testStruct.V.Set("teststring")
-			assert.False(t, testStruct.V.IsNil())
-			assert.True(t, testStruct.V.IsSet())
-			assert.Equal(t, "teststring", testStruct.V.Val)
 		})
 	}
 }

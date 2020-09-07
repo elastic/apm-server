@@ -64,48 +64,48 @@ func mapToModel(m *metadata, out *model.Metadata) {
 	out.Labels.Update(m.Labels)
 
 	// Service
-	if !m.Service.Agent.Name.IsNil() {
+	if m.Service.Agent.Name.IsSet() {
 		out.Service.Agent.Name = m.Service.Agent.Name.Val
 	}
-	if !m.Service.Agent.Version.IsNil() {
+	if m.Service.Agent.Version.IsSet() {
 		out.Service.Agent.Version = m.Service.Agent.Version.Val
 	}
-	if !m.Service.Environment.IsNil() {
+	if m.Service.Environment.IsSet() {
 		out.Service.Environment = m.Service.Environment.Val
 	}
-	if !m.Service.Framework.Name.IsNil() {
+	if m.Service.Framework.Name.IsSet() {
 		out.Service.Framework.Name = m.Service.Framework.Name.Val
 	}
-	if !m.Service.Framework.Version.IsNil() {
+	if m.Service.Framework.Version.IsSet() {
 		out.Service.Framework.Version = m.Service.Framework.Version.Val
 	}
-	if !m.Service.Language.Name.IsNil() {
+	if m.Service.Language.Name.IsSet() {
 		out.Service.Language.Name = m.Service.Language.Name.Val
 	}
-	if !m.Service.Language.Version.IsNil() {
+	if m.Service.Language.Version.IsSet() {
 		out.Service.Language.Version = m.Service.Language.Version.Val
 	}
-	if !m.Service.Name.IsNil() {
+	if m.Service.Name.IsSet() {
 		out.Service.Name = m.Service.Name.Val
 	}
-	if !m.Service.Runtime.Name.IsNil() {
+	if m.Service.Runtime.Name.IsSet() {
 		out.Service.Runtime.Name = m.Service.Runtime.Name.Val
 	}
-	if !m.Service.Runtime.Version.IsNil() {
+	if m.Service.Runtime.Version.IsSet() {
 		out.Service.Runtime.Version = m.Service.Runtime.Version.Val
 	}
-	if !m.Service.Version.IsNil() {
+	if m.Service.Version.IsSet() {
 		out.Service.Version = m.Service.Version.Val
 	}
 
 	// User
-	if !m.User.ID.IsNil() {
+	if m.User.ID.IsSet() {
 		out.User.ID = fmt.Sprint(m.User.ID.Val)
 	}
-	if !m.User.Email.IsNil() {
+	if m.User.Email.IsSet() {
 		out.User.Email = m.User.Email.Val
 	}
-	if !m.User.Name.IsNil() {
+	if m.User.Name.IsSet() {
 		out.User.Name = m.User.Name.Val
 	}
 }

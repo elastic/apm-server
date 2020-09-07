@@ -126,7 +126,7 @@ func (m *metadataService) validate() error {
 	if !alphaNumericExtRegex.MatchString(m.Name.Val) {
 		return fmt.Errorf("validation rule 'pattern(alphaNumericExtRegex)' violated for 'm.se.n'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'m.se.n' required")
 	}
 	if err := m.Runtime.validate(); err != nil {
@@ -154,13 +154,13 @@ func (m *metadataServiceAgent) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.a.n'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'m.se.a.n' required")
 	}
 	if utf8.RuneCountInString(m.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.a.ve'")
 	}
-	if !m.Version.IsSet() || m.Version.IsNil() {
+	if !m.Version.IsSet() {
 		return fmt.Errorf("'m.se.a.ve' required")
 	}
 	return nil
@@ -204,7 +204,7 @@ func (m *metadataServiceLanguage) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.la.n'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'m.se.la.n' required")
 	}
 	if utf8.RuneCountInString(m.Version.Val) > 1024 {
@@ -229,13 +229,13 @@ func (m *metadataServiceRuntime) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.ru.n'")
 	}
-	if !m.Name.IsSet() || m.Name.IsNil() {
+	if !m.Name.IsSet() {
 		return fmt.Errorf("'m.se.ru.n' required")
 	}
 	if utf8.RuneCountInString(m.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.ru.ve'")
 	}
-	if !m.Version.IsSet() || m.Version.IsNil() {
+	if !m.Version.IsSet() {
 		return fmt.Errorf("'m.se.ru.ve' required")
 	}
 	return nil

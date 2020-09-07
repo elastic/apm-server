@@ -30,9 +30,8 @@ func init() {
 			iter.ReadNil()
 		default:
 			(*((*String)(ptr))).Val = iter.ReadString()
-			(*((*String)(ptr))).isNotNil = true
+			(*((*String)(ptr))).isSet = true
 		}
-		(*((*String)(ptr))).isSet = true
 	})
 	jsoniter.RegisterTypeDecoderFunc("nullable.Int", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
@@ -40,9 +39,8 @@ func init() {
 			iter.ReadNil()
 		default:
 			(*((*Int)(ptr))).Val = iter.ReadInt()
-			(*((*Int)(ptr))).isNotNil = true
+			(*((*Int)(ptr))).isSet = true
 		}
-		(*((*Int)(ptr))).isSet = true
 	})
 	jsoniter.RegisterTypeDecoderFunc("nullable.Interface", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
@@ -50,22 +48,20 @@ func init() {
 			iter.ReadNil()
 		default:
 			(*((*Interface)(ptr))).Val = iter.Read()
-			(*((*Interface)(ptr))).isNotNil = true
+			(*((*Interface)(ptr))).isSet = true
 		}
-		(*((*Interface)(ptr))).isSet = true
 	})
 }
 
 type String struct {
-	Val             string
-	isSet, isNotNil bool
+	Val   string
+	isSet bool
 }
 
 // Set sets the value
 func (v *String) Set(val string) {
 	v.Val = val
 	v.isSet = true
-	v.isNotNil = true
 }
 
 // IsSet is true when decode was called
@@ -73,29 +69,22 @@ func (v *String) IsSet() bool {
 	return v.isSet
 }
 
-// IsNil is true when no value or null value was decoded
-func (v *String) IsNil() bool {
-	return !v.isNotNil
-}
-
 // Reset sets the String to it's initial state
 // where it is not set and has no value
 func (v *String) Reset() {
 	v.Val = ""
 	v.isSet = false
-	v.isNotNil = false
 }
 
 type Int struct {
-	Val             int
-	isSet, isNotNil bool
+	Val   int
+	isSet bool
 }
 
 // Set sets the value
 func (v *Int) Set(val int) {
 	v.Val = val
 	v.isSet = true
-	v.isNotNil = true
 }
 
 // IsSet is true when decode was called
@@ -103,30 +92,23 @@ func (v *Int) IsSet() bool {
 	return v.isSet
 }
 
-// IsNil is true when no value or null value was decoded
-func (v *Int) IsNil() bool {
-	return !v.isNotNil
-}
-
 // Reset sets the Int to it's initial state
 // where it is not set and has no value
 func (v *Int) Reset() {
 	v.Val = 0
 	v.isSet = false
-	v.isNotNil = false
 }
 
 // TODO(simitt): follow up on https://github.com/elastic/apm-server/pull/4154#discussion_r484166721
 type Interface struct {
-	Val             interface{} `json:"val,omitempty"`
-	isSet, isNotNil bool
+	Val   interface{} `json:"val,omitempty"`
+	isSet bool
 }
 
 // Set sets the value
 func (v *Interface) Set(val interface{}) {
 	v.Val = val
 	v.isSet = true
-	v.isNotNil = true
 }
 
 // IsSet is true when decode was called
@@ -134,15 +116,9 @@ func (v *Interface) IsSet() bool {
 	return v.isSet
 }
 
-// IsNil is true when no value or null value was decoded
-func (v *Interface) IsNil() bool {
-	return !v.isNotNil
-}
-
 // Reset sets the Interface to it's initial state
 // where it is not set and has no value
 func (v *Interface) Reset() {
 	v.Val = nil
 	v.isSet = false
-	v.isNotNil = false
 }

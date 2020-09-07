@@ -84,34 +84,34 @@ func decode(decoderFn func(m *metadataRoot) error, out *model.Metadata) error {
 
 func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	// Cloud
-	if !m.Cloud.Account.ID.IsNil() {
+	if m.Cloud.Account.ID.IsSet() {
 		out.Cloud.AccountID = m.Cloud.Account.ID.Val
 	}
-	if !m.Cloud.Account.Name.IsNil() {
+	if m.Cloud.Account.Name.IsSet() {
 		out.Cloud.AccountName = m.Cloud.Account.Name.Val
 	}
-	if !m.Cloud.AvailabilityZone.IsNil() {
+	if m.Cloud.AvailabilityZone.IsSet() {
 		out.Cloud.AvailabilityZone = m.Cloud.AvailabilityZone.Val
 	}
-	if !m.Cloud.Instance.ID.IsNil() {
+	if m.Cloud.Instance.ID.IsSet() {
 		out.Cloud.InstanceID = m.Cloud.Instance.ID.Val
 	}
-	if !m.Cloud.Instance.Name.IsNil() {
+	if m.Cloud.Instance.Name.IsSet() {
 		out.Cloud.InstanceName = m.Cloud.Instance.Name.Val
 	}
-	if !m.Cloud.Machine.Type.IsNil() {
+	if m.Cloud.Machine.Type.IsSet() {
 		out.Cloud.MachineType = m.Cloud.Machine.Type.Val
 	}
-	if !m.Cloud.Project.ID.IsNil() {
+	if m.Cloud.Project.ID.IsSet() {
 		out.Cloud.ProjectID = m.Cloud.Project.ID.Val
 	}
-	if !m.Cloud.Project.Name.IsNil() {
+	if m.Cloud.Project.Name.IsSet() {
 		out.Cloud.ProjectName = m.Cloud.Project.Name.Val
 	}
-	if !m.Cloud.Provider.IsNil() {
+	if m.Cloud.Provider.IsSet() {
 		out.Cloud.Provider = m.Cloud.Provider.Val
 	}
-	if !m.Cloud.Region.IsNil() {
+	if m.Cloud.Region.IsSet() {
 		out.Cloud.Region = m.Cloud.Region.Val
 	}
 
@@ -125,101 +125,101 @@ func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	if len(m.Process.Argv) > 0 {
 		out.Process.Argv = m.Process.Argv
 	}
-	if !m.Process.Pid.IsNil() {
+	if m.Process.Pid.IsSet() {
 		out.Process.Pid = m.Process.Pid.Val
 	}
-	if !m.Process.Ppid.IsNil() {
+	if m.Process.Ppid.IsSet() {
 		var pid = m.Process.Ppid.Val
 		out.Process.Ppid = &pid
 	}
-	if !m.Process.Title.IsNil() {
+	if m.Process.Title.IsSet() {
 		out.Process.Title = m.Process.Title.Val
 	}
 
 	// Service
-	if !m.Service.Agent.EphemeralID.IsNil() {
+	if m.Service.Agent.EphemeralID.IsSet() {
 		out.Service.Agent.EphemeralID = m.Service.Agent.EphemeralID.Val
 	}
-	if !m.Service.Agent.Name.IsNil() {
+	if m.Service.Agent.Name.IsSet() {
 		out.Service.Agent.Name = m.Service.Agent.Name.Val
 	}
-	if !m.Service.Agent.Version.IsNil() {
+	if m.Service.Agent.Version.IsSet() {
 		out.Service.Agent.Version = m.Service.Agent.Version.Val
 	}
-	if !m.Service.Environment.IsNil() {
+	if m.Service.Environment.IsSet() {
 		out.Service.Environment = m.Service.Environment.Val
 	}
-	if !m.Service.Framework.Name.IsNil() {
+	if m.Service.Framework.Name.IsSet() {
 		out.Service.Framework.Name = m.Service.Framework.Name.Val
 	}
-	if !m.Service.Framework.Version.IsNil() {
+	if m.Service.Framework.Version.IsSet() {
 		out.Service.Framework.Version = m.Service.Framework.Version.Val
 	}
-	if !m.Service.Language.Name.IsNil() {
+	if m.Service.Language.Name.IsSet() {
 		out.Service.Language.Name = m.Service.Language.Name.Val
 	}
-	if !m.Service.Language.Version.IsNil() {
+	if m.Service.Language.Version.IsSet() {
 		out.Service.Language.Version = m.Service.Language.Version.Val
 	}
-	if !m.Service.Name.IsNil() {
+	if m.Service.Name.IsSet() {
 		out.Service.Name = m.Service.Name.Val
 	}
-	if !m.Service.Node.Name.IsNil() {
+	if m.Service.Node.Name.IsSet() {
 		out.Service.Node.Name = m.Service.Node.Name.Val
 	}
-	if !m.Service.Runtime.Name.IsNil() {
+	if m.Service.Runtime.Name.IsSet() {
 		out.Service.Runtime.Name = m.Service.Runtime.Name.Val
 	}
-	if !m.Service.Runtime.Version.IsNil() {
+	if m.Service.Runtime.Version.IsSet() {
 		out.Service.Runtime.Version = m.Service.Runtime.Version.Val
 	}
-	if !m.Service.Version.IsNil() {
+	if m.Service.Version.IsSet() {
 		out.Service.Version = m.Service.Version.Val
 	}
 
 	// System
-	if !m.System.Architecture.IsNil() {
+	if m.System.Architecture.IsSet() {
 		out.System.Architecture = m.System.Architecture.Val
 	}
-	if !m.System.ConfiguredHostname.IsNil() {
+	if m.System.ConfiguredHostname.IsSet() {
 		out.System.ConfiguredHostname = m.System.ConfiguredHostname.Val
 	}
-	if !m.System.Container.ID.IsNil() {
+	if m.System.Container.ID.IsSet() {
 		out.System.Container.ID = m.System.Container.ID.Val
 	}
-	if !m.System.DetectedHostname.IsNil() {
+	if m.System.DetectedHostname.IsSet() {
 		out.System.DetectedHostname = m.System.DetectedHostname.Val
 	}
-	if m.System.ConfiguredHostname.IsNil() && m.System.DetectedHostname.IsNil() {
+	if !m.System.ConfiguredHostname.IsSet() && !m.System.DetectedHostname.IsSet() {
 		out.System.DetectedHostname = m.System.HostnameDeprecated.Val
 	}
-	if !m.System.IP.IsNil() {
+	if m.System.IP.IsSet() {
 		out.System.IP = net.ParseIP(m.System.IP.Val)
 	}
-	if !m.System.Kubernetes.Namespace.IsNil() {
+	if m.System.Kubernetes.Namespace.IsSet() {
 		out.System.Kubernetes.Namespace = m.System.Kubernetes.Namespace.Val
 	}
-	if !m.System.Kubernetes.Node.Name.IsNil() {
+	if m.System.Kubernetes.Node.Name.IsSet() {
 		out.System.Kubernetes.NodeName = m.System.Kubernetes.Node.Name.Val
 	}
-	if !m.System.Kubernetes.Pod.Name.IsNil() {
+	if m.System.Kubernetes.Pod.Name.IsSet() {
 		out.System.Kubernetes.PodName = m.System.Kubernetes.Pod.Name.Val
 	}
-	if !m.System.Kubernetes.Pod.UID.IsNil() {
+	if m.System.Kubernetes.Pod.UID.IsSet() {
 		out.System.Kubernetes.PodUID = m.System.Kubernetes.Pod.UID.Val
 	}
-	if !m.System.Platform.IsNil() {
+	if m.System.Platform.IsSet() {
 		out.System.Platform = m.System.Platform.Val
 	}
 
 	// User
-	if !m.User.ID.IsNil() {
+	if m.User.ID.IsSet() {
 		out.User.ID = fmt.Sprint(m.User.ID.Val)
 	}
-	if !m.User.Email.IsNil() {
+	if m.User.Email.IsSet() {
 		out.User.Email = m.User.Email.Val
 	}
-	if !m.User.Name.IsNil() {
+	if m.User.Name.IsSet() {
 		out.User.Name = m.User.Name.Val
 	}
 }
