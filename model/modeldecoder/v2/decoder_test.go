@@ -18,6 +18,8 @@
 package v2
 
 import (
+	"net"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -26,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 )
 
 func TestResetModelOnRelease(t *testing.T) {
@@ -158,6 +161,33 @@ func TestDecodeMetadata(t *testing.T) {
 }
 
 func TestMappingToModel(t *testing.T) {
-	//TODO(simitt)
-	//  override existing values if they are set
+	// setup:
+	// create initialized modeldecoder and empty model metadata
+	// map modeldecoder to model metadata and manually set
+	// enhanced data that are never set by the modeldecoder
+	val := reflect.New(reflect.TypeOf(metadata{}))
+	modeldecodertest.SetStructValues(val, "init", 5000)
+	m := val.Interface().(*metadata)
+	var modelM model.Metadata
+	modelM.System.IP, modelM.Client.IP = net.ParseIP("127.0.0.1"), net.ParseIP("127.0.0.1")
+	modelM.UserAgent.Original, modelM.UserAgent.Name = "Firefox/15.0.1", "Firefox/15.0.1"
+	mapToMetadataModel(m, &modelM)
+
+	// iterate through model and assert values are set
+	modeldecodertest.AssertStructValues(t, reflect.ValueOf(&modelM), "init", 5000)
+
+	// overwrite model metadata with specified Values
+	// then iterate through model and assert values are overwritten
+	modeldecodertest.SetStructValues(val, "overwritten", 12)
+	m = val.Interface().(*metadata)
+	mapToMetadataModel(m, &modelM)
+	modeldecodertest.AssertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
+
+	// map an empty modeldecoder metadata to the model
+	// and assert values are unchanged
+	modeldecodertest.SetZeroStructValues(val)
+	m = val.Interface().(*metadata)
+	mapToMetadataModel(m, &modelM)
+	modeldecodertest.AssertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
+
 }

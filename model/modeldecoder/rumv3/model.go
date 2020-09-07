@@ -29,14 +29,16 @@ var (
 	labelsRegex          = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
 )
 
-// metadata contain event metadata
+type metadataRoot struct {
+	Metadata metadata `json:"m" validate:"required"`
+}
+
 type metadata struct {
 	Labels  common.MapStr   `json:"l" validate:"patternKeys=labelsRegex,typesVals=string;bool;number,maxVals=1024"`
 	Service metadataService `json:"se" validate:"required"`
 	User    metadataUser    `json:"u"`
 }
 
-// metadataService holds information about where the data was collected
 type metadataService struct {
 	Agent       metadataServiceAgent     `json:"a" validate:"required"`
 	Environment nullable.String          `json:"en" validate:"max=1024"`
@@ -47,25 +49,21 @@ type metadataService struct {
 	Version     nullable.String          `json:"ve" validate:"max=1024"`
 }
 
-//metadataServiceAgent has a version and a name
 type metadataServiceAgent struct {
 	Name    nullable.String `json:"n" validate:"required,max=1024"`
 	Version nullable.String `json:"ve" validate:"required,max=1024"`
 }
 
-//MetadataServiceFramework has a version and name
 type MetadataServiceFramework struct {
 	Name    nullable.String `json:"n" validate:"max=1024"`
 	Version nullable.String `json:"ve" validate:"max=1024"`
 }
 
-//MetadataLanguage has a version and name
 type metadataServiceLanguage struct {
 	Name    nullable.String `json:"n" validate:"required,max=1024"`
 	Version nullable.String `json:"ve" validate:"max=1024"`
 }
 
-//MetadataRuntime has a version and name
 type metadataServiceRuntime struct {
 	Name    nullable.String `json:"n" validate:"required,max=1024"`
 	Version nullable.String `json:"ve" validate:"required,max=1024"`
@@ -75,8 +73,4 @@ type metadataUser struct {
 	ID    nullable.Interface `json:"id" validate:"max=1024,types=string;int"`
 	Email nullable.String    `json:"em" validate:"max=1024"`
 	Name  nullable.String    `json:"un" validate:"max=1024"`
-}
-
-type metadataWithKey struct {
-	Metadata metadata `json:"m" validate:"required"`
 }

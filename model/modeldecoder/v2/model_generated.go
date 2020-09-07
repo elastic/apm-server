@@ -433,7 +433,7 @@ func (m *metadataServiceRuntime) validate() error {
 }
 
 func (m *metadataSystem) IsSet() bool {
-	return m.Architecture.IsSet() || m.ConfiguredHostname.IsSet() || m.Container.IsSet() || m.DetectedHostname.IsSet() || m.HostnameDeprecated.IsSet() || m.IP.IsSet() || m.Kubernetes.IsSet() || m.Platform.IsSet()
+	return m.Architecture.IsSet() || m.ConfiguredHostname.IsSet() || m.Container.IsSet() || m.DetectedHostname.IsSet() || m.HostnameDeprecated.IsSet() || m.Kubernetes.IsSet() || m.Platform.IsSet()
 }
 
 func (m *metadataSystem) Reset() {
@@ -442,7 +442,6 @@ func (m *metadataSystem) Reset() {
 	m.Container.Reset()
 	m.DetectedHostname.Reset()
 	m.HostnameDeprecated.Reset()
-	m.IP.Reset()
 	m.Kubernetes.Reset()
 	m.Platform.Reset()
 }

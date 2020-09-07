@@ -27,41 +27,43 @@ import (
 )
 
 func init() {
-	metadataPool.New = func() interface{} {
-		return &metadata{}
+	metadataRootPool.New = func() interface{} {
+		return &metadataRoot{}
 	}
 }
 
-var metadataPool sync.Pool
+var metadataRootPool sync.Pool
 
-func fetchMetadata() *metadata {
-	return metadataPool.Get().(*metadata)
+func fetchMetadataRoot() *metadataRoot {
+	return metadataRootPool.Get().(*metadataRoot)
 }
-func releaseMetadata(m *metadata) {
+func releaseMetadataRoot(m *metadataRoot) {
 	m.Reset()
-	metadataPool.Put(m)
+	metadataRootPool.Put(m)
 }
 
-// DecodeMetadata uses the given decoder to create the input models,
+// DecodeNestedMetadata uses the given decoder to create the input models,
 // then runs the defined validations on the input models
 // and finally maps the values fom the input model to the given *model.Metadata instance
-func DecodeMetadata(d decoder.Decoder, out *model.Metadata) error {
-	m := metadataWithKey{Metadata: *fetchMetadata()}
-	defer releaseMetadata(&m.Metadata)
+func DecodeNestedMetadata(d decoder.Decoder, out *model.Metadata) error {
+	m := fetchMetadataRoot()
+	defer releaseMetadataRoot(m)
 	if err := d.Decode(&m); err != nil {
-		return err
+		return fmt.Errorf("decode error %w", err)
 	}
 	if err := m.validate(); err != nil {
-		return err
+		return fmt.Errorf("validation error %w", err)
 	}
-	mapToModel(&m.Metadata, out)
+	mapToMetadataModel(&m.Metadata, out)
 	return nil
 }
 
-func mapToModel(m *metadata, out *model.Metadata) {
+func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	// Labels
-	out.Labels = common.MapStr{}
-	out.Labels.Update(m.Labels)
+	if len(m.Labels) > 0 {
+		out.Labels = common.MapStr{}
+		out.Labels.Update(m.Labels)
+	}
 
 	// Service
 	if m.Service.Agent.Name.IsSet() {

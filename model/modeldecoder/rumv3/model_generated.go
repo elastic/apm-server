@@ -25,15 +25,15 @@ import (
 	"unicode/utf8"
 )
 
-func (m *metadataWithKey) IsSet() bool {
+func (m *metadataRoot) IsSet() bool {
 	return m.Metadata.IsSet()
 }
 
-func (m *metadataWithKey) Reset() {
+func (m *metadataRoot) Reset() {
 	m.Metadata.Reset()
 }
 
-func (m *metadataWithKey) validate() error {
+func (m *metadataRoot) validate() error {
 	if err := m.Metadata.validate(); err != nil {
 		return err
 	}

@@ -54,7 +54,7 @@ func genV2Models() {
 
 func genRUMV3Models() {
 	pkg := "rumv3"
-	rootObjs := []string{"metadataWithKey"}
+	rootObjs := []string{"metadataRoot"}
 	out := filepath.Join(modeldecoderPath, pkg, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkg, typPath, rootObjs)
 	if err != nil {

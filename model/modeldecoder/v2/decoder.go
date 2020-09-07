@@ -19,7 +19,6 @@ package v2
 
 import (
 	"fmt"
-	"net"
 	"sync"
 
 	"github.com/elastic/apm-server/decoder"
@@ -31,9 +30,6 @@ func init() {
 	metadataRootPool.New = func() interface{} {
 		return &metadataRoot{}
 	}
-	// metadataNoKeyPool.New = func() interface{} {
-	// 	return &metadataNoKey{}
-	// }
 }
 
 var metadataRootPool sync.Pool
@@ -190,11 +186,9 @@ func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	if m.System.DetectedHostname.IsSet() {
 		out.System.DetectedHostname = m.System.DetectedHostname.Val
 	}
-	if !m.System.ConfiguredHostname.IsSet() && !m.System.DetectedHostname.IsSet() {
+	if !m.System.ConfiguredHostname.IsSet() && !m.System.DetectedHostname.IsSet() &&
+		m.System.HostnameDeprecated.IsSet() {
 		out.System.DetectedHostname = m.System.HostnameDeprecated.Val
-	}
-	if m.System.IP.IsSet() {
-		out.System.IP = net.ParseIP(m.System.IP.Val)
 	}
 	if m.System.Kubernetes.Namespace.IsSet() {
 		out.System.Kubernetes.Namespace = m.System.Kubernetes.Namespace.Val

@@ -29,6 +29,10 @@ var (
 	labelsRegex          = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
 )
 
+type metadataRoot struct {
+	Metadata metadata `json:"metadata" validate:"required"`
+}
+
 type metadata struct {
 	Cloud   metadataCloud   `json:"cloud"`
 	Labels  common.MapStr   `json:"labels" validate:"patternKeys=labelsRegex,typesVals=string;bool;number,maxVals=1024"`
@@ -116,7 +120,6 @@ type metadataSystem struct {
 	Container          metadataSystemContainer  `json:"container"`
 	DetectedHostname   nullable.String          `json:"detected_hostname" validate:"max=1024"`
 	HostnameDeprecated nullable.String          `json:"hostname" validate:"max=1024"`
-	IP                 nullable.String          `json:"ip"`
 	Kubernetes         metadataSystemKubernetes `json:"kubernetes"`
 	Platform           nullable.String          `json:"platform" validate:"max=1024"`
 }
@@ -147,8 +150,4 @@ type metadataUser struct {
 	ID    nullable.Interface `json:"id,omitempty" validate:"max=1024,types=string;int"`
 	Email nullable.String    `json:"email" validate:"max=1024"`
 	Name  nullable.String    `json:"username" validate:"max=1024"`
-}
-
-type metadataRoot struct {
-	Metadata metadata `json:"metadata" validate:"required"`
 }
