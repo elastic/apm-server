@@ -3,7 +3,6 @@ module github.com/elastic/apm-server
 go 1.13
 
 require (
-	github.com/Sirupsen/logrus v1.0.1-0.20170608221441-85b1699d5056 // indirect
 	github.com/akavel/rsrc v0.9.0 // indirect
 	github.com/apache/thrift v0.0.0-20161221203622-b2a4d4ae21c7
 	github.com/census-instrumentation/opencensus-proto v0.2.1
@@ -13,7 +12,7 @@ require (
 	github.com/dop251/goja v0.0.0-20200824171909-536f9d946569 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200824160140-74b9d4a0e53a
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20200901193040-34159563fa1e
 	github.com/elastic/go-elasticsearch/v7 v7.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
