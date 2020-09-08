@@ -508,7 +508,7 @@
                 "port": 5432
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",

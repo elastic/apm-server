@@ -41,14 +41,16 @@ func TestDecodeSpan(t *testing.T) {
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
+	badRequestStatusCode := 400
 	instance, statement, dbType, user, link, rowsAffected := "db01", "select *", "sql", "joe", "other.db.com", 34
 	address, port := "localhost", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 	outcome := "success"
+	httpCtx := map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url}
 	context := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag_key": 17},
-		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
+		"http": httpCtx,
 		"db": map[string]interface{}{
 			"instance": instance, "statement": statement, "type": dbType,
 			"user": user, "link": link, "rows_affected": json.Number("34")},
@@ -190,6 +192,48 @@ func TestDecodeSpan(t *testing.T) {
 				Outcome:       "unknown",
 			},
 			cfg: Config{Experimental: true},
+		},
+		"with derived success outcome": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
+				"context": map[string]interface{}{"http": httpCtx},
+			},
+			e: &model.Span{
+				Metadata:  metadata,
+				Name:      name,
+				Type:      "db",
+				Subtype:   &subtype,
+				Action:    &action2,
+				Duration:  duration,
+				HTTP:      &model.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				Timestamp: spanTime,
+				ParentID:  parentID,
+				ID:        id,
+				TraceID:   traceID,
+				Outcome:   "success",
+			},
+		},
+		"with derived failure outcome": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
+				"context": map[string]interface{}{"http": map[string]interface{}{"status_code": json.Number("400")}},
+			},
+			e: &model.Span{
+				Metadata:  metadata,
+				Name:      name,
+				Type:      "db",
+				Subtype:   &subtype,
+				Action:    &action2,
+				Duration:  duration,
+				HTTP:      &model.HTTP{StatusCode: &badRequestStatusCode},
+				Timestamp: spanTime,
+				ParentID:  parentID,
+				ID:        id,
+				TraceID:   traceID,
+				Outcome:   "failure",
+			},
 		},
 		"full valid payload": {
 			input: map[string]interface{}{

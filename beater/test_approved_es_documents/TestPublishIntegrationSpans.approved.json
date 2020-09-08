@@ -555,7 +555,7 @@
                 "version": "1.5.0"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
