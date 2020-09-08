@@ -395,7 +395,8 @@ func TestTransactionEventDecode(t *testing.T) {
 				}},
 				Timestamp: requestTime,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
-				Outcome:   "success",
+				// a 4xx code is a success from the server perspective
+				Outcome: "success",
 			},
 		},
 		"with derived failure outcome": {
