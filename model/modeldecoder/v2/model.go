@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	alphaNumericExtRegex = regexp.MustCompile("^[a-zA-Z0-9 _-]+$")
-	labelsRegex          = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
+	regexpAlphaNumericExt    = regexp.MustCompile("^[a-zA-Z0-9 _-]+$")
+	regexpNoDotAsteriskQuote = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
 )
 
 type metadataRoot struct {
@@ -36,7 +36,7 @@ type metadataRoot struct {
 
 type metadata struct {
 	Cloud   metadataCloud   `json:"cloud"`
-	Labels  common.MapStr   `json:"labels" validate:"patternKeys=labelsRegex,typesVals=string;bool;number,maxVals=1024"`
+	Labels  common.MapStr   `json:"labels" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
 	Process metadataProcess `json:"process"`
 	Service metadataService `json:"service" validate:"required"`
 	System  metadataSystem  `json:"system"`
@@ -84,7 +84,7 @@ type metadataService struct {
 	Environment nullable.String          `json:"environment" validate:"max=1024"`
 	Framework   metadataServiceFramework `json:"framework"`
 	Language    metadataServiceLanguage  `json:"language"`
-	Name        nullable.String          `json:"name" validate:"required,max=1024,pattern=alphaNumericExtRegex"`
+	Name        nullable.String          `json:"name" validate:"required,min=1,max=1024,pattern=regexpAlphaNumericExt"`
 	Node        metadataServiceNode      `json:"node"`
 	Runtime     metadataServiceRuntime   `json:"runtime"`
 	Version     nullable.String          `json:"version" validate:"max=1024"`
@@ -92,7 +92,7 @@ type metadataService struct {
 
 type metadataServiceAgent struct {
 	EphemeralID nullable.String `json:"ephemeral_id" validate:"max=1024"`
-	Name        nullable.String `json:"name" validate:"required,max=1024"`
+	Name        nullable.String `json:"name" validate:"required,min=1,max=1024"`
 	Version     nullable.String `json:"version" validate:"required,max=1024"`
 }
 
@@ -148,7 +148,7 @@ type metadataSystemKubernetesPod struct {
 }
 
 type metadataUser struct {
-	ID    nullable.Interface `json:"id,omitempty" validate:"max=1024,types=string;int"`
+	ID    nullable.Interface `json:"id" validate:"max=1024,types=string;int"`
 	Email nullable.String    `json:"email" validate:"max=1024"`
 	Name  nullable.String    `json:"username" validate:"max=1024"`
 }

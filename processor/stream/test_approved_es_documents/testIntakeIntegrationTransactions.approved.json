@@ -197,7 +197,7 @@
                             "Mozilla Chrome Edge"
                         ]
                     },
-                    "method": "post",
+                    "method": "POST",
                     "referrer": "http://localhost:8000/test/e2e/",
                     "socket": {
                         "encrypted": true,
@@ -368,7 +368,7 @@
             },
             "http": {
                 "request": {
-                    "method": "post",
+                    "method": "POST",
                     "socket": {
                         "remote_address": "192.0.1"
                     }

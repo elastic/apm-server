@@ -185,7 +185,6 @@ func TestTransactionEventDecode(t *testing.T) {
 	dropped, started, duration := 12, 6, 1.67
 	name, userID, email, userIP := "jane", "abc123", "j@d.com", "127.0.0.1"
 	url, referer, origURL := "https://mypage.com", "http:mypage.com", "127.0.0.1"
-	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
 	page := model.Page{URL: model.ParseURL(url, ""), Referer: &referer}
@@ -226,12 +225,14 @@ func TestTransactionEventDecode(t *testing.T) {
 				Timestamp: requestTime,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Outcome:   "unknown",
+				Sampled:   true,
 			},
 		},
 		"event experimental=true, no experimental payload": {
 			input: map[string]interface{}{
 				"timestamp": timestampEpoch,
 				"context":   map[string]interface{}{"foo": "bar"},
+				"sampled":   false,
 			},
 			cfg: Config{Experimental: true},
 			e: &model.Transaction{
@@ -244,6 +245,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Outcome:   "unknown",
+				Sampled:   false,
 			},
 		},
 		"event experimental=false": {
@@ -262,6 +264,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Outcome:   "unknown",
+				Sampled:   true,
 			},
 		},
 		"event experimental=true": {
@@ -281,6 +284,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				SpanCount:    model.SpanCount{Dropped: &dropped, Started: &started},
 				Experimental: map[string]interface{}{"foo": "bar"},
 				Outcome:      "unknown",
+				Sampled:      true,
 			},
 		},
 		"messaging event": {
@@ -312,6 +316,7 @@ func TestTransactionEventDecode(t *testing.T) {
 					Headers:   http.Header{"Internal": []string{"false"}},
 					AgeMillis: tests.IntPtr(1577958057123),
 				},
+				Sampled: true,
 			},
 		},
 		"valid event": {
@@ -319,7 +324,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				"timestamp": timestampEpoch,
 				"result":    result,
 				"outcome":   outcome,
-				"sampled":   sampled,
+				"sampled":   true,
 				"parent_id": parentID,
 				"marks":     marks,
 				"context": map[string]interface{}{
@@ -361,7 +366,7 @@ func TestTransactionEventDecode(t *testing.T) {
 						"navigationStart":    -21,
 					},
 				},
-				Sampled:   &sampled,
+				Sampled:   true,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Labels:    &labels,
 				Page:      &page,
@@ -397,6 +402,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				// a 4xx code is a success from the server perspective
 				Outcome: "success",
+				Sampled: true,
 			},
 		},
 		"with derived failure outcome": {
@@ -420,6 +426,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				}},
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
 				Outcome:   "failure",
+				Sampled:   true,
 			},
 		},
 	} {

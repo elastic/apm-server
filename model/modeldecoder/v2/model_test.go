@@ -18,40 +18,34 @@
 package v2
 
 import (
-	"bytes"
-	"encoding/json"
+	"fmt"
 	"io"
 	"os"
-	"strings"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 )
 
-func testdata(t *testing.T) io.Reader {
-	r, err := os.Open("../../../testdata/intake-v2/metadata.ndjson")
+type testcase struct {
+	name     string
+	errorKey string
+	data     string
+}
+
+func reader(t *testing.T, typ string) io.Reader {
+	p := filepath.Join("..", "..", "..", "testdata", "intake-v2", fmt.Sprintf("%s.ndjson", typ))
+	r, err := os.Open(p)
 	require.NoError(t, err)
 	return r
 }
 
-func TestIsSet(t *testing.T) {
-	inp := `{"cloud":{"availability_zone":"eu-west-3","instance":{"id":"1234"}}}`
-	var m metadata
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(&m))
-	assert.True(t, m.IsSet())
-	assert.True(t, m.Cloud.IsSet())
-	assert.True(t, m.Cloud.AvailabilityZone.IsSet())
-	assert.True(t, m.Cloud.Instance.ID.IsSet())
-	assert.False(t, m.Cloud.Instance.Name.IsSet())
-}
-
-func TestSetReset(t *testing.T) {
+func TestMetadataSetResetIsSet(t *testing.T) {
 	var m metadataRoot
-	require.NoError(t, decoder.NewJSONDecoder(testdata(t)).Decode(&m))
+	modeldecodertest.DecodeTestData(t, reader(t, "metadata"), "metadata", &m)
 	require.True(t, m.IsSet())
 	require.True(t, m.Metadata.Cloud.IsSet())
 	require.NotEmpty(t, m.Metadata.Labels)
@@ -75,38 +69,14 @@ func TestSetReset(t *testing.T) {
 	assert.Greater(t, cap(m.Metadata.Process.Argv), 0)
 }
 
-func TestValidationRules(t *testing.T) {
-	type testcase struct {
-		name     string
-		errorKey string
-		data     string
-	}
-
-	strBuilder := func(n int) string {
-		b := make([]rune, n)
-		for i := range b {
-			b[i] = '⌘'
-		}
-		return string(b)
-	}
-
+func TestMetadataValidationRules(t *testing.T) {
 	testMetadata := func(t *testing.T, key string, tc testcase) {
-		// load data
-		// set testcase data for given key
-		var data map[string]interface{}
-		require.NoError(t, decoder.NewJSONDecoder(testdata(t)).Decode(&data))
-		meta := data["metadata"].(map[string]interface{})
-		var keyData map[string]interface{}
-		require.NoError(t, json.Unmarshal([]byte(tc.data), &keyData))
-		meta[key] = keyData
-
-		// unmarshal data into metdata struct
 		var m metadata
-		b, err := json.Marshal(meta)
-		require.NoError(t, err)
-		require.NoError(t, decoder.NewJSONDecoder(bytes.NewReader(b)).Decode(&m))
+		r := reader(t, "metadata")
+		modeldecodertest.ReplaceTestData(t, r, "metadata", key, tc.data, &m)
+
 		// run validation and checks
-		err = m.validate()
+		err := m.validate()
 		if tc.errorKey == "" {
 			assert.NoError(t, err)
 		} else {
@@ -121,8 +91,8 @@ func TestValidationRules(t *testing.T) {
 			{name: "id-int", data: `{"id":44}`},
 			{name: "id-float", errorKey: "types", data: `{"id":45.6}`},
 			{name: "id-bool", errorKey: "types", data: `{"id":true}`},
-			{name: "id-string-max-len", data: `{"id":"` + strBuilder(1024) + `"}`},
-			{name: "id-string-max-len", errorKey: "max", data: `{"id":"` + strBuilder(1025) + `"}`},
+			{name: "id-string-max-len", data: `{"id":"` + modeldecodertest.BuildString(1024) + `"}`},
+			{name: "id-string-max-len-exceeded", errorKey: "max", data: `{"id":"` + modeldecodertest.BuildString(1025) + `"}`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				testMetadata(t, "user", tc)
@@ -153,8 +123,8 @@ func TestValidationRules(t *testing.T) {
 			{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
 			{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
 			{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
-			{name: "max-len", data: `{"k1":"` + strBuilder(1024) + `"}`},
-			{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + strBuilder(1025) + `"}`},
+			{name: "max-len", data: `{"k1":"` + modeldecodertest.BuildString(1024) + `"}`},
+			{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				testMetadata(t, "labels", tc)
@@ -165,9 +135,9 @@ func TestValidationRules(t *testing.T) {
 	t.Run("max-len", func(t *testing.T) {
 		// check that `max` on strings is respected on an arbitrary field
 		for _, tc := range []testcase{
-			{name: "title-max-len", data: `{"pid":1,"title":"` + strBuilder(1024) + `"}`},
+			{name: "title-max-len", data: `{"pid":1,"title":"` + modeldecodertest.BuildString(1024) + `"}`},
 			{name: "title-max-len-exceeded", errorKey: "max",
-				data: `{"pid":1,"title":"` + strBuilder(1025) + `"}`},
+				data: `{"pid":1,"title":"` + modeldecodertest.BuildString(1025) + `"}`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				testMetadata(t, "process", tc)

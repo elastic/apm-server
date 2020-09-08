@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	alphaNumericExtRegex = regexp.MustCompile("^[a-zA-Z0-9 _-]+$")
-	labelsRegex          = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
+	regexpAlphaNumericExt    = regexp.MustCompile("^[a-zA-Z0-9 _-]+$")
+	regexpNoDotAsteriskQuote = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
 )
 
 type metadataRoot struct {
@@ -35,7 +35,7 @@ type metadataRoot struct {
 }
 
 type metadata struct {
-	Labels  common.MapStr   `json:"l" validate:"patternKeys=labelsRegex,typesVals=string;bool;number,maxVals=1024"`
+	Labels  common.MapStr   `json:"l" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
 	Service metadataService `json:"se" validate:"required"`
 	User    metadataUser    `json:"u"`
 }
@@ -45,13 +45,13 @@ type metadataService struct {
 	Environment nullable.String          `json:"en" validate:"max=1024"`
 	Framework   MetadataServiceFramework `json:"fw"`
 	Language    metadataServiceLanguage  `json:"la"`
-	Name        nullable.String          `json:"n" validate:"required,max=1024,pattern=alphaNumericExtRegex"`
+	Name        nullable.String          `json:"n" validate:"required,min=1,max=1024,pattern=regexpAlphaNumericExt"`
 	Runtime     metadataServiceRuntime   `json:"ru"`
 	Version     nullable.String          `json:"ve" validate:"max=1024"`
 }
 
 type metadataServiceAgent struct {
-	Name    nullable.String `json:"n" validate:"required,max=1024"`
+	Name    nullable.String `json:"n" validate:"required,min=1,max=1024"`
 	Version nullable.String `json:"ve" validate:"required,max=1024"`
 }
 

@@ -40,9 +40,9 @@ func TestNewDiscardUnsampledReporter(t *testing.T) {
 		},
 	)
 
-	t1 := &model.Transaction{}
-	t2 := &model.Transaction{Sampled: newBool(false)}
-	t3 := &model.Transaction{Sampled: newBool(true)}
+	t1 := &model.Transaction{Sampled: true}
+	t2 := &model.Transaction{Sampled: false}
+	t3 := &model.Transaction{Sampled: true}
 	span := &model.Span{}
 
 	reporter(context.Background(), publish.PendingReq{

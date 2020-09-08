@@ -20,8 +20,9 @@
 package rumv3
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"encoding/json"
 	"unicode/utf8"
 )
 
@@ -60,8 +61,8 @@ func (m *metadata) validate() error {
 		return nil
 	}
 	for k, v := range m.Labels {
-		if !labelsRegex.MatchString(k) {
-			return fmt.Errorf("validation rule 'patternKeys(labelsRegex)' violated for 'm.l'")
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated for 'm.l'")
 		}
 		switch t := v.(type) {
 		case nil:
@@ -123,8 +124,11 @@ func (m *metadataService) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.n'")
 	}
-	if !alphaNumericExtRegex.MatchString(m.Name.Val) {
-		return fmt.Errorf("validation rule 'pattern(alphaNumericExtRegex)' violated for 'm.se.n'")
+	if utf8.RuneCountInString(m.Name.Val) < 1 {
+		return fmt.Errorf("validation rule 'min(1)' violated for 'm.se.n'")
+	}
+	if m.Name.Val != "" && !regexpAlphaNumericExt.MatchString(m.Name.Val) {
+		return fmt.Errorf("validation rule 'pattern(regexpAlphaNumericExt)' violated for 'm.se.n'")
 	}
 	if !m.Name.IsSet() {
 		return fmt.Errorf("'m.se.n' required")
@@ -153,6 +157,9 @@ func (m *metadataServiceAgent) validate() error {
 	}
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.a.n'")
+	}
+	if utf8.RuneCountInString(m.Name.Val) < 1 {
+		return fmt.Errorf("validation rule 'min(1)' violated for 'm.se.a.n'")
 	}
 	if !m.Name.IsSet() {
 		return fmt.Errorf("'m.se.a.n' required")
@@ -260,11 +267,11 @@ func (m *metadataUser) validate() error {
 		if utf8.RuneCountInString(t) > 1024 {
 			return fmt.Errorf("validation rule 'max(1024)' violated for 'm.u.id'")
 		}
+	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
 			return fmt.Errorf("validation rule 'types(string;int)' violated for 'm.u.id'")
 		}
-	case int:
 	case nil:
 	default:
 		return fmt.Errorf("validation rule 'types(string;int)' violated for 'm.u.id'")

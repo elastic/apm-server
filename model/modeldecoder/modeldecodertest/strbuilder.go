@@ -15,38 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package decoder
+package modeldecodertest
 
-import (
-	"io"
-	"io/ioutil"
-
-	jsoniter "github.com/json-iterator/go"
-)
-
-//TODO(simitt): look into config options for performance tuning
-
-// var json = jsoniter.ConfigCompatibleWithStandardLibrary
-var json = jsoniter.ConfigFastest
-
-type Decoder interface {
-	Decode(v interface{}) error
-	Read() ([]byte, error)
+// BuildString creates a string conisisting of nRunes runes
+func BuildString(nRunes int) string {
+	b := make([]rune, nRunes)
+	for i := range b {
+		b[i] = '⌘'
+	}
+	return string(b)
 }
 
-type JSONDecoder struct {
-	*jsoniter.Decoder
-	reader io.Reader
-}
-
-// NewJSONDecoder returns a *json.Decoder where numbers are unmarshaled
-// as a Number instead of a float64 into an interface{}
-func NewJSONDecoder(r io.Reader) JSONDecoder {
-	d := json.NewDecoder(r)
-	d.UseNumber()
-	return JSONDecoder{Decoder: d, reader: r}
-}
-
-func (d JSONDecoder) Read() ([]byte, error) {
-	return ioutil.ReadAll(d.reader)
+// BuildStringWith creates a string conisisting of nRunes of character c
+func BuildStringWith(nRunes int, char rune) string {
+	b := make([]rune, nRunes)
+	for i := range b {
+		b[i] = char
+	}
+	return string(b)
 }

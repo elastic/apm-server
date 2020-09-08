@@ -139,6 +139,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	sampled := decoder.BoolPtr(raw, fieldName("sampled"))
 	e := model.Transaction{
 		Metadata:     input.Metadata,
 		Labels:       ctx.Labels,
@@ -148,8 +149,8 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		Custom:       ctx.Custom,
 		Experimental: ctx.Experimental,
 		Message:      ctx.Message,
-		Sampled:      decoder.BoolPtr(raw, fieldName("sampled")),
 		Marks:        decodeV2Marks(getObject(raw, fieldName("marks"))),
+		Sampled:      true,
 		Timestamp:    decoder.TimeEpochMicro(raw, fieldName("timestamp")),
 		SpanCount: model.SpanCount{
 			Dropped: decoder.IntPtr(raw, fieldName("dropped"), fieldName("span_count")),
@@ -157,6 +158,9 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+	if sampled != nil {
+		e.Sampled = *sampled
 	}
 	decodeString(raw, "id", &e.ID)
 	decodeString(raw, fieldName("trace_id"), &e.TraceID)

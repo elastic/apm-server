@@ -20,8 +20,9 @@
 package v2
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"encoding/json"
 	"unicode/utf8"
 )
 
@@ -66,8 +67,8 @@ func (m *metadata) validate() error {
 		return err
 	}
 	for k, v := range m.Labels {
-		if !labelsRegex.MatchString(k) {
-			return fmt.Errorf("validation rule 'patternKeys(labelsRegex)' violated for 'metadata.labels'")
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated for 'metadata.labels'")
 		}
 		switch t := v.(type) {
 		case nil:
@@ -289,8 +290,11 @@ func (m *metadataService) validate() error {
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.service.name'")
 	}
-	if !alphaNumericExtRegex.MatchString(m.Name.Val) {
-		return fmt.Errorf("validation rule 'pattern(alphaNumericExtRegex)' violated for 'metadata.service.name'")
+	if utf8.RuneCountInString(m.Name.Val) < 1 {
+		return fmt.Errorf("validation rule 'min(1)' violated for 'metadata.service.name'")
+	}
+	if m.Name.Val != "" && !regexpAlphaNumericExt.MatchString(m.Name.Val) {
+		return fmt.Errorf("validation rule 'pattern(regexpAlphaNumericExt)' violated for 'metadata.service.name'")
 	}
 	if !m.Name.IsSet() {
 		return fmt.Errorf("'metadata.service.name' required")
@@ -326,6 +330,9 @@ func (m *metadataServiceAgent) validate() error {
 	}
 	if utf8.RuneCountInString(m.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.service.agent.name'")
+	}
+	if utf8.RuneCountInString(m.Name.Val) < 1 {
+		return fmt.Errorf("validation rule 'min(1)' violated for 'metadata.service.agent.name'")
 	}
 	if !m.Name.IsSet() {
 		return fmt.Errorf("'metadata.service.agent.name' required")
@@ -574,11 +581,11 @@ func (m *metadataUser) validate() error {
 		if utf8.RuneCountInString(t) > 1024 {
 			return fmt.Errorf("validation rule 'max(1024)' violated for 'metadata.user.id'")
 		}
+	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
 			return fmt.Errorf("validation rule 'types(string;int)' violated for 'metadata.user.id'")
 		}
-	case int:
 	case nil:
 	default:
 		return fmt.Errorf("validation rule 'types(string;int)' violated for 'metadata.user.id'")

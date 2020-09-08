@@ -34,6 +34,8 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 )
 
+//TODO(simitt): Implement transaction decoder tests
+
 func TestResetModelOnRelease(t *testing.T) {
 	inp := `{"metadata":{"service":{"name":"service-a"}}}`
 	m := fetchMetadataRoot()

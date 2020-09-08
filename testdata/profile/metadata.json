@@ -1,2 +1,2 @@
-{"service": {"name": "apm-server", "agent": {"name": "go","version":"1.14"}}}
+{"service": {"name": "apm-server", "agent": {"name": "go","version":"1.0.0"}}}
 

@@ -62,7 +62,7 @@
                             "MozillaChromeEdge"
                         ]
                     },
-                    "method": "post",
+                    "method": "POST",
                     "socket": {
                         "encrypted": true,
                         "remote_address": "12.53.12.1:8080"

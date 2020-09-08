@@ -18,6 +18,7 @@
 package stream
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -173,29 +174,87 @@ func (p *Processor) readBatch(
 
 	// input events are decoded and appended to the batch
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
-		var rawModel map[string]interface{}
-		err := reader.Decode(&rawModel)
+		body, err := reader.ReadAhead()
 		err = reader.wrapError(err)
 		if err != nil && err != io.EOF {
 			if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
 				response.LimitedAdd(e)
 				continue
+			} else {
+				// return early, we assume we can only recover from a input error types
+				response.Add(err)
+				return true
 			}
-			// return early, we assume we can only recover from a input error types
-			response.Add(err)
-			return true
 		}
-		if len(rawModel) > 0 {
-
-			err := p.HandleRawModel(rawModel, batch, requestTime, *streamMetadata)
-			if err != nil {
+		// find event type, trim spaces and account for single and double quotes
+		body = bytes.TrimLeft(body, `{ "'`)
+		end := bytes.Index(body, []byte(`"`))
+		if end == -1 {
+			end = bytes.Index(body, []byte(`'`))
+		}
+		if end == -1 {
+			if err == nil || err != io.EOF {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
 					Message:  err.Error(),
-					Document: string(reader.LatestLine()),
+					Document: string(body),
 				})
+			}
+			continue
+		}
+		eventType := string(body[0:end])
+		switch eventType {
+		case "transaction":
+			var transaction model.Transaction
+			err = v2.DecodeNestedTransaction(reader, &modeldecoder.Input{
+				RequestTime: requestTime,
+				Metadata:    *streamMetadata,
+				Config:      p.Mconfig,
+			}, &transaction)
+			if err != nil && err != io.EOF {
+				e, ok := err.(*Error)
+				if !ok || (e.Type != InvalidInputErrType && e.Type != InputTooLargeErrType) {
+					e = &Error{
+						Type:     InvalidInputErrType,
+						Message:  err.Error(),
+						Document: string(reader.LatestLine()),
+					}
+				}
+				response.LimitedAdd(e)
 				continue
 			}
+			batch.Transactions = append(batch.Transactions, &transaction)
+		case "error", "metricset", "span", "e", "y", "me", "x":
+			var rawModel map[string]interface{}
+			err = reader.Decode(&rawModel)
+			err = reader.wrapError(err)
+			if err != nil && err != io.EOF {
+				if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
+					response.LimitedAdd(e)
+					continue
+				}
+				// return early, we assume we can only recover from a input error types
+				response.Add(err)
+				return true
+			}
+			if len(rawModel) > 0 {
+				err := p.HandleRawModel(rawModel, batch, requestTime, *streamMetadata)
+				if err != nil {
+					response.LimitedAdd(&Error{
+						Type:     InvalidInputErrType,
+						Message:  err.Error(),
+						Document: string(reader.LatestLine()),
+					})
+					continue
+				}
+			}
+		default:
+			response.LimitedAdd(&Error{
+				Type:     InvalidInputErrType,
+				Message:  ErrUnrecognizedObject.Error(),
+				Document: string(reader.LatestLine()),
+			})
+			return true
 		}
 	}
 	return reader.IsEOF()
@@ -281,10 +340,6 @@ type streamReader struct {
 func (sr *streamReader) release() {
 	sr.Reset(nil)
 	sr.processor.streamReaderPool.Put(sr)
-}
-
-func (sr *streamReader) Decode(v interface{}) error {
-	return sr.NDJSONStreamDecoder.Decode(v)
 }
 
 func (sr *streamReader) wrapError(err error) error {

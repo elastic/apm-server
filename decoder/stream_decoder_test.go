@@ -81,3 +81,5 @@ func TestNDStreamReader(t *testing.T) {
 		}
 	}
 }
+
+//TODO(simitt): add tests for Decode and Read

@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
-	"math"
 	"path/filepath"
 	"testing"
 
@@ -34,7 +33,7 @@ import (
 
 func BenchmarkBackendProcessor(b *testing.B) {
 	processor := BackendProcessor(&config.Config{MaxEventSize: 300 * 1024})
-	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
+	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/transactions.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
@@ -49,7 +48,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 		return nil
 	}
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
-	rl := rate.NewLimiter(rate.Limit(math.MaxFloat64-1), math.MaxInt32)
+	// rl := rate.NewLimiter(rate.Limit(math.MaxFloat64-1), math.MaxInt32)
 
 	benchmark := func(filename string, rl *rate.Limiter) func(b *testing.B) {
 		return func(b *testing.B) {
@@ -73,7 +72,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 	for _, f := range files {
 		b.Run(filepath.Base(f), func(b *testing.B) {
 			b.Run("NoRateLimit", benchmark(f, nil))
-			b.Run("WithRateLimit", benchmark(f, rl))
+			// b.Run("WithRateLimit", benchmark(f, rl))
 		})
 	}
 }

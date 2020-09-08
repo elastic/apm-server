@@ -332,6 +332,9 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
 	}
 
+	// fallback value for sampled is `true`
+	event.Sampled = true
+
 	if len(labels) == 0 {
 		return
 	}

@@ -30,6 +30,9 @@ import (
 const (
 	basePath         = "github.com/elastic/apm-server"
 	modeldecoderPath = "model/modeldecoder"
+
+	pkgV2    = "v2"
+	pkgV3RUM = "rumv3"
 )
 
 var (
@@ -38,26 +41,46 @@ var (
 )
 
 func main() {
-	genV2Models()
-	genRUMV3Models()
+	genV2Metadata()
+	genRUMV3Metadata()
+	genV2Transaction()
+	genRUMV3Transaction()
 }
 
-func genV2Models() {
-	pkg := "v2"
+func genV2Metadata() {
 	rootObjs := []string{"metadataRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkg, "model_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkg, typPath, rootObjs)
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "metadata_generated.go")
+	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
 	if err != nil {
 		panic(err)
 	}
 	generate(gen, out)
 }
 
-func genRUMV3Models() {
-	pkg := "rumv3"
+func genV2Transaction() {
+	rootObjs := []string{"transactionRoot"}
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "transaction_generated.go")
+	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
+	if err != nil {
+		panic(err)
+	}
+	generate(gen, out)
+}
+
+func genRUMV3Metadata() {
 	rootObjs := []string{"metadataRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkg, "model_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkg, typPath, rootObjs)
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "metadata_generated.go")
+	gen, err := generator.NewGenerator(importPath, pkgV3RUM, typPath, rootObjs)
+	if err != nil {
+		panic(err)
+	}
+	generate(gen, out)
+}
+
+func genRUMV3Transaction() {
+	rootObjs := []string{"transactionRoot"}
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "transaction_generated.go")
+	gen, err := generator.NewGenerator(importPath, pkgV3RUM, typPath, rootObjs)
 	if err != nil {
 		panic(err)
 	}

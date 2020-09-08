@@ -19,8 +19,10 @@ package modeldecodertest
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -30,13 +32,13 @@ import (
 // the given reflect.Value and initializes all fields with
 // some arbitrary value.
 func InitStructValues(i interface{}) {
-	SetStructValues(i, "initialized", 1)
+	SetStructValues(i, "unknown", 1)
 }
 
 // SetStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with
 // the given values for strings and integers.
-func SetStructValues(in interface{}, vStr string, vInt int) {
+func SetStructValues(in interface{}, vStr string, vInt int) { //TODO(simitt): set bool
 	IterateStruct(in, func(f reflect.Value, key string) {
 		var newVal interface{}
 		switch v := f.Interface().(type) {
@@ -44,6 +46,9 @@ func SetStructValues(in interface{}, vStr string, vInt int) {
 			newVal = map[string]interface{}{vStr: vStr}
 		case common.MapStr:
 			newVal = common.MapStr{vStr: vStr}
+		case map[string]map[string]float64:
+			newVal = map[string]map[string]float64{
+				vStr: map[string]float64{vStr: float64(vInt)}}
 		case []string:
 			newVal = []string{vStr}
 		case []int:
@@ -56,6 +61,18 @@ func SetStructValues(in interface{}, vStr string, vInt int) {
 			newVal = v
 		case nullable.Interface:
 			v.Set(vStr)
+			newVal = v
+		case nullable.Bool:
+			v.Set(true)
+			newVal = v
+		case nullable.Float64:
+			v.Set(44.5)
+			newVal = v
+		case nullable.TimeMicrosUnix:
+			v.Set(time.Now())
+			newVal = v
+		case nullable.HTTPHeader:
+			v.Set(http.Header{vStr: []string{vStr, vStr}})
 			newVal = v
 		default:
 			if f.Type().Kind() == reflect.Struct {
@@ -121,7 +138,8 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 
 		if fTyp.Kind() == reflect.Struct {
 			switch f.Interface().(type) {
-			case nullable.String, nullable.Int, nullable.Interface:
+			case nullable.String, nullable.Int, nullable.Bool, nullable.Float64,
+				nullable.Interface, nullable.HTTPHeader, nullable.TimeMicrosUnix:
 			default:
 				iterateStruct(f, fKey, fn)
 			}

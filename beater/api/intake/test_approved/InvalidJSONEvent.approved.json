@@ -1,9 +1,9 @@
 {
-    "accepted": 1,
+    "accepted": 0,
     "errors": [
         {
             "document": "{ \"invalid-json\" }",
-            "message": "data read error: ReadMapCB: expect : after object field, but found }, error found in #10 byte of ...|id-json\" }|..., bigger context ...|{ \"invalid-json\" }|..."
+            "message": "did not recognize object type"
         }
     ]
 }

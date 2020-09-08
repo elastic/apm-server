@@ -41,7 +41,7 @@ func NewDiscardUnsampledReporter(reporter publish.Reporter) publish.Reporter {
 		events := req.Transformables
 		for i := 0; i < len(events); {
 			tx, ok := events[i].(*model.Transaction)
-			if !ok || tx.Sampled == nil || *tx.Sampled {
+			if !ok || tx.Sampled {
 				i++
 				continue
 			}
