@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"net/http"
 	"strings"
 	"time"
 
@@ -93,10 +94,6 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 	decodeString(raw, fieldName("parent_id"), &event.ParentID)
 	decodeString(raw, fieldName("trace_id"), &event.TraceID)
 	decodeString(raw, fieldName("transaction_id"), &event.TransactionID)
-	decodeString(raw, fieldName("outcome"), &event.Outcome)
-	if event.Outcome == "" {
-		event.Outcome = "unknown"
-	}
 
 	ctx := decoder.MapStr(raw, fieldName("context"))
 	if ctx != nil {
@@ -137,6 +134,19 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 			if obj, set := ctx["experimental"]; set {
 				event.Experimental = obj
 			}
+		}
+	}
+	decodeString(raw, fieldName("outcome"), &event.Outcome)
+	if event.Outcome == "" {
+		if event.HTTP != nil && event.HTTP.StatusCode != nil {
+			statusCode := *event.HTTP.StatusCode
+			if statusCode >= http.StatusBadRequest {
+				event.Outcome = "failure"
+			} else {
+				event.Outcome = "success"
+			}
+		} else {
+			event.Outcome = "unknown"
 		}
 	}
 
