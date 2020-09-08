@@ -200,7 +200,7 @@ class RateLimitTest(ClientSideBaseTest):
     def test_rate_limit_only_metadata(self):
         # all requests from the same ip
         # no events, batch size 10 => 10+1 events per requ
-        codes = self.fire_events("only-metadata.ndjson", 8)
+        codes = self.fire_events("metadata.ndjson", 8)
         assert set(codes.keys()) == set([202, 429]), codes
         assert codes[429] == 3, codes
         assert codes[202] == 5, codes

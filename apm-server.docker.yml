@@ -969,10 +969,10 @@ output.elasticsearch:
       #enabled: false
       #interval: 60s
       #duration: 10s
-  #heap:
-    # Set to true to enable heap profiling.
-    #enabled: false
-    #interval: 60s
+    #heap:
+      # Set to true to enable heap profiling.
+      #enabled: false
+      #interval: 60s
 
 #================================= Paths ==================================
 
