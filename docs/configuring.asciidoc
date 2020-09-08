@@ -52,7 +52,7 @@ include::ssl-input-settings.asciidoc[]
 
 See <<securing-apm-server,Securing APM Server>> for more information.
 
-include::./template-config.asciidoc[]
+include::{libbeat-dir}/template-config.asciidoc[]
 
 include::./ilm-reference.asciidoc[]
 

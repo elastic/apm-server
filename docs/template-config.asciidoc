@@ -1,5 +1,0 @@
-include::{libbeat-dir}/template-config.asciidoc[]
-
-=== Manually loading template configuration
-
-include::{libbeat-dir}/howto/load-index-templates.asciidoc[]

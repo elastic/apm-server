@@ -14,14 +14,16 @@ Learn how to perform common {beatname_uc} configuration and management tasks.
 
 --
 
+include::./sourcemaps.asciidoc[]
+
 include::./ilm.asciidoc[]
 
 include::./jaeger-support.asciidoc[]
+
+include::{libbeat-dir}/howto/load-index-templates.asciidoc[]
 
 include::./storage-management.asciidoc[]
 
 include::./configuring-ingest.asciidoc[]
 
 include::./data-ingestion.asciidoc[]
-
-include::./sourcemaps.asciidoc[]
