@@ -262,6 +262,10 @@ NOTE: These settings are different from the API key settings used for Elasticsea
 Enable API key authorization by setting `enabled` to `true`.
 By default, `enabled` is set to `false`, and API key support is disabled.
 
+TIP: Not using Elastic APM agents?
+When enabled, third-party APM agents must include a valid API key in the following format:
+`Authorization: ApiKey <token>`. The key must be the base64 encoded representation of the API key's `id:name`.
+
 [float]
 ===== `limit`
 
