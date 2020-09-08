@@ -228,7 +228,7 @@ func TestDecodeSpan(t *testing.T) {
 				Subtype:   &subtype,
 				Action:    &action2,
 				Duration:  duration,
-				HTTP:      &m.HTTP{StatusCode: &badRequestStatusCode},
+				HTTP:      &model.HTTP{StatusCode: &badRequestStatusCode},
 				Timestamp: spanTime,
 				ParentID:  parentID,
 				ID:        id,
