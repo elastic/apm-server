@@ -27,3 +27,4 @@ Ready to learn more about the Elastic APM ecosystem? Check out these helpful top
 * <<troubleshooting>>
 
 NOTE: This guide will indiscriminately use the word "service" for both services and applications.
+ 
