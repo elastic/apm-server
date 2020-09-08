@@ -7,36 +7,140 @@
     ],
     "properties": {
         "se": {
-            "$ref": "rum_v3_service.json",
-            "type": "object",
+            "$id": "docs/spec/rum_v3_service.json",
+            "title": "Service",
+            "type": [
+                "object"
+            ],
+            "properties": {
+                "a": {
+                    "description": "Name and version of the Elastic APM agent",
+                    "type": [
+                        "object"
+                    ],
+                    "properties": {
+                        "n": {
+                            "description": "Name of the Elastic APM agent, e.g. \"Python\"",
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "ve": {
+                            "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "n",
+                        "ve"
+                    ]
+                },
+                "fw": {
+                    "description": "Name and version of the web framework used",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "n": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "ve": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    }
+                },
+                "la": {
+                    "description": "Name and version of the programming language used",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "n": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "ve": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "n"
+                    ]
+                },
+                "n": {
+                    "description": "Immutable name of the service emitting this event",
+                    "type": [
+                        "string"
+                    ],
+                    "pattern": "^[a-zA-Z0-9 _-]+$",
+                    "maxLength": 1024
+                },
+                "en": {
+                    "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 1024
+                },
+                "ru": {
+                    "description": "Name and version of the language runtime running this service",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "n": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "ve": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "n",
+                        "ve"
+                    ]
+                },
+                "ve": {
+                    "description": "Version of the service emitting this event",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 1024
+                }
+            },
             "required": [
-                "n",
-                "a"
-            ],
-            "properties.n.type": "string",
-            "properties.a.type": "string",
-            "properties.a.required": [
-                "n",
-                "ve"
-            ],
-            "properties.a.properties.n.type": "string",
-            "properties.a.properties.ve.type": "string",
-            "properties.ru.required": [
-                "n",
-                "ve"
-            ],
-            "properties.ru.properties.n.type": "string",
-            "properties.ru.properties.ve.type": "string",
-            "properties.la.required": [
+                "a",
                 "n"
-            ],
-            "properties.la.properties.n.type": "string"
-        },
-        "u": {
-            "$ref": "rum_v3_user.json"
-        },
-        "l": {
-            "$ref": "tags.json"
+            ]
         }
     },
     "required": [
