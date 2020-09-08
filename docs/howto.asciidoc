@@ -5,12 +5,13 @@
 --
 Learn how to perform common {beatname_uc} configuration and management tasks.
 
+* <<sourcemaps>>
 * <<ilm>>
 * <<jaeger>>
+* <<{beatname_lc}-template>>
 * <<storage-management>>
 * <<configuring-ingest-node>>
 * <<tune-data-ingestion>>
-* <<sourcemaps>>
 
 --
 
