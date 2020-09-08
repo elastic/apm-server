@@ -84,53 +84,50 @@ func TestMappingToModel(t *testing.T) {
 	// create initialized modeldecoder and empty model metadata
 	// map modeldecoder to model metadata and manually set
 	// enhanced data that are never set by the modeldecoder
-	val := reflect.New(reflect.TypeOf(metadata{}))
-	modeldecodertest.SetStructValues(val, "init", 5000)
-	m := val.Interface().(*metadata)
+	var m metadata
+	modeldecodertest.SetStructValues(&m, "init", 5000)
 	var modelM model.Metadata
 	modelM.System.IP, modelM.Client.IP = net.ParseIP("127.0.0.1"), net.ParseIP("127.0.0.1")
 	modelM.UserAgent.Original, modelM.UserAgent.Name = "Firefox/15.0.1", "Firefox/15.0.1"
-	mapToMetadataModel(m, &modelM)
+	mapToMetadataModel(&m, &modelM)
 
 	// iterate through model and assert values are set
-	assertStructValues(t, reflect.ValueOf(&modelM), "init", 5000)
+	assertStructValues(t, &modelM, "init", 5000)
 
 	// overwrite model metadata with specified Values
 	// then iterate through model and assert values are overwritten
-	modeldecodertest.SetStructValues(val, "overwritten", 12)
-	m = val.Interface().(*metadata)
-	mapToMetadataModel(m, &modelM)
-	assertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
+	modeldecodertest.SetStructValues(&m, "overwritten", 12)
+	mapToMetadataModel(&m, &modelM)
+	assertStructValues(t, &modelM, "overwritten", 12)
 
 	// map an empty modeldecoder metadata to the model
 	// and assert values are unchanged
-	modeldecodertest.SetZeroStructValues(val)
-	m = val.Interface().(*metadata)
-	mapToMetadataModel(m, &modelM)
-	assertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
+	modeldecodertest.SetZeroStructValues(&m)
+	mapToMetadataModel(&m, &modelM)
+	assertStructValues(t, &modelM, "overwritten", 12)
 }
 
-func assertStructValues(t *testing.T, val reflect.Value, s string, i int) {
-	modeldecodertest.IterateStruct(val, func(f reflect.Value, key string) {
+func assertStructValues(t *testing.T, i interface{}, vStr string, vInt int) {
+	modeldecodertest.IterateStruct(i, func(f reflect.Value, key string) {
 		fVal := f.Interface()
 		var newVal interface{}
 		switch fVal.(type) {
 		case map[string]interface{}:
-			newVal = map[string]interface{}{s: s}
+			newVal = map[string]interface{}{vStr: vStr}
 		case common.MapStr:
-			newVal = common.MapStr{s: s}
+			newVal = common.MapStr{vStr: vStr}
 		case []string:
-			newVal = []string{s}
+			newVal = []string{vStr}
 		case []int:
-			newVal = []int{i, i}
+			newVal = []int{vInt, vInt}
 		case string:
-			newVal = s
+			newVal = vStr
 		case int:
-			newVal = i
+			newVal = vInt
 		case *int:
 			iptr := f.Interface().(*int)
 			fVal = *iptr
-			newVal = i
+			newVal = vInt
 		case net.IP:
 		default:
 			if f.Type().Kind() == reflect.Struct {

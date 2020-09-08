@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"io"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -178,11 +177,9 @@ func TestValidationRules(t *testing.T) {
 
 	t.Run("required", func(t *testing.T) {
 		// setup: create full metadata struct with arbitrary values set
-		val := reflect.New(reflect.TypeOf(metadata{}))
-		modeldecodertest.InitStructValues(val)
-
+		var metadata metadata
+		modeldecodertest.InitStructValues(&metadata)
 		// test vanilla struct is valid
-		metadata := val.Interface().(*metadata)
 		require.NoError(t, metadata.validate())
 
 		// iterate through struct, remove every key one by one
@@ -199,7 +196,7 @@ func TestValidationRules(t *testing.T) {
 			"service.runtime.version": nil,
 			"service.name":            nil,
 		}
-		modeldecodertest.SetZeroStructValue(val, func(key string) {
+		modeldecodertest.SetZeroStructValue(&metadata, func(key string) {
 			err := metadata.validate()
 			if _, ok := requiredKeys[key]; ok {
 				require.Error(t, err, key)

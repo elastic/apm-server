@@ -18,7 +18,6 @@
 package rumv3
 
 import (
-	"reflect"
 	"strings"
 	"testing"
 
@@ -83,27 +82,23 @@ func TestMappingToModel(t *testing.T) {
 	// create initialized modeldecoder and empty model metadata
 	// map modeldecoder to model metadata and manually set
 	// enhanced data that are never set by the modeldecoder
-	val := reflect.New(reflect.TypeOf(metadata{}))
-	modeldecodertest.SetStructValues(val, "init", 5000)
-	m := val.Interface().(*metadata)
+	var m metadata
+	modeldecodertest.SetStructValues(&m, "init", 5000)
 	var modelM model.Metadata
-	mapToMetadataModel(m, &modelM)
-
+	mapToMetadataModel(&m, &modelM)
 	// iterate through model and assert values are set
 	assert.Equal(t, expected("init"), modelM)
 
 	// overwrite model metadata with specified Values
 	// then iterate through model and assert values are overwritten
-	modeldecodertest.SetStructValues(val, "overwritten", 12)
-	m = val.Interface().(*metadata)
-	mapToMetadataModel(m, &modelM)
+	modeldecodertest.SetStructValues(&m, "overwritten", 12)
+	mapToMetadataModel(&m, &modelM)
 	assert.Equal(t, expected("overwritten"), modelM)
 
 	// map an empty modeldecoder metadata to the model
 	// and assert values are unchanged
-	modeldecodertest.SetZeroStructValues(val)
-	m = val.Interface().(*metadata)
-	mapToMetadataModel(m, &modelM)
+	modeldecodertest.SetZeroStructValues(&m)
+	mapToMetadataModel(&m, &modelM)
 	assert.Equal(t, expected("overwritten"), modelM)
 
 }

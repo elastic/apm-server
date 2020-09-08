@@ -29,33 +29,33 @@ import (
 // InitStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with
 // some arbitrary value.
-func InitStructValues(val reflect.Value) {
-	SetStructValues(val, "initialized", 1)
+func InitStructValues(i interface{}) {
+	SetStructValues(i, "initialized", 1)
 }
 
 // SetStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with
 // the given values for strings and integers.
-func SetStructValues(val reflect.Value, s string, i int) {
-	iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
+func SetStructValues(in interface{}, vStr string, vInt int) {
+	IterateStruct(in, func(f reflect.Value, key string) {
 		var newVal interface{}
 		switch v := f.Interface().(type) {
 		case map[string]interface{}:
-			newVal = map[string]interface{}{s: s}
+			newVal = map[string]interface{}{vStr: vStr}
 		case common.MapStr:
-			newVal = common.MapStr{s: s}
+			newVal = common.MapStr{vStr: vStr}
 		case []string:
-			newVal = []string{s}
+			newVal = []string{vStr}
 		case []int:
-			newVal = []int{i, i}
+			newVal = []int{vInt, vInt}
 		case nullable.String:
-			v.Set(s)
+			v.Set(vStr)
 			newVal = v
 		case nullable.Int:
-			v.Set(i)
+			v.Set(vInt)
 			newVal = v
 		case nullable.Interface:
-			v.Set(s)
+			v.Set(vStr)
 			newVal = v
 		default:
 			if f.Type().Kind() == reflect.Struct {
@@ -69,8 +69,8 @@ func SetStructValues(val reflect.Value, s string, i int) {
 
 // SetZeroStructValues iterates through the struct fields represented by
 // the given reflect.Value and sets all fields to their zero values.
-func SetZeroStructValues(val reflect.Value) {
-	iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
+func SetZeroStructValues(i interface{}) {
+	IterateStruct(i, func(f reflect.Value, key string) {
 		f.Set(reflect.Zero(f.Type()))
 	})
 }
@@ -78,8 +78,8 @@ func SetZeroStructValues(val reflect.Value) {
 // SetZeroStructValue iterates through the struct fields represented by
 // the given reflect.Value, sets a field to its zero value,
 // calls the callback function and resets the field to its original value
-func SetZeroStructValue(val reflect.Value, callback func(string)) {
-	iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
+func SetZeroStructValue(i interface{}, callback func(string)) {
+	IterateStruct(i, func(f reflect.Value, key string) {
 		original := reflect.ValueOf(f.Interface())
 		defer f.Set(original) // reset original value
 		f.Set(reflect.Zero(f.Type()))
@@ -89,7 +89,11 @@ func SetZeroStructValue(val reflect.Value, callback func(string)) {
 
 // IterateStruct iterates through the struct fields represented by
 // the given reflect.Value and calls the given function on every field.
-func IterateStruct(val reflect.Value, fn func(reflect.Value, string)) {
+func IterateStruct(i interface{}, fn func(reflect.Value, string)) {
+	val := reflect.ValueOf(i)
+	if val.Kind() != reflect.Ptr {
+		panic("expected pointer to struct as parameter")
+	}
 	iterateStruct(val.Elem(), "", fn)
 }
 
