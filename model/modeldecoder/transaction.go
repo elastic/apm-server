@@ -19,6 +19,7 @@ package modeldecoder
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
@@ -166,7 +167,16 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 	decodeString(raw, fieldName("outcome"), &e.Outcome)
 	decodeFloat64(raw, fieldName("duration"), &e.Duration)
 	if e.Outcome == "" {
-		e.Outcome = "unknown"
+		if ctx.Http != nil && ctx.Http.Response != nil && ctx.Http.Response.StatusCode != nil {
+			statusCode := *ctx.Http.Response.StatusCode
+			if statusCode >= http.StatusInternalServerError {
+				e.Outcome = "failure"
+			} else {
+				e.Outcome = "success"
+			}
+		} else {
+			e.Outcome = "unknown"
+		}
 	}
 
 	if obj := getObject(raw, fieldName("experience")); obj != nil {

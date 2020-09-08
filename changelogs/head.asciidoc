@@ -10,7 +10,6 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 ==== Bug fixes
 
 * Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
-* Honour output.elasticsearch.headers configuration in API Key auth and source mapping {pull}4090[4090]
 
 [float]
 ==== Intake API Changes
@@ -31,3 +30,4 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 * Add event.outcome to transactions and spans {pull}4064[4064]
 * Add event.outcome to aggregated transaction metrics {pull}4110[4110]
 * Set event.outcome for Jaeger spans based on http.status_code {pull}4127[4127]
+* Set event.outcome for transactions and spans based on http.status_code {pull}4165[4165]

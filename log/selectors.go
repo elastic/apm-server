@@ -37,4 +37,5 @@ const (
 	TransactionMetrics = "txmetrics"
 	SpanMetrics        = "spanmetrics"
 	Transform          = "transform"
+	Sampling           = "sampling"
 )

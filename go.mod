@@ -36,7 +36,7 @@ require (
 	github.com/jaegertracing/jaeger v1.16.0
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
-	github.com/json-iterator/go v1.1.8
+	github.com/json-iterator/go v1.1.10
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/klauspost/compress v1.9.3-0.20191122130757-c099ac9f21dd // indirect
 	github.com/kr/pretty v0.2.0 // indirect
@@ -65,7 +65,7 @@ require (
 	go.elastic.co/apm/module/apmgrpc v1.7.0
 	go.elastic.co/apm/module/apmhttp v1.7.2
 	go.elastic.co/ecszap v0.2.0 // indirect
-	go.elastic.co/fastjson v1.1.0 // indirect
+	go.elastic.co/fastjson v1.1.0
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
@@ -75,7 +75,7 @@ require (
 	golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200823205832-c024452afbcd // indirect
+	golang.org/x/tools v0.0.0-20200823205832-c024452afbcd
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
