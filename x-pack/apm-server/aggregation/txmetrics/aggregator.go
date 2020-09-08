@@ -61,10 +61,10 @@ type AggregatorConfig struct {
 	// If Logger is nil, a new logger will be constructed.
 	Logger *logp.Logger
 
-	// MaxBuckets is the maximum number of distinct transaction groups
-	// to store within an aggregation period. Once this number of groups
-	// has been reached, any new aggregation keys will cause individual
-	// metrics documents to be immediately published.
+	// MaxTransactionGroups is the maximum number of distinct transaction
+	// group metrics to store within an aggregation period. Once this number
+	// of groups has been reached, any new aggregation keys will cause
+	// individual metrics documents to be immediately published.
 	MaxTransactionGroups int
 
 	// MetricsInterval is the interval between publishing of aggregated
