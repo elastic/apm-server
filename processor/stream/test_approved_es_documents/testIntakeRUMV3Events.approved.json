@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -90,8 +90,8 @@
                         "domContentLoadedEventEnd": 110,
                         "domContentLoadedEventStart": 100,
                         "domInteractive": 120,
-                        "firstContentfulPaint": 70.825,
-                        "largestContentfulPaint": 131.03,
+                        "firstContentfulPaint": 70.82500003930181,
+                        "largestContentfulPaint": 131.03000004775822,
                         "timeToFirstByte": 5
                     },
                     "navigationTiming": {
@@ -280,7 +280,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.022534999Z",
+            "@timestamp": "2018-08-01T10:00:00.022Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -370,7 +370,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.096929999Z",
+            "@timestamp": "2018-08-01T10:00:00.096Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -438,7 +438,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.09894Z",
+            "@timestamp": "2018-08-01T10:00:00.098Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -528,7 +528,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.10652Z",
+            "@timestamp": "2018-08-01T10:00:00.106Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -618,7 +618,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.119935Z",
+            "@timestamp": "2018-08-01T10:00:00.119Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -709,7 +709,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.12Z",
+            "@timestamp": "2018-08-01T10:00:00.120Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -800,7 +800,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -855,7 +855,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -910,7 +910,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -965,7 +965,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"

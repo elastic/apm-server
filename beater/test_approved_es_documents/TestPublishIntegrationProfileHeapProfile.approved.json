@@ -1,12 +1,6 @@
 {
     "events": [
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -26,6 +20,7 @@
             "profile": {
                 "alloc_objects.count": 65536,
                 "alloc_space.bytes": 524292,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -75,12 +70,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -100,6 +89,7 @@
             "profile": {
                 "alloc_objects.count": 16384,
                 "alloc_space.bytes": 524304,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -191,12 +181,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -216,6 +200,7 @@
             "profile": {
                 "alloc_objects.count": 2979,
                 "alloc_space.bytes": 524376,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -295,12 +280,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -320,6 +299,7 @@
             "profile": {
                 "alloc_objects.count": 4096,
                 "alloc_space.bytes": 524352,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -399,12 +379,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -424,6 +398,7 @@
             "profile": {
                 "alloc_objects.count": 16384,
                 "alloc_space.bytes": 524304,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -449,12 +424,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -474,6 +443,7 @@
             "profile": {
                 "alloc_objects.count": 10923,
                 "alloc_space.bytes": 524312,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -547,12 +517,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -572,6 +536,7 @@
             "profile": {
                 "alloc_objects.count": 5461,
                 "alloc_space.bytes": 524336,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -597,12 +562,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -622,6 +581,7 @@
             "profile": {
                 "alloc_objects.count": 2,
                 "alloc_space.bytes": 666237,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -671,12 +631,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -696,6 +650,7 @@
             "profile": {
                 "alloc_objects.count": 1,
                 "alloc_space.bytes": 924248,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -739,12 +694,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -764,6 +713,7 @@
             "profile": {
                 "alloc_objects.count": 2,
                 "alloc_space.bytes": 695248,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -861,12 +811,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -886,6 +830,7 @@
             "profile": {
                 "alloc_objects.count": 4096,
                 "alloc_space.bytes": 524352,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -947,12 +892,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -972,6 +911,7 @@
             "profile": {
                 "alloc_objects.count": 16384,
                 "alloc_space.bytes": 524304,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1063,12 +1003,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1088,6 +1022,7 @@
             "profile": {
                 "alloc_objects.count": 10923,
                 "alloc_space.bytes": 524312,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1149,12 +1084,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1174,6 +1103,7 @@
             "profile": {
                 "alloc_objects.count": 1820,
                 "alloc_space.bytes": 524432,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1223,12 +1153,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1248,6 +1172,7 @@
             "profile": {
                 "alloc_objects.count": 2,
                 "alloc_space.bytes": 2425393,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1273,12 +1198,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1298,6 +1217,7 @@
             "profile": {
                 "alloc_objects.count": 2,
                 "alloc_space.bytes": 2000678,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1323,12 +1243,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1348,6 +1262,7 @@
             "profile": {
                 "alloc_objects.count": 5,
                 "alloc_space.bytes": 579337,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1403,12 +1318,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1428,6 +1337,7 @@
             "profile": {
                 "alloc_objects.count": 1820,
                 "alloc_space.bytes": 524432,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1453,12 +1363,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1478,6 +1382,7 @@
             "profile": {
                 "alloc_objects.count": 16,
                 "alloc_space.bytes": 540842,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1671,12 +1576,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1696,6 +1595,7 @@
             "profile": {
                 "alloc_objects.count": 128,
                 "alloc_space.bytes": 526338,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1727,12 +1627,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1752,6 +1646,7 @@
             "profile": {
                 "alloc_objects.count": 5461,
                 "alloc_space.bytes": 524336,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1795,12 +1690,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1820,6 +1709,7 @@
             "profile": {
                 "alloc_objects.count": 4,
                 "alloc_space.bytes": 1390497,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1935,12 +1825,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1960,6 +1844,7 @@
             "profile": {
                 "alloc_objects.count": 128,
                 "alloc_space.bytes": 526338,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -1991,12 +1876,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2016,6 +1895,7 @@
             "profile": {
                 "alloc_objects.count": 32768,
                 "alloc_space.bytes": 524296,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2125,12 +2005,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2150,6 +2024,7 @@
             "profile": {
                 "alloc_objects.count": 8192,
                 "alloc_space.bytes": 524320,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2169,12 +2044,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2194,6 +2063,7 @@
             "profile": {
                 "alloc_objects.count": 5461,
                 "alloc_space.bytes": 524336,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2237,12 +2107,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2262,6 +2126,7 @@
             "profile": {
                 "alloc_objects.count": 33,
                 "alloc_space.bytes": 1647743,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2311,12 +2176,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2336,6 +2195,7 @@
             "profile": {
                 "alloc_objects.count": 5461,
                 "alloc_space.bytes": 524336,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2469,12 +2329,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2494,6 +2348,7 @@
             "profile": {
                 "alloc_objects.count": 1820,
                 "alloc_space.bytes": 524432,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2633,12 +2488,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2658,6 +2507,7 @@
             "profile": {
                 "alloc_objects.count": 1820,
                 "alloc_space.bytes": 524432,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2845,12 +2695,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2870,6 +2714,7 @@
             "profile": {
                 "alloc_objects.count": 1820,
                 "alloc_space.bytes": 524432,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -2967,12 +2812,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2992,6 +2831,7 @@
             "profile": {
                 "alloc_objects.count": 13,
                 "alloc_space.bytes": 545034,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3059,12 +2899,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3084,6 +2918,7 @@
             "profile": {
                 "alloc_objects.count": 1820,
                 "alloc_space.bytes": 524432,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3199,12 +3034,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3224,6 +3053,7 @@
             "profile": {
                 "alloc_objects.count": 2521,
                 "alloc_space.bytes": 524392,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3327,12 +3157,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3352,6 +3176,7 @@
             "profile": {
                 "alloc_objects.count": 819,
                 "alloc_space.bytes": 524608,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3437,12 +3262,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3462,6 +3281,7 @@
             "profile": {
                 "alloc_objects.count": 16,
                 "alloc_space.bytes": 540842,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3637,12 +3457,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3662,6 +3476,7 @@
             "profile": {
                 "alloc_objects.count": 4,
                 "alloc_space.bytes": 1390497,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3759,12 +3574,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3784,6 +3593,7 @@
             "profile": {
                 "alloc_objects.count": 1638,
                 "alloc_space.bytes": 524448,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3881,12 +3691,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3906,6 +3710,7 @@
             "profile": {
                 "alloc_objects.count": 21,
                 "alloc_space.bytes": 2317349,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -3967,12 +3772,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3992,6 +3791,7 @@
             "profile": {
                 "alloc_objects.count": 16,
                 "alloc_space.bytes": 1738012,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
@@ -4053,12 +3853,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4078,6 +3872,7 @@
             "profile": {
                 "alloc_objects.count": 64,
                 "alloc_space.bytes": 528394,
+                "id": "dynamic",
                 "inuse_objects.count": 64,
                 "inuse_space.bytes": 528394,
                 "stack": [
@@ -4163,12 +3958,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "7.10.0"
-            },
             "@timestamp": "2019-11-22T10:30:54.440Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4188,6 +3977,7 @@
             "profile": {
                 "alloc_objects.count": 1024,
                 "alloc_space.bytes": 524544,
+                "id": "dynamic",
                 "inuse_objects.count": 0,
                 "inuse_space.bytes": 0,
                 "stack": [
