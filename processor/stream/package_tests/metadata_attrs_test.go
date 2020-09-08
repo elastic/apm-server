@@ -74,12 +74,12 @@ func metadataProcSetup() *tests.ProcessorSetup {
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
 		},
-		FullPayloadPath: "../testdata/intake-v2/only-metadata.ndjson",
+		FullPayloadPath: "../testdata/intake-v2/metadata.ndjson",
 	}
 }
 
 func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
-	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/only-metadata.ndjson")
+	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/metadata.ndjson")
 	require.NoError(t, err)
 
 	var metadata map[string]interface{}
@@ -123,7 +123,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 	metadataProcSetup().AttrsMatchJsonSchema(t,
 		getMetadataEventAttrs(t, ""),
-		tests.NewSet(tests.Group("labels")),
+		tests.NewSet(tests.Group("labels"), "system.ip"),
 		nil,
 	)
 }
