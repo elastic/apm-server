@@ -15,22 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
-
-//go:generate go run script/inline_schemas/inline_schemas.go
-//go:generate go run model/modeldecoder/generator/cmd/main.go
+package decoder
 
 import (
-	"os"
+	"io"
 
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/cmd"
+	jsoniter "github.com/json-iterator/go"
 )
 
-var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}))
+//TODO(simitt): look into config options for performance tuning
+var jsonit = jsoniter.ConfigCompatibleWithStandardLibrary
 
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+type Decoder interface {
+	Decode(v interface{}) error
+}
+
+// JSONIterDecoder can decode from a given reader, using jsoniter
+// TODO(simitt): rename to JSONDecoder when everything is integrated
+type JSONIterDecoder struct {
+	*jsoniter.Decoder
+}
+
+// NewJSONIteratorDecoder returns a *json.Decoder where numbers are unmarshaled
+// as a Number instead of a float64 into an interface{}
+func NewJSONIteratorDecoder(r io.Reader) JSONIterDecoder {
+	d := jsonit.NewDecoder(r)
+	d.UseNumber()
+	return JSONIterDecoder{Decoder: d}
 }

@@ -2839,7 +2839,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/json-iterator/go
-Version: v1.1.8
+Version: v1.1.10
 License type (autodetected): MIT
 Contents of "LICENSE":
 
