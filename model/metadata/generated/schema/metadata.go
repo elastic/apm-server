@@ -39,7 +39,8 @@ const ModelSchema = `{
                             "type": [
                                 "string"
                             ],
-                            "maxLength": 1024
+                            "maxLength": 1024,
+                            "minLength": 1
                         },
                         "version": {
                             "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
@@ -116,7 +117,8 @@ const ModelSchema = `{
                         "string"
                     ],
                     "pattern": "^[a-zA-Z0-9 _-]+$",
-                    "maxLength": 1024
+                    "maxLength": 1024,
+                    "minLength": 1
                 },
                 "environment": {
                     "description": "Environment name of the service, e.g. \"production\" or \"staging\"",

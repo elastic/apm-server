@@ -43,6 +43,7 @@ const RUMV3Schema = `{
                             "type": [
                                 "string"
                             ],
+                            "minLength": 1,
                             "maxLength": 1024
                         },
                         "ve": {
@@ -112,6 +113,7 @@ const RUMV3Schema = `{
                         "string"
                     ],
                     "pattern": "^[a-zA-Z0-9 _-]+$",
+                    "minLength": 1,
                     "maxLength": 1024
                 },
                 "en": {

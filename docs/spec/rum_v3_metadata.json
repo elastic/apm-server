@@ -24,6 +24,7 @@
                             "type": [
                                 "string"
                             ],
+                            "minLength": 1,
                             "maxLength": 1024
                         },
                         "ve": {
@@ -93,6 +94,7 @@
                         "string"
                     ],
                     "pattern": "^[a-zA-Z0-9 _-]+$",
+                    "minLength": 1,
                     "maxLength": 1024
                 },
                 "en": {

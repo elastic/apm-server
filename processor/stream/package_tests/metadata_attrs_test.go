@@ -185,8 +185,10 @@ func TestInvalidPayloadsForMetadata(t *testing.T) {
 
 	payloadData := []tests.SchemaTestData{
 		{Key: "metadata.service.name",
-			Valid:   val{"my-service"},
-			Invalid: []tests.Invalid{{Msg: "service/properties/name", Values: val{tests.Str1024Special}}},
+			Valid: val{"m"},
+			Invalid: []tests.Invalid{
+				{Msg: "service/properties/name", Values: val{tests.Str1024Special}},
+				{Msg: "service/properties/name", Values: val{""}}},
 		}}
 	metadataProcSetup().DataValidation(t, payloadData)
 }
