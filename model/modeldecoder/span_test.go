@@ -200,7 +200,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
 				"context": map[string]interface{}{"http": httpCtx},
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
