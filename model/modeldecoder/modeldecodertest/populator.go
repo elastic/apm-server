@@ -19,20 +19,23 @@ package modeldecodertest
 
 import (
 	"fmt"
-	"net"
 	"reflect"
 	"strings"
-	"testing"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/stretchr/testify/assert"
 )
 
+// InitStructValues iterates through the struct fields represented by
+// the given reflect.Value and initializes all fields with
+// some arbitrary value.
 func InitStructValues(val reflect.Value) {
 	SetStructValues(val, "initialized", 1)
 }
 
+// SetStructValues iterates through the struct fields represented by
+// the given reflect.Value and initializes all fields with
+// the given values for strings and integers.
 func SetStructValues(val reflect.Value, s string, i int) {
 	iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
 		var newVal interface{}
@@ -64,12 +67,17 @@ func SetStructValues(val reflect.Value, s string, i int) {
 	})
 }
 
+// SetZeroStructValues iterates through the struct fields represented by
+// the given reflect.Value and sets all fields to their zero values.
 func SetZeroStructValues(val reflect.Value) {
 	iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
 		f.Set(reflect.Zero(f.Type()))
 	})
 }
 
+// SetZeroStructValue iterates through the struct fields represented by
+// the given reflect.Value, sets a field to its zero value,
+// calls the callback function and resets the field to its original value
 func SetZeroStructValue(val reflect.Value, callback func(string)) {
 	iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
 		original := reflect.ValueOf(f.Interface())
@@ -79,40 +87,10 @@ func SetZeroStructValue(val reflect.Value, callback func(string)) {
 	})
 }
 
-func AssertStructValues(t *testing.T, val reflect.Value, s string, i int) {
-	iterateStruct(val.Elem(), "", func(f reflect.Value, key string) {
-		fVal := f.Interface()
-		var newVal interface{}
-		switch fVal.(type) {
-		case map[string]interface{}:
-			newVal = map[string]interface{}{s: s}
-		case common.MapStr:
-			newVal = common.MapStr{s: s}
-		case []string:
-			newVal = []string{s}
-		case []int:
-			newVal = []int{i, i}
-		case string:
-			newVal = s
-		case int:
-			newVal = i
-		case *int:
-			iptr := f.Interface().(*int)
-			fVal = *iptr
-			newVal = i
-		case net.IP:
-		default:
-			if f.Type().Kind() == reflect.Struct {
-				return
-			}
-			panic(fmt.Sprintf("unhandled type %T for key %s", f.Type().Kind(), key))
-		}
-		if strings.HasPrefix(key, "UserAgent") || key == "Client.IP" || key == "System.IP" {
-			// these values are not set by modeldecoder
-			return
-		}
-		assert.Equal(t, newVal, fVal, key)
-	})
+// IterateStruct iterates through the struct fields represented by
+// the given reflect.Value and calls the given function on every field.
+func IterateStruct(val reflect.Value, fn func(reflect.Value, string)) {
+	iterateStruct(val.Elem(), "", fn)
 }
 
 func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey string)) {

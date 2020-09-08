@@ -21,22 +21,22 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func init() {
-	metadataRootPool.New = func() interface{} {
+var metadataRootPool = sync.Pool{
+	New: func() interface{} {
 		return &metadataRoot{}
-	}
+	},
 }
-
-var metadataRootPool sync.Pool
 
 func fetchMetadataRoot() *metadataRoot {
 	return metadataRootPool.Get().(*metadataRoot)
 }
+
 func releaseMetadataRoot(m *metadataRoot) {
 	m.Reset()
 	metadataRootPool.Put(m)

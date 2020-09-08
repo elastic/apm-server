@@ -25,10 +25,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestResetModelOnRelease(t *testing.T) {
@@ -41,19 +42,13 @@ func TestResetModelOnRelease(t *testing.T) {
 }
 
 func TestDecodeNestedMetadata(t *testing.T) {
-	var testMinValidMetadata = `
-	{"m":{"se":{"n":"user-service","a":{"n":"go","ve":"1.0.0"}}}}`
-
-	decodeMetadata := func(out *model.Metadata) {
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(testMinValidMetadata))
-		require.NoError(t, DecodeNestedMetadata(dec, out))
-	}
-
 	t.Run("decode", func(t *testing.T) {
 		var out model.Metadata
-		decodeMetadata(&out)
+		testMinValidMetadata := `{"m":{"se":{"n":"name","a":{"n":"go","ve":"1.0.0"}}}}`
+		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(testMinValidMetadata))
+		require.NoError(t, DecodeNestedMetadata(dec, &out))
 		assert.Equal(t, model.Metadata{Service: model.Service{
-			Name:  "user-service",
+			Name:  "name",
 			Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
 
 		err := DecodeNestedMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &out)

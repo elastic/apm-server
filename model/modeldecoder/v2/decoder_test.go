@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"fmt"
 	"net"
 	"reflect"
 	"strings"
@@ -25,6 +26,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
@@ -40,123 +43,39 @@ func TestResetModelOnRelease(t *testing.T) {
 	assert.False(t, m.IsSet())
 }
 
-func TestDecodeProfileMetadata(t *testing.T) {
-	var testMinValidMetadata = `
-	{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}`
-
-	decodeProfileMetadata := func(out *model.Metadata) {
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(testMinValidMetadata))
-		require.NoError(t, DecodeMetadata(dec, out))
-	}
-
-	t.Run("fetch-release", func(t *testing.T) {
-		// this test cannot be run in parallel with other tests using the
-		// metadataNoKeyPool sync.Pool
-
-		// whenever DecodeProfileMetadata is called a metadata instance
-		// should be retrieved from the sync.Pool and be released on finish
-		// test behavior by overriding the new method, occupying an existing
-		// instance and counting how often the New method is called
-		var newCount, expectedNewCount int
-		origNew := metadataRootPool.New
-		defer func() { metadataRootPool.New = origNew }()
-		metadataRootPool.New = func() interface{} {
-			newCount++
-			return &metadataRoot{}
-		}
-		var out model.Metadata
-		// on the first call align the expected with the current new count
-		// important since other tests might have run already
-		decodeProfileMetadata(&out)
-		expectedNewCount = newCount
-		// on the second call it should reuse the metadata instance
-		decodeProfileMetadata(&out)
-		assert.Equal(t, expectedNewCount, newCount)
-		// force a new instance on the next decoder call
-		fetchMetadataRoot()
-		decodeProfileMetadata(&out)
-		assert.Equal(t, expectedNewCount+1, newCount)
-	})
-
-	t.Run("decode", func(t *testing.T) {
-		var out model.Metadata
-		decodeProfileMetadata(&out)
-		assert.Equal(t, model.Metadata{Service: model.Service{
-			Name:  "user-service",
-			Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
-
-		err := DecodeMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &out)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "decode")
-	})
-
-	t.Run("validate", func(t *testing.T) {
-		inp := `{}`
-		var out model.Metadata
-		err := DecodeMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(inp)), &out)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "validation")
-	})
-
-}
-
 func TestDecodeMetadata(t *testing.T) {
-	var testMinValidMetadata = `
-	{"metadata":{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}}`
 
-	decodeMetadata := func(out *model.Metadata) {
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(testMinValidMetadata))
-		require.NoError(t, DecodeNestedMetadata(dec, out))
+	for _, tc := range []struct {
+		name     string
+		input    string
+		decodeFn func(decoder.Decoder, *model.Metadata) error
+	}{
+		{name: "decodeMetadata", decodeFn: DecodeMetadata,
+			input: `{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}`},
+		{name: "decodeNestedMetadata", decodeFn: DecodeNestedMetadata,
+			input: `{"metadata":{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}}`},
+	} {
+		t.Run("decode", func(t *testing.T) {
+			var out model.Metadata
+			dec := decoder.NewJSONIteratorDecoder(strings.NewReader(tc.input))
+			require.NoError(t, tc.decodeFn(dec, &out))
+			assert.Equal(t, model.Metadata{Service: model.Service{
+				Name:  "user-service",
+				Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
+
+			err := tc.decodeFn(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &out)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "decode")
+		})
+
+		t.Run("validate", func(t *testing.T) {
+			inp := `{}`
+			var out model.Metadata
+			err := tc.decodeFn(decoder.NewJSONIteratorDecoder(strings.NewReader(inp)), &out)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "validation")
+		})
 	}
-
-	t.Run("fetch-release", func(t *testing.T) {
-		// this test cannot be run in parallel with other tests using the
-		// metadataNoKeyPool sync.Pool
-
-		// whenever DecodeProfileMetadata is called a metadata instance
-		// should be retrieved from the sync.Pool and be released on finish
-		// test behavior by overriding the new method, occupying an existing
-		// instance and counting how often the New method is called
-		var newCount, expectedNewCount int
-		origNew := metadataRootPool.New
-		defer func() { metadataRootPool.New = origNew }()
-		metadataRootPool.New = func() interface{} {
-			newCount++
-			return &metadataRoot{}
-		}
-		var out model.Metadata
-		// on the first call align the expected with the current new count
-		// important since other tests might have run already
-		decodeMetadata(&out)
-		expectedNewCount = newCount
-		// on the second call it should reuse the metadata instance
-		decodeMetadata(&out)
-		assert.Equal(t, expectedNewCount, newCount)
-		// force a new instance on the next decoder call
-		fetchMetadataRoot()
-		decodeMetadata(&out)
-		assert.Equal(t, expectedNewCount+1, newCount)
-	})
-
-	t.Run("decode", func(t *testing.T) {
-		var out model.Metadata
-		decodeMetadata(&out)
-		assert.Equal(t, model.Metadata{Service: model.Service{
-			Name:  "user-service",
-			Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
-
-		err := DecodeNestedMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &out)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "decode")
-	})
-
-	t.Run("validate", func(t *testing.T) {
-		inp := `{}`
-		var out model.Metadata
-		err := DecodeNestedMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(inp)), &out)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "validation")
-	})
 
 }
 
@@ -174,20 +93,55 @@ func TestMappingToModel(t *testing.T) {
 	mapToMetadataModel(m, &modelM)
 
 	// iterate through model and assert values are set
-	modeldecodertest.AssertStructValues(t, reflect.ValueOf(&modelM), "init", 5000)
+	assertStructValues(t, reflect.ValueOf(&modelM), "init", 5000)
 
 	// overwrite model metadata with specified Values
 	// then iterate through model and assert values are overwritten
 	modeldecodertest.SetStructValues(val, "overwritten", 12)
 	m = val.Interface().(*metadata)
 	mapToMetadataModel(m, &modelM)
-	modeldecodertest.AssertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
+	assertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
 
 	// map an empty modeldecoder metadata to the model
 	// and assert values are unchanged
 	modeldecodertest.SetZeroStructValues(val)
 	m = val.Interface().(*metadata)
 	mapToMetadataModel(m, &modelM)
-	modeldecodertest.AssertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
+	assertStructValues(t, reflect.ValueOf(&modelM), "overwritten", 12)
+}
 
+func assertStructValues(t *testing.T, val reflect.Value, s string, i int) {
+	modeldecodertest.IterateStruct(val, func(f reflect.Value, key string) {
+		fVal := f.Interface()
+		var newVal interface{}
+		switch fVal.(type) {
+		case map[string]interface{}:
+			newVal = map[string]interface{}{s: s}
+		case common.MapStr:
+			newVal = common.MapStr{s: s}
+		case []string:
+			newVal = []string{s}
+		case []int:
+			newVal = []int{i, i}
+		case string:
+			newVal = s
+		case int:
+			newVal = i
+		case *int:
+			iptr := f.Interface().(*int)
+			fVal = *iptr
+			newVal = i
+		case net.IP:
+		default:
+			if f.Type().Kind() == reflect.Struct {
+				return
+			}
+			panic(fmt.Sprintf("unhandled type %T for key %s", f.Type().Kind(), key))
+		}
+		if strings.HasPrefix(key, "UserAgent") || key == "Client.IP" || key == "System.IP" {
+			// these values are not set by modeldecoder
+			return
+		}
+		assert.Equal(t, newVal, fVal, key)
+	})
 }

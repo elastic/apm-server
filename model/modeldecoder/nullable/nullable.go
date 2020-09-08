@@ -53,6 +53,8 @@ func init() {
 	})
 }
 
+// String stores a string value and the
+// information if the value has been set
 type String struct {
 	Val   string
 	isSet bool
@@ -76,6 +78,8 @@ func (v *String) Reset() {
 	v.isSet = false
 }
 
+// Int stores an int value and the
+// information if the value has been set
 type Int struct {
 	Val   int
 	isSet bool
@@ -99,6 +103,9 @@ func (v *Int) Reset() {
 	v.isSet = false
 }
 
+// Interface stores an interface{} value and the
+// information if the value has been set
+//
 // TODO(simitt): follow up on https://github.com/elastic/apm-server/pull/4154#discussion_r484166721
 type Interface struct {
 	Val   interface{} `json:"val,omitempty"`

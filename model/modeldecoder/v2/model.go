@@ -20,8 +20,9 @@ package v2
 import (
 	"regexp"
 
-	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/beats/v7/libbeat/common"
+
+	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
 
 var (

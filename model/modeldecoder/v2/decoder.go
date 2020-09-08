@@ -21,22 +21,22 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func init() {
-	metadataRootPool.New = func() interface{} {
+var metadataRootPool = sync.Pool{
+	New: func() interface{} {
 		return &metadataRoot{}
-	}
+	},
 }
-
-var metadataRootPool sync.Pool
 
 func fetchMetadataRoot() *metadataRoot {
 	return metadataRootPool.Get().(*metadataRoot)
 }
+
 func releaseMetadataRoot(m *metadataRoot) {
 	m.Reset()
 	metadataRootPool.Put(m)
@@ -49,9 +49,7 @@ func releaseMetadataRoot(m *metadataRoot) {
 // DecodeMetadata should be used when the underlying byte stream does not contain the
 // `metadata` key, but only the metadata.
 func DecodeMetadata(d decoder.Decoder, out *model.Metadata) error {
-	return decode(func(m *metadataRoot) error {
-		return d.Decode(&m.Metadata)
-	}, out)
+	return decode(decodeIntoMetadata, d, out)
 }
 
 // DecodeNestedMetadata uses the given decoder to create the input models,
@@ -60,15 +58,13 @@ func DecodeMetadata(d decoder.Decoder, out *model.Metadata) error {
 //
 // DecodeNestedMetadata should be used when the underlying byte stream does start with the `metadata` key
 func DecodeNestedMetadata(d decoder.Decoder, out *model.Metadata) error {
-	return decode(func(m *metadataRoot) error {
-		return d.Decode(m)
-	}, out)
+	return decode(decodeIntoMetadataRoot, d, out)
 }
 
-func decode(decoderFn func(m *metadataRoot) error, out *model.Metadata) error {
+func decode(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *model.Metadata) error {
 	m := fetchMetadataRoot()
 	defer releaseMetadataRoot(m)
-	if err := decoderFn(m); err != nil {
+	if err := decFn(d, m); err != nil {
 		return fmt.Errorf("decode error %w", err)
 	}
 	if err := m.validate(); err != nil {
@@ -76,6 +72,14 @@ func decode(decoderFn func(m *metadataRoot) error, out *model.Metadata) error {
 	}
 	mapToMetadataModel(&m.Metadata, out)
 	return nil
+}
+
+func decodeIntoMetadata(d decoder.Decoder, m *metadataRoot) error {
+	return d.Decode(&m.Metadata)
+}
+
+func decodeIntoMetadataRoot(d decoder.Decoder, m *metadataRoot) error {
+	return d.Decode(m)
 }
 
 func mapToMetadataModel(m *metadata, out *model.Metadata) {

@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"go/format"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/elastic/apm-server/model/modeldecoder/generator"
@@ -32,8 +33,8 @@ const (
 )
 
 var (
-	importPath = filepath.Join(basePath, modeldecoderPath)
-	typPath    = filepath.Join(importPath, "nullable")
+	importPath = path.Join(basePath, modeldecoderPath)
+	typPath    = path.Join(importPath, "nullable")
 )
 
 func main() {
@@ -44,7 +45,7 @@ func main() {
 func genV2Models() {
 	pkg := "v2"
 	rootObjs := []string{"metadataRoot"}
-	out := filepath.Join(modeldecoderPath, pkg, "model_generated.go")
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkg, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkg, typPath, rootObjs)
 	if err != nil {
 		panic(err)
@@ -55,7 +56,7 @@ func genV2Models() {
 func genRUMV3Models() {
 	pkg := "rumv3"
 	rootObjs := []string{"metadataRoot"}
-	out := filepath.Join(modeldecoderPath, pkg, "model_generated.go")
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkg, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkg, typPath, rootObjs)
 	if err != nil {
 		panic(err)
