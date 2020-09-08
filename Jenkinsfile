@@ -28,7 +28,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:hey-apm\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:hey-apm|package\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -407,6 +407,10 @@ pipeline {
             allOf {
               expression { return params.release_ci }
               expression { return env.ONLY_DOCS == "false" }
+              anyOf {
+                expression { return env.BEATS_UPDATED != "false" }
+                expression { return env.GITHUB_COMMENT?.contains('package tests') }
+              }
             }
           }
           stages {
