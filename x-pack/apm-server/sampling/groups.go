@@ -24,10 +24,9 @@ type traceGroups struct {
 	// set for new trace groups. See traceGroup.samplingFraction.
 	defaultSamplingFraction float64
 
-	// ingestRateCoefficient is λ, the coefficient for calculating
-	// the exponentially weighted moving average ingest rate for each
-	// trace group.
-	ingestRateCoefficient float64
+	// ingestRateDecayFactor is λ, the decay factor used for calculating the
+	// exponentially weighted moving average ingest rate for each trace group.
+	ingestRateDecayFactor float64
 
 	// maxGroups holds the maximum number of trace groups to maintain.
 	// Once this is reached, all trace events will be sampled.
@@ -44,11 +43,11 @@ type traceGroups struct {
 func newTraceGroups(
 	maxGroups int,
 	defaultSamplingFraction float64,
-	ingestRateCoefficient float64,
+	ingestRateDecayFactor float64,
 ) *traceGroups {
 	return &traceGroups{
 		defaultSamplingFraction: defaultSamplingFraction,
-		ingestRateCoefficient:   ingestRateCoefficient,
+		ingestRateDecayFactor:   ingestRateDecayFactor,
 		maxGroups:               maxGroups,
 		groups:                  make(map[traceGroupKey]*traceGroup),
 	}
@@ -136,13 +135,19 @@ func (g *traceGroups) sampleTrace(tx *model.Transaction) (bool, error) {
 // finalizeSampledTraces locks the groups, appends their current trace IDs to
 // traceIDs, and returns the extended slice. On return the groups' sampling
 // reservoirs will be reset.
+//
+// If the maximum number of groups has been reached, then any groups with the
+// minimum reservoir size (low ingest or sampling rate) may be removed. These
+// groups may also be removed if they have seen no activity in this interval.
 func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+	maxGroupsReached := len(g.groups) == g.maxGroups
 	for key, group := range g.groups {
-		traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateCoefficient)
-		if group.reservoir.Size() == minReservoirSize {
-			if group.total == 0 && len(g.groups) == g.maxGroups {
+		total := group.total
+		traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+		if n := group.reservoir.Size(); n == minReservoirSize {
+			if total == 0 || maxGroupsReached {
 				delete(g.groups, key)
 			}
 		}
@@ -150,17 +155,15 @@ func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 	return traceIDs
 }
 
-// finalizeSampledTraces locks the group, appends its current trace IDs to
-// traceIDs, and returns the extended slice along with a boolean indicating
-// whether or not the trace group can be deleted.
-//
-// On return the groups' sampling reservoirs will be reset.
-func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateCoefficient float64) []string {
+// finalizeSampledTraces appends the group's current trace IDs to traceIDs, and
+// returns the extended slice. On return the groups' sampling reservoirs will be
+// reset.
+func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFactor float64) []string {
 	if g.ingestRate == 0 {
 		g.ingestRate = float64(g.total)
 	} else {
-		g.ingestRate *= 1 - ingestRateCoefficient
-		g.ingestRate += ingestRateCoefficient * float64(g.total)
+		g.ingestRate *= 1 - ingestRateDecayFactor
+		g.ingestRate += ingestRateDecayFactor * float64(g.total)
 	}
 	desiredTotal := int(math.Round(g.samplingFraction * float64(g.total)))
 	g.total = 0
