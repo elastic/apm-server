@@ -32,7 +32,7 @@ include::./ssl-input.asciidoc[]
 
 experimental::[]
 
-You can configure an API key to authorize requests to the APM Server.
+You can configure API keys to authorize requests to the APM Server.
 
 NOTE: API keys are sent as plain-text,
 so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
@@ -76,9 +76,8 @@ All other configuration options are described in <<api-key-settings>>.
 [float]
 === Create and validate an API key
 
-APM Server provides a command line interface for creating API keys.
+APM Server provides a command line interface for creating, retrieving, invalidating, and verifying API keys.
 Keys created using this method can only be used for Agent/Server communication.
-The user that creates the API key will need to have the privileges they wish to give to the API key.
 
 [[create-api-key-subcommands]]
 [float]
@@ -93,17 +92,17 @@ include::{libbeat-dir}/command-reference.asciidoc[tag=apikey-subcommands]
 There are three unique privileges you can assign to each API keys.
 If privileges are not specified at creation time, the created key will have all privileges.
 
-* *Agent configuration* - Required for agents to read
+* *Agent configuration*: Required for agents to read
 {kibana-ref}/agent-configuration.html[Agent configuration remotely].
 `--agent-config` gives the `config_agent:read` privilege to the created key.
-* *Ingest* - Required for ingesting Agent events.
+* *Ingest*: Required for ingesting Agent events.
 `--ingest` gives the `event:write` privilege to the created key.
-* *Sourcemap* - Required for <<sourcemaps,uploading sourcemaps>>.
+* *Sourcemap*: Required for <<sourcemaps,uploading sourcemaps>>.
 `--sourcemap` gives the `sourcemap:write` privilege to the created key.
 
 [[create-api-key-workflow]]
 [float]
-==== API key example workflow
+==== API key workflow example
 
 Create an API key with the `create` subcommand.
 
@@ -117,13 +116,13 @@ and gives the "agent configuration" and "ingest" privileges.
 
 The response will look similar to this:
 
-[source,console-result,subs="attributes,callouts"]
+[source,console-result]
 --------------------------------------------------
 Name ........... java-001
 Expiration ..... never
 Id ............. qT4tz28B1g59zC3uAXfW
 API Key ........ rH55zKd5QT6wvs3UbbkxOA (won't be shown again)
-Credentials .... cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ== (won't be shown again)
+Credentials .... cVQ0dHoyOEIxZzU5ekMzdUFYZlc6ckg1NXpLZDVRVDZ3dnMzVWJia3hPQQ== (won't be shown again)
 --------------------------------------------------
 
 You should always verify the privileges of an API key after creating it.
@@ -133,12 +132,12 @@ The following example verifies that the `java-001` API key has the "agent config
 
 ["source","sh",subs="attributes"]
 -----
-{beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzVDZ3dnMzVWJia3hPQQ==
+{beatname_lc} apikey verify --agent-config --ingest --credentials cVQ0dHoyOEIxZzU5ekMzdUFYZlc6ckg1NXpLZDVRVDZ3dnMzVWJia3hPQQ==
 -----
 
 If the API key has the requested privileges, the response will look similar to this:
 
-[source,console-result,subs="attributes,callouts"]
+[source,console-result]
 --------------------------------------------------
 Authorized for privilege "event:write"...:          Yes
 Authorized for privilege "config_agent:read"...:    Yes
@@ -156,13 +155,127 @@ The following example invalidates the `java-001` API key.
 
 The response will look similar to this:
 
-[source,console-result,subs="attributes,callouts"]
+[source,console-result]
 --------------------------------------------------
 Invalidated keys ... qT4tz28B1g59zC3uAXfW
 Error count ........ 0
 --------------------------------------------------
 
 A full list of `apikey` subcommands and flags is available in the <<apikey-command,API key command reference>>.
+
+[[create-api-key-workflow-es]]
+[float]
+==== Alternate API key workflow example
+
+Instead of using the APM Server CLI, it is possible to create API keys using the Elasticsearch
+{ref}/security-api-create-api-key.html[create API key API].
+
+This example creates an API key named `java-002`:
+
+[source,kibana]
+----
+POST /_security/api_key
+{
+  "name": "java-002", <1>
+  "expiration": "1d", <2>
+  "role_descriptors": {
+    "apm": {
+      "applications": [
+        {
+          "application": "apm",
+          "privileges": ["sourcemap:write", "event:write", "config_agent:read"], <3>
+          "resources": ["*"]
+        }
+      ]
+    }
+  }
+}
+----
+<1> The name of the API key
+<2> The expiration time of the API key
+<3> Any assigned privileges
+
+The response will look similar to this:
+
+[source,console-result]
+----
+{
+  "id" : "GnrUT3QB7yZbSNxKET6d",
+  "name" : "java-002",
+  "expiration" : 1599153532262,
+  "api_key" : "RhHKisTmQ1aPCHC_TPwOvw"
+}
+----
+
+The `credential` string, which is what agents use to communicate with APM Server,
+is a base64 encoded representation of the API key's `id:api_key`.
+It can be created like this:
+
+[source,console-result]
+--------------------------------------------------
+echo -n GnrUT3QB7yZbSNxKET6d:RhHKisTmQ1aPCHC_TPwOvw | base64
+--------------------------------------------------
+
+You can verify your API key has been base64-encoded correctly with the
+{ref}/security-api-authenticate.html[Authenticate API]:
+
+["source","sh",subs="attributes"]
+-----
+curl -H "Authorization: ApiKey R0gzRWIzUUI3eVpiU054S3pYSy06bXQyQWl4TlZUeEcyUjd4cUZDS0NlUQ==" localhost:9200/_security/_authentication
+-----
+
+If the API key has been encoded correctly, you'll see a response similar to the following:
+
+[source,console-result]
+----
+{
+   "username":"1325298603",
+   "roles":[],
+   "full_name":null,
+   "email":null,
+   "metadata":{
+      "saml_nameid_format":"urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+      "saml(http://saml.elastic-cloud.com/attributes/principal)":[
+         "1325298603"
+      ],
+      "saml_roles":[
+         "superuser"
+      ],
+      "saml_principal":[
+         "1325298603"
+      ],
+      "saml_nameid":"_7b0ab93bbdbc21d825edf7dca9879bd8d44c0be2",
+      "saml(http://saml.elastic-cloud.com/attributes/roles)":[
+         "superuser"
+      ]
+   },
+   "enabled":true,
+   "authentication_realm":{
+      "name":"_es_api_key",
+      "type":"_es_api_key"
+   },
+   "lookup_realm":{
+      "name":"_es_api_key",
+      "type":"_es_api_key"
+   }
+}
+----
+
+You can then use the APM Server CLI to verify that the API key has the requested privileges:
+
+["source","sh",subs="attributes"]
+-----
+{beatname_lc} apikey verify --credentials R25yVVQzUUI3eVpiU054S0VUNmQ6UmhIS2lzVG1RMWFQQ0hDX1RQd092dw==
+-----
+
+If the API key has the requested privileges, the response will look similar to this:
+
+[source,console-result]
+----
+Authorized for privilege "config_agent:read"...:  Yes
+Authorized for privilege "event:write"...:        Yes
+Authorized for privilege "sourcemap:write"...:    Yes
+----
 
 [[set-api-key]]
 [float]
@@ -186,15 +299,17 @@ You can specify the following options in the `apm-server.api_key.*` section of t
 +{beatname_lc}.yml+ configuration file.
 They apply to API key communication between the APM Server and APM Agents.
 
-These are different from the API key settings used for the Elasticsearch output and monitoring.
+NOTE: These settings are different from the API key settings used for Elasticsearch output and monitoring.
 
 [float]
 ===== `enabled`
 
 Enable API key authorization by setting `enabled` to `true`.
-Agents will include a valid API key in the following format: `Authorization: ApiKey <token>`.
-The key must be the base64 encoded representation of the API key's `id:name`.
 By default, `enabled` is set to `false`, and API key support is disabled.
+
+TIP: Not using Elastic APM agents?
+When enabled, third-party APM agents must include a valid API key in the following format:
+`Authorization: ApiKey <token>`. The key must be the base64 encoded representation of the API key's `id:name`.
 
 [float]
 ===== `limit`
