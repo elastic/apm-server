@@ -10,7 +10,7 @@
                 "ip": "192.0.0.1"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "http": {
                 "request": {
@@ -451,7 +451,7 @@
                 "port": 8000
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -541,7 +541,7 @@
                 "port": 8003
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -631,7 +631,7 @@
                 "port": 8003
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"
