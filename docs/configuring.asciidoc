@@ -7,7 +7,7 @@
 <titleabbrev>Configure</titleabbrev>
 ++++
 
-include::{libbeat-dir}/shared-configuring.asciidoc[]
+include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 * <<configuration-process>>
 * <<configuring-output>>
@@ -52,7 +52,7 @@ include::ssl-input-settings.asciidoc[]
 
 See <<securing-apm-server,Securing APM Server>> for more information.
 
-include::./template-config.asciidoc[]
+include::{libbeat-dir}/template-config.asciidoc[]
 
 include::./ilm-reference.asciidoc[]
 
