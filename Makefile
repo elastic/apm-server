@@ -196,11 +196,11 @@ build/index-pattern.json: $(PYTHON) apm-server
 GOLINT_TARGETS?=$(shell go list ./...)
 GOLINT_UPSTREAM?=origin/master
 REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
-GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS))
+GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
 
 .PHONY: golint
 golint: $(GOLINT) $(REVIEWDOG)
-	@test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
+	@output=$$($(GOLINT_COMMAND)); test -z "$$output" || (echo $$output && exit 1)
 
 .PHONY: staticcheck
 staticcheck: $(STATICCHECK)
