@@ -15,6 +15,10 @@ from es_helper import index_profile, index_transaction
 os.environ["ELASTIC_APM_API_REQUEST_TIME"] = "1s"
 
 
+# Exercises the DEPRECATED apm-server.instrumentation.* config
+# When updating this file, consider test_libbeat_instrumentation.py
+# Remove in 8.0
+
 def get_instrumentation_event(es, index):
     query = {"term": {"service.name": "apm-server"}}
     return es.count(index=index, body={"query": query})['count'] > 0

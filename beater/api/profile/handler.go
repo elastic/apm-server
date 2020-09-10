@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
 
@@ -58,10 +57,7 @@ const (
 )
 
 // Handler returns a request.Handler for managing profile requests.
-func Handler(
-	transformConfig transform.Config,
-	report publish.Reporter,
-) request.Handler {
+func Handler(report publish.Reporter) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
@@ -83,8 +79,6 @@ func Handler(
 				err: errors.New("rate limit exceeded"),
 			}
 		}
-
-		tctx := &transform.Context{Config: transformConfig}
 
 		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
@@ -123,11 +117,11 @@ func Handler(
 						err: errors.Wrap(err, "failed to decode metadata JSON"),
 					}
 				}
-				for k, v := range c.RequestMetadata {
-					utility.InsertInMap(raw, k, v.(map[string]interface{}))
-				}
-				metadata, err := modeldecoder.DecodeMetadata(raw, false)
-				if err != nil {
+				metadata := model.Metadata{
+					UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
+					Client:    model.Client{IP: c.RequestMetadata.ClientIP},
+					System:    model.System{IP: c.RequestMetadata.SystemIP}}
+				if err := modeldecoder.DecodeMetadata(raw, false, &metadata); err != nil {
 					var ve *validation.Error
 					if errors.As(err, &ve) {
 						return nil, requestError{
@@ -140,7 +134,7 @@ func Handler(
 						err: errors.Wrap(err, "failed to decode metadata"),
 					}
 				}
-				profileMetadata = *metadata
+				profileMetadata = metadata
 
 			case "profile":
 				params, err := validateContentType(http.Header(part.Header), pprofMediaType)
@@ -186,10 +180,7 @@ func Handler(
 			}
 		}
 
-		if err := report(c.Request.Context(), publish.PendingReq{
-			Transformables: transformables,
-			Tcontext:       tctx,
-		}); err != nil {
+		if err := report(c.Request.Context(), publish.PendingReq{Transformables: transformables}); err != nil {
 			switch err {
 			case publish.ErrChannelClosed:
 				return nil, requestError{

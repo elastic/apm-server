@@ -20,6 +20,9 @@
                 }
             }
         },
+        "host": {
+            "ip": "127.0.0.1"
+        },
         "labels": {
             "tag1": "one",
             "tag2": 2
@@ -55,6 +58,76 @@
         }
     },
     {
+        "@timestamp": "2017-05-30T18:53:41.366Z",
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
+        },
+        "ecs": {
+            "version": "1.5.0"
+        },
+        "event": {
+            "ingested": "2020-09-08T15:57:10.396695Z"
+        },
+        "host": {
+            "ip": "127.0.0.1"
+        },
+        "labels": {
+            "tag1": "one",
+            "tag2": 2
+        },
+        "observer": {
+            "ephemeral_id": "2f30050f-81e6-491a-a54f-e7d94eec17b5",
+            "hostname": "simmac.net",
+            "id": "02f6cb38-c1ce-4382-9478-4c8b4cdbda9c",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "process": {
+            "pid": 1234
+        },
+        "processor": {
+            "event": "metric",
+            "name": "metric"
+        },
+        "service": {
+            "language": {
+                "name": "ecmascript"
+            },
+            "name": "1234_service-12a3",
+            "node": {
+                "name": "node-1"
+            }
+        },
+        "system": {
+            "process": {
+                "cgroup": {
+                    "memory": {
+                        "mem": {
+                            "limit": {
+                                "bytes": 2048
+                            },
+                            "usage": {
+                                "bytes": 1024
+                            }
+                        },
+                        "stats": {
+                            "inactive_file": {
+                                "bytes": 48
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "user": {
+            "email": "user@mail.com",
+            "id": "axb123hg",
+            "name": "logged-in-user"
+        }
+    },
+    {
         "@timestamp": "2017-05-30T18:53:42.281Z",
         "agent": {
             "name": "elastic-node",
@@ -74,6 +147,9 @@
             "ingested": "2020-04-22T14:55:05.368308Z"
         },
         "float_gauge": 9.16,
+        "host": {
+            "ip": "127.0.0.1"
+        },
         "integer_gauge": 42767,
         "labels": {
             "code": 200,

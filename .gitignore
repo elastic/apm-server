@@ -1,6 +1,9 @@
 /.ci/docker/bats-core
 /.ci/docker/tests/test_helper
 /.ci/docker/target
+/.ci/docker/golang-mage/go.*
+/.ci/docker/golang-mage/approvaltest/
+/.ci/docker/golang-mage/systemtest/
 **/*.idea
 /build
 /data
@@ -30,3 +33,4 @@ html_docs
 /x-pack/apm-server/logs
 /docker-compose.override.yml
 /config.mk
+/systemtest/logs

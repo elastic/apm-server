@@ -19,6 +19,9 @@ package beater
 
 import (
 	"context"
+	"net"
+	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -29,14 +32,18 @@ import (
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
+	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
+	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -65,10 +72,12 @@ func NewCreator(args CreatorParams) beat.Creator {
 			esOutputCfg = b.Config.Output.Config()
 		}
 
-		beaterConfig, err := config.NewConfig(b.Info.Version, ucfg, esOutputCfg)
+		beaterConfig, err := config.NewConfig(ucfg, esOutputCfg)
 		if err != nil {
 			return nil, err
 		}
+		// send configs to telemetry
+		recordConfigs(b.Info, beaterConfig, ucfg, logger)
 
 		bt := &beater{
 			config:        beaterConfig,
@@ -131,13 +140,11 @@ type beater struct {
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
 
-	var tracerServer *tracerServer
-	var err error
-	if listener := b.Instrumentation.Listener(); listener != nil {
-		tracerServer = newTracerServer(bt.config, listener)
+	tracer, tracerServer, err := bt.initTracing(b)
+	if err != nil {
+		return err
 	}
 
-	tracer := b.Instrumentation.Tracer()
 	runServer := runServer
 	if tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, tracerServer, tracer)
@@ -148,15 +155,21 @@ func (bt *beater) Run(b *beat.Beat) error {
 		runServer = bt.wrapRunServer(runServer)
 	}
 
-	publisher, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
-		Info:            b.Info,
-		ShutdownTimeout: bt.config.ShutdownTimeout,
-		Pipeline:        bt.config.Pipeline,
-	})
+	publisher, err := newPublisher(b, bt.config, tracer)
 	if err != nil {
 		return err
 	}
-	defer publisher.Stop()
+
+	// shutdownContext may be updated by stopServer below,
+	// to initiate the shutdown timeout.
+	shutdownContext := context.Background()
+	var cancelShutdownContext context.CancelFunc
+	defer func() {
+		if cancelShutdownContext != nil {
+			defer cancelShutdownContext()
+		}
+		publisher.Stop(shutdownContext)
+	}()
 
 	reporter := publisher.Send
 	if !bt.config.Sampling.KeepUnsampled {
@@ -173,6 +186,11 @@ func (bt *beater) Run(b *beat.Beat) error {
 	var stopOnce sync.Once
 	stopServer := func() {
 		stopOnce.Do(func() {
+			if bt.config.ShutdownTimeout > 0 {
+				shutdownContext, cancelShutdownContext = context.WithTimeout(
+					shutdownContext, bt.config.ShutdownTimeout,
+				)
+			}
 			cancelContext()
 			<-stopped
 		})
@@ -211,10 +229,58 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 		return pipeline.RegisterPipelines(conn, overwrite, path)
 	}
 	// ensure pipelines are registered when new ES connection is established.
-	_, err := elasticsearch.RegisterConnectCallback(func(conn *eslegclient.Connection) error {
+	_, err := esoutput.RegisterConnectCallback(func(conn *eslegclient.Connection) error {
 		return pipeline.RegisterPipelines(conn, overwrite, path)
 	})
 	return err
+}
+
+func (bt *beater) initTracing(b *beat.Beat) (*apm.Tracer, *tracerServer, error) {
+	var err error
+	tracer := b.Instrumentation.Tracer()
+	listener := b.Instrumentation.Listener()
+
+	if !tracer.Active() && bt.config != nil {
+		tracer, listener, err = initLegacyTracer(b.Info, bt.config)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	tracerServer := newTracerServer(bt.config, listener)
+	return tracer, tracerServer, nil
+}
+
+// initLegacyTracer exists for backwards compatibility and it should be removed in 8.0
+// it does not instrument the beat output
+func initLegacyTracer(info beat.Info, cfg *config.Config) (*apm.Tracer, net.Listener, error) {
+	selfInstrumentation := cfg.SelfInstrumentation
+	if selfInstrumentation == nil || !selfInstrumentation.IsEnabled() {
+		return apm.DefaultTracer, nil, nil
+	}
+	conf, err := common.NewConfigFrom(cfg.SelfInstrumentation)
+	if err != nil {
+		return nil, nil, err
+	}
+	// this is needed because `hosts` strings are unpacked as URL's, so we need to covert them back to strings
+	// to not break ucfg - this code path is exercised in TestExternalTracing* system tests
+	for idx, h := range selfInstrumentation.Hosts {
+		err := conf.SetString("hosts", idx, h.String())
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	parent := common.NewConfig()
+	err = parent.SetChild("instrumentation", -1, conf)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	instr, err := instrumentation.New(parent, info.Beat, info.Version)
+	if err != nil {
+		return nil, nil, err
+	}
+	return instr.Tracer(), instr.Listener(), nil
 }
 
 // Stop stops the beater gracefully.
@@ -224,8 +290,10 @@ func (bt *beater) Stop() {
 	if bt.stopped || bt.stopServer == nil {
 		return
 	}
-	bt.logger.Infof("stopping apm-server... waiting maximum of %v seconds for queues to drain",
-		bt.config.ShutdownTimeout.Seconds())
+	bt.logger.Infof(
+		"stopping apm-server... waiting maximum of %v seconds for queues to drain",
+		bt.config.ShutdownTimeout.Seconds(),
+	)
 	bt.stopServer()
 	bt.stopped = true
 }
@@ -252,4 +320,44 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 		})
 		return g.Wait()
 	}
+}
+
+func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publish.Publisher, error) {
+	transformConfig, err := newTransformConfig(b.Info, cfg)
+	if err != nil {
+		return nil, err
+	}
+	return publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
+		Info:            b.Info,
+		Pipeline:        cfg.Pipeline,
+		TransformConfig: transformConfig,
+	})
+}
+
+func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
+	transformConfig := &transform.Config{
+		RUM: transform.RUMConfig{
+			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
+			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
+		},
+	}
+
+	if cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled() && cfg.RumConfig.SourceMapping.ESConfig != nil {
+		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping)
+		if err != nil {
+			return nil, err
+		}
+		transformConfig.RUM.SourcemapStore = store
+	}
+
+	return transformConfig, nil
+}
+
+func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcemap.Store, error) {
+	esClient, err := elasticsearch.NewClient(cfg.ESConfig)
+	if err != nil {
+		return nil, err
+	}
+	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
+	return sourcemap.NewStore(esClient, index, cfg.Cache.Expiration)
 }

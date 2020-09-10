@@ -25,16 +25,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/root"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
-	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
+	cfg := config.DefaultConfig()
 	cfg.SecretToken = "1234"
 
 	t.Run("No auth", func(t *testing.T) {
@@ -49,7 +49,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithHeader(cfg, RootPath, http.MethodGet, h)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
-		approvals.AssertApproveResult(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
+		approvaltest.ApproveJSON(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -61,7 +61,7 @@ func TestRootHandler_PanicMiddleware(t *testing.T) {
 	h(c)
 
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvals.AssertApproveResult(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
+	approvaltest.ApproveJSON(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {

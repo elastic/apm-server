@@ -33,10 +33,11 @@ import (
 )
 
 var (
-	trID     = "123"
-	trType   = "type"
-	trName   = "foo()"
-	trResult = "555"
+	trID      = "123"
+	trType    = "type"
+	trName    = "foo()"
+	trResult  = "555"
+	trOutcome = "success"
 
 	trDuration = 6.0
 
@@ -68,6 +69,7 @@ var fullTransactionInput = map[string]interface{}{
 	"duration":   trDuration,
 	"timestamp":  timestampEpoch,
 	"result":     trResult,
+	"outcome":    trOutcome,
 	"sampled":    true,
 	"trace_id":   traceID,
 	"parent_id":  parentID,
@@ -88,6 +90,12 @@ var fullTransactionInput = map[string]interface{}{
 			"finished": false,
 			"headers":  map[string]interface{}{"Content-Type": "text/html"},
 		},
+	},
+	"experience": map[string]interface{}{
+		"cls":     1,
+		"fid":     2,
+		"tbt":     3,
+		"ignored": 4,
 	},
 }
 
@@ -117,6 +125,10 @@ func TestDecodeTransactionInvalid(t *testing.T) {
 		"negative duration": {
 			input: map[string]interface{}{"duration": -1.0},
 			err:   "duration.*must be >= 0 but found -1",
+		},
+		"invalid outcome": {
+			input: map[string]interface{}{"outcome": `¯\_(ツ)_/¯`},
+			err:   `outcome.*must be one of <nil>, "success", "failure", "unknown"`,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -164,6 +176,7 @@ func TestTransactionDecodeRUMV3Marks(t *testing.T) {
 
 func TestTransactionEventDecode(t *testing.T) {
 	id, trType, name, result := "123", "type", "foo()", "555"
+	outcome := "success"
 	requestTime := time.Now()
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
@@ -178,6 +191,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	page := model.Page{URL: model.ParseURL(url, ""), Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
 	response := model.Resp{Finished: new(bool), MinimalResp: model.MinimalResp{Headers: http.Header{"Content-Type": []string{"text/html"}}}}
+	badRequestResp, internalErrorResp := 400, 500
 	h := model.Http{Request: &request, Response: &response}
 	ctxURL := model.URL{Original: &origURL}
 	custom := model.Custom{"abc": 1}
@@ -211,6 +225,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: requestTime,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=true, no experimental payload": {
@@ -228,6 +243,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=false": {
@@ -245,6 +261,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=true": {
@@ -263,6 +280,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Timestamp:    timestampParsed,
 				SpanCount:    model.SpanCount{Dropped: &dropped, Started: &started},
 				Experimental: map[string]interface{}{"foo": "bar"},
+				Outcome:      "unknown",
 			},
 		},
 		"messaging event": {
@@ -287,6 +305,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration:  duration,
 				Timestamp: timestampParsed,
 				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "unknown",
 				Message: &model.Message{
 					QueueName: tests.StringPtr("order"),
 					Body:      tests.StringPtr("confirmed"),
@@ -299,6 +318,7 @@ func TestTransactionEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"timestamp": timestampEpoch,
 				"result":    result,
+				"outcome":   outcome,
 				"sampled":   sampled,
 				"parent_id": parentID,
 				"marks":     marks,
@@ -318,6 +338,11 @@ func TestTransactionEventDecode(t *testing.T) {
 						"headers":  map[string]interface{}{"Content-Type": "text/html"},
 					},
 				},
+				"experience": map[string]interface{}{
+					"cls":     1.0,
+					"fid":     2.3,
+					"ignored": 4,
+				},
 			},
 			e: &model.Transaction{
 				Metadata:  mergedMetadata,
@@ -325,6 +350,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Type:      trType,
 				Name:      name,
 				Result:    result,
+				Outcome:   outcome,
 				ParentID:  parentID,
 				TraceID:   traceID,
 				Duration:  duration,
@@ -342,6 +368,58 @@ func TestTransactionEventDecode(t *testing.T) {
 				Custom:    &custom,
 				HTTP:      &h,
 				URL:       &ctxURL,
+				UserExperience: &model.UserExperience{
+					CumulativeLayoutShift: 1,
+					FirstInputDelay:       2.3,
+					TotalBlockingTime:     -1, // undefined
+				},
+			},
+		},
+		"with derived success outcome": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"response": map[string]interface{}{
+						"status_code": json.Number("400"),
+					},
+				},
+			},
+			e: &model.Transaction{
+				Metadata: inputMetadata,
+				ID:       id,
+				Type:     trType,
+				Name:     name,
+				TraceID:  traceID,
+				Duration: duration,
+				HTTP: &model.Http{Response: &model.Resp{
+					MinimalResp: model.MinimalResp{StatusCode: &badRequestResp},
+				}},
+				Timestamp: requestTime,
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				// a 4xx code is a success from the server perspective
+				Outcome: "success",
+			},
+		},
+		"with derived failure outcome": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"response": map[string]interface{}{
+						"status_code": json.Number("500"),
+					},
+				},
+			},
+			e: &model.Transaction{
+				Metadata:  inputMetadata,
+				ID:        id,
+				Type:      trType,
+				Name:      name,
+				TraceID:   traceID,
+				Duration:  duration,
+				Timestamp: requestTime,
+				HTTP: &model.Http{Response: &model.Resp{
+					MinimalResp: model.MinimalResp{StatusCode: &internalErrorResp},
+				}},
+				SpanCount: model.SpanCount{Dropped: &dropped, Started: &started},
+				Outcome:   "failure",
 			},
 		},
 	} {
@@ -367,14 +445,14 @@ func TestTransactionEventDecode(t *testing.T) {
 }
 
 func BenchmarkDecodeTransaction(b *testing.B) {
-	fullMetadata, err := DecodeMetadata(fullInput, false)
-	require.NoError(b, err)
+	var fullMetadata model.Metadata
+	require.NoError(b, DecodeMetadata(fullInput, false, &fullMetadata))
 
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		if err := DecodeTransaction(Input{
-			Metadata: *fullMetadata,
+			Metadata: fullMetadata,
 			Raw:      fullTransactionInput,
 		}, &model.Batch{}); err != nil {
 			b.Fatal(err)

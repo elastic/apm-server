@@ -28,8 +28,8 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
@@ -39,8 +39,7 @@ func BenchmarkBackendProcessor(b *testing.B) {
 }
 
 func BenchmarkRUMV3Processor(b *testing.B) {
-	tcfg := &transform.Config{}
-	processor := RUMV3Processor(&config.Config{MaxEventSize: 300 * 1024}, tcfg)
+	processor := RUMV3Processor(&config.Config{MaxEventSize: 300 * 1024})
 	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v3/rum_*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
@@ -66,7 +65,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 				b.StopTimer()
 				r.Reset(data)
 				b.StartTimer()
-				processor.HandleStream(context.Background(), rl, map[string]interface{}{}, r, report)
+				processor.HandleStream(context.Background(), rl, &model.Metadata{}, r, report)
 			}
 		}
 	}

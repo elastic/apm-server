@@ -1,30 +1,39 @@
 [[exploring-es-data]]
-= Explore data in Elasticsearch
+= Explore data in {es}
 
 [partintro]
 --
 
-By default, Elastic APM data is stored in separated indices in the following formats:
-------------------------------------------------------------
+Elastic APM stores data for each {apm-overview-ref-v}/apm-data-model.html[event type]
+in separate indices. By default, <<ilm,Index Lifecylce Management (ILM)>> is enabled and event data is stored using the following index naming patterns:
+
+["source","text"]
+----
+apm-%{[version]}-transaction-000001
+apm-%{[version]}-span-000001
+apm-%{[version]}-error-000001
+apm-%{[version]}-metric-000001
+apm-%{[version]}-sourcemap
+----
+
+If you've disabled ILM and are instead using daily indices, the default index naming pattern is:
+
+["source","text"]
+----
 apm-%{[version]}-transaction-%{+yyyy.MM.dd}
 apm-%{[version]}-span-%{+yyyy.MM.dd}
 apm-%{[version]}-error-%{+yyyy.MM.dd}
 apm-%{[version]}-metric-%{+yyyy.MM.dd}
 apm-%{[version]}-sourcemap
-------------------------------------------------------------
-
-If you're unfamiliar with the data types shown above, they are described in the {apm-overview-ref-v}/apm-data-model.html[APM data model].
+----
 
 TIP: If your APM data is being stored in a different format, you may be using an outdated `apm-server.yml` file. You must update your `apm-server.yml` file in order to take advantage of the new format of indices.
 
-To get an overview of existing indices you can run:
-["source","sh"]
-------------------------------------------------------------
-GET _cat/indices/apm*
-------------------------------------------------------------
-// CONSOLE
+[float]
+[[sample-apm-document]]
+== Sample APM documents
 
-Default APM `template` and `indices`:
+Sample documents for each of the APM event types are available on these pages:
 
 * <<transaction-indices>>
 * <<span-indices>>
@@ -32,41 +41,53 @@ Default APM `template` and `indices`:
 * <<metricset-indices>>
 * <<sourcemap-indices>>
 
+[float]
+[[elasticsearch-query-examples]]
+== Elasticsearch query examples
+
+The following examples enable you to interact with Elasticsearch's REST API.
+One possible way to do this is using Kibana's
+{kibana-ref}/console-kibana.html[Dev Tools console].
+
+Indices, templates, and index-level operations can also be manged via Kibana's
+{kibana-ref}/managing-indices.html[Index management] panel.
+
+To see an overview of existing indices, run:
+["source","sh"]
+----
+GET _cat/indices/apm*
+----
+// CONSOLE
 
 To query all documents collected with a specific APM Server version:
 ["source","sh",subs="attributes"]
-------------------------------------------------------------
+----
 GET apm-{version}-*/_search
-------------------------------------------------------------
+----
 // CONSOLE
 
-To query a specific type, for example transactions:
+To query a specific event type, for example, transactions:
 ["source","sh",subs="attributes"]
-------------------------------------------------------------
+----
 GET apm-*transactions-*/_search
-------------------------------------------------------------
+----
 // CONSOLE
 
 If you are interested in the _settings_ and _mappings_ of the Elastic APM indices,
 first, run a query to find template names:
 
 ["source","sh"]
-------------------------------------------------------------
+----
 GET _cat/templates/apm*
-------------------------------------------------------------
+----
 // CONSOLE
 
-Then you can retrieve the specific template you are interested in:
+Then, retrieve the specific template you are interested in:
 ["source","sh"]
-------------------------------------------------------------
+----
 GET  /_template/your-template-name
-------------------------------------------------------------
+----
 // CONSOLE
-
-Read more about {ref}/indices-templates.html[Index Templates] and how they are used.
-
-Alternatively, use the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
-When clicking on a specific index you can view the _settings_ and _mapping_ for it.
 
 --
 

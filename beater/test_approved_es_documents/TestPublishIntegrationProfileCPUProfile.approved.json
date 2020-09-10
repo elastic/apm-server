@@ -1,12 +1,6 @@
 {
     "events": [
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -26,6 +20,7 @@
             "profile": {
                 "cpu.ns": 30000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 3,
                 "stack": [
                     {
@@ -140,12 +135,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -165,6 +154,7 @@
             "profile": {
                 "cpu.ns": 20000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 2,
                 "stack": [
                     {
@@ -225,12 +215,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -250,6 +234,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -382,12 +367,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -407,6 +386,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -467,12 +447,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -492,6 +466,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -534,12 +509,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -559,6 +528,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -637,12 +607,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -662,6 +626,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -734,12 +699,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -759,6 +718,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -825,12 +785,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -850,6 +804,7 @@
             "profile": {
                 "cpu.ns": 40000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 4,
                 "stack": [
                     {
@@ -934,12 +889,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -959,6 +908,7 @@
             "profile": {
                 "cpu.ns": 20000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 2,
                 "stack": [
                     {
@@ -1061,12 +1011,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1086,6 +1030,7 @@
             "profile": {
                 "cpu.ns": 110000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 11,
                 "stack": [
                     {
@@ -1122,12 +1067,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1147,6 +1086,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -1195,12 +1135,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1220,6 +1154,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -1304,12 +1239,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1329,6 +1258,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -1443,12 +1373,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1468,6 +1392,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -1510,12 +1435,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1535,6 +1454,7 @@
             "profile": {
                 "cpu.ns": 150000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 15,
                 "stack": [
                     {
@@ -1631,12 +1551,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1656,6 +1570,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -1740,12 +1655,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1765,6 +1674,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -1837,12 +1747,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1862,6 +1766,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -1934,12 +1839,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -1959,6 +1858,7 @@
             "profile": {
                 "cpu.ns": 190000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 19,
                 "stack": [
                     {
@@ -2061,12 +1961,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2086,6 +1980,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2122,12 +2017,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2147,6 +2036,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2213,12 +2103,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2238,6 +2122,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2280,12 +2165,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2305,6 +2184,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2353,12 +2233,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2378,6 +2252,7 @@
             "profile": {
                 "cpu.ns": 140000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 14,
                 "stack": [
                     {
@@ -2486,12 +2361,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2511,6 +2380,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2571,12 +2441,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2596,6 +2460,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2632,12 +2497,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2657,6 +2516,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2681,12 +2541,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2706,6 +2560,7 @@
             "profile": {
                 "cpu.ns": 50000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 5,
                 "stack": [
                     {
@@ -2766,12 +2621,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2791,6 +2640,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -2893,12 +2743,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -2918,6 +2762,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3008,12 +2853,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3033,6 +2872,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3123,12 +2963,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3148,6 +2982,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3202,12 +3037,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3227,6 +3056,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3323,12 +3153,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3348,6 +3172,7 @@
             "profile": {
                 "cpu.ns": 30000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 3,
                 "stack": [
                     {
@@ -3390,12 +3215,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3415,6 +3234,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3475,12 +3295,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3500,6 +3314,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3548,12 +3363,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3573,6 +3382,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3675,12 +3485,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3700,6 +3504,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3850,12 +3655,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3875,6 +3674,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -3935,12 +3735,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -3960,6 +3754,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4038,12 +3833,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4063,6 +3852,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4207,12 +3997,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4232,6 +4016,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4268,12 +4053,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4293,6 +4072,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4401,12 +4181,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4426,6 +4200,7 @@
             "profile": {
                 "cpu.ns": 20000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 2,
                 "stack": [
                     {
@@ -4522,12 +4297,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4547,6 +4316,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4589,12 +4359,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4614,6 +4378,7 @@
             "profile": {
                 "cpu.ns": 40000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 4,
                 "stack": [
                     {
@@ -4680,12 +4445,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4705,6 +4464,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4735,12 +4495,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4760,6 +4514,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4814,12 +4569,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4839,6 +4588,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -4875,12 +4625,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -4900,6 +4644,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5008,12 +4753,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5033,6 +4772,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5069,12 +4809,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5094,6 +4828,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5118,12 +4853,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5143,6 +4872,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5203,12 +4933,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5228,6 +4952,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5318,12 +5043,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5343,6 +5062,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5415,12 +5135,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5440,6 +5154,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5494,12 +5209,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5519,6 +5228,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5603,12 +5313,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5628,6 +5332,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5712,12 +5417,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5737,6 +5436,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5797,12 +5497,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5822,6 +5516,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -5924,12 +5619,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -5949,6 +5638,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6015,12 +5705,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6040,6 +5724,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6112,12 +5797,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6137,6 +5816,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6203,12 +5883,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6228,6 +5902,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6282,12 +5957,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6307,6 +5976,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6343,12 +6013,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6368,6 +6032,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6458,12 +6123,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6483,6 +6142,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6597,12 +6257,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6622,6 +6276,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6748,12 +6403,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6773,6 +6422,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6839,12 +6489,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6864,6 +6508,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6900,12 +6545,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -6925,6 +6564,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -6997,12 +6637,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7022,6 +6656,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7154,12 +6789,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7179,6 +6808,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7293,12 +6923,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7318,6 +6942,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7420,12 +7045,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7445,6 +7064,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7487,12 +7107,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7512,6 +7126,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7560,12 +7175,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7585,6 +7194,7 @@
             "profile": {
                 "cpu.ns": 20000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 2,
                 "stack": [
                     {
@@ -7669,12 +7279,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7694,6 +7298,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7712,12 +7317,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7737,6 +7336,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7767,12 +7367,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7792,6 +7386,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7840,12 +7435,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7865,6 +7454,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7919,12 +7509,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -7944,6 +7528,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -7998,12 +7583,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8023,6 +7602,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8089,12 +7669,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8114,6 +7688,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8204,12 +7779,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8229,6 +7798,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8277,12 +7847,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8302,6 +7866,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8356,12 +7921,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8381,6 +7940,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8477,12 +8037,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8502,6 +8056,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8550,12 +8105,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8575,6 +8124,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8665,12 +8215,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8690,6 +8234,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8762,12 +8307,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8787,6 +8326,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8859,12 +8399,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8884,6 +8418,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -8914,12 +8449,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -8939,6 +8468,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -9023,12 +8553,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -9048,6 +8572,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -9102,12 +8627,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -9127,6 +8646,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -9157,12 +8677,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -9182,6 +8696,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {
@@ -9296,12 +8811,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "ecs": {
                 "version": "1.5.0"
@@ -9321,6 +8830,7 @@
             "profile": {
                 "cpu.ns": 10000000,
                 "duration": 5100778105,
+                "id": "dynamic",
                 "samples.count": 1,
                 "stack": [
                     {

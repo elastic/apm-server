@@ -9,16 +9,6 @@ from es_helper import index_smap, index_metric, index_transaction, index_error, 
 @integration_test
 class Test(ElasticTest):
 
-    def test_onboarding_doc(self):
-        """
-        This test starts the beat and checks that the onboarding doc has been published to ES
-        """
-        wait_until(lambda: self.es.indices.exists(index_onboarding), name="onboarding index created")
-        wait_until(lambda: (self.es.count(index=index_onboarding)['count'] == 1))
-
-        # Makes sure no error or warnings were logged
-        self.assert_no_logged_warnings()
-
     def test_template(self):
         """
         This test starts the beat and checks that the template has been loaded to ES
@@ -89,11 +79,11 @@ class Test(ElasticTest):
         self.check_backend_error_sourcemap(index_error, count=4)
 
     def test_load_docs_with_template_and_add_metricset(self):
-        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 2)
+        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 3)
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for metricsets with new ones
-        metricset_docs = self.wait_for_events('metric', 2, index=index_metric)
+        metricset_docs = self.wait_for_events('metric', 3, index=index_metric)
         self.approve_docs('metricset', metricset_docs)
 
 
@@ -317,7 +307,7 @@ class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
 @integration_test
 class MetricsIntegrationTest(ElasticTest):
     def test_metric_doc(self):
-        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 2)
+        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 3)
         mappings = self.es.indices.get_field_mapping(
             index=index_metric, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"

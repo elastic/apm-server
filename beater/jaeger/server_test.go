@@ -44,13 +44,15 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/approvals"
+	"github.com/elastic/apm-server/transform"
 )
 
 func TestApprovals(t *testing.T) {
-	cfg := config.DefaultConfig("8.0.0")
+	cfg := config.DefaultConfig()
 	cfg.JaegerConfig.GRPC.Enabled = true
 	cfg.JaegerConfig.GRPC.Host = "localhost:0"
 	cfg.JaegerConfig.HTTP.Enabled = true
@@ -71,7 +73,8 @@ func TestApprovals(t *testing.T) {
 			require.NoError(t, json.Unmarshal(data, &request))
 
 			require.NoError(t, tc.sendBatchGRPC(request.Batch))
-			require.NoError(t, approvals.ApproveEvents(tc.events, f))
+			docs := beatertest.EncodeEventDocs(tc.events...)
+			approvaltest.ApproveEventDocs(t, f, docs)
 
 			tc.events = nil
 			thriftBatch := &jaegerthrift.Batch{
@@ -79,7 +82,8 @@ func TestApprovals(t *testing.T) {
 				Spans:   jaegerthriftconv.FromDomain(request.Batch.Spans),
 			}
 			require.NoError(t, tc.sendBatchHTTP(thriftBatch))
-			require.NoError(t, approvals.ApproveEvents(tc.events, f))
+			docs = beatertest.EncodeEventDocs(tc.events...)
+			approvaltest.ApproveEventDocs(t, f, docs)
 		})
 	}
 }
@@ -87,11 +91,11 @@ func TestApprovals(t *testing.T) {
 func TestServerIntegration(t *testing.T) {
 	for name, tc := range map[string]testcase{
 		"default config": {
-			cfg: config.DefaultConfig("9.9.9"),
+			cfg: config.DefaultConfig(),
 		},
 		"default config with Jaeger gRPC enabled": {
 			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
+				cfg := config.DefaultConfig()
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				return cfg
@@ -100,7 +104,7 @@ func TestServerIntegration(t *testing.T) {
 		},
 		"default config with Jaeger gRPC and Kibana enabled": {
 			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
+				cfg := config.DefaultConfig()
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				cfg.Kibana.Enabled = true
@@ -111,7 +115,7 @@ func TestServerIntegration(t *testing.T) {
 		},
 		"default config with Jaeger HTTP enabled": {
 			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
+				cfg := config.DefaultConfig()
 				cfg.JaegerConfig.HTTP.Enabled = true
 				cfg.JaegerConfig.HTTP.Host = "localhost:0"
 				return cfg
@@ -119,7 +123,7 @@ func TestServerIntegration(t *testing.T) {
 		},
 		"default config with Jaeger gRPC and HTTP enabled": {
 			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
+				cfg := config.DefaultConfig()
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
 				cfg.JaegerConfig.HTTP.Enabled = true
@@ -226,7 +230,7 @@ func TestServerIntegration(t *testing.T) {
 		},
 		"secret token set but no auth_tag": {
 			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
+				cfg := config.DefaultConfig()
 				cfg.SecretToken = "hunter2"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
@@ -238,7 +242,7 @@ func TestServerIntegration(t *testing.T) {
 		},
 		"secret token and auth_tag set, but no auth_tag sent by agent": {
 			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
+				cfg := config.DefaultConfig()
 				cfg.SecretToken = "hunter2"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
@@ -250,7 +254,7 @@ func TestServerIntegration(t *testing.T) {
 		},
 		"secret token and auth_tag set, auth_tag sent by agent": {
 			cfg: func() *config.Config {
-				cfg := config.DefaultConfig("8.0.0")
+				cfg := config.DefaultConfig()
 				cfg.SecretToken = "hunter2"
 				cfg.JaegerConfig.GRPC.Enabled = true
 				cfg.JaegerConfig.GRPC.Host = "localhost:0"
@@ -355,7 +359,7 @@ type testcase struct {
 func (tc *testcase) setup(t *testing.T) {
 	reporter := func(ctx context.Context, req publish.PendingReq) error {
 		for _, transformable := range req.Transformables {
-			tc.events = append(tc.events, transformable.Transform(ctx, req.Tcontext)...)
+			tc.events = append(tc.events, transformable.Transform(ctx, &transform.Config{})...)
 		}
 		return nil
 	}

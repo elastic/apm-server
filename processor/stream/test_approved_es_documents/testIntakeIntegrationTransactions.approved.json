@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -28,6 +28,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -142,6 +145,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
@@ -348,6 +354,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -422,6 +431,11 @@
                 "duration": {
                     "us": 13980
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "cdef4340a8e0df19",
                 "marks": {
                     "another_mark": {
@@ -429,7 +443,7 @@
                         "some_long": 10
                     },
                     "navigationTiming": {
-                        "appBeforeBootstrap": 608.93,
+                        "appBeforeBootstrap": 608.9300000000001,
                         "navigationStart": -21
                     }
                 },
@@ -447,7 +461,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -474,6 +488,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

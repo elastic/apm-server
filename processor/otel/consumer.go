@@ -20,6 +20,8 @@ package otel
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -36,7 +38,6 @@ import (
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -47,23 +48,23 @@ const (
 	keywordLength      = 1024
 	dot                = "."
 	underscore         = "_"
+
+	outcomeSuccess = "success"
+	outcomeFailure = "failure"
+	outcomeUnknown = "unknown"
 )
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
 type Consumer struct {
-	TransformConfig transform.Config
-	Reporter        publish.Reporter
+	Reporter publish.Reporter
 }
 
 // ConsumeTraceData consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
 	batch := c.convert(td)
-	transformContext := &transform.Context{Config: c.TransformConfig}
-
 	return c.Reporter(ctx, publish.PendingReq{
 		Transformables: batch.Transformables(),
-		Tcontext:       transformContext,
 		Trace:          true,
 	})
 }
@@ -131,8 +132,9 @@ func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
 				Timestamp: startTime,
 				Duration:  duration,
 				Name:      name,
+				Outcome:   outcomeUnknown,
 			}
-			parseSpan(otelSpan, &span)
+			parseSpan(otelSpan, td.SourceFormat, &span)
 			batch.Spans = append(batch.Spans, &span)
 			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
 				addSpanCtxToErr(span, hostname, err)
@@ -212,9 +214,10 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, event *model.Transaction) {
 	labels := make(common.MapStr)
 	var http model.Http
+	var httpStatusCode int
 	var message model.Message
 	var component string
-	var result string
+	var outcome, result string
 	var hasFailed bool
 	var isHTTP, isMessaging bool
 	var samplerType, samplerParam *tracepb.AttributeValue
@@ -242,9 +245,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 		case *tracepb.AttributeValue_IntValue:
 			switch kDots {
 			case "http.status_code":
-				intv := int(v.IntValue)
-				http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &intv}}
-				result = statusCodeResult(intv)
+				httpStatusCode = int(v.IntValue)
 				isHTTP = true
 			default:
 				utility.DeepUpdate(labels, k, v.IntValue)
@@ -260,8 +261,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 				isHTTP = true
 			case "http.status_code":
 				if intv, err := strconv.Atoi(v.StringValue.Value); err == nil {
-					http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &intv}}
-					result = statusCodeResult(intv)
+					httpStatusCode = intv
 				}
 				isHTTP = true
 			case "http.protocol":
@@ -277,6 +277,8 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 				isMessaging = true
 			case "type":
 				event.Type = truncate(v.StringValue.Value)
+			case "service.version":
+				event.Metadata.Service.Version = truncate(v.StringValue.Value)
 			case "component":
 				component = truncate(v.StringValue.Value)
 				fallthrough
@@ -299,11 +301,13 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	}
 
 	if isHTTP {
-		if code := int(span.GetStatus().GetCode()); code != 0 {
-			result = statusCodeResult(code)
-			if http.Response == nil {
-				http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &code}}
-			}
+		if httpStatusCode == 0 {
+			httpStatusCode = int(span.GetStatus().GetCode())
+		}
+		if httpStatusCode > 0 {
+			http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &httpStatusCode}}
+			result = statusCodeResult(httpStatusCode)
+			outcome = serverStatusCodeOutcome(httpStatusCode)
 		}
 		event.HTTP = &http
 	} else if isMessaging {
@@ -313,30 +317,19 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	if result == "" {
 		if hasFailed {
 			result = "Error"
+			outcome = outcomeFailure
 		} else {
 			result = "Success"
+			outcome = outcomeSuccess
 		}
 	}
 	event.Result = result
+	event.Outcome = outcome
 
 	if samplerType != nil && samplerParam != nil {
 		// The client has reported its sampling rate, so
-		// we can use it to extrapolate transaction metrics.
-		switch samplerType.GetStringValue().GetValue() {
-		case "probabilistic":
-			probability := samplerParam.GetDoubleValue()
-			if probability > 0 && probability < 1 {
-				event.RepresentativeCount = 1 / probability
-			}
-		default:
-			utility.DeepUpdate(labels, "sampler_type", samplerType.GetStringValue().GetValue())
-			switch v := samplerParam.Value.(type) {
-			case *tracepb.AttributeValue_BoolValue:
-				utility.DeepUpdate(labels, "sampler_param", v.BoolValue)
-			case *tracepb.AttributeValue_DoubleValue:
-				utility.DeepUpdate(labels, "sampler_param", v.DoubleValue)
-			}
-		}
+		// we can use it to extrapolate span metrics.
+		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
 	}
 
 	if len(labels) == 0 {
@@ -346,7 +339,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	event.Labels = &l
 }
 
-func parseSpan(span *tracepb.Span, event *model.Span) {
+func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 	labels := make(common.MapStr)
 
 	var http model.HTTP
@@ -356,7 +349,19 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 	var destinationService model.DestinationService
 	var isDBSpan, isHTTPSpan, isMessagingSpan bool
 	var component string
+	var samplerType, samplerParam *tracepb.AttributeValue
 	for kDots, v := range span.Attributes.GetAttributeMap() {
+		if sourceFormat == sourceFormatJaeger {
+			switch kDots {
+			case "sampler.type":
+				samplerType = v
+				continue
+			case "sampler.param":
+				samplerParam = v
+				continue
+			}
+		}
+
 		k := replaceDots(kDots)
 		switch v := v.Value.(type) {
 		case *tracepb.AttributeValue_BoolValue:
@@ -397,21 +402,40 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 				db.Statement = &v.StringValue.Value
 				isDBSpan = true
 			case "db.instance":
-				db.Instance = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				db.Instance = &val
 				isDBSpan = true
 			case "db.type":
-				db.Type = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				db.Type = &val
 				isDBSpan = true
 			case "db.user":
-				db.UserName = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				db.UserName = &val
 				isDBSpan = true
 			case "peer.address":
 				val := truncate(v.StringValue.Value)
+				destinationService.Resource = &val
+				if !strings.ContainsRune(val, ':') || net.ParseIP(val) != nil {
+					// peer.address is not necessarily a hostname
+					// or IP address; it could be something like
+					// a JDBC connection string or ip:port. Ignore
+					// values containing colons, except for IPv6.
+					destination.Address = &val
+				}
+			case "peer.hostname", "peer.ipv4", "peer.ipv6":
+				val := truncate(v.StringValue.Value)
 				destination.Address = &val
 			case "peer.service":
-				destinationService.Name = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				destinationService.Name = &val
+				if destinationService.Resource == nil {
+					// Prefer using peer.address for resource.
+					destinationService.Resource = &val
+				}
 			case "message_bus.destination":
-				message.QueueName = &v.StringValue.Value
+				val := truncate(v.StringValue.Value)
+				message.QueueName = &val
 				isMessagingSpan = true
 			case "component":
 				component = truncate(v.StringValue.Value)
@@ -422,12 +446,48 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 		}
 	}
 
-	if destination != (model.Destination{}) {
-		event.Destination = &destination
+	if http.URL != nil {
+		if fullURL, err := url.Parse(*http.URL); err == nil {
+			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
+			hostname := truncate(url.Hostname())
+			var port int
+			portString := url.Port()
+			if portString != "" {
+				port, _ = strconv.Atoi(portString)
+			} else {
+				port = schemeDefaultPort(url.Scheme)
+			}
+
+			// Set destination.{address,port} from the HTTP URL,
+			// replacing peer.* based values to ensure consistency.
+			destination = model.Destination{Address: &hostname}
+			if port > 0 {
+				destination.Port = &port
+			}
+
+			// Set destination.service.* from the HTTP URL,
+			// unless peer.service was specified.
+			if destinationService.Name == nil {
+				resource := url.Host
+				if port > 0 && port == schemeDefaultPort(url.Scheme) {
+					hasDefaultPort := portString != ""
+					if hasDefaultPort {
+						// Remove the default port from destination.service.name.
+						url.Host = hostname
+					} else {
+						// Add the default port to destination.service.resource.
+						resource = fmt.Sprintf("%s:%d", resource, port)
+					}
+				}
+				name := url.String()
+				destinationService.Name = &name
+				destinationService.Resource = &resource
+			}
+		}
 	}
 
-	if destinationService != (model.DestinationService{}) {
-		event.DestinationService = &destinationService
+	if destination != (model.Destination{}) {
+		event.Destination = &destination
 	}
 
 	switch {
@@ -436,6 +496,9 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 			if code := int(span.GetStatus().GetCode()); code != 0 {
 				http.StatusCode = &code
 			}
+		}
+		if http.StatusCode != nil {
+			event.Outcome = clientStatusCodeOutcome(*http.StatusCode)
 		}
 		event.Type = "external"
 		subtype := "http"
@@ -457,10 +520,42 @@ func parseSpan(span *tracepb.Span, event *model.Span) {
 		}
 	}
 
+	if destinationService != (model.DestinationService{}) {
+		if destinationService.Type == nil {
+			// Copy span type to destination.service.type.
+			destinationService.Type = &event.Type
+		}
+		event.DestinationService = &destinationService
+	}
+
+	if samplerType != nil && samplerParam != nil {
+		// The client has reported its sampling rate, so
+		// we can use it to extrapolate transaction metrics.
+		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
+	}
+
 	if len(labels) == 0 {
 		return
 	}
 	event.Labels = labels
+}
+
+func parseSamplerAttributes(samplerType, samplerParam *tracepb.AttributeValue, representativeCount *float64, labels common.MapStr) {
+	switch samplerType.GetStringValue().GetValue() {
+	case "probabilistic":
+		probability := samplerParam.GetDoubleValue()
+		if probability > 0 && probability <= 1 {
+			*representativeCount = 1 / probability
+		}
+	default:
+		utility.DeepUpdate(labels, "sampler_type", samplerType.GetStringValue().GetValue())
+		switch v := samplerParam.Value.(type) {
+		case *tracepb.AttributeValue_BoolValue:
+			utility.DeepUpdate(labels, "sampler_param", v.BoolValue)
+		case *tracepb.AttributeValue_DoubleValue:
+			utility.DeepUpdate(labels, "sampler_param", v.DoubleValue)
+		}
+	}
 }
 
 func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model.Error {
@@ -601,6 +696,22 @@ func statusCodeResult(statusCode int) string {
 	return fmt.Sprintf("HTTP %d", statusCode)
 }
 
+// serverStatusCodeOutcome returns the transaction outcome value to use for the given status code.
+func serverStatusCodeOutcome(statusCode int) string {
+	if statusCode >= 500 {
+		return outcomeFailure
+	}
+	return outcomeSuccess
+}
+
+// clientStatusCodeOutcome returns the span outcome value to use for the given status code.
+func clientStatusCodeOutcome(statusCode int) string {
+	if statusCode >= 400 {
+		return outcomeFailure
+	}
+	return outcomeSuccess
+}
+
 // truncate returns s truncated at n runes, and the number of runes in the resulting string (<= n).
 func truncate(s string) string {
 	var j int
@@ -635,4 +746,14 @@ func formatJaegerSpanID(spanID []byte) string {
 	}
 
 	return fmt.Sprintf("%x", jaegerSpanID)
+}
+
+func schemeDefaultPort(scheme string) int {
+	switch scheme {
+	case "http":
+		return 80
+	case "https":
+		return 443
+	}
+	return 0
 }

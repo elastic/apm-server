@@ -8,6 +8,9 @@
         "ecs": {
             "version": "1.5.0"
         },
+        "event": {
+            "outcome": "unknown"
+        },
         "labels": {
             "span_tag": "something"
         },
@@ -121,10 +124,13 @@
         "ecs": {
             "version": "1.5.0"
         },
+        "event": {
+            "outcome": "unknown"
+        },
         "observer": {
-            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
-            "hostname": "ix.lan",
-            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "ephemeral_id": "2f13d8fa-83cd-4356-8123-aabfb47a1808",
+            "hostname": "goat",
+            "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8
@@ -187,10 +193,13 @@
         "ecs": {
             "version": "1.5.0"
         },
+        "event": {
+            "outcome": "unknown"
+        },
         "observer": {
-            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
-            "hostname": "ix.lan",
-            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "ephemeral_id": "2f13d8fa-83cd-4356-8123-aabfb47a1808",
+            "hostname": "goat",
+            "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8
@@ -237,10 +246,13 @@
         "ecs": {
             "version": "1.5.0"
         },
+        "event": {
+            "outcome": "unknown"
+        },
         "observer": {
-            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
-            "hostname": "ix.lan",
-            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "ephemeral_id": "2f13d8fa-83cd-4356-8123-aabfb47a1808",
+            "hostname": "goat",
+            "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8
@@ -293,10 +305,13 @@
         "ecs": {
             "version": "1.5.0"
         },
+        "event": {
+            "outcome": "unknown"
+        },
         "observer": {
-            "ephemeral_id": "c0cea3b6-97d7-4e15-9e35-c868e7a3c869",
-            "hostname": "ix.lan",
-            "id": "a49b4a08-689a-4724-8050-8bd0ae043281",
+            "ephemeral_id": "2f13d8fa-83cd-4356-8123-aabfb47a1808",
+            "hostname": "goat",
+            "id": "17ad47dd-5671-4c89-979f-ef4533565ba2",
             "type": "apm-server",
             "version": "8.0.0",
             "version_major": 8

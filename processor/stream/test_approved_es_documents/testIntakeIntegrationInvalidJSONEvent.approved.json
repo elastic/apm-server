@@ -1,10 +1,16 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "event": {
+                "outcome": "unknown"
+            },
+            "host": {
+                "ip": "192.0.0.1"
             },
             "parent": {
                 "id": "abcdef0123456789"

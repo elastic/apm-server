@@ -99,8 +99,9 @@
           - name: referrer
             type: keyword
             ignore_above: 1024
+            overwrite: true
             description: Referrer for this HTTP request.
-            
+
        - name: response
          type: group
          fields:
@@ -235,7 +236,6 @@
 
         - name: duration
           type: group
-          description:
           fields:
             - name: count
               type: long
@@ -777,3 +777,17 @@
         description: Cloud region name
         example: us-east1
         overwrite: true
+
+    - name: event
+      type: group
+      fields:
+
+       - name: outcome
+         level: core
+         type: keyword
+         ignore_above: 1024
+         description: >
+           `event.outcome` simply denotes whether the event represents a success or a
+           failure from the perspective of the entity that produced the event.
+         example: success
+         overwrite: true

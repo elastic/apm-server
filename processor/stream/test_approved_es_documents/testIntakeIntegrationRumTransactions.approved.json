@@ -1,13 +1,16 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "rum-js",
                 "version": "0.0.0"
             },
             "client": {
                 "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "http": {
                 "request": {
@@ -35,6 +38,11 @@
                 "duration": {
                     "us": 643000
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "611f4fa950f04631",
                 "page": {
                     "referer": "http://localhost:8000/test/e2e/",
@@ -59,13 +67,16 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "rum-js",
                 "version": "0.0.0"
             },
             "client": {
                 "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "parent": {
                 "id": "611f4fa950f04631"

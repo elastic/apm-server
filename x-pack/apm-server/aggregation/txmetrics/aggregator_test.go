@@ -71,7 +71,7 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 	}
 }
 
-func TestAggregateTransformablesOverflow(t *testing.T) {
+func TestProcessTransformablesOverflow(t *testing.T) {
 	reqs := make(chan publish.PendingReq, 1)
 
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
@@ -90,7 +90,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 		input = append(input, &model.Transaction{Name: "foo"})
 		input = append(input, &model.Transaction{Name: "bar"})
 	}
-	output := agg.AggregateTransformables(input)
+	output := agg.ProcessTransformables(input)
 	assert.Equal(t, input, output)
 
 	// The third transaction group will return a metricset for immediate publication.
@@ -100,7 +100,7 @@ func TestAggregateTransformablesOverflow(t *testing.T) {
 			Duration: float64(time.Minute / time.Millisecond),
 		})
 	}
-	output = agg.AggregateTransformables(input)
+	output = agg.ProcessTransformables(input)
 	assert.Len(t, output, len(input)+2)
 	assert.Equal(t, input, output[:len(input)])
 
@@ -147,8 +147,8 @@ func TestAggregatorRun(t *testing.T) {
 		require.Nil(t, metricset)
 	}
 
-	stopAggregator := runAggregator(agg)
-	defer stopAggregator()
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	req := expectPublish(t, reqs)
 	require.Len(t, req.Transformables, 2)
@@ -198,8 +198,8 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	stopAggregator := runAggregator(agg)
-	defer stopAggregator()
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	for i := 0; i < 2; i++ {
 		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
@@ -208,7 +208,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	}
 
 	// Wait for aggregator to stop before checking logs, to ensure we don't race with logging.
-	stopAggregator()
+	assert.NoError(t, agg.Stop(context.Background()))
 
 	logs := observed.FilterMessageSnippet("report failed").All()
 	assert.Len(t, logs, 2)
@@ -274,8 +274,8 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 		}, m)
 	}
 
-	stopAggregator := runAggregator(agg)
-	defer stopAggregator()
+	go agg.Run()
+	defer agg.Stop(context.Background())
 
 	// Check the fractional transaction counts for the "fnord" transaction
 	// group were accumulated with some degree of accuracy. i.e. we should
@@ -328,8 +328,8 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			require.Nil(t, metricset)
 		}
 
-		stopAggregator := runAggregator(agg)
-		defer stopAggregator()
+		go agg.Run()
+		defer agg.Stop(context.Background())
 
 		req := expectPublish(t, reqs)
 		require.Len(t, req.Transformables, 1)
@@ -339,6 +339,93 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 		assert.Len(t, metricset.Samples[0].Counts, len(metricset.Samples[0].Values))
 		assert.Len(t, metricset.Samples[0].Counts, sigfigs)
 	})
+}
+
+func TestAggregationFields(t *testing.T) {
+	reqs := make(chan publish.PendingReq, 1)
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		Report:                         makeChanReporter(reqs),
+		MaxTransactionGroups:           1000,
+		MetricsInterval:                100 * time.Millisecond,
+		HDRHistogramSignificantFigures: 1,
+		RUMUserAgentLRUSize:            1,
+	})
+	require.NoError(t, err)
+	go agg.Run()
+	defer agg.Stop(context.Background())
+
+	input := model.Transaction{RepresentativeCount: 1}
+	inputFields := []*string{
+		&input.Name,
+		&input.Outcome,
+		&input.Result,
+		&input.Type,
+		&input.Metadata.Service.Agent.Name,
+		&input.Metadata.Service.Environment,
+		&input.Metadata.Service.Name,
+		&input.Metadata.Service.Version,
+		&input.Metadata.System.Container.ID,
+		&input.Metadata.System.Kubernetes.PodName,
+	}
+
+	var expected []model.Metricset
+	addExpectedCount := func(expectedCount int64) {
+		expected = append(expected, model.Metricset{
+			Metadata: input.Metadata,
+			Event: model.MetricsetEventCategorization{
+				Outcome: input.Outcome,
+			},
+			Transaction: model.MetricsetTransaction{
+				Name:   input.Name,
+				Type:   input.Type,
+				Result: input.Result,
+				Root:   input.ParentID == "",
+			},
+			Samples: []model.Sample{{
+				Name:   "transaction.duration.histogram",
+				Counts: []int64{expectedCount},
+				Values: []float64{0},
+			}},
+		})
+	}
+	for _, field := range inputFields {
+		for _, value := range []string{"something", "anything"} {
+			*field = value
+			assert.Nil(t, agg.AggregateTransaction(&input))
+			assert.Nil(t, agg.AggregateTransaction(&input))
+			addExpectedCount(2)
+		}
+	}
+
+	// Hostname is complex: if any kubernetes fields are set, then
+	// it is taken from Kubernetes.Node.Name, and DetectedHostname
+	// is ignored.
+	input.Metadata.System.Kubernetes.PodName = ""
+	for _, value := range []string{"something", "anything"} {
+		input.Metadata.System.DetectedHostname = value
+		assert.Nil(t, agg.AggregateTransaction(&input))
+		assert.Nil(t, agg.AggregateTransaction(&input))
+		addExpectedCount(2)
+	}
+
+	// ParentID only impacts aggregation as far as grouping root and
+	// non-root traces.
+	for _, value := range []string{"something", "anything"} {
+		input.ParentID = value
+		assert.Nil(t, agg.AggregateTransaction(&input))
+		assert.Nil(t, agg.AggregateTransaction(&input))
+	}
+	addExpectedCount(4)
+
+	var output []model.Metricset
+	req := expectPublish(t, reqs)
+	for _, tf := range req.Transformables {
+		ms := tf.(*model.Metricset)
+		ms.Timestamp = time.Time{}
+		ms.TimeseriesInstanceID = ""
+		output = append(output, *ms)
+	}
+	assert.ElementsMatch(t, expected, output)
 }
 
 func BenchmarkAggregateTransaction(b *testing.B) {
@@ -384,19 +471,6 @@ func BenchmarkAggregateTransactionUserAgent(b *testing.B) {
 			agg.AggregateTransaction(tx)
 		}
 	})
-}
-
-func runAggregator(agg *txmetrics.Aggregator) func() error {
-	done := make(chan error)
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		defer close(done)
-		done <- agg.Run(ctx)
-	}()
-	return func() error {
-		cancel()
-		return <-done
-	}
 }
 
 func makeErrReporter(err error) publish.Reporter {

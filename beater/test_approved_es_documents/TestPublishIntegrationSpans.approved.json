@@ -1,12 +1,6 @@
 {
     "events": [
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
                 "name": "elastic-node",
@@ -42,6 +36,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
@@ -135,12 +132,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
                 "name": "elastic-node",
@@ -171,6 +162,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -265,12 +259,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "name": "elastic-node",
@@ -301,6 +289,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -399,12 +390,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "name": "elastic-node",
@@ -435,6 +420,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -529,12 +517,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "ephemeral_id": "justanid",
@@ -571,6 +553,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
@@ -743,12 +728,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
                 "name": "elastic-node",
@@ -783,6 +762,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

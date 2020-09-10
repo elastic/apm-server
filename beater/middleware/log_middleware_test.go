@@ -127,7 +127,7 @@ func TestLogMiddleware(t *testing.T) {
 				ec.DeepUpdate(encoder.Fields)
 			}
 			keys := []string{"http.request.id", "http.request.method", "http.request.body.bytes",
-				"source.address", "user_agent.original", "http.response.status_code"}
+				"source.address", "user_agent.original", "http.response.status_code", "event.duration"}
 			keys = append(keys, tc.ecsKeys...)
 			for _, key := range keys {
 				ok, _ := ec.HasKey(key)

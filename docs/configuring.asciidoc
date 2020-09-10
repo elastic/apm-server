@@ -7,7 +7,7 @@
 <titleabbrev>Configure</titleabbrev>
 ++++
 
-include::{libbeat-dir}/shared-configuring.asciidoc[]
+include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 * <<configuration-process>>
 * <<configuring-output>>
@@ -18,6 +18,7 @@ include::{libbeat-dir}/shared-configuring.asciidoc[]
 * <<configuration-logging>>
 * <<setup-kibana-endpoint>>
 * <<configuration-rum>>
+* <<configuration-instrumentation>>
 * <<configuration-path>>
 * <<using-environ-vars>>
 
@@ -51,7 +52,7 @@ include::ssl-input-settings.asciidoc[]
 
 See <<securing-apm-server,Securing APM Server>> for more information.
 
-include::./template-config.asciidoc[]
+include::{libbeat-dir}/template-config.asciidoc[]
 
 include::./ilm-reference.asciidoc[]
 
@@ -62,6 +63,8 @@ include::{libbeat-dir}/loggingconfig.asciidoc[]
 include::./configure-kibana-endpoint.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
+
+include::{libbeat-dir}/shared-instrumentation.asciidoc[]
 
 include::{libbeat-dir}/shared-path-config.asciidoc[]
 

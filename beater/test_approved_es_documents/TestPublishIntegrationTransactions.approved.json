@@ -1,12 +1,6 @@
 {
     "events": [
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "name": "elastic-node",
@@ -37,6 +31,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -130,12 +127,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
                 "name": "elastic-node",
@@ -169,6 +160,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
@@ -355,12 +349,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
                 "ephemeral_id": "justanid",
@@ -392,6 +380,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -476,6 +467,11 @@
                 "duration": {
                     "us": 13980
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "cdef4340a8e0df19",
                 "marks": {
                     "another_mark": {
@@ -501,12 +497,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "name": "elastic-node",
@@ -537,6 +527,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

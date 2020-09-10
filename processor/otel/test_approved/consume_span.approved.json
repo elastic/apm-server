@@ -1,10 +1,13 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
+            },
+            "event": {
+                "outcome": "success"
             },
             "processor": {
                 "event": "transaction",
@@ -30,10 +33,13 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "parent": {
                 "id": "46463058"

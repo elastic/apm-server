@@ -1,12 +1,6 @@
 {
     "events": [
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
@@ -21,6 +15,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "amd64",
@@ -200,12 +197,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
@@ -217,6 +208,9 @@
             },
             "ecs": {
                 "version": "1.5.0"
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "amd64",
@@ -358,12 +352,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
@@ -497,12 +485,6 @@
             }
         },
         {
-            "@metadata": {
-                "beat": "apm-test",
-                "pipeline": "apm",
-                "type": "_doc",
-                "version": "8.0.0"
-            },
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",

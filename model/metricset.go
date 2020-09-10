@@ -34,6 +34,7 @@ import (
 const (
 	metricsetProcessorName  = "metric"
 	metricsetDocType        = "metric"
+	metricsetEventKey       = "event"
 	metricsetTransactionKey = "transaction"
 	metricsetSpanKey        = "span"
 )
@@ -52,6 +53,10 @@ type Metricset struct {
 	// Metadata holds common metadata describing the entities with which
 	// the metrics are associated: service, system, etc.
 	Metadata Metadata
+
+	// Event holds information about the event category with which the
+	// metrics are associated.
+	Event MetricsetEventCategorization
 
 	// Transaction holds information about the transaction group with
 	// which the metrics are associated.
@@ -103,6 +108,16 @@ type Sample struct {
 	Counts []int64
 }
 
+// MetricsetEventCategorization holds ECS Event Categorization fields
+// for inclusion in metrics. Typically these fields will have been
+// included in the metric aggregation logic.
+//
+// See https://www.elastic.co/guide/en/ecs/current/ecs-category-field-values-reference.html
+type MetricsetEventCategorization struct {
+	// Outcome holds the event outcome: "success", "failure", or "unknown".
+	Outcome string
+}
+
 // MetricsetTransaction provides enough information to connect a metricset to the related kind of transactions.
 type MetricsetTransaction struct {
 	// Name holds the transaction name: "GET /foo", etc.
@@ -127,9 +142,12 @@ type MetricsetSpan struct {
 
 	// Subtype holds the span subtype: "http", "sql", etc.
 	Subtype string
+
+	// DestinationService holds information about the target of outgoing requests
+	DestinationService DestinationService
 }
 
-func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []beat.Event {
+func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
 	metricsetTransformations.Inc()
 	if me == nil {
 		return nil
@@ -145,6 +163,9 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 
 	fields["processor"] = metricsetProcessorEntry
 	me.Metadata.Set(fields)
+	if eventFields := me.Event.fields(); eventFields != nil {
+		utility.DeepUpdate(fields, metricsetEventKey, eventFields)
+	}
 	if transactionFields := me.Transaction.fields(); transactionFields != nil {
 		utility.DeepUpdate(fields, metricsetTransactionKey, transactionFields)
 	}
@@ -165,6 +186,12 @@ func (me *Metricset) Transform(ctx context.Context, tctx *transform.Context) []b
 	}}
 }
 
+func (e *MetricsetEventCategorization) fields() common.MapStr {
+	var fields mapStr
+	fields.maybeSetString("outcome", e.Outcome)
+	return common.MapStr(fields)
+}
+
 func (t *MetricsetTransaction) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("type", t.Type)
@@ -180,6 +207,9 @@ func (s *MetricsetSpan) fields() common.MapStr {
 	var fields mapStr
 	fields.maybeSetString("type", s.Type)
 	fields.maybeSetString("subtype", s.Subtype)
+	if destinationServiceFields := s.DestinationService.fields(); len(destinationServiceFields) != 0 {
+		fields.set("destination", common.MapStr{"service": destinationServiceFields})
+	}
 	return common.MapStr(fields)
 }
 

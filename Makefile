@@ -61,8 +61,8 @@ clean: $(MAGE)
 # This may be overridden to specify which tests to run.
 SYSTEM_TEST_TARGET?=./tests/system
 
-# NOSETESTS_OPTIONS is passed to nosetests in "system-tests".
-NOSETESTS_OPTIONS?=--process-timeout=90 --with-timer -v --with-xunit --xunit-file=build/TEST-system.xml
+# PYTEST_OPTIONS is passed to pytest in "system-tests".
+PYTEST_OPTIONS?=--timeout=90 --durations=20 --junit-xml=build/TEST-system.xml
 
 .PHONY: check-full
 check-full: update check golint staticcheck
@@ -81,7 +81,7 @@ bench:
 
 .PHONY: system-tests
 system-tests: $(PYTHON_BIN) apm-server.test
-	INTEGRATION_TESTS=1 TZ=UTC $(PYTHON_BIN)/nosetests $(NOSETESTS_OPTIONS) $(SYSTEM_TEST_TARGET)
+	INTEGRATION_TESTS=1 TZ=UTC $(PYTHON_BIN)/pytest $(PYTEST_OPTIONS) $(SYSTEM_TEST_TARGET)
 
 .PHONY: docker-system-tests
 docker-system-tests: export SYSTEM_TEST_TARGET:=$(SYSTEM_TEST_TARGET)
@@ -263,7 +263,7 @@ $(PYTHON_BIN)/activate: $(MAGE)
 
 .PHONY: $(APPROVALS)
 $(APPROVALS):
-	@go build -o $@ tests/scripts/approvals.go
+	@go build -o $@ github.com/elastic/apm-server/approvaltest/cmd/check-approvals
 
 ##############################################################################
 # Release manager.

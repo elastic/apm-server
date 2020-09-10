@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 )
@@ -63,7 +64,11 @@ func Handler(processor *stream.Processor, report publish.Reporter) request.Handl
 			return
 		}
 
-		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, c.RequestMetadata, reader, report)
+		metadata := model.Metadata{
+			UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
+			Client:    model.Client{IP: c.RequestMetadata.ClientIP},
+			System:    model.System{IP: c.RequestMetadata.SystemIP}}
+		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, &metadata, reader, report)
 		sendResponse(c, res)
 	}
 }

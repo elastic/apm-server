@@ -96,6 +96,8 @@ please see the full {apm-server-ref-v}/index.html[APM Server documentation].
 [[agents]]
 === Step 4: Install APM agents
 
+// This tagged region is reused in the Observability docs.
+// tag::apm-agent[]
 Agents are written in the same language as your service.
 Monitoring a new service requires installing the agent
 and configuring it with the address of your APM Server, a secret token (if necessary), and a service name.
@@ -142,7 +144,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 
 |=======================================================================
 
-TIP: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch.
+TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of Elasticsearch.
 
 [[choose-service-name]]
 [float]
@@ -158,16 +160,19 @@ Make sure you choose a good service name before you get started.
 The service name can only contain alphanumeric characters,
 spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
+// end::apm-agent[]
+
 [[configure-apm]]
 === Step 5: Configure APM
 
 Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
 Luckily, there are many different ways to tweak and tune the Elastic ecosystem to adapt it to your needs.
 
-
 [float]
 ==== Configure APM agents
 
+// This tagged region is reused in the Observability docs.
+// tag::configure-agents[]
 APM agents have a number of configuration options that allow you to fine tune things like
 environment names, sampling rates, instrumentations, metrics, and more.
 
@@ -204,10 +209,13 @@ More information is available in {apm-server-ref-v}/configuring-howto-apm-server
 Don't forget to also read about
 {apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
 {apm-server-ref-v}/monitoring.html[monitoring APM Server].
+// end::configure-agents[]
 
 [[quick-start-overview]]
 === Quick start development environment
 
+// This tagged region is reused in the Observability docs.
+// tag::dev-environment[]
 ifeval::["{release-state}"=="unreleased"]
 
 Version {version} of APM Server has not yet been released.
@@ -258,3 +266,4 @@ or running the Elastic stack on Docker in a production environment, see the foll
 * {stack-gs}/get-started-docker.html[Running the Elastic Stack on Docker]
 
 endif::[]
+// end::dev-environment[]

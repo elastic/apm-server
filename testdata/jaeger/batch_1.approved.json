@@ -1,11 +1,14 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-20T07:41:44.954062Z",
+            "@timestamp": "2019-12-20T07:41:44.954Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -47,11 +50,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:44.973809Z",
+            "@timestamp": "2019-12-20T07:41:44.973Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -94,11 +100,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.007578Z",
+            "@timestamp": "2019-12-20T07:41:45.007Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -140,11 +149,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.016845Z",
+            "@timestamp": "2019-12-20T07:41:45.016Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -186,11 +198,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.029415Z",
+            "@timestamp": "2019-12-20T07:41:45.029Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -232,11 +247,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.040082Z",
+            "@timestamp": "2019-12-20T07:41:45.040Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -278,11 +296,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.054046Z",
+            "@timestamp": "2019-12-20T07:41:45.054Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -325,11 +346,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.089459Z",
+            "@timestamp": "2019-12-20T07:41:45.089Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -371,11 +395,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.101278Z",
+            "@timestamp": "2019-12-20T07:41:45.101Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -417,11 +444,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.113531Z",
+            "@timestamp": "2019-12-20T07:41:45.113Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -463,11 +493,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.125567Z",
+            "@timestamp": "2019-12-20T07:41:45.125Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -509,11 +542,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.132896Z",
+            "@timestamp": "2019-12-20T07:41:45.132Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -556,11 +592,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.172618Z",
+            "@timestamp": "2019-12-20T07:41:45.172Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -602,11 +641,14 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.18667Z",
+            "@timestamp": "2019-12-20T07:41:45.186Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -648,7 +690,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.006847Z",
+            "@timestamp": "2019-12-20T07:41:45.006Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -694,7 +736,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.089372Z",
+            "@timestamp": "2019-12-20T07:41:45.089Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -740,7 +782,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.172347Z",
+            "@timestamp": "2019-12-20T07:41:45.172Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",

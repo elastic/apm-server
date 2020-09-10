@@ -1,0 +1,18 @@
+---
+- job:
+    name: apm-server/apm-server-check-packages
+    display-name: "APM Server Package Smoke Test"
+    description: "Test package installation across supported platforms\n"
+    triggers: []
+    parameters: []
+    project-type: pipeline
+    pipeline-scm:
+      lightweight-checkout: false
+      scm:
+        - git:
+            url: "https://github.com/elastic/apm-server.git"
+            basedir: "apm-server"
+            wipe-workspace: true
+            branches:
+                - "master"
+      script-path: apm-server/.ci/check-packages.groovy

@@ -1,10 +1,17 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
+            },
+            "destination": {
+                "address": "foo.bar.com",
+                "port": 80
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc",
@@ -27,6 +34,13 @@
                 }
             },
             "span": {
+                "destination": {
+                    "service": {
+                        "name": "http://foo.bar.com",
+                        "resource": "foo.bar.com:80",
+                        "type": "external"
+                    }
+                },
                 "duration": {
                     "us": 79000000
                 },

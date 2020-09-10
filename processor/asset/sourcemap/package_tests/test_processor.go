@@ -62,7 +62,7 @@ func (p *TestProcessor) Process(buf []byte) ([]beat.Event, error) {
 
 	var events []beat.Event
 	for _, transformable := range transformables {
-		events = append(events, transformable.Transform(context.Background(), &transform.Context{})...)
+		events = append(events, transformable.Transform(context.Background(), &transform.Config{})...)
 	}
 	return events, nil
 }

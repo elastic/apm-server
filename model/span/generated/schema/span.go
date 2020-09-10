@@ -88,10 +88,22 @@ const ModelSchema = `{
                     "type": ["number", "null"],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 },
+                "sample_rate": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
+                },
                 "action": {
                     "type": ["string", "null"],
                     "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
                     "maxLength": 1024
+                },
+                "outcome": {
+                        "$id": "docs/spec/outcome.json",
+    "title": "Outcome",
+    "type": ["string", "null"],
+    "enum": [null, "success", "failure", "unknown"],
+    "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates.",
+                    "description": "The outcome of the span: success, failure, or unknown. Outcome may be one of a limited set of permitted values describing the success or failure of the span. This field can be used for calculating error rates for outgoing requests."
                 },
                 "context": {
                     "type": ["object", "null"],

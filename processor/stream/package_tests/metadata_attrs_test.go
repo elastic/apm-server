@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/processor/stream"
@@ -35,7 +36,7 @@ type MetadataProcessor struct {
 }
 
 func (p *MetadataProcessor) LoadPayload(path string) (interface{}, error) {
-	ndjson, err := p.getReader(path)
+	ndjson, err := p.getDecoder(path)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +54,7 @@ func (p *MetadataProcessor) Validate(data interface{}) error {
 		}
 
 		// validate the metadata object against our jsonschema
-		_, err := modeldecoder.DecodeMetadata(rawMetadata, false)
-		if err != nil {
+		if err := modeldecoder.DecodeMetadata(rawMetadata, false, &model.Metadata{}); err != nil {
 			return err
 		}
 	}
@@ -74,16 +74,16 @@ func metadataProcSetup() *tests.ProcessorSetup {
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
 		},
-		FullPayloadPath: "../testdata/intake-v2/only-metadata.ndjson",
+		FullPayloadPath: "../testdata/intake-v2/metadata.ndjson",
 	}
 }
 
 func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
-	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/only-metadata.ndjson")
+	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/metadata.ndjson")
 	require.NoError(t, err)
 
-	metadata, err := decoder.NewNDJSONStreamReader(payloadStream, lrSize).Read()
-	require.NoError(t, err)
+	var metadata map[string]interface{}
+	require.NoError(t, decoder.NewNDJSONStreamDecoder(payloadStream, lrSize).Decode(&metadata))
 
 	contextMetadata := metadata["metadata"]
 
@@ -123,7 +123,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 	metadataProcSetup().AttrsMatchJsonSchema(t,
 		getMetadataEventAttrs(t, ""),
-		tests.NewSet(tests.Group("labels")),
+		tests.NewSet(tests.Group("labels"), "system.ip"),
 		nil,
 	)
 }
@@ -134,6 +134,7 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 		tests.NewSet("processor.event", "processor.name",
 			"process.args",
 			tests.Group("observer"),
+			tests.Group("event"),
 			tests.Group("http"),
 			tests.Group("url"),
 			tests.Group("context.tags"),

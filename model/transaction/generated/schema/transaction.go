@@ -52,22 +52,26 @@ const ModelSchema = `{
             "maxLength": 1024
         }
     } },
-        {  
+        {
             "properties": {
                 "id": {
                     "type": "string",
-                    "description": "Hex encoded 64 random bits ID of the transaction.", 
+                    "description": "Hex encoded 64 random bits ID of the transaction.",
                     "maxLength": 1024
                 },
                 "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "description": "Hex encoded 128 random bits ID of the correlated trace.",
                     "type": "string",
                     "maxLength": 1024
                 },
                 "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span. Only root transactions of a trace do not have a parent_id, otherwise it needs to be set.", 
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span. Only root transactions of a trace do not have a parent_id, otherwise it needs to be set.",
                     "type": ["string", "null"],
                     "maxLength": 1024
+                },
+                "sample_rate": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
                 },
                 "span_count": {
                     "type": "object",
@@ -459,6 +463,14 @@ const ModelSchema = `{
                     "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
                     "maxLength": 1024
                 },
+                "outcome": {
+                        "$id": "docs/spec/outcome.json",
+    "title": "Outcome",
+    "type": ["string", "null"],
+    "enum": [null, "success", "failure", "unknown"],
+    "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates.",
+                    "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates for incoming requests."
+                },
                 "marks": {
                     "type": ["object", "null"],
                     "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
@@ -480,6 +492,29 @@ const ModelSchema = `{
                 "sampled": {
                     "type": ["boolean", "null"],
                     "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+                },
+                "experience": {
+                        "$id": "docs/spec/rum_experience.json",
+    "title": "RUM Experience Metrics",
+    "description": "Metrics for measuring real user (browser) experience",
+    "type": ["object", "null"],
+    "properties": {
+        "cls": {
+            "type": ["number", "null"],
+            "description": "The Cumulative Layout Shift metric",
+            "minimum": 0
+        },
+        "tbt": {
+            "type": ["number", "null"],
+            "description": "The Total Blocking Time metric",
+            "minimum": 0
+        },
+        "fid": {
+            "type": ["number", "null"],
+            "description": "The First Input Delay metric",
+            "minimum": 0
+        }
+    }
                 }
             },
             "required": ["id", "trace_id", "span_count", "duration", "type"]

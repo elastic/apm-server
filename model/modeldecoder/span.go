@@ -18,6 +18,7 @@
 package modeldecoder
 
 import (
+	"net/http"
 	"strings"
 	"time"
 
@@ -25,7 +26,6 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/apm-server/model"
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/field"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/utility"
@@ -40,10 +40,26 @@ var (
 // decodeRUMV3Span decodes a v3 RUM span, and optional parent index.
 // If parent index wasn't specified, then the value will be negative.
 func decodeRUMV3Span(input Input) (_ *model.Span, parentIndex int, _ error) {
-	return decodeSpan(input, rumV3SpanSchema)
+	span, parentIndex, err := decodeSpan(input, rumV3SpanSchema)
+	if err != nil {
+		return nil, -1, err
+	}
+	span.RUM = true
+	return span, parentIndex, nil
 }
 
-// DecodeSpan decodes a span.
+// DecodeRUMV2Span decodes a v2 RUM span.
+func DecodeRUMV2Span(input Input, batch *model.Batch) error {
+	span, _, err := decodeSpan(input, spanSchema)
+	if err != nil {
+		return err
+	}
+	span.RUM = true
+	batch.Spans = append(batch.Spans, span)
+	return nil
+}
+
+// DecodeSpan decodes a v2 span.
 func DecodeSpan(input Input, batch *model.Batch) error {
 	span, _, err := decodeSpan(input, spanSchema)
 	if err != nil {
@@ -62,17 +78,18 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 	fieldName := field.Mapper(input.Config.HasShortFieldNames)
 	decoder := utility.ManualDecoder{}
 	event := model.Span{
-		Metadata:  input.Metadata,
-		Name:      decoder.String(raw, fieldName("name")),
-		Start:     decoder.Float64Ptr(raw, fieldName("start")),
-		Duration:  decoder.Float64(raw, fieldName("duration")),
-		Sync:      decoder.BoolPtr(raw, fieldName("sync")),
-		Timestamp: decoder.TimeEpochMicro(raw, fieldName("timestamp")),
-		ID:        decoder.String(raw, fieldName("id")),
-		ChildIDs:  decoder.StringArr(raw, "child_ids"),
-		Type:      decoder.String(raw, fieldName("type")),
-		Subtype:   decoder.StringPtr(raw, fieldName("subtype")),
-		Action:    decoder.StringPtr(raw, fieldName("action")),
+		Metadata:            input.Metadata,
+		Name:                decoder.String(raw, fieldName("name")),
+		Start:               decoder.Float64Ptr(raw, fieldName("start")),
+		RepresentativeCount: safeInverse(decoder.Float64Ptr(raw, fieldName("sample_rate"))),
+		Duration:            decoder.Float64(raw, fieldName("duration")),
+		Sync:                decoder.BoolPtr(raw, fieldName("sync")),
+		Timestamp:           decoder.TimeEpochMicro(raw, fieldName("timestamp")),
+		ID:                  decoder.String(raw, fieldName("id")),
+		ChildIDs:            decoder.StringArr(raw, "child_ids"),
+		Type:                decoder.String(raw, fieldName("type")),
+		Subtype:             decoder.StringPtr(raw, fieldName("subtype")),
+		Action:              decoder.StringPtr(raw, fieldName("action")),
 	}
 	decodeString(raw, fieldName("parent_id"), &event.ParentID)
 	decodeString(raw, fieldName("trace_id"), &event.TraceID)
@@ -104,7 +121,7 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 		event.DestinationService = destService
 
 		if s := getObject(ctx, "service"); s != nil {
-			var service m.Service
+			var service model.Service
 			decodeService(s, input.Config.HasShortFieldNames, &service)
 			event.Service = &service
 		}
@@ -119,8 +136,21 @@ func decodeSpan(input Input, schema *jsonschema.Schema) (_ *model.Span, parentIn
 			}
 		}
 	}
+	decodeString(raw, fieldName("outcome"), &event.Outcome)
+	if event.Outcome == "" {
+		if event.HTTP != nil && event.HTTP.StatusCode != nil {
+			statusCode := *event.HTTP.StatusCode
+			if statusCode >= http.StatusBadRequest {
+				event.Outcome = "failure"
+			} else {
+				event.Outcome = "success"
+			}
+		} else {
+			event.Outcome = "unknown"
+		}
+	}
 
-	var stacktr *m.Stacktrace
+	var stacktr *model.Stacktrace
 	stacktr, decoder.Err = decodeStacktrace(raw[fieldName("stacktrace")], input.Config.HasShortFieldNames, decoder.Err)
 	if decoder.Err != nil {
 		return nil, -1, decoder.Err
@@ -245,4 +275,11 @@ func decodeDestination(input interface{}, hasShortFieldNames bool, err error) (*
 		Port:    decoder.IntPtr(destinationInput, fieldName("port")),
 	}
 	return &dest, service, decoder.Err
+}
+
+func safeInverse(f *float64) float64 {
+	if f == nil || *f == 0 {
+		return 0
+	}
+	return 1 / *f
 }

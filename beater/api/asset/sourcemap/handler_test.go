@@ -137,7 +137,7 @@ func (tc *testcaseT) setup() {
 	}
 	c := request.NewContext()
 	c.Reset(tc.w, tc.r)
-	h := Handler(tc.dec, tc.processor, transform.Config{}, tc.reporter)
+	h := Handler(tc.dec, tc.processor, tc.reporter)
 	h(c)
 }
 

@@ -1,28 +1,35 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/7.8\...master[View commits]
+https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 
 [float]
 ==== Breaking Changes
 
 [float]
 ==== Bug fixes
-* Ensure unique names in dynamic templates for fields {pull}3832[3832]
+
+* Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
 
 [float]
 ==== Intake API Changes
 
 [float]
 ==== Added
-* Support configurable response headers for the RUM endpoints {pull}3820[3820]
-* Support custom ILM index suffix {pull}3826[3826],{pull}3905[3905]
-* Jaeger traceIds/spanIds are formatted without leading zeros {pull}3849[3849]
-* Index Page URL and referer as ECS fields {pull}3857[3857]
-* Map the Jaeger attribute message_bus.destination to the Elastic APM type messaging {pull}3884[3884]
-* Added user_agent.name to grouping key for page-load transaction metrics {pull}3886[3886]
-* Map the Jaeger attribute peer.service to span.destination.service.name {pull}3897[3897]
-* Add timeseries.instance to transaction.duration.histogram docs {pull}3904[3904]
-* Uses `instrumentation` config and APM tracer from libbeat, deprecating `apm-server.instrumentation` {pull}3836[3836]
-* Scale Jaeger transaction counts by inverse sampling rate in histogram metrics {pull}3722[3722]
+
+* Use peer.address for destinationService.Resource if peer.address is not given on Jaeger span {pull}3975[3975]
+* Add event.duration to API request logs {pull}4030[4030]
+* Set destination.service.* from http.url for Jaeger spans {pull}4046[4046]
+* Use service.version for Metadata.Service.Version when converting a Jaeger span {pull}4061[4061]
+* Report basic telemetry {pull}4055[4055]
+* Add transaction.experience fields {pull}4056[4056]
+* Upgrade Go to 1.14.7 {pull}4067[4067]
+* Aggregate service destination span metrics {pull}4077[4077]
+* Added apm-server.kibana.headers configuration {pull}4087[4087]
+* Add a new Docker image based on UBI minimal 8 to packaging. {pull}4105[4105]
+* Add event.outcome to transactions and spans {pull}4064[4064]
+* Add event.outcome to aggregated transaction metrics {pull}4110[4110]
+* Set event.outcome for Jaeger spans based on http.status_code {pull}4127[4127]
+* Set event.outcome for transactions and spans based on http.status_code {pull}4165[4165]
+* Add mapping for `system.process.cgroup.*` metrics {pull}[4176]4176 
 * Switch logging format to be ECS compliant where possible {pull}3829[3829]

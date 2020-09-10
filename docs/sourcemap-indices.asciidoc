@@ -1,13 +1,11 @@
 [[sourcemap-indices]]
-== Source Map Indices
+== Example source map document
 
-Source maps are stored in separate indices of the format `apm-[version]-sourcemap`.
+++++
+<titleabbrev>Source map document</titleabbrev>
+++++
 
-[[sourcemap-example]]
-[float]
-==== Example document
-
-Example of a source map file:
+This example shows what a source map document can look like when indexed in Elasticsearch:
 
 [source,json]
 ----

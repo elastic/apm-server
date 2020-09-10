@@ -73,7 +73,7 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 
 Once your logs contain the appropriate identifiers (fields), you need to ingest them into Elasticsearch.
 Luckily, we've got a tool for that -- Filebeat is Elastic's log shipper.
-The {filebeat-ref}/filebeat-getting-started.html[Filebeat getting started]
+The {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start]
 guide will walk you through the setup process.
 
 Because logging frameworks and formats vary greatly between different programming languages,
@@ -83,11 +83,11 @@ The following tips should hopefully get you going in the right direction:
 **Download Filebeat**
 
 There are many ways to download and get started with Filebeat.
-Read the {filebeat-ref}/filebeat-installation.html[Filebeat Installation] guide to determine which is best for you.
+Read the {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start] guide to determine which is best for you.
 
 **Configure Filebeat**
 
-Modify the {filebeat-ref}/filebeat-configuration.html[`filebeat.yml`] configuration file to your needs.
+Modify the {filebeat-ref}/configuring-howto-filebeat.html[`filebeat.yml`] configuration file to your needs.
 Here are some recommendations:
 
 * Set `filebeat.inputs` to point to the source of your logs

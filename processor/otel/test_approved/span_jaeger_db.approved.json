@@ -1,10 +1,17 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
+            },
+            "destination": {
+                "address": "db",
+                "port": 3306
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host-abc",
@@ -36,6 +43,13 @@
                     "type": "mysql",
                     "user": {
                         "name": "admin"
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "name": "sql",
+                        "resource": "mysql://db:3306",
+                        "type": "db"
                     }
                 },
                 "duration": {

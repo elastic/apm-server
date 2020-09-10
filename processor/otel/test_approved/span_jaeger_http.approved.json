@@ -1,14 +1,17 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
             },
             "destination": {
-                "address": "mysql://db:3306",
-                "port": 3306
+                "address": "foo.bar.com",
+                "port": 80
+            },
+            "event": {
+                "outcome": "failure"
             },
             "host": {
                 "hostname": "host-abc",
@@ -20,8 +23,7 @@
                 "error": true,
                 "hasErrors": true,
                 "int_a": 148,
-                "string_a_b": "some note",
-                "type": "db_request"
+                "string_a_b": "some note"
             },
             "parent": {
                 "id": "58585858"
@@ -42,7 +44,9 @@
             "span": {
                 "destination": {
                     "service": {
-                        "name": "sql"
+                        "name": "http://foo.bar.com",
+                        "resource": "foo.bar.com:80",
+                        "type": "external"
                     }
                 },
                 "duration": {
@@ -51,7 +55,7 @@
                 "http": {
                     "method": "get",
                     "response": {
-                        "status_code": 200
+                        "status_code": 400
                     },
                     "url": {
                         "original": "http://foo.bar.com?a=12"
@@ -70,7 +74,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768091Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -95,7 +99,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -129,7 +133,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768111Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -149,7 +153,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -183,7 +187,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -205,7 +209,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -239,7 +243,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -261,7 +265,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -295,7 +299,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -317,7 +321,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {
@@ -351,7 +355,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-16T12:46:58.000768134Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -371,7 +375,7 @@
                     "method": "get"
                 },
                 "response": {
-                    "status_code": 200
+                    "status_code": 400
                 }
             },
             "parent": {

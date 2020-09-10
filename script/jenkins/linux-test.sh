@@ -12,3 +12,6 @@ cleanup() {
 trap cleanup EXIT
 
 make update docker-system-tests
+
+# TODO(axw) make this part of the "system-tests" target
+(cd systemtest && go test -v ./...)

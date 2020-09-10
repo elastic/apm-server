@@ -38,7 +38,6 @@ const (
 	configuredHostname = "configured_hostname"
 	systemArchitecture = "x86_64"
 	systemPlatform     = "linux"
-	systemIP           = "192.168.0.1"
 
 	containerID         = "container-123"
 	kubernetesNamespace = "k8s-namespace"
@@ -50,7 +49,11 @@ const (
 	mail      = "user@email.com"
 	username  = "user"
 	userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1"
-	userIP    = "192.168.0.1"
+)
+
+var (
+	systemIP = net.ParseIP("192.168.0.1")
+	userIP   = net.ParseIP("192.168.0.1")
 )
 
 var fullInput = map[string]interface{}{
@@ -89,7 +92,6 @@ var fullInput = map[string]interface{}{
 		"configured_hostname": configuredHostname,
 		"architecture":        systemArchitecture,
 		"platform":            systemPlatform,
-		"ip":                  systemIP,
 		"container": map[string]interface{}{
 			"id": containerID,
 		},
@@ -105,11 +107,9 @@ var fullInput = map[string]interface{}{
 		},
 	},
 	"user": map[string]interface{}{
-		"id":         uid,
-		"email":      mail,
-		"username":   username,
-		"ip":         userIP,
-		"user-agent": userAgent,
+		"id":       uid,
+		"email":    mail,
+		"username": username,
 	},
 	"cloud": map[string]interface{}{
 		"availability_zone": "australia-southeast1-a",
@@ -136,9 +136,16 @@ var fullInput = map[string]interface{}{
 	},
 }
 
+func metadata() *model.Metadata {
+	return &model.Metadata{
+		UserAgent: model.UserAgent{Original: userAgent},
+		Client:    model.Client{IP: userIP},
+		System:    model.System{IP: systemIP}}
+}
+
 func TestDecodeMetadata(t *testing.T) {
-	output, err := DecodeMetadata(fullInput, false)
-	require.NoError(t, err)
+	output := metadata()
+	require.NoError(t, DecodeMetadata(fullInput, false, output))
 	assert.Equal(t, &model.Metadata{
 		Service: model.Service{
 			Name:        serviceName,
@@ -161,7 +168,7 @@ func TestDecodeMetadata(t *testing.T) {
 			ConfiguredHostname: configuredHostname,
 			Architecture:       systemArchitecture,
 			Platform:           systemPlatform,
-			IP:                 net.ParseIP(systemIP),
+			IP:                 systemIP,
 			Container:          model.Container{ID: containerID},
 			Kubernetes: model.Kubernetes{
 				Namespace: kubernetesNamespace,
@@ -179,7 +186,7 @@ func TestDecodeMetadata(t *testing.T) {
 			Original: userAgent,
 		},
 		Client: model.Client{
-			IP: net.ParseIP(userIP),
+			IP: userIP,
 		},
 		Cloud: model.Cloud{
 			AccountID:        "acct123",
@@ -200,7 +207,7 @@ func TestDecodeMetadata(t *testing.T) {
 func BenchmarkDecodeMetadata(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		if _, err := DecodeMetadata(fullInput, false); err != nil {
+		if err := DecodeMetadata(fullInput, false, &model.Metadata{}); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -210,7 +217,7 @@ func BenchmarkDecodeMetadataRecycled(b *testing.B) {
 	b.ReportAllocs()
 	var meta model.Metadata
 	for i := 0; i < b.N; i++ {
-		if err := decodeMetadata(fullInput, false, metadataSchema, &meta); err != nil {
+		if err := DecodeMetadata(fullInput, false, &meta); err != nil {
 			b.Fatal(err)
 		}
 		for k := range meta.Labels {
@@ -220,10 +227,10 @@ func BenchmarkDecodeMetadataRecycled(b *testing.B) {
 }
 
 func TestDecodeMetadataInvalid(t *testing.T) {
-	_, err := DecodeMetadata(nil, false)
+	err := DecodeMetadata(nil, false, &model.Metadata{})
 	require.EqualError(t, err, "failed to validate metadata: error validating JSON: input missing")
 
-	_, err = DecodeMetadata("", false)
+	err = DecodeMetadata("", false, &model.Metadata{})
 	require.EqualError(t, err, "failed to validate metadata: error validating JSON: invalid input type")
 
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
@@ -233,8 +240,7 @@ func TestDecodeMetadataInvalid(t *testing.T) {
 			"name":  "name",
 		},
 	}
-	_, err = DecodeMetadata(baseInput, false)
-	require.NoError(t, err)
+	require.NoError(t, DecodeMetadata(baseInput, false, &model.Metadata{}))
 
 	for _, test := range []struct {
 		input map[string]interface{}
@@ -276,7 +282,7 @@ func TestDecodeMetadataInvalid(t *testing.T) {
 				input[k] = v
 			}
 		}
-		_, err := DecodeMetadata(input, false)
+		err = DecodeMetadata(input, false, &model.Metadata{})
 		require.Error(t, err)
 		assert.Regexp(t, test.err, err.Error())
 	}

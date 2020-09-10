@@ -1,0 +1,65 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "destination": {
+                "address": "foo.bar.com",
+                "port": 443
+            },
+            "event": {
+                "outcome": "unknown"
+            },
+            "host": {
+                "hostname": "host-abc",
+                "name": "host-abc"
+            },
+            "parent": {
+                "id": "58585858"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown",
+                "node": {
+                    "name": "host-abc"
+                }
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "name": "https://foo.bar.com",
+                        "resource": "foo.bar.com:443",
+                        "type": "external"
+                    }
+                },
+                "duration": {
+                    "us": 79000000
+                },
+                "http": {
+                    "url": {
+                        "original": "https://foo.bar.com:443?a=12"
+                    }
+                },
+                "id": "41414646",
+                "name": "HTTPS GET",
+                "subtype": "http",
+                "type": "external"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "46467830"
+            }
+        }
+    ]
+}

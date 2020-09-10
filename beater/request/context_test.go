@@ -65,6 +65,8 @@ func TestContext_Reset(t *testing.T) {
 			assert.Equal(t, 0, c.writeAttempts)
 		case "Result":
 			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
+		case "RequestMetadata":
+			assert.Equal(t, Metadata{}, cVal.Field(i).Interface().(Metadata))
 		default:
 			assert.Empty(t, cVal.Field(i).Interface(), cType.Field(i).Name)
 		}

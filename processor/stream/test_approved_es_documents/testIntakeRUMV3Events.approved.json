@@ -1,10 +1,16 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "success"
             },
             "http": {
                 "request": {
@@ -56,6 +62,9 @@
                 },
                 "version": "0.0.1"
             },
+            "source": {
+                "ip": "192.0.0.1"
+            },
             "timestamp": {
                 "us": 1533117600000000
             },
@@ -69,6 +78,11 @@
                 "duration": {
                     "us": 295000
                 },
+                "experience": {
+                    "cls": 1,
+                    "fid": 2,
+                    "tbt": 3.4
+                },
                 "id": "ec2e280be8345240",
                 "marks": {
                     "agent": {
@@ -76,8 +90,8 @@
                         "domContentLoadedEventEnd": 110,
                         "domContentLoadedEventStart": 100,
                         "domInteractive": 120,
-                        "firstContentfulPaint": 70.825,
-                        "largestContentfulPaint": 131.03,
+                        "firstContentfulPaint": 70.82500003930181,
+                        "largestContentfulPaint": 131.03000004775822,
                         "timeToFirstByte": 5
                     },
                     "navigationTiming": {
@@ -122,6 +136,9 @@
                 "email": "em",
                 "id": "uId",
                 "name": "un"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
@@ -129,6 +146,12 @@
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -182,6 +205,9 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
@@ -189,6 +215,12 @@
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -242,17 +274,26 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.022534999Z",
+            "@timestamp": "2018-08-01T10:00:00.022Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
             },
+            "client": {
+                "ip": "192.0.0.1"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8000
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -323,13 +364,22 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.096929999Z",
+            "@timestamp": "2018-08-01T10:00:00.096Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -382,17 +432,26 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.09894Z",
+            "@timestamp": "2018-08-01T10:00:00.098Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
             },
+            "client": {
+                "ip": "192.0.0.1"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8000
+            },
+            "event": {
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -463,17 +522,26 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.10652Z",
+            "@timestamp": "2018-08-01T10:00:00.106Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
             },
+            "client": {
+                "ip": "192.0.0.1"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8003
+            },
+            "event": {
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -544,17 +612,26 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.119935Z",
+            "@timestamp": "2018-08-01T10:00:00.119Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
             },
+            "client": {
+                "ip": "192.0.0.1"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8003
+            },
+            "event": {
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -626,13 +703,22 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.12Z",
+            "@timestamp": "2018-08-01T10:00:00.120Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "event": {
+                "outcome": "success"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -708,13 +794,19 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -757,13 +849,19 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -806,13 +904,19 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "testTagKey": "testTagValue"
@@ -855,13 +959,19 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
             },
             "labels": {
                 "tag1": "value1",
@@ -902,6 +1012,9 @@
                 "email": "user@email.com",
                 "id": "123",
                 "name": "John Doe"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         }
     ]

@@ -218,6 +218,7 @@ func TestEventFields(t *testing.T) {
 				Exception:     &exception,
 				Log:           &log,
 				TransactionID: trID,
+				RUM:           true,
 
 				// Service name and version are required for sourcemapping.
 				Metadata: Metadata{
@@ -259,11 +260,9 @@ func TestEventFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			tctx := &transform.Context{
-				Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
-			}
-
-			output := tc.Error.Transform(context.Background(), tctx)
+			output := tc.Error.Transform(context.Background(), &transform.Config{
+				RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+			})
 			require.Len(t, output, 1)
 			fields := output[0].Fields["error"]
 			assert.Equal(t, tc.Output, fields)
@@ -360,6 +359,7 @@ func TestEvents(t *testing.T) {
 				Labels:             &labels,
 				Page:               &Page{URL: &URL{Original: &url}, Referer: &referer},
 				Custom:             &custom,
+				RUM:                true,
 			},
 
 			Output: common.MapStr{
@@ -402,11 +402,9 @@ func TestEvents(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			tctx := &transform.Context{
-				Config: transform.Config{SourcemapStore: &sourcemap.Store{}},
-			}
-
-			outputEvents := tc.Transformable.Transform(context.Background(), tctx)
+			outputEvents := tc.Transformable.Transform(context.Background(), &transform.Config{
+				RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+			})
 			require.Len(t, outputEvents, 1)
 			outputEvent := outputEvents[0]
 			assert.Equal(t, tc.Output, outputEvent.Fields)
@@ -444,13 +442,13 @@ func TestCulprit(t *testing.T) {
 		},
 		{
 			event:   Error{Culprit: &c},
-			config:  transform.Config{SourcemapStore: store},
+			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "foo",
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
 			event:   Error{Culprit: &c, Log: &Log{Stacktrace: st}},
-			config:  transform.Config{SourcemapStore: store},
+			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
 		},
@@ -467,7 +465,7 @@ func TestCulprit(t *testing.T) {
 					},
 				},
 			},
-			config:  transform.Config{SourcemapStore: store},
+			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "f",
 			msg:     "Adapt culprit to first valid Log.StacktraceFrame filename information.",
 		},
@@ -483,7 +481,7 @@ func TestCulprit(t *testing.T) {
 					},
 				},
 			},
-			config:  transform.Config{SourcemapStore: store},
+			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "xyz",
 			msg:     "Adapt culprit Log.StacktraceFrame classname information.",
 		},
@@ -492,7 +490,7 @@ func TestCulprit(t *testing.T) {
 				Culprit:   &c,
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SourcemapStore: store},
+			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "f in fct",
 			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
 		},
@@ -502,7 +500,7 @@ func TestCulprit(t *testing.T) {
 				Log:       &Log{Stacktrace: st},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SourcemapStore: store},
+			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "f in fct",
 			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
 		},
@@ -520,7 +518,7 @@ func TestCulprit(t *testing.T) {
 				},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SourcemapStore: store},
+			config:  transform.Config{RUM: transform.RUMConfig{SourcemapStore: store}},
 			culprit: "a in fct",
 			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
 		},
@@ -528,11 +526,7 @@ func TestCulprit(t *testing.T) {
 	for idx, test := range tests {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
 
-			tctx := &transform.Context{
-				Config: test.config,
-			}
-
-			test.event.updateCulprit(tctx)
+			test.event.updateCulprit(&test.config)
 			assert.Equal(t, test.culprit, *test.event.Culprit,
 				fmt.Sprintf("(%v) %s: expected <%v>, received <%v>", idx, test.msg, test.culprit, *test.event.Culprit))
 		})
@@ -587,10 +581,8 @@ func TestErrorTransformPage(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{}
-
 	for idx, test := range tests {
-		output := test.Error.Transform(context.Background(), tctx)
+		output := test.Error.Transform(context.Background(), &transform.Config{})
 		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -813,18 +805,19 @@ func TestSourcemapping(t *testing.T) {
 				},
 			},
 		},
+		RUM: true,
 	}
 
 	// transform without sourcemap store
-	tctx := &transform.Context{Config: transform.Config{SourcemapStore: nil}}
-	transformedNoSourcemap := event.fields(context.Background(), tctx)
+	transformedNoSourcemap := event.fields(context.Background(), &transform.Config{})
 	assert.Equal(t, 1, *event.Exception.Stacktrace[0].Lineno)
 
 	// transform with sourcemap store
 	store, err := sourcemap.NewStore(test.ESClientWithValidSourcemap(t), "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
-	tctx.Config = transform.Config{SourcemapStore: store}
-	transformedWithSourcemap := event.fields(context.Background(), tctx)
+	transformedWithSourcemap := event.fields(context.Background(), &transform.Config{
+		RUM: transform.RUMConfig{SourcemapStore: store},
+	})
 	assert.Equal(t, 5, *event.Exception.Stacktrace[0].Lineno)
 
 	assert.NotEqual(t, transformedNoSourcemap["exception"], transformedWithSourcemap["exception"])

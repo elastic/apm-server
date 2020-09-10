@@ -79,6 +79,10 @@ const RUMV3Schema = `{
                     ],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 },
+                "sr": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
+                },
                 "t": {
                     "type": "string",
                     "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
@@ -99,6 +103,14 @@ const RUMV3Schema = `{
                     ],
                     "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
                     "maxLength": 1024
+                },
+                "o": {
+                        "$id": "docs/spec/outcome.json",
+    "title": "Outcome",
+    "type": ["string", "null"],
+    "enum": [null, "success", "failure", "unknown"],
+    "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates.",
+                    "description": "The outcome of the span: success, failure, or unknown. Outcome may be one of a limited set of permitted values describing the success or failure of the span. This field can be used for calculating error rates for outgoing requests."
                 },
                 "c": {
                     "type": [
@@ -486,6 +498,10 @@ const RUMV3Schema = `{
     },
     "required": ["sa"]
                 },
+                "sr": {
+                    "description": "Sampling rate",
+                    "type": ["number", "null"]
+                },
                 "yc": {
                     "type": "object",
                     "properties": {
@@ -850,6 +866,14 @@ const RUMV3Schema = `{
                     "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
                     "maxLength": 1024
                 },
+                "o": {
+                        "$id": "docs/spec/outcome.json",
+    "title": "Outcome",
+    "type": ["string", "null"],
+    "enum": [null, "success", "failure", "unknown"],
+    "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates.",
+                    "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates for incoming requests."
+                },
                 "k": {
                     "type": [
                         "object",
@@ -968,6 +992,29 @@ const RUMV3Schema = `{
                         "null"
                     ],
                     "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+                },
+                "exp": {
+                        "$id": "docs/spec/rum_experience.json",
+    "title": "RUM Experience Metrics",
+    "description": "Metrics for measuring real user (browser) experience",
+    "type": ["object", "null"],
+    "properties": {
+        "cls": {
+            "type": ["number", "null"],
+            "description": "The Cumulative Layout Shift metric",
+            "minimum": 0
+        },
+        "tbt": {
+            "type": ["number", "null"],
+            "description": "The Total Blocking Time metric",
+            "minimum": 0
+        },
+        "fid": {
+            "type": ["number", "null"],
+            "description": "The First Input Delay metric",
+            "minimum": 0
+        }
+    }
                 }
             },
             "required": [

@@ -1,10 +1,13 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
+            },
+            "client": {
+                "ip": "192.0.0.1"
             },
             "error": {
                 "culprit": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
@@ -65,6 +68,9 @@
                 "name": "apm-a-rum-test-e2e-general-usecase",
                 "version": "0.0.1"
             },
+            "source": {
+                "ip": "192.0.0.1"
+            },
             "timestamp": {
                 "us": 1533117600000000
             },
@@ -80,6 +86,9 @@
                 "email": "em",
                 "id": "uId",
                 "name": "un"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
             }
         }
     ]

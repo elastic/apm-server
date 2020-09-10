@@ -39,6 +39,12 @@ var (
 	rumV3Schema     = validation.CreateSchema(schema.RUMV3Schema, "metricset")
 )
 
+// DecodeRUMV2Metricset decodes a v2 RUM metricset.
+func DecodeRUMV2Metricset(input Input, batch *model.Batch) error {
+	// Identical to backend agent metricsets.
+	return DecodeMetricset(input, batch)
+}
+
 // DecodeMetricset decodes a v2 metricset.
 func DecodeMetricset(input Input, batch *model.Batch) error {
 	metricset, err := decodeMetricset(input, metricsetSchema)
@@ -49,6 +55,7 @@ func DecodeMetricset(input Input, batch *model.Batch) error {
 	return nil
 }
 
+// DecodeRUMV3Metricset decodes a v3 RUM metricset.
 func DecodeRUMV3Metricset(input Input, batch *model.Batch) error {
 	metricset, err := decodeMetricset(input, rumV3Schema)
 	if err != nil {

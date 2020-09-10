@@ -110,6 +110,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		"processor.event", "processor.name",
 		"transaction.marks",
 		"context.tags",
+		"event.outcome",
 		tests.Group("observer"),
 		tests.Group("url"),
 		tests.Group("http"),
@@ -137,7 +138,7 @@ func TestTransactionPayloadMatchFields(t *testing.T) {
 func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchJsonSchema(t,
 		transactionPayloadAttrsNotInJsonSchema(),
-		tests.NewSet("transaction.context.user.email", "transaction.context.experimental"))
+		tests.NewSet("transaction.context.user.email", "transaction.context.experimental", "transaction.sample_rate"))
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {

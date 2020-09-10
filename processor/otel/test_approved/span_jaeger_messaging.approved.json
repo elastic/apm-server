@@ -1,10 +1,17 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
+            },
+            "destination": {
+                "address": "mq",
+                "port": 1234
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host-abc",

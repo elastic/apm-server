@@ -40,6 +40,10 @@ const (
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
 type Aggregator struct {
+	stopMu   sync.Mutex
+	stopping chan struct{}
+	stopped  chan struct{}
+
 	config          AggregatorConfig
 	userAgentLookup *userAgentLookup
 
@@ -57,10 +61,10 @@ type AggregatorConfig struct {
 	// If Logger is nil, a new logger will be constructed.
 	Logger *logp.Logger
 
-	// MaxBuckets is the maximum number of distinct transaction groups
-	// to store within an aggregation period. Once this number of groups
-	// has been reached, any new aggregation keys will cause individual
-	// metrics documents to be immediately published.
+	// MaxTransactionGroups is the maximum number of distinct transaction
+	// group metrics to store within an aggregation period. Once this number
+	// of groups has been reached, any new aggregation keys will cause
+	// individual metrics documents to be immediately published.
 	MaxTransactionGroups int
 
 	// MetricsInterval is the interval between publishing of aggregated
@@ -111,6 +115,8 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		return nil, err
 	}
 	return &Aggregator{
+		stopping:        make(chan struct{}),
+		stopped:         make(chan struct{}),
 		config:          config,
 		userAgentLookup: ual,
 		active:          newMetrics(config.MaxTransactionGroups),
@@ -118,24 +124,59 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}, nil
 }
 
-// Run runs the Aggregator, periodically publishing and clearing
-// aggregated metrics. Run returns when either a fatal error occurs,
-// or the context is cancelled.
-func (a *Aggregator) Run(ctx context.Context) error {
+// Run runs the Aggregator, periodically publishing and clearing aggregated
+// metrics. Run returns when either a fatal error occurs, or the Aggregator's
+// Stop method is invoked.
+func (a *Aggregator) Run() error {
 	ticker := time.NewTicker(a.config.MetricsInterval)
 	defer ticker.Stop()
-	for {
+	defer func() {
+		a.stopMu.Lock()
+		defer a.stopMu.Unlock()
 		select {
-		case <-ctx.Done():
-			return ctx.Err()
+		case <-a.stopped:
+		default:
+			close(a.stopped)
+		}
+	}()
+	var stop bool
+	for !stop {
+		select {
+		case <-a.stopping:
+			stop = true
 		case <-ticker.C:
 		}
-		if err := a.publish(ctx); err != nil {
+		if err := a.publish(context.Background()); err != nil {
 			a.config.Logger.With(logp.Error(err)).Warnf(
 				"publishing transaction metrics failed: %s", err,
 			)
 		}
 	}
+	return nil
+}
+
+// Stop stops the Aggregator if it is running, waiting for it to flush any
+// aggregated metrics and return, or for the context to be cancelled.
+//
+// After Stop has been called the aggregator cannot be reused, as the Run
+// method will always return immediately.
+func (a *Aggregator) Stop(ctx context.Context) error {
+	a.stopMu.Lock()
+	select {
+	case <-a.stopped:
+	case <-a.stopping:
+		// Already stopping/stopped.
+	default:
+		close(a.stopping)
+	}
+	a.stopMu.Unlock()
+
+	select {
+	case <-a.stopped:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return nil
 }
 
 func (a *Aggregator) publish(ctx context.Context) error {
@@ -174,14 +215,14 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	})
 }
 
-// AggregateTransformables aggregates all transactions contained in
+// ProcessTransformables aggregates all transactions contained in
 // "in", returning the input with any metricsets requiring immediate
 // publication appended.
 //
 // This method is expected to be used immediately prior to publishing
 // the events, so that the metricsets requiring immediate publication
 // can be included in the same batch.
-func (a *Aggregator) AggregateTransformables(in []transform.Transformable) []transform.Transformable {
+func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []transform.Transformable {
 	out := in
 	for _, tf := range in {
 		if tx, ok := tf.(*model.Transaction); ok {
@@ -285,10 +326,11 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 	}
 
 	return transactionAggregationKey{
-		traceRoot:         tx.ParentID == "",
-		transactionName:   tx.Name,
-		transactionResult: tx.Result,
-		transactionType:   tx.Type,
+		traceRoot:          tx.ParentID == "",
+		transactionName:    tx.Name,
+		transactionOutcome: tx.Outcome,
+		transactionResult:  tx.Result,
+		transactionType:    tx.Type,
 
 		agentName:          tx.Metadata.Service.Agent.Name,
 		serviceEnvironment: tx.Metadata.Service.Environment,
@@ -325,6 +367,9 @@ func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, cou
 				Name: key.userAgentName,
 			},
 			// TODO(axw) include client.geo.country_iso_code somewhere
+		},
+		Event: model.MetricsetEventCategorization{
+			Outcome: key.transactionOutcome,
 		},
 		Transaction: model.MetricsetTransaction{
 			Name:   key.transactionName,
@@ -382,13 +427,13 @@ type transactionAggregationKey struct {
 	serviceName        string
 	serviceVersion     string
 	transactionName    string
+	transactionOutcome string
 	transactionResult  string
 	transactionType    string
 	userAgentName      string
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
-	// TODO(axw) when we upgrade to Go 1.14, change this to maphash.
 	var h xxhash.Digest
 	if k.traceRoot {
 		h.WriteString("1")
@@ -402,6 +447,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.serviceName)
 	h.WriteString(k.serviceVersion)
 	h.WriteString(k.transactionName)
+	h.WriteString(k.transactionOutcome)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
 	h.WriteString(k.userAgentName)

@@ -5,7 +5,7 @@ import hashlib
 import os
 import requests
 
-SUPPORTED_VERSIONS = ["6.8", "7.7", "7.8", "7.x"]
+SUPPORTED_VERSIONS = ["6.8", "7.8", "7.x"]
 
 
 def parse_version(version):

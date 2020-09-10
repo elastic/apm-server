@@ -33,9 +33,10 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
+	"github.com/elastic/apm-server/approvaltest"
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -60,7 +61,7 @@ func TestConsumer_ConsumeTraceData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reporter := func(ctx context.Context, p publish.PendingReq) error {
 				events := transformAll(ctx, p)
-				assert.NoError(t, approvals.ApproveEvents(events, file("consume_"+tc.name)))
+				approveEvents(t, "consume_"+tc.name, events)
 				return nil
 			}
 			consumer := Consumer{Reporter: reporter}
@@ -147,7 +148,7 @@ func TestConsumer_Metadata(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.Len(t, req.Transformables, 1)
 				events := transformAll(ctx, req)
-				assert.NoError(t, approvals.ApproveEvents(events, file("metadata_"+tc.name)))
+				approveEvents(t, "metadata_"+tc.name, events)
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -184,6 +185,7 @@ func TestConsumer_Transaction(t *testing.T) {
 						"type":             testAttributeStringValue("http_request"),
 						"component":        testAttributeStringValue("foo"),
 						"string.a.b":       testAttributeStringValue("some note"),
+						"service.version":  testAttributeStringValue("1.0"),
 					}},
 					TimeEvents: testTimeEvents(),
 				}}}},
@@ -194,7 +196,7 @@ func TestConsumer_Transaction(t *testing.T) {
 					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_SERVER,
 					StartTime: testStartTime(),
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-						"http.status_code": testAttributeIntValue(200),
+						"http.status_code": testAttributeIntValue(500),
 						"http.protocol":    testAttributeStringValue("HTTP"),
 						"http.path":        testAttributeStringValue("http://foo.bar.com?a=12"),
 					}}}}}},
@@ -249,7 +251,7 @@ func TestConsumer_Transaction(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
 				events := transformAll(ctx, req)
-				assert.NoError(t, approvals.ApproveEvents(events, file("transaction_"+tc.name)))
+				approveEvents(t, "transaction_"+tc.name, events)
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -257,12 +259,12 @@ func TestConsumer_Transaction(t *testing.T) {
 	}
 }
 
-func TestConsumer_TransactionSampleRate(t *testing.T) {
+func TestConsumer_SampleRate(t *testing.T) {
 	var transformables []transform.Transformable
 	reporter := func(ctx context.Context, req publish.PendingReq) error {
 		transformables = append(transformables, req.Transformables...)
 		events := transformAll(ctx, req)
-		assert.NoError(t, approvals.ApproveEvents(events, file("transaction_jaeger_sampling_rate")))
+		approveEvents(t, "jaeger_sampling_rate", events)
 		return nil
 	}
 	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), consumerdata.TraceData{
@@ -277,12 +279,22 @@ func TestConsumer_TransactionSampleRate(t *testing.T) {
 				"sampler.type":  testAttributeStringValue("probabilistic"),
 				"sampler.param": testAttributeDoubleValue(0.8),
 			}},
+		}, {
+			Kind:      tracepb.Span_CLIENT,
+			StartTime: testStartTime(), EndTime: testEndTime(),
+			ParentSpanId: []byte{1},
+			Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+				"sampler.type":  testAttributeStringValue("probabilistic"),
+				"sampler.param": testAttributeDoubleValue(0.4),
+			}},
 		}},
 	}))
 
-	require.Len(t, transformables, 1)
+	require.Len(t, transformables, 2)
 	tx := transformables[0].(*model.Transaction)
+	span := transformables[1].(*model.Span)
 	assert.Equal(t, 1.25 /* 1/0.8 */, tx.RepresentativeCount)
+	assert.Equal(t, 2.5 /* 1/0.4 */, span.RepresentativeCount)
 }
 
 func TestConsumer_Span(t *testing.T) {
@@ -301,19 +313,26 @@ func TestConsumer_Span(t *testing.T) {
 						"error":            testAttributeBoolValue(true),
 						"hasErrors":        testAttributeBoolValue(true),
 						"double.a":         testAttributeDoubleValue(14.65),
-						"http.status_code": testAttributeIntValue(200),
+						"http.status_code": testAttributeIntValue(400),
 						"int.a":            testAttributeIntValue(148),
 						"span.kind":        testAttributeStringValue("filtered"),
 						"http.url":         testAttributeStringValue("http://foo.bar.com?a=12"),
 						"http.method":      testAttributeStringValue("get"),
-						"type":             testAttributeStringValue("db_request"),
 						"component":        testAttributeStringValue("foo"),
 						"string.a.b":       testAttributeStringValue("some note"),
-						"peer.port":        testAttributeIntValue(3306),
-						"peer.address":     testAttributeStringValue("mysql://db:3306"),
-						"peer.service":     testAttributeStringValue("sql"),
 					}},
 					TimeEvents: testTimeEvents(),
+				}}}},
+		{name: "jaeger_https_default_port",
+			td: consumerdata.TraceData{SourceFormat: "jaeger",
+				Node: &commonpb.Node{Identifier: &commonpb.ProcessIdentifier{HostName: "host-abc"}},
+				Spans: []*tracepb.Span{{
+					TraceId: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 70, 120, 48}, SpanId: []byte{0, 0, 0, 0, 65, 65, 70, 70}, ParentSpanId: []byte{0, 0, 0, 0, 88, 88, 88, 88},
+					StartTime: testStartTime(), EndTime: testEndTime(),
+					Name: testTruncatableString("HTTPS GET"),
+					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"http.url": testAttributeStringValue("https://foo.bar.com:443?a=12"),
+					}},
 				}}}},
 		{name: "jaeger_http_status_code",
 			td: consumerdata.TraceData{SourceFormat: "jaeger",
@@ -334,11 +353,15 @@ func TestConsumer_Span(t *testing.T) {
 				Spans: []*tracepb.Span{{
 					ParentSpanId: []byte{0, 0, 0, 0, 97, 98, 99, 100}, Kind: tracepb.Span_CLIENT,
 					StartTime: testStartTime(), Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
-						"db.statement": testAttributeStringValue("GET * from users"),
-						"db.instance":  testAttributeStringValue("db01"),
-						"db.type":      testAttributeStringValue("mysql"),
-						"db.user":      testAttributeStringValue("admin"),
-						"component":    testAttributeStringValue("foo"),
+						"db.statement":  testAttributeStringValue("GET * from users"),
+						"db.instance":   testAttributeStringValue("db01"),
+						"db.type":       testAttributeStringValue("mysql"),
+						"db.user":       testAttributeStringValue("admin"),
+						"component":     testAttributeStringValue("foo"),
+						"peer.address":  testAttributeStringValue("mysql://db:3306"),
+						"peer.hostname": testAttributeStringValue("db"),
+						"peer.port":     testAttributeIntValue(3306),
+						"peer.service":  testAttributeStringValue("sql"),
 					}},
 				}}}},
 		{name: "jaeger_messaging",
@@ -349,6 +372,8 @@ func TestConsumer_Span(t *testing.T) {
 					StartTime: testStartTime(), EndTime: testEndTime(),
 					Name: testTruncatableString("Message receive"),
 					Attributes: &tracepb.Span_Attributes{AttributeMap: map[string]*tracepb.AttributeValue{
+						"peer.hostname":           testAttributeStringValue("mq"),
+						"peer.port":               testAttributeIntValue(1234),
 						"message_bus.destination": testAttributeStringValue("queue-abc"),
 					}},
 					Status: &tracepb.Status{Code: 202},
@@ -364,7 +389,7 @@ func TestConsumer_Span(t *testing.T) {
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
 				events := transformAll(ctx, req)
-				assert.NoError(t, approvals.ApproveEvents(events, file("span_"+tc.name)))
+				approveEvents(t, "span_"+tc.name, events)
 				return nil
 			}
 			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), tc.td))
@@ -432,10 +457,6 @@ func testTimeEvents() *tracepb.Span_TimeEvents {
 				}}}}}}}
 }
 
-func file(f string) string {
-	return filepath.Join("test_approved", f)
-}
-
 func testStartTime() *timestamp.Timestamp {
 	return &timestamp.Timestamp{Seconds: 1576500418, Nanos: 768068}
 }
@@ -477,7 +498,16 @@ func testAttributeStringValue(s string) *tracepb.AttributeValue {
 func transformAll(ctx context.Context, p publish.PendingReq) []beat.Event {
 	var events []beat.Event
 	for _, transformable := range p.Transformables {
-		events = append(events, transformable.Transform(ctx, p.Tcontext)...)
+		events = append(events, transformable.Transform(ctx, &transform.Config{})...)
 	}
 	return events
+}
+
+func approveEvents(t testing.TB, name string, events []beat.Event) {
+	docs := beatertest.EncodeEventDocs(events...)
+	approvaltest.ApproveEventDocs(t, file(name), docs)
+}
+
+func file(f string) string {
+	return filepath.Join("test_approved", f)
 }

@@ -49,19 +49,21 @@ type Transaction struct {
 
 	Timestamp time.Time
 
-	Type      string
-	Name      string
-	Result    string
-	Duration  float64
-	Marks     TransactionMarks
-	Message   *Message
-	Sampled   *bool
-	SpanCount SpanCount
-	Page      *Page
-	HTTP      *Http
-	URL       *URL
-	Labels    *Labels
-	Custom    *Custom
+	Type           string
+	Name           string
+	Result         string
+	Outcome        string
+	Duration       float64
+	Marks          TransactionMarks
+	Message        *Message
+	Sampled        *bool
+	SpanCount      SpanCount
+	Page           *Page
+	HTTP           *Http
+	URL            *URL
+	Labels         *Labels
+	Custom         *Custom
+	UserExperience *UserExperience
 
 	Experimental interface{}
 
@@ -89,6 +91,7 @@ func (e *Transaction) fields() common.MapStr {
 	fields.maybeSetMapStr("page", e.Page.Fields())
 	fields.maybeSetMapStr("custom", e.Custom.Fields())
 	fields.maybeSetMapStr("message", e.Message.Fields())
+	fields.maybeSetMapStr("experience", e.UserExperience.Fields())
 	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
 		spanCount := common.MapStr{}
 		if e.SpanCount.Dropped != nil {
@@ -105,7 +108,7 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.Event {
+func (e *Transaction) Transform(_ context.Context, _ *transform.Config) []beat.Event {
 	transactionTransformations.Inc()
 
 	fields := common.MapStr{
@@ -134,6 +137,7 @@ func (e *Transaction) Transform(_ context.Context, _ *transform.Context) []beat.
 			utility.Set(fields, "url", e.Page.URL.Fields())
 		}
 	}
+	utility.DeepUpdate(fields, "event.outcome", e.Outcome)
 	utility.Set(fields, "experimental", e.Experimental)
 
 	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}

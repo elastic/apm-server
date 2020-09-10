@@ -78,6 +78,26 @@
             format: bytes
             description: >
               The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
+        - name: cgroup
+          type: group
+          description: Metrics and limits for the cgroup, collected by APM agents on Linux.
+          fields:
+          - name: memory
+            type: group
+            description: Memory-specific cgroup metrics and limits.
+            fields:
+            - name: mem.limit.bytes
+              type: long
+              format: bytes
+              description: Memory limit for the current cgroup slice. 
+            - name: mem.usage.bytes
+              type: long
+              format: bytes
+              description:  Memory usage by the current cgroup slice. 
+            - name: stats.inactive_file.bytes
+              type: long
+              format: bytes
+              description:  Inactive memory for the current cgroup slice. 
 
 - key: apm-transaction-metrics
   title: "APM Transaction Metrics"

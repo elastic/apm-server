@@ -17,6 +17,7 @@ grouped in the following categories:
 * <<exported-fields-apm-profile>>
 * <<exported-fields-apm-sourcemap>>
 * <<exported-fields-apm-span>>
+* <<exported-fields-apm-span-metrics-xpack>>
 * <<exported-fields-apm-transaction>>
 * <<exported-fields-apm-transaction-metrics>>
 * <<exported-fields-apm-transaction-metrics-xpack>>
@@ -387,11 +388,6 @@ type: keyword
 type: text
 
 --
-
-[float]
-=== duration
-
-None
 
 
 *`transaction.duration.count`*::
@@ -1130,6 +1126,19 @@ example: us-east1
 
 --
 
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
@@ -1273,6 +1282,28 @@ Profiling-specific data for APM.
 
 
 
+*`profile.id`*::
++
+--
+Unique ID for the profile.
+All samples within a profile will have the same profile ID.
+
+
+type: keyword
+
+--
+
+*`profile.duration`*::
++
+--
+Duration of the profile, in microseconds.
+All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+
+
+type: long
+
+--
+
 
 *`profile.cpu.ns`*::
 +
@@ -1333,16 +1364,6 @@ type: long
 +
 --
 Amount of memory allocated, in bytes, and currently in use.
-
-
-type: long
-
---
-
-*`profile.duration`*::
-+
---
-Duration of the profile, in microseconds.
 
 
 type: long
@@ -1643,17 +1664,41 @@ type: long
 
 --
 
+[[exported-fields-apm-span-metrics-xpack]]
+== APM Span Metrics fields
+
+APM span metrics are used for showing rate of requests and latency between instrumented services.
+
+
+
+*`metricset.period`*::
++
+--
+type: long
+
+--
+
+
+*`destination.service.response_time.count`*::
++
+--
+type: long
+
+--
+
+*`destination.service.response_time.sum.us`*::
++
+--
+type: long
+
+--
+
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 
 Transaction-specific data for APM
 
 
-
-[float]
-=== duration
-
-None
 
 
 *`transaction.duration.us`*::
@@ -1690,6 +1735,34 @@ type: object
 +
 --
 type: object
+
+--
+
+
+*`transaction.experience.cls`*::
++
+--
+The Cumulative Layout Shift metric
+
+type: scaled_float
+
+--
+
+*`transaction.experience.fid`*::
++
+--
+The First Input Delay metric
+
+type: scaled_float
+
+--
+
+*`transaction.experience.tbt`*::
++
+--
+The Total Blocking Time metric
+
+type: scaled_float
 
 --
 
@@ -9086,6 +9159,51 @@ format: bytes
 --
 The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
 
+
+type: long
+
+format: bytes
+
+--
+
+[float]
+=== cgroup
+
+Metrics and limits for the cgroup, collected by APM agents on Linux.
+
+
+[float]
+=== memory
+
+Memory-specific cgroup metrics and limits.
+
+
+*`system.process.cgroup.memory.mem.limit.bytes`*::
++
+--
+Memory limit for the current cgroup slice.
+
+type: long
+
+format: bytes
+
+--
+
+*`system.process.cgroup.memory.mem.usage.bytes`*::
++
+--
+Memory usage by the current cgroup slice.
+
+type: long
+
+format: bytes
+
+--
+
+*`system.process.cgroup.memory.stats.inactive_file.bytes`*::
++
+--
+Inactive memory for the current cgroup slice.
 
 type: long
 

@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model"
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -42,13 +41,16 @@ func TestDecodeSpan(t *testing.T) {
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
+	badRequestStatusCode := 400
 	instance, statement, dbType, user, link, rowsAffected := "db01", "select *", "sql", "joe", "other.db.com", 34
 	address, port := "localhost", 8080
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
+	outcome := "success"
+	httpCtx := map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url}
 	context := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag_key": 17},
-		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
+		"http": httpCtx,
 		"db": map[string]interface{}{
 			"instance": instance, "statement": statement, "type": dbType,
 			"user": user, "link": link, "rows_affected": json.Number("34")},
@@ -71,8 +73,8 @@ func TestDecodeSpan(t *testing.T) {
 		"filename": "file",
 	}}
 
-	metadata := m.Metadata{
-		Service: m.Service{Name: "foo"},
+	metadata := model.Metadata{
+		Service: model.Service{Name: "foo"},
 	}
 
 	// baseInput holds the minimal valid input. Test-specific input is added to/removed from this.
@@ -90,7 +92,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
@@ -101,6 +103,7 @@ func TestDecodeSpan(t *testing.T) {
 				ParentID:  parentID,
 				ID:        id,
 				TraceID:   traceID,
+				Outcome:   "unknown",
 			},
 		},
 		"no timestamp specified, request time + start used": {
@@ -108,7 +111,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "db", "duration": duration, "parent_id": parentID, "trace_id": traceID, "id": id,
 				"start": start,
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "db",
@@ -118,6 +121,7 @@ func TestDecodeSpan(t *testing.T) {
 				TraceID:   traceID,
 				Start:     &start,
 				Timestamp: requestTime.Add(time.Duration(start * float64(time.Millisecond))),
+				Outcome:   "unknown",
 			},
 		},
 		"event experimental=false": {
@@ -126,7 +130,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -139,6 +143,7 @@ func TestDecodeSpan(t *testing.T) {
 				ID:            id,
 				TraceID:       traceID,
 				TransactionID: transactionID,
+				Outcome:       "unknown",
 			},
 		},
 		"event experimental=true, no experimental payload": {
@@ -147,7 +152,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"foo": 123},
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -160,6 +165,7 @@ func TestDecodeSpan(t *testing.T) {
 				ID:            id,
 				TraceID:       traceID,
 				TransactionID: transactionID,
+				Outcome:       "unknown",
 			},
 			cfg: Config{Experimental: true},
 		},
@@ -169,7 +175,7 @@ func TestDecodeSpan(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceID, "transaction_id": transactionID,
 				"context": map[string]interface{}{"experimental": 123},
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:      metadata,
 				Name:          name,
 				Type:          "db",
@@ -183,16 +189,61 @@ func TestDecodeSpan(t *testing.T) {
 				TraceID:       traceID,
 				TransactionID: transactionID,
 				Experimental:  123,
+				Outcome:       "unknown",
 			},
 			cfg: Config{Experimental: true},
+		},
+		"with derived success outcome": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
+				"context": map[string]interface{}{"http": httpCtx},
+			},
+			e: &model.Span{
+				Metadata:  metadata,
+				Name:      name,
+				Type:      "db",
+				Subtype:   &subtype,
+				Action:    &action2,
+				Duration:  duration,
+				HTTP:      &model.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				Timestamp: spanTime,
+				ParentID:  parentID,
+				ID:        id,
+				TraceID:   traceID,
+				Outcome:   "success",
+			},
+		},
+		"with derived failure outcome": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "duration": duration, "parent_id": parentID,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceID,
+				"context": map[string]interface{}{"http": map[string]interface{}{"status_code": json.Number("400")}},
+			},
+			e: &model.Span{
+				Metadata:  metadata,
+				Name:      name,
+				Type:      "db",
+				Subtype:   &subtype,
+				Action:    &action2,
+				Duration:  duration,
+				HTTP:      &model.HTTP{StatusCode: &badRequestStatusCode},
+				Timestamp: spanTime,
+				ParentID:  parentID,
+				ID:        id,
+				TraceID:   traceID,
+				Outcome:   "failure",
+			},
 		},
 		"full valid payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "messaging", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentID, "trace_id": traceID, "transaction_id": transactionID,
+				"outcome":     outcome,
+				"sample_rate": 0.2,
 			},
-			e: &m.Span{
+			e: &model.Span{
 				Metadata:  metadata,
 				Name:      name,
 				Type:      "messaging",
@@ -201,16 +252,18 @@ func TestDecodeSpan(t *testing.T) {
 				Start:     &start,
 				Duration:  duration,
 				Timestamp: spanTime,
-				Stacktrace: m.Stacktrace{
-					&m.StacktraceFrame{Filename: tests.StringPtr("file")},
+				Outcome:   outcome,
+				Stacktrace: model.Stacktrace{
+					&model.StacktraceFrame{Filename: tests.StringPtr("file")},
 				},
-				Labels:        common.MapStr{"a": "tag", "tag_key": 17},
-				ID:            id,
-				TraceID:       traceID,
-				ParentID:      parentID,
-				TransactionID: transactionID,
-				HTTP:          &m.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
-				DB: &m.DB{
+				Labels:              common.MapStr{"a": "tag", "tag_key": 17},
+				ID:                  id,
+				TraceID:             traceID,
+				ParentID:            parentID,
+				TransactionID:       transactionID,
+				RepresentativeCount: 5,
+				HTTP:                &model.HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				DB: &model.DB{
 					Instance:     &instance,
 					Statement:    &statement,
 					Type:         &dbType,
@@ -218,13 +271,13 @@ func TestDecodeSpan(t *testing.T) {
 					Link:         &link,
 					RowsAffected: &rowsAffected,
 				},
-				Destination: &m.Destination{Address: &address, Port: &port},
-				DestinationService: &m.DestinationService{
+				Destination: &model.Destination{Address: &address, Port: &port},
+				DestinationService: &model.DestinationService{
 					Type:     &destServiceType,
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Message: &m.Message{
+				Message: &model.Message{
 					QueueName: tests.StringPtr("foo"),
 					AgeMillis: tests.IntPtr(1577958057123)},
 			},
@@ -295,6 +348,10 @@ func TestDecodeSpanInvalid(t *testing.T) {
 		"negative duration": {
 			input: map[string]interface{}{"duration": -1.0},
 			err:   "duration.*must be >= 0 but found -1",
+		},
+		"invalid outcome": {
+			input: map[string]interface{}{"outcome": `¯\_(ツ)_/¯`},
+			err:   `outcome.*must be one of <nil>, "success", "failure", "unknown"`,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

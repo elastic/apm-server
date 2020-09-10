@@ -44,6 +44,10 @@ type tracerServer struct {
 }
 
 func newTracerServer(cfg *config.Config, listener net.Listener) *tracerServer {
+	if listener == nil {
+		return nil
+	}
+
 	cfgCopy := *cfg // Copy cfg so we can disable auth
 	cfg = &cfgCopy
 	cfg.SecretToken = ""

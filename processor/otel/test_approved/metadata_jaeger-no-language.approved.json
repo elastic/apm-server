@@ -1,10 +1,13 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-16T12:46:58.000768068Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "3.4.12"
+            },
+            "event": {
+                "outcome": "success"
             },
             "processor": {
                 "event": "transaction",

@@ -34,6 +34,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "success"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -146,6 +149,9 @@
             "container": {
                 "id": "container-id"
             },
+            "event": {
+                "outcome": "unknown"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -231,7 +237,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.001845Z",
+            "@timestamp": "2018-08-01T10:00:00.001Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -258,6 +264,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -348,7 +357,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -375,6 +384,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",
@@ -461,7 +473,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00.00283092Z",
+            "@timestamp": "2018-08-01T10:00:00.002Z",
             "agent": {
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
@@ -494,6 +506,9 @@
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1",
                 "port": 5432
+            },
+            "event": {
+                "outcome": "success"
             },
             "host": {
                 "architecture": "x64",
@@ -689,6 +704,9 @@
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1"
+            },
+            "event": {
+                "outcome": "unknown"
             },
             "host": {
                 "architecture": "x64",

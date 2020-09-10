@@ -35,6 +35,7 @@ func TestTransform(t *testing.T) {
 	metadata := Metadata{
 		Service: Service{Name: "myservice"},
 	}
+	resource := "external-service"
 
 	const (
 		trType   = "request"
@@ -43,6 +44,8 @@ func TestTransform(t *testing.T) {
 
 		spType    = "db"
 		spSubtype = "sql"
+
+		eventOutcome = "success"
 	)
 
 	tests := []struct {
@@ -108,6 +111,28 @@ func TestTransform(t *testing.T) {
 		{
 			Metricset: &Metricset{
 				Metadata:  metadata,
+				Timestamp: timestamp,
+				Samples: []Sample{{
+					Name:  "metric_field",
+					Value: 123,
+				}},
+				Event: MetricsetEventCategorization{
+					Outcome: eventOutcome,
+				},
+			},
+			Output: []common.MapStr{
+				{
+					"processor":    common.MapStr{"event": "metric", "name": "metric"},
+					"service":      common.MapStr{"name": "myservice"},
+					"event":        common.MapStr{"outcome": eventOutcome},
+					"metric_field": 123.0,
+				},
+			},
+			Msg: "Payload with event categorization metadata.",
+		},
+		{
+			Metricset: &Metricset{
+				Metadata:  metadata,
 				Labels:    common.MapStr{"a.b": "a.b.value"},
 				Timestamp: timestamp,
 				Samples: []Sample{
@@ -149,11 +174,44 @@ func TestTransform(t *testing.T) {
 			},
 			Msg: "Payload with valid metric.",
 		},
+		{
+			Metricset: &Metricset{
+				Timestamp: timestamp,
+				Metadata:  metadata,
+				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
+					Resource: &resource,
+				}},
+				Samples: []Sample{
+					{
+						Name:  "destination.service.response_time.count",
+						Value: 40,
+					},
+					{
+						Name:  "destination.service.response_time.sum.us",
+						Value: 500000,
+					},
+				},
+			},
+			Output: []common.MapStr{
+				{
+					"processor": common.MapStr{"event": "metric", "name": "metric"},
+					"service":   common.MapStr{"name": "myservice"},
+					"span": common.MapStr{"type": spType, "subtype": spSubtype,
+						"destination": common.MapStr{"service": common.MapStr{"resource": resource}}},
+					"destination": common.MapStr{"service": common.MapStr{"response_time": common.MapStr{
+						"count": 40.0,
+						"sum":   common.MapStr{"us": 500000.0},
+					},
+					},
+					},
+				},
+			},
+			Msg: "Payload with destination service.",
+		},
 	}
 
-	tctx := &transform.Context{}
 	for idx, test := range tests {
-		outputEvents := test.Metricset.Transform(context.Background(), tctx)
+		outputEvents := test.Metricset.Transform(context.Background(), &transform.Config{})
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
