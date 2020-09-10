@@ -10,6 +10,7 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 ==== Bug fixes
 
 * Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
+* Add mapping for `system.process.cgroup.*` metrics {pull}[4176]4176
 
 [float]
 ==== Intake API Changes
