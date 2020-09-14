@@ -39,8 +39,11 @@ The default value is `[TLSv1.1, TLSv1.2, TLSv1.3]`.
 ==== `cipher_suites`
 
 The list of cipher suites to use. The first entry has the highest priority.
-If this option is omitted, the Go crypto library's default
-suites are used (recommended).
+If this option is omitted, the Go crypto library's https://golang.org/pkg/crypto/tls/[default suites]
+are used (recommended). Note that TLS 1.3 cipher suites are not
+individually configurable in Go, so they are not included in this list.
+
+include::{libbeat-dir}/shared-ssl-config.asciidoc[tag=cipher_suites]
 
 [float]
 ==== `curve_types`
