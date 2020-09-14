@@ -88,14 +88,20 @@ func TestConsumer_Metadata(t *testing.T) {
 				Identifier: &commonpb.ProcessIdentifier{
 					HostName:       "host-foo",
 					Pid:            107892,
-					StartTimestamp: testStartTime()},
+					StartTimestamp: testStartTime(),
+				},
 				LibraryInfo: &commonpb.LibraryInfo{ExporterVersion: "Jaeger-C++-3.2.1"},
 				ServiceInfo: &commonpb.ServiceInfo{Name: "foo"},
-				Attributes:  map[string]string{"client-uuid": "xxf0", "ip": "17.0.10.123", "foo": "bar"},
+				Attributes: map[string]string{
+					"client-uuid": "xxf0",
+					"ip":          "17.0.10.123",
+					"foo":         "bar",
+					"peer.port":   "80",
+				},
 			},
 			Resource: &resourcepb.Resource{
 				Type:   "request",
-				Labels: map[string]string{"a": "b", "c": "d"},
+				Labels: map[string]string{"a": "b", "c": "d", "e.f": "g"},
 			},
 		},
 	}, {
