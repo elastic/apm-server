@@ -236,7 +236,7 @@ func TestDecodeMetadataInvalid(t *testing.T) {
 	// baseInput holds the minimal valid input. Test-specific input is added to this.
 	baseInput := map[string]interface{}{
 		"service": map[string]interface{}{
-			"agent": map[string]interface{}{},
+			"agent": map[string]interface{}{"name": "go", "version": "1.0.0"},
 			"name":  "name",
 		},
 	}

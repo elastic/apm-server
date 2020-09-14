@@ -137,7 +137,7 @@ func TestHandler(t *testing.T) {
 				part{
 					name:        "metadata",
 					contentType: "application/json",
-					body:        strings.NewReader(`{"service":{"name":"foo","agent":{}}}`),
+					body:        strings.NewReader(`{"service":{"name":"foo","agent":{"name":"go","version":"1.0"}}}`),
 				},
 			},
 			body:    prettyJSON(map[string]interface{}{"accepted": 2}),
