@@ -134,6 +134,62 @@
                 "id": "axb123hg",
                 "name": "logged-in-user"
             }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:41.366Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "host": {
+                "ip": "192.0.0.1"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "system": {
+                "process": {
+                    "cgroup": {
+                        "memory": {
+                            "mem": {
+                                "limit": {
+                                    "bytes": 2048
+                                },
+                                "usage": {
+                                    "bytes": 1024
+                                }
+                            },
+                            "stats": {
+                                "inactive_file": {
+                                    "bytes": 48
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
         }
     ]
 }
