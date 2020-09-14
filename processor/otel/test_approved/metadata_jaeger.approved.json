@@ -15,7 +15,9 @@
             "labels": {
                 "a": "b",
                 "c": "d",
+                "e_f": "g",
                 "foo": "bar",
+                "peer_port": "80",
                 "resource": "request"
             },
             "process": {
