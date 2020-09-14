@@ -115,9 +115,13 @@ func CleanupElasticsearch(t testing.TB) {
 	}
 
 	// Delete the ILM policy last or we'll get an error due to it being in use.
-	err := doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"})
-	if err != nil {
-		t.Fatal(err)
+	for {
+		err := doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"})
+		if err == nil {
+			break
+		}
+		// Retry deleting, in case indices are still being deleted.
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
