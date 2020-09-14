@@ -21,115 +21,167 @@ const ModelSchema = `{
     "$id": "docs/spec/metadata.json",
     "title": "Metadata",
     "description": "Metadata concerning the other objects in the stream.",
-    "type": ["object"],
+    "type": "object",
     "properties": {
         "service": {
-                "$id": "docs/spec/service.json",
-    "title": "Service",
-    "type": ["object", "null"],
-    "properties": {
-        "agent": {
-            "description": "Name and version of the Elastic APM agent",
-            "type": ["object", "null"],
+            "type": [
+                "object"
+            ],
             "properties": {
+                "agent": {
+                    "description": "Name and version of the Elastic APM agent",
+                    "type": [
+                        "object"
+                    ],
+                    "properties": {
+                        "name": {
+                            "description": "Name of the Elastic APM agent, e.g. \"Python\"",
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024,
+                            "minLength": 1
+                        },
+                        "version": {
+                            "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "ephemeral_id": {
+                            "description": "Free format ID used for metrics correlation by some agents",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "version"
+                    ]
+                },
+                "framework": {
+                    "description": "Name and version of the web framework used",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "version": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    }
+                },
+                "language": {
+                    "description": "Name and version of the programming language used",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "version": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "name"
+                    ]
+                },
                 "name": {
-                    "description": "Name of the Elastic APM agent, e.g. \"Python\"",
-                    "type": ["string", "null"],
+                    "description": "Immutable name of the service emitting this event",
+                    "type": [
+                        "string"
+                    ],
+                    "pattern": "^[a-zA-Z0-9 _-]+$",
+                    "maxLength": 1024,
+                    "minLength": 1
+                },
+                "environment": {
+                    "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
+                },
+                "runtime": {
+                    "description": "Name and version of the language runtime running this service",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "version": {
+                            "type": [
+                                "string"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "version"
+                    ]
                 },
                 "version": {
-                    "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
-                    "type": ["string", "null"],
+                    "description": "Version of the service emitting this event",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "ephemeral_id": {
-                    "description": "Free format ID used for metrics correlation by some agents",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
+                "node": {
+                    "description": "Unique meaningful name of the service node.",
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "configured_name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    }
                 }
-            }
-        },
-        "framework": {
-            "description": "Name and version of the web framework used",
-            "type": ["object", "null"],
-            "properties": {
-                "name": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "version": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                }
-            }
-        },
-        "language": {
-            "description": "Name and version of the programming language used",
-            "type": ["object", "null"],
-            "properties": {
-                "name": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "version": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                }
-            }
-        },
-        "name": {
-            "description": "Immutable name of the service emitting this event",
-            "type": ["string", "null"],
-            "pattern": "^[a-zA-Z0-9 _-]+$",
-            "maxLength": 1024
-        },
-        "environment": {
-            "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
-        "runtime": {
-            "description": "Name and version of the language runtime running this service",
-            "type": ["object", "null"],
-            "properties": {
-                "name": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "version": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                }
-            }
-        },
-        "version": {
-            "description": "Version of the service emitting this event",
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
-        "node": {
-            "description": "Unique meaningful name of the service node.",
-            "type": ["object", "null"],
-            "properties": {
-                "configured_name": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                }
-            }
-        }
-    },
-            "type": "object",
-            "required": ["name", "agent"],
-            "properties.name.type": "string",
-            "properties.agent.type": "string",
-            "properties.agent.required": ["name", "version"],
-            "properties.agent.properties.name.type": "string",
-            "properties.agent.properties.version.type": "string",
-            "properties.runtime.required": ["name", "version"],
-            "properties.runtime.properties.name.type": "string",
-            "properties.runtime.properties.version.type": "string",
-            "properties.language.required": ["name"],
-            "properties.language.properties.name.type": "string"
+            },
+            "required": [
+                "name",
+                "agent"
+            ]
         },
         "process": {
               "$id": "docs/spec/process.json",
@@ -256,80 +308,114 @@ const ModelSchema = `{
         }
     }
         },
-	"cloud": {
+        "cloud": {
                 "$id": "docs/spec/cloud.json",
     "title": "Cloud",
-    "type": ["object", "null"],
+    "type": [
+        "object",
+        "null"
+    ],
     "properties": {
         "account": {
             "properties": {
-                "id" : {
+                "id": {
                     "description": "Cloud account ID",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "name" : {
+                "name": {
                     "description": "Cloud account name",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "availability_zone": {
             "description": "Cloud availability zone name. e.g. us-east-1a",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         },
         "instance": {
             "properties": {
-                "id" : {
+                "id": {
                     "description": "Cloud instance/machine ID",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "name" : {
+                "name": {
                     "description": "Cloud instance/machine name",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "machine": {
             "properties": {
-                "type" : {
+                "type": {
                     "description": "Cloud instance/machine type",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "project": {
             "properties": {
-                "id" : {
+                "id": {
                     "description": "Cloud project ID",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "name" : {
+                "name": {
                     "description": "Cloud project name",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "provider": {
             "description": "Cloud provider name. e.g. aws, azure, gcp, digitalocean.",
-            "type": ["string", "null"],
+            "type": [
+                "string"
+            ],
             "maxLength": 1024
         },
         "region": {
             "description": "Cloud region name. e.g. us-east-1",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         }
     },
-    "required": ["provider"]
-	},
+    "required": [
+        "provider"
+    ]
+        },
         "labels": {
                 "$id": "docs/spec/tags.json",
     "title": "Tags",
@@ -344,6 +430,7 @@ const ModelSchema = `{
     "additionalProperties": false
         }
     },
-    "required": ["service"]
-}
-`
+    "required": [
+        "service"
+    ]
+}`
