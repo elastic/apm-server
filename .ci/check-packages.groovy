@@ -57,8 +57,6 @@ pipeline {
           stage('Test'){
             options { skipDefaultCheckout() }
             steps {
-              // See https://stackoverflow.com/questions/59269208/errorrootcode-for-hash-md5-was-not-found-when-using-any-hg-mercurial-command
-              sh(label: "Switching OpenSSL versions to fix Py2", script: "brew switch openssl 1.0.2s")
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
