@@ -26,24 +26,26 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-var metadataRootPool = sync.Pool{
-	New: func() interface{} {
-		return &metadataRoot{}
-	},
-}
-var transactionRootPool = sync.Pool{
-	New: func() interface{} {
-		return &transactionRoot{}
-	},
-}
+var (
+	metadataRootPool = sync.Pool{
+		New: func() interface{} {
+			return &metadataRoot{}
+		},
+	}
+
+	transactionRootPool = sync.Pool{
+		New: func() interface{} {
+			return &transactionRoot{}
+		},
+	}
+)
 
 func fetchMetadataRoot() *metadataRoot {
 	return metadataRootPool.Get().(*metadataRoot)
@@ -67,8 +69,7 @@ func releaseTransactionRoot(m *transactionRoot) {
 // then runs the defined validations on the input model
 // and finally maps the values fom the input model to the given *model.Transaction instance
 //
-// DecodeNestedTransaction should be used when the underlying byte stream does not contain the
-// `transaction` key, but only the transaction data.
+// DecodeNestedTransaction should be used when the decoder contains the `transaction` key
 func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *model.Transaction) error {
 	root := fetchTransactionRoot()
 	defer releaseTransactionRoot(root)
@@ -343,7 +344,7 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 	// this is aligned with current logic
 	if out.Metadata.Client.IP == nil {
 		// http.Request.Headers and http.Request.Socket information is
-		// only set for backend events try to first extract an IP address
+		// only set for backend events; try to first extract an IP address
 		// from the headers, if not possible use IP address from socket remote_address
 		if ip := utility.ExtractIPFromHeader(t.Context.Request.Headers.Val); ip != nil {
 			out.Metadata.Client.IP = ip
@@ -398,7 +399,6 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 	if t.Result.IsSet() {
 		out.Result = t.Result.Val
 	}
-
 	out.Sampled = true
 	if t.Sampled.IsSet() {
 		out.Sampled = t.Sampled.Val
@@ -407,9 +407,7 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 	// TODO(simitt): set accordingly, once this is fixed:
 	// https://github.com/elastic/apm-server/issues/4188
 	if t.SampleRate.IsSet() {
-
 	}
-
 	if t.SpanCount.Dropped.IsSet() {
 		dropped := t.SpanCount.Dropped.Val
 		out.SpanCount.Dropped = &dropped
@@ -581,7 +579,6 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 				out.Message.QueueName = &val
 			}
 		}
-
 	}
 	if experimental {
 		out.Experimental = t.Experimental.Val

@@ -18,12 +18,22 @@
 package rumv3
 
 import (
+	"fmt"
+	"net"
+	"net/http"
+	"reflect"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 func TestTransactionSetResetIsSet(t *testing.T) {
@@ -33,6 +43,153 @@ func TestTransactionSetResetIsSet(t *testing.T) {
 	// call Reset and ensure initial state, except for array capacity
 	tRoot.Reset()
 	assert.False(t, tRoot.IsSet())
+}
+
+func TestResetTransactionOnRelease(t *testing.T) {
+	inp := `{"x":{"n":"tr-a"}}`
+	tr := fetchTransactionRoot()
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(tr))
+	require.True(t, tr.IsSet())
+	releaseTransactionRoot(tr)
+	assert.False(t, tr.IsSet())
+}
+func TestDecodeNestedTransaction(t *testing.T) {
+	t.Run("decode", func(t *testing.T) {
+		now := time.Now()
+		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: true}}
+		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"exper":"test"}}`
+		dec := decoder.NewJSONDecoder(strings.NewReader(str))
+		var out model.Transaction
+		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
+		assert.Equal(t, "request", out.Type)
+		assert.Equal(t, "test", out.Experimental)
+		// fall back to request time
+		assert.Equal(t, now, out.Timestamp)
+
+		// experimental should only be set if allowed by configuration
+		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
+		dec = decoder.NewJSONDecoder(strings.NewReader(str))
+		out = model.Transaction{}
+		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
+		assert.Nil(t, out.Experimental)
+
+		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "decode")
+	})
+
+	t.Run("validate", func(t *testing.T) {
+		var out model.Transaction
+		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "validation")
+	})
+}
+func TestDecodeMapToTransactionModel(t *testing.T) {
+	localhostIP := net.ParseIP("127.0.0.1")
+	gatewayIP := net.ParseIP("192.168.0.1")
+	exceptions := func(key string) bool {
+		// values not set for rumV3:
+		for _, k := range []string{"Cloud", "System", "Process"} {
+			if strings.HasPrefix(key, k) {
+				return true
+			}
+		}
+		for _, k := range []string{"Service.Agent.EphemeralID", "Service.Node.Name",
+			"Agent.EphemeralID", "Node.Name",
+			"RepresentativeCount"} {
+			if k == key {
+				return true
+			}
+		}
+		return false
+	}
+
+	initializedMeta := func() *model.Metadata {
+		var inputMeta metadata
+		var meta model.Metadata
+		modeldecodertest.SetStructValues(&inputMeta, "meta", 1, false)
+		mapToMetadataModel(&inputMeta, &meta)
+		// initialize values that are not set by input
+		meta.UserAgent = model.UserAgent{Name: "meta", Original: "meta"}
+		meta.Client.IP = localhostIP
+		return &meta
+	}
+
+	t.Run("set-metadata", func(t *testing.T) {
+		// do not overwrite metadata with zero transaction values
+		var inputTr transaction
+		var tr model.Transaction
+		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
+		// iterate through metadata model and assert values are set
+		assertStructValues(t, &tr.Metadata, exceptions, "meta", 1, false, localhostIP)
+	})
+
+	t.Run("overwrite-metadata", func(t *testing.T) {
+		// overwrite defined metadata with transaction metadata values
+		var inputTr transaction
+		var tr model.Transaction
+		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, false)
+		inputTr.Context.Request.Headers.Val.Add("user-agent", "first")
+		inputTr.Context.Request.Headers.Val.Add("user-agent", "second")
+		inputTr.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
+		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
+
+		// user-agent should be set to context request header values
+		assert.Equal(t, "first, second", tr.Metadata.UserAgent.Original)
+		// do not overwrite client.ip if already set in metadata
+		assert.Equal(t, localhostIP, tr.Metadata.Client.IP, tr.Metadata.Client.IP.String())
+		// metadata labels and transaction labels should not be merged
+		assert.Equal(t, common.MapStr{"meta": "meta"}, tr.Metadata.Labels)
+		assert.Equal(t, &model.Labels{"overwritten": "overwritten"}, tr.Labels)
+		// service values should be set
+		assertStructValues(t, &tr.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP)
+		// user values should be set
+		assertStructValues(t, &tr.Metadata.User, exceptions, "overwritten", 100, true, localhostIP)
+	})
+
+	t.Run("overwrite-user", func(t *testing.T) {
+		// user should be populated by metadata or event specific, but not merged
+		var inputTr transaction
+		var tr model.Transaction
+		inputTr.Context.User.Email.Set("test@user.com")
+		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), false, &tr)
+		assert.Equal(t, "test@user.com", tr.Metadata.User.Email)
+		assert.Zero(t, tr.Metadata.User.ID)
+		assert.Zero(t, tr.Metadata.User.Name)
+	})
+
+	t.Run("other-transaction-values", func(t *testing.T) {
+		exceptions := func(key string) bool {
+			// metadata are tested separately
+			// URL parts are derived from url (separately tested)
+			// exclude attributes that are not set for RUM
+			if strings.HasPrefix(key, "Metadata") || strings.HasPrefix(key, "Page.URL") ||
+				key == "HTTP.Request.Body" || key == "HTTP.Request.Cookies" ||
+				key == "HTTP.Response.HeadersSent" || key == "HTTP.Response.Finished" ||
+				key == "Experimental" || key == "RepresentativeCount" {
+				return true
+			}
+			return false
+		}
+
+		var inputTr transaction
+		var tr model.Transaction
+		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, true)
+		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
+		assertStructValues(t, &tr, exceptions, "overwritten", 5000, true, localhostIP)
+	})
+
+	t.Run("page.URL", func(t *testing.T) {
+		var inputTr transaction
+		inputTr.Context.Page.URL.Set("https://my.site.test:9201")
+		var tr model.Transaction
+		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), false, &tr)
+		assert.Equal(t, "https://my.site.test:9201", *tr.Page.URL.Full)
+		assert.Equal(t, 9201, *tr.Page.URL.Port)
+		assert.Equal(t, "https", *tr.Page.URL.Scheme)
+	})
+
 }
 
 func TestTransactionValidationRules(t *testing.T) {
@@ -180,5 +337,68 @@ func TestTransactionValidationRules(t *testing.T) {
 				assert.NoError(t, err, key)
 			}
 		})
+	})
+}
+
+//TODO(simitt): move
+func assertStructValues(t *testing.T, i interface{}, isException func(string) bool,
+	vStr string, vInt int, vBool bool, vIP net.IP) {
+	modeldecodertest.IterateStruct(i, func(f reflect.Value, key string) {
+		if isException(key) {
+			return
+		}
+		fVal := f.Interface()
+		var newVal interface{}
+		switch fVal.(type) {
+		case map[string]interface{}:
+			newVal = map[string]interface{}{vStr: vStr}
+		case common.MapStr:
+			newVal = common.MapStr{vStr: vStr}
+		case *model.Labels:
+			newVal = &model.Labels{vStr: vStr}
+		case *model.Custom:
+			newVal = &model.Custom{vStr: vStr}
+		case model.TransactionMarks:
+			newVal = model.TransactionMarks{vStr: model.TransactionMark{vStr: float64(vInt) + 0.5}}
+		case []string:
+			newVal = []string{vStr}
+		case []int:
+			newVal = []int{vInt, vInt}
+		case string:
+			newVal = vStr
+		case *string:
+			newVal = &vStr
+		case int:
+			newVal = vInt
+		case *int:
+			newVal = &vInt
+		case float64:
+			newVal = float64(vInt) + 0.5
+		case *float64:
+			val := float64(vInt) + 0.5
+			newVal = &val
+		case net.IP:
+			newVal = vIP
+		case bool:
+			newVal = vBool
+		case *bool:
+			newVal = &vBool
+		case http.Header:
+			newVal = http.Header{vStr: []string{vStr, vStr}}
+		default:
+			// the populator recursively iterates over struct and structPtr
+			// calling this function for all fields;
+			// it is enough to only assert they are not zero here
+			if f.Type().Kind() == reflect.Struct {
+				assert.NotZero(t, f, key)
+				return
+			}
+			if f.Type().Kind() == reflect.Ptr && f.Type().Elem().Kind() == reflect.Struct {
+				assert.NotZero(t, f, key)
+				return
+			}
+			panic(fmt.Sprintf("unhandled type %T for key %s", f.Type().Kind(), key))
+		}
+		assert.Equal(t, newVal, fVal, key)
 	})
 }

@@ -41,15 +41,13 @@ var (
 )
 
 func main() {
-	genV2Metadata()
-	genRUMV3Metadata()
-	genV2Transaction()
-	genRUMV3Transaction()
+	genV2()
+	genRUMV3()
 }
 
-func genV2Metadata() {
-	rootObjs := []string{"metadataRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "metadata_generated.go")
+func genV2() {
+	rootObjs := []string{"metadataRoot", "transactionRoot"}
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
 	if err != nil {
 		panic(err)
@@ -57,29 +55,9 @@ func genV2Metadata() {
 	generate(gen, out)
 }
 
-func genV2Transaction() {
-	rootObjs := []string{"transactionRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "transaction_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
-	if err != nil {
-		panic(err)
-	}
-	generate(gen, out)
-}
-
-func genRUMV3Metadata() {
-	rootObjs := []string{"metadataRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "metadata_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkgV3RUM, typPath, rootObjs)
-	if err != nil {
-		panic(err)
-	}
-	generate(gen, out)
-}
-
-func genRUMV3Transaction() {
-	rootObjs := []string{"transactionRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "transaction_generated.go")
+func genRUMV3() {
+	rootObjs := []string{"metadataRoot", "transactionRoot"}
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkgV3RUM, typPath, rootObjs)
 	if err != nil {
 		panic(err)

@@ -20,14 +20,21 @@ package v2
 import (
 	"fmt"
 	"io"
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 type testcase struct {
@@ -59,7 +66,7 @@ func TestMetadataSetResetIsSet(t *testing.T) {
 	assert.Equal(t, metadataCloud{}, m.Metadata.Cloud)
 	assert.Equal(t, metadataService{}, m.Metadata.Service)
 	assert.Equal(t, metadataSystem{}, m.Metadata.System)
-	assert.Equal(t, metadataUser{}, m.Metadata.User)
+	assert.Equal(t, user{}, m.Metadata.User)
 	assert.Empty(t, m.Metadata.Labels)
 	assert.Empty(t, m.Metadata.Process.Pid)
 	assert.Empty(t, m.Metadata.Process.Ppid)
@@ -69,6 +76,84 @@ func TestMetadataSetResetIsSet(t *testing.T) {
 	assert.Greater(t, cap(m.Metadata.Process.Argv), 0)
 }
 
+func TestResetMetadataOnRelease(t *testing.T) {
+	inp := `{"metadata":{"service":{"name":"service-a"}}}`
+	m := fetchMetadataRoot()
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(m))
+	require.True(t, m.IsSet())
+	releaseMetadataRoot(m)
+	assert.False(t, m.IsSet())
+}
+
+func TestDecodeMetadata(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		input    string
+		decodeFn func(decoder.Decoder, *model.Metadata) error
+	}{
+		{name: "decodeMetadata", decodeFn: DecodeMetadata,
+			input: `{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}`},
+		{name: "decodeNestedMetadata", decodeFn: DecodeNestedMetadata,
+			input: `{"metadata":{"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}}`},
+	} {
+		t.Run("decode", func(t *testing.T) {
+			var out model.Metadata
+			dec := decoder.NewJSONDecoder(strings.NewReader(tc.input))
+			require.NoError(t, tc.decodeFn(dec, &out))
+			assert.Equal(t, model.Metadata{Service: model.Service{
+				Name:  "user-service",
+				Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
+
+			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "decode")
+		})
+
+		t.Run("validate", func(t *testing.T) {
+			inp := `{}`
+			var out model.Metadata
+			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(inp)), &out)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "validation")
+		})
+	}
+}
+
+func TestDecodeMapToMetadataModel(t *testing.T) {
+	// setup:
+	// create initialized modeldecoder and empty model metadata
+	// map modeldecoder to model metadata and manually set
+	// enhanced data that are never set by the modeldecoder
+	var m metadata
+	modeldecodertest.SetStructValues(&m, "init", 5000, false)
+	var modelM model.Metadata
+	ip := net.ParseIP("127.0.0.1")
+	modelM.System.IP, modelM.Client.IP = ip, ip
+	mapToMetadataModel(&m, &modelM)
+
+	exceptions := func(key string) bool {
+		if strings.HasPrefix(key, "UserAgent") {
+			// these values are not set by modeldecoder
+			return true
+		}
+		return false
+	}
+
+	// iterate through model and assert values are set
+	assertStructValues(t, &modelM, exceptions, "init", 5000, false, ip)
+
+	// overwrite model metadata with specified Values
+	// then iterate through model and assert values are overwritten
+	modeldecodertest.SetStructValues(&m, "overwritten", 12, true)
+	mapToMetadataModel(&m, &modelM)
+	assertStructValues(t, &modelM, exceptions, "overwritten", 12, true, ip)
+
+	// map an empty modeldecoder metadata to the model
+	// and assert values are unchanged
+	modeldecodertest.SetZeroStructValues(&m)
+	mapToMetadataModel(&m, &modelM)
+	assertStructValues(t, &modelM, exceptions, "overwritten", 12, true, ip)
+}
 func TestMetadataValidationRules(t *testing.T) {
 	testMetadata := func(t *testing.T, key string, tc testcase) {
 		var m metadata
@@ -175,5 +260,67 @@ func TestMetadataValidationRules(t *testing.T) {
 				assert.NoError(t, err, key)
 			}
 		})
+	})
+}
+
+func assertStructValues(t *testing.T, i interface{}, isException func(string) bool,
+	vStr string, vInt int, vBool bool, vIP net.IP) {
+	modeldecodertest.IterateStruct(i, func(f reflect.Value, key string) {
+		if isException(key) {
+			return
+		}
+		fVal := f.Interface()
+		var newVal interface{}
+		switch fVal.(type) {
+		case map[string]interface{}:
+			newVal = map[string]interface{}{vStr: vStr}
+		case common.MapStr:
+			newVal = common.MapStr{vStr: vStr}
+		case *model.Labels:
+			newVal = &model.Labels{vStr: vStr}
+		case *model.Custom:
+			newVal = &model.Custom{vStr: vStr}
+		case model.TransactionMarks:
+			newVal = model.TransactionMarks{vStr: model.TransactionMark{vStr: float64(vInt) + 0.5}}
+		case []string:
+			newVal = []string{vStr}
+		case []int:
+			newVal = []int{vInt, vInt}
+		case string:
+			newVal = vStr
+		case *string:
+			newVal = &vStr
+		case int:
+			newVal = vInt
+		case *int:
+			newVal = &vInt
+		case float64:
+			newVal = float64(vInt) + 0.5
+		case *float64:
+			val := float64(vInt) + 0.5
+			newVal = &val
+		case net.IP:
+			newVal = vIP
+		case bool:
+			newVal = vBool
+		case *bool:
+			newVal = &vBool
+		case http.Header:
+			newVal = http.Header{vStr: []string{vStr, vStr}}
+		default:
+			// the populator recursively iterates over struct and structPtr
+			// calling this function for all fields;
+			// it is enough to only assert they are not zero here
+			if f.Type().Kind() == reflect.Struct {
+				assert.NotZero(t, f, key)
+				return
+			}
+			if f.Type().Kind() == reflect.Ptr && f.Type().Elem().Kind() == reflect.Struct {
+				assert.NotZero(t, f, key)
+				return
+			}
+			panic(fmt.Sprintf("unhandled type %T for key %s", f.Type().Kind(), key))
+		}
+		assert.Equal(t, newVal, fVal, key)
 	})
 }
