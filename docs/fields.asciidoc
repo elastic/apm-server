@@ -1679,14 +1679,15 @@ type: long
 --
 
 
-*`destination.service.response_time.count`*::
+
+*`span.destination.service.response_time.count`*::
 +
 --
 type: long
 
 --
 
-*`destination.service.response_time.sum.us`*::
+*`span.destination.service.response_time.sum.us`*::
 +
 --
 type: long

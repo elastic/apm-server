@@ -26,11 +26,15 @@
   fields:
     - name: metricset.period
       type: long
-    - name: destination.service
+    - name: span
       type: group
       dynamic: false
       fields:
-        - name: response_time.count
-          type: long
-        - name: response_time.sum.us
-          type: long
+      - name: destination.service
+        type: group
+        dynamic: false
+        fields:
+          - name: response_time.count
+            type: long
+          - name: response_time.sum.us
+            type: long
