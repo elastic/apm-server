@@ -19,24 +19,32 @@ package modeldecodertest
 
 import (
 	"fmt"
+	"net"
+	"net/http"
 	"reflect"
 	"strings"
+	"testing"
+	"time"
 
-	"github.com/elastic/apm-server/model/modeldecoder/nullable"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/beats/v7/libbeat/common"
+
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
 
 // InitStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with
 // some arbitrary value.
 func InitStructValues(i interface{}) {
-	SetStructValues(i, "initialized", 1)
+	SetStructValues(i, "unknown", 1, true)
 }
 
 // SetStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with
 // the given values for strings and integers.
-func SetStructValues(in interface{}, vStr string, vInt int) {
+func SetStructValues(in interface{}, vStr string, vInt int, vBool bool) {
 	IterateStruct(in, func(f reflect.Value, key string) {
 		var newVal interface{}
 		switch v := f.Interface().(type) {
@@ -44,6 +52,9 @@ func SetStructValues(in interface{}, vStr string, vInt int) {
 			newVal = map[string]interface{}{vStr: vStr}
 		case common.MapStr:
 			newVal = common.MapStr{vStr: vStr}
+		case map[string]map[string]float64:
+			newVal = map[string]map[string]float64{
+				vStr: map[string]float64{vStr: float64(vInt) + 0.5}}
 		case []string:
 			newVal = []string{vStr}
 		case []int:
@@ -55,9 +66,27 @@ func SetStructValues(in interface{}, vStr string, vInt int) {
 			v.Set(vInt)
 			newVal = v
 		case nullable.Interface:
-			v.Set(vStr)
+			if strings.Contains(key, "port") {
+				v.Set(vInt)
+			} else {
+				v.Set(vStr)
+			}
+			newVal = v
+		case nullable.Bool:
+			v.Set(vBool)
+			newVal = v
+		case nullable.Float64:
+			v.Set(float64(vInt) + 0.5)
+			newVal = v
+		case nullable.TimeMicrosUnix:
+			v.Set(time.Now())
+			newVal = v
+		case nullable.HTTPHeader:
+			v.Set(http.Header{vStr: []string{vStr, vStr}})
 			newVal = v
 		default:
+			// IterateStruct recursively iterates over struct fields,
+			// therefore we can return for the struct itself.
 			if f.Type().Kind() == reflect.Struct {
 				return
 			}
@@ -84,6 +113,70 @@ func SetZeroStructValue(i interface{}, callback func(string)) {
 		defer f.Set(original) // reset original value
 		f.Set(reflect.Zero(f.Type()))
 		callback(key)
+	})
+}
+
+// AssertStructValues recursively walks through the given struct and asserts
+// that values are equal to expected values
+func AssertStructValues(t *testing.T, i interface{}, isException func(string) bool,
+	vStr string, vInt int, vBool bool, vIP net.IP) {
+	IterateStruct(i, func(f reflect.Value, key string) {
+		if isException(key) {
+			return
+		}
+		fVal := f.Interface()
+		var newVal interface{}
+		switch fVal.(type) {
+		case map[string]interface{}:
+			newVal = map[string]interface{}{vStr: vStr}
+		case common.MapStr:
+			newVal = common.MapStr{vStr: vStr}
+		case *model.Labels:
+			newVal = &model.Labels{vStr: vStr}
+		case *model.Custom:
+			newVal = &model.Custom{vStr: vStr}
+		case model.TransactionMarks:
+			newVal = model.TransactionMarks{vStr: model.TransactionMark{vStr: float64(vInt) + 0.5}}
+		case []string:
+			newVal = []string{vStr}
+		case []int:
+			newVal = []int{vInt, vInt}
+		case string:
+			newVal = vStr
+		case *string:
+			newVal = &vStr
+		case int:
+			newVal = vInt
+		case *int:
+			newVal = &vInt
+		case float64:
+			newVal = float64(vInt) + 0.5
+		case *float64:
+			val := float64(vInt) + 0.5
+			newVal = &val
+		case net.IP:
+			newVal = vIP
+		case bool:
+			newVal = vBool
+		case *bool:
+			newVal = &vBool
+		case http.Header:
+			newVal = http.Header{vStr: []string{vStr, vStr}}
+		default:
+			// the populator recursively iterates over struct and structPtr
+			// calling this function for all fields;
+			// it is enough to only assert they are not zero here
+			if f.Type().Kind() == reflect.Struct {
+				assert.NotZero(t, f, key)
+				return
+			}
+			if f.Type().Kind() == reflect.Ptr && f.Type().Elem().Kind() == reflect.Struct {
+				assert.NotZero(t, f, key)
+				return
+			}
+			panic(fmt.Sprintf("unhandled type %T for key %s", f.Type().Kind(), key))
+		}
+		assert.Equal(t, newVal, fVal, key)
 	})
 }
 
@@ -119,9 +212,15 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 		}
 		fKey = fmt.Sprintf("%s%s", key, name)
 
-		if fTyp.Kind() == reflect.Struct {
+		switch fTyp.Kind() {
+		case reflect.Ptr:
+			if !f.IsZero() && fTyp.Elem().Kind() == reflect.Struct {
+				iterateStruct(f.Elem(), fKey, fn)
+			}
+		case reflect.Struct:
 			switch f.Interface().(type) {
-			case nullable.String, nullable.Int, nullable.Interface:
+			case nullable.String, nullable.Int, nullable.Bool, nullable.Float64,
+				nullable.Interface, nullable.HTTPHeader, nullable.TimeMicrosUnix:
 			default:
 				iterateStruct(f, fKey, fn)
 			}
