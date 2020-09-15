@@ -189,7 +189,8 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 
 // AggregationConfig holds APM Server metrics aggregation configuration.
 type AggregationConfig struct {
-	Transactions *TransactionAggregationConfig `json:"transactions,omitempty"`
+	Transactions        *TransactionAggregationConfig        `json:"transactions,omitempty"`
+	ServiceDestinations *ServiceDestinationAggregationConfig `json:"service_destinations,omitempty"`
 }
 
 // TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
@@ -208,6 +209,25 @@ func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 	return json.Marshal(config{
 		Enabled:  m.Enabled,
 		Interval: duration(m.Interval),
+	})
+}
+
+// ServiceDestinationAggregationConfig holds APM Server service destination metrics aggregation configuration.
+type ServiceDestinationAggregationConfig struct {
+	Enabled  bool
+	Interval time.Duration
+}
+
+func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled  bool     `json:"enabled"`
+		Interval duration `json:"interval,omitempty"`
+	}
+	return json.Marshal(config{
+		Enabled:  s.Enabled,
+		Interval: duration(s.Interval),
 	})
 }
 

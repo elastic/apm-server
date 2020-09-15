@@ -129,8 +129,8 @@ func TestAggregatorRun(t *testing.T) {
 			DestinationService: model.DestinationService{Resource: &destinationX},
 		},
 		Samples: []model.Sample{
-			{Name: "destination.service.response_time.count", Value: 100.0},
-			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
+			{Name: "span.destination.service.response_time.count", Value: 100.0},
+			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
@@ -144,8 +144,8 @@ func TestAggregatorRun(t *testing.T) {
 			DestinationService: model.DestinationService{Resource: &destinationZ},
 		},
 		Samples: []model.Sample{
-			{Name: "destination.service.response_time.count", Value: 100.0},
-			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
+			{Name: "span.destination.service.response_time.count", Value: 100.0},
+			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
@@ -159,8 +159,8 @@ func TestAggregatorRun(t *testing.T) {
 			DestinationService: model.DestinationService{Resource: &destinationZ},
 		},
 		Samples: []model.Sample{
-			{Name: "destination.service.response_time.count", Value: 300.0},
-			{Name: "destination.service.response_time.sum.us", Value: 30000000.0},
+			{Name: "span.destination.service.response_time.count", Value: 300.0},
+			{Name: "span.destination.service.response_time.sum.us", Value: 30000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
@@ -174,8 +174,8 @@ func TestAggregatorRun(t *testing.T) {
 			DestinationService: model.DestinationService{Resource: &destinationZ},
 		},
 		Samples: []model.Sample{
-			{Name: "destination.service.response_time.count", Value: 100.0},
-			{Name: "destination.service.response_time.sum.us", Value: 10000000.0},
+			{Name: "span.destination.service.response_time.count", Value: 100.0},
+			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
 	}}, metricsets)
@@ -232,8 +232,8 @@ func TestAggregatorOverflow(t *testing.T) {
 				DestinationService: model.DestinationService{Resource: newString("destination3")},
 			},
 			Samples: []model.Sample{
-				{Name: "destination.service.response_time.count", Value: 1.0},
-				{Name: "destination.service.response_time.sum.us", Value: 100000.0},
+				{Name: "span.destination.service.response_time.count", Value: 1.0},
+				{Name: "span.destination.service.response_time.sum.us", Value: 100000.0},
 				// No metricset.period is recorded as these metrics are instantanous, not aggregated.
 			},
 		}, m)
