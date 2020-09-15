@@ -60,7 +60,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                withGoEnv(){
+                withGoEnv(os: 'linux'){
                   sh(label: 'make batch',
                     script: """#!/bin/bash
                       echo "beats_url_base: ${BEATS_URL_BASE}" > run-settings-jenkins.yml
@@ -75,7 +75,7 @@ pipeline {
                 dir("${BASE_DIR}"){
                   junit(allowEmptyResults: true, keepLongStdio: true, testResults: "logs/*.xml")
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'logs/**')
-                  withGoEnv(){
+                  withGoEnv(os: 'linux'){
                     sh(label: 'make clean', script: 'make clean')
                   }
                 }
