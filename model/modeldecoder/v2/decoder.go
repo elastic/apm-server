@@ -26,11 +26,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/beats/v7/libbeat/common"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var (
@@ -399,6 +400,7 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 	if t.Result.IsSet() {
 		out.Result = t.Result.Val
 	}
+
 	out.Sampled = true
 	if t.Sampled.IsSet() {
 		out.Sampled = t.Sampled.Val
@@ -406,8 +408,8 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 
 	// TODO(simitt): set accordingly, once this is fixed:
 	// https://github.com/elastic/apm-server/issues/4188
-	if t.SampleRate.IsSet() {
-	}
+	// if t.SampleRate.IsSet() {}
+
 	if t.SpanCount.Dropped.IsSet() {
 		dropped := t.SpanCount.Dropped.Val
 		out.SpanCount.Dropped = &dropped

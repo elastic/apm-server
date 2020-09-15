@@ -283,7 +283,6 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 		started := t.SpanCount.Started.Val
 		out.SpanCount.Started = &started
 	}
-	//TODO(simitt): check if this is ok
 	out.Timestamp = reqTime
 	if t.TraceID.IsSet() {
 		out.TraceID = t.TraceID.Val

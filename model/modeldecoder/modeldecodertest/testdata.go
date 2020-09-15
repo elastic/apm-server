@@ -28,7 +28,9 @@ import (
 	"github.com/elastic/apm-server/decoder"
 )
 
-func DecodeTestData(t *testing.T, r io.Reader, eventType string, out interface{}) {
+// DecodeData decodes input from the io.Reader into the given output
+// it skips the metadata line if eventType is not set to metadata
+func DecodeData(t *testing.T, r io.Reader, eventType string, out interface{}) {
 	dec := decoder.NewJSONDecoder(r)
 	// skip first line (metadata) for all events but metadata
 	if eventType != "metadata" && eventType != "m" {
@@ -39,9 +41,11 @@ func DecodeTestData(t *testing.T, r io.Reader, eventType string, out interface{}
 	require.NoError(t, dec.Decode(&out))
 }
 
-func ReplaceTestData(t *testing.T, r io.Reader, eventType string, key string, newData string, out interface{}) {
+// ReplaceData decodes input from the io.Reader and replaces data for the
+// given key with the provided newData before decoding into the output
+func ReplaceData(t *testing.T, r io.Reader, eventType string, key string, newData string, out interface{}) {
 	var data map[string]interface{}
-	DecodeTestData(t, r, eventType, &data)
+	DecodeData(t, r, eventType, &data)
 	// replace data for given key with newData
 	eventData := data[eventType].(map[string]interface{})
 	var keyData interface{}

@@ -138,7 +138,7 @@ func TestValidationRules(t *testing.T) {
 	testMetadata := func(t *testing.T, key string, tc testcase) {
 		var m metadata
 		r := reader(t, "metadata")
-		modeldecodertest.ReplaceTestData(t, r, "m", key, tc.data, &m)
+		modeldecodertest.ReplaceData(t, r, "m", key, tc.data, &m)
 
 		// run validation and checks
 		err := m.validate()

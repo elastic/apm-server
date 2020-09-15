@@ -36,7 +36,7 @@ import (
 
 func TestTransactionSetResetIsSet(t *testing.T) {
 	var tRoot transactionRoot
-	modeldecodertest.DecodeTestData(t, reader(t, "transactions"), "transaction", &tRoot)
+	modeldecodertest.DecodeData(t, reader(t, "transactions"), "transaction", &tRoot)
 	require.True(t, tRoot.IsSet())
 	// call Reset and ensure initial state, except for array capacity
 	tRoot.Reset()
@@ -113,7 +113,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var tr model.Transaction
 		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
 		// iterate through metadata model and assert values are set
-		assertStructValues(t, &tr.Metadata, exceptions, "meta", 1, false, localhostIP)
+		modeldecodertest.AssertStructValues(t, &tr.Metadata, exceptions, "meta", 1, false, localhostIP)
 	})
 
 	t.Run("overwrite-metadata", func(t *testing.T) {
@@ -134,9 +134,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, common.MapStr{"meta": "meta"}, tr.Metadata.Labels)
 		assert.Equal(t, &model.Labels{"overwritten": "overwritten"}, tr.Labels)
 		// service values should be set
-		assertStructValues(t, &tr.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP)
+		modeldecodertest.AssertStructValues(t, &tr.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP)
 		// user values should be set
-		assertStructValues(t, &tr.Metadata.User, exceptions, "overwritten", 100, true, localhostIP)
+		modeldecodertest.AssertStructValues(t, &tr.Metadata.User, exceptions, "overwritten", 100, true, localhostIP)
 	})
 
 	t.Run("client-ip-header", func(t *testing.T) {
@@ -186,7 +186,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var tr model.Transaction
 		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, true)
 		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
-		assertStructValues(t, &tr, exceptions, "overwritten", 5000, true, localhostIP)
+		modeldecodertest.AssertStructValues(t, &tr, exceptions, "overwritten", 5000, true, localhostIP)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
@@ -205,7 +205,7 @@ func TestTransactionValidationRules(t *testing.T) {
 	testTransaction := func(t *testing.T, key string, tc testcase) {
 		var event transaction
 		r := reader(t, "transactions")
-		modeldecodertest.ReplaceTestData(t, r, "transaction", key, tc.data, &event)
+		modeldecodertest.ReplaceData(t, r, "transaction", key, tc.data, &event)
 
 		// run validation and checks
 		err := event.validate()
