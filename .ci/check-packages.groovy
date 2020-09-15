@@ -44,7 +44,7 @@ pipeline {
       matrix {
         // TODO: when the infra is ready with the 'nested-virtualization' then we can use that label
         // agent { label 'nested-virtualization' }
-        agent { label 'darwin' }
+        agent { label 'metal' }
         axes {
           axis {
             name 'GROUPS'
