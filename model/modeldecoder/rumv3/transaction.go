@@ -40,10 +40,6 @@ type context struct {
 	User     user          `json:"u"`
 }
 
-//TODO(simitt): implement
-// type metricset struct {
-// }
-
 type page struct {
 	URL     nullable.String `json:"url"`
 	Referer nullable.String `json:"rf"`
@@ -98,11 +94,6 @@ type serviceRuntime struct {
 	Version nullable.String `json:"ve" validate:"max=1024"`
 }
 
-//TODO(simitt): implement
-// type span struct {
-// ID nullable.String `json:"id" validate:"max=1024"`
-// }
-
 type spanCount struct {
 	Dropped nullable.Int `json:"dd"`
 	Started nullable.Int `json:"sd" validate:"required"`
@@ -118,13 +109,11 @@ type transaction struct {
 	ParentID       nullable.String               `json:"pid" validate:"max=1024"`
 	Result         nullable.String               `json:"rt" validate:"max=1024"`
 	Sampled        nullable.Bool                 `json:"sm"`
-	SampleRate     nullable.Float64              `json:"sr"` //TODO(simitt): how to map to model?
+	SampleRate     nullable.Float64              `json:"sr"`
 	SpanCount      spanCount                     `json:"yc" validate:"required"`
 	TraceID        nullable.String               `json:"tid" validate:"required,max=1024"`
 	Type           nullable.String               `json:"t" validate:"required,max=1024"`
 	UserExperience userExperience                `json:"exp"`
-	// Span           span                          `json:"y"`
-	// Metricset      metricset                     `json:"me"`
 }
 
 type user struct {

@@ -25,7 +25,6 @@ import (
 )
 
 //TODO(simitt): look into config options for performance tuning
-
 // var json = jsoniter.ConfigCompatibleWithStandardLibrary
 var json = jsoniter.ConfigFastest
 

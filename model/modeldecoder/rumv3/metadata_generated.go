@@ -26,41 +26,41 @@ import (
 	"unicode/utf8"
 )
 
-func (m *metadataRoot) IsSet() bool {
-	return m.Metadata.IsSet()
+func (val *metadataRoot) IsSet() bool {
+	return val.Metadata.IsSet()
 }
 
-func (m *metadataRoot) Reset() {
-	m.Metadata.Reset()
+func (val *metadataRoot) Reset() {
+	val.Metadata.Reset()
 }
 
-func (m *metadataRoot) validate() error {
-	if err := m.Metadata.validate(); err != nil {
+func (val *metadataRoot) validate() error {
+	if err := val.Metadata.validate(); err != nil {
 		return err
 	}
-	if !m.Metadata.IsSet() {
+	if !val.Metadata.IsSet() {
 		return fmt.Errorf("'m' required")
 	}
 	return nil
 }
 
-func (m *metadata) IsSet() bool {
-	return len(m.Labels) > 0 || m.Service.IsSet() || m.User.IsSet()
+func (val *metadata) IsSet() bool {
+	return len(val.Labels) > 0 || val.Service.IsSet() || val.User.IsSet()
 }
 
-func (m *metadata) Reset() {
-	for k := range m.Labels {
-		delete(m.Labels, k)
+func (val *metadata) Reset() {
+	for k := range val.Labels {
+		delete(val.Labels, k)
 	}
-	m.Service.Reset()
-	m.User.Reset()
+	val.Service.Reset()
+	val.User.Reset()
 }
 
-func (m *metadata) validate() error {
-	if !m.IsSet() {
+func (val *metadata) validate() error {
+	if !val.IsSet() {
 		return nil
 	}
-	for k, v := range m.Labels {
+	for k, v := range val.Labels {
 		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
 			return fmt.Errorf("validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated for 'm.l'")
 		}
@@ -76,193 +76,193 @@ func (m *metadata) validate() error {
 			return fmt.Errorf("validation rule 'typesVals(string;bool;number)' violated for 'm.l' for key %s", k)
 		}
 	}
-	if err := m.Service.validate(); err != nil {
+	if err := val.Service.validate(); err != nil {
 		return err
 	}
-	if !m.Service.IsSet() {
+	if !val.Service.IsSet() {
 		return fmt.Errorf("'m.se' required")
 	}
-	if err := m.User.validate(); err != nil {
+	if err := val.User.validate(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *metadataService) IsSet() bool {
-	return m.Agent.IsSet() || m.Environment.IsSet() || m.Framework.IsSet() || m.Language.IsSet() || m.Name.IsSet() || m.Runtime.IsSet() || m.Version.IsSet()
+func (val *metadataService) IsSet() bool {
+	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
 }
 
-func (m *metadataService) Reset() {
-	m.Agent.Reset()
-	m.Environment.Reset()
-	m.Framework.Reset()
-	m.Language.Reset()
-	m.Name.Reset()
-	m.Runtime.Reset()
-	m.Version.Reset()
+func (val *metadataService) Reset() {
+	val.Agent.Reset()
+	val.Environment.Reset()
+	val.Framework.Reset()
+	val.Language.Reset()
+	val.Name.Reset()
+	val.Runtime.Reset()
+	val.Version.Reset()
 }
 
-func (m *metadataService) validate() error {
-	if !m.IsSet() {
+func (val *metadataService) validate() error {
+	if !val.IsSet() {
 		return nil
 	}
-	if err := m.Agent.validate(); err != nil {
+	if err := val.Agent.validate(); err != nil {
 		return err
 	}
-	if !m.Agent.IsSet() {
+	if !val.Agent.IsSet() {
 		return fmt.Errorf("'m.se.a' required")
 	}
-	if utf8.RuneCountInString(m.Environment.Val) > 1024 {
+	if utf8.RuneCountInString(val.Environment.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.en'")
 	}
-	if err := m.Framework.validate(); err != nil {
+	if err := val.Framework.validate(); err != nil {
 		return err
 	}
-	if err := m.Language.validate(); err != nil {
+	if err := val.Language.validate(); err != nil {
 		return err
 	}
-	if utf8.RuneCountInString(m.Name.Val) > 1024 {
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.n'")
 	}
-	if utf8.RuneCountInString(m.Name.Val) < 1 {
+	if utf8.RuneCountInString(val.Name.Val) < 1 {
 		return fmt.Errorf("validation rule 'min(1)' violated for 'm.se.n'")
 	}
-	if m.Name.Val != "" && !regexpAlphaNumericExt.MatchString(m.Name.Val) {
+	if val.Name.Val != "" && !regexpAlphaNumericExt.MatchString(val.Name.Val) {
 		return fmt.Errorf("validation rule 'pattern(regexpAlphaNumericExt)' violated for 'm.se.n'")
 	}
-	if !m.Name.IsSet() {
+	if !val.Name.IsSet() {
 		return fmt.Errorf("'m.se.n' required")
 	}
-	if err := m.Runtime.validate(); err != nil {
+	if err := val.Runtime.validate(); err != nil {
 		return err
 	}
-	if utf8.RuneCountInString(m.Version.Val) > 1024 {
+	if utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.ve'")
 	}
 	return nil
 }
 
-func (m *metadataServiceAgent) IsSet() bool {
-	return m.Name.IsSet() || m.Version.IsSet()
+func (val *metadataServiceAgent) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
 }
 
-func (m *metadataServiceAgent) Reset() {
-	m.Name.Reset()
-	m.Version.Reset()
+func (val *metadataServiceAgent) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
 }
 
-func (m *metadataServiceAgent) validate() error {
-	if !m.IsSet() {
+func (val *metadataServiceAgent) validate() error {
+	if !val.IsSet() {
 		return nil
 	}
-	if utf8.RuneCountInString(m.Name.Val) > 1024 {
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.a.n'")
 	}
-	if utf8.RuneCountInString(m.Name.Val) < 1 {
+	if utf8.RuneCountInString(val.Name.Val) < 1 {
 		return fmt.Errorf("validation rule 'min(1)' violated for 'm.se.a.n'")
 	}
-	if !m.Name.IsSet() {
+	if !val.Name.IsSet() {
 		return fmt.Errorf("'m.se.a.n' required")
 	}
-	if utf8.RuneCountInString(m.Version.Val) > 1024 {
+	if utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.a.ve'")
 	}
-	if !m.Version.IsSet() {
+	if !val.Version.IsSet() {
 		return fmt.Errorf("'m.se.a.ve' required")
 	}
 	return nil
 }
 
-func (m *MetadataServiceFramework) IsSet() bool {
-	return m.Name.IsSet() || m.Version.IsSet()
+func (val *MetadataServiceFramework) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
 }
 
-func (m *MetadataServiceFramework) Reset() {
-	m.Name.Reset()
-	m.Version.Reset()
+func (val *MetadataServiceFramework) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
 }
 
-func (m *MetadataServiceFramework) validate() error {
-	if !m.IsSet() {
+func (val *MetadataServiceFramework) validate() error {
+	if !val.IsSet() {
 		return nil
 	}
-	if utf8.RuneCountInString(m.Name.Val) > 1024 {
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.fw.n'")
 	}
-	if utf8.RuneCountInString(m.Version.Val) > 1024 {
+	if utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.fw.ve'")
 	}
 	return nil
 }
 
-func (m *metadataServiceLanguage) IsSet() bool {
-	return m.Name.IsSet() || m.Version.IsSet()
+func (val *metadataServiceLanguage) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
 }
 
-func (m *metadataServiceLanguage) Reset() {
-	m.Name.Reset()
-	m.Version.Reset()
+func (val *metadataServiceLanguage) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
 }
 
-func (m *metadataServiceLanguage) validate() error {
-	if !m.IsSet() {
+func (val *metadataServiceLanguage) validate() error {
+	if !val.IsSet() {
 		return nil
 	}
-	if utf8.RuneCountInString(m.Name.Val) > 1024 {
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.la.n'")
 	}
-	if !m.Name.IsSet() {
+	if !val.Name.IsSet() {
 		return fmt.Errorf("'m.se.la.n' required")
 	}
-	if utf8.RuneCountInString(m.Version.Val) > 1024 {
+	if utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.la.ve'")
 	}
 	return nil
 }
 
-func (m *metadataServiceRuntime) IsSet() bool {
-	return m.Name.IsSet() || m.Version.IsSet()
+func (val *metadataServiceRuntime) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
 }
 
-func (m *metadataServiceRuntime) Reset() {
-	m.Name.Reset()
-	m.Version.Reset()
+func (val *metadataServiceRuntime) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
 }
 
-func (m *metadataServiceRuntime) validate() error {
-	if !m.IsSet() {
+func (val *metadataServiceRuntime) validate() error {
+	if !val.IsSet() {
 		return nil
 	}
-	if utf8.RuneCountInString(m.Name.Val) > 1024 {
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.ru.n'")
 	}
-	if !m.Name.IsSet() {
+	if !val.Name.IsSet() {
 		return fmt.Errorf("'m.se.ru.n' required")
 	}
-	if utf8.RuneCountInString(m.Version.Val) > 1024 {
+	if utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.se.ru.ve'")
 	}
-	if !m.Version.IsSet() {
+	if !val.Version.IsSet() {
 		return fmt.Errorf("'m.se.ru.ve' required")
 	}
 	return nil
 }
 
-func (m *metadataUser) IsSet() bool {
-	return m.ID.IsSet() || m.Email.IsSet() || m.Name.IsSet()
+func (val *metadataUser) IsSet() bool {
+	return val.ID.IsSet() || val.Email.IsSet() || val.Name.IsSet()
 }
 
-func (m *metadataUser) Reset() {
-	m.ID.Reset()
-	m.Email.Reset()
-	m.Name.Reset()
+func (val *metadataUser) Reset() {
+	val.ID.Reset()
+	val.Email.Reset()
+	val.Name.Reset()
 }
 
-func (m *metadataUser) validate() error {
-	if !m.IsSet() {
+func (val *metadataUser) validate() error {
+	if !val.IsSet() {
 		return nil
 	}
-	switch t := m.ID.Val.(type) {
+	switch t := val.ID.Val.(type) {
 	case string:
 		if utf8.RuneCountInString(t) > 1024 {
 			return fmt.Errorf("validation rule 'max(1024)' violated for 'm.u.id'")
@@ -276,10 +276,10 @@ func (m *metadataUser) validate() error {
 	default:
 		return fmt.Errorf("validation rule 'types(string;int)' violated for 'm.u.id'")
 	}
-	if utf8.RuneCountInString(m.Email.Val) > 1024 {
+	if utf8.RuneCountInString(val.Email.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.u.em'")
 	}
-	if utf8.RuneCountInString(m.Name.Val) > 1024 {
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'm.u.un'")
 	}
 	return nil

@@ -138,12 +138,13 @@ type transaction struct {
 	ParentID       nullable.String               `json:"parent_id" validate:"max=1024"`
 	Result         nullable.String               `json:"result" validate:"max=1024"`
 	Sampled        nullable.Bool                 `json:"sampled"`
-	SampleRate     nullable.Float64              `json:"sample_rate"` //TODO(simitt): how to map to model?
+	SampleRate     nullable.Float64              `json:"sample_rate"`
 	SpanCount      spanCount                     `json:"span_count" validate:"required"`
 	Timestamp      nullable.TimeMicrosUnix       `json:"timestamp"`
 	TraceID        nullable.String               `json:"trace_id" validate:"required,max=1024"`
 	Type           nullable.String               `json:"type" validate:"required,max=1024"`
 	UserExperience userExperience                `json:"experience"`
+	Experimental   nullable.Interface            `json:"experimental"`
 }
 
 type url struct {

@@ -224,7 +224,6 @@ func TestInterface(t *testing.T) {
 	}
 }
 
-//TODO(simitt): check if required somewhere
 func TestTimeMicrosUnix(t *testing.T) {
 	for _, tc := range []struct {
 		name  string

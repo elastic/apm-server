@@ -83,7 +83,7 @@ func TestMappingToModel(t *testing.T) {
 	// map modeldecoder to model metadata and manually set
 	// enhanced data that are never set by the modeldecoder
 	var m metadata
-	modeldecodertest.SetStructValues(&m, "init", 5000)
+	modeldecodertest.SetStructValues(&m, "init", 5000, false)
 	var modelM model.Metadata
 	mapToMetadataModel(&m, &modelM)
 	// iterate through model and assert values are set
@@ -91,7 +91,7 @@ func TestMappingToModel(t *testing.T) {
 
 	// overwrite model metadata with specified Values
 	// then iterate through model and assert values are overwritten
-	modeldecodertest.SetStructValues(&m, "overwritten", 12)
+	modeldecodertest.SetStructValues(&m, "overwritten", 12, false)
 	mapToMetadataModel(&m, &modelM)
 	assert.Equal(t, expected("overwritten"), modelM)
 

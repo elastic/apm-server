@@ -32,13 +32,13 @@ import (
 // the given reflect.Value and initializes all fields with
 // some arbitrary value.
 func InitStructValues(i interface{}) {
-	SetStructValues(i, "unknown", 1)
+	SetStructValues(i, "unknown", 1, true)
 }
 
 // SetStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with
 // the given values for strings and integers.
-func SetStructValues(in interface{}, vStr string, vInt int) { //TODO(simitt): set bool
+func SetStructValues(in interface{}, vStr string, vInt int, vBool bool) {
 	IterateStruct(in, func(f reflect.Value, key string) {
 		var newVal interface{}
 		switch v := f.Interface().(type) {
@@ -48,7 +48,7 @@ func SetStructValues(in interface{}, vStr string, vInt int) { //TODO(simitt): se
 			newVal = common.MapStr{vStr: vStr}
 		case map[string]map[string]float64:
 			newVal = map[string]map[string]float64{
-				vStr: map[string]float64{vStr: float64(vInt)}}
+				vStr: map[string]float64{vStr: float64(vInt) + 0.5}}
 		case []string:
 			newVal = []string{vStr}
 		case []int:
@@ -60,13 +60,17 @@ func SetStructValues(in interface{}, vStr string, vInt int) { //TODO(simitt): se
 			v.Set(vInt)
 			newVal = v
 		case nullable.Interface:
-			v.Set(vStr)
+			if strings.Contains(key, "port") {
+				v.Set(vInt)
+			} else {
+				v.Set(vStr)
+			}
 			newVal = v
 		case nullable.Bool:
-			v.Set(true)
+			v.Set(vBool)
 			newVal = v
 		case nullable.Float64:
-			v.Set(44.5)
+			v.Set(float64(vInt) + 0.5)
 			newVal = v
 		case nullable.TimeMicrosUnix:
 			v.Set(time.Now())
@@ -75,6 +79,8 @@ func SetStructValues(in interface{}, vStr string, vInt int) { //TODO(simitt): se
 			v.Set(http.Header{vStr: []string{vStr, vStr}})
 			newVal = v
 		default:
+			// IterateStruct recursively iterates over struct fields,
+			// return when this function is called on the struct itself.
 			if f.Type().Kind() == reflect.Struct {
 				return
 			}
@@ -136,7 +142,12 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 		}
 		fKey = fmt.Sprintf("%s%s", key, name)
 
-		if fTyp.Kind() == reflect.Struct {
+		switch fTyp.Kind() {
+		case reflect.Ptr:
+			if !f.IsZero() && fTyp.Elem().Kind() == reflect.Struct {
+				iterateStruct(f.Elem(), fKey, fn)
+			}
+		case reflect.Struct:
 			switch f.Interface().(type) {
 			case nullable.String, nullable.Int, nullable.Bool, nullable.Float64,
 				nullable.Interface, nullable.HTTPHeader, nullable.TimeMicrosUnix:

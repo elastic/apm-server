@@ -183,7 +183,7 @@ func (g *Generator) generateIsSet(structTyp structType, key string) error {
 		return fmt.Errorf("unhandled struct %s (does not have any exported fields)", structTyp.name)
 	}
 	fmt.Fprintf(&g.buf, `
-func (m *%s) IsSet() bool {
+func (val *%s) IsSet() bool {
 	return`, structTyp.name)
 	if key != "" {
 		key += "."
@@ -197,9 +197,9 @@ func (m *%s) IsSet() bool {
 
 		switch t := f.typ.Underlying().(type) {
 		case *types.Slice, *types.Map:
-			fmt.Fprintf(&g.buf, `%s len(m.%s) > 0`, prefix, f.name)
+			fmt.Fprintf(&g.buf, `%s len(val.%s) > 0`, prefix, f.name)
 		case *types.Struct:
-			fmt.Fprintf(&g.buf, `%s m.%s.IsSet()`, prefix, f.name)
+			fmt.Fprintf(&g.buf, `%s val.%s.IsSet()`, prefix, f.name)
 		default:
 			return fmt.Errorf("unhandled type %T for IsSet() for '%s%s'", t, key, jsonName(f))
 		}
@@ -211,9 +211,8 @@ func (m *%s) IsSet() bool {
 }
 
 func (g *Generator) generateReset(structTyp structType, key string) error {
-	//TODO(simitt): use some other var than 'm'
 	fmt.Fprintf(&g.buf, `
-func (m *%s) Reset() {
+func (val *%s) Reset() {
 `, structTyp.name)
 	if key != "" {
 		key += "."
@@ -226,20 +225,20 @@ func (m *%s) Reset() {
 			// this potentially leads to keeping more memory allocated than required;
 			// at the moment metadata.process.argv is the only slice
 			fmt.Fprintf(&g.buf, `
-m.%s = m.%s[:0]
+val.%s = val.%s[:0]
 `[1:], f.name, f.name)
 		case *types.Map:
 			// the map is cleared, not returning the underlying memory to
 			// the garbage collector; when map size differs this potentially
 			// leads to keeping more memory allocated than required
 			fmt.Fprintf(&g.buf, `
-for k := range m.%s {
-	delete(m.%s, k)
+for k := range val.%s {
+	delete(val.%s, k)
 }
 `[1:], f.name, f.name)
 		case *types.Struct:
 			fmt.Fprintf(&g.buf, `
-m.%s.Reset()
+val.%s.Reset()
 `[1:], f.name)
 		default:
 			return fmt.Errorf("unhandled type %T for Reset() for '%s%s'", t, key, jsonName(f))
@@ -253,11 +252,11 @@ m.%s.Reset()
 
 func (g *Generator) generateValidation(structTyp structType, key string) error {
 	fmt.Fprintf(&g.buf, `
-func (m *%s) validate() error {
+func (val *%s) validate() error {
 `, structTyp.name)
 	if _, ok := g.rootObjs[structTyp.name]; !ok {
 		fmt.Fprint(&g.buf, `
-if !m.IsSet() {
+if !val.IsSet() {
 	return nil
 }
 `[1:])
@@ -273,7 +272,7 @@ if !m.IsSet() {
 		// if field is a model struct, call its validation function
 		if _, ok := g.structTypes[f.typ.String()]; ok {
 			fmt.Fprintf(&g.buf, `
-if err := m.%s.validate(); err != nil{
+if err := val.%s.validate(); err != nil{
 	return err
 }
 `[1:], f.name)
@@ -309,7 +308,7 @@ if err := m.%s.validate(); err != nil{
 				required = true
 				delete(parts, ruleRequired)
 				fmt.Fprintf(&g.buf, `
-if len(m.%s) == 0{
+if len(val.%s) == 0{
 	return fmt.Errorf("'%s' required")
 }
 `[1:], f.name, flattenedName)
@@ -322,11 +321,11 @@ if len(m.%s) == 0{
 			// iterate over map once and run checks
 			if typesRestricted || nestedMap {
 				fmt.Fprintf(&g.buf, `
-for k,v := range m.%s{
+for k,v := range val.%s{
 `[1:], f.name)
 			} else {
 				fmt.Fprintf(&g.buf, `
-for k := range m.%s{
+for k := range val.%s{
 `[1:], f.name)
 			}
 
@@ -398,17 +397,16 @@ default:
 			}
 		case *types.Struct:
 			switch f.typ.String() {
-			//TODO(simitt): can these type checks be more generic?
 			case g.nullableString:
 				for _, rule := range sortedRules {
 					val := parts[rule]
 					switch rule {
 					case ruleEnum:
 						fmt.Fprintf(&g.buf, `
-if m.%s.Val != ""{
+if val.%s.Val != ""{
 	var matchEnum bool
 	for _, s := range %s {
-		if m.%s.Val == s{
+		if val.%s.Val == s{
 			matchEnum = true
 			break
 		}
@@ -421,20 +419,20 @@ if m.%s.Val != ""{
 					case ruleMax:
 						g.imports[importUTF8] = struct{}{}
 						fmt.Fprintf(&g.buf, `
-if utf8.RuneCountInString(m.%s.Val) > %s{
+if utf8.RuneCountInString(val.%s.Val) > %s{
 	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
 }
 `[1:], f.name, val, rule, val, flattenedName)
 					case ruleMin:
 						g.imports[importUTF8] = struct{}{}
 						fmt.Fprintf(&g.buf, `
-if utf8.RuneCountInString(m.%s.Val) < %s{
+if utf8.RuneCountInString(val.%s.Val) < %s{
 return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
 }
 `[1:], f.name, val, rule, val, flattenedName)
 					case rulePattern:
 						fmt.Fprintf(&g.buf, `
-if m.%s.Val != "" && !%s.MatchString(m.%s.Val){
+if val.%s.Val != "" && !%s.MatchString(val.%s.Val){
 	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
 }
 `[1:], f.name, val, f.name, rule, val, flattenedName)
@@ -452,7 +450,7 @@ if m.%s.Val != "" && !%s.MatchString(m.%s.Val){
 						ruleNullableRequired(&g.buf, f.name, flattenedName)
 					case ruleMax:
 						fmt.Fprintf(&g.buf, `
-if m.%s.Val > %s{
+if val.%s.Val > %s{
 	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
 }
 `[1:], f.name, val, rule, val, flattenedName)
@@ -468,7 +466,7 @@ if m.%s.Val > %s{
 						ruleNullableRequired(&g.buf, f.name, flattenedName)
 					case ruleMin:
 						fmt.Fprintf(&g.buf, `
-if m.%s.Val < %s{
+if val.%s.Val < %s{
 	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
 }
 `[1:], f.name, val, rule, val, flattenedName)
@@ -491,11 +489,11 @@ if m.%s.Val < %s{
 					case ruleTypes:
 						if _, ok := parts[ruleMax]; ok {
 							fmt.Fprintf(&g.buf, `
-switch t := m.%s.Val.(type){
+switch t := val.%s.Val.(type){
 	`[1:], f.name)
 						} else {
 							fmt.Fprintf(&g.buf, `
-switch m.%s.Val.(type){
+switch val.%s.Val.(type){
 	`[1:], f.name)
 						}
 						for _, typ := range strings.Split(val, ";") {
@@ -572,7 +570,7 @@ default:
 
 func ruleNullableRequired(b *bytes.Buffer, name string, key string) {
 	fmt.Fprintf(b, `
-if !m.%s.IsSet()  {
+if !val.%s.IsSet()  {
 	return fmt.Errorf("'%s' required")
 }
 `[1:], name, key)

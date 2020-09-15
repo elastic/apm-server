@@ -257,8 +257,6 @@ func (v *TimeMicrosUnix) Set(val time.Time) {
 }
 
 // IsSet is true when decode was called
-//
-// TODO(simitt): this is aligned with other types, but does it make sense?
 func (v *TimeMicrosUnix) IsSet() bool {
 	return v.isSet
 }

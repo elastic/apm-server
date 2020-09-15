@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
@@ -77,7 +78,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	if err := root.validate(); err != nil {
 		return fmt.Errorf("validation error %w", err)
 	}
-	mapToTransactionModel(&root.Transaction, input, out)
+	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
 	return nil
 }
 
@@ -264,22 +265,18 @@ func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	}
 }
 
-func mapToTransactionModel(t *transaction, input *modeldecoder.Input, out *model.Transaction) {
+func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Transaction) {
 	if t == nil {
 		return
 	}
 
 	// prefill with metadata information, then overwrite with event specific metadata
+	out.Metadata = *metadata
 
-	out.Metadata = input.Metadata
+	// only set metadata Labels
+	out.Metadata.Labels = metadata.Labels.Clone()
 
-	// override Labels if set
-	out.Metadata.Labels = common.MapStr{}
-	out.Metadata.Labels.Update(input.Metadata.Labels)
-	if len(t.Context.Tags) > 0 {
-		out.Metadata.Labels.Update(t.Context.Tags)
-	}
-	// override Service values if set
+	// overwrite Service values if set
 	if t.Context.Service.Agent.EphemeralID.IsSet() {
 		out.Metadata.Service.Agent.EphemeralID = t.Context.Service.Agent.EphemeralID.Val
 	}
@@ -320,13 +317,20 @@ func mapToTransactionModel(t *transaction, input *modeldecoder.Input, out *model
 		out.Metadata.Service.Version = t.Context.Service.Version.Val
 	}
 
-	// override User specific values if set
-	// either override all User fields or none to avoid mixing
+	// overwrite User specific values if set
+	// either populate all User fields or none to avoid mixing
 	// different user data
 	if t.Context.User.ID.IsSet() || t.Context.User.Email.IsSet() || t.Context.User.Name.IsSet() {
-		out.Metadata.User.ID = fmt.Sprint(t.Context.User.ID.Val)
-		out.Metadata.User.Email = t.Context.User.Email.Val
-		out.Metadata.User.Name = t.Context.User.Name.Val
+		out.Metadata.User = model.User{}
+		if t.Context.User.ID.IsSet() {
+			out.Metadata.User.ID = fmt.Sprint(t.Context.User.ID.Val)
+		}
+		if t.Context.User.Email.IsSet() {
+			out.Metadata.User.Email = t.Context.User.Email.Val
+		}
+		if t.Context.User.Name.IsSet() {
+			out.Metadata.User.Name = t.Context.User.Name.Val
+		}
 	}
 
 	if t.Context.Request.Headers.IsSet() {
@@ -337,7 +341,6 @@ func mapToTransactionModel(t *transaction, input *modeldecoder.Input, out *model
 
 	// only set client information if not already set in metadata
 	// this is aligned with current logic
-	// TODO(simitt): check if this is expected behavior
 	if out.Metadata.Client.IP == nil {
 		// http.Request.Headers and http.Request.Socket information is
 		// only set for backend events try to first extract an IP address
@@ -350,6 +353,13 @@ func mapToTransactionModel(t *transaction, input *modeldecoder.Input, out *model
 	}
 
 	// fill with event specific information
+
+	// metadata labels and context labels are not merged at decoder level
+	// but in the output model
+	if len(t.Context.Tags) > 0 {
+		labels := model.Labels(t.Context.Tags.Clone())
+		out.Labels = &labels
+	}
 	if t.Duration.IsSet() {
 		out.Duration = t.Duration.Val
 	}
@@ -394,10 +404,12 @@ func mapToTransactionModel(t *transaction, input *modeldecoder.Input, out *model
 		out.Sampled = t.Sampled.Val
 	}
 
-	// TODO(simitt): where is this set
+	// TODO(simitt): set accordingly, once this is fixed:
+	// https://github.com/elastic/apm-server/issues/4188
 	if t.SampleRate.IsSet() {
 
 	}
+
 	if t.SpanCount.Dropped.IsSet() {
 		dropped := t.SpanCount.Dropped.Val
 		out.SpanCount.Dropped = &dropped
@@ -405,11 +417,9 @@ func mapToTransactionModel(t *transaction, input *modeldecoder.Input, out *model
 	if t.SpanCount.Started.IsSet() {
 		started := t.SpanCount.Started.Val
 		out.SpanCount.Started = &started
-	} else {
-		fmt.Println("span count started not set")
 	}
 	if t.Timestamp.Val.IsZero() {
-		out.Timestamp = input.RequestTime
+		out.Timestamp = reqTime
 	} else {
 		out.Timestamp = t.Timestamp.Val
 	}
@@ -572,7 +582,8 @@ func mapToTransactionModel(t *transaction, input *modeldecoder.Input, out *model
 			}
 		}
 
-		//TODO(simitt): map experimental config
 	}
-
+	if experimental {
+		out.Experimental = t.Experimental.Val
+	}
 }
