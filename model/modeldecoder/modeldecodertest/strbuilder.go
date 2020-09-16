@@ -17,20 +17,14 @@
 
 package modeldecodertest
 
+import "strings"
+
 // BuildString creates a string conisisting of nRunes runes
 func BuildString(nRunes int) string {
-	b := make([]rune, nRunes)
-	for i := range b {
-		b[i] = '⌘'
-	}
-	return string(b)
+	return BuildStringWith(nRunes, '⌘')
 }
 
-// BuildStringWith creates a string conisisting of nRunes of character c
-func BuildStringWith(nRunes int, char rune) string {
-	b := make([]rune, nRunes)
-	for i := range b {
-		b[i] = char
-	}
-	return string(b)
+// BuildStringWith creates a string conisisting of nRunes of the given rune
+func BuildStringWith(nRunes int, r rune) string {
+	return strings.Repeat(string(r), nRunes)
 }

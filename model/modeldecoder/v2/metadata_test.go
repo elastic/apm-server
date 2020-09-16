@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -122,7 +123,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 	// map modeldecoder to model metadata and manually set
 	// enhanced data that are never set by the modeldecoder
 	var m metadata
-	modeldecodertest.SetStructValues(&m, "init", 5000, false)
+	modeldecodertest.SetStructValues(&m, "init", 5000, false, time.Now())
 	var modelM model.Metadata
 	ip := net.ParseIP("127.0.0.1")
 	modelM.System.IP, modelM.Client.IP = ip, ip
@@ -133,26 +134,26 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 	}
 
 	// iterate through model and assert values are set
-	modeldecodertest.AssertStructValues(t, &modelM, exceptions, "init", 5000, false, ip)
+	modeldecodertest.AssertStructValues(t, &modelM, exceptions, "init", 5000, false, ip, time.Now())
 
 	// overwrite model metadata with specified Values
 	// then iterate through model and assert values are overwritten
-	modeldecodertest.SetStructValues(&m, "overwritten", 12, true)
+	modeldecodertest.SetStructValues(&m, "overwritten", 12, true, time.Now())
 	mapToMetadataModel(&m, &modelM)
-	modeldecodertest.AssertStructValues(t, &modelM, exceptions, "overwritten", 12, true, ip)
+	modeldecodertest.AssertStructValues(t, &modelM, exceptions, "overwritten", 12, true, ip, time.Now())
 
 	// map an empty modeldecoder metadata to the model
 	// and assert values are unchanged
 	modeldecodertest.SetZeroStructValues(&m)
 	mapToMetadataModel(&m, &modelM)
-	modeldecodertest.AssertStructValues(t, &modelM, exceptions, "overwritten", 12, true, ip)
+	modeldecodertest.AssertStructValues(t, &modelM, exceptions, "overwritten", 12, true, ip, time.Now())
 }
 
 func TestMetadataValidationRules(t *testing.T) {
 	testMetadata := func(t *testing.T, key string, tc testcase) {
 		var m metadata
 		r := reader(t, "metadata")
-		modeldecodertest.ReplaceData(t, r, "metadata", key, tc.data, &m)
+		modeldecodertest.DecodeDataWithReplacement(t, r, "metadata", key, tc.data, &m)
 
 		// run validation and checks
 		err := m.validate()

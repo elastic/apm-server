@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"encoding/json"
 	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -262,22 +263,40 @@ type metadataSystemKubernetesPod struct {
 }
 
 type transaction struct {
-	Context        context                       `json:"context"`
-	Duration       nullable.Float64              `json:"duration" validate:"required,min=0"`
-	ID             nullable.String               `json:"id" validate:"required,max=1024"`
-	Marks          map[string]map[string]float64 `json:"marks" validate:"patternKeys=regexpNoDotAsteriskQuote"`
-	Name           nullable.String               `json:"name" validate:"max=1024"`
-	Outcome        nullable.String               `json:"outcome" validate:"enum=enumOutcome"`
-	ParentID       nullable.String               `json:"parent_id" validate:"max=1024"`
-	Result         nullable.String               `json:"result" validate:"max=1024"`
-	Sampled        nullable.Bool                 `json:"sampled"`
-	SampleRate     nullable.Float64              `json:"sample_rate"`
-	SpanCount      transactionSpanCount          `json:"span_count" validate:"required"`
-	Timestamp      nullable.TimeMicrosUnix       `json:"timestamp"`
-	TraceID        nullable.String               `json:"trace_id" validate:"required,max=1024"`
-	Type           nullable.String               `json:"type" validate:"required,max=1024"`
-	UserExperience transactionUserExperience     `json:"experience"`
-	Experimental   nullable.Interface            `json:"experimental"`
+	Context        context                   `json:"context"`
+	Duration       nullable.Float64          `json:"duration" validate:"required,min=0"`
+	ID             nullable.String           `json:"id" validate:"required,max=1024"`
+	Marks          transactionMarks          `json:"marks"`
+	Name           nullable.String           `json:"name" validate:"max=1024"`
+	Outcome        nullable.String           `json:"outcome" validate:"enum=enumOutcome"`
+	ParentID       nullable.String           `json:"parent_id" validate:"max=1024"`
+	Result         nullable.String           `json:"result" validate:"max=1024"`
+	Sampled        nullable.Bool             `json:"sampled"`
+	SampleRate     nullable.Float64          `json:"sample_rate"`
+	SpanCount      transactionSpanCount      `json:"span_count" validate:"required"`
+	Timestamp      nullable.TimeMicrosUnix   `json:"timestamp"`
+	TraceID        nullable.String           `json:"trace_id" validate:"required,max=1024"`
+	Type           nullable.String           `json:"type" validate:"required,max=1024"`
+	UserExperience transactionUserExperience `json:"experience"`
+	Experimental   nullable.Interface        `json:"experimental"`
+}
+
+type transactionMarks struct {
+	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+}
+
+//TODO(simitt): generate
+func (m *transactionMarks) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &m.Events)
+}
+
+type transactionMarkEvents struct {
+	Measurements map[string]float64 `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+}
+
+//TODO(simitt): generate
+func (m *transactionMarkEvents) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &m.Measurements)
 }
 
 type transactionSpanCount struct {

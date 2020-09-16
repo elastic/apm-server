@@ -77,9 +77,9 @@ func init() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
 		default:
-			ms := iter.ReadInt()
-			s := ms / 1000000
-			ns := (ms - (s * 1000000)) * 1000
+			us := iter.ReadInt()
+			s := us / 1000000
+			ns := (us - (s * 1000000)) * 1000
 			(*((*TimeMicrosUnix)(ptr))).Val = time.Unix(int64(s), int64(ns)).UTC()
 			(*((*TimeMicrosUnix)(ptr))).isSet = true
 		}
@@ -101,9 +101,9 @@ func init() {
 					h.Add(key, v)
 				case []interface{}:
 					for _, entry := range v {
-						switch entry.(type) {
+						switch entry := entry.(type) {
 						case string:
-							h.Add(key, fmt.Sprint(entry))
+							h.Add(key, entry)
 						default:
 							iter.Error = fmt.Errorf("invalid input for HTTPHeader: %v", v)
 						}
