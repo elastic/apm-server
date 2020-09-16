@@ -174,9 +174,18 @@ func (g *Generator) generate(st structType, key string) error {
 	if key != "" {
 		key += "."
 	}
-	for _, f := range st.fields {
-		if child, ok := g.structTypes[f.typ.String()]; ok {
-			if err := g.generate(child, fmt.Sprintf("%s%s", key, jsonName(f))); err != nil {
+	for _, field := range st.fields {
+		var childTyp string
+		switch fieldTyp := field.typ.Underlying().(type) {
+		case *types.Map:
+			childTyp = fieldTyp.Elem().String()
+		case *types.Slice:
+			childTyp = fieldTyp.Elem().String()
+		default:
+			childTyp = field.typ.String()
+		}
+		if child, ok := g.structTypes[childTyp]; ok {
+			if err := g.generate(child, fmt.Sprintf("%s%s", key, jsonName(field))); err != nil {
 				return err
 			}
 		}
@@ -316,6 +325,19 @@ if err := val.%s.validate(); err != nil{
 				}
 			}
 		case *types.Map:
+			var elem structType
+			switch t.Elem().Underlying().(type) {
+			case *types.Basic, *types.Interface: // do nothing special
+			case *types.Struct:
+				if customStruct, ok := g.structTypes[t.Elem().String()]; ok {
+					elem = customStruct
+				} else {
+					return fmt.Errorf("unhandled struct type %s iterating map for '%s'", t, flattenedName)
+				}
+			default:
+				return fmt.Errorf("unhandled type %s iterating map for '%s'", t, flattenedName)
+			}
+
 			var required bool
 			if _, ok := parts[ruleRequired]; ok {
 				required = true
@@ -329,10 +351,9 @@ if len(val.%s) == 0{
 			if len(parts) == 0 {
 				continue
 			}
-			nestedMap := f.typ.String() == "map[string]map[string]float64"
 			types, typesRestricted := parts[ruleTypesVals]
 			// iterate over map once and run checks
-			if typesRestricted || nestedMap {
+			if typesRestricted || elem.name != "" {
 				fmt.Fprintf(&g.buf, `
 for k,v := range val.%s{
 `[1:], f.name)
@@ -349,18 +370,10 @@ if k != "" && !%s.MatchString(k){
 	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
 }
 `[1:], regex, rulePatternKeys, regex, flattenedName)
-				// right now this is the only nested map
-				// ensure the regexp pattern is also applied to the inner keys
-				if nestedMap {
+				if elem.name != "" {
 					fmt.Fprintf(&g.buf, `
-for innerK := range v {
-`[1:])
-					fmt.Fprintf(&g.buf, `
-if innerK != "" && !%s.MatchString(innerK){
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], regex, rulePatternKeys, regex, flattenedName)
-					fmt.Fprintf(&g.buf, `
+if err := v.validate(); err != nil{
+	return err
 }
 `[1:])
 				}

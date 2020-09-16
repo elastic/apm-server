@@ -41,9 +41,9 @@ func DecodeData(t *testing.T, r io.Reader, eventType string, out interface{}) {
 	require.NoError(t, dec.Decode(&out))
 }
 
-// ReplaceData decodes input from the io.Reader and replaces data for the
+// DecodeDataWithReplacement decodes input from the io.Reader and replaces data for the
 // given key with the provided newData before decoding into the output
-func ReplaceData(t *testing.T, r io.Reader, eventType string, key string, newData string, out interface{}) {
+func DecodeDataWithReplacement(t *testing.T, r io.Reader, eventType string, key string, newData string, out interface{}) {
 	var data map[string]interface{}
 	DecodeData(t, r, eventType, &data)
 	// replace data for given key with newData

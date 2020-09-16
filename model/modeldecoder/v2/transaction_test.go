@@ -98,7 +98,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	initializedMeta := func() *model.Metadata {
 		var inputMeta metadata
 		var meta model.Metadata
-		modeldecodertest.SetStructValues(&inputMeta, "meta", 1, false)
+		modeldecodertest.SetStructValues(&inputMeta, "meta", 1, false, time.Now())
 		mapToMetadataModel(&inputMeta, &meta)
 		// initialize values that are not set by input
 		meta.UserAgent = model.UserAgent{Name: "meta", Original: "meta"}
@@ -113,14 +113,14 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var tr model.Transaction
 		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
 		// iterate through metadata model and assert values are set
-		modeldecodertest.AssertStructValues(t, &tr.Metadata, exceptions, "meta", 1, false, localhostIP)
+		modeldecodertest.AssertStructValues(t, &tr.Metadata, exceptions, "meta", 1, false, localhostIP, time.Now())
 	})
 
 	t.Run("overwrite-metadata", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
 		var inputTr transaction
 		var tr model.Transaction
-		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, false)
+		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, false, time.Now())
 		inputTr.Context.Request.Headers.Val.Add("user-agent", "first")
 		inputTr.Context.Request.Headers.Val.Add("user-agent", "second")
 		inputTr.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
@@ -134,9 +134,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, common.MapStr{"meta": "meta"}, tr.Metadata.Labels)
 		assert.Equal(t, &model.Labels{"overwritten": "overwritten"}, tr.Labels)
 		// service values should be set
-		modeldecodertest.AssertStructValues(t, &tr.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP)
+		modeldecodertest.AssertStructValues(t, &tr.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP, time.Now())
 		// user values should be set
-		modeldecodertest.AssertStructValues(t, &tr.Metadata.User, exceptions, "overwritten", 100, true, localhostIP)
+		modeldecodertest.AssertStructValues(t, &tr.Metadata.User, exceptions, "overwritten", 100, true, localhostIP, time.Now())
 	})
 
 	t.Run("client-ip-header", func(t *testing.T) {
@@ -184,9 +184,16 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 		var inputTr transaction
 		var tr model.Transaction
-		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, true)
-		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
-		modeldecodertest.AssertStructValues(t, &tr, exceptions, "overwritten", 5000, true, localhostIP)
+		eventTime, reqTime := time.Now(), time.Now().Add(time.Second)
+		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, true, eventTime)
+		mapToTransactionModel(&inputTr, initializedMeta(), reqTime, true, &tr)
+		modeldecodertest.AssertStructValues(t, &tr, exceptions, "overwritten", 5000, true, localhostIP, eventTime)
+
+		// set requestTime if eventTime is zero
+		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, true, time.Time{})
+		mapToTransactionModel(&inputTr, initializedMeta(), reqTime, true, &tr)
+		modeldecodertest.AssertStructValues(t, &tr, exceptions, "overwritten", 5000, true, localhostIP, reqTime)
+
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
@@ -205,7 +212,7 @@ func TestTransactionValidationRules(t *testing.T) {
 	testTransaction := func(t *testing.T, key string, tc testcase) {
 		var event transaction
 		r := reader(t, "transactions")
-		modeldecodertest.ReplaceData(t, r, "transaction", key, tc.data, &event)
+		modeldecodertest.DecodeDataWithReplacement(t, r, "transaction", key, tc.data, &event)
 
 		// run validation and checks
 		err := event.validate()
@@ -293,11 +300,11 @@ func TestTransactionValidationRules(t *testing.T) {
 		for _, tc := range []testcase{
 			{name: "marks", data: `{"k1":{"v1":12.3}}`},
 			{name: "marks-dot", errorKey: "patternKeys", data: `{"k.1":{"v1":12.3}}`},
-			{name: "marks-dot", errorKey: "patternKeys", data: `{"k1":{"v.1":12.3}}`},
+			{name: "marks-events-dot", errorKey: "patternKeys", data: `{"k1":{"v.1":12.3}}`},
 			{name: "marks-asterisk", errorKey: "patternKeys", data: `{"k*1":{"v1":12.3}}`},
-			{name: "marks-asterisk", errorKey: "patternKeys", data: `{"k1":{"v*1":12.3}}`},
+			{name: "marks-events-asterisk", errorKey: "patternKeys", data: `{"k1":{"v*1":12.3}}`},
 			{name: "marks-quote", errorKey: "patternKeys", data: `{"k\"1":{"v1":12.3}}`},
-			{name: "marks-quote", errorKey: "patternKeys", data: `{"k1":{"v\"1":12.3}}`},
+			{name: "marks-events-quote", errorKey: "patternKeys", data: `{"k1":{"v\"1":12.3}}`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				testTransaction(t, "marks", tc)

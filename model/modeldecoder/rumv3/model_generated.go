@@ -304,16 +304,14 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || len(val.Marks) > 0 || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || val.Experimental.IsSet()
+	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || val.Experimental.IsSet()
 }
 
 func (val *transaction) Reset() {
 	val.Context.Reset()
 	val.Duration.Reset()
 	val.ID.Reset()
-	for k := range val.Marks {
-		delete(val.Marks, k)
-	}
+	val.Marks.Reset()
 	val.Name.Reset()
 	val.Outcome.Reset()
 	val.ParentID.Reset()
@@ -346,15 +344,8 @@ func (val *transaction) validate() error {
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'x.id' required")
 	}
-	for k, v := range val.Marks {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated for 'x.k'")
-		}
-		for innerK := range v {
-			if innerK != "" && !regexpNoDotAsteriskQuote.MatchString(innerK) {
-				return fmt.Errorf("validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated for 'x.k'")
-			}
-		}
+	if err := val.Marks.validate(); err != nil {
+		return err
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'x.n'")
@@ -653,6 +644,53 @@ func (val *contextServiceRuntime) validate() error {
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("validation rule 'max(1024)' violated for 'x.c.se.ru.ve'")
+	}
+	return nil
+}
+
+func (val *transactionMarks) IsSet() bool {
+	return len(val.Events) > 0
+}
+
+func (val *transactionMarks) Reset() {
+	for k := range val.Events {
+		delete(val.Events, k)
+	}
+}
+
+func (val *transactionMarks) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	for k, v := range val.Events {
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated for 'x.k.events'")
+		}
+		if err := v.validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (val *transactionMarkEvents) IsSet() bool {
+	return len(val.Measurements) > 0
+}
+
+func (val *transactionMarkEvents) Reset() {
+	for k := range val.Measurements {
+		delete(val.Measurements, k)
+	}
+}
+
+func (val *transactionMarkEvents) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	for k := range val.Measurements {
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated for 'x.k.events.measurements'")
+		}
 	}
 	return nil
 }

@@ -368,12 +368,11 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 	if t.ID.IsSet() {
 		out.ID = t.ID.Val
 	}
-	if len(t.Marks) > 0 {
-		//TODO(simitt): remove custom TransactionMark type
-		out.Marks = make(model.TransactionMarks, len(t.Marks))
-		for k, v := range t.Marks {
-			if len(v) > 0 {
-				out.Marks[k] = model.TransactionMark(v)
+	if t.Marks.IsSet() {
+		out.Marks = make(model.TransactionMarks, len(t.Marks.Events))
+		for event, val := range t.Marks.Events {
+			if len(val.Measurements) > 0 {
+				out.Marks[event] = model.TransactionMark(val.Measurements)
 			}
 		}
 	}
@@ -419,6 +418,7 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 		started := t.SpanCount.Started.Val
 		out.SpanCount.Started = &started
 	}
+	fmt.Println(t.Timestamp.Val.String())
 	if t.Timestamp.Val.IsZero() {
 		out.Timestamp = reqTime
 	} else {

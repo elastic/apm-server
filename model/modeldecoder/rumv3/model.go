@@ -18,6 +18,7 @@
 package rumv3
 
 import (
+	"encoding/json"
 	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -141,21 +142,39 @@ type metadataServiceRuntime struct {
 }
 
 type transaction struct {
-	Context        context                       `json:"c"`
-	Duration       nullable.Float64              `json:"d" validate:"required,min=0"`
-	ID             nullable.String               `json:"id" validate:"required,max=1024"`
-	Marks          map[string]map[string]float64 `json:"k" validate:"patternKeys=regexpNoDotAsteriskQuote"`
-	Name           nullable.String               `json:"n" validate:"max=1024"`
-	Outcome        nullable.String               `json:"o" validate:"enum=enumOutcome"`
-	ParentID       nullable.String               `json:"pid" validate:"max=1024"`
-	Result         nullable.String               `json:"rt" validate:"max=1024"`
-	Sampled        nullable.Bool                 `json:"sm"`
-	SampleRate     nullable.Float64              `json:"sr"`
-	SpanCount      transactionSpanCount          `json:"yc" validate:"required"`
-	TraceID        nullable.String               `json:"tid" validate:"required,max=1024"`
-	Type           nullable.String               `json:"t" validate:"required,max=1024"`
-	UserExperience transactionUserExperience     `json:"exp"`
-	Experimental   nullable.Interface            `json:"exper"`
+	Context        context                   `json:"c"`
+	Duration       nullable.Float64          `json:"d" validate:"required,min=0"`
+	ID             nullable.String           `json:"id" validate:"required,max=1024"`
+	Marks          transactionMarks          `json:"k"`
+	Name           nullable.String           `json:"n" validate:"max=1024"`
+	Outcome        nullable.String           `json:"o" validate:"enum=enumOutcome"`
+	ParentID       nullable.String           `json:"pid" validate:"max=1024"`
+	Result         nullable.String           `json:"rt" validate:"max=1024"`
+	Sampled        nullable.Bool             `json:"sm"`
+	SampleRate     nullable.Float64          `json:"sr"`
+	SpanCount      transactionSpanCount      `json:"yc" validate:"required"`
+	TraceID        nullable.String           `json:"tid" validate:"required,max=1024"`
+	Type           nullable.String           `json:"t" validate:"required,max=1024"`
+	UserExperience transactionUserExperience `json:"exp"`
+	Experimental   nullable.Interface        `json:"exper"`
+}
+
+type transactionMarks struct {
+	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+}
+
+//TODO(simitt): generate
+func (m *transactionMarks) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &m.Events)
+}
+
+type transactionMarkEvents struct {
+	Measurements map[string]float64 `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+}
+
+//TODO(simitt): generate
+func (m *transactionMarkEvents) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &m.Measurements)
 }
 
 type transactionSpanCount struct {

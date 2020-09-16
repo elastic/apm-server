@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,7 @@ type testcase struct {
 	data     string
 }
 
-func reader(t *testing.T, typ string) io.Reader {
+func testdataReader(t *testing.T, typ string) io.Reader {
 	p := filepath.Join("..", "..", "..", "testdata", "intake-v3", fmt.Sprintf("%s.ndjson", typ))
 	r, err := os.Open(p)
 	require.NoError(t, err)
@@ -49,7 +50,7 @@ func reader(t *testing.T, typ string) io.Reader {
 
 func TestSetResetIsSet(t *testing.T) {
 	var m metadataRoot
-	require.NoError(t, decoder.NewJSONIteratorDecoder(reader(t, "metadata")).Decode(&m))
+	require.NoError(t, decoder.NewJSONIteratorDecoder(testdataReader(t, "metadata")).Decode(&m))
 	require.True(t, m.IsSet())
 	require.NotEmpty(t, m.Metadata.Labels)
 	require.True(t, m.Metadata.Service.IsSet())
@@ -114,7 +115,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 	// map modeldecoder to model metadata and manually set
 	// enhanced data that are never set by the modeldecoder
 	var m metadata
-	modeldecodertest.SetStructValues(&m, "init", 5000, false)
+	modeldecodertest.SetStructValues(&m, "init", 5000, false, time.Now())
 	var modelM model.Metadata
 	mapToMetadataModel(&m, &modelM)
 	// iterate through model and assert values are set
@@ -122,7 +123,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 
 	// overwrite model metadata with specified Values
 	// then iterate through model and assert values are overwritten
-	modeldecodertest.SetStructValues(&m, "overwritten", 12, false)
+	modeldecodertest.SetStructValues(&m, "overwritten", 12, false, time.Now())
 	mapToMetadataModel(&m, &modelM)
 	assert.Equal(t, expected("overwritten"), modelM)
 
@@ -137,8 +138,8 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 func TestValidationRules(t *testing.T) {
 	testMetadata := func(t *testing.T, key string, tc testcase) {
 		var m metadata
-		r := reader(t, "metadata")
-		modeldecodertest.ReplaceData(t, r, "m", key, tc.data, &m)
+		r := testdataReader(t, "metadata")
+		modeldecodertest.DecodeDataWithReplacement(t, r, "m", key, tc.data, &m)
 
 		// run validation and checks
 		err := m.validate()
