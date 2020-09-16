@@ -16,6 +16,9 @@ pipeline {
     BEATS_URL_BASE = 'https://storage.googleapis.com/beats-ci-artifacts/snapshots'
     APM_URL_BASE = 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'
     // BRANCH_NAME = 'master'
+    LANG = "C.UTF-8"
+    LC_ALL = "C.UTF-8"
+    PYTHONUTF8 = "1"
   }
   options {
     timeout(time: 4, unit: 'HOURS')
