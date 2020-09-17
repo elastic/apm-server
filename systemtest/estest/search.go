@@ -20,10 +20,28 @@ package estest
 import (
 	"context"
 	"encoding/json"
+	"testing"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 )
+
+// ExpectDocs searches index with query, returning the results.
+//
+// If the search returns no results within 10 seconds (by default),
+// ExpectDocs will call t.Error().
+func (es *Client) ExpectDocs(t testing.TB, index string, query interface{}, opts ...RequestOption) SearchResult {
+	t.Helper()
+	var result SearchResult
+	_, err := es.Search(index).WithQuery(query).Do(
+		context.Background(), &result,
+		WithCondition(result.Hits.NonEmptyCondition()),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	return result
+}
 
 func (es *Client) Search(index string) *SearchRequest {
 	req := &SearchRequest{es: es}
