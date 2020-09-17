@@ -9165,3 +9165,48 @@ format: bytes
 
 --
 
+[float]
+=== cgroup
+
+Metrics and limits for the cgroup, collected by APM agents on Linux.
+
+
+[float]
+=== memory
+
+Memory-specific cgroup metrics and limits.
+
+
+*`system.process.cgroup.memory.mem.limit.bytes`*::
++
+--
+Memory limit for the current cgroup slice.
+
+type: long
+
+format: bytes
+
+--
+
+*`system.process.cgroup.memory.mem.usage.bytes`*::
++
+--
+Memory usage by the current cgroup slice.
+
+type: long
+
+format: bytes
+
+--
+
+*`system.process.cgroup.memory.stats.inactive_file.bytes`*::
++
+--
+Inactive memory for the current cgroup slice.
+
+type: long
+
+format: bytes
+
+--
+
