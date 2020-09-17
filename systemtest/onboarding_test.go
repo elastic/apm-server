@@ -18,7 +18,6 @@
 package systemtest_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,16 +32,13 @@ func TestAPMServerOnboarding(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServer(t)
 
-	var result estest.SearchResult
-	_, err := systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.TermQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
 		Field: "processor.event",
 		Value: "onboarding",
-	}).Do(context.Background(), &result, estest.WithCondition(result.Hits.NonEmptyCondition()))
-	require.NoError(t, err)
+	})
 
 	require.Len(t, result.Hits.Hits, 1)
 	expvar := srv.GetExpvar()
-	require.NoError(t, err)
 	observer := result.Hits.Hits[0].Source["observer"].(map[string]interface{})
 	assert.Equal(t, expvar.Vars["beat.info.ephemeral_id"], observer["ephemeral_id"])
 }

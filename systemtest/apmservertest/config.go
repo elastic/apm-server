@@ -46,6 +46,7 @@ type Config struct {
 	Kibana      *KibanaConfig      `json:"apm-server.kibana,omitempty"`
 	Aggregation *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
+	RUM         *RUMConfig         `json:"apm-server.rum,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -104,6 +105,11 @@ type JaegerConfig struct {
 // SamplingConfig holds APM Server trace sampling configuration.
 type SamplingConfig struct {
 	KeepUnsampled bool `json:"keep_unsampled"`
+}
+
+// RUMConfig holds APM Server RUM configuration.
+type RUMConfig struct {
+	Enabled bool `json:"enabled"`
 }
 
 // InstrumentationConfig holds APM Server instrumentation configuration.
