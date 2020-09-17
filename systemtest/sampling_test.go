@@ -18,7 +18,6 @@
 package systemtest_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -50,18 +49,10 @@ func TestKeepUnsampled(t *testing.T) {
 			tracer.StartTransaction("unsampled", transactionType).End()
 			tracer.Flush(nil)
 
-			var result estest.SearchResult
-			_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
-				Filter: []interface{}{
-					estest.TermQuery{
-						Field: "transaction.type",
-						Value: transactionType,
-					},
-				},
-			}).Do(context.Background(), &result,
-				estest.WithCondition(result.Hits.NonEmptyCondition()),
-			)
-			require.NoError(t, err)
+			result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+				Field: "transaction.type",
+				Value: transactionType,
+			})
 
 			expectedTransactionDocs := 1
 			if keepUnsampled {

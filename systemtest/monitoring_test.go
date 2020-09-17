@@ -18,7 +18,6 @@
 package systemtest_test
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -84,22 +83,12 @@ func getBeatsMonitoringStats(t testing.TB, srv *apmservertest.Server, out interf
 }
 
 func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, out interface{}) *beatsMonitoringDoc {
-	var result estest.SearchResult
-	_, err := systemtest.Elasticsearch.Search(".monitoring-beats-*").WithQuery(estest.BoolQuery{
-		Filter: []interface{}{
-			estest.TermQuery{
-				Field: type_ + ".beat.uuid",
-				Value: srv.BeatUUID,
-			},
-		},
-	}).Do(context.Background(), &result,
-		estest.WithTimeout(10*time.Second),
-		estest.WithCondition(result.Hits.NonEmptyCondition()),
+	result := systemtest.Elasticsearch.ExpectDocs(t, ".monitoring-beats-*",
+		estest.TermQuery{Field: type_ + ".beat.uuid", Value: srv.BeatUUID},
 	)
-	require.NoError(t, err)
 
 	var doc beatsMonitoringDoc
-	err = json.Unmarshal([]byte(result.Hits.Hits[0].RawSource), &doc)
+	err := json.Unmarshal([]byte(result.Hits.Hits[0].RawSource), &doc)
 	require.NoError(t, err)
 	if out != nil {
 		switch doc.Type {
