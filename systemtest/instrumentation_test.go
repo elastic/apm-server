@@ -18,10 +18,8 @@
 package systemtest_test
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,8 +42,7 @@ func TestAPMServerInstrumentation(t *testing.T) {
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
 
-	var result estest.SearchResult
-	_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{
 		Filter: []interface{}{
 			estest.TermQuery{
 				Field: "processor.event",
@@ -60,11 +57,7 @@ func TestAPMServerInstrumentation(t *testing.T) {
 				Value: "request",
 			},
 		},
-	}).Do(context.Background(), &result,
-		estest.WithTimeout(10*time.Second),
-		estest.WithCondition(result.Hits.NonEmptyCondition()),
-	)
-	require.NoError(t, err)
+	})
 
 	var transactionDoc struct {
 		Trace       struct{ ID string }
