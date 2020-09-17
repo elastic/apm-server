@@ -241,11 +241,15 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 // be returned which should be published immediately, along with the
 // transaction. Otherwise, the returned metricset will be nil.
 func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricset {
+	if tx.RepresentativeCount <= 0 {
+		return nil
+	}
+
 	key := a.makeTransactionAggregationKey(tx)
 	hash := key.hash()
 	count := transactionCount(tx)
 	duration := time.Duration(tx.Duration * float64(time.Millisecond))
-	if a.updateTransactionMetrics(key, hash, count, duration) {
+	if a.updateTransactionMetrics(key, hash, tx.RepresentativeCount, duration) {
 		return nil
 	}
 	// Too many aggregation keys: could not update metrics, so immediately
