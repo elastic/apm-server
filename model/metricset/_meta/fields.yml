@@ -94,10 +94,6 @@
               type: long
               format: bytes
               description:  Memory usage by the current cgroup slice. 
-            - name: stats.inactive_file.bytes
-              type: long
-              format: bytes
-              description:  Inactive memory for the current cgroup slice. 
 
 - key: apm-transaction-metrics
   title: "APM Transaction Metrics"

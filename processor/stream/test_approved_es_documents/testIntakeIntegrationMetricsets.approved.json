@@ -175,11 +175,6 @@
                                 "usage": {
                                     "bytes": 1024
                                 }
-                            },
-                            "stats": {
-                                "inactive_file": {
-                                    "bytes": 48
-                                }
                             }
                         }
                     }
