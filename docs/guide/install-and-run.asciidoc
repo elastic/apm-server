@@ -42,12 +42,11 @@ spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 See {apm-server-ref-v}/secure-communication-agents.html[secure communication with APM Agents] to learn more.
 
 Select your service's language for installation instructions:
+// end::apm-agent[]
 
 --
 include::../tab-widgets/install-agents-widget.asciidoc[]
 --
-
-// end::apm-agent[]
 
 TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of {es}.
 
@@ -67,13 +66,13 @@ There are many different ways to tweak and tune the Elastic ecosystem to your ne
 APM agents have a number of configuration options that allow you to fine tune things like
 environment names, sampling rates, instrumentations, metrics, and more.
 Broadly speaking, there are two ways to configure APM agents:
+// end::configure-agents[]
 
 include::../tab-widgets/configure-agent-widget.asciidoc[]
 
 *Configure APM Server*
 
 include::../tab-widgets/configure-server-widget.asciidoc[]
-// end::configure-agents[]
 
 [float]
 [[visualize-kibana]]
