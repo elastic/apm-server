@@ -9199,14 +9199,3 @@ format: bytes
 
 --
 
-*`system.process.cgroup.memory.stats.inactive_file.bytes`*::
-+
---
-Inactive memory for the current cgroup slice.
-
-type: long
-
-format: bytes
-
---
-
