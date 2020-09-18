@@ -33,6 +33,11 @@ pipeline {
   triggers {
     cron '@weekly'
   }
+  parameters {
+    string(name: 'APM_URL_BASE', defaultValue: 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots', description: 'The location where the APM packages should be downloaded from')
+    string(name: 'BEATS_URL_BASE', defaultValue: 'https://storage.googleapis.com/beats-ci-artifacts/snapshots', description: 'The location where the Beats packages should be downloaded from')
+    string(name: 'VERSION', defaultValue: '8.0.0-SNAPSHOT', description: 'The package version to test (modify the job configuration to add a new version)')
+  }
   stages {
     stage('Checkout') {
       options { skipDefaultCheckout() }
