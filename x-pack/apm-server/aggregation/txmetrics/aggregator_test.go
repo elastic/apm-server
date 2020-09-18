@@ -87,8 +87,8 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 	// as we have configured the txmetrics with a maximum of two buckets.
 	var input []transform.Transformable
 	for i := 0; i < 10; i++ {
-		input = append(input, &model.Transaction{Name: "foo"})
-		input = append(input, &model.Transaction{Name: "bar"})
+		input = append(input, &model.Transaction{Name: "foo", RepresentativeCount: 1})
+		input = append(input, &model.Transaction{Name: "bar", RepresentativeCount: 1})
 	}
 	output := agg.ProcessTransformables(input)
 	assert.Equal(t, input, output)
@@ -96,8 +96,9 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 	// The third transaction group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
 		input = append(input, &model.Transaction{
-			Name:     "baz",
-			Duration: float64(time.Minute / time.Millisecond),
+			Name:                "baz",
+			Duration:            float64(time.Minute / time.Millisecond),
+			RepresentativeCount: 1,
 		})
 	}
 	output = agg.ProcessTransformables(input)
@@ -139,11 +140,17 @@ func TestAggregatorRun(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 1000; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
+		metricset := agg.AggregateTransaction(&model.Transaction{
+			Name:                "T-1000",
+			RepresentativeCount: 1,
+		})
 		require.Nil(t, metricset)
 	}
 	for i := 0; i < 800; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-800"})
+		metricset := agg.AggregateTransaction(&model.Transaction{
+			Name:                "T-800",
+			RepresentativeCount: 1,
+		})
 		require.Nil(t, metricset)
 	}
 
@@ -202,7 +209,10 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	defer agg.Stop(context.Background())
 
 	for i := 0; i < 2; i++ {
-		metricset := agg.AggregateTransaction(&model.Transaction{Name: "T-1000"})
+		metricset := agg.AggregateTransaction(&model.Transaction{
+			Name:                "T-1000",
+			RepresentativeCount: 1,
+		})
 		require.Nil(t, metricset)
 		expectPublish(t, reqs)
 	}
@@ -236,14 +246,20 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 	agg.AggregateTransaction(&model.Transaction{Name: "fnord", RepresentativeCount: 1})
 	agg.AggregateTransaction(&model.Transaction{Name: "fnord", RepresentativeCount: 1.5})
 
+	// For non-positive RepresentativeCounts, no metrics will be accumulated.
+	for _, representativeCount := range []float64{-1, 0} {
+		m := agg.AggregateTransaction(&model.Transaction{
+			Name:                "foo",
+			RepresentativeCount: representativeCount,
+		})
+		assert.Nil(t, m)
+	}
+
 	for _, test := range []struct {
 		representativeCount float64
 		expectedCount       int64
 	}{{
-		representativeCount: 0,
-		expectedCount:       1,
-	}, {
-		representativeCount: -1,
+		representativeCount: 1,
 		expectedCount:       1,
 	}, {
 		representativeCount: 2,
@@ -322,8 +338,9 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101111 * time.Microsecond,
 		} {
 			metricset := agg.AggregateTransaction(&model.Transaction{
-				Name:     "T-1000",
-				Duration: durationMillis(duration),
+				Name:                "T-1000",
+				Duration:            durationMillis(duration),
+				RepresentativeCount: 1,
 			})
 			require.Nil(t, metricset)
 		}
@@ -439,8 +456,9 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	require.NoError(b, err)
 
 	tx := &model.Transaction{
-		Name:     "T-1000",
-		Duration: 1,
+		Name:                "T-1000",
+		Duration:            1,
+		RepresentativeCount: 1,
 	}
 
 	b.RunParallel(func(pb *testing.PB) {
@@ -461,8 +479,9 @@ func BenchmarkAggregateTransactionUserAgent(b *testing.B) {
 	require.NoError(b, err)
 
 	tx := &model.Transaction{
-		Name:     "T-1000",
-		Duration: 1,
+		Name:                "T-1000",
+		Duration:            1,
+		RepresentativeCount: 1,
 	}
 	tx.Metadata.UserAgent.Original = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0) Gecko/20110408 conkeror/0.9.3"
 
