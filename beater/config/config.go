@@ -137,6 +137,12 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
+	if c.Sampling.Tail != nil {
+		if err := c.Sampling.Tail.setup(logger, outputESCfg); err != nil {
+			return nil, err
+		}
+	}
+
 	if !c.Sampling.KeepUnsampled && !c.Aggregation.Transactions.Enabled {
 		// Unsampled transactions should only be dropped
 		// when transaction aggregation is enabled in the

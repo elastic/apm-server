@@ -12,13 +12,16 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/paths"
 
 	"github.com/elastic/apm-server/beater"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 )
 
 type namedProcessor struct {
@@ -27,7 +30,7 @@ type namedProcessor struct {
 }
 
 type processor interface {
-	ProcessTransformables([]transform.Transformable) []transform.Transformable
+	ProcessTransformables(context.Context, []transform.Transformable) ([]transform.Transformable, error)
 	Run() error
 	Stop(context.Context) error
 }
@@ -64,7 +67,44 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		}
 		processors = append(processors, namedProcessor{name: name, processor: spanAggregator})
 	}
+	if args.Config.Sampling.Tail != nil && args.Config.Sampling.Tail.Enabled {
+		const name = "tail sampler"
+		sampler, err := newTailSamplingProcessor(args)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error creating %s", name)
+		}
+		processors = append(processors, namedProcessor{name: name, processor: sampler})
+	}
 	return processors, nil
+}
+
+func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
+	tailSamplingConfig := args.Config.Sampling.Tail
+	es, err := elasticsearch.NewClient(tailSamplingConfig.ESConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
+	}
+	return sampling.NewProcessor(sampling.Config{
+		BeatID:   args.Info.ID.String(),
+		Reporter: args.Reporter,
+		LocalSamplingConfig: sampling.LocalSamplingConfig{
+			FlushInterval: tailSamplingConfig.Interval,
+			// TODO(axw) make MaxTraceGroups configurable?
+			MaxTraceGroups:        1000,
+			DefaultSampleRate:     tailSamplingConfig.DefaultSampleRate,
+			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
+		},
+		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
+			Elasticsearch: es,
+			// TODO(axw) make index name configurable?
+			SampledTracesIndex: "apm-sampled-traces",
+		},
+		StorageConfig: sampling.StorageConfig{
+			StorageDir:        paths.Resolve(paths.Data, tailSamplingConfig.StorageDir),
+			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
+			TTL:               tailSamplingConfig.TTL,
+		},
+	})
 }
 
 // runServerWithProcessors runs the APM Server and the given list of processors.
@@ -78,8 +118,12 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 
 	origReport := args.Reporter
 	args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
+		var err error
 		for _, p := range processors {
-			req.Transformables = p.ProcessTransformables(req.Transformables)
+			req.Transformables, err = p.ProcessTransformables(ctx, req.Transformables)
+			if err != nil {
+				return err
+			}
 		}
 		return origReport(ctx, req)
 	}
