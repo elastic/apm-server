@@ -11,7 +11,7 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 
 * Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
 * De-dot Jaeger process tag keys, fixing indexing errors when using jaeger-php {pull}4191[4191]
-* Fix json schema validation on `metadata.service.*` fields {pull}[4142]4142
+* Fix json schema validation on `metadata.service.*` fields {pull}4142[4142]
 
 [float]
 ==== Intake API Changes
@@ -33,5 +33,5 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 * Add event.outcome to aggregated transaction metrics {pull}4110[4110]
 * Set event.outcome for Jaeger spans based on http.status_code {pull}4127[4127]
 * Set event.outcome for transactions and spans based on http.status_code {pull}4165[4165]
-* Add mapping for `system.process.cgroup.*` metrics {pull}[4176]4176 
-* Use transaction.sample_rate to calculate transaction metrics {pull}[4212]4212
+* Add mapping for `system.process.cgroup.*` metrics {pull}4176[4176]
+* Use transaction.sample_rate to calculate transaction metrics {pull}4212[4212]

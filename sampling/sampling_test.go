@@ -44,9 +44,10 @@ func TestNewDiscardUnsampledReporter(t *testing.T) {
 	t2 := &model.Transaction{Sampled: newBool(false)}
 	t3 := &model.Transaction{Sampled: newBool(true)}
 	span := &model.Span{}
+	t4 := &model.Transaction{Sampled: newBool(false)}
 
 	reporter(context.Background(), publish.PendingReq{
-		Transformables: []transform.Transformable{t1, t2, t3, span},
+		Transformables: []transform.Transformable{t1, t2, t3, span, t4},
 	})
 
 	// Note that t3 gets sent to the back of the slice;
@@ -57,7 +58,7 @@ func TestNewDiscardUnsampledReporter(t *testing.T) {
 	assert.Equal(t, t3, reported[2])
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
-	expectedMonitoring.Ints["transactions_dropped"] = 1
+	expectedMonitoring.Ints["transactions_dropped"] = 2
 
 	snapshot := monitoring.CollectFlatSnapshot(
 		monitoring.GetRegistry("apm-server.sampling"),
