@@ -54,16 +54,9 @@ func TestJaegerGRPC(t *testing.T) {
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
-	var result estest.SearchResult
-	_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
-		Filter: []interface{}{
-			estest.TermQuery{
-				Field: "processor.event",
-				Value: "transaction",
-			},
-		},
-	}).Do(context.Background(), &result, estest.WithCondition(result.Hits.NonEmptyCondition()))
-	require.NoError(t, err)
+	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	}})
 
 	// TODO(axw) check document contents. We currently do this in beater/jaeger.
 }

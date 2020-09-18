@@ -16,6 +16,9 @@ pipeline {
     BEATS_URL_BASE = 'https://storage.googleapis.com/beats-ci-artifacts/snapshots'
     APM_URL_BASE = 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'
     // BRANCH_NAME = 'master'
+    LANG = "C.UTF-8"
+    LC_ALL = "C.UTF-8"
+    PYTHONUTF8 = "1"
   }
   options {
     timeout(time: 4, unit: 'HOURS')
@@ -44,7 +47,7 @@ pipeline {
       matrix {
         // TODO: when the infra is ready with the 'nested-virtualization' then we can use that label
         // agent { label 'nested-virtualization' }
-        agent { label 'darwin' }
+        agent { label 'metal' }
         axes {
           axis {
             name 'GROUPS'
@@ -57,12 +60,10 @@ pipeline {
           stage('Test'){
             options { skipDefaultCheckout() }
             steps {
-              // See https://stackoverflow.com/questions/59269208/errorrootcode-for-hash-md5-was-not-found-when-using-any-hg-mercurial-command
-              sh(label: "Switching OpenSSL versions to fix Py2", script: "brew switch openssl 1.0.2t")
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                withGoEnv(){
+                withGoEnv(os: 'linux'){
                   sh(label: 'make batch',
                     script: """#!/bin/bash
                       echo "beats_url_base: ${BEATS_URL_BASE}" > run-settings-jenkins.yml
@@ -77,7 +78,7 @@ pipeline {
                 dir("${BASE_DIR}"){
                   junit(allowEmptyResults: true, keepLongStdio: true, testResults: "logs/*.xml")
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'logs/**')
-                  withGoEnv(){
+                  withGoEnv(os: 'linux'){
                     sh(label: 'make clean', script: 'make clean')
                   }
                 }

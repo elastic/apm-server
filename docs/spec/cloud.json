@@ -1,74 +1,108 @@
 {
     "$id": "docs/spec/cloud.json",
     "title": "Cloud",
-    "type": ["object", "null"],
+    "type": [
+        "object",
+        "null"
+    ],
     "properties": {
         "account": {
             "properties": {
-                "id" : {
+                "id": {
                     "description": "Cloud account ID",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "name" : {
+                "name": {
                     "description": "Cloud account name",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "availability_zone": {
             "description": "Cloud availability zone name. e.g. us-east-1a",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         },
         "instance": {
             "properties": {
-                "id" : {
+                "id": {
                     "description": "Cloud instance/machine ID",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "name" : {
+                "name": {
                     "description": "Cloud instance/machine name",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "machine": {
             "properties": {
-                "type" : {
+                "type": {
                     "description": "Cloud instance/machine type",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "project": {
             "properties": {
-                "id" : {
+                "id": {
                     "description": "Cloud project ID",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
-                "name" : {
+                "name": {
                     "description": "Cloud project name",
-                    "type": ["string"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 }
             }
         },
         "provider": {
             "description": "Cloud provider name. e.g. aws, azure, gcp, digitalocean.",
-            "type": ["string", "null"],
+            "type": [
+                "string"
+            ],
             "maxLength": 1024
         },
         "region": {
             "description": "Cloud region name. e.g. us-east-1",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         }
     },
-    "required": ["provider"]
+    "required": [
+        "provider"
+    ]
 }

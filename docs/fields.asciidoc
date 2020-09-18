@@ -1679,14 +1679,15 @@ type: long
 --
 
 
-*`destination.service.response_time.count`*::
+
+*`span.destination.service.response_time.count`*::
 +
 --
 type: long
 
 --
 
-*`destination.service.response_time.sum.us`*::
+*`span.destination.service.response_time.sum.us`*::
 +
 --
 type: long
@@ -9193,17 +9194,6 @@ format: bytes
 +
 --
 Memory usage by the current cgroup slice.
-
-type: long
-
-format: bytes
-
---
-
-*`system.process.cgroup.memory.stats.inactive_file.bytes`*::
-+
---
-Inactive memory for the current cgroup slice.
 
 type: long
 

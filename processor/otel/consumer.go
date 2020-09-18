@@ -201,13 +201,13 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 
 	md.Labels = make(common.MapStr)
 	for key, val := range td.Node.GetAttributes() {
-		md.Labels[key] = truncate(val)
+		md.Labels[replaceDots(key)] = truncate(val)
 	}
 	if t := td.Resource.GetType(); t != "" {
 		md.Labels["resource"] = truncate(t)
 	}
 	for key, val := range td.Resource.GetLabels() {
-		md.Labels[key] = truncate(val)
+		md.Labels[replaceDots(key)] = truncate(val)
 	}
 }
 
