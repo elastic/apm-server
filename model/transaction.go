@@ -67,7 +67,7 @@ type Transaction struct {
 
 	Experimental interface{}
 
-	// RepresentativeCount, if positive, holds the approximate number of
+	// RepresentativeCount holds the approximate number of
 	// transactions that this transaction represents for aggregation.
 	//
 	// This may be used for scaling metrics; it is not indexed.
