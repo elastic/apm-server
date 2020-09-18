@@ -146,7 +146,7 @@ func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 	for key, group := range g.groups {
 		total := group.total
 		traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
-		if n := group.reservoir.Size(); n == minReservoirSize {
+		if group.reservoir.Size() == minReservoirSize {
 			if total == 0 || maxGroupsReached {
 				delete(g.groups, key)
 			}
