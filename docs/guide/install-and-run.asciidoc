@@ -1,269 +1,96 @@
 [[install-and-run]]
-== Install and run
+== Quick start: install and run
 
-The easiest way to get started with Elastic APM is by using our
-https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
-Elastic Cloud. The {es} Service is available on AWS, GCP, and Azure,
-and automatically configures APM Server to work with {es} and {kib}.
+// Make tab-widgets work
+include::../tab-widgets/code.asciidoc[]
 
-[float]
-=== Hosted Elasticsearch Service
+This guide describes how to get started quickly with Elastic APM. You’ll learn how to:
 
-image::images/apm-architecture-cloud.png[Install Elastic APM on cloud]
-
-Skip managing your own {es}, {kib}, and APM Server by using our
-https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
-Elastic Cloud.
-
-{ess-trial}[Try out the {es} Service for free],
-then jump straight to <<agents>>.
+* Spin up {es}, {kib}, and APM Server on {ess}
+* Install APM agents
+* Basic configuration options
+* Visualize your APM data in {kib}
 
 [float]
 [[before-installation]]
-=== Install and manage the stack yourself
+=== Step 1: Spin up the Elastic Stack
 
-image::images/apm-architecture-diy.png[Install Elastic APM yourself]
-
-To install the stack yourself, first see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
-We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
-
-* <<install-elasticsearch>>
-* <<install-kibana>>
-* <<apm-server>>
-* <<agents>>
+include::../tab-widgets/spin-up-stack-widget.asciidoc[]
 
 [float]
-[[quick-start]]
-=== Quick start with Docker
-
-If you're interested in Elastic APM and want a quick and easy development environment to try things out,
-see <<quick-start-overview>>.
-
-[[install-elasticsearch]]
-=== Step 1: Install Elasticsearch
-
-// This will move to tagged regions so we can pull the installation instructions
-// here (instead of linking out)
-
-Install an Elasticsearch cluster, start it up, and make sure it's running.
-
-. Verify that your system meets the
-https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {es}.
-. {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[Install Elasticsearch].
-. {stack-gs}/get-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running].
-
-[[install-kibana]]
-=== Step 2: Install Kibana
-
-// This will move to tagged regions so we can pull the installation instructions
-// here (instead of linking out)
-
-Install Kibana, start it up, and open up the web interface:
-
-. {stack-gs}/get-started-elastic-stack.html#install-kibana[Install Kibana].
-. {stack-gs}/get-started-elastic-stack.html#_launch_the_kibana_web_interface[Launch the Kibana Web Interface].
-
-[[apm-server]]
-=== Step 3: Install APM Server
-
-Install, set up, and run APM Server.
-
-. {apm-server-ref-v}/installing.html[Install APM Server].
-. {apm-server-ref-v}/apm-server-configuration.html[Set up APM Server]
-. {apm-server-ref-v}/setting-up-and-running.html[Start APM Server].
-
-Next, use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
-or if you need to specify credentials:
-
-* {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
-** {apm-server-ref-v}/configuration-process.html[General configuration options]
-** {apm-server-ref-v}/elasticsearch-output.html[Configure the Elasticsearch output]
-
-[[secure-api-access]]
-If you do change the listen address from `localhost` to something that is accessible from outside of the machine,
-we recommend setting up firewall rules to ensure that only your own systems can access the API.
-Alternatively,
-you can use a {apm-server-ref-v}/securing-apm-server.html[secret token and TLS].
-
-If you have APM Server running on the same host as your service,
-you can configure it to listen on a Unix domain socket.
-
-[[more-information]]
-TIP: For detailed instructions on how to install and secure APM Server in your server environment,
-including details on how to run APM Server in a highly available environment,
-please see the full {apm-server-ref-v}/index.html[APM Server documentation].
-
 [[agents]]
-=== Step 4: Install APM agents
+=== Step 2: Install APM agents
 
 // This tagged region is reused in the Observability docs.
 // tag::apm-agent[]
-Agents are written in the same language as your service.
-Monitoring a new service requires installing the agent
-and configuring it with the address of your APM Server, a secret token (if necessary), and a service name.
-
-[cols="h,,"]
-|=======================================================================
-|Agent
-2+|
-
-.2+|Go
-2+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
-|{apm-go-ref-v}/supported-tech.html[Supported technologies]
-|{apm-go-ref-v}/getting-started.html[Set up the Go Agent]
-
-.2+|Java
-2+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
-|{apm-java-ref-v}/supported-technologies-details.html[Supported technologies]
-|{apm-java-ref-v}/setup.html[Set up the Java Agent]
-
-.2+|.NET
-2+|The .NET agent automatically instruments ASP.NET Core applications, and .NET Framework applications.
-|{apm-dotnet-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
-
-.2+|Node.js
-2+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
-|{apm-node-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-node-ref-v}/set-up.html[Set up the Node.js Agent]
-
-.2+|Python
-2+|The Python agent automatically instruments Django and Flask out of the box.
-|{apm-py-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-py-ref-v}/set-up.html[Set up the Python Agent]
-
-.2+|Ruby
-2+|The Ruby agent automatically instruments Rails out of the box.
-|{apm-ruby-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-ruby-ref-v}/set-up.html[Set up the Ruby Agent]
-
-.2+|RUM
-2+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
-|{apm-rum-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-rum-ref-v}/getting-started.html[Set up the RUM Agent]
-
-|=======================================================================
-
-TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of Elasticsearch.
+APM agents are written in the same language as your service.
+To monitor a new service, you must install the agent and configure it with a service name, APM Server URL, and Secret token or API key.
 
 [[choose-service-name]]
-[float]
-==== Choose a service name
-
-The service name is used by Elastic APM to differentiate between data coming from different services.
-
+* *Service name*: Service names are used to differentiate data from each of your services.
 Elastic APM includes the service name field on every document that it saves in Elasticsearch.
 If you change the service name after using Elastic APM,
 you will see the old service name and the new service name as two separate services.
 Make sure you choose a good service name before you get started.
-
++
 The service name can only contain alphanumeric characters,
 spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
+* *APM Server URL*: The host and port that APM Server listens for events on.
+
+* *Secret token or API key*: Authentication method for Agent/Server communication.
+See {apm-server-ref-v}/secure-communication-agents.html[secure communication with APM Agents] to learn more.
+
+Select your service's language for installation instructions:
+
+--
+include::../tab-widgets/install-agents-widget.asciidoc[]
+--
+
 // end::apm-agent[]
 
-[[configure-apm]]
-=== Step 5: Configure APM
+TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix] to ensure you're using agents that are compatible with your version of {es}.
 
-Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
-Luckily, there are many different ways to tweak and tune the Elastic ecosystem to adapt it to your needs.
 
 [float]
-==== Configure APM agents
+[[configure-apm]]
+=== Step 3: Advanced configuration (optional)
 
 // This tagged region is reused in the Observability docs.
 // tag::configure-agents[]
+
+Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
+There are many different ways to tweak and tune the Elastic ecosystem to your needs.
+
+*Configure APM agents*
+
 APM agents have a number of configuration options that allow you to fine tune things like
 environment names, sampling rates, instrumentations, metrics, and more.
+Broadly speaking, there are two ways to configure APM agents:
 
-|===
-|*Agent configuration documentation*
-a|
+include::../tab-widgets/configure-agent-widget.asciidoc[]
 
-* {apm-go-ref-v}/configuration.html[Go Agent configuration]
-* {apm-java-ref-v}/configuration.html[Java Agent configuration]
-* {apm-dotnet-ref-v}/configuration.html[.NET Agent configuration]
-* {apm-node-ref}/configuring-the-agent.html[Node.js Agent configuration]
-* {apm-py-ref-v}/configuration.html[Python Agent configuration]
-* {apm-ruby-ref-v}/configuration.html[Ruby Agent configuration]
-* {apm-rum-ref-v}/configuration.html[RUM Agent configuration]
-|===
+*Configure APM Server*
 
-A select number of configuration options can be changed directly in Kibana, without needing to redeploy the Agent.
-See {apm-app-ref}/agent-configuration.html[Agent configuration in Kibana] for more information.
-
-[float]
-==== Configure Elastic Cloud
-
-If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
-Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
-
-Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
-
-[float]
-==== Configure a self installation
-
-If you've installed APM Server yourself, you can edit the `apm-server.yml` configuration file to make changes.
-More information is available in {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
-
-Don't forget to also read about
-{apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
-{apm-server-ref-v}/monitoring.html[monitoring APM Server].
+include::../tab-widgets/configure-server-widget.asciidoc[]
 // end::configure-agents[]
 
-[[quick-start-overview]]
-=== Quick start development environment
+[float]
+[[visualize-kibana]]
+=== Step 4: Visualize in {kib}
 
-// This tagged region is reused in the Observability docs.
-// tag::dev-environment[]
-ifeval::["{release-state}"=="unreleased"]
+The APM app in {kib} allows you to monitor your software services and applications in real-time;
+visualize detailed performance information on your services, identify and analyze errors,
+and monitor host-level and agent-specific metrics like JVM and Go runtime metrics.
 
-Version {version} of APM Server has not yet been released.
+To open the APM app:
 
-endif::[]
+. Lauch {kib}:
++
+--
+include::../tab-widgets/open-kibana-widget.asciidoc[]
+--
 
-ifeval::["{release-state}"!="unreleased"]
+. In the side navigation, under *Observability*, select *APM*.
 
-If you're just looking for a quick way to try out Elastic APM, you can easily get started with Docker.
-Just follow the steps below.
-
-**Create a docker-compose.yml file**
-
-The https://www.docker.elastic.co/[Elastic Docker registry] contains Docker images for all of the products
-in the {stack}.
-You can use Docker compose to easily get the default distributions of {es}, {kib},
-and APM Server up and running in Docker.
-
-Create a `docker-compose.yml` file and copy and paste in the following:
-
-["source","yaml",subs="attributes"]
---------------------------------------------
-include::./docker-compose.yml[]
---------------------------------------------
-
-**Compose**
-
-Run `docker-compose up`.
-Compose will download the official docker containers and start {es}, {kib}, and APM Server.
-
-**Install Agents**
-
-When Compose finishes, navigate to http://localhost:5601/app/kibana#/home/tutorial/apm.
-Complete steps 4-6 to configure your application to collect and report APM data.
-
-**Visualize**
-
-Use the APM app at http://localhost:5601/app/apm to visualize your application performance data!
-
-When you're done, `ctrl+c` will stop all of the containers.
-
-**Advanced Docker usage**
-
-If you're interested in learning more about all of the APM features available,
-or running the Elastic stack on Docker in a production environment, see the following documentation:
-
-* {apm-server-ref-v}/running-on-docker.html[Running APM Server on Docker]
-* {stack-gs}/get-started-docker.html[Running the Elastic Stack on Docker]
-
-endif::[]
-// end::dev-environment[]
+TIP: Head over to the {kibana-ref}/xpack-apm.html[APM app documentation] to learn more about what you can do with {kib}.
