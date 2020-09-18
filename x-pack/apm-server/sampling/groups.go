@@ -171,7 +171,7 @@ func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFac
 	for n := g.reservoir.Len(); n > desiredTotal; n-- {
 		// The reservoir is larger than the desired fraction of the
 		// observed total number of traces in this interval. Pop the
-		// lowest weighed traces to limit to the desired total.
+		// lowest weighted traces to limit to the desired total.
 		g.reservoir.Pop()
 	}
 	traceIDs = append(traceIDs, g.reservoir.Values()...)
