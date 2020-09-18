@@ -1,5 +1,5 @@
 [[install-and-run]]
-== Quick start: install and run
+== Quick start guide
 
 // Make tab-widgets work
 include::../tab-widgets/code.asciidoc[]
@@ -93,4 +93,13 @@ include::../tab-widgets/open-kibana-widget.asciidoc[]
 
 . In the side navigation, under *Observability*, select *APM*.
 
-TIP: Head over to the {kibana-ref}/xpack-apm.html[APM app documentation] to learn more about what you can do with {kib}.
+[float]
+[[what-next]]
+=== What's next?
+
+Now that you have APM data streaming into {ES},
+head over to the {kibana-ref}/xpack-apm.html[APM app documentation] to learn more about what you can do with {kib}.
+
+// Need to add more here
+// Get a deeper understanding by learning about [[concepts]]
+// Learn how to do things with [[how-to guides]]

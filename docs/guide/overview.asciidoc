@@ -1,5 +1,9 @@
 [[overview]]
-== Overview
+== Open source application performance monitoring
+
+++++
+<titleabbrev>What is APM?</titleabbrev>
+++++
 
 Elastic APM is an application performance monitoring system built on the Elastic Stack.
 It allows you to monitor software services and applications in real-time, by
@@ -15,6 +19,10 @@ Metrics are another vital source of information when debugging production system
 Elastic APM agents automatically pick up basic host-level metrics and agent-specific metrics,
 like JVM metrics in the Java Agent, and Go runtime metrics in the Go Agent.
 
-Ready to learn more about the Elastic APM ecosystem? Let's dive in.
+[float]
+=== Give Elastic APM a try
 
-NOTE: This guide will indiscriminately use the word "service" for both services and applications.
+Learn more about the <<components,components>> that make up Elastic APM,
+or jump right into the <<install-and-run,quick start guide>>.
+
+NOTE: These docs will indiscriminately use the word "service" for both services and applications.
