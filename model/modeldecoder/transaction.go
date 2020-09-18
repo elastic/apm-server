@@ -179,6 +179,17 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 		}
 	}
 
+	var sampleRate float64
+	if decodeFloat64(raw, fieldName("sample_rate"), &sampleRate) {
+		if sampleRate > 0 {
+			e.RepresentativeCount = 1 / sampleRate
+		}
+	} else {
+		// sample_rate was not sent, so RepresentativeCount of 1 is assumed as
+		// the agent is expected to send all sampled and unsampled transactions.
+		e.RepresentativeCount = 1
+	}
+
 	if obj := getObject(raw, fieldName("experience")); obj != nil {
 		var experience model.UserExperience
 		decodeUserExperience(obj, &experience)
