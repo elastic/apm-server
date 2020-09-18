@@ -18,9 +18,13 @@
 package systemtest_test
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm"
@@ -60,5 +64,85 @@ func TestKeepUnsampled(t *testing.T) {
 			})
 			assert.Len(t, result.Hits.Hits, expectedTransactionDocs)
 		})
+	}
+}
+
+func TestTailSampling(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	// Create the apm-sampled-traces index for the two servers to coordinate.
+	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.IndicesCreateRequest{
+		Index: "apm-sampled-traces",
+		Body: strings.NewReader(`{
+  "mappings": {
+    "properties": {
+      "event.ingested": {"type": "date"},
+      "observer": {
+        "properties": {
+          "id": {"type": "keyword"}
+        }
+      },
+      "trace": {
+        "properties": {
+          "id": {"type": "keyword"}
+        }
+      }
+    }
+  }
+}`),
+	}, nil)
+	require.NoError(t, err)
+
+	srv1 := apmservertest.NewUnstartedServer(t)
+	srv1.Config.Sampling = &apmservertest.SamplingConfig{
+		KeepUnsampled: false,
+		Tail: &apmservertest.TailSamplingConfig{
+			Enabled:           true,
+			DefaultSampleRate: 0.5,
+			Interval:          time.Second,
+		},
+	}
+	require.NoError(t, srv1.Start())
+
+	srv2 := apmservertest.NewUnstartedServer(t)
+	srv2.Config.Sampling = &apmservertest.SamplingConfig{
+		KeepUnsampled: false,
+		Tail: &apmservertest.TailSamplingConfig{
+			Enabled:           true,
+			DefaultSampleRate: 0.5,
+			Interval:          time.Second,
+		},
+	}
+	require.NoError(t, srv2.Start())
+
+	const total = 200
+	const expected = 100 // 50%
+
+	tracer1 := srv1.Tracer()
+	tracer2 := srv2.Tracer()
+	for i := 0; i < total; i++ {
+		parent := tracer1.StartTransaction("GET /", "parent")
+		parent.Duration = time.Second * time.Duration(i+1)
+		child := tracer2.StartTransactionOptions("GET /", "child", apm.TransactionOptions{
+			TraceContext: parent.TraceContext(),
+		})
+		child.Duration = 500 * time.Millisecond * time.Duration(i+1)
+		child.End()
+		parent.End()
+	}
+	tracer1.Flush(nil)
+	tracer2.Flush(nil)
+
+	for _, transactionType := range []string{"parent", "child"} {
+		var result estest.SearchResult
+		t.Logf("waiting for %d %q transactions", expected, transactionType)
+		_, err := systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.TermQuery{
+			Field: "transaction.type",
+			Value: transactionType,
+		}).WithSize(total).Do(context.Background(), &result,
+			estest.WithCondition(result.Hits.MinHitsCondition(expected)),
+		)
+		require.NoError(t, err)
+		assert.Len(t, result.Hits.Hits, expected)
 	}
 }
