@@ -45,7 +45,7 @@ func NewDiscardUnsampledReporter(reporter publish.Reporter) publish.Reporter {
 				i++
 				continue
 			}
-			n := len(req.Transformables)
+			n := len(events)
 			events[i], events[n-1] = events[n-1], events[i]
 			events = events[:n-1]
 			dropped++
