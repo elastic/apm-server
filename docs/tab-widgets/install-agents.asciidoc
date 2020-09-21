@@ -51,7 +51,7 @@ func main() {
 
 * {apm-go-ref-v}/supported-tech.html[Supported technologies]
 * {apm-go-ref-v}/configuration.html[Advanced configuration]
-* {apm-go-ref-v}/instrumenting-source.html[Detailed guide to instrumenting Go source code]
+* {apm-go-ref-v}/getting-started.html[Detailed guide to instrumenting Go source code]
 // end::go[]
 
 // ***************************************************
