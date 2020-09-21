@@ -18,7 +18,6 @@
 package systemtest_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 	"time"
@@ -66,15 +65,9 @@ func TestTransactionAggregation(t *testing.T) {
 	}
 	tracer.Flush(nil)
 
-	var result estest.SearchResult
-	_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
-		Filter: []interface{}{
-			estest.ExistsQuery{Field: "transaction.duration.histogram"},
-		},
-	}).Do(context.Background(), &result,
-		estest.WithCondition(result.Hits.NonEmptyCondition()),
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	require.NoError(t, err)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }
 
@@ -104,15 +97,9 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
-	var result estest.SearchResult
-	_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
-		Filter: []interface{}{
-			estest.ExistsQuery{Field: "transaction.duration.histogram"},
-		},
-	}).Do(context.Background(), &result,
-		estest.WithCondition(result.Hits.NonEmptyCondition()),
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	require.NoError(t, err)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }
 
@@ -143,14 +130,8 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	var result estest.SearchResult
-	_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
-		Filter: []interface{}{
-			estest.ExistsQuery{Field: "span.destination.service.response_time.count"},
-		},
-	}).Do(context.Background(), &result,
-		estest.WithCondition(result.Hits.NonEmptyCondition()),
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+		estest.ExistsQuery{Field: "span.destination.service.response_time.count"},
 	)
-	require.NoError(t, err)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }

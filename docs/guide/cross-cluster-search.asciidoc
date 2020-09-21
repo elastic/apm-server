@@ -19,7 +19,7 @@ If you're using the Hosted Elasticsearch Service, see {cloud}/ec-enable-ccs.html
 You can add remote clusters directly in Kibana, under *Management* > *Elasticsearch* > *Remote clusters*.
 All you need is a name for the remote cluster and the seed node(s).
 Remember the names of your remote clusters, you'll need them in step two.
-See {kibana-ref}/working-remote-clusters.html#managing-remote-clusters[managing remote clusters] for detailed information on the setup process.
+See {ref}/ccr-getting-started.html[managing remote clusters] for detailed information on the setup process.
 
 Alternatively, you can {ref}/modules-remote-clusters.html#configuring-remote-clusters[configure remote clusters]
 in Elasticsearch's `elasticsearch.yml` file.
