@@ -86,9 +86,13 @@ func decodeMetricset(input Input, schema *jsonschema.Schema) (*model.Metricset, 
 		return nil, md.Err
 	}
 
-	if tags := utility.Prune(md.MapStr(raw, fieldName("tags"))); len(tags) > 0 {
-		e.Labels = tags
+	e.Labels = getObject(raw, fieldName("tags"))
+	for k, v := range e.Labels {
+		if v == nil {
+			delete(e.Labels, k)
+		}
 	}
+
 	if e.Timestamp.IsZero() {
 		e.Timestamp = input.RequestTime
 	}
