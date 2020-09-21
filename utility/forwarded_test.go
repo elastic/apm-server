@@ -15,27 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package utility_test
+package utility
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 func TestParseForwarded(t *testing.T) {
 	type test struct {
 		name   string
 		header string
-		expect utility.ForwardedHeader
+		expect forwardedHeader
 	}
 
 	tests := []test{{
 		name:   "Forwarded",
 		header: "by=127.0.0.1; for=127.1.1.1; Host=\"forwarded.invalid:443\"; proto=HTTPS",
-		expect: utility.ForwardedHeader{
+		expect: forwardedHeader{
 			For:   "127.1.1.1",
 			Host:  "forwarded.invalid:443",
 			Proto: "HTTPS",
@@ -43,26 +41,26 @@ func TestParseForwarded(t *testing.T) {
 	}, {
 		name:   "Forwarded-Multi",
 		header: "host=first.invalid, host=second.invalid",
-		expect: utility.ForwardedHeader{
+		expect: forwardedHeader{
 			Host: "first.invalid",
 		},
 	}, {
 		name:   "Forwarded-Malformed-Fields-Ignored",
 		header: "what; nonsense=\"; host=first.invalid",
-		expect: utility.ForwardedHeader{
+		expect: forwardedHeader{
 			Host: "first.invalid",
 		},
 	}, {
 		name:   "Forwarded-Trailing-Separators",
 		header: "host=first.invalid;,",
-		expect: utility.ForwardedHeader{
+		expect: forwardedHeader{
 			Host: "first.invalid",
 		},
 	}}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			parsed := utility.ParseForwarded(test.header)
+			parsed := parseForwarded(test.header)
 			assert.Equal(t, test.expect, parsed)
 		})
 	}
