@@ -12,7 +12,7 @@ This guide describes how to get started quickly with Elastic APM. You’ll learn
 * Visualize your APM data in {kib}
 
 [float]
-[[apm-server]]
+[[before-installation]]
 === Step 1: Spin up the Elastic Stack
 
 include::../tab-widgets/spin-up-stack-widget.asciidoc[]
