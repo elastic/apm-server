@@ -1,0 +1,14 @@
+// These need to be kept here so that the Installation and Upgrade guide doesn't break.
+// A follow-up PR will remove this file.
+
+// tag::notable-v8-highlights[]
+
+// end::notable-v8-highlights[]
+
+// tag::notable-v79-highlights[]
+
+// end::notable-v79-highlights[]
+
+// tag::notable-v78-highlights[]
+
+// end::notable-v78-highlights[]
