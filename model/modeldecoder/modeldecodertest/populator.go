@@ -268,24 +268,17 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 				iterateStruct(f, fKey, fn)
 			}
 		case reflect.Map:
-			l := f.Len()
-			if l == 0 {
+			if f.Type().Elem().Kind() != reflect.Struct {
 				continue
 			}
-			// values in maps are not adressable, therefore we need a workaround:
-			// adding the value to a temporary slice, passing this value into the iterateStruct
-			// function call and after it was potentially modified, setting it as new value
-			// in the map
-			tmpSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), l, l)
-			var i int
-			for _, mKey := range f.MapKeys() {
-				mapVal := f.MapIndex(mKey)
-				tmpSlice.Index(i).Set(mapVal)
-				if mapVal.Kind() == reflect.Struct {
-					sVal := tmpSlice.Index(i)
-					iterateStruct(sVal, fmt.Sprintf("%s.[%s]", fKey, mKey), fn)
-					f.SetMapIndex(mKey, sVal)
-				}
+			iter := f.MapRange()
+			for iter.Next() {
+				mKey := iter.Key()
+				mVal := iter.Value()
+				ptr := reflect.New(mVal.Type())
+				ptr.Elem().Set(mVal)
+				iterateStruct(ptr.Elem(), fmt.Sprintf("%s.[%s]", fKey, mKey), fn)
+				f.SetMapIndex(mKey, ptr.Elem())
 				i++
 			}
 		case reflect.Slice, reflect.Array:

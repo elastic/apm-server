@@ -418,7 +418,6 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 		started := t.SpanCount.Started.Val
 		out.SpanCount.Started = &started
 	}
-	fmt.Println(t.Timestamp.Val.String())
 	if t.Timestamp.Val.IsZero() {
 		out.Timestamp = reqTime
 	} else {
