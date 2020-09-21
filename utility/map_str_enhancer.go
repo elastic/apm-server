@@ -161,21 +161,13 @@ func DeepUpdate(m common.MapStr, dottedKeys string, val interface{}) {
 	if len(keys) == 0 {
 		return
 	}
-	reverse(keys)
 	v := val
-	for _, k := range keys {
+	for i := len(keys) - 1; i >= 0; i-- {
 		subMap := common.MapStr{}
-		update(subMap, k, v, false)
+		update(subMap, keys[i], v, false)
 		v = subMap
 	}
 	m.DeepUpdate(v.(common.MapStr))
-}
-
-func reverse(slice []string) {
-	size := len(slice)
-	for i := 0; i < len(slice)/2; i++ {
-		slice[i], slice[size-i-1] = slice[size-i-1], slice[i]
-	}
 }
 
 func MillisAsMicros(ms float64) common.MapStr {
@@ -191,15 +183,6 @@ func TimeAsMicros(t time.Time) common.MapStr {
 
 	m := common.MapStr{}
 	m["us"] = t.UnixNano() / 1000
-	return m
-}
-
-func Prune(m common.MapStr) common.MapStr {
-	for k, v := range m {
-		if v == nil {
-			delete(m, k)
-		}
-	}
 	return m
 }
 

@@ -24,7 +24,7 @@ import (
 )
 
 var parseHeadersInOrder = []func(http.Header) string{
-	parseForwarded,
+	parseForwardedHeader,
 	parseXRealIP,
 	parseXForwardedFor,
 }
@@ -67,9 +67,9 @@ func splitHost(in string) (host, port string) {
 	return host, port
 }
 
-func parseForwarded(header http.Header) string {
+func parseForwardedHeader(header http.Header) string {
 	if fwd := header.Get("Forwarded"); fwd != "" {
-		forwarded := ParseForwarded(fwd)
+		forwarded := parseForwarded(fwd)
 		if forwarded.For != "" {
 			host, _ := splitHost(forwarded.For)
 			return host

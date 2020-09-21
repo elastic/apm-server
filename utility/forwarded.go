@@ -22,22 +22,22 @@ import (
 	"strings"
 )
 
-// ForwardedHeader holds information extracted from a "Forwarded" HTTP header.
-type ForwardedHeader struct {
+// forwardedHeader holds information extracted from a "Forwarded" HTTP header.
+type forwardedHeader struct {
 	For   string
 	Host  string
 	Proto string
 }
 
-// ParseForwarded parses a "Forwarded" HTTP header.
-func ParseForwarded(f string) ForwardedHeader {
+// parseForwarded parses a "Forwarded" HTTP header.
+func parseForwarded(f string) forwardedHeader {
 	// We only consider the first value in the sequence,
 	// if there are multiple. Disregard everything after
 	// the first comma.
 	if comma := strings.IndexRune(f, ','); comma != -1 {
 		f = f[:comma]
 	}
-	var result ForwardedHeader
+	var result forwardedHeader
 	for f != "" {
 		field := f
 		if semi := strings.IndexRune(f, ';'); semi != -1 {

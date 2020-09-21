@@ -32,7 +32,6 @@ import (
 
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
-	"github.com/elastic/apm-server/utility"
 )
 
 // Error Messages used to signal fetching errors
@@ -107,7 +106,7 @@ func sanitize(insecureAgents []string, result Result) Result {
 	}
 	settings := Settings{}
 	for k, v := range result.Source.Settings {
-		if utility.Contains(k, UnrestrictedSettings) {
+		if UnrestrictedSettings[k] {
 			settings[k] = v
 		}
 	}

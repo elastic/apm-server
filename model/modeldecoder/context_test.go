@@ -30,7 +30,6 @@ import (
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
 )
 
 func TestDecodeContext(t *testing.T) {
@@ -73,7 +72,7 @@ func TestDecodeContext(t *testing.T) {
 			input: map[string]interface{}{
 				"request": map[string]interface{}{
 					"url": map[string]interface{}{"raw": "127.0.0.1"}}},
-			errOut: utility.ErrFetch("method", nil).Error(),
+			errOut: "error fetching field method",
 		},
 		"no_url_protocol": {
 			input: map[string]interface{}{
