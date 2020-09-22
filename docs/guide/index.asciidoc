@@ -2,7 +2,6 @@ include::../version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 :apm-ref-all: https://www.elastic.co/guide/en/apm/get-started/
-:toclevels: 3
 
 ifdef::env-github[]
 NOTE: For the best reading experience,
