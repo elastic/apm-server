@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -67,38 +68,12 @@ func NewCreator(args CreatorParams) beat.Creator {
 		if err := checkConfig(logger); err != nil {
 			return nil, err
 		}
-		var esOutputCfg *common.Config
-		if isElasticsearchOutput(b) {
-			esOutputCfg = b.Config.Output.Config()
-		}
-
-		beaterConfig, err := config.NewConfig(ucfg, esOutputCfg)
-		if err != nil {
-			return nil, err
-		}
-		// send configs to telemetry
-		recordConfigs(b.Info, beaterConfig, ucfg, logger)
-
-		bt := &beater{
-			config:        beaterConfig,
+		return &beater{
+			rawConfig:     ucfg,
 			stopped:       false,
 			logger:        logger,
 			wrapRunServer: args.WrapRunServer,
-		}
-
-		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
-		shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.IsEnabled() ||
-			(b.InSetupCmd && beaterConfig.Register.Ingest.Pipeline.Enabled == nil)
-		if isElasticsearchOutput(b) && shouldSetupPipelines {
-			logger.Info("Registering pipeline callback")
-			err := bt.registerPipelineCallback(b)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			logger.Info("No pipeline callback registered")
-		}
-		return bt, nil
+		}, nil
 	}
 }
 
@@ -127,6 +102,7 @@ func checkConfig(logger *logp.Logger) error {
 }
 
 type beater struct {
+	rawConfig     *common.Config
 	config        *config.Config
 	logger        *logp.Logger
 	wrapRunServer func(RunServerFunc) RunServerFunc
@@ -136,9 +112,61 @@ type beater struct {
 	stopped    bool
 }
 
+var once sync.Once
+
 // Run runs the APM Server, blocking until the beater's Stop method is called,
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
+
+	var esOutputCfg *common.Config
+	if isElasticsearchOutput(b) {
+		esOutputCfg = b.Config.Output.Config()
+	}
+
+	var err error
+	bt.config, err = config.NewConfig(bt.rawConfig, esOutputCfg)
+	if err != nil {
+		return err
+	}
+	// send configs to telemetry
+	recordConfigs(b.Info, bt.config, bt.rawConfig, bt.logger)
+
+	done := make(chan struct{})
+	var reloadable = func(name string) reload.Reloadable {
+		return reload.ReloadableFunc(func(ucfg *reload.ConfigWithMeta) error {
+			var err error
+			once.Do(func() {
+				defer close(done)
+				var cfg *config.Config
+				cfg, err = config.NewConfig(ucfg.Config, esOutputCfg)
+				if err != nil {
+					bt.logger.Error("Could not parse configuration from agent ", err)
+					return
+				}
+				bt.config = cfg
+				bt.logger.Info("Applying configuration from agent... ")
+			})
+			return err
+		})
+	}
+	if b.Manager.Enabled() {
+		bt.logger.Info("Running under Elastic Agent, waiting for configuration... ")
+		reload.Register.MustRegister("inputs", reloadable("inputs"))
+		<-done
+	}
+
+	// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
+	shouldSetupPipelines := bt.config.Register.Ingest.Pipeline.IsEnabled() ||
+		(b.InSetupCmd && bt.config.Register.Ingest.Pipeline.Enabled == nil)
+	if isElasticsearchOutput(b) && shouldSetupPipelines {
+		bt.logger.Info("Registering pipeline callback")
+		err := bt.registerPipelineCallback(b)
+		if err != nil {
+			return err
+		}
+	} else {
+		bt.logger.Info("No pipeline callback registered")
+	}
 
 	tracer, tracerServer, err := bt.initTracing(b)
 	if err != nil {
