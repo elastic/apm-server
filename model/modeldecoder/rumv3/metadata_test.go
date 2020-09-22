@@ -18,39 +18,39 @@
 package rumv3
 
 import (
-	"bytes"
-	"encoding/json"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
-func testdata(t *testing.T) io.Reader {
-	r, err := os.Open("../../../testdata/intake-v3/metadata.ndjson")
+type testcase struct {
+	name     string
+	errorKey string
+	data     string
+}
+
+func testdataReader(t *testing.T, typ string) io.Reader {
+	p := filepath.Join("..", "..", "..", "testdata", "intake-v3", fmt.Sprintf("%s.ndjson", typ))
+	r, err := os.Open(p)
 	require.NoError(t, err)
 	return r
 }
 
-func TestIsSet(t *testing.T) {
-	data := `{"se":{"n":"user-service"}}`
-	var m metadata
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(data)).Decode(&m))
-	assert.True(t, m.IsSet())
-	assert.True(t, m.Service.IsSet())
-	assert.True(t, m.Service.Name.IsSet())
-	assert.False(t, m.Service.Language.IsSet())
-}
-
-func TestSetReset(t *testing.T) {
+func TestSetResetIsSet(t *testing.T) {
 	var m metadataRoot
-	require.NoError(t, decoder.NewJSONIteratorDecoder(testdata(t)).Decode(&m))
+	require.NoError(t, decoder.NewJSONIteratorDecoder(testdataReader(t, "metadata")).Decode(&m))
 	require.True(t, m.IsSet())
 	require.NotEmpty(t, m.Metadata.Labels)
 	require.True(t, m.Metadata.Service.IsSet())
@@ -59,42 +59,90 @@ func TestSetReset(t *testing.T) {
 	m.Reset()
 	assert.False(t, m.IsSet())
 	assert.Equal(t, metadataService{}, m.Metadata.Service)
-	assert.Equal(t, metadataUser{}, m.Metadata.User)
+	assert.Equal(t, user{}, m.Metadata.User)
 	assert.Empty(t, m.Metadata.Labels)
 }
 
-func TestValidationRules(t *testing.T) {
-	type testcase struct {
-		name     string
-		errorKey string
-		data     string
-	}
+func TestMetadataResetModelOnRelease(t *testing.T) {
+	inp := `{"m":{"se":{"n":"service-a"}}}`
+	m := fetchMetadataRoot()
+	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(m))
+	require.True(t, m.IsSet())
+	releaseMetadataRoot(m)
+	assert.False(t, m.IsSet())
+}
 
-	strBuilder := func(n int) string {
-		b := make([]rune, n)
-		for i := range b {
-			b[i] = '⌘'
+func TestDecodeNestedMetadata(t *testing.T) {
+	t.Run("decode", func(t *testing.T) {
+		var out model.Metadata
+		testMinValidMetadata := `{"m":{"se":{"n":"name","a":{"n":"go","ve":"1.0.0"}}}}`
+		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(testMinValidMetadata))
+		require.NoError(t, DecodeNestedMetadata(dec, &out))
+		assert.Equal(t, model.Metadata{Service: model.Service{
+			Name:  "name",
+			Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
+
+		err := DecodeNestedMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &out)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "decode")
+	})
+
+	t.Run("validate", func(t *testing.T) {
+		inp := `{}`
+		var out model.Metadata
+		err := DecodeNestedMetadata(decoder.NewJSONIteratorDecoder(strings.NewReader(inp)), &out)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "validation")
+	})
+
+}
+
+func TestDecodeMetadataMappingToModel(t *testing.T) {
+	expected := func(s string) model.Metadata {
+		return model.Metadata{
+			Service: model.Service{Name: s, Version: s, Environment: s,
+				Agent:     model.Agent{Name: s, Version: s},
+				Language:  model.Language{Name: s, Version: s},
+				Runtime:   model.Runtime{Name: s, Version: s},
+				Framework: model.Framework{Name: s, Version: s}},
+			User:   model.User{Name: s, Email: s, ID: s},
+			Labels: common.MapStr{s: s},
 		}
-		return string(b)
 	}
 
-	testMetadata := func(t *testing.T, key string, tc testcase) {
-		// load data
-		// set testcase data for given key
-		var data map[string]interface{}
-		require.NoError(t, decoder.NewJSONIteratorDecoder(testdata(t)).Decode(&data))
-		meta := data["m"].(map[string]interface{})
-		var keyData map[string]interface{}
-		require.NoError(t, json.Unmarshal([]byte(tc.data), &keyData))
-		meta[key] = keyData
+	// setup:
+	// create initialized modeldecoder and empty model metadata
+	// map modeldecoder to model metadata and manually set
+	// enhanced data that are never set by the modeldecoder
+	var m metadata
+	modeldecodertest.SetStructValues(&m, "init", 5000, false, time.Now())
+	var modelM model.Metadata
+	mapToMetadataModel(&m, &modelM)
+	// iterate through model and assert values are set
+	assert.Equal(t, expected("init"), modelM)
 
-		// unmarshal data into metdata struct
+	// overwrite model metadata with specified Values
+	// then iterate through model and assert values are overwritten
+	modeldecodertest.SetStructValues(&m, "overwritten", 12, false, time.Now())
+	mapToMetadataModel(&m, &modelM)
+	assert.Equal(t, expected("overwritten"), modelM)
+
+	// map an empty modeldecoder metadata to the model
+	// and assert values are unchanged
+	modeldecodertest.SetZeroStructValues(&m)
+	mapToMetadataModel(&m, &modelM)
+	assert.Equal(t, expected("overwritten"), modelM)
+
+}
+
+func TestValidationRules(t *testing.T) {
+	testMetadata := func(t *testing.T, key string, tc testcase) {
 		var m metadata
-		b, err := json.Marshal(meta)
-		require.NoError(t, err)
-		require.NoError(t, decoder.NewJSONIteratorDecoder(bytes.NewReader(b)).Decode(&m))
+		r := testdataReader(t, "metadata")
+		modeldecodertest.DecodeDataWithReplacement(t, r, "m", key, tc.data, &m)
+
 		// run validation and checks
-		err = m.validate()
+		err := m.validate()
 		if tc.errorKey == "" {
 			assert.NoError(t, err)
 		} else {
@@ -109,8 +157,8 @@ func TestValidationRules(t *testing.T) {
 			{name: "id-int", data: `{"id":44}`},
 			{name: "id-float", errorKey: "types", data: `{"id":45.6}`},
 			{name: "id-bool", errorKey: "types", data: `{"id":true}`},
-			{name: "id-string-max-len", data: `{"id":"` + strBuilder(1024) + `"}`},
-			{name: "id-string-max-len", errorKey: "max", data: `{"id":"` + strBuilder(1025) + `"}`},
+			{name: "id-string-max-len", data: `{"id":"` + modeldecodertest.BuildString(1024) + `"}`},
+			{name: "id-string-max-len", errorKey: "max", data: `{"id":"` + modeldecodertest.BuildString(1025) + `"}`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				testMetadata(t, "u", tc)
@@ -136,8 +184,8 @@ func TestValidationRules(t *testing.T) {
 
 	t.Run("max-len", func(t *testing.T) {
 		for _, tc := range []testcase{
-			{name: "service-environment-max-len", data: `"en":"` + strBuilder(1024) + `"`},
-			{name: "service-environment-max-len", errorKey: "max", data: `"en":"` + strBuilder(1025) + `"`},
+			{name: "service-environment-max-len", data: `"en":"` + modeldecodertest.BuildString(1024) + `"`},
+			{name: "service-environment-max-len", errorKey: "max", data: `"en":"` + modeldecodertest.BuildString(1025) + `"`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				tc.data = `{"a":{"n":"go","ve":"1.0"},"n":"my-service",` + tc.data + `}`
@@ -153,8 +201,8 @@ func TestValidationRules(t *testing.T) {
 			{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
 			{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
 			{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
-			{name: "max-len", data: `{"k1":"` + strBuilder(1024) + `"}`},
-			{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + strBuilder(1025) + `"}`},
+			{name: "max-len", data: `{"k1":"` + modeldecodertest.BuildString(1024) + `"}`},
+			{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				testMetadata(t, "l", tc)
