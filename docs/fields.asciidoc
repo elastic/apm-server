@@ -1767,6 +1767,39 @@ type: scaled_float
 
 --
 
+[float]
+=== longtask
+
+Longtask duration/count metrics
+
+
+*`transaction.experience.longtask.count`*::
++
+--
+The total number of of longtasks
+
+type: long
+
+--
+
+*`transaction.experience.longtask.sum`*::
++
+--
+The sum of longtask durations
+
+type: scaled_float
+
+--
+
+*`transaction.experience.longtask.max`*::
++
+--
+The max longtask duration
+
+type: scaled_float
+
+--
+
 
 *`transaction.span_count.dropped`*::
 +

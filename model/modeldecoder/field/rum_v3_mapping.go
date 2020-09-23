@@ -70,6 +70,7 @@ var rumV3Mapping = map[string]string{
 	"loadEventStart":              "es",
 	"log":                         "log",
 	"logger_name":                 "ln",
+	"longtask":                    "lt",
 	"marks":                       "k",
 	"message":                     "mg",
 	"metadata":                    "m",
@@ -135,14 +136,24 @@ func init() {
 	}
 }
 
-func Mapper(shortFieldNames bool) func(string) string {
+// MapperFunc is the type of a function that maps from one field
+// name to another.
+type MapperFunc func(string) string
+
+// Mapper returns a MapperFunc that maps from long to short names
+// if shortFieldNames is true, and otherwise returns the identity
+// function.
+func Mapper(shortFieldNames bool) MapperFunc {
 	if shortFieldNames {
 		return rumV3Mapper
 	}
 	return identityMapper
 }
 
-func InverseMapper(shortFieldNames bool) func(string) string {
+// InverseMapper returns a MapperFunc that maps from short to long
+// names if shortFieldNames is true, and otherwise returns the identity
+// function.
+func InverseMapper(shortFieldNames bool) MapperFunc {
 	if shortFieldNames {
 		return rumV3InverseMapper
 	}
