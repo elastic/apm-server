@@ -195,6 +195,15 @@ type transactionUserExperience struct {
 	// TotalBlockingTime holds the Total Blocking Time (TBT) metric value,
 	// or a negative value if TBT is unknown. See https://web.dev/tbt/
 	TotalBlockingTime nullable.Float64 `json:"tbt" validate:"min=0"`
+
+	// Longtask holds longtask duration/count metrics.
+	Longtask longtaskMetrics `json:"lt"`
+}
+
+type longtaskMetrics struct {
+	Count nullable.Int     `json:"count" validate:"required,min=0"`
+	Sum   nullable.Float64 `json:"sum" validate:"required,min=0"`
+	Max   nullable.Float64 `json:"max" validate:"required,min=0"`
 }
 
 type user struct {

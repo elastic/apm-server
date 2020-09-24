@@ -715,13 +715,14 @@ func (val *transactionSpanCount) validate() error {
 }
 
 func (val *transactionUserExperience) IsSet() bool {
-	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.TotalBlockingTime.IsSet()
+	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.TotalBlockingTime.IsSet() || val.Longtask.IsSet()
 }
 
 func (val *transactionUserExperience) Reset() {
 	val.CumulativeLayoutShift.Reset()
 	val.FirstInputDelay.Reset()
 	val.TotalBlockingTime.Reset()
+	val.Longtask.Reset()
 }
 
 func (val *transactionUserExperience) validate() error {
@@ -736,6 +737,44 @@ func (val *transactionUserExperience) validate() error {
 	}
 	if val.TotalBlockingTime.Val < 0 {
 		return fmt.Errorf("validation rule 'min(0)' violated for 'x.exp.tbt'")
+	}
+	if err := val.Longtask.validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (val *longtaskMetrics) IsSet() bool {
+	return val.Count.IsSet() || val.Sum.IsSet() || val.Max.IsSet()
+}
+
+func (val *longtaskMetrics) Reset() {
+	val.Count.Reset()
+	val.Sum.Reset()
+	val.Max.Reset()
+}
+
+func (val *longtaskMetrics) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Count.Val < 0 {
+		return fmt.Errorf("validation rule 'min(0)' violated for 'x.exp.lt.count'")
+	}
+	if !val.Count.IsSet() {
+		return fmt.Errorf("'x.exp.lt.count' required")
+	}
+	if val.Sum.Val < 0 {
+		return fmt.Errorf("validation rule 'min(0)' violated for 'x.exp.lt.sum'")
+	}
+	if !val.Sum.IsSet() {
+		return fmt.Errorf("'x.exp.lt.sum' required")
+	}
+	if val.Max.Val < 0 {
+		return fmt.Errorf("validation rule 'min(0)' violated for 'x.exp.lt.max'")
+	}
+	if !val.Max.IsSet() {
+		return fmt.Errorf("'x.exp.lt.max' required")
 	}
 	return nil
 }
