@@ -1,0 +1,45 @@
+{
+    "$id": "docs/spec/rum_experience.json",
+    "title": "RUM Experience Metrics",
+    "description": "Metrics for measuring real user (browser) experience",
+    "type": ["object", "null"],
+    "properties": {
+        "cls": {
+            "type": ["number", "null"],
+            "description": "The Cumulative Layout Shift metric",
+            "minimum": 0
+        },
+        "tbt": {
+            "type": ["number", "null"],
+            "description": "The Total Blocking Time metric",
+            "minimum": 0
+        },
+        "fid": {
+            "type": ["number", "null"],
+            "description": "The First Input Delay metric",
+            "minimum": 0
+        },
+        "longtask": {
+            "type": ["object", "null"],
+            "description": "Longtask duration/count metrics",
+            "properties": {
+                "count": {
+                    "type": ["integer"],
+                    "description": "The total number of of longtasks",
+                    "minimum": 0
+                },
+                "sum": {
+                    "type": ["number"],
+                    "description": "The sum of longtask durations",
+                    "minimum": 0
+                },
+                "max": {
+                    "type": ["number"],
+                    "description": "The max longtask duration",
+                    "minimum": 0
+                }
+            },
+            "required": ["count", "sum", "max"]
+        }
+    }
+}
