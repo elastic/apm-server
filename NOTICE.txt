@@ -535,12 +535,12 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 49e8024953a4
+Revision: 77503cf20d43
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/ecs
-Version: v1.5.0
+Version: v1.6.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE.txt":
 
@@ -3477,7 +3477,8 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm
-Version: v1.8.0
+Version: v1.8.1
+Revision: 2aef45b9cf4b
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -3696,7 +3697,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.uber.org/atomic
-Version: v1.6.0
+Version: v1.7.0
 License type (autodetected): MIT
 Contents of "LICENSE.txt":
 
@@ -3722,7 +3723,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: go.uber.org/multierr
-Version: v1.5.0
+Version: v1.6.0
 License type (autodetected): MIT
 Contents of "LICENSE.txt":
 
@@ -3748,7 +3749,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: go.uber.org/zap
-Version: v1.15.0
+Version: v1.16.0
 License type (autodetected): MIT
 Contents of "LICENSE.txt":
 
@@ -3808,7 +3809,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: c89045814202
+Revision: 62affa334b73
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3910,7 +3911,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: c12d262b63d8
+Revision: aee5d888a860
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
