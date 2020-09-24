@@ -292,16 +292,27 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 		out.Type = t.Type.Val
 	}
 	if t.UserExperience.IsSet() {
-		out.UserExperience = &model.UserExperience{}
+		out.UserExperience = &model.UserExperience{
+			CumulativeLayoutShift: -1,
+			FirstInputDelay:       -1,
+			TotalBlockingTime:     -1,
+			Longtask:              model.LongtaskMetrics{Count: -1},
+		}
 		if t.UserExperience.CumulativeLayoutShift.IsSet() {
 			out.UserExperience.CumulativeLayoutShift = t.UserExperience.CumulativeLayoutShift.Val
 		}
 		if t.UserExperience.FirstInputDelay.IsSet() {
 			out.UserExperience.FirstInputDelay = t.UserExperience.FirstInputDelay.Val
-
 		}
 		if t.UserExperience.TotalBlockingTime.IsSet() {
 			out.UserExperience.TotalBlockingTime = t.UserExperience.TotalBlockingTime.Val
+		}
+		if t.UserExperience.Longtask.IsSet() {
+			out.UserExperience.Longtask = model.LongtaskMetrics{
+				Count: t.UserExperience.Longtask.Count.Val,
+				Sum:   t.UserExperience.Longtask.Sum.Val,
+				Max:   t.UserExperience.Longtask.Max.Val,
+			}
 		}
 	}
 	if t.Context.IsSet() {
