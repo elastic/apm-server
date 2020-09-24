@@ -9,10 +9,10 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dlclark/regexp2 v1.2.1 // indirect
-	github.com/dop251/goja v0.0.0-20200831102558-9af81ddcf0e1 // indirect
+	github.com/dop251/goja v0.0.0-20200912112403-81ddb8a7cc41 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/elastic/beats/v7 v7.9.2-0.20200903162648-3ecdddc81a1a
+	github.com/elastic/beats/v7 v7.9.2-0.20200924130853-3d7989f6957d
 	github.com/elastic/go-elasticsearch/v7 v7.9.1-0.20200819074336-1421f3b7a67c
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -41,7 +41,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.1-0.20190913142402-a7454ce5950e // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/procfs v0.1.3 // indirect
+	github.com/prometheus/procfs v0.2.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
 	github.com/reviewdog/reviewdog v0.9.17
 	github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735
@@ -59,16 +59,17 @@ require (
 	go.elastic.co/apm/module/apmhttp v1.7.2
 	go.elastic.co/ecszap v0.2.0 // indirect
 	go.elastic.co/fastjson v1.1.0 // indirect
-	go.uber.org/atomic v1.6.0
+	go.uber.org/atomic v1.7.0
+	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20200822124328-c89045814202
+	golang.org/x/net v0.0.0-20200923182212-328152dc79b1
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20200831180312-196b9ba8737a // indirect
+	golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200903185744-af4cc2cd812e // indirect
+	golang.org/x/tools v0.0.0-20200923182640-463111b69878 // indirect
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
