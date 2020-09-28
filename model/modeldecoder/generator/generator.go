@@ -468,34 +468,18 @@ if val.%s.Val != "" && !%s.MatchString(val.%s.Val){
 						return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
 					}
 				}
-			case g.nullableInt:
+			case g.nullableInt, g.nullableFloat64:
 				for _, rule := range sortedRules {
 					val := parts[rule]
 					switch rule {
 					case ruleRequired:
 						ruleNullableRequired(&g.buf, f.name, flattenedName)
-					case ruleMax:
+					case ruleMin, ruleMax:
 						fmt.Fprintf(&g.buf, `
-if val.%s.Val > %s{
+if val.%s.Val %s %s {
 	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
 }
-`[1:], f.name, val, rule, val, flattenedName)
-					default:
-						return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
-					}
-				}
-			case g.nullableFloat64:
-				for _, rule := range sortedRules {
-					val := parts[rule]
-					switch rule {
-					case ruleRequired:
-						ruleNullableRequired(&g.buf, f.name, flattenedName)
-					case ruleMin:
-						fmt.Fprintf(&g.buf, `
-if val.%s.Val < %s{
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], f.name, val, rule, val, flattenedName)
+`[1:], f.name, ruleMinMaxOperator(rule), val, rule, val, flattenedName)
 					default:
 						return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
 					}
@@ -699,4 +683,15 @@ func validationTag(structTag reflect.StructTag) (map[string]string, error) {
 		}
 	}
 	return m, nil
+}
+
+func ruleMinMaxOperator(rule string) string {
+	switch rule {
+	case ruleMin:
+		return "<"
+	case ruleMax:
+		return ">"
+	default:
+		panic("unexpected rule: " + rule)
+	}
 }

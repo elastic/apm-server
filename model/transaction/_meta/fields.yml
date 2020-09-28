@@ -50,6 +50,24 @@
               scaling_factor: 1000000
               description: The Total Blocking Time metric
 
+            - name: longtask
+              type: group
+              description: Longtask duration/count metrics
+              fields:
+                - name: count
+                  type: long
+                  description: The total number of of longtasks
+
+                - name: sum
+                  type: scaled_float
+                  scaling_factor: 1000000
+                  description: The sum of longtask durations
+
+                - name: max
+                  type: scaled_float
+                  scaling_factor: 1000000
+                  description: The max longtask duration
+
         - name: span_count
           type: group
           fields:

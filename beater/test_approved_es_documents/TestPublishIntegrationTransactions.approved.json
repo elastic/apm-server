@@ -30,7 +30,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -159,7 +159,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "event": {
                 "outcome": "success"
@@ -379,7 +379,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -470,6 +470,11 @@
                 "experience": {
                     "cls": 1,
                     "fid": 2,
+                    "longtask": {
+                        "count": 3,
+                        "max": 1,
+                        "sum": 2.5
+                    },
                     "tbt": 3.4
                 },
                 "id": "cdef4340a8e0df19",
@@ -526,7 +531,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "event": {
                 "outcome": "unknown"
