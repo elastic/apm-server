@@ -297,7 +297,6 @@ Add the agent to your Gemfile.
 ----
 gem 'elastic-apm'
 ----
-+
 *Configure the Agent*
 
 Ruby on Rails::
