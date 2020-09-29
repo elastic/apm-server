@@ -94,14 +94,14 @@ java -javaagent:/path/to/elastic-apm-agent-<version>.jar \
 // tag::net[]
 *Download the APM agent*
 
-Add the the agent package(s) from https://www.nuget.org/packages?q=Elastic.apm[NuGet] to your .NET application.
+Add the agent packages from https://www.nuget.org/packages?q=Elastic.apm[NuGet] to your .NET application.
 There are multiple NuGet packages available for different use cases.
 
-For an ASP.NET Core application with Entity Framework Core download the
+For an ASP.NET Core application with Entity Framework Core, download the
 https://www.nuget.org/packages/Elastic.Apm.NetCoreAll[Elastic.Apm.NetCoreAll] package.
 This package will automatically add every agent component to your application.
 
-In case you would like to to minimize the dependencies, you can use the
+To minimize the dependencies, you can use the
 https://www.nuget.org/packages/Elastic.Apm.AspNetCore[Elastic.Apm.AspNetCore] package for just ASP.NET Core monitoring or the
 https://www.nuget.org/packages/Elastic.Apm.EntityFrameworkCore[Elastic.Apm.EfCore] package for just Entity Framework Core monitoring.
 

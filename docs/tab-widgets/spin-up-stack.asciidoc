@@ -1,5 +1,5 @@
 // tag::ess[]
-There's no faster way to get started with Elastic APM than with our hosted {ess} on Elastic Cloud
+There's no faster way to get started with Elastic APM than with our hosted {ess} on {ecloud}.
 {ess} is available on AWS, GCP, and Azure,
 and automatically configures APM Server to work with {es} and {kib}:
 
