@@ -17,6 +17,14 @@ DEFAULT_BUILD_TAGS = "darwin,linux,windows"
 
 COPYRIGHT_YEAR_BEGIN = "2017"
 
+# Additional third-party, non-source code dependencies, to add to the CSV output.
+additional_third_party_deps = [{
+      "name":      "Red Hat Universal Base Image minimal",
+      "version":   "8",
+      "url":       "https://catalog.redhat.com/software/containers/ubi8/ubi-minimal/5c359a62bed8bd75a2c3fba8",
+      "license":   "Custom;https://www.redhat.com/licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf",
+      "sourceURL": "https://oss-dependencies.elastic.co/redhat/ubi/ubi-minimal-8-source.tar.gz",
+}]
 
 def read_file(filename):
     if not os.path.isfile(filename):
@@ -185,8 +193,10 @@ def write_csv_file(f, modules):
             return "https://{}".format(modpath)
         return modpath
 
+    columns = ["name", "url", "version", "revision", "license", "sourceURL"]
+
     csvwriter = csv.writer(f)
-    csvwriter.writerow(["name", "url", "version", "revision", "license"])
+    csvwriter.writerow(columns)
     for modpath in sorted(modules, key=str.lower):
         module = modules[modpath]
         for license in module.get("licenses", []):
@@ -196,7 +206,11 @@ def write_csv_file(f, modules):
                 module.get("Version", ""),
                 module.get("Revision", ""),
                 license["license_summary"],
+                "" # source URL
             ])
+
+    for dep in additional_third_party_deps:
+        csvwriter.writerow([dep.get(column, "") for column in columns])
 
 
 APACHE2_LICENSE_TITLES = [
