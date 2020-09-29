@@ -19,9 +19,10 @@ package modeldecoder
 
 import (
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder/field"
 )
 
-func decodeUserExperience(input map[string]interface{}, out *model.UserExperience) {
+func decodeUserExperience(input map[string]interface{}, fieldName field.MapperFunc, out *model.UserExperience) {
 	if input == nil {
 		return
 	}
@@ -34,5 +35,12 @@ func decodeUserExperience(input map[string]interface{}, out *model.UserExperienc
 	}
 	if !decodeFloat64(input, "tbt", &out.TotalBlockingTime) {
 		out.TotalBlockingTime = -1
+	}
+
+	out.Longtask.Count = -1
+	if input := getObject(input, fieldName("longtask")); input != nil {
+		decodeInt(input, "count", &out.Longtask.Count)
+		decodeFloat64(input, "sum", &out.Longtask.Sum)
+		decodeFloat64(input, "max", &out.Longtask.Max)
 	}
 }

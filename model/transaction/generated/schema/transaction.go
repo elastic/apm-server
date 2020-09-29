@@ -513,6 +513,28 @@ const ModelSchema = `{
             "type": ["number", "null"],
             "description": "The First Input Delay metric",
             "minimum": 0
+        },
+        "longtask": {
+            "type": ["object", "null"],
+            "description": "Longtask duration/count metrics",
+            "properties": {
+                "count": {
+                    "type": ["integer"],
+                    "description": "The total number of of longtasks",
+                    "minimum": 0
+                },
+                "sum": {
+                    "type": ["number"],
+                    "description": "The sum of longtask durations",
+                    "minimum": 0
+                },
+                "max": {
+                    "type": ["number"],
+                    "description": "The max longtask duration",
+                    "minimum": 0
+                }
+            },
+            "required": ["count", "sum", "max"]
         }
     }
                 }

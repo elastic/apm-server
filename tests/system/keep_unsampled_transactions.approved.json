@@ -9,7 +9,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "event": {
             "ingested": "2020-08-11T10:03:14.274519Z",
@@ -105,7 +105,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "event": {
             "ingested": "2020-08-11T10:03:14.274681Z",
@@ -201,7 +201,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "event": {
             "ingested": "2020-08-11T10:03:14.274782Z",
@@ -309,7 +309,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "event": {
             "ingested": "2020-08-11T10:03:14.218629Z",

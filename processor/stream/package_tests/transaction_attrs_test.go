@@ -102,6 +102,9 @@ func transactionRequiredKeys() *tests.Set {
 		"transaction.type",
 		"transaction.context.request.method",
 		"transaction.context.request.url",
+		"transaction.experience.longtask.count",
+		"transaction.experience.longtask.sum",
+		"transaction.experience.longtask.max",
 	)
 }
 

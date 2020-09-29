@@ -37,6 +37,7 @@ func TestUserExperienceFields(t *testing.T) {
 			CumulativeLayoutShift: -1,
 			FirstInputDelay:       -1,
 			TotalBlockingTime:     -1,
+			Longtask:              LongtaskMetrics{Count: -1},
 		},
 		Expected: nil,
 	}, {
@@ -44,11 +45,21 @@ func TestUserExperienceFields(t *testing.T) {
 			CumulativeLayoutShift: 1,
 			FirstInputDelay:       2.3,
 			TotalBlockingTime:     4.56,
+			Longtask: LongtaskMetrics{
+				Count: 3,
+				Sum:   2,
+				Max:   1,
+			},
 		},
 		Expected: common.MapStr{
 			"cls": 1.0,
 			"fid": 2.3,
 			"tbt": 4.56,
+			"longtask": common.MapStr{
+				"count": 3,
+				"sum":   2.0,
+				"max":   1.0,
+			},
 		},
 	}}
 	for _, test := range tests {
