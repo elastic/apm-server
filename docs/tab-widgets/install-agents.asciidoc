@@ -142,8 +142,8 @@ the agent will read config settings through this `IConfiguration` instance (e.g.
 }
 ----
 
-In case you don’t pass an `IConfiguration` instance to the agent (e.g. in case of non ASP.NET Core applications)
-you can also configure the agent through environment variables.
+If you don’t pass an `IConfiguration` instance to the agent, for example, in a non-ASP.NET Core application,
+you can configure the agent with environment variables.
 
 *Learn more in the agent reference*
 
@@ -321,7 +321,7 @@ server_url: 'http://localhost:8200'
 
 Rack::
 +
-For Rack or a compatible framework (e.g. Sinatra), include the middleware in your app and start the agent.
+For Rack or a compatible framework, like Sinatra, include the middleware in your app and start the agent.
 +
 [source,ruby]
 ----
@@ -379,6 +379,10 @@ server_url: 'http://localhost:8200'
 APM Server disables RUM support by default.
 To enable it, set `apm-server.rum.enabled: true` in your APM Server configuration file.
 
+With RUM support enabled, you can now set up the RUM Agent.
+There are two ways to do this: add the agent as a dependency,
+or set it up with `<script>` tags.
+
 *Set up the Agent as a dependency*
 
 You can install the Agent as a dependency to your application with `npm install @elastic/apm-rum --save`.
@@ -404,9 +408,9 @@ var apm = initApm({
 Framework integrations, like React or Angular, have custom dependencies.
 See {apm-rum-ref-v}/framework-integrations.html[framework integrations] for more information.
 
-*Set up the Agent with Script Tags*
+*Set up the Agent with `<script>` tags*
 
-Alternatively, you can use Script tags to set up and configure the Agent.
+Alternatively, you can use `<script>` tags to set up and configure the Agent.
 Add a `<script>` tag to the HTML page and use the `elasticApm` global object to load and initialize the agent.
 Don't forget to download the latest version of the RUM Agent from
 https://github.com/elastic/apm-agent-rum-js/releases/latest[GitHub] or
