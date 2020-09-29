@@ -192,7 +192,7 @@ func decodeTransaction(input Input, schema *jsonschema.Schema) (*model.Transacti
 
 	if obj := getObject(raw, fieldName("experience")); obj != nil {
 		var experience model.UserExperience
-		decodeUserExperience(obj, &experience)
+		decodeUserExperience(obj, fieldName, &experience)
 		e.UserExperience = &experience
 	}
 

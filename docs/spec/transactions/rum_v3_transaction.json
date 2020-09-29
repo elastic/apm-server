@@ -103,7 +103,7 @@
                     "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
                 },
                 "exp": {
-                    "$ref": "../rum_experience.json"
+                    "$ref": "rum_v3_experience.json"
                 }
             },
             "required": [

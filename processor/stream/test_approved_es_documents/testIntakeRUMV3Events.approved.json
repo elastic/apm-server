@@ -81,6 +81,11 @@
                 "experience": {
                     "cls": 1,
                     "fid": 2,
+                    "longtask": {
+                        "count": 3,
+                        "max": 1,
+                        "sum": 2.5
+                    },
                     "tbt": 3.4
                 },
                 "id": "ec2e280be8345240",

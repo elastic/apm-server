@@ -318,12 +318,15 @@ func TestTransactionValidationRules(t *testing.T) {
 		// iterate through struct, remove every key one by one
 		// and test that validation behaves as expected
 		requiredKeys := map[string]interface{}{"d": nil,
-			"id":     nil,
-			"yc":     nil,
-			"yc.sd":  nil,
-			"tid":    nil,
-			"t":      nil,
-			"c.q.mt": nil,
+			"id":           nil,
+			"yc":           nil,
+			"yc.sd":        nil,
+			"tid":          nil,
+			"t":            nil,
+			"c.q.mt":       nil,
+			"exp.lt.count": nil,
+			"exp.lt.sum":   nil,
+			"exp.lt.max":   nil,
 		}
 		modeldecodertest.SetZeroStructValue(&event, func(key string) {
 			err := event.validate()
