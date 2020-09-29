@@ -132,7 +132,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	recordConfigs(b.Info, bt.config, bt.rawConfig, bt.logger)
 
 	done := make(chan struct{})
-	var reloadable = func(name string) reload.Reloadable {
+	var reloadable = func() reload.Reloadable {
 		return reload.ReloadableFunc(func(ucfg *reload.ConfigWithMeta) error {
 			var err error
 			once.Do(func() {
@@ -149,9 +149,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 			return err
 		})
 	}
-	if b.Manager.Enabled() {
+	if b.Manager != nil && b.Manager.Enabled() {
 		bt.logger.Info("Running under Elastic Agent, waiting for configuration... ")
-		reload.Register.MustRegister("inputs", reloadable("inputs"))
+		reload.Register.MustRegister("inputs", reloadable())
 		<-done
 	}
 
