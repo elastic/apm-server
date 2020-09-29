@@ -57,9 +57,7 @@ TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server
 
 // This tagged region is reused in the Observability docs.
 // tag::configure-agents[]
-
-Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
-There are many different ways to tweak and tune the Elastic ecosystem to your needs.
+There are many different ways to tweak and tune the Elastic APM ecosystem to your needs.
 
 *Configure APM agents*
 
@@ -97,7 +95,8 @@ include::../tab-widgets/open-kibana-widget.asciidoc[]
 === What's next?
 
 Now that you have APM data streaming into {ES},
-head over to the {kibana-ref}/xpack-apm.html[APM app documentation] to learn more about what you can do with {kib}.
+head over to the {kibana-ref}/xpack-apm.html[APM app reference] to learn more about what you can
+do with {kib}'s APM app.
 
 // Need to add more here
 // Get a deeper understanding by learning about [[concepts]]

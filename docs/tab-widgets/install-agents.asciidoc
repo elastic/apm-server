@@ -1,5 +1,5 @@
 // tag::go[]
-*Install the Agent*
+*Install the agent*
 
 Install the APM agent packages for Go.
 
@@ -101,17 +101,17 @@ For an ASP.NET Core application with Entity Framework Core, download the
 https://www.nuget.org/packages/Elastic.Apm.NetCoreAll[Elastic.Apm.NetCoreAll] package.
 This package will automatically add every agent component to your application.
 
-To minimize the dependencies, you can use the
-https://www.nuget.org/packages/Elastic.Apm.AspNetCore[Elastic.Apm.AspNetCore] package for just ASP.NET Core monitoring or the
+To minimize the number of dependencies, you can use the
+https://www.nuget.org/packages/Elastic.Apm.AspNetCore[Elastic.Apm.AspNetCore] package for just ASP.NET Core monitoring, or the
 https://www.nuget.org/packages/Elastic.Apm.EntityFrameworkCore[Elastic.Apm.EfCore] package for just Entity Framework Core monitoring.
 
-In case you only want to use the public Agent API for manual instrumentation use the
+If you only want to use the public agent API for manual instrumentation, use the
 https://www.nuget.org/packages/Elastic.Apm[Elastic.Apm] package.
 
 *Add the agent to the application*
 
-In case of ASP.NET Core with the `Elastic.Apm.NetCoreAll` package,
-call the `UseAllElasticApm` method in the `Configure` method within the `Startup.cs` file.
+For an ASP.NET Core application with the `Elastic.Apm.NetCoreAll` package,
+call the `UseAllElasticApm` method in the `Configure` method within the `Startup.cs` file:
 
 [source,dotnet]
 ----
@@ -127,9 +127,8 @@ public class Startup
 ----
 
 Passing an `IConfiguration` instance is optional and by doing so,
-the agent will read config settings through this `IConfiguration` instance (e.g. from the `appsettings.json` file).
-
-*Sample appsettings.json*
+the agent will read config settings through this `IConfiguration` instance, for example,
+from the `appsettings.json` file:
 
 [source,json]
 ----
@@ -144,6 +143,7 @@ the agent will read config settings through this `IConfiguration` instance (e.g.
 
 If you don’t pass an `IConfiguration` instance to the agent, for example, in a non-ASP.NET Core application,
 you can configure the agent with environment variables.
+See the agent reference for more information.
 
 *Learn more in the agent reference*
 
@@ -297,7 +297,7 @@ Add the agent to your Gemfile.
 ----
 gem 'elastic-apm'
 ----
-*Configure the Agent*
+*Configure the agent*
 
 Ruby on Rails::
 +
@@ -379,15 +379,17 @@ server_url: 'http://localhost:8200'
 APM Server disables RUM support by default.
 To enable it, set `apm-server.rum.enabled: true` in your APM Server configuration file.
 
-With RUM support enabled, you can now set up the RUM Agent.
+*Set up the agent*
+
+Once RUM support enabled, you can set up the RUM agent.
 There are two ways to do this: add the agent as a dependency,
 or set it up with `<script>` tags.
 
-*Set up the Agent as a dependency*
+*Set up the agent as a dependency*
 
-You can install the Agent as a dependency to your application with `npm install @elastic/apm-rum --save`.
+You can install the agent as a dependency to your application with `npm install @elastic/apm-rum --save`.
 
-The Agent can then be initialized and configured in your application like this:
+The agent can then be initialized and configured in your application like this:
 
 [source,js]
 ----
@@ -408,11 +410,11 @@ var apm = initApm({
 Framework integrations, like React or Angular, have custom dependencies.
 See {apm-rum-ref-v}/framework-integrations.html[framework integrations] for more information.
 
-*Set up the Agent with `<script>` tags*
+*Set up the agent with `<script>` tags*
 
-Alternatively, you can use `<script>` tags to set up and configure the Agent.
+Alternatively, you can use `<script>` tags to set up and configure the agent.
 Add a `<script>` tag to the HTML page and use the `elasticApm` global object to load and initialize the agent.
-Don't forget to download the latest version of the RUM Agent from
+Don't forget to download the latest version of the RUM agent from
 https://github.com/elastic/apm-agent-rum-js/releases/latest[GitHub] or
 https://unpkg.com/@elastic/apm-rum/dist/bundles/elastic-apm-rum.umd.min.js[UNPKG],
 and host the file on your Server/CDN before deploying to production.
