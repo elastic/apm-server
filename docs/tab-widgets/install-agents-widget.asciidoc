@@ -1,14 +1,16 @@
+// The Java agent defaults to visible.
+// Change with `aria-selected="false"` and `hidden=""`
 ++++
 <div class="tabs" data-tab-group="apm-agent">
   <div role="tablist" aria-label="Install">
     <button role="tab"
-            aria-selected="true"
+            aria-selected="false"
             aria-controls="go-tab-install"
             id="go-install">
       Go
     </button>
     <button role="tab"
-            aria-selected="false"
+            aria-selected="true"
             aria-controls="java-tab-install"
             id="java-install"
             tabindex="-1">
@@ -53,7 +55,8 @@
   <div tabindex="0"
        role="tabpanel"
        id="go-tab-install"
-       aria-labelledby="go-install">
+       aria-labelledby="go-install"
+       hidden="">
 ++++
 
 include::install-agents.asciidoc[tag=go]
@@ -63,8 +66,7 @@ include::install-agents.asciidoc[tag=go]
   <div tabindex="0"
        role="tabpanel"
        id="java-tab-install"
-       aria-labelledby="java-install"
-       hidden="">
+       aria-labelledby="java-install">
 ++++
 
 include::install-agents.asciidoc[tag=java]
