@@ -1,9 +1,6 @@
 [[whats-new]]
 == What's new in {minor-version}
 
-[[whats-new]]
-== What's new in {minor-version}
-
 Here are the highlights of what's new and improved in {minor-version}.
 For detailed information about this release,
 check out the {apm-server-ref-v}/release-notes.html[APM Server Release Notes] and
