@@ -1,5 +1,5 @@
 [[open-telemetry-elastic]]
-== OpenTelemetry integration
+=== OpenTelemetry integration
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
@@ -13,9 +13,8 @@
 Elastic's OpenTelemetry integration allows you to reuse your existing OpenTelemetry
 instrumentation to quickly analyze distributed traces and metrics with the Elastic Stack.
 
-[float]
 [[what-is-opentelemetry]]
-=== What is OpenTelemetry?
+==== What is OpenTelemetry?
 
 > OpenTelemetry is a set of APIs, SDKs, tooling, and integrations that enable the creation and
 management of telemetry data. It formed through a merger of the OpenTracing and OpenCensus projects.
@@ -25,7 +24,7 @@ If you're unfamiliar with the project, see the {ot-spec}[spec] for more informat
 
 [float]
 [[open-telemetry-elastic-exporter]]
-=== Elastic exporter
+==== Elastic exporter
 
 Elastic's integration is designed to drop into your current OpenTelemetry setup.
 We've done this by extending the "contrib" OpenTelemetry collector and adding an Elastic exporter.
@@ -39,7 +38,7 @@ image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture
 
 [float]
 [[open-telemetry-elastic-works]]
-=== How the OpenTelemetry Collector works
+==== How the OpenTelemetry Collector works
 
 The OpenTelemetry collector uses three different types of components to handle data: `receivers`, `processors`, and `exporters`.
 
@@ -57,11 +56,12 @@ See the {ot-extension}[OpenTelemetry extension readme]
 for a list of supported extensions.
 
 [[open-telemetry-elastic-get-started]]
-=== Get started
+==== Get started
 
 NOTE: This guide assumes you've already instrumented your services with the OpenTelemetry API and/or SDK.
 If you haven't, see the Elastic APM <<install-and-run,install and run guide>> to get started with Elastic APM Agents instead.
 
+[float]
 [[open-telemetry-elastic-deployment-planning]]
 ==== Plan your deployment
 
@@ -71,6 +71,7 @@ They can be deployed as often as necessary and scaled up or out.
 Deployment planning resources are available in OpenTelemetry's {ot-collector}[Getting Started]
 documentation, and {ot-scaling}[Collector Performance] research.
 
+[float]
 [[open-telemetry-elastic-download]]
 ==== Download the collector
 
@@ -91,6 +92,7 @@ You can also build the collector-contrib repository by cloning it and running:
 make otelcontribcol
 ----
 
+[float]
 [[open-telemetry-elastic-configure]]
 ==== Configure the collector
 
@@ -148,34 +150,41 @@ NOTE: For more information about getting started with an OpenTelemetry Collector
 see the {ot-collector}[OpenTelemetry collector] docs.
 
 [[open-telemetry-elastic-config-ref]]
-=== Elastic exporter configuration reference
+==== Elastic exporter configuration reference
 
+[float]
 [[open-telemetry-config-url]]
 ==== `apm_server_url`
 Elastic APM Server URL. (required)
 
+[float]
 [[open-telemetry-config-api-key]]
 ==== `api_key`
 Credential for {apm-server-ref-v}/api-key.html[API key authorization].
 Must also be enabled in Elastic APM Server. (optional)
 
+[float]
 [[open-telemetry-config-secret-token]]
 ==== `secret_token`
 Credential for {apm-server-ref-v}/secret-token.html[secret token authorization].
 Must also be enabled in Elastic APM Server. (optional)
 
+[float]
 [[open-telemetry-config-ca-file]]
 ==== `ca_file`
 Root Certificate Authority (CA) certificate, for verifying the server's identity if TLS is enabled. (optional)
 
+[float]
 [[open-telemetry-config-cert-file]]
 ==== `cert_file`
 Client TLS certificate. (optional)
 
+[float]
 [[open-telemetry-config-key-file]]
 ==== `key_file`
 Client TLS key. (optional)
 
+[float]
 [[open-telemetry-config-insecure]]
 ==== `insecure`
 Disable verification of the server's identity if TLS is enabled. (optional)

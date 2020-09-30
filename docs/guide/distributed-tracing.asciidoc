@@ -1,5 +1,5 @@
 [[distributed-tracing]]
-== Distributed tracing
+=== Distributed tracing
 
 Together, <<transactions,`Transactions`>> and <<transaction-spans,`Spans`>> form a `Trace`.
 Traces are not events, but group together events that have a common root.
