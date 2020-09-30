@@ -7,3 +7,7 @@ coming[8.0.0]
 // For detailed information about this release,
 // check out the {apm-server-ref-v}/release-notes.html[APM Server Release Notes] and
 // {kibana-ref}/release-notes.html[Kibana Release Notes].
+
+// tag::notable-highlights[]
+
+// end::notable-highlights[]
