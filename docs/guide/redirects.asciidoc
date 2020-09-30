@@ -37,3 +37,8 @@ This page has moved. Please see <<agent-server-compatibility>>.
 === RUM Agent Compatibility
 
 This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="apm-release-notes"]
+=== APM release highlights
+
+This page has moved. Please see <<whats-new>>.
