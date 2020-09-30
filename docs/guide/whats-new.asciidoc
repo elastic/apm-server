@@ -13,7 +13,7 @@ Other versions: {apm-ref-all}/7.8/release-highlights-7.8.0.html[7.8] |
 {apm-ref-all}/7.1/release-highlights-7.1.0.html[7.1] | {apm-ref-all}/7.0/release-highlights-7.0.0.html[7.0]
 
 // NOTE: The notable-highlights tagged regions are re-used in the Installation and Upgrade Guide
-// tag::notable-v79-highlights[]
+// tag::notable-highlights[]
 OpenTelemetry integration::
 
 Elastic’s OpenTelemetry integration allows you to reuse your existing OpenTelemetry instrumentation to quickly analyze distributed traces and metrics with the Elastic Stack.
@@ -39,4 +39,4 @@ In 7.9, we've moved jobs to the environment level—this means any new services 
 image::images/7.8-service-map-anomaly.png[APM Service maps]
 +
 See {kibana-ref}/machine-learning-integration.html[machine learning integration] for more information.
-// end::notable-v79-highlights[]
+// end::notable-highlights[]
