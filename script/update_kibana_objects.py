@@ -32,7 +32,7 @@ def call(cmd):
         sys.exit(code)
 
 
-def main(branch):
+def main(branch, kibana_dir, upstream):
     """
     Updates the index pattern in kibana in the specified branch (default "master")
 
@@ -41,7 +41,7 @@ def main(branch):
     """
 
     apm_bin = os.path.abspath(os.path.join(os.path.dirname(__file__), "../apm-server"))
-    export = exec(apm_bin + " export index-pattern")
+    export = exec(apm_bin + " --strict.perms=false export index-pattern")
     index_pattern = json.loads(export)["objects"][0]
 
     remote_url = exec("git config remote.origin.url")
@@ -49,13 +49,18 @@ def main(branch):
     print("branch: " + branch)
     print("github user: " + gh_user)
 
-    path = tempfile.mkdtemp()
-    print("checking out kibana in temp dir " + path)
-    os.chdir(path)
-    call("git clone --depth 1 git@github.com:" + gh_user + "/kibana.git .")
-    call("git remote add elastic git@github.com:elastic/kibana.git")
-    call("git fetch elastic " + branch)
-    call("git checkout -b update-apm-index-pattern-" + branch + " elastic/" + branch)
+    if not kibana_dir:
+        path = tempfile.mkdtemp()
+        print("checking out kibana in temp dir " + path)
+        os.chdir(path)
+        call("git clone --depth 1 git@github.com:" + gh_user + "/kibana.git .")
+        call("git remote add {} git@github.com:elastic/kibana.git".format(upstream))
+        call("git fetch {} {}".format(upstream, branch))
+    else:
+        print("creating branch in " + kibana_dir)
+        os.chdir(kibana_dir)
+
+    call("git checkout -b update-apm-index-pattern-{} {}/{}".format(branch, upstream, branch))
     call("git pull")
 
     kibana_file_path = "src/plugins/apm_oss/server/tutorial/index_pattern.json"
@@ -76,12 +81,15 @@ def main(branch):
     call('git commit -m "update apm index pattern"')
     call("git push --force origin update-apm-index-pattern-" + branch)
 
-    print("removing " + path)
-    shutil.rmtree(path)
+    if not kibana_dir:
+        print("removing " + path)
+        shutil.rmtree(path)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-d', dest='kibana_dir')
     parser.add_argument('-b', default='master', dest='branch')
+    parser.add_argument('-u', default='elastic', dest='upstream')
     args = parser.parse_args()
-    main(args.branch)
+    main(args.branch, args.kibana_dir, args.upstream)
