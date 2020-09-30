@@ -80,7 +80,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 		var err error
 		bt.config, err = config.NewConfig(bt.rawConfig, esOutputCfg)
 		if err != nil {
-			return bt, err
+			return nil, err
 		}
 
 		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all,
@@ -93,7 +93,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			bt.logger.Info("Registering pipeline callback")
 			err := bt.registerPipelineCallback(b)
 			if err != nil {
-				return bt, err
+				return nil, err
 			}
 		} else {
 			bt.logger.Info("No pipeline callback registered")
