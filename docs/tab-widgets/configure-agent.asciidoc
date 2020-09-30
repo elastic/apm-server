@@ -1,0 +1,20 @@
+// tag::central-config[]
+Central configuration allows you to fine-tune your agent configuration from within the APM app.
+Changes are automatically propagated to your APM agents, and there’s no need to redeploy.
+
+A select number of configuration options are supported.
+See {apm-app-ref}/agent-configuration.html[Agent configuration in Kibana]
+for more information and a configuration reference.
+// end::central-config[]
+
+// tag::reg-config[]
+For a full list of agent configuration options, see the relevant agent reference:
+
+* {apm-go-ref-v}/configuration.html[Go Agent configuration]
+* {apm-java-ref-v}/configuration.html[Java Agent configuration]
+* {apm-dotnet-ref-v}/configuration.html[.NET Agent configuration]
+* {apm-node-ref}/configuring-the-agent.html[Node.js Agent configuration]
+* {apm-py-ref-v}/configuration.html[Python Agent configuration]
+* {apm-ruby-ref-v}/configuration.html[Ruby Agent configuration]
+* {apm-rum-ref-v}/configuration.html[RUM Agent configuration]
+// end::reg-config[]

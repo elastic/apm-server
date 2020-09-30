@@ -1,5 +1,5 @@
 [[apm-cross-cluster-search]]
-== Cross-cluster search
+=== Cross-cluster search
 
 Elastic APM utilizes Elasticsearch's cross-cluster search functionality.
 Cross-cluster search lets you run a single search request against one or more
@@ -10,7 +10,7 @@ and allowing for better performance while managing multiple observability use ca
 
 [float]
 [[set-up-ccs]]
-=== Set up cross-cluster search
+==== Set up cross-cluster search
 
 *Step 1. Set up remote clusters.*
 
