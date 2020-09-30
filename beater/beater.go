@@ -83,11 +83,12 @@ func NewCreator(args CreatorParams) beat.Creator {
 			return bt, err
 		}
 
-		runningUnderElasticAgent := b.Manager != nil && b.Manager.Enabled()
 		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all,
 		// and apm-server is not running supervised by Elastic Agent
 		shouldSetupPipelines := bt.config.Register.Ingest.Pipeline.IsEnabled() ||
 			(b.InSetupCmd && bt.config.Register.Ingest.Pipeline.Enabled == nil)
+		runningUnderElasticAgent := b.Manager != nil && b.Manager.Enabled()
+
 		if esOutputCfg != nil && shouldSetupPipelines && !runningUnderElasticAgent {
 			bt.logger.Info("Registering pipeline callback")
 			err := bt.registerPipelineCallback(b)
@@ -100,30 +101,6 @@ func NewCreator(args CreatorParams) beat.Creator {
 
 		return bt, nil
 	}
-}
-
-// checkConfig verifies the global configuration doesn't use unsupported settings
-func checkConfig(logger *logp.Logger) error {
-	cfg, err := cfgfile.Load("", nil)
-	if err != nil {
-		// responsibility for failing to load configuration lies elsewhere
-		// this is not reachable after going through normal beat creation
-		return nil
-	}
-
-	var s struct {
-		Dashboards *common.Config `config:"setup.dashboards"`
-	}
-	if err := cfg.Unpack(&s); err != nil {
-		return err
-	}
-	if s.Dashboards != nil {
-		if s.Dashboards.Enabled() {
-			return errSetupDashboardRemoved
-		}
-		logger.Warn(errSetupDashboardRemoved)
-	}
-	return nil
 }
 
 type beater struct {
@@ -144,19 +121,22 @@ var once sync.Once
 func (bt *beater) Run(b *beat.Beat) error {
 
 	done := make(chan struct{})
+
 	var reloadable = func() reload.Reloadable {
 		return reload.ReloadableFunc(func(ucfg *reload.ConfigWithMeta) error {
 			var err error
+			// Elastic Agent might call ReloadableFunc many times, but we only need to act upon the first call,
+			// during startup. This might change when APM Server is included in Fleet
 			once.Do(func() {
 				defer close(done)
 				var cfg *config.Config
 				cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
 				if err != nil {
-					bt.logger.Error("Could not parse configuration from agent ", err)
+					bt.logger.Warn("Could not parse configuration from Elastic Agent ", err)
 					return
 				}
 				bt.config = cfg
-				bt.logger.Info("Applying configuration from agent... ")
+				bt.logger.Info("Applying configuration from Elastic Agent... ")
 			})
 			return err
 		})
@@ -240,6 +220,30 @@ func (bt *beater) Run(b *beat.Beat) error {
 		Tracer:   tracer,
 		Reporter: reporter,
 	})
+}
+
+// checkConfig verifies the global configuration doesn't use unsupported settings
+func checkConfig(logger *logp.Logger) error {
+	cfg, err := cfgfile.Load("", nil)
+	if err != nil {
+		// responsibility for failing to load configuration lies elsewhere
+		// this is not reachable after going through normal beat creation
+		return nil
+	}
+
+	var s struct {
+		Dashboards *common.Config `config:"setup.dashboards"`
+	}
+	if err := cfg.Unpack(&s); err != nil {
+		return err
+	}
+	if s.Dashboards != nil {
+		if s.Dashboards.Enabled() {
+			return errSetupDashboardRemoved
+		}
+		logger.Warn(errSetupDashboardRemoved)
+	}
+	return nil
 }
 
 // elasticsearchOutputConfig returns nil if the output is not elasticsearch
