@@ -114,19 +114,18 @@ type beater struct {
 	stopped    bool
 }
 
-var once sync.Once
-
 // Run runs the APM Server, blocking until the beater's Stop method is called,
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
 
 	done := make(chan struct{})
 
+	var reloadOnce sync.Once
 	var reloadable = reload.ReloadableFunc(func(ucfg *reload.ConfigWithMeta) error {
 		var err error
 		// Elastic Agent might call ReloadableFunc many times, but we only need to act upon the first call,
 		// during startup. This might change when APM Server is included in Fleet
-		once.Do(func() {
+		reloadOnce.Do(func() {
 			defer close(done)
 			var cfg *config.Config
 			cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
