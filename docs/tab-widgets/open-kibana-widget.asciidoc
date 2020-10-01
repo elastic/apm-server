@@ -1,0 +1,40 @@
+++++
+<div class="tabs" data-tab-group="spin-up-stack">
+  <div role="tablist" aria-label="Configure Server">
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="cloud-tab-open-kib"
+            id="cloud-open-kib">
+      Elasticsearch Service
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="self-managed-tab-open-kib"
+            id="self-managed-open-kib"
+            tabindex="-1">
+      Self-managed
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="cloud-tab-open-kib"
+       aria-labelledby="cloud-open-kib">
+++++
+
+include::open-kibana.asciidoc[tag=cloud]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="self-managed-tab-open-kib"
+       aria-labelledby="self-managed-open-kib"
+       hidden="">
+++++
+
+include::open-kibana.asciidoc[tag=self-managed]
+
+++++
+  </div>
+</div>
+++++
