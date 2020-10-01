@@ -39,8 +39,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	readWriter := store.NewShardedReadWriter()
 	defer readWriter.Close()
 
-	before := time.Now()
-
+	beforeWrite := time.Now()
 	traceUUID := uuid.Must(uuid.NewV4())
 	transactionUUID := uuid.Must(uuid.NewV4())
 	transaction := &model.Transaction{
@@ -59,6 +58,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 		assert.NoError(t, readWriter.WriteSpan(span))
 		spans = append(spans, span)
 	}
+	afterWrite := time.Now()
 
 	// We can read our writes without flushing.
 	var batch model.Batch
@@ -79,9 +79,19 @@ func testWriteEvents(t *testing.T, numSpans int) {
 			item := iter.Item()
 			expiresAt := item.ExpiresAt()
 			expiryTime := time.Unix(int64(expiresAt), 0)
+
+			// The expiry time should be somewhere between when we
+			// started and finished writing + the TTL. The expiry time
+			// is recorded as seconds since the Unix epoch, hence the
+			// truncation.
+			lowerBound := beforeWrite.Add(ttl).Truncate(time.Second)
+			upperBound := afterWrite.Add(ttl).Truncate(time.Second)
 			assert.Condition(t, func() bool {
-				return !before.After(expiryTime) && !expiryTime.After(before.Add(ttl))
-			})
+				return !lowerBound.After(expiryTime)
+			}, "expiry time %s is before %s", expiryTime, lowerBound)
+			assert.Condition(t, func() bool {
+				return !expiryTime.After(upperBound)
+			}, "expiry time %s is after %s", expiryTime, upperBound)
 
 			var value interface{}
 			switch meta := item.UserMeta(); meta {
