@@ -122,28 +122,26 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	done := make(chan struct{})
 
-	var reloadable = func() reload.Reloadable {
-		return reload.ReloadableFunc(func(ucfg *reload.ConfigWithMeta) error {
-			var err error
-			// Elastic Agent might call ReloadableFunc many times, but we only need to act upon the first call,
-			// during startup. This might change when APM Server is included in Fleet
-			once.Do(func() {
-				defer close(done)
-				var cfg *config.Config
-				cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
-				if err != nil {
-					bt.logger.Warn("Could not parse configuration from Elastic Agent ", err)
-					return
-				}
-				bt.config = cfg
-				bt.logger.Info("Applying configuration from Elastic Agent... ")
-			})
-			return err
+	var reloadable = reload.ReloadableFunc(func(ucfg *reload.ConfigWithMeta) error {
+		var err error
+		// Elastic Agent might call ReloadableFunc many times, but we only need to act upon the first call,
+		// during startup. This might change when APM Server is included in Fleet
+		once.Do(func() {
+			defer close(done)
+			var cfg *config.Config
+			cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
+			if err != nil {
+				bt.logger.Warn("Could not parse configuration from Elastic Agent ", err)
+			}
+			bt.config = cfg
+			bt.rawConfig = ucfg.Config
+			bt.logger.Info("Applying configuration from Elastic Agent... ")
 		})
-	}
+		return err
+	})
 	if b.Manager != nil && b.Manager.Enabled() {
 		bt.logger.Info("Running under Elastic Agent, waiting for configuration... ")
-		reload.Register.MustRegister("inputs", reloadable())
+		reload.Register.MustRegister("inputs", reloadable)
 		<-done
 	}
 
