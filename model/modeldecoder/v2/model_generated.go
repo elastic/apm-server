@@ -619,12 +619,13 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || val.Experimental.IsSet()
+	return val.Context.IsSet() || val.Duration.IsSet() || val.Experimental.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
 }
 
 func (val *transaction) Reset() {
 	val.Context.Reset()
 	val.Duration.Reset()
+	val.Experimental.Reset()
 	val.ID.Reset()
 	val.Marks.Reset()
 	val.Name.Reset()
@@ -638,7 +639,6 @@ func (val *transaction) Reset() {
 	val.TraceID.Reset()
 	val.Type.Reset()
 	val.UserExperience.Reset()
-	val.Experimental.Reset()
 }
 
 func (val *transaction) validate() error {
@@ -774,13 +774,13 @@ func (val *context) validate() error {
 }
 
 func (val *contextMessage) IsSet() bool {
-	return val.Body.IsSet() || val.Headers.IsSet() || val.Age.IsSet() || val.Queue.IsSet()
+	return val.Age.IsSet() || val.Body.IsSet() || val.Headers.IsSet() || val.Queue.IsSet()
 }
 
 func (val *contextMessage) Reset() {
+	val.Age.Reset()
 	val.Body.Reset()
 	val.Headers.Reset()
-	val.Age.Reset()
 	val.Queue.Reset()
 }
 
@@ -831,12 +831,12 @@ func (val *contextMessageQueue) validate() error {
 }
 
 func (val *contextPage) IsSet() bool {
-	return val.URL.IsSet() || val.Referer.IsSet()
+	return val.Referer.IsSet() || val.URL.IsSet()
 }
 
 func (val *contextPage) Reset() {
-	val.URL.Reset()
 	val.Referer.Reset()
+	val.URL.Reset()
 }
 
 func (val *contextPage) validate() error {
@@ -868,13 +868,17 @@ func (val *contextResponse) validate() error {
 }
 
 func (val *contextRequest) IsSet() bool {
-	return val.Cookies.IsSet() || val.Body.IsSet() || val.Env.IsSet() || val.Headers.IsSet() || val.HTTPVersion.IsSet() || val.Method.IsSet() || val.Socket.IsSet() || val.URL.IsSet()
+	return val.Body.IsSet() || len(val.Cookies) > 0 || len(val.Env) > 0 || val.Headers.IsSet() || val.HTTPVersion.IsSet() || val.Method.IsSet() || val.Socket.IsSet() || val.URL.IsSet()
 }
 
 func (val *contextRequest) Reset() {
-	val.Cookies.Reset()
 	val.Body.Reset()
-	val.Env.Reset()
+	for k := range val.Cookies {
+		delete(val.Cookies, k)
+	}
+	for k := range val.Env {
+		delete(val.Env, k)
+	}
 	val.Headers.Reset()
 	val.HTTPVersion.Reset()
 	val.Method.Reset()
@@ -912,12 +916,12 @@ func (val *contextRequest) validate() error {
 }
 
 func (val *contextRequestSocket) IsSet() bool {
-	return val.RemoteAddress.IsSet() || val.Encrypted.IsSet()
+	return val.Encrypted.IsSet() || val.RemoteAddress.IsSet()
 }
 
 func (val *contextRequestSocket) Reset() {
-	val.RemoteAddress.Reset()
 	val.Encrypted.Reset()
+	val.RemoteAddress.Reset()
 }
 
 func (val *contextRequestSocket) validate() error {
@@ -1210,14 +1214,14 @@ func (val *transactionSpanCount) validate() error {
 }
 
 func (val *transactionUserExperience) IsSet() bool {
-	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.TotalBlockingTime.IsSet() || val.Longtask.IsSet()
+	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.Longtask.IsSet() || val.TotalBlockingTime.IsSet()
 }
 
 func (val *transactionUserExperience) Reset() {
 	val.CumulativeLayoutShift.Reset()
 	val.FirstInputDelay.Reset()
-	val.TotalBlockingTime.Reset()
 	val.Longtask.Reset()
+	val.TotalBlockingTime.Reset()
 }
 
 func (val *transactionUserExperience) validate() error {
@@ -1230,23 +1234,23 @@ func (val *transactionUserExperience) validate() error {
 	if val.FirstInputDelay.Val < 0 {
 		return fmt.Errorf("'fid': validation rule 'min(0)' violated")
 	}
-	if val.TotalBlockingTime.Val < 0 {
-		return fmt.Errorf("'tbt': validation rule 'min(0)' violated")
-	}
 	if err := val.Longtask.validate(); err != nil {
 		return errors.Wrapf(err, "longtask")
+	}
+	if val.TotalBlockingTime.Val < 0 {
+		return fmt.Errorf("'tbt': validation rule 'min(0)' violated")
 	}
 	return nil
 }
 
 func (val *longtaskMetrics) IsSet() bool {
-	return val.Count.IsSet() || val.Sum.IsSet() || val.Max.IsSet()
+	return val.Count.IsSet() || val.Max.IsSet() || val.Sum.IsSet()
 }
 
 func (val *longtaskMetrics) Reset() {
 	val.Count.Reset()
-	val.Sum.Reset()
 	val.Max.Reset()
+	val.Sum.Reset()
 }
 
 func (val *longtaskMetrics) validate() error {
@@ -1259,17 +1263,17 @@ func (val *longtaskMetrics) validate() error {
 	if !val.Count.IsSet() {
 		return fmt.Errorf("'count' required")
 	}
-	if val.Sum.Val < 0 {
-		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
-	}
-	if !val.Sum.IsSet() {
-		return fmt.Errorf("'sum' required")
-	}
 	if val.Max.Val < 0 {
 		return fmt.Errorf("'max': validation rule 'min(0)' violated")
 	}
 	if !val.Max.IsSet() {
 		return fmt.Errorf("'max' required")
+	}
+	if val.Sum.Val < 0 {
+		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
+	}
+	if !val.Sum.IsSet() {
+		return fmt.Errorf("'sum' required")
 	}
 	return nil
 }
