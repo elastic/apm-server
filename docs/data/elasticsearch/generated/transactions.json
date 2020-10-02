@@ -298,6 +298,7 @@
             "geo": {
                 "continent_name": "North America",
                 "country_iso_code": "US",
+                "country_name": "United States",
                 "location": {
                     "lat": 37.751,
                     "lon": -97.822
