@@ -186,8 +186,8 @@ func TestMetadataValidationRules(t *testing.T) {
 			{name: "name-valid-upper", data: `"name":"ABCDEFGHIJKLMNOPQRSTUVWXYZ"`},
 			{name: "name-valid-digits", data: `"name":"0123456789"`},
 			{name: "name-valid-special", data: `"name":"_ -"`},
-			{name: "name-asterisk", errorKey: "service.name", data: `"name":"abc*"`},
-			{name: "name-dot", errorKey: "service.name", data: `"name":"abc."`},
+			{name: "name-asterisk", errorKey: "pattern(regexpAlphaNumericExt)", data: `"name":"abc*"`},
+			{name: "name-dot", errorKey: "pattern(regexpAlphaNumericExt)", data: `"name":"abc."`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				tc.data = `{"agent":{"name":"go","version":"1.0"},` + tc.data + `}`
@@ -250,7 +250,9 @@ func TestMetadataValidationRules(t *testing.T) {
 			err := metadata.validate()
 			if _, ok := requiredKeys[key]; ok {
 				require.Error(t, err, key)
-				assert.Contains(t, err.Error(), key)
+				for _, part := range strings.Split(key, ".") {
+					assert.Contains(t, err.Error(), part)
+				}
 			} else {
 				assert.NoError(t, err, key)
 			}

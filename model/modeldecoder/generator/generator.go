@@ -19,17 +19,17 @@ package generator
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
+	"io"
 	"path"
 	"path/filepath"
 	"reflect"
-	"sort"
 	"strings"
 
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -51,9 +51,12 @@ type Generator struct {
 	// referenced multiple times
 	processedTypes map[string]struct{}
 	// keep track of imports to add
-	imports map[string]struct{}
+	imports              map[string]struct{}
+	validationGenerators map[string]validationGenerator
+}
 
-	nullableString, nullableInt, nullableFloat64, nullableBool, nullableInterface string
+type validationGenerator interface {
+	validation(io.Writer, []structField, structField, bool) error
 }
 
 // NewGenerator takes an importPath and the package name for which
@@ -71,17 +74,18 @@ func NewGenerator(importPath string, pkg string, typPath string,
 	if err != nil {
 		return nil, err
 	}
+	imports := make(map[string]struct{})
 	g := Generator{
-		pkgName:           loaded.Types.Name(),
-		structTypes:       structTypes,
-		rootObjs:          make([]structType, 0, len(root)),
-		processedTypes:    make(map[string]struct{}),
-		imports:           make(map[string]struct{}),
-		nullableString:    fmt.Sprintf("%s.String", typPath),
-		nullableInt:       fmt.Sprintf("%s.Int", typPath),
-		nullableFloat64:   fmt.Sprintf("%s.Float64", typPath),
-		nullableBool:      fmt.Sprintf("%s.Bool", typPath),
-		nullableInterface: fmt.Sprintf("%s.Interface", typPath),
+		pkgName:        loaded.Types.Name(),
+		structTypes:    structTypes,
+		rootObjs:       make([]structType, 0, len(root)),
+		processedTypes: make(map[string]struct{}),
+		imports:        imports,
+		validationGenerators: map[string]validationGenerator{
+			"struct": newTstruct(imports, typPath),
+			"slice":  newTslice(imports),
+			"map":    newTmap(imports),
+		},
 	}
 	for _, r := range root {
 		rootObjPath := fmt.Sprintf("%s.%s", filepath.Join(importPath, pkg), r)
@@ -126,31 +130,16 @@ import (
 	return buf, nil
 }
 
-const (
-	ruleRequired    = "required"
-	ruleMax         = "max"
-	ruleMin         = "min"
-	ruleEnum        = "enum"
-	ruleMaxVals     = "maxVals"
-	rulePattern     = "pattern"
-	rulePatternKeys = "patternKeys"
-	ruleTypes       = "types"
-	ruleTypesVals   = "typesVals"
-
-	importJSON = "encoding/json"
-	importUTF8 = "unicode/utf8"
-)
-
 type structTypes map[string]structType
 
 type structType struct {
 	name   string
 	fields []structField
 }
+
 type structField struct {
-	name string
-	typ  types.Type
-	tag  reflect.StructTag
+	*types.Var
+	tag reflect.StructTag
 }
 
 // create flattened field keys by recursively iterating through the struct types;
@@ -175,16 +164,16 @@ func (g *Generator) generate(st structType, key string) error {
 		key += "."
 	}
 	for _, field := range st.fields {
-		var childTyp string
-		switch fieldTyp := field.typ.Underlying().(type) {
+		var childTyp types.Type
+		switch fieldTyp := field.Type().Underlying().(type) {
 		case *types.Map:
-			childTyp = fieldTyp.Elem().String()
+			childTyp = fieldTyp.Elem()
 		case *types.Slice:
-			childTyp = fieldTyp.Elem().String()
+			childTyp = fieldTyp.Elem()
 		default:
-			childTyp = field.typ.String()
+			childTyp = field.Type()
 		}
-		if child, ok := g.structTypes[childTyp]; ok {
+		if child, ok := g.customStruct(childTyp); ok {
 			if err := g.generate(child, fmt.Sprintf("%s%s", key, jsonName(field))); err != nil {
 				return err
 			}
@@ -193,6 +182,9 @@ func (g *Generator) generate(st structType, key string) error {
 	return nil
 }
 
+// generateIsSet creates `IsSet` methods for struct fields,
+// indicating if the fields have been initialized;
+// it only considers exported fields, aligned with standard marshal behavior
 func (g *Generator) generateIsSet(structTyp structType, key string) error {
 	if len(structTyp.fields) == 0 {
 		return fmt.Errorf("unhandled struct %s (does not have any exported fields)", structTyp.name)
@@ -203,21 +195,21 @@ func (val *%s) IsSet() bool {
 	if key != "" {
 		key += "."
 	}
+	prefix := ``
 	for i := 0; i < len(structTyp.fields); i++ {
-		prefix := ` ||`
-		if i == 0 {
-			prefix = ``
-		}
 		f := structTyp.fields[i]
-
-		switch t := f.typ.Underlying().(type) {
+		if !f.Exported() {
+			continue
+		}
+		switch t := f.Type().Underlying().(type) {
 		case *types.Slice, *types.Map:
-			fmt.Fprintf(&g.buf, `%s len(val.%s) > 0`, prefix, f.name)
+			fmt.Fprintf(&g.buf, `%s len(val.%s) > 0`, prefix, f.Name())
 		case *types.Struct:
-			fmt.Fprintf(&g.buf, `%s val.%s.IsSet()`, prefix, f.name)
+			fmt.Fprintf(&g.buf, `%s val.%s.IsSet()`, prefix, f.Name())
 		default:
 			return fmt.Errorf("unhandled type %T for IsSet() for '%s%s'", t, key, jsonName(f))
 		}
+		prefix = ` ||`
 	}
 	fmt.Fprint(&g.buf, `
 }
@@ -225,6 +217,9 @@ func (val *%s) IsSet() bool {
 	return nil
 }
 
+// generateReset creates `Reset` methods for struct fields setting them to
+// their zero values or calling their `Reset` methods
+// it only considers exported fields
 func (g *Generator) generateReset(structTyp structType, key string) error {
 	fmt.Fprintf(&g.buf, `
 func (val *%s) Reset() {
@@ -233,15 +228,29 @@ func (val *%s) Reset() {
 		key += "."
 	}
 	for _, f := range structTyp.fields {
-		switch t := f.typ.Underlying().(type) {
+		if !f.Exported() {
+			continue
+		}
+		switch t := f.Type().Underlying().(type) {
 		case *types.Slice:
 			// the slice len is set to zero, not returning the underlying
 			// memory to the garbage collector; when the size of slices differs
 			// this potentially leads to keeping more memory allocated than required;
-			// at the moment metadata.process.argv is the only slice
+
+			// if slice type is a model struct,
+			// call its Reset() function
+			if _, ok := g.customStruct(t.Elem()); ok {
+				fmt.Fprintf(&g.buf, `
+for i := range val.%s{
+	val.%s[i].Reset()
+}
+`[1:], f.Name(), f.Name())
+			}
+			// then reset size of slice to 0
 			fmt.Fprintf(&g.buf, `
 val.%s = val.%s[:0]
-`[1:], f.name, f.name)
+`[1:], f.Name(), f.Name())
+
 		case *types.Map:
 			// the map is cleared, not returning the underlying memory to
 			// the garbage collector; when map size differs this potentially
@@ -250,11 +259,12 @@ val.%s = val.%s[:0]
 for k := range val.%s {
 	delete(val.%s, k)
 }
-`[1:], f.name, f.name)
+`[1:], f.Name(), f.Name())
+
 		case *types.Struct:
 			fmt.Fprintf(&g.buf, `
 val.%s.Reset()
-`[1:], f.name)
+`[1:], f.Name())
 		default:
 			return fmt.Errorf("unhandled type %T for Reset() for '%s%s'", t, key, jsonName(f))
 		}
@@ -278,297 +288,31 @@ func (val *%s) validate() error {
 	}
 	if !isRoot {
 		fmt.Fprint(&g.buf, `
-if !val.IsSet() {
-	return nil
-}
-`[1:])
+	if !val.IsSet() {
+		return nil
+	}
+	`[1:])
 	}
 
-	if key != "" {
-		key += "."
-	}
 	for i := 0; i < len(structTyp.fields); i++ {
 		f := structTyp.fields[i]
-		flattenedName := fmt.Sprintf("%s%s", key, jsonName(f))
-
-		// if field is a model struct, call its validation function
-		if _, ok := g.structTypes[f.typ.String()]; ok {
-			fmt.Fprintf(&g.buf, `
-if err := val.%s.validate(); err != nil{
-	return err
-}
-`[1:], f.name)
-		}
-
-		parts, err := validationTag(f.tag)
-		if err != nil {
-			return fmt.Errorf("'%s': %w", flattenedName, err)
-		}
-		// use a sorted slice of tag keys to create tag related
-		// validation methods in the same output order on every run
-		var sortedRules = make([]string, 0, len(parts))
-		for k := range parts {
-			sortedRules = append(sortedRules, k)
-		}
-		sort.Slice(sortedRules, func(i, j int) bool {
-			return sortedRules[i] < sortedRules[j]
-		})
-
-		switch t := f.typ.Underlying().(type) {
+		var custom bool
+		var genKey string
+		switch t := f.Type().Underlying().(type) {
 		case *types.Slice:
-			for _, rule := range sortedRules {
-				switch rule {
-				case ruleRequired:
-					ruleNullableRequired(&g.buf, f.name, flattenedName)
-				default:
-					return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
-				}
-			}
+			_, custom = g.customStruct(t.Elem())
+			genKey = "slice"
 		case *types.Map:
-			var elem structType
-			switch t.Elem().Underlying().(type) {
-			case *types.Basic, *types.Interface: // do nothing special
-			case *types.Struct:
-				if customStruct, ok := g.structTypes[t.Elem().String()]; ok {
-					elem = customStruct
-				} else {
-					return fmt.Errorf("unhandled struct type %s iterating map for '%s'", t, flattenedName)
-				}
-			default:
-				return fmt.Errorf("unhandled type %s iterating map for '%s'", t, flattenedName)
-			}
-
-			var required bool
-			if _, ok := parts[ruleRequired]; ok {
-				required = true
-				delete(parts, ruleRequired)
-				fmt.Fprintf(&g.buf, `
-if len(val.%s) == 0{
-	return fmt.Errorf("'%s' required")
-}
-`[1:], f.name, flattenedName)
-			}
-			if len(parts) == 0 {
-				continue
-			}
-			types, typesRestricted := parts[ruleTypesVals]
-			// iterate over map once and run checks
-			if typesRestricted || elem.name != "" {
-				fmt.Fprintf(&g.buf, `
-for k,v := range val.%s{
-`[1:], f.name)
-			} else {
-				fmt.Fprintf(&g.buf, `
-for k := range val.%s{
-`[1:], f.name)
-			}
-
-			if regex, ok := parts[rulePatternKeys]; ok {
-				delete(parts, rulePatternKeys)
-				fmt.Fprintf(&g.buf, `
-if k != "" && !%s.MatchString(k){
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], regex, rulePatternKeys, regex, flattenedName)
-				if elem.name != "" {
-					fmt.Fprintf(&g.buf, `
-if err := v.validate(); err != nil{
-	return err
-}
-`[1:])
-				}
-			}
-			if typesRestricted {
-				delete(parts, ruleTypesVals)
-				fmt.Fprintf(&g.buf, `
-switch t := v.(type){
-`[1:])
-				if !required {
-					fmt.Fprintf(&g.buf, `
-case nil:
-`[1:])
-				}
-				for _, typ := range strings.Split(types, ";") {
-					if typ == "number" {
-						typ = "json.Number"
-						g.imports[importJSON] = struct{}{}
-					}
-					fmt.Fprintf(&g.buf, `
-case %s:
-`[1:], typ)
-					if typ == "string" {
-						if maxVal, ok := parts[ruleMaxVals]; ok {
-							delete(parts, ruleMaxVals)
-							g.imports[importUTF8] = struct{}{}
-							fmt.Fprintf(&g.buf, `
-if utf8.RuneCountInString(t) > %s{
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], maxVal, ruleMaxVals, maxVal, flattenedName)
-						}
-					}
-				}
-				fmt.Fprintf(&g.buf, `
-default:
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s' for key %%s",k)
-}
-`[1:], ruleTypesVals, types, flattenedName)
-			}
-			// close iteration over map
-			fmt.Fprintf(&g.buf, `
-}
-`[1:])
-			if len(parts) > 0 {
-				return fmt.Errorf("unhandled tag rule(s) '%v' for '%s'", parts, flattenedName)
-			}
+			_, custom = g.customStruct(t.Elem())
+			genKey = "map"
 		case *types.Struct:
-			switch f.typ.String() {
-			case g.nullableString:
-				for _, rule := range sortedRules {
-					val := parts[rule]
-					switch rule {
-					case ruleEnum:
-						fmt.Fprintf(&g.buf, `
-if val.%s.Val != ""{
-	var matchEnum bool
-	for _, s := range %s {
-		if val.%s.Val == s{
-			matchEnum = true
-			break
-		}
-	}
-	if !matchEnum{
-		return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-	}
-}
-`[1:], f.name, val, f.name, rule, val, flattenedName)
-					case ruleMax:
-						g.imports[importUTF8] = struct{}{}
-						fmt.Fprintf(&g.buf, `
-if utf8.RuneCountInString(val.%s.Val) > %s{
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], f.name, val, rule, val, flattenedName)
-					case ruleMin:
-						g.imports[importUTF8] = struct{}{}
-						fmt.Fprintf(&g.buf, `
-if utf8.RuneCountInString(val.%s.Val) < %s{
-return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], f.name, val, rule, val, flattenedName)
-					case rulePattern:
-						fmt.Fprintf(&g.buf, `
-if val.%s.Val != "" && !%s.MatchString(val.%s.Val){
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], f.name, val, f.name, rule, val, flattenedName)
-					case ruleRequired:
-						ruleNullableRequired(&g.buf, f.name, flattenedName)
-					default:
-						return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
-					}
-				}
-			case g.nullableInt, g.nullableFloat64:
-				for _, rule := range sortedRules {
-					val := parts[rule]
-					switch rule {
-					case ruleRequired:
-						ruleNullableRequired(&g.buf, f.name, flattenedName)
-					case ruleMin, ruleMax:
-						fmt.Fprintf(&g.buf, `
-if val.%s.Val %s %s {
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], f.name, ruleMinMaxOperator(rule), val, rule, val, flattenedName)
-					default:
-						return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
-					}
-				}
-			case g.nullableInterface:
-				var required bool
-				if _, ok := parts[ruleRequired]; ok {
-					required = true
-				}
-				for _, rule := range sortedRules {
-					val := parts[rule]
-					switch rule {
-					case ruleRequired:
-						ruleNullableRequired(&g.buf, f.name, flattenedName)
-					case ruleMax:
-						//handled in switch statement for string types
-					case ruleTypes:
-						if _, ok := parts[ruleMax]; ok {
-							fmt.Fprintf(&g.buf, `
-switch t := val.%s.Val.(type){
-	`[1:], f.name)
-						} else {
-							fmt.Fprintf(&g.buf, `
-switch val.%s.Val.(type){
-	`[1:], f.name)
-						}
-						for _, typ := range strings.Split(val, ";") {
-							switch typ {
-							case "int":
-								g.imports[importJSON] = struct{}{}
-								fmt.Fprintf(&g.buf, `
-case int:
-case json.Number:
-	if _, err := t.Int64(); err != nil{
-		return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-	}
-`[1:], rule, val, flattenedName)
-							case "string":
-								fmt.Fprintf(&g.buf, `
-case %s:
-	`[1:], typ)
-								if max, ok := parts[ruleMax]; ok {
-									g.imports[importUTF8] = struct{}{}
-									fmt.Fprintf(&g.buf, `
-if utf8.RuneCountInString(t) > %s{
-return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], max, ruleMax, max, flattenedName)
-								}
-							case "interface":
-								fmt.Fprint(&g.buf, `
-case interface{}:
-`[1:])
-							case "map[string]interface":
-								fmt.Fprint(&g.buf, `
-case map[string]interface{}:
-`[1:])
-							default:
-								fmt.Fprintf(&g.buf, `
-case %s:
-`[1:], typ)
-							}
-						}
-						if !required {
-							fmt.Fprintf(&g.buf, `
-case nil:
-`[1:])
-						}
-						fmt.Fprintf(&g.buf, `
-default:
-	return fmt.Errorf("validation rule '%s(%s)' violated for '%s'")
-}
-`[1:], rule, val, flattenedName)
-					default:
-						return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
-					}
-				}
-			default:
-				for _, rule := range sortedRules {
-					switch rule {
-					case ruleRequired:
-						ruleNullableRequired(&g.buf, f.name, flattenedName)
-					default:
-						return fmt.Errorf("unhandled tag rule '%s' for '%s'", rule, flattenedName)
-					}
-				}
-			}
+			_, custom = g.customStruct(f.Type())
+			genKey = "struct"
 		default:
-			return fmt.Errorf("unhandled type %T for '%s'", t, flattenedName)
+			errors.Wrap(fmt.Errorf("unhandled type %T", t), flattenName(key, f))
+		}
+		if err := g.validationGenerators[genKey].validation(&g.buf, structTyp.fields, f, custom); err != nil {
+			errors.Wrap(err, flattenName(key, f))
 		}
 	}
 	fmt.Fprint(&g.buf, `
@@ -578,18 +322,22 @@ default:
 	return nil
 }
 
-func ruleNullableRequired(b *bytes.Buffer, name string, key string) {
-	fmt.Fprintf(b, `
-if !val.%s.IsSet()  {
-	return fmt.Errorf("'%s' required")
+func (g *Generator) customStruct(typ types.Type) (t structType, ok bool) {
+	t, ok = g.structTypes[typ.String()]
+	return
 }
-`[1:], name, key)
+
+func flattenName(key string, f structField) string {
+	if key != "" {
+		key += "."
+	}
+	return fmt.Sprintf("%s%s", key, jsonName(f))
 }
 
 func jsonName(f structField) string {
 	parts := parseTag(f.tag, "json")
 	if len(parts) == 0 {
-		return strings.ToLower(f.name)
+		return strings.ToLower(f.Name())
 	}
 	return parts[0]
 }
@@ -633,13 +381,9 @@ func parseStructTypes(pkg *packages.Package) (structTypes, error) {
 				structFields := make([]structField, 0, numFields)
 				for i := 0; i < numFields; i++ {
 					f := typesStruct.Field(i)
-					if !f.Exported() {
-						continue
-					}
 					structFields = append(structFields, structField{
-						name: f.Name(),
-						typ:  f.Type(),
-						tag:  reflect.StructTag(typesStruct.Tag(i)),
+						Var: f,
+						tag: reflect.StructTag(typesStruct.Tag(i)),
 					})
 				}
 				structs[obj.Type().String()] = structType{name: obj.Name(), fields: structFields}
@@ -655,43 +399,4 @@ func parseTag(structTag reflect.StructTag, tagName string) []string {
 		return nil
 	}
 	return strings.Split(tag, ",")
-}
-
-func validationTag(structTag reflect.StructTag) (map[string]string, error) {
-	parts := parseTag(structTag, "validate")
-	m := make(map[string]string, len(parts))
-	errPrefix := "parse validation tag:"
-	for _, rule := range parts {
-		parts := strings.Split(rule, "=")
-		switch len(parts) {
-		case 1:
-			// valueless rule e.g. required
-			if rule != parts[0] {
-				return nil, fmt.Errorf("%s malformed tag '%s'", errPrefix, rule)
-			}
-			switch rule {
-			case ruleRequired:
-				m[rule] = ""
-			default:
-				return nil, fmt.Errorf("%s unhandled tag rule '%s'", errPrefix, rule)
-			}
-		case 2:
-			// rule=value
-			m[parts[0]] = parts[1]
-		default:
-			return nil, fmt.Errorf("%s malformed tag '%s'", errPrefix, rule)
-		}
-	}
-	return m, nil
-}
-
-func ruleMinMaxOperator(rule string) string {
-	switch rule {
-	case ruleMin:
-		return "<"
-	case ruleMax:
-		return ">"
-	default:
-		panic("unexpected rule: " + rule)
-	}
 }
