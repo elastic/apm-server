@@ -116,7 +116,7 @@ func TestHandler(t *testing.T) {
 			}},
 		},
 		"MetadataInvalid": {
-			id: request.IDResponseErrorsValidate,
+			id: request.IDResponseErrorsDecode,
 			parts: []part{{
 				name:        "metadata",
 				contentType: "application/json",
@@ -128,16 +128,16 @@ func TestHandler(t *testing.T) {
 			id: request.IDResponseValidAccepted,
 			parts: []part{
 				heapProfilePart(),
-				part{
+				{
 					name: "profile",
 					// No messageType param specified, so pprof is assumed.
 					contentType: "application/x-protobuf",
 					body:        heapProfileBody(),
 				},
-				part{
+				{
 					name:        "metadata",
 					contentType: "application/json",
-					body:        strings.NewReader(`{"service":{"name":"foo","agent":{"name":"go","version":"1.0"}}}`),
+					body:        strings.NewReader(`{"service":{"name":"foo","agent":{"name":"java","version":"1.2.0"}}}`),
 				},
 			},
 			body:    prettyJSON(map[string]interface{}{"accepted": 2}),

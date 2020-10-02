@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{\"metadata\": {\"user\": null}}",
-            "message": "failed to validate metadata: error validating JSON: I[#] S[#] doesn't validate with \"metadata#\"\n  I[#] S[#/required] missing properties: \"service\""
+            "message": "validation error 'metadata' required"
         }
     ]
 }

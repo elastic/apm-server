@@ -122,20 +122,7 @@ func (ps *ProcessorSetup) AttrsMatchJsonSchema(t *testing.T, payloadAttrs, paylo
 // - `required`: ensure required keys must not be missing or nil
 // - `conditionally required`: prepare payload according to conditions, then
 //   ensure required keys must not be missing
-func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condRequiredKeys map[string]Condition) {
-
-	required := Union(requiredKeys, NewSet(
-		"service",
-		"service.name",
-		"service.agent",
-		"service.agent.name",
-		"service.agent.version",
-		"service.language.name",
-		"service.runtime.name",
-		"service.runtime.version",
-		"process.pid",
-	))
-
+func (ps *ProcessorSetup) AttrsPresence(t *testing.T, required *Set, condRequiredKeys map[string]Condition) {
 	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
 	require.NoError(t, err)
 
@@ -149,7 +136,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		//test sending nil value for key
 		ps.changePayload(t, key, nil, Condition{}, upsertFn,
 			func(k string) (bool, []string) {
-				errMsgs := []string{keyLast, "did not recognize object type"}
+				errMsgs := []string{keyLast, "did not recognize object type", "requires at least one of the fields", "required"}
 				return !required.ContainsStrPattern(k), errMsgs
 			},
 		)
@@ -158,14 +145,30 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		cond := condRequiredKeys[key]
 		ps.changePayload(t, key, nil, cond, deleteFn,
 			func(k string) (bool, []string) {
+				validationErr := "validation error"
+				keyParts := strings.Split(key, ".")
+				prefix := " "
+				for i := 0; i < len(keyParts); i++ {
+					if i == len(keyParts)-1 {
+						validationErr = fmt.Sprintf("%s%s'%s'", validationErr, prefix, keyParts[i])
+						continue
+					}
+					validationErr = fmt.Sprintf("%s%s%s", validationErr, prefix, keyParts[i])
+					prefix = ": "
+				}
 				errMsgs := []string{
 					fmt.Sprintf("missing properties: \"%s\"", keyLast),
+					fmt.Sprintf("'%s'", key),
 					"did not recognize object type",
+					validationErr,
+					"requires at least one of the fields",
+					"required",
 				}
 
 				if required.ContainsStrPattern(k) {
 					return false, errMsgs
-				} else if _, ok := condRequiredKeys[k]; ok {
+				}
+				if _, ok := condRequiredKeys[k]; ok {
 					return false, errMsgs
 				}
 				return true, []string{}
@@ -261,7 +264,7 @@ func (ps *ProcessorSetup) changePayload(
 	require.NoError(t, err)
 
 	err = ps.Proc.Validate(payload)
-	assert.NoError(t, err, "vanilla payload did not validate")
+	require.NoError(t, err, "vanilla payload did not validate, error: %v", err)
 
 	// prepare payload according to conditions:
 
@@ -298,12 +301,12 @@ func (ps *ProcessorSetup) changePayload(
 	} else {
 		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v>, but received no error.`, key)) {
 			for _, errMsg := range errMsgs {
-				if strings.Contains(strings.ToLower(err.Error()), errMsg) {
+				if strings.Contains(strings.ToLower(err.Error()), strings.ToLower(errMsg)) {
 					return
 				}
 			}
 			wantLog = true
-			assert.Fail(t, fmt.Sprintf("Expected error to be one of %v, but was %v", errMsgs, err.Error()))
+			assert.Fail(t, fmt.Sprintf("Expected error to be one of <%v>, but was <%v>", errMsgs, err.Error()))
 		} else {
 			wantLog = true
 		}

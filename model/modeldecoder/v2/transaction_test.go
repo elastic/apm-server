@@ -37,7 +37,7 @@ import (
 func TestResetTransactionOnRelease(t *testing.T) {
 	inp := `{"transaction":{"name":"tr-a"}}`
 	root := fetchTransactionRoot()
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(root))
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(root))
 	require.True(t, root.IsSet())
 	releaseTransactionRoot(root)
 	assert.False(t, root.IsSet())
@@ -48,7 +48,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		now := time.Now()
 		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: true}}
 		str := `{"transaction":{"duration":100,"timestamp":1599996822281000,"id":"100","trace_id":"1","type":"request","span_count":{"started":2},"experimental":"exp"}}`
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Transaction
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
 		assert.Equal(t, "request", out.Type)
@@ -57,7 +57,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
 		str = `{"transaction":{"duration":100,"id":"100","trace_id":"1","type":"request","span_count":{"started":2},"experimental":"exp"}}`
-		dec = decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		out = model.Transaction{}
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
 		// experimental should only be set if allowed by configuration
@@ -65,14 +65,14 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		// if no timestamp is provided, fall back to request time
 		assert.Equal(t, now, out.Timestamp)
 
-		err := DecodeNestedTransaction(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &input, &out)
+		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "decode")
 	})
 
 	t.Run("validate", func(t *testing.T) {
 		var out model.Transaction
-		err := DecodeNestedTransaction(decoder.NewJSONIteratorDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
+		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
 	})

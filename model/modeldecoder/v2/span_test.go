@@ -35,7 +35,7 @@ import (
 func TestResetSpanOnRelease(t *testing.T) {
 	inp := `{"span":{"name":"tr-a"}}`
 	root := fetchSpanRoot()
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(root))
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(root))
 	require.True(t, root.IsSet())
 	releaseSpanRoot(root)
 	assert.False(t, root.IsSet())
@@ -45,18 +45,18 @@ func TestDecodeNestedSpan(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: time.Now(), Config: modeldecoder.Config{}}
 		str := `{"span":{"duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Span
 		require.NoError(t, DecodeNestedSpan(dec, &input, &out))
 
-		err := DecodeNestedSpan(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &input, &out)
+		err := DecodeNestedSpan(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "decode")
 	})
 
 	t.Run("validate", func(t *testing.T) {
 		var out model.Span
-		err := DecodeNestedSpan(decoder.NewJSONIteratorDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
+		err := DecodeNestedSpan(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
 	})
@@ -92,7 +92,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// experimental enabled
 		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: time.Now(), Config: modeldecoder.Config{Experimental: true}}
 		str := `{"span":{"experimental":"exp","duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Span
 		require.NoError(t, DecodeNestedSpan(dec, &input, &out))
 		assert.Equal(t, "exp", out.Experimental)
@@ -100,7 +100,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// experimental disabled
 		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: time.Now(), Config: modeldecoder.Config{Experimental: false}}
 		str = `{"span":{"experimental":"exp","duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
-		dec = decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		out = model.Span{}
 		require.NoError(t, DecodeNestedSpan(dec, &input, &out))
 		// experimental should only be set if allowed by configuration

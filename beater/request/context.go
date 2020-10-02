@@ -149,6 +149,7 @@ func (c *Context) acceptJSON() bool {
 	return false
 }
 
+//TODO(simitt): use json-iter instead of stdlib json
 func (c *Context) writeJSON(body interface{}, pretty bool) error {
 	enc := json.NewEncoder(c.w)
 	if pretty {

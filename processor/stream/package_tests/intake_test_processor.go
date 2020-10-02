@@ -20,6 +20,7 @@ package package_tests
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"time"
@@ -28,6 +29,8 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder"
+	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
@@ -83,12 +86,44 @@ func (p *intakeTestProcessor) LoadPayload(path string) (interface{}, error) {
 func (p *intakeTestProcessor) Decode(data interface{}) error {
 	events := data.([]interface{})
 	for _, e := range events {
-		err := p.Processor.HandleRawModel(e.(map[string]interface{}), &model.Batch{}, time.Now(), model.Metadata{})
+		b, err := json.Marshal(e)
 		if err != nil {
 			return err
 		}
+		d := decoder.NewNDJSONStreamDecoder(bytes.NewReader(b), 300*1024)
+		eventType, err := p.IdentifyEventType(d, &stream.Result{})
+		if err != nil && err != io.EOF {
+			return err
+		}
+		input := modeldecoder.Input{
+			RequestTime: time.Now(),
+			Metadata:    model.Metadata{},
+			Config:      p.Mconfig,
+		}
+		switch eventType {
+		case "error":
+			var event model.Error
+			err = v2.DecodeNestedError(d, &input, &event)
+		case "span":
+			var event model.Span
+			err = v2.DecodeNestedSpan(d, &input, &event)
+		case "transaction":
+			var event model.Transaction
+			err = v2.DecodeNestedTransaction(d, &input, &event)
+		case "metricset":
+			var m map[string]interface{}
+			if err = d.Decode(&m); err != nil && err != io.EOF {
+				return err
+			}
+			input.Raw = m[eventType]
+			err = modeldecoder.DecodeMetricset(input, &model.Batch{})
+		default:
+			return errors.New("root key required")
+		}
+		if err != nil && err != io.EOF {
+			return err
+		}
 	}
-
 	return nil
 }
 

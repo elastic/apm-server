@@ -36,7 +36,7 @@ import (
 func TestResetTransactionOnRelease(t *testing.T) {
 	inp := `{"x":{"n":"tr-a"}}`
 	tr := fetchTransactionRoot()
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(tr))
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(tr))
 	require.True(t, tr.IsSet())
 	releaseTransactionRoot(tr)
 	assert.False(t, tr.IsSet())
@@ -47,7 +47,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		now := time.Now()
 		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: true}}
 		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"exper":"test"}}`
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Transaction
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
 		assert.Equal(t, "request", out.Type)
@@ -57,19 +57,19 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 		// experimental should only be set if allowed by configuration
 		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
-		dec = decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		out = model.Transaction{}
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
 		assert.Nil(t, out.Experimental)
 
-		err := DecodeNestedTransaction(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &input, &out)
+		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "decode")
 	})
 
 	t.Run("validate", func(t *testing.T) {
 		var out model.Transaction
-		err := DecodeNestedTransaction(decoder.NewJSONIteratorDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
+		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
 	})

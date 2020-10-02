@@ -38,7 +38,7 @@ import (
 func TestResetErrorOnRelease(t *testing.T) {
 	inp := `{"error":{"id":"tr-a"}}`
 	root := fetchErrorRoot()
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(root))
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(root))
 	require.True(t, root.IsSet())
 	releaseErrorRoot(root)
 	assert.False(t, root.IsSet())
@@ -49,7 +49,7 @@ func TestDecodeNestedError(t *testing.T) {
 		now := time.Now()
 		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: true}}
 		str := `{"error":{"id":"a-b-c","timestamp":1599996822281000,"log":{"message":"abc"},"experimental":"exp"}}`
-		dec := decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Error
 		require.NoError(t, DecodeNestedError(dec, &input, &out))
 		assert.Equal(t, "exp", out.Experimental)
@@ -57,7 +57,7 @@ func TestDecodeNestedError(t *testing.T) {
 
 		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
 		str = `{"error":{"id":"a-b-c","log":{"message":"abc"},"experimental":"exp"}}`
-		dec = decoder.NewJSONIteratorDecoder(strings.NewReader(str))
+		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		out = model.Error{}
 		require.NoError(t, DecodeNestedError(dec, &input, &out))
 		// experimental should only be set if allowed by configuration
@@ -65,14 +65,14 @@ func TestDecodeNestedError(t *testing.T) {
 		// if no timestamp is provided, fall back to request time
 		assert.Equal(t, now, out.Timestamp)
 
-		err := DecodeNestedError(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &input, &out)
+		err := DecodeNestedError(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "decode")
 	})
 
 	t.Run("validate", func(t *testing.T) {
 		var out model.Error
-		err := DecodeNestedError(decoder.NewJSONIteratorDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
+		err := DecodeNestedError(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
 	})

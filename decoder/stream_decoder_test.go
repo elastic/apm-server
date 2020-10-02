@@ -19,6 +19,7 @@ package decoder
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -49,8 +50,8 @@ func TestNDStreamReader(t *testing.T) {
 			latestLine: `{"key": "value2", "t`,
 		},
 		{
-			out:        nil,
-			errPattern: "invalid character",
+			out:        map[string]interface{}{},
+			errPattern: "data read error",
 			latestLine: `{invalid-json}`,
 		},
 		{
@@ -64,20 +65,24 @@ func TestNDStreamReader(t *testing.T) {
 	n := NewNDJSONStreamDecoder(buf, 20)
 
 	for idx, test := range expected {
-		var out map[string]interface{}
-		err := n.Decode(&out)
-		assert.Equal(t, test.out, out, "Failed at idx %v", idx)
-		if test.errPattern == "" {
-			assert.Nil(t, err)
-		} else {
-			require.NotNil(t, err, "Failed at idx %v", idx)
-			assert.Contains(t, err.Error(), test.errPattern, "Failed at idx %v", idx)
-		}
-		assert.Equal(t, test.isEOF, n.IsEOF())
-		if test.latestLine == "" {
-			assert.Nil(t, n.LatestLine(), "Failed at idx %v", idx)
-		} else {
-			assert.Equal(t, []byte(test.latestLine), n.LatestLine(), "Failed at idx %v", idx)
-		}
+		t.Run(fmt.Sprintf("%v", idx), func(t *testing.T) {
+			var out map[string]interface{}
+			//ReadAhead doesn't change decoding behavior
+			n.ReadAhead()
+			err := n.Decode(&out)
+			assert.Equal(t, test.out, out, "Failed at idx %v", idx)
+			if test.errPattern == "" {
+				assert.Nil(t, err)
+			} else {
+				require.NotNil(t, err, "Failed at idx %v", idx)
+				assert.Contains(t, err.Error(), test.errPattern, "Failed at idx %v", idx)
+			}
+			assert.Equal(t, test.isEOF, n.IsEOF())
+			if test.latestLine == "" {
+				assert.Nil(t, n.LatestLine(), "Failed at idx %v", idx)
+			} else {
+				assert.Equal(t, []byte(test.latestLine), n.LatestLine(), "Failed at idx %v", idx)
+			}
+		})
 	}
 }
