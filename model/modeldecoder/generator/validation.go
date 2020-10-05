@@ -152,6 +152,14 @@ func ruleMinMaxOperator(ruleName string) string {
 // common validation rules independend of type
 //
 
+func ruleValidateCustomStruct(w io.Writer, f structField) {
+	fmt.Fprintf(w, `
+	if err := val.%s.validate(); err != nil{
+		return errors.Wrapf(err, "%s")
+	}
+	`[1:], f.Name(), jsonName(f))
+}
+
 func ruleNullableRequired(w io.Writer, f structField) {
 	fmt.Fprintf(w, `
 if !val.%s.IsSet()  {

@@ -49,20 +49,20 @@ type Generator struct {
 
 	// keep track of already processed types in case one type is
 	// referenced multiple times
-	processedTypes       map[string]struct{}
-	validationGenerators map[string]validationGenerator
+	processedTypes map[string]struct{}
+
+	// nullable types
+	nullableString, nullableInt, nullableFloat64, nullableInterface types.Type
 }
 
-type validationGenerator interface {
-	validation(io.Writer, []structField, structField, bool) error
-}
+type validationGenerator func(io.Writer, []structField, structField, bool) error
 
 // NewGenerator takes an importPath and the package name for which
 // the type definitions should be loaded.
-// The typPkg is used to implement validation rules specific to types
-// of the package. The generator creates methods only for types referenced
+// The nullableTypePath is used to implement validation rules specific to types
+// of the nullable package. The generator creates methods only for types referenced
 // directly or indirectly by any of the root types.
-func NewGenerator(importPath string, pkg string, typPath string,
+func NewGenerator(importPath string, pkg string, nullableTypePath string,
 	root []string) (*Generator, error) {
 	loaded, err := loadPackage(path.Join(importPath, pkg))
 	if err != nil {
@@ -72,16 +72,17 @@ func NewGenerator(importPath string, pkg string, typPath string,
 	if err != nil {
 		return nil, err
 	}
+	nullableTypePackage := loaded.Imports[nullableTypePath].Types
 	g := Generator{
 		pkgName:        loaded.Types.Name(),
 		structTypes:    structTypes,
 		rootObjs:       make([]structType, 0, len(root)),
 		processedTypes: make(map[string]struct{}),
-		validationGenerators: map[string]validationGenerator{
-			"struct": newTstruct(typPath),
-			"slice":  newTslice(),
-			"map":    newTmap(),
-		},
+		// only add nullable types that we need for now
+		nullableString:    nullableTypePackage.Scope().Lookup("String").Type(),
+		nullableInt:       nullableTypePackage.Scope().Lookup("Int").Type(),
+		nullableFloat64:   nullableTypePackage.Scope().Lookup("Float64").Type(),
+		nullableInterface: nullableTypePackage.Scope().Lookup("Interface").Type(),
 	}
 	for _, r := range root {
 		rootObjPath := fmt.Sprintf("%s.%s", filepath.Join(importPath, pkg), r)
@@ -282,24 +283,37 @@ if !val.IsSet() {
 `[1:])
 	}
 
+	var validation validationGenerator
 	for i := 0; i < len(structTyp.fields); i++ {
-		f := structTyp.fields[i]
 		var custom bool
-		var genKey string
-		switch t := f.Type().Underlying().(type) {
-		case *types.Slice:
-			_, custom = g.customStruct(t.Elem())
-			genKey = "slice"
-		case *types.Map:
-			_, custom = g.customStruct(t.Elem())
-			genKey = "map"
-		case *types.Struct:
-			_, custom = g.customStruct(f.Type())
-			genKey = "struct"
+		f := structTyp.fields[i]
+		switch f.Type() {
+		case g.nullableString:
+			validation = generateNullableStringValidation
+		case g.nullableInt:
+			validation = generateNullableIntValidation
+		case g.nullableFloat64:
+			// right now we can reuse the validation rules for int
+			// and only introduce dedicated rules for float64 when they diverge
+			validation = generateNullableIntValidation
+		case g.nullableInterface:
+			validation = generateNullableInterfaceValidation
 		default:
-			return errors.Wrap(fmt.Errorf("unhandled type %T", t), flattenName(key, f))
+			switch t := f.Type().Underlying().(type) {
+			case *types.Slice:
+				validation = generateSliceValidation
+				_, custom = g.customStruct(t.Elem())
+			case *types.Map:
+				validation = generateMapValidation
+				_, custom = g.customStruct(t.Elem())
+			case *types.Struct:
+				validation = generateStructValidation
+				_, custom = g.customStruct(f.Type())
+			default:
+				return errors.Wrap(fmt.Errorf("unhandled type %T", t), flattenName(key, f))
+			}
 		}
-		if err := g.validationGenerators[genKey].validation(&g.buf, structTyp.fields, f, custom); err != nil {
+		if err := validation(&g.buf, structTyp.fields, f, custom); err != nil {
 			return errors.Wrap(err, flattenName(key, f))
 		}
 	}
@@ -332,7 +346,7 @@ func jsonName(f structField) string {
 
 func loadPackage(pkg string) (*packages.Package, error) {
 	cfg := packages.Config{
-		Mode: packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo}
+		Mode: packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedImports}
 	pkgs, err := packages.Load(&cfg, pkg)
 	if err != nil {
 		return nil, err

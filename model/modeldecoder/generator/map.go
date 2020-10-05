@@ -26,18 +26,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// tmap implements generation logic for creating validation rules
-// on map types
-type tmap struct {
-	supportedTags []string
-}
+var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagTypesVals, tagRequired}
 
-func newTmap() *tmap {
-	return &tmap{supportedTags: []string{
-		tagMaxVals, tagPatternKeys, tagTypesVals, tagRequired}}
-}
-
-func (gen *tmap) validation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
+func generateMapValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	typ, ok := f.Type().Underlying().(*types.Map)
 	if !ok {
 		// this should never happen
@@ -53,6 +44,7 @@ func (gen *tmap) validation(w io.Writer, fields []structField, f structField, is
 	default:
 		return fmt.Errorf("unhandled type %s", typ)
 	}
+
 	vTag, err := validationTag(f.tag)
 	if err != nil {
 		return err
@@ -60,7 +52,7 @@ func (gen *tmap) validation(w io.Writer, fields []structField, f structField, is
 	// check if all configured tags are supported
 	for k := range vTag {
 		var supported bool
-		for _, s := range gen.supportedTags {
+		for _, s := range mapSupportedTags {
 			if k == s {
 				supported = true
 				break
@@ -74,7 +66,7 @@ func (gen *tmap) validation(w io.Writer, fields []structField, f structField, is
 	// validation rules must be run on map itself and its elements
 	// 1. apply map validation rules:
 	if ruleValue, ok := vTag[tagRequired]; ok {
-		gen.ruleRequired(w, f, validationRule{name: tagRequired, value: ruleValue})
+		mapRuleRequired(w, f, validationRule{name: tagRequired, value: ruleValue})
 		if len(vTag) == 1 {
 			return nil
 		}
@@ -102,10 +94,10 @@ if err := v.validate(); err != nil{
 `[1:], jsonName(f))
 	}
 	if patternKeysValue, ok := vTag[tagPatternKeys]; ok {
-		gen.rulePatternKeys(w, f, validationRule{name: tagPatternKeys, value: patternKeysValue})
+		mapRulePatternKeys(w, f, validationRule{name: tagPatternKeys, value: patternKeysValue})
 	}
 	if typesValsValue, ok := vTag[tagTypesVals]; ok {
-		gen.ruleTypesVals(w, f, vTag, validationRule{name: tagTypesVals, value: typesValsValue})
+		mapRuleTypesVals(w, f, vTag, validationRule{name: tagTypesVals, value: typesValsValue})
 	}
 	// close iteration over map
 	fmt.Fprintf(w, `
@@ -114,7 +106,7 @@ if err := v.validate(); err != nil{
 	return nil
 }
 
-func (gen *tmap) ruleTypesVals(w io.Writer, f structField, rules map[string]string, rule validationRule) error {
+func mapRuleTypesVals(w io.Writer, f structField, rules map[string]string, rule validationRule) error {
 	fmt.Fprintf(w, `
 switch t := v.(type){
 `[1:])
@@ -133,7 +125,7 @@ case %s:
 `[1:], typ)
 		if typ == "string" {
 			if maxValValue, ok := rules[tagMaxVals]; ok {
-				gen.ruleMaxVals(w, f, validationRule{name: tagMaxVals, value: maxValValue})
+				mapRuleMaxVals(w, f, validationRule{name: tagMaxVals, value: maxValValue})
 			}
 		}
 	}
@@ -145,7 +137,7 @@ default:
 	return nil
 }
 
-func (gen *tmap) ruleRequired(w io.Writer, f structField, rule validationRule) error {
+func mapRuleRequired(w io.Writer, f structField, rule validationRule) error {
 	fmt.Fprintf(w, `
 if len(val.%s) == 0{
 	return fmt.Errorf("'%s' required")
@@ -154,7 +146,7 @@ if len(val.%s) == 0{
 	return nil
 }
 
-func (gen *tmap) rulePatternKeys(w io.Writer, f structField, rule validationRule) error {
+func mapRulePatternKeys(w io.Writer, f structField, rule validationRule) error {
 	fmt.Fprintf(w, `
 if k != "" && !%s.MatchString(k){
 		return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
@@ -163,7 +155,7 @@ if k != "" && !%s.MatchString(k){
 	return nil
 }
 
-func (gen *tmap) ruleMaxVals(w io.Writer, f structField, rule validationRule) error {
+func mapRuleMaxVals(w io.Writer, f structField, rule validationRule) error {
 	fmt.Fprintf(w, `
 if utf8.RuneCountInString(t) > %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")

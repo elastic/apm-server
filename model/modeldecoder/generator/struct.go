@@ -22,42 +22,14 @@ import (
 	"io"
 )
 
-// tstruct implements generation logic for creating validation rules
-// on struct types
-type tstruct struct {
-	generators map[string]vGenerators
-}
-
-type vGenerators interface {
-	validation(io.Writer, []structField, structField) error
-}
-
-func newTstruct(pkg string) *tstruct {
-	return &tstruct{
-		generators: map[string]vGenerators{
-			fmt.Sprintf("%s.String", pkg):    newNstring(),
-			fmt.Sprintf("%s.Int", pkg):       newNint(),
-			fmt.Sprintf("%s.Float64", pkg):   newNint(),
-			fmt.Sprintf("%s.Interface", pkg): newNinterface(),
-		}}
-}
-
-func (gen *tstruct) validation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
+func generateStructValidation(w io.Writer, _ []structField, f structField, isCustomStruct bool) error {
 	// if field is a custom struct, call its validation function
 	if isCustomStruct {
-		fmt.Fprintf(w, `
-if err := val.%s.validate(); err != nil{
-	return errors.Wrapf(err, "%s")
-}
-`[1:], f.Name(), jsonName(f))
+		ruleValidateCustomStruct(w, f)
 	}
 
-	// call defined validation generators
-	if nGenerator, ok := gen.generators[f.Type().String()]; ok {
-		return nGenerator.validation(w, fields, f)
-	}
-	// if no validation generator available for type
-	// handle generally available rules ('required'),
+	// handle generally available rules:
+	// - `required`
 	// and throw error for others
 	vTag, err := validationTag(f.tag)
 	if err != nil {

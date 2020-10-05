@@ -23,24 +23,14 @@ import (
 	"io"
 )
 
-// tslice implements generation logic for creating validation rules
-// on slice types
-type tslice struct {
-	validationFns validationFunctions
-}
+var sliceValidationFns = validationFunctions{
+	vFieldFns: map[string]vFieldFn{
+		tagMax:      sliceRuleMinMax,
+		tagRequired: sliceRuleRequired},
+	vStructFns: map[string]vStructFn{
+		tagRequiredOneOf: sliceRuleRequiredOneOf}}
 
-func newTslice() *tslice {
-	gen := tslice{}
-	gen.validationFns = validationFunctions{
-		vFieldFns: map[string]vFieldFn{
-			tagMax:      gen.ruleMinMax,
-			tagRequired: gen.ruleRequired},
-		vStructFns: map[string]vStructFn{
-			tagRequiredOneOf: gen.ruleRequiredOneOf}}
-	return &gen
-}
-
-func (gen *tslice) validation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
+func generateSliceValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	// call validation on every slice element when elements are of custom type
 	if isCustomStruct {
 		fmt.Fprintf(w, `
@@ -52,10 +42,10 @@ for _, elem := range val.%s{
 `[1:], f.Name(), jsonName(f))
 	}
 	// handle configured validation rules
-	return validation(gen.validationFns, w, fields, f)
+	return validation(sliceValidationFns, w, fields, f)
 }
 
-func (gen *tslice) ruleMinMax(w io.Writer, f structField, rule validationRule) error {
+func sliceRuleMinMax(w io.Writer, f structField, rule validationRule) error {
 	sliceT, ok := f.Type().Underlying().(*types.Slice)
 	if !ok {
 		return fmt.Errorf("unexpected error handling %s for slice", rule.name)
@@ -75,7 +65,7 @@ for _, elem := range val.%s{
 	return fmt.Errorf("unhandled tag rule max for type %s", f.Type().Underlying())
 }
 
-func (gen *tslice) ruleRequired(w io.Writer, f structField, rule validationRule) error {
+func sliceRuleRequired(w io.Writer, f structField, rule validationRule) error {
 	fmt.Fprintf(w, `
 if len(val.%s) == 0{
 	return fmt.Errorf("'%s' required")
@@ -84,6 +74,6 @@ if len(val.%s) == 0{
 	return nil
 }
 
-func (gen *tslice) ruleRequiredOneOf(w io.Writer, fields []structField, f structField, rule validationRule) error {
+func sliceRuleRequiredOneOf(w io.Writer, fields []structField, f structField, rule validationRule) error {
 	return ruleRequiredOneOf(w, fields, rule.value)
 }

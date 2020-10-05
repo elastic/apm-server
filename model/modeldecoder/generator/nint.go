@@ -24,32 +24,25 @@ import (
 	"github.com/pkg/errors"
 )
 
-// nint implements generation logic for creating validation rules
-// on nullable.Int types
-type nint struct {
-	validationFns validationFunctions
-}
+var nullableIntValidationFns = validationFunctions{
+	vFieldFns: map[string]vFieldFn{
+		tagMax:      nintRuleMinMax,
+		tagMin:      nintRuleMinMax,
+		tagRequired: nintRuleRequired,
+	}}
 
-func newNint() *nint {
-	gen := nint{}
-	gen.validationFns = validationFunctions{
-		vFieldFns: map[string]vFieldFn{
-			tagMax:      gen.ruleMinMax,
-			tagMin:      gen.ruleMinMax,
-			tagRequired: gen.ruleRequired,
-		}}
-	return &gen
-}
-
-func (gen *nint) validation(w io.Writer, fields []structField, f structField) error {
-	err := validation(gen.validationFns, w, fields, f)
-	if err != nil {
+func generateNullableIntValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
+	// if field is a custom struct, call its validation function
+	if isCustomStruct {
+		ruleValidateCustomStruct(w, f)
+	}
+	if err := validation(nullableIntValidationFns, w, fields, f); err != nil {
 		return errors.Wrap(err, "nullableInt")
 	}
 	return nil
 }
 
-func (gen *nint) ruleMinMax(w io.Writer, f structField, rule validationRule) error {
+func nintRuleMinMax(w io.Writer, f structField, rule validationRule) error {
 	fmt.Fprintf(w, `
 if val.%s.Val %s %s {
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
@@ -58,7 +51,7 @@ if val.%s.Val %s %s {
 	return nil
 }
 
-func (gen *nint) ruleRequired(w io.Writer, f structField, rule validationRule) error {
+func nintRuleRequired(w io.Writer, f structField, rule validationRule) error {
 	ruleNullableRequired(w, f)
 	return nil
 }

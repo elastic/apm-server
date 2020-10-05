@@ -25,42 +25,35 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ninterface implements generation logic for creating validation rules
-// on nullable.Interface types
-type ninterface struct {
-	validationFns validationFunctions
-}
+var nullableInterfaceValidationFns = validationFunctions{
+	vFieldFns: map[string]vFieldFn{
+		tagMax:      nullableInterfaceRuleMax,
+		tagRequired: nullableInterfaceRuleRequired},
+	vFieldTagsFns: map[string]vFieldTagsFn{
+		tagTypes: nullableInterfaceRuleTypes}}
 
-func newNinterface() *ninterface {
-	gen := ninterface{}
-	gen.validationFns = validationFunctions{
-		vFieldFns: map[string]vFieldFn{
-			tagMax:      gen.ruleMax,
-			tagRequired: gen.ruleRequired},
-		vFieldTagsFns: map[string]vFieldTagsFn{
-			tagTypes: gen.ruleTypes}}
-	return &gen
-}
-
-func (gen *ninterface) validation(w io.Writer, fields []structField, f structField) error {
-	err := validation(gen.validationFns, w, fields, f)
-	if err != nil {
+func generateNullableInterfaceValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
+	// if field is a custom struct, call its validation function
+	if isCustomStruct {
+		ruleValidateCustomStruct(w, f)
+	}
+	if err := validation(nullableInterfaceValidationFns, w, fields, f); err != nil {
 		return errors.Wrap(err, "nullableString")
 	}
 	return nil
 }
 
-func (gen *ninterface) ruleMax(w io.Writer, f structField, rule validationRule) error {
+func nullableInterfaceRuleMax(w io.Writer, f structField, rule validationRule) error {
 	//handled in switch statement for string types
 	return nil
 }
 
-func (gen *ninterface) ruleRequired(w io.Writer, f structField, rule validationRule) error {
+func nullableInterfaceRuleRequired(w io.Writer, f structField, rule validationRule) error {
 	ruleNullableRequired(w, f)
 	return nil
 }
 
-func (gen *ninterface) ruleTypes(w io.Writer, f structField, rules []validationRule, rule validationRule) error {
+func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRule, rule validationRule) error {
 	var isRequired bool
 	var maxRule validationRule
 	for _, r := range rules {
