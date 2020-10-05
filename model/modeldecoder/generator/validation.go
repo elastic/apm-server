@@ -62,12 +62,15 @@ type validationRule struct {
 	value string
 }
 
+func errUnhandledTagRule(rule validationRule) error {
+	return fmt.Errorf("unhandled tag rule '%s'", rule.name)
+}
+
 func validation(validationFns validationFunctions, w io.Writer, fields []structField, f structField) error {
-	vTag, err := validationTag(f.tag)
+	rules, err := validationRules(f.tag)
 	if err != nil {
-		return err
+		return nil
 	}
-	rules := validationRules(vTag)
 	for _, rule := range rules {
 		if validationFns.vFieldFns != nil {
 			if fn, ok := validationFns.vFieldFns[rule.name]; ok {
@@ -126,15 +129,19 @@ func validationTag(structTag reflect.StructTag) (map[string]string, error) {
 	return m, nil
 }
 
-func validationRules(unsorted map[string]string) []validationRule {
-	var rules = make([]validationRule, 0, len(unsorted))
-	for k, v := range unsorted {
+func validationRules(structTag reflect.StructTag) ([]validationRule, error) {
+	tag, err := validationTag(structTag)
+	if err != nil {
+		return nil, err
+	}
+	var rules = make([]validationRule, 0, len(tag))
+	for k, v := range tag {
 		rules = append(rules, validationRule{name: k, value: v})
 	}
 	sort.Slice(rules, func(i, j int) bool {
 		return rules[i].name < rules[j].name
 	})
-	return rules
+	return rules, nil
 }
 
 func ruleMinMaxOperator(ruleName string) string {
@@ -151,14 +158,6 @@ func ruleMinMaxOperator(ruleName string) string {
 //
 // common validation rules independend of type
 //
-
-func ruleValidateCustomStruct(w io.Writer, f structField) {
-	fmt.Fprintf(w, `
-	if err := val.%s.validate(); err != nil{
-		return errors.Wrapf(err, "%s")
-	}
-	`[1:], f.Name(), jsonName(f))
-}
 
 func ruleNullableRequired(w io.Writer, f structField) {
 	fmt.Fprintf(w, `

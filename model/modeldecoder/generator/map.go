@@ -22,18 +22,12 @@ import (
 	"go/types"
 	"io"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagTypesVals, tagRequired}
 
 func generateMapValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
-	typ, ok := f.Type().Underlying().(*types.Map)
-	if !ok {
-		// this should never happen
-		return errors.New("unexpected field type for tmap")
-	}
+	typ := f.Type().Underlying().(*types.Map)
 	// verify that validation rules for map kind exist
 	switch typ.Elem().Underlying().(type) {
 	case *types.Basic, *types.Interface: // do nothing special

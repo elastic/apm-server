@@ -19,7 +19,6 @@ package main
 
 import (
 	"bytes"
-	"go/format"
 	"os"
 	"path"
 	"path/filepath"
@@ -80,15 +79,11 @@ func generate(g gen, p string) {
 	if err != nil {
 		panic(err)
 	}
-	fmtd, err := format.Source(processed)
-	if err != nil {
-		panic(err)
-	}
 	f, err := os.Create(p)
 	if err != nil {
 		panic(err)
 	}
-	if _, err := f.Write(fmtd); err != nil {
+	if _, err := f.Write(processed); err != nil {
 		panic(err)
 	}
 }

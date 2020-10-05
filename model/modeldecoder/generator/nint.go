@@ -24,34 +24,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-var nullableIntValidationFns = validationFunctions{
-	vFieldFns: map[string]vFieldFn{
-		tagMax:      nintRuleMinMax,
-		tagMin:      nintRuleMinMax,
-		tagRequired: nintRuleRequired,
-	}}
-
-func generateNullableIntValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
-	// if field is a custom struct, call its validation function
-	if isCustomStruct {
-		ruleValidateCustomStruct(w, f)
-	}
-	if err := validation(nullableIntValidationFns, w, fields, f); err != nil {
+func generateNullableIntValidation(w io.Writer, fields []structField, f structField, _ bool) error {
+	rules, err := validationRules(f.tag)
+	if err != nil {
 		return errors.Wrap(err, "nullableInt")
+	}
+	for _, rule := range rules {
+		switch rule.name {
+		case tagMin, tagMax:
+			nintRuleMinMax(w, f, rule)
+		case tagRequired:
+			ruleNullableRequired(w, f)
+		default:
+			errors.Wrap(errUnhandledTagRule(rule), "nullableInt")
+		}
 	}
 	return nil
 }
 
-func nintRuleMinMax(w io.Writer, f structField, rule validationRule) error {
+func nintRuleMinMax(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if val.%s.Val %s %s {
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], f.Name(), ruleMinMaxOperator(rule.name), rule.value, jsonName(f), rule.name, rule.value)
-	return nil
-}
-
-func nintRuleRequired(w io.Writer, f structField, rule validationRule) error {
-	ruleNullableRequired(w, f)
-	return nil
 }

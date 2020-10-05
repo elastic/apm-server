@@ -25,17 +25,20 @@ import (
 func generateStructValidation(w io.Writer, _ []structField, f structField, isCustomStruct bool) error {
 	// if field is a custom struct, call its validation function
 	if isCustomStruct {
-		ruleValidateCustomStruct(w, f)
+		fmt.Fprintf(w, `
+		if err := val.%s.validate(); err != nil{
+			return errors.Wrapf(err, "%s")
+		}
+		`[1:], f.Name(), jsonName(f))
 	}
 
 	// handle generally available rules:
 	// - `required`
 	// and throw error for others
-	vTag, err := validationTag(f.tag)
+	rules, err := validationRules(f.tag)
 	if err != nil {
 		return err
 	}
-	rules := validationRules(vTag)
 	for _, rule := range rules {
 		switch rule.name {
 		case tagRequired:

@@ -25,35 +25,27 @@ import (
 	"github.com/pkg/errors"
 )
 
-var nullableInterfaceValidationFns = validationFunctions{
-	vFieldFns: map[string]vFieldFn{
-		tagMax:      nullableInterfaceRuleMax,
-		tagRequired: nullableInterfaceRuleRequired},
-	vFieldTagsFns: map[string]vFieldTagsFn{
-		tagTypes: nullableInterfaceRuleTypes}}
-
-func generateNullableInterfaceValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
-	// if field is a custom struct, call its validation function
-	if isCustomStruct {
-		ruleValidateCustomStruct(w, f)
+func generateNullableInterfaceValidation(w io.Writer, fields []structField, f structField, _ bool) error {
+	rules, err := validationRules(f.tag)
+	if err != nil {
+		return errors.Wrap(err, "nullableInterface")
 	}
-	if err := validation(nullableInterfaceValidationFns, w, fields, f); err != nil {
-		return errors.Wrap(err, "nullableString")
+	for _, rule := range rules {
+		switch rule.name {
+		case tagMin, tagMax:
+			//handled in switch statement for string types
+		case tagRequired:
+			ruleNullableRequired(w, f)
+		case tagTypes:
+			nullableInterfaceRuleTypes(w, f, rules, rule)
+		default:
+			errors.Wrap(errUnhandledTagRule(rule), "nullableInterface")
+		}
 	}
 	return nil
 }
 
-func nullableInterfaceRuleMax(w io.Writer, f structField, rule validationRule) error {
-	//handled in switch statement for string types
-	return nil
-}
-
-func nullableInterfaceRuleRequired(w io.Writer, f structField, rule validationRule) error {
-	ruleNullableRequired(w, f)
-	return nil
-}
-
-func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRule, rule validationRule) error {
+func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRule, rule validationRule) {
 	var isRequired bool
 	var maxRule validationRule
 	for _, r := range rules {
@@ -120,5 +112,4 @@ default:
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated ")
 }
 `[1:], jsonName(f), rule.name, rule.value)
-	return nil
 }

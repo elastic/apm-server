@@ -24,28 +24,33 @@ import (
 	"github.com/pkg/errors"
 )
 
-var nullableStringValidationFns = validationFunctions{
-	vFieldFns: map[string]vFieldFn{
-		tagEnum:     nstringRuleEnum,
-		tagMax:      nstringRuleMinMax,
-		tagMin:      nstringRuleMinMax,
-		tagPattern:  nstringRulePattern,
-		tagRequired: nstringRuleRequired},
-	vStructFns: map[string]vStructFn{
-		tagRequiredIfAny: nstringRuleRequiredIfAny}}
-
-func generateNullableStringValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
-	// if field is a custom struct, call its validation function
-	if isCustomStruct {
-		ruleValidateCustomStruct(w, f)
-	}
-	if err := validation(nullableStringValidationFns, w, fields, f); err != nil {
+func generateNullableStringValidation(w io.Writer, fields []structField, f structField, _ bool) error {
+	rules, err := validationRules(f.tag)
+	if err != nil {
 		return errors.Wrap(err, "nullableString")
+	}
+	for _, rule := range rules {
+		switch rule.name {
+		case tagEnum:
+			nstringRuleEnum(w, f, rule)
+		case tagMin, tagMax:
+			nstringRuleMinMax(w, f, rule)
+		case tagPattern:
+			nstringRulePattern(w, f, rule)
+		case tagRequired:
+			ruleNullableRequired(w, f)
+		case tagRequiredIfAny:
+			if err = ruleRequiredIfAny(w, fields, f, rule.value); err != nil {
+				return errors.Wrap(err, "nullableString")
+			}
+		default:
+			errors.Wrap(errUnhandledTagRule(rule), "nullableString")
+		}
 	}
 	return nil
 }
 
-func nstringRuleEnum(w io.Writer, f structField, rule validationRule) error {
+func nstringRuleEnum(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if val.%s.Val != ""{
 	var matchEnum bool
@@ -60,32 +65,20 @@ if val.%s.Val != ""{
 	}
 }
 `[1:], f.Name(), rule.value, f.Name(), jsonName(f), rule.name, rule.value)
-	return nil
 }
 
-func nstringRuleMinMax(w io.Writer, f structField, rule validationRule) error {
+func nstringRuleMinMax(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if utf8.RuneCountInString(val.%s.Val) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], f.Name(), ruleMinMaxOperator(rule.name), rule.value, jsonName(f), rule.name, rule.value)
-	return nil
 }
 
-func nstringRulePattern(w io.Writer, f structField, rule validationRule) error {
+func nstringRulePattern(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if val.%s.Val != "" && !%s.MatchString(val.%s.Val){
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], f.Name(), rule.value, f.Name(), jsonName(f), rule.name, rule.value)
-	return nil
-}
-
-func nstringRuleRequired(w io.Writer, f structField, rule validationRule) error {
-	ruleNullableRequired(w, f)
-	return nil
-}
-
-func nstringRuleRequiredIfAny(w io.Writer, fields []structField, f structField, rule validationRule) error {
-	return ruleRequiredIfAny(w, fields, f, rule.value)
 }
