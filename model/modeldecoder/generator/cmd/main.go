@@ -47,7 +47,7 @@ func main() {
 }
 
 func genV2() {
-	rootObjs := []string{"metadataRoot", "transactionRoot"}
+	rootObjs := []string{"metadataRoot", "transactionRoot", "errorRoot", "spanRoot"}
 	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
 	if err != nil {

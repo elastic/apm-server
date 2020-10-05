@@ -64,6 +64,7 @@ func TestServiceValidationRules(t *testing.T) {
 	}
 	testValidation(t, "metadata", testcases, "service")
 	testValidation(t, "transaction", testcases, "context", "service")
+	testValidation(t, "span", testcases, "context", "service")
 }
 
 func TestLabelValidationRules(t *testing.T) {
@@ -112,6 +113,7 @@ func TestContextValidationRules(t *testing.T) {
 			{name: "tags-maxVal-exceeded", errorKey: "maxVals", data: `{"tags":{"k1":"` + modeldecodertest.BuildString(1025) + `"}}`},
 		}
 		testValidation(t, "transaction", testcases, "context")
+		testValidation(t, "span", testcases, "context")
 	})
 
 	t.Run("request", func(t *testing.T) {
@@ -154,6 +156,7 @@ func TestOutcomeValidationRules(t *testing.T) {
 		{name: "outcome-invalid", errorKey: "enum", data: `"anything"`},
 	}
 	testValidation(t, "transaction", testcases, "outcome")
+	testValidation(t, "span", testcases, "outcome")
 }
 
 func TestURLValidationRules(t *testing.T) {
@@ -243,11 +246,238 @@ func TestReset(t *testing.T) {
 			assert.Equal(t, expected[i], out)
 		}
 	})
+	t.Run("slice-structs", func(t *testing.T) {
+		var out errorEvent
+		inputs := []string{
+			`{"exception":{"message":"bang","cause":[{"message":"a","type":"runtime ex","cause":[{"message":"inner"}]},{"message":"b"}]},"log":{"message":"boom","stacktrace":[{"classname":"User::Common","filename":"a","post_context":["line4","line5"]},{"classname":"ABC","filename":"b"}]}}`,
+			`{"exception":{"message":"boom","cause":[{"message":"c","cause":[{"type":"a"}]}]},"log":{"message":"boom","stacktrace":[{"filename":"b"}]}}`,
+			`{}`}
+		expected := []errorEvent{
+			{Exception: errorException{
+				Message: addStr("bang"),
+				Cause: []errorException{
+					{Message: addStr("a"), Type: addStr("runtime ex"), Cause: []errorException{{Message: addStr("inner")}}},
+					{Message: addStr("b")}}},
+				Log: errorLog{Message: addStr("boom"), Stacktrace: []stacktraceFrame{
+					{Classname: addStr("User::Common"), Filename: addStr("a"), PostContext: []string{"line4", "line5"}},
+					{Classname: addStr("ABC"), Filename: addStr("b")}}}},
+			{Exception: errorException{
+				Message: addStr("boom"),
+				Cause: []errorException{
+					{Message: addStr("c"), Cause: []errorException{{Type: addStr("a")}}}}},
+				Log: errorLog{Message: addStr("boom"), Stacktrace: []stacktraceFrame{
+					{Filename: addStr("b"), PostContext: []string{}}}}},
+			{Exception: errorException{Cause: []errorException{}}, Log: errorLog{Stacktrace: []stacktraceFrame{}}}}
+		for i := 0; i < len(inputs); i++ {
+			out.Reset()
+			decode(t, inputs[i], &out)
+			assert.Equal(t, expected[i], out)
+		}
+	})
 }
 
 //
 // Test Required fields
 //
+
+func TestErrorRequiredValidationRules(t *testing.T) {
+	// setup: create full struct with arbitrary values set
+	var event errorEvent
+	modeldecodertest.InitStructValues(&event)
+	// test vanilla struct is valid
+	require.NoError(t, event.validate())
+
+	// iterate through struct, remove every key one by one
+	// and test that validation behaves as expected
+	requiredKeys := map[string]interface{}{
+		"context.request.method":               nil,
+		"context.destination.service.resource": nil,
+		"context.destination.service.type":     nil,
+		"id":                                   nil,
+		"log.message":                          nil,
+		"parent_id":                            nil, //requiredIf
+		"trace_id":                             nil, //requiredIf
+	}
+	modeldecodertest.SetZeroStructValue(&event, func(key string) {
+		err := event.validate()
+		if _, ok := requiredKeys[key]; ok {
+			require.Error(t, err, key)
+			for _, part := range strings.Split(key, ".") {
+				assert.Contains(t, err.Error(), part)
+			}
+		} else {
+			assert.NoError(t, err, key)
+		}
+	})
+}
+
+func TestErrorRequiredOneOfValidationRules(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		setupFn func(event *errorEvent)
+	}{
+		{name: "all", setupFn: func(e *errorEvent) {
+			e.Log = errorLog{}
+			e.Log.Message.Set("test message")
+			e.Exception = errorException{}
+			e.Exception.Message.Set("test message")
+		}},
+		{name: "log", setupFn: func(e *errorEvent) {
+			e.Log = errorLog{}
+			e.Log.Message.Set("test message")
+		}},
+		{name: "exception/message", setupFn: func(e *errorEvent) {
+			e.Exception = errorException{}
+			e.Exception.Message.Set("test message")
+		}},
+		{name: "exception/type", setupFn: func(e *errorEvent) {
+			e.Exception = errorException{}
+			e.Exception.Type.Set("test type")
+		}},
+		{name: "exception/cause",
+			setupFn: func(e *errorEvent) {
+				exception := errorException{}
+				exception.Type.Set("test type")
+				cause := errorException{}
+				cause.Type.Set("cause type")
+				exception.Cause = []errorException{cause}
+				e.Exception = exception
+			},
+		},
+		{name: "*/stacktrace/classname", setupFn: func(e *errorEvent) {
+			e.Log = errorLog{}
+			e.Log.Message.Set("test message")
+			frame := stacktraceFrame{}
+			frame.Classname.Set("myClass")
+			e.Log.Stacktrace = []stacktraceFrame{frame}
+		}},
+		{name: "*/stacktrace/filename", setupFn: func(e *errorEvent) {
+			e.Exception = errorException{}
+			e.Exception.Message.Set("test message")
+			frame := stacktraceFrame{}
+			frame.Filename.Set("myFile")
+			e.Exception.Stacktrace = []stacktraceFrame{frame}
+		}},
+	} {
+		t.Run("valid/"+tc.name, func(t *testing.T) {
+			var event errorEvent
+			event.ID.Set("123")
+			tc.setupFn(&event)
+			require.NoError(t, event.validate())
+		})
+	}
+
+	for _, tc := range []struct {
+		name    string
+		err     string
+		setupFn func(event *errorEvent)
+	}{
+		{name: "error",
+			err:     "requires at least one of the fields 'exception;log'",
+			setupFn: func(e *errorEvent) {}},
+		{name: "exception",
+			err: "exception: requires at least one of the fields 'message;type'",
+			setupFn: func(e *errorEvent) {
+				exception := errorException{}
+				exception.Handled.Set(true)
+				e.Exception = exception
+			},
+		},
+		{name: "exception/cause",
+			err: "exception: cause: requires at least one of the fields 'message;type'",
+			setupFn: func(e *errorEvent) {
+				exception := errorException{}
+				exception.Type.Set("test type")
+				cause := errorException{}
+				cause.Code.Set("400")
+				exception.Cause = []errorException{cause}
+				e.Exception = exception
+			},
+		},
+		{name: "*/stacktrace",
+			err: "log: stacktrace: requires at least one of the fields 'classname;filename'",
+			setupFn: func(e *errorEvent) {
+				frame := stacktraceFrame{}
+				frame.LibraryFrame.Set(false)
+				log := errorLog{}
+				log.Message.Set("true")
+				log.Stacktrace = []stacktraceFrame{frame}
+				e.Log = log
+			},
+		},
+	} {
+		t.Run("invalid/"+tc.name, func(t *testing.T) {
+			var event errorEvent
+			event.ID.Set("123")
+			tc.setupFn(&event)
+			err := event.validate()
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.err)
+		})
+	}
+}
+
+func TestErrorRequiredIfAnyValidationRules(t *testing.T) {
+	validErrorEvent := func() errorEvent {
+		var event errorEvent
+		event.ID.Set("123")
+		event.Exception = errorException{}
+		event.Exception.Message.Set("test message")
+		return event
+	}
+	for _, tc := range []struct {
+		name    string
+		setupFn func(event *errorEvent)
+	}{
+		{name: "traceID-nil", setupFn: func(*errorEvent) {}},
+		{name: "traceID-parentID-transactionID", setupFn: func(e *errorEvent) {
+			e.TraceID.Set("abcd")
+			e.ParentID.Set("xxx")
+			e.TransactionID.Set("xxx")
+		}},
+		{name: "traceID-parentID", setupFn: func(e *errorEvent) {
+			e.TraceID.Set("abcd")
+			e.ParentID.Set("xxx")
+		}},
+	} {
+		t.Run("valid/"+tc.name, func(t *testing.T) {
+			event := validErrorEvent()
+			tc.setupFn(&event)
+			require.NoError(t, event.validate())
+		})
+	}
+
+	for _, tc := range []struct {
+		name    string
+		err     string
+		setupFn func(event *errorEvent)
+	}{
+		{name: "traceID", err: "'parent_id' required",
+			setupFn: func(e *errorEvent) { e.TraceID.Set("xxx") }},
+		{name: "parentID", err: "'trace_id' required",
+			setupFn: func(e *errorEvent) { e.ParentID.Set("xxx") }},
+		{name: "transactionID", err: "'parent_id' required",
+			setupFn: func(e *errorEvent) { e.TransactionID.Set("xxx") }},
+		{name: "transactionID-parentID", err: "'trace_id' required",
+			setupFn: func(e *errorEvent) {
+				e.TransactionID.Set("xxx")
+				e.ParentID.Set("xxx")
+			}},
+		{name: "transactionID-traceID", err: "'parent_id' required",
+			setupFn: func(e *errorEvent) {
+				e.TransactionID.Set("xxx")
+				e.TraceID.Set("xxx")
+			}},
+	} {
+		t.Run("invalid/"+tc.name, func(t *testing.T) {
+			event := validErrorEvent()
+			tc.setupFn(&event)
+			err := event.validate()
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.err)
+		})
+	}
+}
 
 func TestMetadataRequiredValidationRules(t *testing.T) {
 	// setup: create full metadata struct with arbitrary values set
@@ -282,6 +512,41 @@ func TestMetadataRequiredValidationRules(t *testing.T) {
 		}
 	})
 }
+
+func TestSpanRequiredValidationRules(t *testing.T) {
+	// setup: create full struct with arbitrary values set
+	var event span
+	modeldecodertest.InitStructValues(&event)
+	// test vanilla struct is valid
+	require.NoError(t, event.validate())
+
+	// iterate through struct, remove every key one by one
+	// and test that validation behaves as expected
+	requiredKeys := map[string]interface{}{
+		"id":                                   nil,
+		"context.destination.service.name":     nil,
+		"context.destination.service.resource": nil,
+		"context.destination.service.type":     nil,
+		"duration":                             nil,
+		"name":                                 nil,
+		"parent_id":                            nil,
+		"stacktrace.filename":                  nil,
+		"trace_id":                             nil,
+		"type":                                 nil,
+	}
+	modeldecodertest.SetZeroStructValue(&event, func(key string) {
+		err := event.validate()
+		if _, ok := requiredKeys[key]; ok {
+			require.Error(t, err, key)
+			for _, part := range strings.Split(key, ".") {
+				assert.Contains(t, err.Error(), part)
+			}
+		} else {
+			assert.NoError(t, err, key)
+		}
+	})
+}
+
 func TestTransactionRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with arbitrary values set
 	var event transaction
@@ -322,7 +587,9 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 
 func TestResetIsSet(t *testing.T) {
 	for name, root := range map[string]setter{
+		"error":       &errorRoot{},
 		"metadata":    &metadataRoot{},
+		"span":        &spanRoot{},
 		"transaction": &transactionRoot{},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -370,8 +637,12 @@ func testValidation(t *testing.T, eventType string, testcases []testcase, keys .
 		t.Run(tc.name+"/"+eventType, func(t *testing.T) {
 			var event validator
 			switch eventType {
+			case "error":
+				event = &errorEvent{}
 			case "metadata":
 				event = &metadata{}
+			case "span":
+				event = &span{}
 			case "transaction":
 				event = &transaction{}
 			}

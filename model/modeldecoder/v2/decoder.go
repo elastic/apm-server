@@ -35,9 +35,19 @@ import (
 )
 
 var (
+	errorRootPool = sync.Pool{
+		New: func() interface{} {
+			return &errorRoot{}
+		},
+	}
 	metadataRootPool = sync.Pool{
 		New: func() interface{} {
 			return &metadataRoot{}
+		},
+	}
+	spanRootPool = sync.Pool{
+		New: func() interface{} {
+			return &spanRoot{}
 		},
 	}
 	transactionRootPool = sync.Pool{
@@ -47,6 +57,15 @@ var (
 	}
 )
 
+func fetchErrorRoot() *errorRoot {
+	return errorRootPool.Get().(*errorRoot)
+}
+
+func releaseErrorRoot(root *errorRoot) {
+	root.Reset()
+	errorRootPool.Put(root)
+}
+
 func fetchMetadataRoot() *metadataRoot {
 	return metadataRootPool.Get().(*metadataRoot)
 }
@@ -54,6 +73,15 @@ func fetchMetadataRoot() *metadataRoot {
 func releaseMetadataRoot(root *metadataRoot) {
 	root.Reset()
 	metadataRootPool.Put(root)
+}
+
+func fetchSpanRoot() *spanRoot {
+	return spanRootPool.Get().(*spanRoot)
+}
+
+func releaseSpanRoot(root *spanRoot) {
+	root.Reset()
+	spanRootPool.Put(root)
 }
 
 func fetchTransactionRoot() *transactionRoot {
@@ -82,6 +110,44 @@ func DecodeMetadata(d decoder.Decoder, out *model.Metadata) error {
 // DecodeNestedMetadata should be used when the stream in the decoder contains the `metadata` key
 func DecodeNestedMetadata(d decoder.Decoder, out *model.Metadata) error {
 	return decodeMetadata(decodeIntoMetadataRoot, d, out)
+}
+
+// DecodeNestedError uses the given decoder to create the input model,
+// then runs the defined validations on the input model
+// and finally maps the values fom the input model to the given *model.Error instance
+//
+// DecodeNestedError should be used when the stream in the decoder contains the `error` key
+func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.Error) error {
+	root := fetchErrorRoot()
+	defer releaseErrorRoot(root)
+	var err error
+	if err = d.Decode(&root); err != nil && err != io.EOF {
+		return fmt.Errorf("decode error %w", err)
+	}
+	if err := root.validate(); err != nil {
+		return fmt.Errorf("validation error %w", err)
+	}
+	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	return err
+}
+
+// DecodeNestedSpan uses the given decoder to create the input model,
+// then runs the defined validations on the input model
+// and finally maps the values fom the input model to the given *model.Span instance
+//
+// DecodeNestedSpan should be used when the stream in the decoder contains the `span` key
+func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, out *model.Span) error {
+	root := fetchSpanRoot()
+	defer releaseSpanRoot(root)
+	var err error
+	if err = d.Decode(&root); err != nil && err != io.EOF {
+		return fmt.Errorf("decode error %w", err)
+	}
+	if err := root.validate(); err != nil {
+		return fmt.Errorf("validation error %w", err)
+	}
+	mapToSpanModel(&root.Span, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	return err
 }
 
 // DecodeNestedTransaction uses the given decoder to create the input model,
@@ -138,6 +204,153 @@ func mapToClientModel(from contextRequest, out *model.Metadata) {
 		out.Client.IP = ip
 	} else if ip := utility.ParseIP(from.Socket.RemoteAddress.Val); ip != nil {
 		out.Client.IP = ip
+	}
+}
+
+func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Error) {
+	// set metadata information
+	out.Metadata = *metadata
+	if from == nil {
+		return
+	}
+	// overwrite metadata with event specific information
+	mapToServiceModel(from.Context.Service, &out.Metadata.Service)
+	overwriteUserInMetadataModel(from.Context.User, &out.Metadata)
+	mapToUserAgentModel(from.Context.Request.Headers, &out.Metadata)
+	mapToClientModel(from.Context.Request, &out.Metadata)
+
+	// map errorEvent specific data
+
+	if from.Context.IsSet() {
+		// metadata labels and context labels are merged only in the output model
+		if len(from.Context.Tags) > 0 {
+			labels := model.Labels(from.Context.Tags.Clone())
+			out.Labels = &labels
+		}
+		if from.Context.Page.IsSet() {
+			out.Page = &model.Page{}
+			mapToPageModel(from.Context.Page, out.Page)
+		}
+		if from.Context.Request.IsSet() {
+			out.HTTP = &model.Http{Request: &model.Req{}}
+			mapToRequestModel(from.Context.Request, out.HTTP.Request)
+			if from.Context.Request.HTTPVersion.IsSet() {
+				val := from.Context.Request.HTTPVersion.Val
+				out.HTTP.Version = &val
+			}
+		}
+		if from.Context.Response.IsSet() {
+			if out.HTTP == nil {
+				out.HTTP = &model.Http{}
+			}
+			out.HTTP.Response = &model.Resp{}
+			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+		}
+		if from.Context.Request.URL.IsSet() {
+			out.URL = &model.URL{}
+			mapToRequestURLModel(from.Context.Request.URL, out.URL)
+		}
+		if len(from.Context.Custom) > 0 {
+			custom := model.Custom(from.Context.Custom.Clone())
+			out.Custom = &custom
+		}
+	}
+	if from.Culprit.IsSet() {
+		val := from.Culprit.Val
+		out.Culprit = &val
+	}
+	if from.Exception.IsSet() {
+		out.Exception = &model.Exception{}
+		mapToExceptionModel(from.Exception, out.Exception)
+	}
+	if from.ID.IsSet() {
+		val := from.ID.Val
+		out.ID = &val
+	}
+	if from.Log.IsSet() {
+		log := model.Log{}
+		if from.Log.Level.IsSet() {
+			val := from.Log.Level.Val
+			log.Level = &val
+		}
+		if from.Log.LoggerName.IsSet() {
+			val := from.Log.LoggerName.Val
+			log.LoggerName = &val
+		}
+		if from.Log.Message.IsSet() {
+			log.Message = from.Log.Message.Val
+		}
+		if from.Log.ParamMessage.IsSet() {
+			val := from.Log.ParamMessage.Val
+			log.ParamMessage = &val
+		}
+		if len(from.Log.Stacktrace) > 0 {
+			log.Stacktrace = make(model.Stacktrace, len(from.Log.Stacktrace))
+			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
+		}
+		out.Log = &log
+	}
+	if from.ParentID.IsSet() {
+		out.ParentID = from.ParentID.Val
+	}
+	if from.Timestamp.Val.IsZero() {
+		out.Timestamp = reqTime
+	} else {
+		out.Timestamp = from.Timestamp.Val
+	}
+	if from.TraceID.IsSet() {
+		out.TraceID = from.TraceID.Val
+	}
+	if from.Transaction.Sampled.IsSet() {
+		val := from.Transaction.Sampled.Val
+		out.TransactionSampled = &val
+	}
+	if from.Transaction.Type.IsSet() {
+		val := from.Transaction.Type.Val
+		out.TransactionType = &val
+	}
+	if from.TransactionID.IsSet() {
+		out.TransactionID = from.TransactionID.Val
+	}
+	if experimental {
+		out.Experimental = from.Experimental.Val
+	}
+	out.RUM = false
+}
+
+func mapToExceptionModel(from errorException, out *model.Exception) {
+	if !from.IsSet() {
+		return
+	}
+	if len(from.Attributes) > 0 {
+		out.Attributes = from.Attributes.Clone()
+	}
+	if from.Code.IsSet() {
+		out.Code = from.Code.Val
+	}
+	if len(from.Cause) > 0 {
+		out.Cause = make([]model.Exception, len(from.Cause))
+		for i := 0; i < len(from.Cause); i++ {
+			var ex model.Exception
+			mapToExceptionModel(from.Cause[i], &ex)
+			out.Cause[i] = ex
+		}
+	}
+	if from.Handled.IsSet() {
+		out.Handled = &from.Handled.Val
+	}
+	if from.Message.IsSet() {
+		out.Message = &from.Message.Val
+	}
+	if from.Module.IsSet() {
+		out.Module = &from.Module.Val
+	}
+	if len(from.Stacktrace) > 0 {
+		out.Stacktrace = make(model.Stacktrace, len(from.Stacktrace))
+		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
+	}
+	if from.Type.IsSet() {
+		out.Type = &from.Type.Val
 	}
 }
 
@@ -428,6 +641,276 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 	if from.Version.IsSet() {
 		out.Version = from.Version.Val
+	}
+}
+
+func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Span) {
+	// set metadata information for span
+	out.Metadata = *metadata
+	if from == nil {
+		return
+	}
+	// map span specific data
+	if !from.Action.IsSet() && !from.Subtype.IsSet() {
+		sep := "."
+		typ := strings.Split(from.Type.Val, sep)
+		out.Type = typ[0]
+		if len(typ) > 1 {
+			out.Subtype = &typ[1]
+			if len(typ) > 2 {
+				action := strings.Join(typ[2:], sep)
+				out.Action = &action
+			}
+		}
+	} else {
+		if from.Action.IsSet() {
+			val := from.Action.Val
+			out.Action = &val
+		}
+		if from.Subtype.IsSet() {
+			val := from.Subtype.Val
+			out.Subtype = &val
+		}
+		if from.Type.IsSet() {
+			out.Type = from.Type.Val
+		}
+	}
+	if len(from.ChildIDs) > 0 {
+		out.ChildIDs = from.ChildIDs
+	}
+	if from.Context.Database.IsSet() {
+		db := model.DB{}
+		if from.Context.Database.Instance.IsSet() {
+			val := from.Context.Database.Instance.Val
+			db.Instance = &val
+		}
+		if from.Context.Database.Link.IsSet() {
+			val := from.Context.Database.Link.Val
+			db.Link = &val
+		}
+		if from.Context.Database.RowsAffected.IsSet() {
+			val := from.Context.Database.RowsAffected.Val
+			db.RowsAffected = &val
+		}
+		if from.Context.Database.Statement.IsSet() {
+			val := from.Context.Database.Statement.Val
+			db.Statement = &val
+		}
+		if from.Context.Database.Type.IsSet() {
+			val := from.Context.Database.Type.Val
+			db.Type = &val
+		}
+		if from.Context.Database.User.IsSet() {
+			val := from.Context.Database.User.Val
+			db.UserName = &val
+		}
+		out.DB = &db
+	}
+	if from.Context.Destination.Address.IsSet() || from.Context.Destination.Port.IsSet() {
+		destination := model.Destination{}
+		if from.Context.Destination.Address.IsSet() {
+			val := from.Context.Destination.Address.Val
+			destination.Address = &val
+		}
+		if from.Context.Destination.Port.IsSet() {
+			val := from.Context.Destination.Port.Val
+			destination.Port = &val
+		}
+		out.Destination = &destination
+	}
+	if from.Context.Destination.Service.IsSet() {
+		service := model.DestinationService{}
+		if from.Context.Destination.Service.Name.IsSet() {
+			val := from.Context.Destination.Service.Name.Val
+			service.Name = &val
+		}
+		if from.Context.Destination.Service.Resource.IsSet() {
+			val := from.Context.Destination.Service.Resource.Val
+			service.Resource = &val
+		}
+		if from.Context.Destination.Service.Type.IsSet() {
+			val := from.Context.Destination.Service.Type.Val
+			service.Type = &val
+		}
+		out.DestinationService = &service
+	}
+	if from.Context.HTTP.IsSet() {
+		http := model.HTTP{}
+		if from.Context.HTTP.Method.IsSet() {
+			val := from.Context.HTTP.Method.Val
+			http.Method = &val
+		}
+		if from.Context.HTTP.Response.IsSet() {
+			response := model.MinimalResp{}
+			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
+				val := from.Context.HTTP.Response.DecodedBodySize.Val
+				response.DecodedBodySize = &val
+			}
+			if from.Context.HTTP.Response.EncodedBodySize.IsSet() {
+				val := from.Context.HTTP.Response.EncodedBodySize.Val
+				response.EncodedBodySize = &val
+			}
+			if from.Context.HTTP.Response.Headers.IsSet() {
+				response.Headers = from.Context.HTTP.Response.Headers.Val.Clone()
+			}
+			if from.Context.HTTP.Response.StatusCode.IsSet() {
+				val := from.Context.HTTP.Response.StatusCode.Val
+				response.StatusCode = &val
+			}
+			if from.Context.HTTP.Response.TransferSize.IsSet() {
+				val := from.Context.HTTP.Response.TransferSize.Val
+				response.TransferSize = &val
+			}
+			http.Response = &response
+		}
+		if from.Context.HTTP.StatusCode.IsSet() {
+			val := from.Context.HTTP.StatusCode.Val
+			http.StatusCode = &val
+		}
+		if from.Context.HTTP.URL.IsSet() {
+			val := from.Context.HTTP.URL.Val
+			http.URL = &val
+		}
+		out.HTTP = &http
+	}
+	if from.Context.Message.IsSet() {
+		message := model.Message{}
+		if from.Context.Message.Body.IsSet() {
+			val := from.Context.Message.Body.Val
+			message.Body = &val
+		}
+		if from.Context.Message.Headers.IsSet() {
+			message.Headers = from.Context.Message.Headers.Val.Clone()
+		}
+		if from.Context.Message.Age.Milliseconds.IsSet() {
+			val := from.Context.Message.Age.Milliseconds.Val
+			message.AgeMillis = &val
+		}
+		if from.Context.Message.Queue.Name.IsSet() {
+			val := from.Context.Message.Queue.Name.Val
+			message.QueueName = &val
+		}
+		out.Message = &message
+	}
+	if from.Context.Service.IsSet() {
+		out.Service = &model.Service{}
+		mapToServiceModel(from.Context.Service, out.Service)
+	}
+	if len(from.Context.Tags) > 0 {
+		out.Labels = from.Context.Tags.Clone()
+	}
+	if from.Duration.IsSet() {
+		out.Duration = from.Duration.Val
+	}
+	if experimental {
+		out.Experimental = from.Experimental.Val
+	}
+	if from.ID.IsSet() {
+		out.ID = from.ID.Val
+	}
+	if from.Name.IsSet() {
+		out.Name = from.Name.Val
+	}
+	if from.Outcome.IsSet() {
+		out.Outcome = from.Outcome.Val
+	} else {
+		if from.Context.HTTP.StatusCode.IsSet() {
+			statusCode := from.Context.HTTP.StatusCode.Val
+			if statusCode >= http.StatusBadRequest {
+				out.Outcome = "failure"
+			} else {
+				out.Outcome = "success"
+			}
+		} else {
+			out.Outcome = "unknown"
+		}
+	}
+	if from.ParentID.IsSet() {
+		out.ParentID = from.ParentID.Val
+	}
+	if from.SampleRate.IsSet() && from.SampleRate.Val > 0 {
+		out.RepresentativeCount = 1 / from.SampleRate.Val
+	}
+	if len(from.Stacktrace) > 0 {
+		out.Stacktrace = make(model.Stacktrace, len(from.Stacktrace))
+		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
+	}
+	if from.Start.IsSet() {
+		val := from.Start.Val
+		out.Start = &val
+	}
+	if from.Sync.IsSet() {
+		val := from.Sync.Val
+		out.Sync = &val
+	}
+	if from.Timestamp.IsSet() && !from.Timestamp.Val.IsZero() {
+		out.Timestamp = from.Timestamp.Val
+	} else {
+		timestamp := reqTime
+		if from.Start.IsSet() {
+			// adjust timestamp to be reqTime + start
+			timestamp = timestamp.Add(time.Duration(float64(time.Millisecond) * from.Start.Val))
+		}
+		out.Timestamp = timestamp
+	}
+	if from.TraceID.IsSet() {
+		out.TraceID = from.TraceID.Val
+	}
+	if from.TransactionID.IsSet() {
+		out.TransactionID = from.TransactionID.Val
+	}
+	out.RUM = false
+}
+
+func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
+	for idx, eventFrame := range from {
+		fr := model.StacktraceFrame{}
+		if eventFrame.AbsPath.IsSet() {
+			val := eventFrame.AbsPath.Val
+			fr.AbsPath = &val
+		}
+		if eventFrame.Classname.IsSet() {
+			val := eventFrame.Classname.Val
+			fr.Classname = &val
+		}
+		if eventFrame.ColumnNumber.IsSet() {
+			val := eventFrame.ColumnNumber.Val
+			fr.Colno = &val
+		}
+		if eventFrame.ContextLine.IsSet() {
+			val := eventFrame.ContextLine.Val
+			fr.ContextLine = &val
+		}
+		if eventFrame.Filename.IsSet() {
+			val := eventFrame.Filename.Val
+			fr.Filename = &val
+		}
+		if eventFrame.Function.IsSet() {
+			val := eventFrame.Function.Val
+			fr.Function = &val
+		}
+		if eventFrame.LibraryFrame.IsSet() {
+			val := eventFrame.LibraryFrame.Val
+			fr.LibraryFrame = &val
+		}
+		if eventFrame.LineNumber.IsSet() {
+			val := eventFrame.LineNumber.Val
+			fr.Lineno = &val
+		}
+		if eventFrame.Module.IsSet() {
+			val := eventFrame.Module.Val
+			fr.Module = &val
+		}
+		if len(eventFrame.PostContext) > 0 {
+			fr.PostContext = eventFrame.PostContext
+		}
+		if len(eventFrame.PreContext) > 0 {
+			fr.PreContext = eventFrame.PreContext
+		}
+		if len(eventFrame.Vars) > 0 {
+			fr.Vars = eventFrame.Vars.Clone()
+		}
+		out[idx] = &fr
 	}
 }
 
