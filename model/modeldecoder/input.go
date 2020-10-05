@@ -49,4 +49,5 @@ type Config struct {
 	Experimental bool
 	// RUM v3 support
 	HasShortFieldNames bool
+	RUM                bool
 }

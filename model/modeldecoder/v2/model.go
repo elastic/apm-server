@@ -54,14 +54,15 @@ type transactionRoot struct {
 // other structs
 
 type context struct {
-	Custom   common.MapStr   `json:"custom" validate:"patternKeys=regexpNoDotAsteriskQuote"`
-	Message  contextMessage  `json:"message"`
-	Page     contextPage     `json:"page"`
-	Response contextResponse `json:"response"`
-	Request  contextRequest  `json:"request"`
-	Service  contextService  `json:"service"`
-	Tags     common.MapStr   `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
-	User     user            `json:"user"`
+	Custom       common.MapStr      `json:"custom" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+	Experimental nullable.Interface `json:"experimental"`
+	Message      contextMessage     `json:"message"`
+	Page         contextPage        `json:"page"`
+	Response     contextResponse    `json:"response"`
+	Request      contextRequest     `json:"request"`
+	Service      contextService     `json:"service"`
+	Tags         common.MapStr      `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	User         user               `json:"user"`
 }
 
 type contextMessage struct {
@@ -164,7 +165,6 @@ type errorEvent struct {
 	Context       context                 `json:"context"`
 	Culprit       nullable.String         `json:"culprit" validate:"max=1024"`
 	Exception     errorException          `json:"exception"`
-	Experimental  nullable.Interface      `json:"experimental"`
 	ID            nullable.String         `json:"id" validate:"required,max=1024"`
 	Log           errorLog                `json:"log"`
 	ParentID      nullable.String         `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,max=1024"`
@@ -318,7 +318,6 @@ type span struct {
 	ChildIDs      []string                `json:"child_ids" validate:"max=1024"`
 	Context       spanContext             `json:"context"`
 	Duration      nullable.Float64        `json:"duration" validate:"required,min=0"`
-	Experimental  nullable.Interface      `json:"experimental"`
 	ID            nullable.String         `json:"id" validate:"required,max=1024"`
 	Name          nullable.String         `json:"name" validate:"required,max=1024"`
 	Outcome       nullable.String         `json:"outcome" validate:"enum=enumOutcome"`
@@ -336,12 +335,13 @@ type span struct {
 }
 
 type spanContext struct {
-	Database    spanContextDatabase    `json:"db"`
-	Destination spanContextDestination `json:"destination"`
-	HTTP        spanContextHTTP        `json:"http"`
-	Message     contextMessage         `json:"message"`
-	Service     contextService         `json:"service"`
-	Tags        common.MapStr          `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Database     spanContextDatabase    `json:"db"`
+	Destination  spanContextDestination `json:"destination"`
+	Experimental nullable.Interface     `json:"experimental"`
+	HTTP         spanContextHTTP        `json:"http"`
+	Message      contextMessage         `json:"message"`
+	Service      contextService         `json:"service"`
+	Tags         common.MapStr          `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
 }
 
 type spanContextDatabase struct {
@@ -399,7 +399,6 @@ type stacktraceFrame struct {
 type transaction struct {
 	Context        context                   `json:"context"`
 	Duration       nullable.Float64          `json:"duration" validate:"required,min=0"`
-	Experimental   nullable.Interface        `json:"experimental"`
 	ID             nullable.String           `json:"id" validate:"required,max=1024"`
 	Marks          transactionMarks          `json:"marks"`
 	Name           nullable.String           `json:"name" validate:"max=1024"`

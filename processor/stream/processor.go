@@ -68,7 +68,7 @@ type Processor struct {
 
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, RUM: false},
 		MaxEventSize:      cfg.MaxEventSize,
 		decodeMetadata:    v2.DecodeNestedMetadata,
 		decodeError:       v2.DecodeNestedError,
@@ -82,7 +82,7 @@ func BackendProcessor(cfg *config.Config) *Processor {
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, RUM: true},
 		MaxEventSize:      cfg.MaxEventSize,
 		decodeMetadata:    v2.DecodeNestedMetadata,
 		decodeError:       v2.DecodeNestedError,
@@ -96,7 +96,7 @@ func RUMV2Processor(cfg *config.Config) *Processor {
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true, RUM: true},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
 		models: map[string]decodeEventFunc{

@@ -127,7 +127,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 	if err := root.validate(); err != nil {
 		return fmt.Errorf("validation error %w", err)
 	}
-	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -146,7 +146,7 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, out *model.S
 	if err := root.validate(); err != nil {
 		return fmt.Errorf("validation error %w", err)
 	}
-	mapToSpanModel(&root.Span, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	mapToSpanModel(&root.Span, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -165,7 +165,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	if err := root.validate(); err != nil {
 		return fmt.Errorf("validation error %w", err)
 	}
-	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -207,7 +207,7 @@ func mapToClientModel(from contextRequest, out *model.Metadata) {
 	}
 }
 
-func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Error) {
+func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Error) {
 	// set metadata information
 	out.Metadata = *metadata
 	if from == nil {
@@ -222,6 +222,9 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	// map errorEvent specific data
 
 	if from.Context.IsSet() {
+		if config.Experimental && from.Context.Experimental.IsSet() {
+			out.Experimental = from.Context.Experimental.Val
+		}
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
 			labels := model.Labels(from.Context.Tags.Clone())
@@ -312,10 +315,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
 	}
-	if experimental {
-		out.Experimental = from.Experimental.Val
-	}
-	out.RUM = false
+	out.RUM = config.RUM
 }
 
 func mapToExceptionModel(from errorException, out *model.Exception) {
@@ -644,7 +644,7 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 }
 
-func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Span) {
+func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Span) {
 	// set metadata information for span
 	out.Metadata = *metadata
 	if from == nil {
@@ -734,6 +734,9 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, exp
 		}
 		out.DestinationService = &service
 	}
+	if config.Experimental && from.Context.Experimental.IsSet() {
+		out.Experimental = from.Context.Experimental.Val
+	}
 	if from.Context.HTTP.IsSet() {
 		http := model.HTTP{}
 		if from.Context.HTTP.Method.IsSet() {
@@ -802,9 +805,6 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, exp
 	if from.Duration.IsSet() {
 		out.Duration = from.Duration.Val
 	}
-	if experimental {
-		out.Experimental = from.Experimental.Val
-	}
 	if from.ID.IsSet() {
 		out.ID = from.ID.Val
 	}
@@ -859,7 +859,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, exp
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
 	}
-	out.RUM = false
+	out.RUM = config.RUM
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -914,7 +914,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 	}
 }
 
-func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Transaction) {
+func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Transaction) {
 	// set metadata information
 	out.Metadata = *metadata
 	if from == nil {
@@ -932,6 +932,9 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 		if len(from.Context.Custom) > 0 {
 			custom := model.Custom(from.Context.Custom.Clone())
 			out.Custom = &custom
+		}
+		if config.Experimental && from.Context.Experimental.IsSet() {
+			out.Experimental = from.Context.Experimental.Val
 		}
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
@@ -1071,9 +1074,6 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 				Max:   from.UserExperience.Longtask.Max.Val,
 			}
 		}
-	}
-	if experimental {
-		out.Experimental = from.Experimental.Val
 	}
 }
 
