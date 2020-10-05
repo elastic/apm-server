@@ -39,24 +39,6 @@ const (
 	tagTypesVals     = "typesVals"
 )
 
-// vFieldFn should be used for implementing field specific validation rules,
-// independend of other fields or tags
-type vFieldFn func(io.Writer, structField, validationRule) error
-
-// vFieldTagsFn should be used for implementing field specific validation rules,
-// dependend on other tags, but independend of other fields
-type vFieldTagsFn func(io.Writer, structField, []validationRule, validationRule) error
-
-// vStructFn should be used for implementing struct specific validation rules,
-// depending on multiplefields
-type vStructFn func(io.Writer, []structField, structField, validationRule) error
-
-type validationFunctions struct {
-	vFieldFns     map[string]vFieldFn
-	vFieldTagsFns map[string]vFieldTagsFn
-	vStructFns    map[string]vStructFn
-}
-
 type validationRule struct {
 	name  string
 	value string
@@ -64,41 +46,6 @@ type validationRule struct {
 
 func errUnhandledTagRule(rule validationRule) error {
 	return fmt.Errorf("unhandled tag rule '%s'", rule.name)
-}
-
-func validation(validationFns validationFunctions, w io.Writer, fields []structField, f structField) error {
-	rules, err := validationRules(f.tag)
-	if err != nil {
-		return nil
-	}
-	for _, rule := range rules {
-		if validationFns.vFieldFns != nil {
-			if fn, ok := validationFns.vFieldFns[rule.name]; ok {
-				if err := fn(w, f, rule); err != nil {
-					return err
-				}
-				continue
-			}
-		}
-		if validationFns.vFieldTagsFns != nil {
-			if fn, ok := validationFns.vFieldTagsFns[rule.name]; ok {
-				if err := fn(w, f, rules, rule); err != nil {
-					return err
-				}
-				continue
-			}
-		}
-		if validationFns.vStructFns != nil {
-			if fn, ok := validationFns.vStructFns[rule.name]; ok {
-				if err := fn(w, fields, f, rule); err != nil {
-					return err
-				}
-				continue
-			}
-		}
-		return fmt.Errorf("unhandled tag rule '%s'", rule)
-	}
-	return nil
 }
 
 func validationTag(structTag reflect.StructTag) (map[string]string, error) {

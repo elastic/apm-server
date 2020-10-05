@@ -21,14 +21,9 @@ import (
 	"fmt"
 	"go/types"
 	"io"
-)
 
-var sliceValidationFns = validationFunctions{
-	vFieldFns: map[string]vFieldFn{
-		tagMax:      sliceRuleMinMax,
-		tagRequired: sliceRuleRequired},
-	vStructFns: map[string]vStructFn{
-		tagRequiredOneOf: sliceRuleRequiredOneOf}}
+	"github.com/pkg/errors"
+)
 
 func generateSliceValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	// call validation on every slice element when elements are of custom type
@@ -42,7 +37,26 @@ for _, elem := range val.%s{
 `[1:], f.Name(), jsonName(f))
 	}
 	// handle configured validation rules
-	return validation(sliceValidationFns, w, fields, f)
+	rules, err := validationRules(f.tag)
+	if err != nil {
+		return errors.Wrap(err, "slice")
+	}
+	for _, rule := range rules {
+		switch rule.name {
+		case tagMin, tagMax:
+			err = sliceRuleMinMax(w, f, rule)
+		case tagRequired:
+			sliceRuleRequired(w, f, rule)
+		case tagRequiredOneOf:
+			err = ruleRequiredOneOf(w, fields, rule.value)
+		default:
+			return errors.Wrap(errUnhandledTagRule(rule), "slice")
+		}
+		if err != nil {
+			return errors.Wrap(err, "slice")
+		}
+	}
+	return nil
 }
 
 func sliceRuleMinMax(w io.Writer, f structField, rule validationRule) error {
@@ -65,15 +79,10 @@ for _, elem := range val.%s{
 	return fmt.Errorf("unhandled tag rule max for type %s", f.Type().Underlying())
 }
 
-func sliceRuleRequired(w io.Writer, f structField, rule validationRule) error {
+func sliceRuleRequired(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if len(val.%s) == 0{
 	return fmt.Errorf("'%s' required")
 }
 `[1:], f.Name(), jsonName(f))
-	return nil
-}
-
-func sliceRuleRequiredOneOf(w io.Writer, fields []structField, f structField, rule validationRule) error {
-	return ruleRequiredOneOf(w, fields, rule.value)
 }
