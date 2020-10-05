@@ -29,12 +29,11 @@ import (
 // tmap implements generation logic for creating validation rules
 // on map types
 type tmap struct {
-	imports       map[string]struct{}
 	supportedTags []string
 }
 
-func newTmap(imports map[string]struct{}) *tmap {
-	return &tmap{imports: imports, supportedTags: []string{
+func newTmap() *tmap {
+	return &tmap{supportedTags: []string{
 		tagMaxVals, tagPatternKeys, tagTypesVals, tagRequired}}
 }
 
@@ -96,7 +95,6 @@ for k := range val.%s{
 
 	if isCustomStruct {
 		// call validation on every item
-		gen.imports[importErrors] = struct{}{}
 		fmt.Fprintf(w, `
 if err := v.validate(); err != nil{
 		return errors.Wrapf(err, "%s")
@@ -128,7 +126,6 @@ case nil:
 	}
 	for _, typ := range strings.Split(rule.value, ";") {
 		if typ == "number" {
-			gen.imports[importJSON] = struct{}{}
 			typ = "json.Number"
 		}
 		fmt.Fprintf(w, `
@@ -167,7 +164,6 @@ if k != "" && !%s.MatchString(k){
 }
 
 func (gen *tmap) ruleMaxVals(w io.Writer, f structField, rule validationRule) error {
-	gen.imports[importUTF8] = struct{}{}
 	fmt.Fprintf(w, `
 if utf8.RuneCountInString(t) > %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")

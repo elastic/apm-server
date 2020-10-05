@@ -28,11 +28,10 @@ import (
 // on nullable.String types
 type nstring struct {
 	validationFns validationFunctions
-	imports       map[string]struct{}
 }
 
-func newNstring(imports map[string]struct{}) *nstring {
-	gen := nstring{imports: imports}
+func newNstring() *nstring {
+	gen := nstring{}
 	gen.validationFns = validationFunctions{
 		vFieldFns: map[string]vFieldFn{
 			tagEnum:     gen.ruleEnum,
@@ -72,7 +71,6 @@ if val.%s.Val != ""{
 }
 
 func (gen *nstring) ruleMinMax(w io.Writer, f structField, rule validationRule) error {
-	gen.imports[importUTF8] = struct{}{}
 	fmt.Fprintf(w, `
 if utf8.RuneCountInString(val.%s.Val) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")

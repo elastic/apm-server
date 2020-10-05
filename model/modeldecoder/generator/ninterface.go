@@ -29,11 +29,10 @@ import (
 // on nullable.Interface types
 type ninterface struct {
 	validationFns validationFunctions
-	imports       map[string]struct{}
 }
 
-func newNinterface(imports map[string]struct{}) *ninterface {
-	gen := ninterface{imports: imports}
+func newNinterface() *ninterface {
+	gen := ninterface{}
 	gen.validationFns = validationFunctions{
 		vFieldFns: map[string]vFieldFn{
 			tagMax:      gen.ruleMax,
@@ -86,7 +85,6 @@ func (gen *ninterface) ruleTypes(w io.Writer, f structField, rules []validationR
 	for _, typ := range strings.Split(rule.value, ";") {
 		switch typ {
 		case "int":
-			gen.imports[importJSON] = struct{}{}
 			fmt.Fprintf(w, `
 case int:
 case json.Number:
@@ -99,7 +97,6 @@ case json.Number:
 case %s:
 `[1:], typ)
 			if maxRule != (validationRule{}) {
-				gen.imports[importUTF8] = struct{}{}
 				fmt.Fprintf(w, `
 if utf8.RuneCountInString(t) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")

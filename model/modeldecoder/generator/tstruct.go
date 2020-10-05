@@ -26,28 +26,25 @@ import (
 // on struct types
 type tstruct struct {
 	generators map[string]vGenerators
-	imports    map[string]struct{}
 }
 
 type vGenerators interface {
 	validation(io.Writer, []structField, structField) error
 }
 
-func newTstruct(imports map[string]struct{}, pkg string) *tstruct {
+func newTstruct(pkg string) *tstruct {
 	return &tstruct{
-		imports: imports,
 		generators: map[string]vGenerators{
-			fmt.Sprintf("%s.String", pkg):    newNstring(imports),
-			fmt.Sprintf("%s.Int", pkg):       newNint(imports),
-			fmt.Sprintf("%s.Float64", pkg):   newNint(imports),
-			fmt.Sprintf("%s.Interface", pkg): newNinterface(imports),
+			fmt.Sprintf("%s.String", pkg):    newNstring(),
+			fmt.Sprintf("%s.Int", pkg):       newNint(),
+			fmt.Sprintf("%s.Float64", pkg):   newNint(),
+			fmt.Sprintf("%s.Interface", pkg): newNinterface(),
 		}}
 }
 
 func (gen *tstruct) validation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	// if field is a custom struct, call its validation function
 	if isCustomStruct {
-		gen.imports[importErrors] = struct{}{}
 		fmt.Fprintf(w, `
 if err := val.%s.validate(); err != nil{
 	return errors.Wrapf(err, "%s")

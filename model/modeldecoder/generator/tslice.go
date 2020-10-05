@@ -27,11 +27,10 @@ import (
 // on slice types
 type tslice struct {
 	validationFns validationFunctions
-	imports       map[string]struct{}
 }
 
-func newTslice(imports map[string]struct{}) *tslice {
-	gen := tslice{imports: imports}
+func newTslice() *tslice {
+	gen := tslice{}
 	gen.validationFns = validationFunctions{
 		vFieldFns: map[string]vFieldFn{
 			tagMax:      gen.ruleMinMax,
@@ -44,7 +43,6 @@ func newTslice(imports map[string]struct{}) *tslice {
 func (gen *tslice) validation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	// call validation on every slice element when elements are of custom type
 	if isCustomStruct {
-		gen.imports[importErrors] = struct{}{}
 		fmt.Fprintf(w, `
 for _, elem := range val.%s{
 	if err := elem.validate(); err != nil{
@@ -64,7 +62,6 @@ func (gen *tslice) ruleMinMax(w io.Writer, f structField, rule validationRule) e
 	}
 	if basic, ok := sliceT.Elem().Underlying().(*types.Basic); ok {
 		if basic.Kind() == types.String {
-			gen.imports[importUTF8] = struct{}{}
 			fmt.Fprintf(w, `
 for _, elem := range val.%s{
 	if utf8.RuneCountInString(elem) %s %s{

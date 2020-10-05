@@ -28,11 +28,10 @@ import (
 // on nullable.Int types
 type nint struct {
 	validationFns validationFunctions
-	imports       map[string]struct{}
 }
 
-func newNint(imports map[string]struct{}) *nint {
-	gen := nint{imports: imports}
+func newNint() *nint {
+	gen := nint{}
 	gen.validationFns = validationFunctions{
 		vFieldFns: map[string]vFieldFn{
 			tagMax:      gen.ruleMinMax,

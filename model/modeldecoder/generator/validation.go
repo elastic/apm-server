@@ -37,10 +37,6 @@ const (
 	tagRequiredIfAny = "requiredIfAny"
 	tagTypes         = "types"
 	tagTypesVals     = "typesVals"
-
-	importJSON   = "encoding/json"
-	importUTF8   = "unicode/utf8"
-	importErrors = "github.com/pkg/errors"
 )
 
 // vFieldFn should be used for implementing field specific validation rules,

@@ -20,11 +20,11 @@
 package rumv3
 
 import (
-	"fmt"
-
 	"encoding/json"
-	"github.com/pkg/errors"
+	"fmt"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
 )
 
 func (val *metadataRoot) IsSet() bool {
