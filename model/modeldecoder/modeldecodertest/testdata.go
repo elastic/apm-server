@@ -29,7 +29,8 @@ import (
 )
 
 // DecodeData decodes input from the io.Reader into the given output
-// it skips the metadata line if eventType is not set to metadata
+// it skips events with a different type than the given eventType
+// and decodes the first matching event type
 func DecodeData(t *testing.T, r io.Reader, eventType string, out interface{}) {
 	dec := newNDJSONStreamDecoder(r, 300*1024)
 	var et string
