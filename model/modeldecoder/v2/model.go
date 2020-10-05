@@ -172,19 +172,19 @@ type errorEvent struct {
 	TraceID       nullable.String         `json:"trace_id" validate:"requiredIfAny=transaction_id;parent_id,max=1024"`
 	Transaction   errorTransactionRef     `json:"transaction"`
 	TransactionID nullable.String         `json:"transaction_id" validate:"max=1024"`
-	requiredOneOf []string                `validate:"requiredOneOf=exception;log"`
+	_             struct{}                `validate:"requiredOneOf=exception;log"`
 }
 
 type errorException struct {
-	Attributes    common.MapStr      `json:"attributes"`
-	Code          nullable.Interface `json:"code" validate:"types=string;int,max=1024"`
-	Cause         []errorException   `json:"cause"`
-	Handled       nullable.Bool      `json:"handled"`
-	Message       nullable.String    `json:"message"`
-	Module        nullable.String    `json:"module" validate:"max=1024"`
-	Stacktrace    []stacktraceFrame  `json:"stacktrace"`
-	Type          nullable.String    `json:"type" validate:"max=1024"`
-	requiredOneOf []string           `validate:"requiredOneOf=message;type"`
+	Attributes common.MapStr      `json:"attributes"`
+	Code       nullable.Interface `json:"code" validate:"types=string;int,max=1024"`
+	Cause      []errorException   `json:"cause"`
+	Handled    nullable.Bool      `json:"handled"`
+	Message    nullable.String    `json:"message"`
+	Module     nullable.String    `json:"module" validate:"max=1024"`
+	Stacktrace []stacktraceFrame  `json:"stacktrace"`
+	Type       nullable.String    `json:"type" validate:"max=1024"`
+	_          struct{}           `validate:"requiredOneOf=message;type"`
 }
 
 type errorLog struct {
@@ -332,7 +332,7 @@ type span struct {
 	TraceID       nullable.String         `json:"trace_id" validate:"required,max=1024"`
 	TransactionID nullable.String         `json:"transaction_id" validate:"max=1024"`
 	Type          nullable.String         `json:"type" validate:"required,max=1024"`
-	requiredOneOf []string                `validate:"requiredOneOf=start;timestamp"`
+	_             struct{}                `validate:"requiredOneOf=start;timestamp"`
 }
 
 type spanContext struct {
@@ -381,19 +381,19 @@ type spanContextHTTPResponse struct {
 }
 
 type stacktraceFrame struct {
-	AbsPath       nullable.String `json:"abs_path"`
-	Classname     nullable.String `json:"classname"`
-	ColumnNumber  nullable.Int    `json:"colno"`
-	ContextLine   nullable.String `json:"context_line"`
-	Filename      nullable.String `json:"filename"`
-	Function      nullable.String `json:"function"`
-	LibraryFrame  nullable.Bool   `json:"library_frame"`
-	LineNumber    nullable.Int    `json:"lineno"`
-	Module        nullable.String `json:"module"`
-	PostContext   []string        `json:"post_context"`
-	PreContext    []string        `json:"pre_context"`
-	Vars          common.MapStr   `json:"vars"`
-	requiredOneOf []string        `validate:"requiredOneOf=classname;filename"`
+	AbsPath      nullable.String `json:"abs_path"`
+	Classname    nullable.String `json:"classname"`
+	ColumnNumber nullable.Int    `json:"colno"`
+	ContextLine  nullable.String `json:"context_line"`
+	Filename     nullable.String `json:"filename"`
+	Function     nullable.String `json:"function"`
+	LibraryFrame nullable.Bool   `json:"library_frame"`
+	LineNumber   nullable.Int    `json:"lineno"`
+	Module       nullable.String `json:"module"`
+	PostContext  []string        `json:"post_context"`
+	PreContext   []string        `json:"pre_context"`
+	Vars         common.MapStr   `json:"vars"`
+	_            struct{}        `validate:"requiredOneOf=classname;filename"`
 }
 
 type transaction struct {

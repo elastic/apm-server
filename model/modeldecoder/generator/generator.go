@@ -264,6 +264,8 @@ val.%s.Reset()
 	return nil
 }
 
+// generateValidation creates `validate` methods for struct fields
+// it only considers exported and anonymous fields
 func (g *Generator) generateValidation(structTyp structType, key string) error {
 	fmt.Fprintf(&g.buf, `
 func (val *%s) validate() error {
@@ -285,8 +287,14 @@ if !val.IsSet() {
 
 	var validation validationGenerator
 	for i := 0; i < len(structTyp.fields); i++ {
-		var custom bool
 		f := structTyp.fields[i]
+		// according to https://golang.org/pkg/go/types/#Var.Anonymous
+		// f.Anonymous() actually checks if f is embedded, not anonymous,
+		// so we need to do a name check instead
+		if !f.Exported() && f.Name() != "_" {
+			continue
+		}
+		var custom bool
 		switch f.Type() {
 		case g.nullableString:
 			validation = generateNullableStringValidation

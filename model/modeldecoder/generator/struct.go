@@ -22,7 +22,7 @@ import (
 	"io"
 )
 
-func generateStructValidation(w io.Writer, _ []structField, f structField, isCustomStruct bool) error {
+func generateStructValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	// if field is a custom struct, call its validation function
 	if isCustomStruct {
 		fmt.Fprintf(w, `
@@ -43,6 +43,8 @@ func generateStructValidation(w io.Writer, _ []structField, f structField, isCus
 		switch rule.name {
 		case tagRequired:
 			ruleNullableRequired(w, f)
+		case tagRequiredOneOf:
+			ruleRequiredOneOf(w, fields, rule.value)
 		default:
 			return fmt.Errorf("unhandled tag rule '%s'", rule)
 		}
