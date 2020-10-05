@@ -261,7 +261,7 @@ func TestTransactionValidationRules(t *testing.T) {
 		for _, tc := range []testcase{
 			{name: "request-body-string", data: `"body":"value"`},
 			{name: "request-body-object", data: `"body":{"a":"b"}`},
-			{name: "request-body-array", errorKey: "transaction.context.request.body", data: `"body":[1,2]`},
+			{name: "request-body-array", errorKey: "types(string;map[string]interface)", data: `"body":[1,2]`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				tc.data = `{"request":{"method":"get",` + tc.data + `}}`
@@ -379,7 +379,9 @@ func TestTransactionValidationRules(t *testing.T) {
 			err := event.validate()
 			if _, ok := requiredKeys[key]; ok {
 				require.Error(t, err, key)
-				assert.Contains(t, err.Error(), key)
+				for _, part := range strings.Split(key, ".") {
+					assert.Contains(t, err.Error(), part)
+				}
 			} else {
 				assert.NoError(t, err, key)
 			}
