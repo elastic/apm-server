@@ -27,12 +27,40 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/apm-server/utility"
 )
+
+// DecodeError represents an error due to JSON decoding.
+type DecodeError struct {
+	err error
+}
+
+func (e DecodeError) Error() string {
+	return errors.Wrap(e.err, "decode error").Error()
+}
+
+func (e *DecodeError) Unwrap() error {
+	return e.err
+}
+
+// ValidationError represents an error due to JSON validation.
+type ValidationError struct {
+	err error
+}
+
+func (e ValidationError) Error() string {
+	return errors.Wrap(e.err, "validation error").Error()
+}
+
+func (e *ValidationError) Unwrap() error {
+	return e.err
+}
 
 var (
 	errorRootPool = sync.Pool{
@@ -122,12 +150,12 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 	defer releaseErrorRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return fmt.Errorf("decode error %w", err)
+		return DecodeError{err}
 	}
 	if err := root.validate(); err != nil {
-		return fmt.Errorf("validation error %w", err)
+		return ValidationError{err}
 	}
-	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -141,12 +169,12 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, out *model.S
 	defer releaseSpanRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return fmt.Errorf("decode error %w", err)
+		return DecodeError{err}
 	}
 	if err := root.validate(); err != nil {
-		return fmt.Errorf("validation error %w", err)
+		return ValidationError{err}
 	}
-	mapToSpanModel(&root.Span, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	mapToSpanModel(&root.Span, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -160,12 +188,12 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	defer releaseTransactionRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return fmt.Errorf("decode error %w", err)
+		return DecodeError{err}
 	}
 	if err := root.validate(); err != nil {
-		return fmt.Errorf("validation error %w", err)
+		return ValidationError{err}
 	}
-	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -174,10 +202,10 @@ func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d deco
 	defer releaseMetadataRoot(m)
 	var err error
 	if err = decFn(d, m); err != nil && err != io.EOF {
-		return fmt.Errorf("decode error %w", err)
+		return DecodeError{err}
 	}
 	if err := m.validate(); err != nil {
-		return fmt.Errorf("validation error %w", err)
+		return ValidationError{err}
 	}
 	mapToMetadataModel(&m.Metadata, out)
 	return err
@@ -207,7 +235,7 @@ func mapToClientModel(from contextRequest, out *model.Metadata) {
 	}
 }
 
-func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Error) {
+func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Error) {
 	// set metadata information
 	out.Metadata = *metadata
 	if from == nil {
@@ -222,6 +250,9 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	// map errorEvent specific data
 
 	if from.Context.IsSet() {
+		if config.Experimental && from.Context.Experimental.IsSet() {
+			out.Experimental = from.Context.Experimental.Val
+		}
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
 			labels := model.Labels(from.Context.Tags.Clone())
@@ -312,10 +343,6 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
 	}
-	if experimental {
-		out.Experimental = from.Experimental.Val
-	}
-	out.RUM = false
 }
 
 func mapToExceptionModel(from errorException, out *model.Exception) {
@@ -397,7 +424,8 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 
 	// Process
 	if len(from.Process.Argv) > 0 {
-		out.Process.Argv = from.Process.Argv
+		out.Process.Argv = make([]string, len(from.Process.Argv))
+		copy(out.Process.Argv, from.Process.Argv)
 	}
 	if from.Process.Pid.IsSet() {
 		out.Process.Pid = from.Process.Pid.Val
@@ -644,7 +672,7 @@ func mapToServiceModel(from contextService, out *model.Service) {
 	}
 }
 
-func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Span) {
+func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Span) {
 	// set metadata information for span
 	out.Metadata = *metadata
 	if from == nil {
@@ -676,7 +704,8 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, exp
 		}
 	}
 	if len(from.ChildIDs) > 0 {
-		out.ChildIDs = from.ChildIDs
+		out.ChildIDs = make([]string, len(from.ChildIDs))
+		copy(out.ChildIDs, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
 		db := model.DB{}
@@ -733,6 +762,9 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, exp
 			service.Type = &val
 		}
 		out.DestinationService = &service
+	}
+	if config.Experimental && from.Context.Experimental.IsSet() {
+		out.Experimental = from.Context.Experimental.Val
 	}
 	if from.Context.HTTP.IsSet() {
 		http := model.HTTP{}
@@ -802,9 +834,6 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, exp
 	if from.Duration.IsSet() {
 		out.Duration = from.Duration.Val
 	}
-	if experimental {
-		out.Experimental = from.Experimental.Val
-	}
 	if from.ID.IsSet() {
 		out.ID = from.ID.Val
 	}
@@ -859,7 +888,6 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, exp
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
 	}
-	out.RUM = false
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -914,7 +942,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 	}
 }
 
-func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Transaction) {
+func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Transaction) {
 	// set metadata information
 	out.Metadata = *metadata
 	if from == nil {
@@ -932,6 +960,9 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 		if len(from.Context.Custom) > 0 {
 			custom := model.Custom(from.Context.Custom.Clone())
 			out.Custom = &custom
+		}
+		if config.Experimental && from.Context.Experimental.IsSet() {
+			out.Experimental = from.Context.Experimental.Val
 		}
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
@@ -1017,17 +1048,18 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 	if from.Result.IsSet() {
 		out.Result = from.Result.Val
 	}
-
 	sampled := true
 	if from.Sampled.IsSet() {
 		sampled = from.Sampled.Val
 	}
 	out.Sampled = &sampled
-
-	// TODO(simitt): set accordingly, once this is fixed:
-	// https://github.com/elastic/apm-server/issues/4188
-	// if t.SampleRate.IsSet() {}
-
+	if from.SampleRate.IsSet() {
+		if from.SampleRate.Val > 0 {
+			out.RepresentativeCount = 1 / from.SampleRate.Val
+		}
+	} else {
+		out.RepresentativeCount = 1
+	}
 	if from.SpanCount.Dropped.IsSet() {
 		dropped := from.SpanCount.Dropped.Val
 		out.SpanCount.Dropped = &dropped
@@ -1071,9 +1103,6 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 				Max:   from.UserExperience.Longtask.Max.Val,
 			}
 		}
-	}
-	if experimental {
-		out.Experimental = from.Experimental.Val
 	}
 }
 
