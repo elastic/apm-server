@@ -235,18 +235,14 @@ func (p *Processor) readBatch(
 				if handleDecodeErr(p.decodeError(reader, &input, &event), reader, response) {
 					continue
 				}
-				if p.isRUM {
-					event.RUM = true
-				}
+				event.RUM = p.isRUM
 				batch.Errors = append(batch.Errors, &event)
 			case "span":
 				var event model.Span
 				if handleDecodeErr(p.decodeSpan(reader, &input, &event), reader, response) {
 					continue
 				}
-				if p.isRUM {
-					event.RUM = true
-				}
+				event.RUM = p.isRUM
 				batch.Spans = append(batch.Spans, &event)
 			case "transaction":
 				var event model.Transaction
