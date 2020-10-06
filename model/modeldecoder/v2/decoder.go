@@ -424,7 +424,8 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 
 	// Process
 	if len(from.Process.Argv) > 0 {
-		out.Process.Argv = from.Process.Argv
+		out.Process.Argv = make([]string, len(from.Process.Argv))
+		copy(out.Process.Argv, from.Process.Argv)
 	}
 	if from.Process.Pid.IsSet() {
 		out.Process.Pid = from.Process.Pid.Val
@@ -703,7 +704,8 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 		}
 	}
 	if len(from.ChildIDs) > 0 {
-		out.ChildIDs = from.ChildIDs
+		out.ChildIDs = make([]string, len(from.ChildIDs))
+		copy(out.ChildIDs, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
 		db := model.DB{}
