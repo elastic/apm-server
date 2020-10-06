@@ -19,6 +19,7 @@ package modeldecodertest
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"testing"
@@ -32,7 +33,7 @@ import (
 // it skips events with a different type than the given eventType
 // and decodes the first matching event type
 func DecodeData(t *testing.T, r io.Reader, eventType string, out interface{}) {
-	dec := newNDJSONStreamDecoder(r, 300*1024)
+	dec := decoder.NewNDJSONStreamDecoder(r, 300*1024)
 	var et string
 	var err error
 	for et != eventType {
@@ -40,7 +41,7 @@ func DecodeData(t *testing.T, r io.Reader, eventType string, out interface{}) {
 		require.NoError(t, err)
 	}
 	// decode data
-	require.NoError(t, dec.decode(&out))
+	require.NoError(t, dec.Decode(&out))
 }
 
 // DecodeDataWithReplacement decodes input from the io.Reader and replaces data for the
@@ -64,11 +65,11 @@ func DecodeDataWithReplacement(t *testing.T, r io.Reader, eventType string, newD
 	// unmarshal data into  struct
 	b, err := json.Marshal(data[eventType])
 	require.NoError(t, err)
-	require.NoError(t, decoder.NewJSONIteratorDecoder(bytes.NewReader(b)).Decode(out))
+	require.NoError(t, decoder.NewJSONDecoder(bytes.NewReader(b)).Decode(out))
 }
 
-func readEventType(d *ndjsonStreamDecoder) (string, error) {
-	body, err := d.readAhead()
+func readEventType(d *decoder.NDJSONStreamDecoder) (string, error) {
+	body, err := d.ReadAhead()
 	if err != nil && err != io.EOF {
 		return "", err
 	}

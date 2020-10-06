@@ -333,7 +333,7 @@ class ExperimentalBaseTest(ElasticTest):
             # check whether or not top level key `experimental` has been indexed
             rs = self.es.search(index=idx, body={"query": {"exists": {"field": 'experimental'}}})
             ct = 1 if experimental else 0
-            assert rs['hits']['total']['value'] == ct
+            assert rs['hits']['total']['value'] == ct, idx
 
 
 @integration_test

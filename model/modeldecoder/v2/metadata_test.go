@@ -34,7 +34,7 @@ import (
 func TestResetMetadataOnRelease(t *testing.T) {
 	inp := `{"metadata":{"service":{"name":"service-a"}}}`
 	m := fetchMetadataRoot()
-	require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(m))
+	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(m))
 	require.True(t, m.IsSet())
 	releaseMetadataRoot(m)
 	assert.False(t, m.IsSet())
@@ -53,13 +53,13 @@ func TestDecodeMetadata(t *testing.T) {
 	} {
 		t.Run("decode", func(t *testing.T) {
 			var out model.Metadata
-			dec := decoder.NewJSONIteratorDecoder(strings.NewReader(tc.input))
+			dec := decoder.NewJSONDecoder(strings.NewReader(tc.input))
 			require.NoError(t, tc.decodeFn(dec, &out))
 			assert.Equal(t, model.Metadata{Service: model.Service{
 				Name:  "user-service",
 				Agent: model.Agent{Name: "go", Version: "1.0.0"}}}, out)
 
-			err := tc.decodeFn(decoder.NewJSONIteratorDecoder(strings.NewReader(`malformed`)), &out)
+			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "decode")
 		})
@@ -67,7 +67,7 @@ func TestDecodeMetadata(t *testing.T) {
 		t.Run("validate", func(t *testing.T) {
 			inp := `{}`
 			var out model.Metadata
-			err := tc.decodeFn(decoder.NewJSONIteratorDecoder(strings.NewReader(inp)), &out)
+			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(inp)), &out)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "validation")
 		})

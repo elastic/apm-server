@@ -32,10 +32,9 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/modeldecoder"
+	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/validation"
 )
 
 var (
@@ -104,26 +103,19 @@ func Handler(report publish.Reporter) request.Handler {
 					}
 				}
 				r := &decoder.LimitedReader{R: part, N: metadataContentLengthLimit}
-				raw, err := decoder.DecodeJSONData(r)
-				if err != nil {
+				dec := decoder.NewJSONDecoder(r)
+				metadata := model.Metadata{
+					UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
+					Client:    model.Client{IP: c.RequestMetadata.ClientIP},
+					System:    model.System{IP: c.RequestMetadata.SystemIP}}
+				if err := v2.DecodeMetadata(dec, &metadata); err != nil {
 					if r.N < 0 {
 						return nil, requestError{
 							id:  request.IDResponseErrorsRequestTooLarge,
 							err: err,
 						}
 					}
-					return nil, requestError{
-						id:  request.IDResponseErrorsDecode,
-						err: errors.Wrap(err, "failed to decode metadata JSON"),
-					}
-				}
-				metadata := model.Metadata{
-					UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
-					Client:    model.Client{IP: c.RequestMetadata.ClientIP},
-					System:    model.System{IP: c.RequestMetadata.SystemIP}}
-				if err := modeldecoder.DecodeMetadata(raw, false, &metadata); err != nil {
-					var ve *validation.Error
-					if errors.As(err, &ve) {
+					if _, ok := err.(v2.ValidationError); ok {
 						return nil, requestError{
 							id:  request.IDResponseErrorsValidate,
 							err: errors.Wrap(err, "invalid metadata"),
@@ -131,7 +123,7 @@ func Handler(report publish.Reporter) request.Handler {
 					}
 					return nil, requestError{
 						id:  request.IDResponseErrorsDecode,
-						err: errors.Wrap(err, "failed to decode metadata"),
+						err: errors.Wrap(err, "invalid metadata"),
 					}
 				}
 				profileMetadata = metadata

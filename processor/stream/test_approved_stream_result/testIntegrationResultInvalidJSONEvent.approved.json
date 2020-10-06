@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{ \"invalid-json\" }",
-            "message": "data read error: invalid character '}' after object key"
+            "message": "invalid-json: did not recognize object type"
         }
     ]
 }
