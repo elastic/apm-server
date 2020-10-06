@@ -239,7 +239,7 @@ func TestReset(t *testing.T) {
 		expected := []metadataProcess{
 			{Argv: []string{"a", "b"}},
 			{Argv: []string{"c"}},
-			{Argv: []string{}}}
+			{Argv: nil}}
 		for i := 0; i < len(inputs); i++ {
 			out.Reset()
 			decode(t, inputs[i], &out)
@@ -266,8 +266,8 @@ func TestReset(t *testing.T) {
 				Cause: []errorException{
 					{Message: addStr("c"), Cause: []errorException{{Type: addStr("a")}}}}},
 				Log: errorLog{Message: addStr("boom"), Stacktrace: []stacktraceFrame{
-					{Filename: addStr("b"), PostContext: []string{}}}}},
-			{Exception: errorException{Cause: []errorException{}}, Log: errorLog{Stacktrace: []stacktraceFrame{}}}}
+					{Filename: addStr("b"), PostContext: nil}}}},
+			{Exception: errorException{Cause: nil}, Log: errorLog{Stacktrace: nil}}}
 		for i := 0; i < len(inputs); i++ {
 			out.Reset()
 			decode(t, inputs[i], &out)

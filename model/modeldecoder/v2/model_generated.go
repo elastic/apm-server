@@ -235,7 +235,7 @@ func (val *metadataProcess) IsSet() bool {
 }
 
 func (val *metadataProcess) Reset() {
-	val.Argv = val.Argv[:0]
+	val.Argv = nil
 	val.Pid.Reset()
 	val.Ppid.Reset()
 	val.Title.Reset()
@@ -1378,17 +1378,11 @@ func (val *errorException) Reset() {
 		delete(val.Attributes, k)
 	}
 	val.Code.Reset()
-	for i := range val.Cause {
-		val.Cause[i].Reset()
-	}
-	val.Cause = val.Cause[:0]
+	val.Cause = nil
 	val.Handled.Reset()
 	val.Message.Reset()
 	val.Module.Reset()
-	for i := range val.Stacktrace {
-		val.Stacktrace[i].Reset()
-	}
-	val.Stacktrace = val.Stacktrace[:0]
+	val.Stacktrace = nil
 	val.Type.Reset()
 }
 
@@ -1446,8 +1440,8 @@ func (val *stacktraceFrame) Reset() {
 	val.LibraryFrame.Reset()
 	val.LineNumber.Reset()
 	val.Module.Reset()
-	val.PostContext = val.PostContext[:0]
-	val.PreContext = val.PreContext[:0]
+	val.PostContext = nil
+	val.PreContext = nil
 	for k := range val.Vars {
 		delete(val.Vars, k)
 	}
@@ -1472,10 +1466,7 @@ func (val *errorLog) Reset() {
 	val.LoggerName.Reset()
 	val.Message.Reset()
 	val.ParamMessage.Reset()
-	for i := range val.Stacktrace {
-		val.Stacktrace[i].Reset()
-	}
-	val.Stacktrace = val.Stacktrace[:0]
+	val.Stacktrace = nil
 }
 
 func (val *errorLog) validate() error {
@@ -1545,7 +1536,7 @@ func (val *span) IsSet() bool {
 
 func (val *span) Reset() {
 	val.Action.Reset()
-	val.ChildIDs = val.ChildIDs[:0]
+	val.ChildIDs = nil
 	val.Context.Reset()
 	val.Duration.Reset()
 	val.ID.Reset()
@@ -1553,10 +1544,7 @@ func (val *span) Reset() {
 	val.Outcome.Reset()
 	val.ParentID.Reset()
 	val.SampleRate.Reset()
-	for i := range val.Stacktrace {
-		val.Stacktrace[i].Reset()
-	}
-	val.Stacktrace = val.Stacktrace[:0]
+	val.Stacktrace = nil
 	val.Start.Reset()
 	val.Subtype.Reset()
 	val.Sync.Reset()

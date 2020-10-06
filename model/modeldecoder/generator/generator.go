@@ -222,23 +222,9 @@ func (val *%s) Reset() {
 		}
 		switch t := f.Type().Underlying().(type) {
 		case *types.Slice:
-			// the slice len is set to zero, not returning the underlying
-			// memory to the garbage collector; when the size of slices differs
-			// this potentially leads to keeping more memory allocated than required;
-
-			// if slice type is a model struct,
-			// call its Reset() function
-			if _, ok := g.customStruct(t.Elem()); ok {
-				fmt.Fprintf(&g.buf, `
-for i := range val.%s{
-	val.%s[i].Reset()
-}
-`[1:], f.Name(), f.Name())
-			}
-			// then reset size of slice to 0
 			fmt.Fprintf(&g.buf, `
-val.%s = val.%s[:0]
-`[1:], f.Name(), f.Name())
+val.%s = nil
+`[1:], f.Name())
 
 		case *types.Map:
 			// the map is cleared, not returning the underlying memory to
