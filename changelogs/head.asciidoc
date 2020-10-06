@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
 
 [float]
 ==== Intake API Changes
+* Changed error messages for invalid events due to internal changes of decoder logic {pull}4261[4261]
 
 [float]
 ==== Added

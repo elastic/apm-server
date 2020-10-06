@@ -20,7 +20,6 @@ package decoder
 import (
 	"compress/gzip"
 	"compress/zlib"
-	"encoding/json"
 	"io"
 	"net/http"
 
@@ -84,19 +83,4 @@ func CompressedRequestReader(req *http.Request) (io.ReadCloser, error) {
 	}
 	readerCounter.Inc()
 	return reader, nil
-}
-
-func DecodeJSONData(reader io.Reader) (map[string]interface{}, error) {
-	v := make(map[string]interface{})
-	d := NewJSONDecoder(reader)
-	if err := d.Decode(&v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-func NewJSONDecoder(r io.Reader) *json.Decoder {
-	d := json.NewDecoder(r)
-	d.UseNumber()
-	return d
 }

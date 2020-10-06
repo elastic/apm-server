@@ -101,7 +101,6 @@ func transactionRequiredKeys() *tests.Set {
 		"transaction.duration",
 		"transaction.type",
 		"transaction.context.request.method",
-		"transaction.context.request.url",
 		"transaction.experience.longtask.count",
 		"transaction.experience.longtask.sum",
 		"transaction.experience.longtask.max",
@@ -172,22 +171,23 @@ func TestPayloadDataForTransaction(t *testing.T) {
 		[]tests.SchemaTestData{
 			{Key: "transaction.duration",
 				Valid:   []interface{}{12.4},
-				Invalid: []tests.Invalid{{Msg: `duration/type`, Values: val{"123"}}}},
+				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{"123"}}}},
 			{Key: "transaction.timestamp",
 				Valid: val{json.Number("1496170422281000")},
 				Invalid: []tests.Invalid{
-					{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
+					{Msg: `decode error`, Values: val{"1496170422281000"}}}},
 			{Key: "transaction.marks",
 				Valid: []interface{}{obj{}, obj{tests.Str1024: obj{tests.Str1024: 21.0, "end": -45}}},
 				Invalid: []tests.Invalid{
-					{Msg: `marks/type`, Values: val{"marks"}},
-					{Msg: `marks/patternproperties`, Values: val{
+					{Msg: `decode error`, Values: val{
+						"marks",
 						obj{"timing": obj{"start": "start"}},
 						obj{"timing": obj{"start": obj{}}},
+					}},
+					{Msg: `validation error`, Values: val{
 						obj{"timing": obj{"m*e": -45}},
 						obj{"timing": obj{"m\"": -45}},
-						obj{"timing": obj{"m.": -45}}}},
-					{Msg: `marks/additionalproperties`, Values: val{
+						obj{"timing": obj{"m.": -45}},
 						obj{"tim*ing": obj{"start": -45}},
 						obj{"tim\"ing": obj{"start": -45}},
 						obj{"tim.ing": obj{"start": -45}}}}}},
@@ -195,37 +195,40 @@ func TestPayloadDataForTransaction(t *testing.T) {
 				Valid: val{obj{"whatever": obj{"comes": obj{"end": -45}}},
 					obj{"whatever": 123}},
 				Invalid: []tests.Invalid{
-					{Msg: `context/properties/custom/additionalproperties`, Values: val{obj{"what.ever": 123}, obj{"what*ever": 123}, obj{"what\"ever": 123}}},
-					{Msg: `context/properties/custom/type`, Values: val{"context"}}}},
+					{Msg: `validation error`, Values: val{obj{"what.ever": 123}, obj{"what*ever": 123}, obj{"what\"ever": 123}}},
+					{Msg: `decode error`, Values: val{"context"}}}},
 			{Key: "transaction.context.request.body",
 				Valid:   []interface{}{obj{}, tests.Str1025},
-				Invalid: []tests.Invalid{{Msg: `context/properties/request/properties/body/type`, Values: val{102}}}},
+				Invalid: []tests.Invalid{{Msg: `validation error`, Values: val{102}}}},
 			{Key: "transaction.context.request.headers", Valid: val{
 				obj{"User-Agent": "go-1.1"},
 				obj{"foo-bar": "a,b"},
 				obj{"foo": []interface{}{"a", "b"}}},
-				Invalid: []tests.Invalid{{Msg: `properties/headers`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
+				Invalid: []tests.Invalid{
+					{Msg: `decode error`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
 			{Key: "transaction.context.request.env",
 				Valid:   []interface{}{obj{}},
-				Invalid: []tests.Invalid{{Msg: `context/properties/request/properties/env/type`, Values: val{102, "a"}}}},
+				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{102, "a"}}}},
 			{Key: "transaction.context.request.cookies",
 				Valid:   []interface{}{obj{}},
-				Invalid: []tests.Invalid{{Msg: `context/properties/request/properties/cookies/type`, Values: val{123, ""}}}},
+				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{123, ""}}}},
 			{Key: "transaction.context.response.headers", Valid: val{
 				obj{"User-Agent": "go-1.1"},
 				obj{"foo-bar": "a,b"},
 				obj{"foo": []interface{}{"a", "b"}}},
-				Invalid: []tests.Invalid{{Msg: `properties/headers`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
+				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
 			{Key: "transaction.context.tags",
 				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 				Invalid: []tests.Invalid{
-					{Msg: `tags/type`, Values: val{"tags"}},
-					{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
-					{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
+					{Msg: `decode error`, Values: val{"tags"}},
+					{Msg: `validation error`, Values: val{
+						obj{"invalid": tests.Str1025},
+						obj{tests.Str1024: obj{}},
+						obj{"invali*d": "hello"},
+						obj{"invali\"d": "hello"},
+						obj{"invali.d": "hello"}}}}},
 			{Key: "transaction.context.user.id",
-				Valid: val{123, tests.Str1024Special},
-				Invalid: []tests.Invalid{
-					{Msg: `context/properties/user/properties/id/type`, Values: val{obj{}}},
-					{Msg: `context/properties/user/properties/id/maxlength`, Values: val{tests.Str1025}}}},
+				Valid:   val{123, tests.Str1024Special},
+				Invalid: []tests.Invalid{{Msg: `validation error`, Values: val{obj{}, tests.Str1025}}}},
 		})
 }

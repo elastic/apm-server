@@ -20,8 +20,9 @@ package decoder
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"io"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // NewNDJSONStreamDecoder returns a new NDJSONStreamDecoder which decodes
@@ -40,9 +41,10 @@ type NDJSONStreamDecoder struct {
 	lineReader  *LineReader
 
 	isEOF            bool
+	latestError      error
 	latestLine       []byte
 	latestLineReader bytes.Reader
-	decoder          *json.Decoder
+	decoder          *jsoniter.Decoder
 }
 
 // Reset sets sr's underlying io.Reader to r, and resets any reading/decoding state.
@@ -51,33 +53,44 @@ func (dec *NDJSONStreamDecoder) Reset(r io.Reader) {
 	dec.lineReader.Reset(dec.bufioReader)
 	dec.isEOF = false
 	dec.latestLine = nil
-	dec.latestLineReader.Reset(nil)
+	dec.resetLatestLineReader()
 }
 
 func (dec *NDJSONStreamDecoder) resetDecoder() {
-	dec.decoder = NewJSONDecoder(&dec.latestLineReader)
+	dec.decoder = json.NewDecoder(&dec.latestLineReader)
+	dec.decoder.UseNumber()
 }
 
 // Decode decodes the next line into v.
 func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
-	buf, readErr := dec.readLine()
-	if len(buf) == 0 || (readErr != nil && !dec.isEOF) {
-		return readErr
+	defer dec.resetLatestLineReader()
+	if dec.latestLineReader.Size() == 0 {
+		dec.ReadAhead()
+	}
+	if len(dec.latestLine) == 0 || (dec.latestError != nil && !dec.isEOF) {
+		return dec.latestError
 	}
 	if err := dec.decoder.Decode(v); err != nil {
 		dec.resetDecoder() // clear out decoding state
 		return JSONDecodeError("data read error: " + err.Error())
 	}
-	return readErr // this might be io.EOF
+	return dec.latestError // this might be io.EOF
 }
 
-func (dec *NDJSONStreamDecoder) readLine() ([]byte, error) {
+// ReadAhead reads the next NDJSON line, buffering it for a subsequent call to Decode.
+func (dec *NDJSONStreamDecoder) ReadAhead() ([]byte, error) {
 	// readLine can return valid data in `buf` _and_ also an io.EOF
 	line, readErr := dec.lineReader.ReadLine()
 	dec.latestLine = line
 	dec.latestLineReader.Reset(dec.latestLine)
+	dec.latestError = readErr
 	dec.isEOF = readErr == io.EOF
 	return line, readErr
+}
+
+func (dec *NDJSONStreamDecoder) resetLatestLineReader() {
+	dec.latestLineReader.Reset(nil)
+	dec.latestError = nil
 }
 
 // IsEOF signals whether the underlying reader reached the end
