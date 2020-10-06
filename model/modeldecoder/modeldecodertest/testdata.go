@@ -19,7 +19,7 @@ package modeldecodertest
 
 import (
 	"bytes"
-	"encoding/json"
+	"errors"
 	"io"
 	"testing"
 
@@ -29,31 +29,53 @@ import (
 )
 
 // DecodeData decodes input from the io.Reader into the given output
-// it skips the metadata line if eventType is not set to metadata
+// it skips events with a different type than the given eventType
+// and decodes the first matching event type
 func DecodeData(t *testing.T, r io.Reader, eventType string, out interface{}) {
-	dec := decoder.NewJSONIteratorDecoder(r)
-	// skip first line (metadata) for all events but metadata
-	if eventType != "metadata" && eventType != "m" {
-		var data interface{}
-		require.NoError(t, dec.Decode(&data))
+	dec := newNDJSONStreamDecoder(r, 300*1024)
+	var et string
+	var err error
+	for et != eventType {
+		et, err = readEventType(dec)
+		require.NoError(t, err)
 	}
 	// decode data
-	require.NoError(t, dec.Decode(&out))
+	require.NoError(t, dec.decode(&out))
 }
 
 // DecodeDataWithReplacement decodes input from the io.Reader and replaces data for the
 // given key with the provided newData before decoding into the output
-func DecodeDataWithReplacement(t *testing.T, r io.Reader, eventType string, key string, newData string, out interface{}) {
+func DecodeDataWithReplacement(t *testing.T, r io.Reader, eventType string, newData string, out interface{}, keys ...string) {
 	var data map[string]interface{}
 	DecodeData(t, r, eventType, &data)
 	// replace data for given key with newData
-	eventData := data[eventType].(map[string]interface{})
+	d := data[eventType].(map[string]interface{})
+	for i := 0; i < len(keys)-1; i++ {
+		key := keys[i]
+		if _, ok := d[key]; !ok {
+			d[key] = map[string]interface{}{}
+		}
+		d = d[key].(map[string]interface{})
+	}
 	var keyData interface{}
 	require.NoError(t, json.Unmarshal([]byte(newData), &keyData))
-	eventData[key] = keyData
+	d[keys[len(keys)-1]] = keyData
 
 	// unmarshal data into  struct
-	b, err := json.Marshal(eventData)
+	b, err := json.Marshal(data[eventType])
 	require.NoError(t, err)
 	require.NoError(t, decoder.NewJSONIteratorDecoder(bytes.NewReader(b)).Decode(out))
+}
+
+func readEventType(d *ndjsonStreamDecoder) (string, error) {
+	body, err := d.readAhead()
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+	body = bytes.TrimLeft(body, `{ "`)
+	end := bytes.Index(body, []byte(`"`))
+	if end == -1 {
+		return "", errors.New("invalid input: " + string(body))
+	}
+	return string(body[0:end]), nil
 }

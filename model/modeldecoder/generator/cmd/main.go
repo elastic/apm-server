@@ -19,10 +19,11 @@ package main
 
 import (
 	"bytes"
-	"go/format"
 	"os"
 	"path"
 	"path/filepath"
+
+	"golang.org/x/tools/imports"
 
 	"github.com/elastic/apm-server/model/modeldecoder/generator"
 )
@@ -46,7 +47,7 @@ func main() {
 }
 
 func genV2() {
-	rootObjs := []string{"metadataRoot", "transactionRoot"}
+	rootObjs := []string{"metadataRoot", "transactionRoot", "errorRoot", "spanRoot"}
 	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
 	if err != nil {
@@ -74,7 +75,7 @@ func generate(g gen, p string) {
 	if err != nil {
 		panic(err)
 	}
-	fmtd, err := format.Source(b.Bytes())
+	processed, err := imports.Process(p, b.Bytes(), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -82,7 +83,7 @@ func generate(g gen, p string) {
 	if err != nil {
 		panic(err)
 	}
-	if _, err := f.Write(fmtd); err != nil {
+	if _, err := f.Write(processed); err != nil {
 		panic(err)
 	}
 }

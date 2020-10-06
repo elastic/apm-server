@@ -19,7 +19,7 @@ This section discusses the changes that you need to be aware of when migrating y
 * <<breaking-6.5.0>>
 * <<breaking-6.4.0>>
 
-Also see <<apm-release-notes>>.
+Also see <<whats-new>>.
 
 //NOTE: The notable-breaking-changes tagged regions are re-used in the
 //Installation and Upgrade Guide
