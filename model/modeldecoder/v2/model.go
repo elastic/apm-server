@@ -93,9 +93,9 @@ type contextRequest struct {
 	HTTPVersion nullable.String      `json:"http_version" validate:"max=1024"`
 	Method      nullable.String      `json:"method" validate:"required,max=1024"`
 	Socket      contextRequestSocket `json:"socket"`
-	//TODO(simitt): context.request.url is currently required,
-	//              but none of its attributes is required, which could lead to
-	//              an empty URL struct - no difference to making it optional
+	// context.request.url was required in json schema,
+	// but none of its attributes is required, which could lead to
+	// an empty URL struct - no difference to making it optional
 	URL contextRequestURL `json:"url"`
 }
 

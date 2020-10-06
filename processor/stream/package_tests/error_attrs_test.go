@@ -102,10 +102,6 @@ func errorRequiredKeys() *tests.Set {
 		"error.exception.stacktrace.filename",
 		"error.log.stacktrace.filename",
 		"error.context.request.method",
-		//TODO(simitt): context.request.url is currently required,
-		//              but none of its attributes is required, which could lead to
-		//              an empty URL struct - no difference to making it optional
-		// "error.context.request.url",
 		"error.trace_id",
 		"error.parent_id",
 	)

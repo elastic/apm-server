@@ -101,10 +101,6 @@ func transactionRequiredKeys() *tests.Set {
 		"transaction.duration",
 		"transaction.type",
 		"transaction.context.request.method",
-		//TODO(simitt): context.request.url is currently required,
-		//              but none of its attributes is required, which could lead to
-		//              an empty URL struct - no difference to making it optional
-		// "transaction.context.request.url",
 		"transaction.experience.longtask.count",
 		"transaction.experience.longtask.sum",
 		"transaction.experience.longtask.max",
