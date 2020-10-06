@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{ \"invalid-json\" }",
-            "message": "did not recognize object type"
+            "message": "invalid-json: did not recognize object type"
         }
     ]
 }

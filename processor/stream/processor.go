@@ -20,7 +20,6 @@ package stream
 import (
 	"bytes"
 	"context"
-	"errors"
 	"io"
 	"sync"
 	"time"
@@ -37,6 +36,7 @@ import (
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -264,7 +264,7 @@ func (p *Processor) readBatch(
 			default:
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
-					Message:  ErrUnrecognizedObject.Error(),
+					Message:  errors.Wrap(ErrUnrecognizedObject, eventType).Error(),
 					Document: string(reader.LatestLine()),
 				})
 				continue
