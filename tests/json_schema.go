@@ -145,7 +145,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, required *Set, condRequire
 		cond := condRequiredKeys[key]
 		ps.changePayload(t, key, nil, cond, deleteFn,
 			func(k string) (bool, []string) {
-				validationErr := "validation error"
+				validationErr := "validation error:"
 				keyParts := strings.Split(key, ".")
 				prefix := " "
 				for i := 0; i < len(keyParts); i++ {

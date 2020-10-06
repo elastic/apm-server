@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{\"not\": \"metadata\"}",
-            "message": "validation error 'metadata' required"
+            "message": "validation error: 'metadata' required"
         }
     ]
 }
