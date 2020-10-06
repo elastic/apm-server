@@ -199,4 +199,24 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "https", *out.Page.URL.Scheme)
 	})
 
+	t.Run("sample-rate", func(t *testing.T) {
+		var input transaction
+		var out model.Transaction
+		modeldecodertest.SetStructValues(&input, "init", 5000, true, time.Now())
+		// sample rate is set to > 0
+		input.SampleRate.Set(0.25)
+		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, 4.0, out.RepresentativeCount)
+		// sample rate is not set -> Representative Count should be 1 by default
+		out.RepresentativeCount = 0.0 //reset to zero value
+		input.SampleRate.Reset()
+		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, 1.0, out.RepresentativeCount)
+		// sample rate is set to 0
+		out.RepresentativeCount = 0.0 //reset to zero value
+		input.SampleRate.Set(0)
+		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, 0.0, out.RepresentativeCount)
+	})
+
 }

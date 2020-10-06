@@ -1046,17 +1046,18 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 	if from.Result.IsSet() {
 		out.Result = from.Result.Val
 	}
-
 	sampled := true
 	if from.Sampled.IsSet() {
 		sampled = from.Sampled.Val
 	}
 	out.Sampled = &sampled
-
-	// TODO(simitt): set accordingly, once this is fixed:
-	// https://github.com/elastic/apm-server/issues/4188
-	// if t.SampleRate.IsSet() {}
-
+	if from.SampleRate.IsSet() {
+		if from.SampleRate.Val > 0 {
+			out.RepresentativeCount = 1 / from.SampleRate.Val
+		}
+	} else {
+		out.RepresentativeCount = 1
+	}
 	if from.SpanCount.Dropped.IsSet() {
 		dropped := from.SpanCount.Dropped.Val
 		out.SpanCount.Dropped = &dropped
