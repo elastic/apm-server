@@ -172,8 +172,8 @@ func TestValidationRules(t *testing.T) {
 			{name: "name-valid-upper", data: `"n":"ABCDEFGHIJKLMNOPQRSTUVWXYZ"`},
 			{name: "name-valid-digits", data: `"n":"0123456789"`},
 			{name: "name-valid-special", data: `"n":"_ -"`},
-			{name: "name-asterisk", errorKey: "se.n", data: `"n":"abc*"`},
-			{name: "name-dot", errorKey: "se.n", data: `"n":"abc."`},
+			{name: "name-asterisk", errorKey: "'pattern(regexpAlphaNumericExt)", data: `"n":"abc*"`},
+			{name: "name-dot", errorKey: "'pattern(regexpAlphaNumericExt)", data: `"n":"abc."`},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				tc.data = `{"a":{"n":"go","ve":"1.0"},` + tc.data + `}`
@@ -234,7 +234,9 @@ func TestValidationRules(t *testing.T) {
 			err := metadata.validate()
 			if _, ok := requiredKeys[key]; ok {
 				require.Error(t, err, key)
-				assert.Contains(t, err.Error(), key)
+				for _, part := range strings.Split(key, ".") {
+					assert.Contains(t, err.Error(), part)
+				}
 			} else {
 				assert.NoError(t, err, key)
 			}

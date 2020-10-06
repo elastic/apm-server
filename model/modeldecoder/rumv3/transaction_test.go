@@ -332,7 +332,9 @@ func TestTransactionValidationRules(t *testing.T) {
 			err := event.validate()
 			if _, ok := requiredKeys[key]; ok {
 				require.Error(t, err, key)
-				assert.Contains(t, err.Error(), key)
+				for _, part := range strings.Split(key, ".") {
+					assert.Contains(t, err.Error(), part)
+				}
 			} else {
 				assert.NoError(t, err, key)
 			}
