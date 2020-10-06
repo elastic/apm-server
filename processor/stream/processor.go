@@ -28,6 +28,8 @@ import (
 
 	"go.elastic.co/apm"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
@@ -36,7 +38,6 @@ import (
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
-	"github.com/pkg/errors"
 )
 
 var (

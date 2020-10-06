@@ -27,12 +27,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/apm-server/utility"
-	"github.com/pkg/errors"
 )
 
 // DecodeError represents an error due to JSON decoding.
