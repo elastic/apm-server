@@ -77,15 +77,7 @@ func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
 	return dec.latestError // this might be io.EOF
 }
 
-// Read reads the next line into v.
-func (dec *NDJSONStreamDecoder) Read() ([]byte, error) {
-	defer dec.resetLatestLineReader()
-	if dec.latestLineReader.Size() == 0 {
-		dec.ReadAhead()
-	}
-	return dec.latestLine, dec.latestError
-}
-
+// ReadAhead reads the next NDJSON line, buffering it for a subsequent call to Decode.
 func (dec *NDJSONStreamDecoder) ReadAhead() ([]byte, error) {
 	// readLine can return valid data in `buf` _and_ also an io.EOF
 	line, readErr := dec.lineReader.ReadLine()

@@ -20,6 +20,7 @@ package decoder
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
@@ -67,8 +68,6 @@ func TestNDStreamReader(t *testing.T) {
 	for idx, test := range expected {
 		t.Run(fmt.Sprintf("%v", idx), func(t *testing.T) {
 			var out map[string]interface{}
-			//ReadAhead doesn't change decoding behavior
-			n.ReadAhead()
 			err := n.Decode(&out)
 			assert.Equal(t, test.out, out, "Failed at idx %v", idx)
 			if test.errPattern == "" {
@@ -84,5 +83,32 @@ func TestNDStreamReader(t *testing.T) {
 				assert.Equal(t, []byte(test.latestLine), n.LatestLine(), "Failed at idx %v", idx)
 			}
 		})
+	}
+}
+
+func TestNDStreamReaderReadAhead(t *testing.T) {
+	lines := []string{
+		`{"key":"value1"}`,
+		`{"a": "b"}`,
+	}
+	buf := bytes.NewBufferString(strings.Join(lines, "\n"))
+	n := NewNDJSONStreamDecoder(buf, 100)
+
+	// Decode reads the next line if it hasn't been buffered already
+	var out map[string]interface{}
+	require.NoError(t, n.Decode(&out))
+	assert.Equal(t, map[string]interface{}{"key": "value1"}, out)
+	// ReadAhead buffers the next line, to be consumed by the next call to `Decode`
+	var readAheadOut, decodeOut map[string]interface{}
+	b, errAhead := n.ReadAhead()
+	require.NoError(t, json.Unmarshal(b, &readAheadOut))
+	assert.Equal(t, map[string]interface{}{"a": "b"}, readAheadOut)
+	errDecode := n.Decode(&decodeOut)
+	assert.Equal(t, readAheadOut, decodeOut)
+	// ReadAhead and Decode return an error for EOF
+	for _, err := range []error{errAhead, errDecode} {
+		if assert.Error(t, err) {
+			assert.Equal(t, io.EOF, err)
+		}
 	}
 }

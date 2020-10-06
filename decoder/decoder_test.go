@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
 )
@@ -40,13 +39,4 @@ func TestDecodeJSONData(t *testing.T) {
 		"system": map[string]interface{}{"hostname": "prod1.example.com"},
 		"number": json.Number("123"),
 	}, decoded)
-}
-
-func TestReadJSONData(t *testing.T) {
-	str := `{"id":"85925e55b43f4342","system": {"hostname":"prod1.example.com"},"number":123}`
-	d := decoder.NewJSONDecoder(strings.NewReader(str))
-	b, err := d.Read()
-	require.Nil(t, err)
-	require.NotEmpty(t, b)
-	require.Equal(t, str, string(b))
 }

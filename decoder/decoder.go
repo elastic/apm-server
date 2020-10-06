@@ -19,7 +19,6 @@ package decoder
 
 import (
 	"io"
-	"io/ioutil"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -27,11 +26,8 @@ import (
 //TODO(simitt): look into config options for performance tuning
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-// var json = jsoniter.ConfigFastest
-
 type Decoder interface {
 	Decode(v interface{}) error
-	Read() ([]byte, error)
 }
 
 type JSONDecoder struct {
@@ -45,8 +41,4 @@ func NewJSONDecoder(r io.Reader) JSONDecoder {
 	d := json.NewDecoder(r)
 	d.UseNumber()
 	return JSONDecoder{Decoder: d, reader: r}
-}
-
-func (d JSONDecoder) Read() ([]byte, error) {
-	return ioutil.ReadAll(d.reader)
 }
