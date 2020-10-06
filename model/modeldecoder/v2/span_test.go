@@ -225,14 +225,4 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			})
 		}
 	})
-
-	t.Run("RUM", func(t *testing.T) {
-		var input span
-		var out model.Span
-		mapToSpanModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{RUM: true}, &out)
-		assert.True(t, out.RUM)
-		mapToSpanModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{RUM: false}, &out)
-		assert.False(t, out.RUM)
-	})
-
 }

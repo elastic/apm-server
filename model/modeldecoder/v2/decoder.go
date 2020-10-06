@@ -324,7 +324,6 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
 	}
-	out.RUM = config.RUM
 }
 
 func mapToExceptionModel(from errorException, out *model.Exception) {
@@ -868,7 +867,6 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
 	}
-	out.RUM = config.RUM
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {

@@ -64,11 +64,12 @@ type Processor struct {
 	decodeSpan        decodeSpanFunc
 	decodeTransaction decodeTransactionFunc
 	models            map[string]decodeEventFunc
+	isRUM             bool
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, RUM: false},
+		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:      cfg.MaxEventSize,
 		decodeMetadata:    v2.DecodeNestedMetadata,
 		decodeError:       v2.DecodeNestedError,
@@ -77,12 +78,13 @@ func BackendProcessor(cfg *config.Config) *Processor {
 		models: map[string]decodeEventFunc{
 			"metricset": modeldecoder.DecodeMetricset,
 		},
+		isRUM: false,
 	}
 }
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, RUM: true},
+		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		MaxEventSize:      cfg.MaxEventSize,
 		decodeMetadata:    v2.DecodeNestedMetadata,
 		decodeError:       v2.DecodeNestedError,
@@ -91,12 +93,13 @@ func RUMV2Processor(cfg *config.Config) *Processor {
 		models: map[string]decodeEventFunc{
 			"metricset": modeldecoder.DecodeRUMV2Metricset,
 		},
+		isRUM: true,
 	}
 }
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true, RUM: true},
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
 		models: map[string]decodeEventFunc{
@@ -104,6 +107,7 @@ func RUMV3Processor(cfg *config.Config) *Processor {
 			"e":  modeldecoder.DecodeRUMV3Error,
 			"me": modeldecoder.DecodeRUMV3Metricset,
 		},
+		isRUM: true,
 	}
 }
 
@@ -248,11 +252,17 @@ func (p *Processor) readBatch(
 				if handleDecodeErr(p.decodeError(reader, &input, &event), reader, response) {
 					continue
 				}
+				if p.isRUM {
+					event.RUM = true
+				}
 				batch.Errors = append(batch.Errors, &event)
 			case "span":
 				var event model.Span
 				if handleDecodeErr(p.decodeSpan(reader, &input, &event), reader, response) {
 					continue
+				}
+				if p.isRUM {
+					event.RUM = true
 				}
 				batch.Spans = append(batch.Spans, &event)
 			case "transaction":

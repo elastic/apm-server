@@ -181,14 +181,4 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		assert.Equal(t, 9201, *out.Page.URL.Port)
 		assert.Equal(t, "https", *out.Page.URL.Scheme)
 	})
-
-	t.Run("RUM", func(t *testing.T) {
-		var input errorEvent
-		var out model.Error
-		mapToErrorModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{RUM: true}, &out)
-		assert.True(t, out.RUM)
-		mapToErrorModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{RUM: false}, &out)
-		assert.False(t, out.RUM)
-	})
-
 }
