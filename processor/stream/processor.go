@@ -133,22 +133,6 @@ func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata)
 	return nil
 }
 
-func handleDecodeErr(err error, r *streamReader, result *Result) bool {
-	if err == nil || err == io.EOF {
-		return false
-	}
-	e, ok := err.(*Error)
-	if !ok || (e.Type != InvalidInputErrType && e.Type != InputTooLargeErrType) {
-		e = &Error{
-			Type:     InvalidInputErrType,
-			Message:  err.Error(),
-			Document: string(r.LatestLine()),
-		}
-	}
-	result.LimitedAdd(e)
-	return true
-}
-
 // IdentifyEventType takes a reader and reads ahead the first key of the
 // underlying json input. This method makes some assumptions met by the
 // input format:
@@ -213,7 +197,7 @@ func (p *Processor) readBatch(
 				return true
 			}
 		}
-		if eventType == "" && err != nil && err == io.EOF {
+		if eventType == "" && err == io.EOF {
 			continue
 		}
 		input := modeldecoder.Input{
@@ -282,6 +266,22 @@ func (p *Processor) readBatch(
 		}
 	}
 	return reader.IsEOF()
+}
+
+func handleDecodeErr(err error, r *streamReader, result *Result) bool {
+	if err == nil || err == io.EOF {
+		return false
+	}
+	e, ok := err.(*Error)
+	if !ok || (e.Type != InvalidInputErrType && e.Type != InputTooLargeErrType) {
+		e = &Error{
+			Type:     InvalidInputErrType,
+			Message:  err.Error(),
+			Document: string(r.LatestLine()),
+		}
+	}
+	result.LimitedAdd(e)
+	return true
 }
 
 // HandleStream processes a stream of events
@@ -377,7 +377,12 @@ func (sr *streamReader) wrapError(err error) error {
 			Document: string(sr.LatestLine()),
 		}
 	}
-	if errors.Is(err, decoder.ErrLineTooLong) {
+
+	var e = err
+	if err, ok := err.(v2.DecodeError); ok {
+		e = err.Unwrap()
+	}
+	if errors.Is(e, decoder.ErrLineTooLong) {
 		return &Error{
 			Type:     InputTooLargeErrType,
 			Message:  "event exceeded the permitted size.",

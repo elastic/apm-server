@@ -35,6 +35,32 @@ import (
 	"github.com/pkg/errors"
 )
 
+// DecodeError represents an error due to JSON decoding.
+type DecodeError struct {
+	err error
+}
+
+func (e DecodeError) Error() string {
+	return errors.Wrap(e.err, "decode error").Error()
+}
+
+func (e *DecodeError) Unwrap() error {
+	return e.err
+}
+
+// ValidationError represents an error due to JSON validation.
+type ValidationError struct {
+	err error
+}
+
+func (e ValidationError) Error() string {
+	return errors.Wrap(e.err, "validation error").Error()
+}
+
+func (e *ValidationError) Unwrap() error {
+	return e.err
+}
+
 var (
 	errorRootPool = sync.Pool{
 		New: func() interface{} {
@@ -123,10 +149,10 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 	defer releaseErrorRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return wrapDecodeErr(err)
+		return DecodeError{err}
 	}
 	if err := root.validate(); err != nil {
-		return wrapValidationErr(err)
+		return ValidationError{err}
 	}
 	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
@@ -142,10 +168,10 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, out *model.S
 	defer releaseSpanRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return wrapDecodeErr(err)
+		return DecodeError{err}
 	}
 	if err := root.validate(); err != nil {
-		return wrapValidationErr(err)
+		return ValidationError{err}
 	}
 	mapToSpanModel(&root.Span, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
@@ -161,10 +187,10 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	defer releaseTransactionRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return wrapDecodeErr(err)
+		return DecodeError{err}
 	}
 	if err := root.validate(); err != nil {
-		return wrapValidationErr(err)
+		return ValidationError{err}
 	}
 	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
@@ -175,21 +201,13 @@ func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d deco
 	defer releaseMetadataRoot(m)
 	var err error
 	if err = decFn(d, m); err != nil && err != io.EOF {
-		return wrapDecodeErr(err)
+		return DecodeError{err}
 	}
 	if err := m.validate(); err != nil {
-		return wrapValidationErr(err)
+		return ValidationError{err}
 	}
 	mapToMetadataModel(&m.Metadata, out)
 	return err
-}
-
-func wrapDecodeErr(err error) error {
-	return errors.Wrap(err, "decode error")
-}
-
-func wrapValidationErr(err error) error {
-	return errors.Wrap(err, "validation error")
 }
 
 func decodeIntoMetadata(d decoder.Decoder, m *metadataRoot) error {

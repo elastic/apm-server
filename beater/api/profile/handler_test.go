@@ -116,7 +116,7 @@ func TestHandler(t *testing.T) {
 			}},
 		},
 		"MetadataInvalid": {
-			id: request.IDResponseErrorsDecode,
+			id: request.IDResponseErrorsValidate,
 			parts: []part{{
 				name:        "metadata",
 				contentType: "application/json",

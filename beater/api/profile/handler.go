@@ -35,7 +35,6 @@ import (
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/validation"
 )
 
 var (
@@ -116,8 +115,7 @@ func Handler(report publish.Reporter) request.Handler {
 							err: err,
 						}
 					}
-					var ve *validation.Error
-					if errors.As(err, &ve) {
+					if _, ok := err.(v2.ValidationError); ok {
 						return nil, requestError{
 							id:  request.IDResponseErrorsValidate,
 							err: errors.Wrap(err, "invalid metadata"),
@@ -125,7 +123,7 @@ func Handler(report publish.Reporter) request.Handler {
 					}
 					return nil, requestError{
 						id:  request.IDResponseErrorsDecode,
-						err: errors.Wrap(err, "failed to decode metadata"),
+						err: errors.Wrap(err, "invalid metadata"),
 					}
 				}
 				profileMetadata = metadata
