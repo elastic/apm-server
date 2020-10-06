@@ -91,10 +91,11 @@ func (p *intakeTestProcessor) Decode(data interface{}) error {
 			return err
 		}
 		d := decoder.NewNDJSONStreamDecoder(bytes.NewReader(b), 300*1024)
-		eventType, err := p.IdentifyEventType(d, &stream.Result{})
+		body, err := d.ReadAhead()
 		if err != nil && err != io.EOF {
 			return err
 		}
+		eventType := p.IdentifyEventType(body, &stream.Result{})
 		input := modeldecoder.Input{
 			RequestTime: time.Now(),
 			Metadata:    model.Metadata{},

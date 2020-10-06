@@ -139,11 +139,7 @@ func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata)
 // input format:
 // - the input is in json format
 // - every valid ndjson line only has one root key
-func (p *Processor) IdentifyEventType(reader *decoder.NDJSONStreamDecoder, result *Result) (string, error) {
-	body, err := reader.ReadAhead()
-	if err != nil && err != io.EOF {
-		return "", err
-	}
+func (p *Processor) IdentifyEventType(body []byte, result *Result) string {
 	// find event type, trim spaces and account for single and double quotes
 	body = bytes.TrimLeft(body, `{ "'`)
 	end := bytes.Index(body, []byte(`"`))
@@ -151,9 +147,9 @@ func (p *Processor) IdentifyEventType(reader *decoder.NDJSONStreamDecoder, resul
 		end = bytes.Index(body, []byte(`'`))
 	}
 	if end == -1 {
-		return "", err
+		return ""
 	}
-	return string(body[0:end]), err
+	return string(body[0:end])
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream,
@@ -186,7 +182,7 @@ func (p *Processor) readBatch(
 
 	// input events are decoded and appended to the batch
 	for i := 0; i < batchSize && !reader.IsEOF(); i++ {
-		eventType, err := p.IdentifyEventType(reader.NDJSONStreamDecoder, response)
+		body, err := reader.ReadAhead()
 		if err != nil && err != io.EOF {
 			err = reader.wrapError(err)
 			if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
@@ -198,9 +194,11 @@ func (p *Processor) readBatch(
 				return true
 			}
 		}
-		if eventType == "" && err == io.EOF {
+		if len(body) == 0 {
+			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
+		eventType := p.IdentifyEventType(body, response)
 		input := modeldecoder.Input{
 			RequestTime: requestTime,
 			Metadata:    *streamMetadata,
