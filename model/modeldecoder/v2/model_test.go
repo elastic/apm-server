@@ -182,7 +182,7 @@ func TestReset(t *testing.T) {
 		return ns
 	}
 	decode := func(t *testing.T, inp string, out interface{}) {
-		require.NoError(t, decoder.NewJSONIteratorDecoder(strings.NewReader(inp)).Decode(&out))
+		require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(&out))
 	}
 	t.Run("struct", func(t *testing.T) {
 		var out metadataServiceNode

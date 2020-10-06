@@ -28,9 +28,11 @@ import (
 )
 
 func TestDecodeJSONData(t *testing.T) {
-	decoded, err := decoder.DecodeJSONData(strings.NewReader(
+	d := decoder.NewJSONDecoder(strings.NewReader(
 		`{"id":"85925e55b43f4342","system": {"hostname":"prod1.example.com"},"number":123}`,
 	))
+	var decoded map[string]interface{}
+	err := d.Decode(&decoded)
 	assert.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"id":     "85925e55b43f4342",

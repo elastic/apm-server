@@ -619,13 +619,12 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.Experimental.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
 }
 
 func (val *transaction) Reset() {
 	val.Context.Reset()
 	val.Duration.Reset()
-	val.Experimental.Reset()
 	val.ID.Reset()
 	val.Marks.Reset()
 	val.Name.Reset()
@@ -709,13 +708,14 @@ func (val *transaction) validate() error {
 }
 
 func (val *context) IsSet() bool {
-	return len(val.Custom) > 0 || val.Message.IsSet() || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || len(val.Tags) > 0 || val.User.IsSet()
+	return len(val.Custom) > 0 || val.Experimental.IsSet() || val.Message.IsSet() || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || len(val.Tags) > 0 || val.User.IsSet()
 }
 
 func (val *context) Reset() {
 	for k := range val.Custom {
 		delete(val.Custom, k)
 	}
+	val.Experimental.Reset()
 	val.Message.Reset()
 	val.Page.Reset()
 	val.Response.Reset()
@@ -1297,14 +1297,13 @@ func (val *errorRoot) validate() error {
 }
 
 func (val *errorEvent) IsSet() bool {
-	return val.Context.IsSet() || val.Culprit.IsSet() || val.Exception.IsSet() || val.Experimental.IsSet() || val.ID.IsSet() || val.Log.IsSet() || val.ParentID.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Transaction.IsSet() || val.TransactionID.IsSet()
+	return val.Context.IsSet() || val.Culprit.IsSet() || val.Exception.IsSet() || val.ID.IsSet() || val.Log.IsSet() || val.ParentID.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Transaction.IsSet() || val.TransactionID.IsSet()
 }
 
 func (val *errorEvent) Reset() {
 	val.Context.Reset()
 	val.Culprit.Reset()
 	val.Exception.Reset()
-	val.Experimental.Reset()
 	val.ID.Reset()
 	val.Log.Reset()
 	val.ParentID.Reset()
@@ -1541,7 +1540,7 @@ func (val *spanRoot) validate() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Action.IsSet() || len(val.ChildIDs) > 0 || val.Context.IsSet() || val.Duration.IsSet() || val.Experimental.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || len(val.Stacktrace) > 0 || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
+	return val.Action.IsSet() || len(val.ChildIDs) > 0 || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || len(val.Stacktrace) > 0 || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet()
 }
 
 func (val *span) Reset() {
@@ -1549,7 +1548,6 @@ func (val *span) Reset() {
 	val.ChildIDs = val.ChildIDs[:0]
 	val.Context.Reset()
 	val.Duration.Reset()
-	val.Experimental.Reset()
 	val.ID.Reset()
 	val.Name.Reset()
 	val.Outcome.Reset()
@@ -1649,12 +1647,13 @@ func (val *span) validate() error {
 }
 
 func (val *spanContext) IsSet() bool {
-	return val.Database.IsSet() || val.Destination.IsSet() || val.HTTP.IsSet() || val.Message.IsSet() || val.Service.IsSet() || len(val.Tags) > 0
+	return val.Database.IsSet() || val.Destination.IsSet() || val.Experimental.IsSet() || val.HTTP.IsSet() || val.Message.IsSet() || val.Service.IsSet() || len(val.Tags) > 0
 }
 
 func (val *spanContext) Reset() {
 	val.Database.Reset()
 	val.Destination.Reset()
+	val.Experimental.Reset()
 	val.HTTP.Reset()
 	val.Message.Reset()
 	val.Service.Reset()

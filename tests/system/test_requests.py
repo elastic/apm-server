@@ -41,7 +41,7 @@ class Test(ServerBaseTest):
         data = self.get_event_payload(name="invalid-event.ndjson")
         r = self.request_intake(data=data)
         assert r.status_code == 400, r.status_code
-        assert "failed to validate transaction: error validating JSON" in r.text, r.text
+        assert "decode error: data read error" in r.text, r.text
 
     def test_rum_default_disabled(self):
         r = self.request_intake(url='http://localhost:8200/intake/v2/rum/events')
