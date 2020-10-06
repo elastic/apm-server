@@ -57,9 +57,9 @@ type context struct {
 }
 
 type contextMessage struct {
+	Age     contextMessageAge   `json:"age"`
 	Body    nullable.String     `json:"body"`
 	Headers nullable.HTTPHeader `json:"headers"`
-	Age     contextMessageAge   `json:"age"`
 	Queue   contextMessageQueue `json:"queue"`
 }
 
@@ -72,19 +72,22 @@ type contextMessageQueue struct {
 }
 
 type contextPage struct {
-	URL     nullable.String `json:"url"`
 	Referer nullable.String `json:"referer"`
+	URL     nullable.String `json:"url"`
 }
 
 type contextRequest struct {
-	Cookies     nullable.Interface   `json:"cookies"`
 	Body        nullable.Interface   `json:"body" validate:"types=string;map[string]interface"`
-	Env         nullable.Interface   `json:"env"`
+	Cookies     common.MapStr        `json:"cookies"`
+	Env         common.MapStr        `json:"env"`
 	Headers     nullable.HTTPHeader  `json:"headers"`
 	HTTPVersion nullable.String      `json:"http_version" validate:"max=1024"`
 	Method      nullable.String      `json:"method" validate:"required,max=1024"`
 	Socket      contextRequestSocket `json:"socket"`
-	URL         contextRequestURL    `json:"url"` //TODO(simitt): check validate:"required"`
+	//TODO(simitt): context.request.url is currently required,
+	//              but none of its attributes is required, which could lead to
+	//              an empty URL struct - no difference to making it optional
+	URL contextRequestURL `json:"url"`
 }
 
 type contextRequestURL struct {
@@ -99,8 +102,8 @@ type contextRequestURL struct {
 }
 
 type contextRequestSocket struct {
-	RemoteAddress nullable.String `json:"remote_address"`
 	Encrypted     nullable.Bool   `json:"encrypted"`
+	RemoteAddress nullable.String `json:"remote_address"`
 }
 
 type contextResponse struct {
@@ -265,6 +268,7 @@ type metadataSystemKubernetesPod struct {
 type transaction struct {
 	Context        context                   `json:"context"`
 	Duration       nullable.Float64          `json:"duration" validate:"required,min=0"`
+	Experimental   nullable.Interface        `json:"experimental"`
 	ID             nullable.String           `json:"id" validate:"required,max=1024"`
 	Marks          transactionMarks          `json:"marks"`
 	Name           nullable.String           `json:"name" validate:"max=1024"`
@@ -278,7 +282,6 @@ type transaction struct {
 	TraceID        nullable.String           `json:"trace_id" validate:"required,max=1024"`
 	Type           nullable.String           `json:"type" validate:"required,max=1024"`
 	UserExperience transactionUserExperience `json:"experience"`
-	Experimental   nullable.Interface        `json:"experimental"`
 }
 
 type transactionMarks struct {
@@ -314,18 +317,18 @@ type transactionUserExperience struct {
 	// or a negative value if FID is unknown. See https://web.dev/fid/
 	FirstInputDelay nullable.Float64 `json:"fid" validate:"min=0"`
 
+	// Longtask holds longtask duration/count metrics.
+	Longtask longtaskMetrics `json:"longtask"`
+
 	// TotalBlockingTime holds the Total Blocking Time (TBT) metric value,
 	// or a negative value if TBT is unknown. See https://web.dev/tbt/
 	TotalBlockingTime nullable.Float64 `json:"tbt" validate:"min=0"`
-
-	// Longtask holds longtask duration/count metrics.
-	Longtask longtaskMetrics `json:"longtask"`
 }
 
 type longtaskMetrics struct {
 	Count nullable.Int     `json:"count" validate:"required,min=0"`
-	Sum   nullable.Float64 `json:"sum" validate:"required,min=0"`
 	Max   nullable.Float64 `json:"max" validate:"required,min=0"`
+	Sum   nullable.Float64 `json:"sum" validate:"required,min=0"`
 }
 
 type user struct {
