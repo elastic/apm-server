@@ -95,7 +95,7 @@ func TestAPMServerRequestLoggingValid(t *testing.T) {
 	}}, requestEntries)
 
 	assert.NotContains(t, logEntries[0].Fields, "error")
-	assert.Regexp(t, "failed to validate transaction: .*", logEntries[1].Fields["error"])
+	assert.Regexp(t, "validation error: 'transaction' required", logEntries[1].Fields["error"])
 	assert.Equal(t, "event exceeded the permitted size.", logEntries[2].Fields["error"])
 }
 

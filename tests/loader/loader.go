@@ -71,5 +71,7 @@ func unmarshalData(filePath string, err error) (map[string]interface{}, error) {
 		return nil, err
 	}
 	defer r.Close()
-	return decoder.DecodeJSONData(r)
+	var m map[string]interface{}
+	err = decoder.NewJSONDecoder(r).Decode(&m)
+	return m, err
 }

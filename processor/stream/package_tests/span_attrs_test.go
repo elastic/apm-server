@@ -115,6 +115,9 @@ func spanRequiredKeys() *tests.Set {
 		"span.start",
 		"span.timestamp",
 		"span.stacktrace.filename",
+		"span.context.destination.service.resource",
+		"span.context.destination.service.name",
+		"span.context.destination.service.type",
 	)
 }
 
@@ -219,23 +222,19 @@ func TestPayloadDataForSpans(t *testing.T) {
 			{Key: "span.context.tags",
 				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 				Invalid: []tests.Invalid{
-					{Msg: `tags/type`, Values: val{"tags"}},
-					{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
-					{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}},
-			},
+					{Msg: `decode error`, Values: val{"tags"}},
+					{Msg: `validation error`, Values: val{
+						obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}},
+						obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
 			{Key: "span.timestamp",
 				Valid: val{json.Number("1496170422281000")},
 				Invalid: []tests.Invalid{
-					{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
+					{Msg: `decode error`, Values: val{"1496170422281000"}}}},
 			{Key: "span.stacktrace.pre_context",
-				Valid: val{[]interface{}{}, []interface{}{"context"}},
-				Invalid: []tests.Invalid{
-					{Msg: `/stacktrace/items/properties/pre_context/items/type`, Values: val{[]interface{}{123}}},
-					{Msg: `stacktrace/items/properties/pre_context/type`, Values: val{"test"}}}},
+				Valid:   val{[]interface{}{}, []interface{}{"context"}},
+				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{[]interface{}{123}, "test"}}}},
 			{Key: "span.stacktrace.post_context",
-				Valid: val{[]interface{}{}, []interface{}{"context"}},
-				Invalid: []tests.Invalid{
-					{Msg: `/stacktrace/items/properties/post_context/items/type`, Values: val{[]interface{}{123}}},
-					{Msg: `stacktrace/items/properties/post_context/type`, Values: val{"test"}}}},
+				Valid:   val{[]interface{}{}, []interface{}{"context"}},
+				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{[]interface{}{123, "test"}}}}},
 		})
 }

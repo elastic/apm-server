@@ -68,7 +68,8 @@ func init() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
 		default:
-			(*((*Interface)(ptr))).Val = iter.Read()
+			v := iter.Read()
+			(*((*Interface)(ptr))).Val = v
 			(*((*Interface)(ptr))).isSet = true
 		}
 	})
