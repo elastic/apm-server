@@ -494,7 +494,7 @@ const ModelSchema = `{
                     "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
                 },
                 "experience": {
-                        "$id": "docs/spec/rum_experience.json",
+                        "$id": "docs/spec/transactions/rum_experience.json",
     "title": "RUM Experience Metrics",
     "description": "Metrics for measuring real user (browser) experience",
     "type": ["object", "null"],
