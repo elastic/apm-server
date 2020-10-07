@@ -121,7 +121,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 func TestProcessLocalTailSampling(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.DefaultSampleRate = 0.5
-	config.Interval = 10 * time.Millisecond
+	config.FlushInterval = 10 * time.Millisecond
 	published := make(chan string)
 	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
@@ -219,7 +219,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	config := newTempdirConfig(t)
-	config.Interval = time.Minute
+	config.FlushInterval = time.Minute
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
@@ -266,7 +266,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 func TestProcessRemoteTailSampling(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.DefaultSampleRate = 0.5
-	config.Interval = 10 * time.Millisecond
+	config.FlushInterval = 10 * time.Millisecond
 
 	var published []string
 	var publisher pubsubtest.PublisherFunc = func(ctx context.Context, traceID string) error {
@@ -357,7 +357,7 @@ func TestStorageGC(t *testing.T) {
 
 	config := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
-	config.Interval = 10 * time.Millisecond
+	config.FlushInterval = 10 * time.Millisecond
 
 	writeBatch := func(n int) {
 		processor, err := sampling.NewProcessor(config)
@@ -432,7 +432,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 		BeatID:   "local-apm-server",
 		Reporter: func(ctx context.Context, req publish.PendingReq) error { return nil },
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
-			Interval:              time.Second,
+			FlushInterval:         time.Second,
 			MaxTraceGroups:        1000,
 			DefaultSampleRate:     0.1,
 			IngestRateDecayFactor: 0.9,

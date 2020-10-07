@@ -31,8 +31,8 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	assertInvalidConfigError("Reporter unspecified")
 	config.Reporter = func(ctx context.Context, req publish.PendingReq) error { return nil }
 
-	assertInvalidConfigError("invalid local sampling config: Interval unspecified or negative")
-	config.Interval = 1
+	assertInvalidConfigError("invalid local sampling config: FlushInterval unspecified or negative")
+	config.FlushInterval = 1
 
 	assertInvalidConfigError("invalid local sampling config: MaxTraceGroups unspecified or negative")
 	config.MaxTraceGroups = 1

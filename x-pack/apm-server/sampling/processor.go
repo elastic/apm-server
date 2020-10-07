@@ -75,10 +75,17 @@ func NewProcessor(config Config) (*Processor, error) {
 	return p, nil
 }
 
-// ProcessTransformables processes events, writing head sampled transactions and
-// spans to storage (except where they are part of a trace that has already been
-// tail sampled), discarding events that should not be sampled, and returning
-// everything else to be published immediately.
+// ProcessTransformables tail-samples transactions and spans.
+//
+// Any events returned by the processor will be published immediately.
+// This includes:
+//
+// - Non-trace events (errors, metricsets)
+// - Trace events which are already known to have been tail-sampled
+// - Transactions which are head-based unsampled
+//
+// All other trace events will either be dropped (e.g. known to not
+// be tail-sampled), or stored for possible later publication.
 func (p *Processor) ProcessTransformables(ctx context.Context, events []transform.Transformable) ([]transform.Transformable, error) {
 	p.storageMu.RLock()
 	defer p.storageMu.RUnlock()
@@ -246,8 +253,8 @@ func (p *Processor) Run() error {
 	// bulk indexing is expected to complete soon after the tail-sampling
 	// flush interval.
 	bulkIndexerFlushInterval := 5 * time.Second
-	if bulkIndexerFlushInterval > p.config.Interval {
-		bulkIndexerFlushInterval = p.config.Interval
+	if bulkIndexerFlushInterval > p.config.FlushInterval {
+		bulkIndexerFlushInterval = p.config.FlushInterval
 	}
 
 	pubsub, err := pubsub.New(pubsub.Config{
@@ -259,7 +266,7 @@ func (p *Processor) Run() error {
 		// Issue pubsub subscriber search requests at twice the frequency
 		// of publishing, so each server observes each other's sampled
 		// trace IDs soon after they are published.
-		SearchInterval: p.config.Interval / 2,
+		SearchInterval: p.config.FlushInterval / 2,
 		FlushInterval:  bulkIndexerFlushInterval,
 	})
 	if err != nil {
@@ -278,6 +285,9 @@ func (p *Processor) Run() error {
 		}
 	})
 	errgroup.Go(func() error {
+		// This goroutine is responsible for periodically garbage
+		// collecting the Badger value log, using the recommended
+		// discard ratio of 0.5.
 		ticker := time.NewTicker(p.config.StorageGCInterval)
 		defer ticker.Stop()
 		for {
@@ -296,7 +306,7 @@ func (p *Processor) Run() error {
 		return pubsub.SubscribeSampledTraceIDs(ctx, remoteSampledTraceIDs)
 	})
 	errgroup.Go(func() error {
-		ticker := time.NewTicker(p.config.Interval)
+		ticker := time.NewTicker(p.config.FlushInterval)
 		defer ticker.Stop()
 		var traceIDs []string
 		for {

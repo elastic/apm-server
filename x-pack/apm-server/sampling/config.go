@@ -28,13 +28,13 @@ type Config struct {
 
 // LocalSamplingConfig holds Processor configuration related to local reservoir sampling.
 type LocalSamplingConfig struct {
-	// Interval holds the local sampling interval.
+	// FlushInterval holds the local sampling interval.
 	//
 	// This controls how long it takes for servers to become aware of each other's
 	// sampled trace IDs, and so should be in the order of tens of seconds, or low
 	// minutes. In order not to lose sampled trace events, FlushInterval should be
 	// no greater than half of the TTL.
-	Interval time.Duration
+	FlushInterval time.Duration
 
 	// MaxTraceGroups holds the maximum number of trace groups to track.
 	//
@@ -97,8 +97,8 @@ func (config Config) Validate() error {
 }
 
 func (config LocalSamplingConfig) validate() error {
-	if config.Interval <= 0 {
-		return errors.New("Interval unspecified or negative")
+	if config.FlushInterval <= 0 {
+		return errors.New("FlushInterval unspecified or negative")
 	}
 	if config.MaxTraceGroups <= 0 {
 		return errors.New("MaxTraceGroups unspecified or negative")
