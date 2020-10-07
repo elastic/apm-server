@@ -82,8 +82,6 @@ The protocol of the request, e.g. "https:".
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`url.full`*::
@@ -93,8 +91,6 @@ The full, possibly agent-assembled URL of the request, e.g https://example.com:4
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -106,8 +102,6 @@ The hostname of the request, e.g. "example.com".
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`url.port`*::
@@ -117,8 +111,6 @@ The port of the request, e.g. 443.
 
 
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -130,8 +122,6 @@ The path of the request, e.g. "/search".
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`url.query`*::
@@ -142,8 +132,6 @@ The query string of the request, e.g. "q=elasticsearch".
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`url.fragment`*::
@@ -153,8 +141,6 @@ A fragment specifying a location in a web page , e.g. "top".
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -167,8 +153,6 @@ The http version of the request leading to this event.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -179,8 +163,6 @@ The http method of the request leading to this event.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -203,8 +185,6 @@ Referrer for this HTTP request.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -216,8 +196,6 @@ The status code of the HTTP response.
 
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`http.response.finished`*::
@@ -227,8 +205,6 @@ Used by the Node agent to indicate when in the response life cycle an error has 
 
 
 type: boolean
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -252,8 +228,6 @@ A flat mapping of user-defined labels with string, boolean or number values.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 [float]
@@ -271,8 +245,6 @@ Immutable name of the service emitting this event.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.version`*::
@@ -282,8 +254,6 @@ Version of the service emitting this event.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -305,8 +275,6 @@ Unique meaningful name of the service node.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -547,8 +515,6 @@ Name of the agent used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`agent.version`*::
@@ -559,8 +525,6 @@ Version of the agent used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`agent.ephemeral_id`*::
@@ -570,8 +534,6 @@ The Ephemeral ID identifies a running process.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -589,8 +551,6 @@ Unique container id.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -658,8 +618,6 @@ The architecture of the host the event was recorded on.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`host.hostname`*::
@@ -669,8 +627,6 @@ The hostname of the host the event was recorded on.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -682,8 +638,6 @@ Name of the host the event was recorded on. It can contain same information as h
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`host.ip`*::
@@ -693,8 +647,6 @@ IP of the host that records the event.
 
 
 type: ip
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -712,8 +664,6 @@ The platform of the host the event was recorded on.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -733,8 +683,6 @@ May be filtered to protect sensitive information.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`process.pid`*::
@@ -744,8 +692,6 @@ Numeric process ID of the service process.
 
 
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -757,8 +703,6 @@ Numeric ID of the service's parent process.
 
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`process.title`*::
@@ -768,8 +712,6 @@ Service process title.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -792,8 +734,6 @@ Hostname of the APM Server.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`observer.version`*::
@@ -803,8 +743,6 @@ APM Server version.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -826,8 +764,6 @@ The type will be set to `apm-server`.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -839,8 +775,6 @@ The username of the logged in user.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`user.id`*::
@@ -851,8 +785,6 @@ Identifier of the logged in user.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`user.email`*::
@@ -862,8 +794,6 @@ Email of the logged in user.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -876,8 +806,6 @@ IP address of the client of a recorded event. This is typically obtained from a 
 
 type: ip
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -888,8 +816,6 @@ IP address of the source of a recorded event. This is typically obtained from a 
 
 
 type: ip
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -908,8 +834,6 @@ Then it should be duplicated to `.ip` or `.domain`, depending on which one it is
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`destination.ip`*::
@@ -919,8 +843,6 @@ IP addess of the destination.
 Can be one of multiple IPv4 or IPv6 addresses.
 
 type: ip
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -932,8 +854,6 @@ Port of the destination.
 type: long
 
 format: string
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -954,8 +874,6 @@ type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`user_agent.original.text`*::
@@ -965,8 +883,6 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 
 type: text
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -980,8 +896,6 @@ type: keyword
 
 example: Safari
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`user_agent.version`*::
@@ -993,8 +907,6 @@ Version of the user agent.
 type: keyword
 
 example: 12.0
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1015,8 +927,6 @@ type: keyword
 
 example: iPhone
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 [float]
@@ -1036,8 +946,6 @@ type: keyword
 
 example: darwin
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`user_agent.os.name`*::
@@ -1049,8 +957,6 @@ Operating system name, without the version.
 type: keyword
 
 example: Mac OS X
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1064,8 +970,6 @@ type: keyword
 
 example: Mac OS Mojave
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`user_agent.os.family`*::
@@ -1077,8 +981,6 @@ OS family (such as redhat, debian, freebsd, windows).
 type: keyword
 
 example: debian
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1092,8 +994,6 @@ type: keyword
 
 example: 10.14.1
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`user_agent.os.kernel`*::
@@ -1105,8 +1005,6 @@ Operating system kernel version as a raw string.
 type: keyword
 
 example: 4.4.0-112-generic
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1134,8 +1032,6 @@ Cloud account ID
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`cloud.account.name`*::
@@ -1144,8 +1040,6 @@ type: keyword
 Cloud account name
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1158,8 +1052,6 @@ type: keyword
 
 example: us-east1-a
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -1170,8 +1062,6 @@ Cloud instance/machine ID
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`cloud.instance.name`*::
@@ -1180,8 +1070,6 @@ type: keyword
 Cloud instance/machine name
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1195,8 +1083,6 @@ type: keyword
 
 example: t2.medium
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -1207,8 +1093,6 @@ Cloud project ID
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`cloud.project.name`*::
@@ -1217,8 +1101,6 @@ type: keyword
 Cloud project name
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1231,8 +1113,6 @@ type: keyword
 
 example: gcp
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`cloud.region`*::
@@ -1243,8 +1123,6 @@ Cloud region name
 type: keyword
 
 example: us-east1
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1258,8 +1136,6 @@ example: us-east1
 type: keyword
 
 example: success
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1283,8 +1159,6 @@ The ID of the error.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2189,15 +2063,8 @@ type: object
 [[exported-fields-ecs]]
 == ECS fields
 
+ECS Fields.
 
-This section defines Elastic Common Schema (ECS) fields—a common set of fields
-to be used when storing event data in {es}.
-
-This is an exhaustive list, and fields listed here are not necessarily used by {beatname_uc}.
-The goal of ECS is to enable and encourage users of {es} to normalize their event data,
-so that they can better analyze, visualize, and correlate the data represented in their events.
-
-See the {ecs-ref}[ECS reference] for more information.
 
 *`@timestamp`*::
 +
