@@ -18,6 +18,8 @@
 package package_tests
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -25,7 +27,7 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
-	"github.com/elastic/apm-server/model/modeldecoder"
+	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
@@ -47,14 +49,14 @@ func (p *MetadataProcessor) LoadPayload(path string) (interface{}, error) {
 func (p *MetadataProcessor) Validate(data interface{}) error {
 	events := data.([]interface{})
 	for _, e := range events {
-		rawEvent := e.(map[string]interface{})
-		rawMetadata, ok := rawEvent["metadata"].(map[string]interface{})
-		if !ok {
-			return stream.ErrUnrecognizedObject
+		//TODO(simitt): combine loading the data and validating them once the new json decoding is finished
+		b, err := json.Marshal(e)
+		if err != nil {
+			return err
 		}
-
-		// validate the metadata object against our jsonschema
-		if err := modeldecoder.DecodeMetadata(rawMetadata, false, &model.Metadata{}); err != nil {
+		dec := decoder.NewJSONDecoder(bytes.NewReader(b))
+		var m model.Metadata
+		if err := v2.DecodeNestedMetadata(dec, &m); err != nil {
 			return err
 		}
 	}
@@ -171,7 +173,7 @@ func metadataRequiredKeys() *tests.Set {
 		"metadata.service.runtime.name",
 		"metadata.service.runtime.version",
 		"metadata.service.language.name",
-		"metadata.system.container.id",
+		// "metadata.system.container.id", //does not throw an error since it is the only attribute
 		"metadata.process.pid",
 	)
 }
@@ -179,7 +181,6 @@ func metadataRequiredKeys() *tests.Set {
 func TestAttrsPresenceInMetadata(t *testing.T) {
 	metadataProcSetup().AttrsPresence(t, metadataRequiredKeys(), nil)
 }
-
 func TestInvalidPayloadsForMetadata(t *testing.T) {
 	type val []interface{}
 
@@ -187,8 +188,9 @@ func TestInvalidPayloadsForMetadata(t *testing.T) {
 		{Key: "metadata.service.name",
 			Valid: val{"m"},
 			Invalid: []tests.Invalid{
-				{Msg: "service/properties/name", Values: val{tests.Str1024Special}},
-				{Msg: "service/properties/name", Values: val{""}}},
+				{Msg: "validation error", Values: val{tests.Str1024Special}},
+				{Msg: "validation error", Values: val{""}},
+			},
 		}}
 	metadataProcSetup().DataValidation(t, payloadData)
 }

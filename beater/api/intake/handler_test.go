@@ -95,7 +95,12 @@ func TestIntakeHandler(t *testing.T) {
 			code: http.StatusAccepted, id: request.IDResponseValidAccepted,
 		},
 		"TooLarge": {
-			path: "errors.ndjson", processor: &stream.Processor{},
+			path: "errors.ndjson",
+			processor: func() *stream.Processor {
+				p := stream.BackendProcessor(config.DefaultConfig())
+				p.MaxEventSize = 10
+				return p
+			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
 			path: "errors.ndjson", reporter: beatertest.ErrorReporterFn(publish.ErrChannelClosed),

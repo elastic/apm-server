@@ -35,8 +35,16 @@ var (
 
 // entry points
 
+type errorRoot struct {
+	Error errorEvent `json:"error" validate:"required"`
+}
+
 type metadataRoot struct {
 	Metadata metadata `json:"metadata" validate:"required"`
+}
+
+type spanRoot struct {
+	Span span `json:"span" validate:"required"`
 }
 
 type transactionRoot struct {
@@ -46,20 +54,21 @@ type transactionRoot struct {
 // other structs
 
 type context struct {
-	Custom   common.MapStr   `json:"custom" validate:"patternKeys=regexpNoDotAsteriskQuote"`
-	Message  contextMessage  `json:"message"`
-	Page     contextPage     `json:"page"`
-	Response contextResponse `json:"response"`
-	Request  contextRequest  `json:"request"`
-	Service  contextService  `json:"service"`
-	Tags     common.MapStr   `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
-	User     user            `json:"user"`
+	Custom       common.MapStr      `json:"custom" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+	Experimental nullable.Interface `json:"experimental"`
+	Message      contextMessage     `json:"message"`
+	Page         contextPage        `json:"page"`
+	Response     contextResponse    `json:"response"`
+	Request      contextRequest     `json:"request"`
+	Service      contextService     `json:"service"`
+	Tags         common.MapStr      `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	User         user               `json:"user"`
 }
 
 type contextMessage struct {
+	Age     contextMessageAge   `json:"age"`
 	Body    nullable.String     `json:"body"`
 	Headers nullable.HTTPHeader `json:"headers"`
-	Age     contextMessageAge   `json:"age"`
 	Queue   contextMessageQueue `json:"queue"`
 }
 
@@ -72,19 +81,22 @@ type contextMessageQueue struct {
 }
 
 type contextPage struct {
-	URL     nullable.String `json:"url"`
 	Referer nullable.String `json:"referer"`
+	URL     nullable.String `json:"url"`
 }
 
 type contextRequest struct {
-	Cookies     nullable.Interface   `json:"cookies"`
 	Body        nullable.Interface   `json:"body" validate:"types=string;map[string]interface"`
-	Env         nullable.Interface   `json:"env"`
+	Cookies     common.MapStr        `json:"cookies"`
+	Env         common.MapStr        `json:"env"`
 	Headers     nullable.HTTPHeader  `json:"headers"`
 	HTTPVersion nullable.String      `json:"http_version" validate:"max=1024"`
 	Method      nullable.String      `json:"method" validate:"required,max=1024"`
 	Socket      contextRequestSocket `json:"socket"`
-	URL         contextRequestURL    `json:"url"` //TODO(simitt): check validate:"required"`
+	// context.request.url was required in json schema,
+	// but none of its attributes is required, which could lead to
+	// an empty URL struct - no difference to making it optional
+	URL contextRequestURL `json:"url"`
 }
 
 type contextRequestURL struct {
@@ -99,8 +111,8 @@ type contextRequestURL struct {
 }
 
 type contextRequestSocket struct {
-	RemoteAddress nullable.String `json:"remote_address"`
 	Encrypted     nullable.Bool   `json:"encrypted"`
+	RemoteAddress nullable.String `json:"remote_address"`
 }
 
 type contextResponse struct {
@@ -147,6 +159,45 @@ type contextServiceNode struct {
 type contextServiceRuntime struct {
 	Name    nullable.String `json:"name" validate:"max=1024"`
 	Version nullable.String `json:"version" validate:"max=1024"`
+}
+
+type errorEvent struct {
+	Context       context                 `json:"context"`
+	Culprit       nullable.String         `json:"culprit" validate:"max=1024"`
+	Exception     errorException          `json:"exception"`
+	ID            nullable.String         `json:"id" validate:"required,max=1024"`
+	Log           errorLog                `json:"log"`
+	ParentID      nullable.String         `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,max=1024"`
+	Timestamp     nullable.TimeMicrosUnix `json:"timestamp"`
+	TraceID       nullable.String         `json:"trace_id" validate:"requiredIfAny=transaction_id;parent_id,max=1024"`
+	Transaction   errorTransactionRef     `json:"transaction"`
+	TransactionID nullable.String         `json:"transaction_id" validate:"max=1024"`
+	_             struct{}                `validate:"requiredOneOf=exception;log"`
+}
+
+type errorException struct {
+	Attributes common.MapStr      `json:"attributes"`
+	Code       nullable.Interface `json:"code" validate:"types=string;int,max=1024"`
+	Cause      []errorException   `json:"cause"`
+	Handled    nullable.Bool      `json:"handled"`
+	Message    nullable.String    `json:"message"`
+	Module     nullable.String    `json:"module" validate:"max=1024"`
+	Stacktrace []stacktraceFrame  `json:"stacktrace"`
+	Type       nullable.String    `json:"type" validate:"max=1024"`
+	_          struct{}           `validate:"requiredOneOf=message;type"`
+}
+
+type errorLog struct {
+	Level        nullable.String   `json:"level" validate:"max=1024"`
+	LoggerName   nullable.String   `json:"logger_name" validate:"max=1024"`
+	Message      nullable.String   `json:"message" validate:"required"`
+	ParamMessage nullable.String   `json:"param_message" validate:"max=1024"`
+	Stacktrace   []stacktraceFrame `json:"stacktrace"`
+}
+
+type errorTransactionRef struct {
+	Sampled nullable.Bool   `json:"sampled"`
+	Type    nullable.String `json:"type" validate:"max=1024"`
 }
 
 type metadata struct {
@@ -262,6 +313,89 @@ type metadataSystemKubernetesPod struct {
 	UID  nullable.String `json:"uid" validate:"max=1024"`
 }
 
+type span struct {
+	Action        nullable.String         `json:"action" validate:"max=1024"`
+	ChildIDs      []string                `json:"child_ids" validate:"max=1024"`
+	Context       spanContext             `json:"context"`
+	Duration      nullable.Float64        `json:"duration" validate:"required,min=0"`
+	ID            nullable.String         `json:"id" validate:"required,max=1024"`
+	Name          nullable.String         `json:"name" validate:"required,max=1024"`
+	Outcome       nullable.String         `json:"outcome" validate:"enum=enumOutcome"`
+	ParentID      nullable.String         `json:"parent_id" validate:"required,max=1024"`
+	SampleRate    nullable.Float64        `json:"sample_rate"`
+	Stacktrace    []stacktraceFrame       `json:"stacktrace"`
+	Start         nullable.Float64        `json:"start"`
+	Subtype       nullable.String         `json:"subtype" validate:"max=1024"`
+	Sync          nullable.Bool           `json:"sync"`
+	Timestamp     nullable.TimeMicrosUnix `json:"timestamp"`
+	TraceID       nullable.String         `json:"trace_id" validate:"required,max=1024"`
+	TransactionID nullable.String         `json:"transaction_id" validate:"max=1024"`
+	Type          nullable.String         `json:"type" validate:"required,max=1024"`
+	_             struct{}                `validate:"requiredOneOf=start;timestamp"`
+}
+
+type spanContext struct {
+	Database     spanContextDatabase    `json:"db"`
+	Destination  spanContextDestination `json:"destination"`
+	Experimental nullable.Interface     `json:"experimental"`
+	HTTP         spanContextHTTP        `json:"http"`
+	Message      contextMessage         `json:"message"`
+	Service      contextService         `json:"service"`
+	Tags         common.MapStr          `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+}
+
+type spanContextDatabase struct {
+	Instance     nullable.String `json:"instance"`
+	Link         nullable.String `json:"link" validate:"max=1024"`
+	RowsAffected nullable.Int    `json:"rows_affected"`
+	Statement    nullable.String `json:"statement"`
+	Type         nullable.String `json:"type"`
+	User         nullable.String `json:"user"`
+}
+
+type spanContextDestination struct {
+	Address nullable.String               `json:"address" validate:"max=1024"`
+	Port    nullable.Int                  `json:"port"`
+	Service spanContextDestinationService `json:"service"`
+}
+
+type spanContextDestinationService struct {
+	Name     nullable.String `json:"name" validate:"required,max=1024"`
+	Resource nullable.String `json:"resource" validate:"required,max=1024"`
+	Type     nullable.String `json:"type" validate:"required,max=1024"`
+}
+
+type spanContextHTTP struct {
+	Method     nullable.String         `json:"method" validate:"max=1024"`
+	Response   spanContextHTTPResponse `json:"response"`
+	StatusCode nullable.Int            `json:"status_code"`
+	URL        nullable.String         `json:"url"`
+}
+
+type spanContextHTTPResponse struct {
+	DecodedBodySize nullable.Float64    `json:"decoded_body_size"`
+	EncodedBodySize nullable.Float64    `json:"encoded_body_size"`
+	Headers         nullable.HTTPHeader `json:"headers"`
+	StatusCode      nullable.Int        `json:"status_code"`
+	TransferSize    nullable.Float64    `json:"transfer_size"`
+}
+
+type stacktraceFrame struct {
+	AbsPath      nullable.String `json:"abs_path"`
+	Classname    nullable.String `json:"classname"`
+	ColumnNumber nullable.Int    `json:"colno"`
+	ContextLine  nullable.String `json:"context_line"`
+	Filename     nullable.String `json:"filename"`
+	Function     nullable.String `json:"function"`
+	LibraryFrame nullable.Bool   `json:"library_frame"`
+	LineNumber   nullable.Int    `json:"lineno"`
+	Module       nullable.String `json:"module"`
+	PostContext  []string        `json:"post_context"`
+	PreContext   []string        `json:"pre_context"`
+	Vars         common.MapStr   `json:"vars"`
+	_            struct{}        `validate:"requiredOneOf=classname;filename"`
+}
+
 type transaction struct {
 	Context        context                   `json:"context"`
 	Duration       nullable.Float64          `json:"duration" validate:"required,min=0"`
@@ -278,7 +412,6 @@ type transaction struct {
 	TraceID        nullable.String           `json:"trace_id" validate:"required,max=1024"`
 	Type           nullable.String           `json:"type" validate:"required,max=1024"`
 	UserExperience transactionUserExperience `json:"experience"`
-	Experimental   nullable.Interface        `json:"experimental"`
 }
 
 type transactionMarks struct {
@@ -314,18 +447,18 @@ type transactionUserExperience struct {
 	// or a negative value if FID is unknown. See https://web.dev/fid/
 	FirstInputDelay nullable.Float64 `json:"fid" validate:"min=0"`
 
+	// Longtask holds longtask duration/count metrics.
+	Longtask longtaskMetrics `json:"longtask"`
+
 	// TotalBlockingTime holds the Total Blocking Time (TBT) metric value,
 	// or a negative value if TBT is unknown. See https://web.dev/tbt/
 	TotalBlockingTime nullable.Float64 `json:"tbt" validate:"min=0"`
-
-	// Longtask holds longtask duration/count metrics.
-	Longtask longtaskMetrics `json:"longtask"`
 }
 
 type longtaskMetrics struct {
 	Count nullable.Int     `json:"count" validate:"required,min=0"`
-	Sum   nullable.Float64 `json:"sum" validate:"required,min=0"`
 	Max   nullable.Float64 `json:"max" validate:"required,min=0"`
+	Sum   nullable.Float64 `json:"sum" validate:"required,min=0"`
 }
 
 type user struct {

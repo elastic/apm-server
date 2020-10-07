@@ -209,7 +209,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				assert.NotZero(t, fVal, key)
 				return
 			}
-			if f.Type().Kind() == reflect.Map || f.Type().Kind() == reflect.Array {
+			if f.Type().Kind() == reflect.Map || f.Type().Kind() == reflect.Slice {
 				assert.NotZero(t, fVal, key)
 				return
 			}
@@ -282,10 +282,18 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 				i++
 			}
 		case reflect.Slice, reflect.Array:
+			if v.Type() == f.Type().Elem() {
+				continue
+			}
 			for j := 0; j < f.Len(); j++ {
 				sliceField := f.Index(j)
-				if sliceField.Kind() == reflect.Struct {
+				switch sliceField.Kind() {
+				case reflect.Struct:
 					iterateStruct(sliceField, fmt.Sprintf("%s.[%v]", fKey, j), fn)
+				case reflect.Ptr:
+					if !sliceField.IsZero() && sliceField.Type().Elem().Kind() == reflect.Struct {
+						iterateStruct(sliceField.Elem(), fKey, fn)
+					}
 				}
 			}
 		}

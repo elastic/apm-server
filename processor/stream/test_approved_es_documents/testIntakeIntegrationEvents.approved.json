@@ -59,7 +59,7 @@
                             "MozillaChromeEdge"
                         ]
                     },
-                    "method": "post",
+                    "method": "POST",
                     "socket": {
                         "encrypted": true,
                         "remote_address": "12.53.12.1:8080"
@@ -271,7 +271,7 @@
                     "us": 3781
                 },
                 "http": {
-                    "method": "get",
+                    "method": "GET",
                     "response": {
                         "decoded_body_size": 401,
                         "encoded_body_size": 356,
@@ -629,7 +629,7 @@
                             "opbeans-java:3000"
                         ]
                     },
-                    "method": "post",
+                    "method": "POST",
                     "socket": {
                         "encrypted": true,
                         "remote_address": "12.53.12.1"

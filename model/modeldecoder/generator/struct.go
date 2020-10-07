@@ -15,30 +15,39 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package decoder
+package generator
 
 import (
+	"fmt"
 	"io"
-
-	jsoniter "github.com/json-iterator/go"
 )
 
-//TODO(simitt): look into config options for performance tuning
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
+func generateStructValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
+	// if field is a custom struct, call its validation function
+	if isCustomStruct {
+		fmt.Fprintf(w, `
+		if err := val.%s.validate(); err != nil{
+			return errors.Wrapf(err, "%s")
+		}
+		`[1:], f.Name(), jsonName(f))
+	}
 
-type Decoder interface {
-	Decode(v interface{}) error
-}
-
-type JSONDecoder struct {
-	*jsoniter.Decoder
-	reader io.Reader
-}
-
-// NewJSONDecoder returns a *json.Decoder where numbers are unmarshaled
-// as a Number instead of a float64 into an interface{}
-func NewJSONDecoder(r io.Reader) JSONDecoder {
-	d := json.NewDecoder(r)
-	d.UseNumber()
-	return JSONDecoder{Decoder: d, reader: r}
+	// handle generally available rules:
+	// - `required`
+	// and throw error for others
+	rules, err := validationRules(f.tag)
+	if err != nil {
+		return err
+	}
+	for _, rule := range rules {
+		switch rule.name {
+		case tagRequired:
+			ruleNullableRequired(w, f)
+		case tagRequiredOneOf:
+			ruleRequiredOneOf(w, fields, rule.value)
+		default:
+			return fmt.Errorf("unhandled tag rule '%s'", rule)
+		}
+	}
+	return nil
 }
