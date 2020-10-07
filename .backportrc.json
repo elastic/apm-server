@@ -1,5 +1,5 @@
 {
   "upstream": "elastic/apm-server",
-  "branches": [{ "name": "7.x", "checked": true }, "7.9", "7.8", "7.7", "7.6", "7.5", "7.4", "7.3", "7.2", "7.1", "7.0", "6.8"],
+  "branches": [{ "name": "7.x", "checked": true }, "7.10", "7.9", "6.8"],
   "labels": ["backport"]
 }
