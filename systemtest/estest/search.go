@@ -28,16 +28,20 @@ import (
 
 // ExpectDocs searches index with query, returning the results.
 //
-// If the search returns no results within 10 seconds (by default),
-// ExpectDocs will call t.Error().
+// ExpectDocs is equivalent to calling ExpectMinDocs with a minimum of 1.
 func (es *Client) ExpectDocs(t testing.TB, index string, query interface{}, opts ...RequestOption) SearchResult {
+	return es.ExpectMinDocs(t, 1, index, query, opts...)
+}
+
+// ExpectMinDocs searches index with query, returning the results.
+//
+// If the search returns fewer than min results within 10 seconds
+// (by default), ExpectMinDocs will call t.Error().
+func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query interface{}, opts ...RequestOption) SearchResult {
 	t.Helper()
 	var result SearchResult
-	_, err := es.Search(index).WithQuery(query).Do(
-		context.Background(), &result,
-		WithCondition(result.Hits.NonEmptyCondition()),
-	)
-	if err != nil {
+	opts = append(opts, WithCondition(result.Hits.NonEmptyCondition()))
+	if _, err := es.Search(index).WithQuery(query).Do(context.Background(), &result, opts...); err != nil {
 		t.Error(err)
 	}
 	return result
@@ -77,7 +81,13 @@ type SearchHits struct {
 
 // NonEmptyCondition returns a ConditionFunc which will return true if h.Hits is non-empty.
 func (h *SearchHits) NonEmptyCondition() ConditionFunc {
-	return func(*esapi.Response) bool { return len(h.Hits) != 0 }
+	return h.MinHitsCondition(1)
+}
+
+// MinHitsCondition returns a ConditionFunc which will return true if the number of h.Hits
+// is at least min.
+func (h *SearchHits) MinHitsCondition(min int) ConditionFunc {
+	return func(*esapi.Response) bool { return len(h.Hits) >= min }
 }
 
 type SearchHit struct {
