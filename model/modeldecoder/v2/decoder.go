@@ -42,11 +42,11 @@ type DecodeError struct {
 	err error
 }
 
-var jsoniterErrRegexp = regexp.MustCompile(`expect.* but found .*error found in .* bigger context.*`)
+var jsoniterErrRegexp = regexp.MustCompile(`but found .*error found in .* bigger context.*`)
 
 func newDecodeErrFromJSONIter(err error) DecodeError {
 	if jsoniterErrRegexp.MatchString(err.Error()) {
-		err = errors.New(jsoniterErrRegexp.ReplaceAllString(err.Error(), "invalid"))
+		err = errors.New(jsoniterErrRegexp.ReplaceAllString(err.Error(), ""))
 	}
 	return DecodeError{err}
 }
