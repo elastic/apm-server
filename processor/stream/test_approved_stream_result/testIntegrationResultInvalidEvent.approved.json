@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{ \"transaction\": { \"id\": 12345, \"trace_id\": \"0123456789abcdef0123456789abcdef\", \"parent_id\": \"abcdefabcdef01234567\", \"type\": \"request\", \"duration\": 32.592981, \"span_count\": { \"started\": 21 } } }   ",
-            "message": "decode error: data read error: v2.transactionRoot.Transaction: v2.transaction.ID: ReadString: expects \" or n, "
+            "message": "decode error: data read error: v2.transactionRoot.Transaction: v2.transaction.ID: ReadString: expects \" or n,"
         }
     ]
 }
