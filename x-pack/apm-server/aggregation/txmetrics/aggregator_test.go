@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 func TestNewAggregatorConfigInvalid(t *testing.T) {
@@ -126,6 +127,18 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 			TimeseriesInstanceID: ":baz:bc30224a3738a508",
 		}, m)
 	}
+
+	expectedMonitoring := monitoring.MakeFlatSnapshot()
+	expectedMonitoring.Ints["txmetrics.active_groups"] = 2
+	expectedMonitoring.Ints["txmetrics.overflowed"] = 2 // third group is processed twice
+
+	registry := monitoring.NewRegistry()
+	monitoring.NewFunc(registry, "txmetrics", agg.CollectMonitoring)
+	assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
+		registry,
+		monitoring.Full,
+		false, // expvar
+	))
 }
 
 func TestAggregatorRun(t *testing.T) {
