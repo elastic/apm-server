@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{\"metadata\": {\"invalid-json\"}}",
-            "message": "decode error: data read error: v2.metadataRoot.Metadata: v2.metadata.readFieldHash: expect :, but found }, error found in #10 byte of ...|lid-json\"}}|..., bigger context ...|{\"metadata\": {\"invalid-json\"}}|..."
+            "message": "decode error: data read error: v2.metadataRoot.Metadata: v2.metadata.readFieldHash: expect :,"
         }
     ]
 }
