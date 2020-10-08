@@ -371,7 +371,8 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dgraph-io/badger/v2
-Version: v2.2007.2
+Replacement: github.com/elastic/badger/v2
+Version: v2.2007.2-beats
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -638,7 +639,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: bad38abf9473
+Revision: f6bfa2d5b3f5
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3931,7 +3932,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 0a1ea396d57c
+Revision: a7d1128ccaa0
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4033,7 +4034,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 997123666555
+Revision: a893ed343c85
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
