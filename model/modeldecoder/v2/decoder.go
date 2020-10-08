@@ -22,6 +22,7 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -39,6 +40,15 @@ import (
 // DecodeError represents an error due to JSON decoding.
 type DecodeError struct {
 	err error
+}
+
+var jsoniterErrRegexp = regexp.MustCompile(`expect.* but found .*error found in .* bigger context.*`)
+
+func newDecodeErrFromJSONIter(err error) DecodeError {
+	if jsoniterErrRegexp.MatchString(err.Error()) {
+		err = errors.New(jsoniterErrRegexp.ReplaceAllString(err.Error(), "invalid"))
+	}
+	return DecodeError{err}
 }
 
 func (e DecodeError) Error() string {
@@ -150,7 +160,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 	defer releaseErrorRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return DecodeError{err}
+		return newDecodeErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
 		return ValidationError{err}
@@ -169,7 +179,7 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, out *model.S
 	defer releaseSpanRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return DecodeError{err}
+		return newDecodeErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
 		return ValidationError{err}
@@ -188,7 +198,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	defer releaseTransactionRoot(root)
 	var err error
 	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return DecodeError{err}
+		return newDecodeErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
 		return ValidationError{err}
@@ -202,7 +212,7 @@ func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d deco
 	defer releaseMetadataRoot(m)
 	var err error
 	if err = decFn(d, m); err != nil && err != io.EOF {
-		return DecodeError{err}
+		return newDecodeErrFromJSONIter(err)
 	}
 	if err := m.validate(); err != nil {
 		return ValidationError{err}
