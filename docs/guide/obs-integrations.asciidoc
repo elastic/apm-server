@@ -12,7 +12,7 @@ Many applications use logging frameworks to help record, format, and append an a
 Elastic APM now offers a way to make your application logs even more useful,
 by integrating with the most popular logging frameworks in their respective languages.
 This means you can easily inject trace information into your logs,
-allowing you to explore logs in the {kibana-ref}/xpack-logs.html[Logs app],
+allowing you to explore logs in the {observability-guide}/monitor-logs.html[Logs app],
 then jump straight into the corresponding APM traces -- all while preserving the trace context.
 
 To get started:
