@@ -20,6 +20,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 
+	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
 )
 
@@ -29,7 +30,7 @@ import (
 // An independent process will periodically reap old documents in the index.
 type Pubsub struct {
 	config  Config
-	indexer esutil.BulkIndexer
+	indexer elasticsearch.BulkIndexer
 }
 
 // New returns a new Pubsub which can publish and subscribe sampled trace IDs,
@@ -45,8 +46,7 @@ func New(config Config) (*Pubsub, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.Sampling)
 	}
-	indexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
-		Client:        config.Client,
+	indexer, err := config.Client.NewBulkIndexer(elasticsearch.BulkIndexerConfig{
 		Index:         config.Index,
 		FlushInterval: config.FlushInterval,
 		OnError: func(ctx context.Context, err error) {
@@ -70,7 +70,7 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceID ...string) 
 		if err := doc.MarshalFastJSON(&json); err != nil {
 			return err
 		}
-		if err := p.indexer.Add(ctx, esutil.BulkIndexerItem{
+		if err := p.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
 			Action:    "index",
 			Body:      bytes.NewReader(json.Bytes()),
 			OnFailure: p.onBulkIndexerItemFailure,
@@ -81,7 +81,7 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceID ...string) 
 	return nil
 }
 
-func (p *Pubsub) onBulkIndexerItemFailure(ctx context.Context, item esutil.BulkIndexerItem, resp esutil.BulkIndexerResponseItem, err error) {
+func (p *Pubsub) onBulkIndexerItemFailure(ctx context.Context, item elasticsearch.BulkIndexerItem, resp elasticsearch.BulkIndexerResponseItem, err error) {
 	p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace ID failed")
 }
 

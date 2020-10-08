@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
-	"github.com/elastic/go-elasticsearch/v7"
 )
 
 func TestNewProcessorConfigInvalid(t *testing.T) {
@@ -50,7 +50,10 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	config.IngestRateDecayFactor = 0.5
 
 	assertInvalidConfigError("invalid remote sampling config: Elasticsearch unspecified")
-	config.Elasticsearch = &elasticsearch.Client{}
+	var elasticsearchClient struct {
+		elasticsearch.Client
+	}
+	config.Elasticsearch = elasticsearchClient
 
 	assertInvalidConfigError("invalid remote sampling config: SampledTracesIndex unspecified")
 	config.SampledTracesIndex = "sampled-traces"
