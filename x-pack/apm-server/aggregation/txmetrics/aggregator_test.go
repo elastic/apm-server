@@ -75,12 +75,18 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 func TestProcessTransformablesOverflow(t *testing.T) {
 	reqs := make(chan publish.PendingReq, 1)
 
+	core, observed := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("foo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		Report:                         makeChanReporter(reqs),
 		MaxTransactionGroups:           2,
 		MetricsInterval:                time.Microsecond,
 		HDRHistogramSignificantFigures: 1,
 		RUMUserAgentLRUSize:            1,
+		Logger:                         logger,
 	})
 	require.NoError(t, err)
 
@@ -141,6 +147,9 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 		monitoring.Full,
 		false, // expvar
 	))
+
+	overflowLogEntries := observed.FilterMessageSnippet("Transaction group limit reached")
+	assert.Equal(t, 1, overflowLogEntries.Len()) // rate limited
 }
 
 func TestAggregatorRun(t *testing.T) {
