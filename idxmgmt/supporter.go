@@ -19,6 +19,7 @@ package idxmgmt
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
@@ -176,6 +177,7 @@ func (s *supporter) buildSelector(cfg *common.Config, err error) (outil.Selector
 		MultiKey:         "indices",
 		EnableSingleOnly: true,
 		FailEmpty:        true,
+		Case:             outil.SelectorLowerCase,
 	}
 	return outil.BuildSelectorFromConfig(cfg, buildSettings)
 }
@@ -236,7 +238,7 @@ func getEventCustomIndex(evt *beat.Event) string {
 	// returns index from alias
 	if tmp := evt.Meta["alias"]; tmp != nil {
 		if alias, ok := tmp.(string); ok {
-			return alias
+			return strings.ToLower(alias)
 		}
 	}
 
@@ -245,7 +247,7 @@ func getEventCustomIndex(evt *beat.Event) string {
 		if idx, ok := tmp.(string); ok {
 			ts := evt.Timestamp.UTC()
 			return fmt.Sprintf("%s-%d.%02d.%02d",
-				idx, ts.Year(), ts.Month(), ts.Day())
+				strings.ToLower(idx), ts.Year(), ts.Month(), ts.Day())
 		}
 	}
 
