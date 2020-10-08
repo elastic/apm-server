@@ -371,7 +371,8 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dgraph-io/badger/v2
-Version: v2.2007.2
+Replacement: github.com/elastic/badger/v2
+Version: v2.2007.2-beats
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
