@@ -160,7 +160,8 @@ type LogEntry struct {
 	Timestamp time.Time
 	Level     zapcore.Level
 	Logger    string
-	Caller    string
+	File      string
+	Line      int
 	Message   string
 	Fields    map[string]interface{}
 }
