@@ -308,7 +308,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dlclark/regexp2
-Version: v1.2.1
+Version: v1.4.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -534,8 +534,8 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
-Version: v7.9.2
-Revision: 3d7989f6957d
+Version: v7.9.3
+Revision: e8f1cef65256
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -1261,7 +1261,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/hashicorp/errwrap
-Version: v1.0.0
+Version: v1.1.0
 License type (autodetected): MPL-2.0
 Contents of "LICENSE":
 
@@ -2961,7 +2961,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/mattn/go-colorable
-Version: v0.1.7
+Version: v0.1.8
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -3765,7 +3765,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 5c72a883971a
+Revision: 7f63de1d35b0
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3799,7 +3799,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 328152dc79b1
+Revision: 4f7140c49acb
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3901,7 +3901,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: d9f96fdee20d
+Revision: dfb3f7c4e634
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
