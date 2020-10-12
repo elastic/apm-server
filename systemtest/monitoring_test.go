@@ -88,7 +88,8 @@ func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, o
 	)
 
 	var doc beatsMonitoringDoc
-	err := json.Unmarshal([]byte(result.Hits.Hits[0].RawSource), &doc)
+	doc.RawSource = []byte(result.Hits.Hits[0].RawSource)
+	err := json.Unmarshal(doc.RawSource, &doc)
 	require.NoError(t, err)
 	if out != nil {
 		switch doc.Type {
@@ -102,6 +103,7 @@ func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, o
 }
 
 type beatsMonitoringDoc struct {
+	RawSource  []byte    `json:"-"`
 	Timestamp  time.Time `json:"timestamp"`
 	Type       string    `json:"type"`
 	BeatsState `json:"beats_state,omitempty"`
