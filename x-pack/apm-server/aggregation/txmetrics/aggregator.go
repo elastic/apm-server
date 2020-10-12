@@ -10,12 +10,14 @@ import (
 	"math"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/go-hdrhistogram"
 
 	logs "github.com/elastic/apm-server/log"
@@ -45,10 +47,15 @@ type Aggregator struct {
 	stopped  chan struct{}
 
 	config          AggregatorConfig
+	metrics         aggregatorMetrics
 	userAgentLookup *userAgentLookup
 
 	mu               sync.RWMutex
 	active, inactive *metrics
+}
+
+type aggregatorMetrics struct {
+	overflowed int64
 }
 
 // AggregatorConfig holds configuration for creating an Aggregator.
@@ -179,6 +186,25 @@ func (a *Aggregator) Stop(ctx context.Context) error {
 	return nil
 }
 
+// CollectMonitoring may be called to collect monitoring metrics from the
+// aggregation. It is intended to be used with libbeat/monitoring.NewFunc.
+//
+// The metrics should be added to the "apm-server.aggregation.txmetrics" registry.
+func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	m := a.active
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	monitoring.ReportInt(V, "active_groups", int64(m.entries))
+	monitoring.ReportInt(V, "overflowed", atomic.LoadInt64(&a.metrics.overflowed))
+}
+
 func (a *Aggregator) publish(ctx context.Context) error {
 	// We hold a.mu only long enough to swap the metrics. This will
 	// be blocked by metrics updates, which is OK, as we prefer not
@@ -255,7 +281,8 @@ func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricse
 	// Too many aggregation keys: could not update metrics, so immediately
 	// publish a single-value metric document.
 	//
-	// TODO(axw) log a warning with a rate-limit, increment a counter.
+	// TODO(axw) log a warning with a rate-limit.
+	atomic.AddInt64(&a.metrics.overflowed, 1)
 	counts := []int64{int64(math.Round(count))}
 	values := []float64{float64(durationMicros(duration))}
 	metricset := makeMetricset(key, hash, time.Now(), counts, values)

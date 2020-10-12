@@ -3,9 +3,20 @@
 
 https://github.com/elastic/apm-server/compare/7.8\...7.9[View commits]
 
+* <<release-notes-7.9.3>>
 * <<release-notes-7.9.2>>
 * <<release-notes-7.9.1>>
 * <<release-notes-7.9.0>>
+
+[float]
+[[release-notes-7.9.3]]
+=== APM Server version 7.9.3
+
+https://github.com/elastic/apm-server/compare/v7.9.2\...v7.9.3[View commits]
+
+[float]
+==== Bug fixes
+* Ensure custom index names are lowercased {pull}4295[4295]
 
 [float]
 [[release-notes-7.9.2]]

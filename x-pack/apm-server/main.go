@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/paths"
 
 	"github.com/elastic/apm-server/beater"
@@ -22,6 +23,10 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
+)
+
+var (
+	aggregationMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.aggregation")
 )
 
 type namedProcessor struct {
@@ -53,6 +58,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 			return nil, errors.Wrapf(err, "error creating %s", name)
 		}
 		processors = append(processors, namedProcessor{name: name, processor: agg})
+		monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
 	}
 	if args.Config.Aggregation.ServiceDestinations.Enabled {
 		const name = "service destinations aggregation"

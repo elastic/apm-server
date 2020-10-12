@@ -24,6 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -34,6 +35,11 @@ import (
 func TestTransactionAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
+		Enabled:       true,
+		MetricsPeriod: 100 * time.Millisecond,
+		StatePeriod:   100 * time.Millisecond,
+	}
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
 			Enabled:  true,
@@ -69,6 +75,10 @@ func TestTransactionAggregation(t *testing.T) {
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+
+	// Make sure apm-server.aggregation.txmetrics metrics are published. Metric values are unit tested.
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.aggregation.txmetrics").Exists())
 }
 
 func TestTransactionAggregationShutdown(t *testing.T) {

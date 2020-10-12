@@ -14,3 +14,5 @@ https://github.com/elastic/apm-server/compare/7.10\...master[View commits]
 
 [float]
 ==== Added
+* Monitoring for aggregation of transaction metrics {pull}4287[4287]
+
