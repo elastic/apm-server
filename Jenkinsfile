@@ -76,9 +76,10 @@ pipeline {
               "^vendor/github.com/elastic/beats.*"
             ]
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
-
             // Skip all the stages except docs for PR's with asciidoc changes only
-            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true)
+            whenTrue(isPR()) {
+              setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
+            }
           }
         }
       }
