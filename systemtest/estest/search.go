@@ -67,6 +67,11 @@ func (r *SearchRequest) WithQuery(q interface{}) *SearchRequest {
 	return r
 }
 
+func (r *SearchRequest) WithSize(size int) *SearchRequest {
+	r.Size = &size
+	return r
+}
+
 func (r *SearchRequest) Do(ctx context.Context, out *SearchResult, opts ...RequestOption) (*esapi.Response, error) {
 	return r.es.Do(ctx, &r.SearchRequest, out, opts...)
 }

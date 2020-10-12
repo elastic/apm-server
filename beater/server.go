@@ -24,6 +24,7 @@ import (
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/version"
 
@@ -38,6 +39,9 @@ type RunServerFunc func(context.Context, ServerParams) error
 
 // ServerParams holds parameters for running the APM Server.
 type ServerParams struct {
+	// Info holds metadata about the server, such as its UUID.
+	Info beat.Info
+
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
 

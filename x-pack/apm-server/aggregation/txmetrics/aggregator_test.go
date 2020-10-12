@@ -91,7 +91,8 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 		input = append(input, &model.Transaction{Name: "foo", RepresentativeCount: 1})
 		input = append(input, &model.Transaction{Name: "bar", RepresentativeCount: 1})
 	}
-	output := agg.ProcessTransformables(input)
+	output, err := agg.ProcessTransformables(context.Background(), input)
+	require.NoError(t, err)
 	assert.Equal(t, input, output)
 
 	// The third transaction group will return a metricset for immediate publication.
@@ -102,7 +103,8 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 			RepresentativeCount: 1,
 		})
 	}
-	output = agg.ProcessTransformables(input)
+	output, err = agg.ProcessTransformables(context.Background(), input)
+	require.NoError(t, err)
 	assert.Len(t, output, len(input)+2)
 	assert.Equal(t, input, output[:len(input)])
 
