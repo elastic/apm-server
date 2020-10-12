@@ -10,14 +10,15 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/go-elasticsearch/v7"
+
+	"github.com/elastic/apm-server/elasticsearch"
 )
 
 // Config holds configuration for Pubsub.
 type Config struct {
 	// Client holds an Elasticsearch client, for indexing and searching for
 	// trace ID observations.
-	Client *elasticsearch.Client
+	Client elasticsearch.Client
 
 	// Index holds the index name.
 	Index string

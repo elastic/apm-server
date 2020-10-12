@@ -30,14 +30,20 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/version"
 	esv7 "github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	esapiv7 "github.com/elastic/go-elasticsearch/v7/esapi"
+	esutilv7 "github.com/elastic/go-elasticsearch/v7/esutil"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
+	esutilv8 "github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // Client is an interface designed to abstract away version differences between elasticsearch clients
 type Client interface {
+	// NewBulkIndexer returns a new BulkIndexer using this client for making the requests.
+	NewBulkIndexer(BulkIndexerConfig) (BulkIndexer, error)
+
 	// Perform satisfies esapi.Transport
 	Perform(*http.Request) (*http.Response, error)
+
 	// TODO: deprecate
 	SearchQuery(ctx context.Context, index string, body io.Reader) (int, io.ReadCloser, error)
 }
@@ -60,6 +66,25 @@ func (c clientV8) SearchQuery(ctx context.Context, index string, body io.Reader)
 	return response.StatusCode, response.Body, nil
 }
 
+func (c clientV8) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) {
+	indexer, err := esutilv8.NewBulkIndexer(esutilv8.BulkIndexerConfig{
+		Client:        c.Client,
+		NumWorkers:    config.NumWorkers,
+		FlushBytes:    config.FlushBytes,
+		FlushInterval: config.FlushInterval,
+		OnError:       config.OnError,
+		OnFlushStart:  config.OnFlushStart,
+		OnFlushEnd:    config.OnFlushEnd,
+		Index:         config.Index,
+		Pipeline:      config.Pipeline,
+		Timeout:       config.Timeout,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return v8BulkIndexer{indexer}, nil
+}
+
 type clientV7 struct {
 	*esv7.Client
 }
@@ -76,6 +101,25 @@ func (c clientV7) SearchQuery(ctx context.Context, index string, body io.Reader)
 		return 0, nil, err
 	}
 	return response.StatusCode, response.Body, nil
+}
+
+func (c clientV7) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) {
+	indexer, err := esutilv7.NewBulkIndexer(esutilv7.BulkIndexerConfig{
+		Client:        c.Client,
+		NumWorkers:    config.NumWorkers,
+		FlushBytes:    config.FlushBytes,
+		FlushInterval: config.FlushInterval,
+		OnError:       config.OnError,
+		OnFlushStart:  config.OnFlushStart,
+		OnFlushEnd:    config.OnFlushEnd,
+		Index:         config.Index,
+		Pipeline:      config.Pipeline,
+		Timeout:       config.Timeout,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return v7BulkIndexer{indexer}, nil
 }
 
 // NewClient parses the given config and returns  a version-aware client as an interface
@@ -127,7 +171,7 @@ func newV8Client(apikey, user, pwd string, addresses []string, headers http.Head
 	})
 }
 
-func doRequest(ctx context.Context, transport esapi.Transport, req esapi.Request, out interface{}) error {
+func doRequest(ctx context.Context, transport esapiv7.Transport, req esapiv7.Request, out interface{}) error {
 	resp, err := req.Do(ctx, transport)
 	if err != nil {
 		return err
