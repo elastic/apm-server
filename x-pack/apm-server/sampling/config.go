@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/go-elasticsearch/v7"
 )
 
 // Config holds configuration for Processor.
@@ -56,7 +56,7 @@ type LocalSamplingConfig struct {
 type RemoteSamplingConfig struct {
 	// Elasticsearch holds the Elasticsearch client to use for publishing
 	// and subscribing to remote sampling decisions.
-	Elasticsearch *elasticsearch.Client
+	Elasticsearch elasticsearch.Client
 
 	// SampledTracesIndex holds the name of the Elasticsearch index for
 	// storing and searching sampled trace IDs.

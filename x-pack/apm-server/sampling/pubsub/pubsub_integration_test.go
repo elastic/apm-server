@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"net"
-	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -20,8 +19,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
@@ -74,10 +74,11 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 	}
 
 	for {
-		resp, err := client.Search(
-			client.Search.WithIndex(indexName),
-			client.Search.WithSize(len(input)+1),
-		)
+		size := len(input) + 1
+		resp, err := esapi.SearchRequest{
+			Index: []string{indexName},
+			Size:  &size,
+		}.Do(context.Background(), client)
 		require.NoError(t, err)
 		if resp.IsError() {
 			resp.Body.Close()
@@ -152,7 +153,10 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 			assert.NoError(t, enc.Encode(indexAction{}))
 			assert.NoError(t, enc.Encode(&doc))
 		}
-		resp, err := client.Bulk(&body, client.Bulk.WithIndex(indexName))
+		resp, err := esapi.BulkRequest{
+			Index: indexName,
+			Body:  &body,
+		}.Do(context.Background(), client)
 		require.NoError(t, err)
 		assert.False(t, resp.IsError())
 		resp.Body.Close()
@@ -184,7 +188,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 	}
 }
 
-func recreateIndex(tb testing.TB, client *elasticsearch.Client, indexName string) {
+func recreateIndex(tb testing.TB, client elasticsearch.Client, indexName string) {
 	body := strings.NewReader(`{
   "mappings": {
     "properties": {
@@ -202,40 +206,38 @@ func recreateIndex(tb testing.TB, client *elasticsearch.Client, indexName string
     }
   }
 }`)
-	resp, err := client.Indices.Delete([]string{indexName})
+
+	resp, err := esapi.IndicesDeleteRequest{
+		Index: []string{indexName},
+	}.Do(context.Background(), client)
 	require.NoError(tb, err)
 	resp.Body.Close()
 
-	resp, err = client.Indices.Create(indexName, client.Indices.Create.WithBody(body))
+	resp, err = esapi.IndicesCreateRequest{
+		Index: indexName,
+		Body:  body,
+	}.Do(context.Background(), client)
 	require.NoError(tb, err)
 	assert.False(tb, resp.IsError())
 	resp.Body.Close()
 }
 
-func newElasticsearchClient(tb testing.TB) *elasticsearch.Client {
+func newElasticsearchClient(tb testing.TB) elasticsearch.Client {
 	switch strings.ToLower(os.Getenv("INTEGRATION_TESTS")) {
 	case "1", "true":
 	default:
 		tb.Skip("Skipping integration test, export INTEGRATION_TESTS=1 to run")
 	}
 
-	esURL := url.URL{Scheme: "http", Host: net.JoinHostPort(
+	esHost := net.JoinHostPort(
 		getenvDefault("ES_HOST", defaultElasticsearchHost),
 		getenvDefault("ES_PORT", defaultElasticsearchPort),
-	)}
-	cfg := elasticsearch.Config{
-		Addresses: []string{esURL.String()},
-		RetryBackoff: func(attempt int) time.Duration {
-			backoff := time.Duration(attempt*100) * time.Millisecond
-			if backoff > time.Second {
-				backoff = time.Second
-			}
-			return backoff
-		},
-	}
-	cfg.Username = getenvDefault("ES_USER", defaultElasticsearchUser)
-	cfg.Password = getenvDefault("ES_PASS", defaultElasticsearchPass)
-	client, err := elasticsearch.NewClient(cfg)
+	)
+	client, err := elasticsearch.NewClient(&elasticsearch.Config{
+		Hosts:    []string{esHost},
+		Username: getenvDefault("ES_USER", defaultElasticsearchUser),
+		Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
+	})
 	require.NoError(tb, err)
 	return client
 }

@@ -13,8 +13,7 @@ import (
 	"net/http/httptest"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
+	"github.com/elastic/apm-server/elasticsearch"
 )
 
 // Publisher is an interface to pass to Client that responds to publish
@@ -78,11 +77,15 @@ func (f SubscriberFunc) Subscribe(ctx context.Context) (string, error) {
 // that responds to publish requests by calling pub (if non-nil) and subscribe
 // requests by calling sub (if non-nil). If either function is nil, then the
 // respective operation will be a no-op.
-func Client(pub Publisher, sub Subscriber) *elasticsearch.Client {
-	client, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{"testing.invalid"},
-		Transport: &channelClientRoundTripper{pub: pub, sub: sub},
-	})
+func Client(pub Publisher, sub Subscriber) elasticsearch.Client {
+	client, err := elasticsearch.NewVersionedClient(
+		"",                          // API Key
+		"",                          // user
+		"",                          // password,
+		[]string{"testing.invalid"}, // addresses
+		nil,                         // headers
+		&channelClientRoundTripper{pub: pub, sub: sub},
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -147,7 +150,7 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 		recorder.Flush()
 	case "POST":
 		// Publish
-		var results []map[string]esutil.BulkIndexerResponseItem
+		var results []map[string]elasticsearch.BulkIndexerResponseItem
 		dec := json.NewDecoder(r.Body)
 		for {
 			var m map[string]interface{}
@@ -169,8 +172,8 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 					return nil, err
 				}
 			}
-			result := esutil.BulkIndexerResponseItem{Status: 200}
-			results = append(results, map[string]esutil.BulkIndexerResponseItem{action: result})
+			result := elasticsearch.BulkIndexerResponseItem{Status: 200}
+			results = append(results, map[string]elasticsearch.BulkIndexerResponseItem{action: result})
 		}
 		if err := json.NewEncoder(recorder).Encode(results); err != nil {
 			return nil, err

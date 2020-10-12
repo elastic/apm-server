@@ -22,8 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/go-elasticsearch/v7"
-
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
@@ -48,8 +47,8 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{srv.URL},
+	client, err := elasticsearch.NewClient(&elasticsearch.Config{
+		Hosts: []string{srv.Listener.Addr().String()},
 	})
 	require.NoError(t, err)
 
@@ -142,8 +141,8 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{srv.URL},
+	client, err := elasticsearch.NewClient(&elasticsearch.Config{
+		Hosts: []string{srv.Listener.Addr().String()},
 	})
 	require.NoError(t, err)
 
