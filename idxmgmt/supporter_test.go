@@ -148,26 +148,26 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 			withIlm: "apm-7.0.0-sourcemap",
 			fields:  common.MapStr{"processor.event": "sourcemap"},
 		},
-		"MetaInformationAlias": {
+		"MetaInformationAlia-lowercased": {
 			noIlm:   "apm-7.0.0-meta",
 			withIlm: "apm-7.0.0-meta", //meta overwrites ilm
 			fields:  common.MapStr{"processor.event": "span"},
-			meta:    common.MapStr{"alias": "apm-7.0.0-meta", "index": "test-123"},
+			meta:    common.MapStr{"alias": "APM-7.0.0-meta", "index": "test-123"},
 			cfg:     common.MapStr{"output.elasticsearch.index": "apm-customized"},
 		},
 		"MetaInformationIndex": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-%s", day),
 			withIlm: fmt.Sprintf("apm-7.0.0-%s", day), //meta overwrites ilm
 			fields:  common.MapStr{"processor.event": "span"},
-			meta:    common.MapStr{"index": "apm-7.0.0"},
+			meta:    common.MapStr{"index": "APM-7.0.0"},
 			cfg:     common.MapStr{"output.elasticsearch.index": "apm-customized"},
 		},
-		"CustomIndex": {
+		"CustomIndex-lowercased": {
 			noIlm:   "apm-customized",
 			withIlm: "apm-7.0.0-metric", //custom index ignored when ilm enabled
 			ilmAuto: "apm-customized",   //custom respected for ilm auto
 			fields:  common.MapStr{"processor.event": "metric"},
-			cfg:     common.MapStr{"output.elasticsearch.index": "apm-customized"},
+			cfg:     common.MapStr{"output.elasticsearch.index": "APM-customized"},
 		},
 		"DifferentCustomIndices": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-%s", day),
