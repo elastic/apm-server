@@ -49,15 +49,15 @@ func TestKeepUnsampled(t *testing.T) {
 			tracer.StartTransaction("unsampled", transactionType).End()
 			tracer.Flush(nil)
 
-			result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
-				Field: "transaction.type",
-				Value: transactionType,
-			})
-
 			expectedTransactionDocs := 1
 			if keepUnsampled {
 				expectedTransactionDocs++
 			}
+
+			result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedTransactionDocs, "apm-*", estest.TermQuery{
+				Field: "transaction.type",
+				Value: transactionType,
+			})
 			assert.Len(t, result.Hits.Hits, expectedTransactionDocs)
 		})
 	}
