@@ -29,7 +29,10 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	span := makeSpan("test_service", "test_destination", "success", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			agg.ProcessTransformables([]transform.Transformable{span})
+			agg.ProcessTransformables(
+				context.Background(),
+				[]transform.Transformable{span},
+			)
 		}
 	})
 }
@@ -98,8 +101,11 @@ func TestAggregatorRun(t *testing.T) {
 		go func(in input) {
 			defer wg.Done()
 			span := makeSpan(in.serviceName, in.destination, in.outcome, 100*time.Millisecond, in.count)
+			transformables := []transform.Transformable{span}
 			for i := 0; i < 100; i++ {
-				assert.Len(t, agg.ProcessTransformables([]transform.Transformable{span}), 1)
+				out, err := agg.ProcessTransformables(context.Background(), transformables)
+				require.NoError(t, err)
+				assert.Equal(t, transformables, out)
 			}
 		}(in)
 	}
@@ -203,14 +209,16 @@ func TestAggregatorOverflow(t *testing.T) {
 		input = append(input, makeSpan("service", "destination1", "success", 100*time.Millisecond, 1))
 		input = append(input, makeSpan("service", "destination2", "success", 100*time.Millisecond, 1))
 	}
-	output := agg.ProcessTransformables(input)
+	output, err := agg.ProcessTransformables(context.Background(), input)
+	require.NoError(t, err)
 	assert.Equal(t, input, output)
 
 	// The third group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
 		input = append(input, makeSpan("service", "destination3", "success", 100*time.Millisecond, 1))
 	}
-	output = agg.ProcessTransformables(input)
+	output, err = agg.ProcessTransformables(context.Background(), input)
+	require.NoError(t, err)
 	assert.Len(t, output, len(input)+2)
 	assert.Equal(t, input, output[:len(input)])
 

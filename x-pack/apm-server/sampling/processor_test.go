@@ -439,7 +439,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
 			Elasticsearch:      pubsubtest.Client(nil, nil),
-			SampledTracesIndex: ".apm-sampled-traces",
+			SampledTracesIndex: "apm-sampled-traces",
 		},
 		StorageConfig: sampling.StorageConfig{
 			StorageDir:        tempdir,
