@@ -43,11 +43,11 @@ type TailSamplingConfig struct {
 
 	DefaultSampleRate     float64               `config:"default_sample_rate" validate:"min=0, max=1"`
 	ESConfig              *elasticsearch.Config `config:"elasticsearch"`
-	Interval              time.Duration         `config:"interval" validate:"min=1"`
+	Interval              time.Duration         `config:"interval" validate:"min=1s"`
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
 	StorageDir            string                `config:"storage_dir"`
-	StorageGCInterval     time.Duration         `config:"storage_gc_interval" validate:"min=1"`
-	TTL                   time.Duration         `config:"ttl" validate:"min=1"`
+	StorageGCInterval     time.Duration         `config:"storage_gc_interval" validate:"min=1s"`
+	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 
 	esConfigured bool
 }
