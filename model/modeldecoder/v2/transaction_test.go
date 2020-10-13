@@ -79,55 +79,45 @@ func TestDecodeNestedTransaction(t *testing.T) {
 }
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
-	localhostIP := net.ParseIP("127.0.0.1")
 	gatewayIP := net.ParseIP("192.168.0.1")
 	randomIP := net.ParseIP("71.0.54.1")
 	exceptions := func(key string) bool {
 		return key == "RepresentativeCount"
 	}
 
-	initializedMeta := func() *model.Metadata {
-		var inputMeta metadata
-		var meta model.Metadata
-		modeldecodertest.SetStructValues(&inputMeta, "meta", 1, false, time.Now())
-		mapToMetadataModel(&inputMeta, &meta)
-		// initialize values that are not set by input
-		meta.UserAgent = model.UserAgent{Name: "meta", Original: "meta"}
-		meta.Client.IP = localhostIP
-		meta.System.IP = localhostIP
-		return &meta
-	}
-
-	t.Run("set-metadata", func(t *testing.T) {
-		// do not overwrite metadata with zero transaction values
+	t.Run("metadata-set", func(t *testing.T) {
+		// do not overwrite metadata with zero event values
 		var input transaction
 		var out model.Transaction
-		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{Experimental: true}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: true}, &out)
 		// iterate through metadata model and assert values are set
-		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, "meta", 1, false, localhostIP, time.Now())
+		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, modeldecodertest.DefaultValues())
 	})
 
-	t.Run("overwrite-metadata", func(t *testing.T) {
-		// overwrite defined metadata with transaction metadata values
+	t.Run("metadata-overwrite", func(t *testing.T) {
+		// overwrite defined metadata with event metadata values
 		var input transaction
 		var out model.Transaction
-		modeldecodertest.SetStructValues(&input, "overwritten", 5000, false, time.Now())
-		input.Context.Request.Headers.Val.Add("user-agent", "first")
-		input.Context.Request.Headers.Val.Add("user-agent", "second")
-		input.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
-		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{Experimental: true}, &out)
+		values := modeldecodertest.UpdatedValues()
+		modeldecodertest.SetStructValues(&input, values)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: true}, &out)
+		input.Reset()
 
-		// user-agent should be set to context request header values
-		assert.Equal(t, "first, second", out.Metadata.UserAgent.Original)
+		// ensure event Metadata are updated where expected
+		v := modeldecodertest.UpdatedValues()
+		userAgent := strings.Join(v.HTTPHeader.Values("User-Agent"), ", ")
+		assert.Equal(t, userAgent, out.Metadata.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
-		assert.Equal(t, localhostIP, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
-		// metadata labels and transaction labels should not be merged
-		assert.Equal(t, common.MapStr{"meta": "meta"}, out.Metadata.Labels)
-		assert.Equal(t, &model.Labels{"overwritten": "overwritten"}, out.Labels)
-		// service values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP, time.Now())
-		// user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, "overwritten", 100, true, localhostIP, time.Now())
+		ip := modeldecodertest.DefaultValues().IP
+		assert.Equal(t, ip, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
+		// metadata labels and event labels should not be merged
+		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
+		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
+		assert.Equal(t, mLabels, out.Metadata.Labels)
+		assert.Equal(t, &tLabels, out.Labels)
+		// service and user values should be set
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, v)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, v)
 	})
 
 	t.Run("client-ip-header", func(t *testing.T) {
@@ -153,7 +143,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out model.Transaction
 		input.Context.User.Email.Set("test@user.com")
-		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
 		assert.Equal(t, "test@user.com", out.Metadata.User.Email)
 		assert.Zero(t, out.Metadata.User.ID)
 		assert.Zero(t, out.Metadata.User.Name)
@@ -162,38 +152,48 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("transaction-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
 			// metadata are tested separately
-			// URL parts are derived from url (separately tested)
-			// experimental is tested separately
-			// RepresentativeCount is not set by decoder
-			if strings.HasPrefix(key, "Metadata") || strings.HasPrefix(key, "Page.URL") ||
-				key == "Experimental" || key == "RepresentativeCount" {
+			if strings.HasPrefix(key, "Metadata") ||
+				// URL parts are derived from url (separately tested)
+				strings.HasPrefix(key, "Page.URL") ||
+				// experimental is tested separately
+				key == "Experimental" ||
+				// RepresentativeCount is not set by decoder
+				key == "RepresentativeCount" {
 				return true
 			}
-
 			return false
 		}
 
 		var input transaction
-		var out model.Transaction
-		eventTime, reqTime := time.Now(), time.Now().Add(time.Second)
-		modeldecodertest.SetStructValues(&input, "overwritten", 5000, true, eventTime)
-		mapToTransactionModel(&input, initializedMeta(), reqTime, modeldecoder.Config{Experimental: true}, &out)
-		modeldecodertest.AssertStructValues(t, &out, exceptions, "overwritten", 5000, true, localhostIP, eventTime)
-
-		// set requestTime if eventTime is zero
-		modeldecodertest.SetStructValues(&input, "overwritten", 5000, true, time.Time{})
-		out = model.Transaction{}
-		mapToTransactionModel(&input, initializedMeta(), reqTime, modeldecoder.Config{Experimental: true}, &out)
+		var out1, out2 model.Transaction
+		reqTime := time.Now().Add(time.Second)
+		values := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, values)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out, exceptions, "overwritten", 5000, true, localhostIP, reqTime)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
 
+		// set Timestamp to requestTime if eventTime is zero
+		values.Update(time.Time{})
+		modeldecodertest.SetStructValues(&input, values)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
+		values.Update(reqTime)
+		input.Reset()
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+
+		// ensure memory is not shared by reusing input model
+		newValues := modeldecodertest.UpdatedValues()
+		modeldecodertest.SetStructValues(&input, newValues)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
+		modeldecodertest.AssertStructValues(t, &out2, exceptions, newValues)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
 		var input transaction
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		var out model.Transaction
-		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
 		assert.Equal(t, "https://my.site.test:9201", *out.Page.URL.Full)
 		assert.Equal(t, 9201, *out.Page.URL.Port)
 		assert.Equal(t, "https", *out.Page.URL.Scheme)
@@ -202,20 +202,20 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("sample-rate", func(t *testing.T) {
 		var input transaction
 		var out model.Transaction
-		modeldecodertest.SetStructValues(&input, "init", 5000, true, time.Now())
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
-		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, 4.0, out.RepresentativeCount)
 		// sample rate is not set -> Representative Count should be 1 by default
 		out.RepresentativeCount = 0.0 //reset to zero value
 		input.SampleRate.Reset()
-		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, 1.0, out.RepresentativeCount)
 		// sample rate is set to 0
 		out.RepresentativeCount = 0.0 //reset to zero value
 		input.SampleRate.Set(0)
-		mapToTransactionModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, 0.0, out.RepresentativeCount)
 	})
 

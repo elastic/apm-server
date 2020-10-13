@@ -78,7 +78,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	if err := root.validate(); err != nil {
 		return fmt.Errorf("validation error %w", err)
 	}
-	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config.Experimental, out)
+	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config, out)
 	return nil
 }
 
@@ -152,7 +152,7 @@ func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	}
 }
 
-func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime time.Time, experimental bool, out *model.Transaction) {
+func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Transaction) {
 	if t == nil {
 		return
 	}
@@ -377,7 +377,7 @@ func mapToTransactionModel(t *transaction, metadata *model.Metadata, reqTime tim
 			out.Custom = &custom
 		}
 	}
-	if experimental {
+	if config.Experimental {
 		out.Experimental = t.Experimental.Val
 	}
 }
