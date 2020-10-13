@@ -38,6 +38,10 @@ const (
 	// we will record a count of 5000 (2 * 2.5 * histogramCountScale). When we
 	// publish metrics, we will scale down to 5 (5000 / histogramCountScale).
 	histogramCountScale = 1000
+
+	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
+	// "too many groups" log messages are logged.
+	tooManyGroupsLoggerRateLimit = time.Minute
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
@@ -46,9 +50,10 @@ type Aggregator struct {
 	stopping chan struct{}
 	stopped  chan struct{}
 
-	config          AggregatorConfig
-	metrics         aggregatorMetrics
-	userAgentLookup *userAgentLookup
+	config              AggregatorConfig
+	metrics             aggregatorMetrics
+	tooManyGroupsLogger *logp.Logger
+	userAgentLookup     *userAgentLookup
 
 	mu               sync.RWMutex
 	active, inactive *metrics
@@ -122,12 +127,13 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		return nil, err
 	}
 	return &Aggregator{
-		stopping:        make(chan struct{}),
-		stopped:         make(chan struct{}),
-		config:          config,
-		userAgentLookup: ual,
-		active:          newMetrics(config.MaxTransactionGroups),
-		inactive:        newMetrics(config.MaxTransactionGroups),
+		stopping:            make(chan struct{}),
+		stopped:             make(chan struct{}),
+		config:              config,
+		tooManyGroupsLogger: config.Logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
+		userAgentLookup:     ual,
+		active:              newMetrics(config.MaxTransactionGroups),
+		inactive:            newMetrics(config.MaxTransactionGroups),
 	}, nil
 }
 
@@ -280,8 +286,11 @@ func (a *Aggregator) AggregateTransaction(tx *model.Transaction) *model.Metricse
 	}
 	// Too many aggregation keys: could not update metrics, so immediately
 	// publish a single-value metric document.
-	//
-	// TODO(axw) log a warning with a rate-limit.
+	a.tooManyGroupsLogger.Warn(`
+Transaction group limit reached, falling back to sending individual metric documents.
+This is typically caused by ineffective transaction grouping, e.g. by creating many
+unique transaction names.`[1:],
+	)
 	atomic.AddInt64(&a.metrics.overflowed, 1)
 	counts := []int64{int64(math.Round(count))}
 	values := []float64{float64(durationMicros(duration))}
