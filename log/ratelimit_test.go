@@ -35,11 +35,18 @@ func TestWithRateLimit(t *testing.T) {
 	logger := logp.NewLogger("bo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
-	limitedLogger := logger.WithOptions(logs.WithRateLimit(100 * time.Millisecond))
 
+	const interval = 100 * time.Millisecond
+	limitedLogger := logger.WithOptions(logs.WithRateLimit(interval))
+
+	// Log twice in quick succession; the 2nd call will be ignored due to rate-limiting.
 	limitedLogger.Info("hello")
 	limitedLogger.Info("hello")
-	time.Sleep(200 * time.Millisecond)
+	assert.Equal(t, 1, observed.Len())
+
+	// Sleep until the configured interval has elapsed, which should allow another
+	// record to be logged.
+	time.Sleep(interval)
 	limitedLogger.Info("hello")
 	assert.Equal(t, 2, observed.Len())
 }
