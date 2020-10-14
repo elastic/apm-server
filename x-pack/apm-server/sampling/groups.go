@@ -16,41 +16,99 @@ import (
 
 const minReservoirSize = 1000
 
-var errTooManyTraceGroups = errors.New("too many trace groups")
+var (
+	errTooManyTraceGroups = errors.New("too many trace groups")
+	errNoMatchingPolicy   = errors.New("no matching policy")
+)
 
 // traceGroups maintains a collection of trace groups.
 type traceGroups struct {
-	// defaultSamplingFraction holds the default sampling fraction to
-	// set for new trace groups. See traceGroup.samplingFraction.
-	defaultSamplingFraction float64
-
 	// ingestRateDecayFactor is λ, the decay factor used for calculating the
 	// exponentially weighted moving average ingest rate for each trace group.
 	ingestRateDecayFactor float64
 
-	// maxGroups holds the maximum number of trace groups to maintain.
-	// Once this is reached, no new trace group events will be sampled.
-	maxGroups int
+	// maxDynamicServices holds the maximum number of dynamic service groups
+	// to maintain. Once this is reached, no new dynamic service groups will
+	// be created, and events may be dropped.
+	maxDynamicServices int
 
-	mu sync.RWMutex
+	// catchallServicePolicies, if non-nil, holds policies that apply to
+	// services which are not explicitly specified.
+	catchallServicePolicies []Policy
 
-	// TODO(axw) enable the user to define specific trace groups, along with
-	// a specific sampling rate. The "groups" field would then track all other
-	// trace groups, up to a configured maximum, using the default sampling rate.
-	groups map[traceGroupKey]*traceGroup
+	mu            sync.RWMutex
+	staticGroups  map[string]serviceGroups
+	dynamicGroups map[string]serviceGroups
+}
+
+type serviceGroupKey struct {
+	serviceEnvironment string
+	traceOutcome       string
+	traceName          string
+}
+
+func (k *serviceGroupKey) match(tx *model.Transaction) bool {
+	if k.serviceEnvironment != "" && k.serviceEnvironment != tx.Metadata.Service.Environment {
+		return false
+	}
+	if k.traceOutcome != "" && k.traceOutcome != tx.Outcome {
+		return false
+	}
+	if k.traceName != "" && k.traceName != tx.Name {
+		return false
+	}
+	return true
+}
+
+type serviceGroups []serviceGroup
+
+type serviceGroup struct {
+	key serviceGroupKey
+	g   *traceGroup
+}
+
+// get returns the traceGroup to which tx should be added based on the
+// defined sampling policies, matching policies in the order given.
+func (sgs serviceGroups) get(tx *model.Transaction) (*traceGroup, bool) {
+	for _, sg := range sgs {
+		if sg.key.match(tx) {
+			return sg.g, true
+		}
+	}
+	return nil, false
 }
 
 func newTraceGroups(
-	maxGroups int,
-	defaultSamplingFraction float64,
+	policies []Policy,
+	maxDynamicServices int,
 	ingestRateDecayFactor float64,
 ) *traceGroups {
-	return &traceGroups{
-		defaultSamplingFraction: defaultSamplingFraction,
-		ingestRateDecayFactor:   ingestRateDecayFactor,
-		maxGroups:               maxGroups,
-		groups:                  make(map[traceGroupKey]*traceGroup),
+	groups := &traceGroups{
+		ingestRateDecayFactor: ingestRateDecayFactor,
+		maxDynamicServices:    maxDynamicServices,
+		staticGroups:          make(map[string]serviceGroups),
+		dynamicGroups:         make(map[string]serviceGroups),
 	}
+	for _, policy := range policies {
+		if policy.ServiceName == "" {
+			groups.catchallServicePolicies = append(groups.catchallServicePolicies, policy)
+			continue
+		}
+		serviceGroups := groups.staticGroups[policy.ServiceName]
+		groups.staticGroups[policy.ServiceName] = updateServiceNameGroups(policy, serviceGroups)
+	}
+	return groups
+}
+
+func updateServiceNameGroups(policy Policy, groups serviceGroups) serviceGroups {
+	return append(groups, serviceGroup{
+		key: serviceGroupKey{
+			serviceEnvironment: policy.ServiceEnvironment,
+			traceName:          policy.TraceName,
+			traceOutcome:       policy.TraceOutcome,
+		},
+		g: newTraceGroup(policy.SampleRate),
+	})
 }
 
 // traceGroup represents a single trace group, including a measurement of the
@@ -75,11 +133,14 @@ type traceGroup struct {
 	ingestRate float64
 }
 
-type traceGroupKey struct {
-	// TODO(axw) review grouping attributes
-	serviceName        string
-	transactionName    string
-	transactionOutcome string
+func newTraceGroup(samplingFraction float64) *traceGroup {
+	return &traceGroup{
+		samplingFraction: samplingFraction,
+		reservoir: newWeightedRandomSample(
+			rand.New(rand.NewSource(time.Now().UnixNano())),
+			minReservoirSize,
+		),
+	}
 }
 
 // sampleTrace will return true if the root transaction is admitted to
@@ -88,85 +149,104 @@ type traceGroupKey struct {
 // If the transaction is not admitted due to the transaction group limit
 // having been reached, sampleTrace will return errTooManyTraceGroups.
 func (g *traceGroups) sampleTrace(tx *model.Transaction) (bool, error) {
-	key := traceGroupKey{
-		serviceName:        tx.Metadata.Service.Name,
-		transactionName:    tx.Name,
-		transactionOutcome: tx.Outcome,
-	}
-
-	// First attempt to locate the group with a read lock, to avoid
-	// contention in the common case that a group has already been
-	// defined.
-	g.mu.RLock()
-	group, ok := g.groups[key]
-	if ok {
-		defer g.mu.RUnlock()
-		if group.samplingFraction == 0 {
-			return false, nil
+	byService, ok := g.staticGroups[tx.Metadata.Service.Name]
+	if !ok {
+		// No static group, look for or create a dynamic group
+		// if there are any catch-all policies defined.
+		if len(g.catchallServicePolicies) == 0 {
+			return false, errNoMatchingPolicy
 		}
-		group.mu.Lock()
-		defer group.mu.Unlock()
-		group.total++
-		return group.reservoir.Sample(tx.Duration, tx.TraceID), nil
-	}
-	g.mu.RUnlock()
-
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	group, ok = g.groups[key]
-	if ok {
-		// We've got a write lock on g.mu, no need to lock group too.
-		if group.samplingFraction == 0 {
-			return false, nil
+		// First attempt to locate a dynamic group with a read lock, to
+		// avoid contention in the common case that a group has already
+		// been defined.
+		g.mu.RLock()
+		byService, ok = g.dynamicGroups[tx.Metadata.Service.Name]
+		if ok {
+			defer g.mu.RUnlock()
+		} else {
+			g.mu.RUnlock()
+			g.mu.Lock()
+			defer g.mu.Unlock()
+			byService, ok = g.dynamicGroups[tx.Metadata.Service.Name]
+			if !ok {
+				if len(g.dynamicGroups) == g.maxDynamicServices {
+					return false, errTooManyTraceGroups
+				}
+				byService = make(serviceGroups, 0, len(g.catchallServicePolicies))
+				for _, policy := range g.catchallServicePolicies {
+					byService = updateServiceNameGroups(policy, byService)
+				}
+				g.dynamicGroups[tx.Metadata.Service.Name] = byService
+			}
 		}
-		group.total++
-		return group.reservoir.Sample(tx.Duration, tx.TraceID), nil
-	} else if len(g.groups) == g.maxGroups {
-		return false, errTooManyTraceGroups
-	} else if g.defaultSamplingFraction == 0 {
+	}
+	group, ok := byService.get(tx)
+	if !ok {
+		return false, errNoMatchingPolicy
+	}
+	return group.sampleTrace(tx)
+}
+
+func (g *traceGroup) sampleTrace(tx *model.Transaction) (bool, error) {
+	if g.samplingFraction == 0 {
 		return false, nil
 	}
-
-	group = &traceGroup{
-		samplingFraction: g.defaultSamplingFraction,
-		total:            1,
-		reservoir: newWeightedRandomSample(
-			rand.New(rand.NewSource(time.Now().UnixNano())),
-			minReservoirSize,
-		),
-	}
-	group.reservoir.Sample(tx.Duration, tx.TraceID)
-	g.groups[key] = group
-	return true, nil
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.total++
+	return g.reservoir.Sample(tx.Duration, tx.TraceID), nil
 }
 
 // finalizeSampledTraces locks the groups, appends their current trace IDs to
 // traceIDs, and returns the extended slice. On return the groups' sampling
 // reservoirs will be reset.
 //
-// If the maximum number of groups has been reached, then any groups with the
-// minimum reservoir size (low ingest or sampling rate) may be removed. These
-// groups may also be removed if they have seen no activity in this interval.
+// If the maximum number of groups has been reached, then any dynamically
+// created groups with the minimum reservoir size (low ingest or sampling rate)
+// may be removed. These groups may also be removed if they have seen no
+// activity in this interval.
 func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	maxGroupsReached := len(g.groups) == g.maxGroups
-	for key, group := range g.groups {
-		total := group.total
-		traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
-		if group.reservoir.Size() == minReservoirSize {
-			if total == 0 || maxGroupsReached {
-				delete(g.groups, key)
+	for _, byService := range g.staticGroups {
+		traceIDs, _, _ = g.finalizeServiceSampledTraces(byService, traceIDs)
+	}
+	maxDynamicServicesReached := len(g.dynamicGroups) == g.maxDynamicServices
+	for serviceName, byService := range g.dynamicGroups {
+		var total int
+		var allMinReservoirSize bool
+		traceIDs, total, allMinReservoirSize = g.finalizeServiceSampledTraces(byService, traceIDs)
+		if allMinReservoirSize {
+			if maxDynamicServicesReached || total == 0 {
+				delete(g.dynamicGroups, serviceName)
 			}
 		}
 	}
 	return traceIDs
 }
 
+func (g *traceGroups) finalizeServiceSampledTraces(
+	byService serviceGroups,
+	traceIDs []string,
+) (_ []string, total int, allMinReservoirSize bool) {
+	allMinReservoirSize = true
+	for _, group := range byService {
+		total += group.g.total
+		traceIDs = group.g.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+		if size := group.g.reservoir.Size(); size > minReservoirSize {
+			allMinReservoirSize = false
+		}
+	}
+	return traceIDs, total, allMinReservoirSize
+}
+
 // finalizeSampledTraces appends the group's current trace IDs to traceIDs, and
 // returns the extended slice. On return the groups' sampling reservoirs will be
 // reset.
 func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFactor float64) []string {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	if g.ingestRate == 0 {
 		g.ingestRate = float64(g.total)
 	} else {
