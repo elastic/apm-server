@@ -78,53 +78,44 @@ func TestDecodeNestedError(t *testing.T) {
 }
 
 func TestDecodeMapToErrorModel(t *testing.T) {
-	localhostIP := net.ParseIP("127.0.0.1")
 	gatewayIP := net.ParseIP("192.168.0.1")
 	randomIP := net.ParseIP("71.0.54.1")
 	exceptions := func(key string) bool { return false }
 
-	initializedMeta := func() *model.Metadata {
-		var inputMeta metadata
-		var meta model.Metadata
-		modeldecodertest.SetStructValues(&inputMeta, "meta", 1, false, time.Now())
-		mapToMetadataModel(&inputMeta, &meta)
-		// initialize values that are not set by input
-		meta.UserAgent = model.UserAgent{Name: "meta", Original: "meta"}
-		meta.Client.IP = localhostIP
-		meta.System.IP = localhostIP
-		return &meta
-	}
-
-	t.Run("set-metadata", func(t *testing.T) {
-		// do not overwrite metadata with zero transaction values
+	t.Run("metadata-set", func(t *testing.T) {
+		// do not overwrite metadata with zero event values
 		var input errorEvent
 		var out model.Error
-		mapToErrorModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		// iterate through metadata model and assert values are set
-		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, "meta", 1, false, localhostIP, time.Now())
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, defaultVal)
 	})
 
-	t.Run("overwrite-metadata", func(t *testing.T) {
-		// overwrite defined metadata with transaction metadata values
+	t.Run("metadata-overwrite", func(t *testing.T) {
+		// overwrite defined metadata with event metadata values
 		var input errorEvent
 		var out model.Error
-		modeldecodertest.SetStructValues(&input, "overwritten", 5000, false, time.Now())
-		input.Context.Request.Headers.Val.Add("user-agent", "first")
-		input.Context.Request.Headers.Val.Add("user-agent", "second")
-		input.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
-		mapToErrorModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: true}, &out)
+		input.Reset()
 
-		// user-agent should be set to context request header values
-		assert.Equal(t, "first, second", out.Metadata.UserAgent.Original)
+		// ensure event Metadata are updated where expected
+		otherVal = modeldecodertest.NonDefaultValues()
+		userAgent := strings.Join(otherVal.HTTPHeader.Values("User-Agent"), ", ")
+		assert.Equal(t, userAgent, out.Metadata.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
-		assert.Equal(t, localhostIP, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
-		// metadata labels and transaction labels should not be merged
-		assert.Equal(t, common.MapStr{"meta": "meta"}, out.Metadata.Labels)
-		assert.Equal(t, &model.Labels{"overwritten": "overwritten"}, out.Labels)
-		// service values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP, time.Now())
-		// user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, "overwritten", 100, true, localhostIP, time.Now())
+		ip := modeldecodertest.DefaultValues().IP
+		assert.Equal(t, ip, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
+		// metadata labels and event labels should not be merged
+		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
+		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
+		assert.Equal(t, mLabels, out.Metadata.Labels)
+		assert.Equal(t, &tLabels, out.Labels)
+		// service and user values should be set
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, otherVal)
 	})
 
 	t.Run("client-ip-header", func(t *testing.T) {
@@ -147,15 +138,23 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 
 	t.Run("error-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
-			// metadata are tested separately
-			// URL parts are derived from url (separately tested)
-			// exception.parent is only set after calling `flattenExceptionTree` (not part of decoding)
-			// experimental is tested separately
-			// stacktrace original values are set when sourcemapping is applied, not in the decoder
-			// ExcludeFromGrouping is set when processing the event, not in the decoder
-			for _, s := range []string{"Metadata", "Page.URL", "Exception.Parent", "RUM",
-				"Exception.Stacktrace.Original", "Exception.Stacktrace.Sourcemap", "Exception.Stacktrace.ExcludeFromGrouping",
-				"Log.Stacktrace.Original", "Log.Stacktrace.Sourcemap", "Log.Stacktrace.ExcludeFromGrouping"} {
+			for _, s := range []string{
+				// metadata are tested separately
+				"Metadata",
+				// URL parts are derived from url (separately tested)
+				"Page.URL",
+				// RUM is set in stream processor
+				"RUM",
+				// exception.parent is only set after calling `flattenExceptionTree` (not part of decoding)
+				"Exception.Parent",
+				// stacktrace original and sourcemap values are set when sourcemapping is applied
+				"Exception.Stacktrace.Original",
+				"Exception.Stacktrace.Sourcemap",
+				"Log.Stacktrace.Original",
+				"Log.Stacktrace.Sourcemap",
+				// ExcludeFromGrouping is set when processing the event
+				"Exception.Stacktrace.ExcludeFromGrouping",
+				"Log.Stacktrace.ExcludeFromGrouping"} {
 				if strings.HasPrefix(key, s) {
 					return true
 				}
@@ -163,20 +162,36 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 			return false
 		}
 		var input errorEvent
-		var out model.Error
-		eventTime, reqTime := time.Now(), time.Now().Add(time.Second)
-		modeldecodertest.SetStructValues(&input, "overwritten", 5000, true, eventTime)
-		mapToErrorModel(&input, initializedMeta(), reqTime, modeldecoder.Config{Experimental: true}, &out)
+		var out1, out2 model.Error
+		reqTime := time.Now().Add(time.Second)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out, exceptions, "overwritten", 5000, true, localhostIP, eventTime)
-		assert.False(t, out.RUM)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+
+		// set Timestamp to requestTime if eventTime is zero
+		defaultVal.Update(time.Time{})
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
+		defaultVal.Update(reqTime)
+		input.Reset()
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+
+		// reuse input model for different event
+		// ensure memory is not shared by reusing input model
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
+		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
+		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
 		var input errorEvent
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		var out model.Error
-		mapToErrorModel(&input, initializedMeta(), time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		assert.Equal(t, "https://my.site.test:9201", *out.Page.URL.Full)
 		assert.Equal(t, 9201, *out.Page.URL.Port)
 		assert.Equal(t, "https", *out.Page.URL.Scheme)

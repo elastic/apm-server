@@ -517,6 +517,7 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with arbitrary values set
 	var event span
 	modeldecodertest.InitStructValues(&event)
+	event.Outcome.Set("failure")
 	// test vanilla struct is valid
 	require.NoError(t, event.validate())
 
@@ -551,6 +552,7 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with arbitrary values set
 	var event transaction
 	modeldecodertest.InitStructValues(&event)
+	event.Outcome.Set("success")
 	// test vanilla struct is valid
 	require.NoError(t, event.validate())
 
