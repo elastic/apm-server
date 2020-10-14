@@ -940,10 +940,12 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			fr.Module = &val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = eventFrame.PostContext
+			fr.PostContext = make([]string, len(eventFrame.PostContext))
+			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = eventFrame.PreContext
+			fr.PreContext = make([]string, len(eventFrame.PreContext))
+			copy(fr.PreContext, eventFrame.PreContext)
 		}
 		if len(eventFrame.Vars) > 0 {
 			fr.Vars = eventFrame.Vars.Clone()
@@ -974,7 +976,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 		if config.Experimental && from.Context.Experimental.IsSet() {
 			out.Experimental = from.Context.Experimental.Val
 		}
-		// metadata labels and context labels are merged only in the output model
+		// metadata labels and context labels are merged when transforming the output model
 		if len(from.Context.Tags) > 0 {
 			labels := model.Labels(from.Context.Tags.Clone())
 			out.Labels = &labels
