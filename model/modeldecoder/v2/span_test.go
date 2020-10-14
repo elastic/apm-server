@@ -68,8 +68,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var out model.Span
 		mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		// iterate through metadata model and assert values are set
-		values := modeldecodertest.DefaultValues()
-		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, values)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, defaultVal)
 	})
 
 	t.Run("experimental", func(t *testing.T) {
@@ -121,20 +121,20 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		var out1, out2 model.Span
 		reqTime := time.Now().Add(time.Second)
-		values := modeldecodertest.DefaultValues()
-		modeldecodertest.SetStructValues(&input, values)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 
 		// reuse input model for different event
 		// ensure memory is not shared by reusing input model
-		newValues := modeldecodertest.UpdatedValues()
-		modeldecodertest.SetStructValues(&input, newValues)
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out2, exceptions, newValues)
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
 
 	t.Run("timestamp", func(t *testing.T) {
@@ -142,15 +142,15 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var out model.Span
 		reqTime := time.Now().Add(time.Hour)
 		// add start to requestTime if eventTime is zero and start is given
-		values := modeldecodertest.DefaultValues()
-		values.Update(20.5, time.Time{})
-		modeldecodertest.SetStructValues(&input, values)
+		defaultVal := modeldecodertest.DefaultValues()
+		defaultVal.Update(20.5, time.Time{})
+		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out)
 		timestamp := reqTime.Add(time.Duration((20.5) * float64(time.Millisecond)))
 		assert.Equal(t, timestamp, out.Timestamp)
 		// set requestTime if eventTime is zero and start is not set
 		out = model.Span{}
-		modeldecodertest.SetStructValues(&input, values)
+		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Start.Reset()
 		mapToSpanModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out)
 		require.Nil(t, out.Start)
@@ -197,8 +197,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				var input span
-				values := modeldecodertest.DefaultValues()
-				modeldecodertest.SetStructValues(&input, values)
+				defaultVal := modeldecodertest.DefaultValues()
+				modeldecodertest.SetStructValues(&input, defaultVal)
 				input.Type.Set(tc.inputType)
 				if tc.inputSubtype != "" {
 					input.Subtype.Set(tc.inputSubtype)

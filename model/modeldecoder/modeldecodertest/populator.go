@@ -62,8 +62,8 @@ func DefaultValues() *Values {
 	}
 }
 
-// UpdatedValues returns a Values struct initialized with non-zero values
-func UpdatedValues() *Values {
+// NonDefaultValues returns a Values struct initialized with non-zero values
+func NonDefaultValues() *Values {
 	updatedTime, _ := time.Parse(time.RFC3339, "2020-12-10T10:00:00Z")
 	return &Values{
 		Str:        "overwritten",

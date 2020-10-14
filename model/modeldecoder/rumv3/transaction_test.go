@@ -106,8 +106,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
 		var input transaction
 		var out model.Transaction
-		updatedValues := modeldecodertest.UpdatedValues()
-		modeldecodertest.SetStructValues(&input, updatedValues)
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 
 		// user-agent should be set to context request header values
@@ -120,9 +120,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
 		assert.Equal(t, &tLabels, out.Labels)
 		// service values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, updatedValues)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, otherVal)
 		// user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, updatedValues)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, otherVal)
 	})
 
 	t.Run("overwrite-user", func(t *testing.T) {
@@ -154,20 +154,20 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out1, out2 model.Transaction
 		reqTime := time.Now().Add(time.Second)
-		values := modeldecodertest.DefaultValues()
-		modeldecodertest.SetStructValues(&input, values)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
 		input.Reset()
-		values.Update(reqTime) //for rumv3 the timestamp is always set from the request time
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+		defaultVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
-		newValues := modeldecodertest.UpdatedValues()
-		newValues.Update(reqTime) //for rumv3 the timestamp is always set from the request time
-		modeldecodertest.SetStructValues(&input, newValues)
+		otherVal := modeldecodertest.NonDefaultValues()
+		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
+		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
-		modeldecodertest.AssertStructValues(t, &out2, exceptions, newValues)
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {

@@ -98,14 +98,14 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// overwrite defined metadata with event metadata values
 		var input transaction
 		var out model.Transaction
-		values := modeldecodertest.UpdatedValues()
-		modeldecodertest.SetStructValues(&input, values)
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: true}, &out)
 		input.Reset()
 
 		// ensure event Metadata are updated where expected
-		v := modeldecodertest.UpdatedValues()
-		userAgent := strings.Join(v.HTTPHeader.Values("User-Agent"), ", ")
+		otherVal = modeldecodertest.NonDefaultValues()
+		userAgent := strings.Join(otherVal.HTTPHeader.Values("User-Agent"), ", ")
 		assert.Equal(t, userAgent, out.Metadata.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
@@ -116,8 +116,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, mLabels, out.Metadata.Labels)
 		assert.Equal(t, &tLabels, out.Labels)
 		// service and user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, v)
-		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, v)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, otherVal)
 	})
 
 	t.Run("client-ip-header", func(t *testing.T) {
@@ -167,26 +167,26 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out1, out2 model.Transaction
 		reqTime := time.Now().Add(time.Second)
-		values := modeldecodertest.DefaultValues()
-		modeldecodertest.SetStructValues(&input, values)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 
 		// set Timestamp to requestTime if eventTime is zero
-		values.Update(time.Time{})
-		modeldecodertest.SetStructValues(&input, values)
+		defaultVal.Update(time.Time{})
+		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out1)
-		values.Update(reqTime)
+		defaultVal.Update(reqTime)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
-		newValues := modeldecodertest.UpdatedValues()
-		modeldecodertest.SetStructValues(&input, newValues)
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
-		modeldecodertest.AssertStructValues(t, &out2, exceptions, newValues)
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, values)
+		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {

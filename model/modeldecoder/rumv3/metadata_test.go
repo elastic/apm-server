@@ -106,45 +106,45 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		// enhanced data that are never set by the modeldecoder
 		out := initializedMetadata()
 		// iterate through model and assert values are set
-		values := modeldecodertest.DefaultValues()
-		assert.Equal(t, expected(values.Str, values.IP, values.N), out)
+		defaultVal := modeldecodertest.DefaultValues()
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), out)
 
 		// overwrite model metadata with specified Values
 		// then iterate through model and assert values are overwritten
 		var input metadata
-		updatedValues := modeldecodertest.UpdatedValues()
-		modeldecodertest.SetStructValues(&input, updatedValues)
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, out)
-		assert.Equal(t, expected(updatedValues.Str, updatedValues.IP, updatedValues.N), out)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
 		input.Reset()
 		modeldecodertest.SetZeroStructValues(&input)
 		mapToMetadataModel(&input, out)
-		assert.Equal(t, expected(updatedValues.Str, updatedValues.IP, updatedValues.N), out)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {
 		var input metadata
 		var out1, out2 model.Metadata
-		values := modeldecodertest.DefaultValues()
-		modeldecodertest.SetStructValues(&input, values)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToMetadataModel(&input, &out1)
 		// initialize values that are not set by input
 		out1.UserAgent = model.UserAgent{Name: "init", Original: "init"}
 		out1.Client.IP = net.ParseIP("127.0.0.1")
-		assert.Equal(t, expected(values.Str, values.IP, values.N), &out1)
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
 
 		// overwrite model metadata with specified Values
 		// then iterate through model and assert values are overwritten
-		updatedValues := modeldecodertest.UpdatedValues()
+		otherVal := modeldecodertest.NonDefaultValues()
 		input.Reset()
-		modeldecodertest.SetStructValues(&input, updatedValues)
+		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.UserAgent = model.UserAgent{Name: "init", Original: "init"}
 		out2.Client.IP = net.ParseIP("127.0.0.1")
-		assert.Equal(t, expected(updatedValues.Str, updatedValues.IP, updatedValues.N), &out2)
-		assert.Equal(t, expected(values.Str, values.IP, values.N), &out1)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), &out2)
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
 	})
 }
