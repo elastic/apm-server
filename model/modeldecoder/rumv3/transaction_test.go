@@ -77,7 +77,6 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
 	localhostIP := net.ParseIP("127.0.0.1")
-	gatewayIP := net.ParseIP("192.168.0.1")
 	exceptions := func(key string) bool {
 		// values not set for rumV3:
 		for _, k := range []string{"Cloud", "System", "Process", "Service.Node", "Node"} {
@@ -94,47 +93,36 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		return false
 	}
 
-	initializedMeta := func() *model.Metadata {
-		var inputMeta metadata
-		var meta model.Metadata
-		modeldecodertest.SetStructValues(&inputMeta, "meta", 1, false, time.Now())
-		mapToMetadataModel(&inputMeta, &meta)
-		// initialize values that are not set by input
-		meta.UserAgent = model.UserAgent{Name: "meta", Original: "meta"}
-		meta.Client.IP = localhostIP
-		return &meta
-	}
-
-	t.Run("set-metadata", func(t *testing.T) {
+	t.Run("metadata-set", func(t *testing.T) {
 		// do not overwrite metadata with zero transaction values
-		var inputTr transaction
-		var tr model.Transaction
-		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
+		var input transaction
+		var out model.Transaction
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		// iterate through metadata model and assert values are set
-		modeldecodertest.AssertStructValues(t, &tr.Metadata, exceptions, "meta", 1, false, localhostIP, time.Now())
+		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, modeldecodertest.DefaultValues())
 	})
 
-	t.Run("overwrite-metadata", func(t *testing.T) {
+	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
-		var inputTr transaction
-		var tr model.Transaction
-		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, false, time.Now())
-		inputTr.Context.Request.Headers.Val.Add("user-agent", "first")
-		inputTr.Context.Request.Headers.Val.Add("user-agent", "second")
-		inputTr.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
-		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), true, &tr)
+		var input transaction
+		var out model.Transaction
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 
 		// user-agent should be set to context request header values
-		assert.Equal(t, "first, second", tr.Metadata.UserAgent.Original)
+		assert.Equal(t, "d, e", out.Metadata.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
-		assert.Equal(t, localhostIP, tr.Metadata.Client.IP, tr.Metadata.Client.IP.String())
+		assert.Equal(t, localhostIP, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
 		// metadata labels and transaction labels should not be merged
-		assert.Equal(t, common.MapStr{"meta": "meta"}, tr.Metadata.Labels)
-		assert.Equal(t, &model.Labels{"overwritten": "overwritten"}, tr.Labels)
+		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
+		assert.Equal(t, mLabels, out.Metadata.Labels)
+		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
+		assert.Equal(t, &tLabels, out.Labels)
 		// service values should be set
-		modeldecodertest.AssertStructValues(t, &tr.Metadata.Service, exceptions, "overwritten", 100, true, localhostIP, time.Now())
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, otherVal)
 		// user values should be set
-		modeldecodertest.AssertStructValues(t, &tr.Metadata.User, exceptions, "overwritten", 100, true, localhostIP, time.Now())
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, otherVal)
 	})
 
 	t.Run("overwrite-user", func(t *testing.T) {
@@ -142,13 +130,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var inputTr transaction
 		var tr model.Transaction
 		inputTr.Context.User.Email.Set("test@user.com")
-		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), false, &tr)
+		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), modeldecoder.Config{}, &tr)
 		assert.Equal(t, "test@user.com", tr.Metadata.User.Email)
 		assert.Zero(t, tr.Metadata.User.ID)
 		assert.Zero(t, tr.Metadata.User.Name)
 	})
 
-	t.Run("other-transaction-values", func(t *testing.T) {
+	t.Run("transaction-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
 			// metadata are tested separately
 			// Page.URL parts are derived from url (separately tested)
@@ -163,19 +151,30 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			return false
 		}
 
-		var inputTr transaction
-		var tr model.Transaction
-		eventTime, reqTime := time.Now(), time.Now().Add(time.Second)
-		modeldecodertest.SetStructValues(&inputTr, "overwritten", 5000, true, eventTime)
-		mapToTransactionModel(&inputTr, initializedMeta(), reqTime, true, &tr)
-		modeldecodertest.AssertStructValues(t, &tr, exceptions, "overwritten", 5000, true, localhostIP, reqTime)
+		var input transaction
+		var out1, out2 model.Transaction
+		reqTime := time.Now().Add(time.Second)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
+		input.Reset()
+		defaultVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+
+		// ensure memory is not shared by reusing input model
+		otherVal := modeldecodertest.NonDefaultValues()
+		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
+		modeldecodertest.SetStructValues(&input, otherVal)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
+		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
 		var inputTr transaction
 		inputTr.Context.Page.URL.Set("https://my.site.test:9201")
 		var tr model.Transaction
-		mapToTransactionModel(&inputTr, initializedMeta(), time.Now(), false, &tr)
+		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), modeldecoder.Config{}, &tr)
 		assert.Equal(t, "https://my.site.test:9201", *tr.Page.URL.Full)
 		assert.Equal(t, 9201, *tr.Page.URL.Port)
 		assert.Equal(t, "https", *tr.Page.URL.Scheme)
