@@ -16,7 +16,7 @@ https://github.com/elastic/apm-server/compare/v7.9.2\...v7.9.3[View commits]
 
 [float]
 ==== Bug fixes
-* Ensure custom index names are lowercased {pull}4295[4295]
+* Ensure custom index names are lowercased {pull}4295[4295],{pull}4322[4322]
 
 [float]
 [[release-notes-7.9.2]]
