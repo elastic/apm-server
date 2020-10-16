@@ -95,7 +95,6 @@ func TestTailSampling(t *testing.T) {
 
 	srv1 := apmservertest.NewUnstartedServer(t)
 	srv1.Config.Sampling = &apmservertest.SamplingConfig{
-		KeepUnsampled: false,
 		Tail: &apmservertest.TailSamplingConfig{
 			Enabled:           true,
 			DefaultSampleRate: 0.5,
@@ -106,7 +105,6 @@ func TestTailSampling(t *testing.T) {
 
 	srv2 := apmservertest.NewUnstartedServer(t)
 	srv2.Config.Sampling = &apmservertest.SamplingConfig{
-		KeepUnsampled: false,
 		Tail: &apmservertest.TailSamplingConfig{
 			Enabled:           true,
 			DefaultSampleRate: 0.5,
@@ -145,4 +143,44 @@ func TestTailSampling(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, result.Hits.Hits, expected)
 	}
+}
+
+func TestTailSamplingUnlicensed(t *testing.T) {
+	// Start an ephemeral Elasticsearch container with a Basic license to
+	// test that tail-based sampling requires a platinum or trial license.
+	es, err := systemtest.NewUnstartedElasticsearchContainer()
+	require.NoError(t, err)
+	es.Env["xpack.license.self_generated.type"] = "basic"
+	require.NoError(t, es.Start())
+	defer es.Close()
+
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
+	srv.Config.Sampling = &apmservertest.SamplingConfig{
+		Tail: &apmservertest.TailSamplingConfig{
+			Enabled:           true,
+			DefaultSampleRate: 0.5,
+			Interval:          time.Second,
+		},
+	}
+	require.NoError(t, srv.Start())
+
+	timeout := time.After(10 * time.Second)
+	logs := srv.Logs.Iterator()
+	for {
+		select {
+		case entry := <-logs.C():
+			if strings.Contains(entry.Message, "invalid license") {
+				return
+			}
+		case <-timeout:
+			t.Fatal("timed out waiting for log message")
+		}
+	}
+
+	// Due to the failing license check, APM Server will refuse to index anything.
+	var result estest.SearchResult
+	_, err = es.Client.Search("apm-*").Do(context.Background(), &result)
+	assert.NoError(t, err)
+	assert.Empty(t, result.Hits.Hits)
 }
