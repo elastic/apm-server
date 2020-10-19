@@ -22,7 +22,8 @@ const ModelSchema = `{
     "type": "object",
     "description": "An event corresponding to an incoming request or similar task occurring in a monitored service",
     "allOf": [
-        {     "$id": "docs/spec/timestamp_epoch.json",
+        {
+                "$id": "docs/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
     "type": ["object"],
@@ -31,32 +32,28 @@ const ModelSchema = `{
             "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
         }
-    } },
-        {     "$id": "docs/spec/transaction_name.json",
-    "title": "Transaction Name",
-    "type": ["object"],
-    "properties": {
-        "name": {
-            "type": ["string","null"],
-            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
-            "maxLength": 1024
-        }
-    } },
-        {     "$id": "docs/spec/transaction_type.json",
-    "title": "Transaction Type",
-    "type": ["object"],
-    "properties": {
-        "type": {
-            "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
-            "maxLength": 1024
-        }
-    } },
+    }
+        },
         {
             "properties": {
                 "id": {
                     "type": "string",
                     "description": "Hex encoded 64 random bits ID of the transaction.",
+                    "maxLength": 1024
+                },
+                "name": {
+                    "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 1024
+                },
+                "type": {
+                    "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
+                    "type": [
+                        "string"
+                    ],
                     "maxLength": 1024
                 },
                 "trace_id": {
@@ -66,12 +63,18 @@ const ModelSchema = `{
                 },
                 "parent_id": {
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span. Only root transactions of a trace do not have a parent_id, otherwise it needs to be set.",
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
                 "sample_rate": {
                     "description": "Sampling rate",
-                    "type": ["number", "null"]
+                    "type": [
+                        "number",
+                        "null"
+                    ]
                 },
                 "span_count": {
                     "type": "object",
@@ -79,15 +82,18 @@ const ModelSchema = `{
                         "started": {
                             "type": "integer",
                             "description": "Number of correlated spans that are recorded."
-
                         },
                         "dropped": {
-                            "type": ["integer","null"],
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
                             "description": "Number of spans that have been dropped by the agent recording the transaction."
-
                         }
                     },
-                    "required": ["started"]
+                    "required": [
+                        "started"
+                    ]
                 },
                 "context": {
                         "$id": "docs/spec/context.json",
@@ -459,7 +465,10 @@ const ModelSchema = `{
                     "minimum": 0
                 },
                 "result": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
                     "maxLength": 1024
                 },
@@ -472,7 +481,10 @@ const ModelSchema = `{
                     "description": "The outcome of the transaction: success, failure, or unknown. This is similar to 'result', but has a limited set of permitted values describing the success or failure of the transaction from the service's perspective. This field can be used for calculating error rates for incoming requests."
                 },
                 "marks": {
-                    "type": ["object", "null"],
+                    "type": [
+                        "object",
+                        "null"
+                    ],
                     "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
                     "patternProperties": {
                         "^[^.*\"]*$": {
@@ -490,7 +502,10 @@ const ModelSchema = `{
                     "additionalProperties": false
                 },
                 "sampled": {
-                    "type": ["boolean", "null"],
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
                     "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
                 },
                 "experience": {
@@ -539,8 +554,13 @@ const ModelSchema = `{
     }
                 }
             },
-            "required": ["id", "trace_id", "span_count", "duration", "type"]
+            "required": [
+                "id",
+                "trace_id",
+                "span_count",
+                "duration",
+                "type"
+            ]
         }
     ]
-}
-`
+}`
