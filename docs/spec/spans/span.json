@@ -22,7 +22,7 @@
                     "maxLength": 1024
                 },
                 "type": {
-                    "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+                    "description": "Keyword of specific relevance in the service's domain (eg: 'db', 'template', etc)",
                     "type": "string",
                     "maxLength": 1024
                 },

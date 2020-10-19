@@ -61,7 +61,7 @@ const ModelSchema = `{
                         "null"
                     ],
                     "properties": {
-                        "sub_type": {
+                        "subtype": {
                             "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
                             "type": [
                                 "string",
@@ -70,7 +70,7 @@ const ModelSchema = `{
                             "maxLength": 1024
                         },
                         "type": {
-                            "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+                            "description": "Keyword of specific relevance in the service's domain (eg: 'db', 'template', etc)",
                             "type": [
                                 "string",
                                 "null"
