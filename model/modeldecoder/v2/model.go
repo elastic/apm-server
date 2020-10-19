@@ -29,6 +29,7 @@ import (
 var (
 	regexpAlphaNumericExt    = regexp.MustCompile("^[a-zA-Z0-9 _-]+$")
 	regexpNoDotAsteriskQuote = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
+	regexpNoAsteriskQuote    = regexp.MustCompile("^[^*\"]*$")  //do not allow '*' '"'
 
 	enumOutcome = []string{"success", "failure", "unknown"}
 )
@@ -41,6 +42,10 @@ type errorRoot struct {
 
 type metadataRoot struct {
 	Metadata metadata `json:"metadata" validate:"required"`
+}
+
+type metricsetRoot struct {
+	Metricset metricset `json:"metricset" validate:"required"`
 }
 
 type spanRoot struct {
@@ -311,6 +316,37 @@ type metadataSystemKubernetesNode struct {
 type metadataSystemKubernetesPod struct {
 	Name nullable.String `json:"name" validate:"max=1024"`
 	UID  nullable.String `json:"uid" validate:"max=1024"`
+}
+
+// NOTE(simitt):
+// Event is only set by aggregator
+// TimeseriesInstanceID is only set by aggregator
+type metricset struct {
+	Timestamp   nullable.TimeMicrosUnix         `json:"timestamp"`
+	Samples     map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=regexpNoAsteriskQuote"`
+	Span        metricsetSpanRef                `json:"span"`
+	Tags        common.MapStr                   `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Transaction metricsetTransactionRef         `json:"transaction"`
+}
+
+// TODO(axw/simitt): add support for ingesting counts/values (histogram metrics)
+type metricsetSampleValue struct {
+	Value nullable.Float64 `json:"value" validate:"required"`
+}
+
+// NOTE(simitt):
+// span.DestinationService is only set by aggregator
+type metricsetSpanRef struct {
+	Subtype nullable.String `json:"subtype" validate:"max=1024"`
+	Type    nullable.String `json:"type" validate:"max=1024"`
+}
+
+// NOTE(simitt):
+// transaction.Result is only set by aggregator and rumV3
+// transaction.Root is only set by aggregator
+type metricsetTransactionRef struct {
+	Name nullable.String `json:"name" validate:"max=1024"`
+	Type nullable.String `json:"type" validate:"max=1024"`
 }
 
 type span struct {
