@@ -22,7 +22,8 @@ const ModelSchema = `{
     "type": "object",
     "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
-        {     "$id": "docs/spec/timestamp_epoch.json",
+        {
+                "$id": "docs/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
     "type": ["object"],
@@ -31,27 +32,8 @@ const ModelSchema = `{
             "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
         }
-    } },
-        {     "$id": "docs/spec/span_type.json",
-    "title": "Span Type",
-    "type": ["object"],
-    "properties": {
-        "type": {
-            "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
-            "maxLength": 1024
-        }
-    } },
-        {     "$id": "docs/spec/span_subtype.json",
-    "title": "Span Subtype",
-    "type": ["object"],
-    "properties": {
-        "subtype": {
-            "type": ["string", "null"],
-            "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
-            "maxLength": 1024
-        }
-    } },
+    }
+        },
         {
             "properties": {
                 "id": {
@@ -59,8 +41,24 @@ const ModelSchema = `{
                     "type": "string",
                     "maxLength": 1024
                 },
+                "subtype": {
+                    "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 1024
+                },
+                "type": {
+                    "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+                    "type": "string",
+                    "maxLength": 1024
+                },
                 "transaction_id": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "description": "Hex encoded 64 random bits ID of the correlated transaction.",
                     "maxLength": 1024
                 },
@@ -76,7 +74,10 @@ const ModelSchema = `{
                 },
                 "child_ids": {
                     "description": "List of successor transactions and/or spans.",
-                    "type": ["array", "null"],
+                    "type": [
+                        "array",
+                        "null"
+                    ],
                     "minItems": 0,
                     "maxLength": 1024,
                     "items": {
@@ -85,15 +86,24 @@ const ModelSchema = `{
                     }
                 },
                 "start": {
-                    "type": ["number", "null"],
+                    "type": [
+                        "number",
+                        "null"
+                    ],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 },
                 "sample_rate": {
                     "description": "Sampling rate",
-                    "type": ["number", "null"]
+                    "type": [
+                        "number",
+                        "null"
+                    ]
                 },
                 "action": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
                     "maxLength": 1024
                 },
@@ -106,91 +116,152 @@ const ModelSchema = `{
                     "description": "The outcome of the span: success, failure, or unknown. Outcome may be one of a limited set of permitted values describing the success or failure of the span. This field can be used for calculating error rates for outgoing requests."
                 },
                 "context": {
-                    "type": ["object", "null"],
+                    "type": [
+                        "object",
+                        "null"
+                    ],
                     "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
                     "properties": {
                         "destination": {
-                            "type": ["object", "null"],
+                            "type": [
+                                "object",
+                                "null"
+                            ],
                             "description": "An object containing contextual data about the destination for spans",
                             "properties": {
                                 "address": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "Destination network address: hostname (e.g. 'localhost'), FQDN (e.g. 'elastic.co'), IPv4 (e.g. '127.0.0.1') or IPv6 (e.g. '::1')",
                                     "maxLength": 1024
                                 },
                                 "port": {
-                                    "type": ["integer", "null"],
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
                                     "description": "Destination network port (e.g. 443)"
                                 },
                                 "service": {
                                     "description": "Destination service context",
-                                    "type": ["object", "null"],
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
                                     "properties": {
                                         "type": {
                                             "description": "Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.",
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "maxLength": 1024
                                         },
                                         "name": {
                                             "description": "Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')",
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "maxLength": 1024
                                         },
                                         "resource": {
                                             "description": "Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')",
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "maxLength": 1024
                                         }
                                     },
-                                    "required": ["type", "name", "resource"]
+                                    "required": [
+                                        "type",
+                                        "name",
+                                        "resource"
+                                    ]
                                 }
                             }
                         },
                         "db": {
-                            "type": ["object", "null"],
+                            "type": [
+                                "object",
+                                "null"
+                            ],
                             "description": "An object containing contextual data for database spans",
                             "properties": {
                                 "instance": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "Database instance name"
                                 },
                                 "link": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "maxLength": 1024,
                                     "description": "Database link"
                                 },
                                 "statement": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "A database statement (e.g. query) for the given database type"
                                 },
                                 "type": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "Database type. For any SQL database, \"sql\". For others, the lower-case database category, e.g. \"cassandra\", \"hbase\", or \"redis\""
                                 },
                                 "user": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "Username for accessing database"
                                 },
                                 "rows_affected": {
-                                    "type": ["integer", "null"],
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
                                     "description": "Number of rows affected by the SQL statement (if applicable)"
                                 }
                             }
                         },
                         "http": {
-                            "type": ["object", "null"],
+                            "type": [
+                                "object",
+                                "null"
+                            ],
                             "description": "An object containing contextual data of the related http request.",
                             "properties": {
                                 "url": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "description": "The raw url of the correlating http request."
                                 },
                                 "status_code": {
-                                    "type": ["integer", "null"],
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
                                     "description": "Deprecated: Use span.context.http.response.status_code instead."
                                 },
                                 "method": {
-                                    "type": ["string", "null"],
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "maxLength": 1024,
                                     "description": "The method of the http request."
                                 },
@@ -272,7 +343,10 @@ const ModelSchema = `{
                                         },
                                         "ephemeral_id": {
                                             "description": "Free format ID used for metrics correlation by some agents",
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "maxLength": 1024
                                         }
                                     }
@@ -344,7 +418,10 @@ const ModelSchema = `{
                     "maxLength": 1024
                 },
                 "stacktrace": {
-                    "type": ["array", "null"],
+                    "type": [
+                        "array",
+                        "null"
+                    ],
                     "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
                     "items": {
                             "$id": "docs/spec/stacktrace_frame.json",
@@ -418,17 +495,45 @@ const ModelSchema = `{
                     "minItems": 0
                 },
                 "sync": {
-                    "type": ["boolean", "null"],
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
                     "description": "Indicates whether the span was executed synchronously or asynchronously."
                 }
             },
-            "required": ["duration", "name", "type", "id","trace_id", "parent_id"]
+            "required": [
+                "duration",
+                "name",
+                "type",
+                "id",
+                "trace_id",
+                "parent_id"
+            ]
         },
-        { "anyOf":[
-                {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}},
-                {"required": ["start"], "properties": {"start": { "type": "number" }}}
+        {
+            "anyOf": [
+                {
+                    "required": [
+                        "timestamp"
+                    ],
+                    "properties": {
+                        "timestamp": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "start"
+                    ],
+                    "properties": {
+                        "start": {
+                            "type": "number"
+                        }
+                    }
+                }
             ]
         }
     ]
-}
-`
+}`
