@@ -8,6 +8,8 @@ https://github.com/elastic/apm-server/compare/7.10\...master[View commits]
 
 [float]
 ==== Bug fixes
+* JSON schema metricset: nest type and subtype under span {pull}4329[4329]
+* JSON schema metricset: nest type and name under transaction {pull}4329[4329]
 
 [float]
 ==== Intake API Changes

@@ -19,6 +19,7 @@ package ilm
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	libcommon "github.com/elastic/beats/v7/libbeat/common"
@@ -125,7 +126,7 @@ func (m *Mappings) Unpack(cfg *libcommon.Config) error {
 			mapping.Index = existing.Index
 		}
 		if mapping.IndexSuffix != "" {
-			mapping.Index = fmt.Sprintf("%s-%s", mapping.Index, mapping.IndexSuffix)
+			mapping.Index = fmt.Sprintf("%s-%s", mapping.Index, strings.ToLower(mapping.IndexSuffix))
 		}
 		(*m)[mapping.EventType] = mapping
 	}

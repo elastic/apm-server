@@ -18,9 +18,10 @@
 package rumv3
 
 import (
+	"fmt"
+	"net"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,6 +31,18 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
+
+// initializedMetadata returns a metadata model populated with default values
+func initializedMetadata() *model.Metadata {
+	var input metadata
+	var out model.Metadata
+	modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+	mapToMetadataModel(&input, &out)
+	// initialize values that are not set by input
+	out.UserAgent = model.UserAgent{Name: "init", Original: "init"}
+	out.Client.IP = net.ParseIP("127.0.0.1")
+	return &out
+}
 
 func TestMetadataResetModelOnRelease(t *testing.T) {
 	inp := `{"m":{"se":{"n":"service-a"}}}`
@@ -66,39 +79,72 @@ func TestDecodeNestedMetadata(t *testing.T) {
 }
 
 func TestDecodeMetadataMappingToModel(t *testing.T) {
-	expected := func(s string) model.Metadata {
-		return model.Metadata{
+	expected := func(s string, ip net.IP, n int) *model.Metadata {
+		labels := common.MapStr{}
+		for i := 0; i < n; i++ {
+			labels.Put(fmt.Sprintf("%s%v", s, i), s)
+		}
+		return &model.Metadata{
 			Service: model.Service{Name: s, Version: s, Environment: s,
 				Agent:     model.Agent{Name: s, Version: s},
 				Language:  model.Language{Name: s, Version: s},
 				Runtime:   model.Runtime{Name: s, Version: s},
 				Framework: model.Framework{Name: s, Version: s}},
 			User:   model.User{Name: s, Email: s, ID: s},
-			Labels: common.MapStr{s: s},
+			Labels: labels,
+			// these values are not set from http headers and
+			// are not expected change with updated input data
+			UserAgent: model.UserAgent{Original: "init", Name: "init"},
+			Client:    model.Client{IP: net.ParseIP("127.0.0.1")},
 		}
 	}
 
-	// setup:
-	// create initialized modeldecoder and empty model metadata
-	// map modeldecoder to model metadata and manually set
-	// enhanced data that are never set by the modeldecoder
-	var m metadata
-	modeldecodertest.SetStructValues(&m, "init", 5000, false, time.Now())
-	var modelM model.Metadata
-	mapToMetadataModel(&m, &modelM)
-	// iterate through model and assert values are set
-	assert.Equal(t, expected("init"), modelM)
+	t.Run("overwrite", func(t *testing.T) {
+		// setup:
+		// create initialized modeldecoder and empty model metadata
+		// map modeldecoder to model metadata and manually set
+		// enhanced data that are never set by the modeldecoder
+		out := initializedMetadata()
+		// iterate through model and assert values are set
+		defaultVal := modeldecodertest.DefaultValues()
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), out)
 
-	// overwrite model metadata with specified Values
-	// then iterate through model and assert values are overwritten
-	modeldecodertest.SetStructValues(&m, "overwritten", 12, false, time.Now())
-	mapToMetadataModel(&m, &modelM)
-	assert.Equal(t, expected("overwritten"), modelM)
+		// overwrite model metadata with specified Values
+		// then iterate through model and assert values are overwritten
+		var input metadata
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
+		mapToMetadataModel(&input, out)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
 
-	// map an empty modeldecoder metadata to the model
-	// and assert values are unchanged
-	modeldecodertest.SetZeroStructValues(&m)
-	mapToMetadataModel(&m, &modelM)
-	assert.Equal(t, expected("overwritten"), modelM)
+		// map an empty modeldecoder metadata to the model
+		// and assert values are unchanged
+		input.Reset()
+		modeldecodertest.SetZeroStructValues(&input)
+		mapToMetadataModel(&input, out)
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
+	})
 
+	t.Run("reused-memory", func(t *testing.T) {
+		var input metadata
+		var out1, out2 model.Metadata
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		mapToMetadataModel(&input, &out1)
+		// initialize values that are not set by input
+		out1.UserAgent = model.UserAgent{Name: "init", Original: "init"}
+		out1.Client.IP = net.ParseIP("127.0.0.1")
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
+
+		// overwrite model metadata with specified Values
+		// then iterate through model and assert values are overwritten
+		otherVal := modeldecodertest.NonDefaultValues()
+		input.Reset()
+		modeldecodertest.SetStructValues(&input, otherVal)
+		mapToMetadataModel(&input, &out2)
+		out2.UserAgent = model.UserAgent{Name: "init", Original: "init"}
+		out2.Client.IP = net.ParseIP("127.0.0.1")
+		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), &out2)
+		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
+	})
 }
