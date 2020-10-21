@@ -26,6 +26,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -102,6 +103,11 @@ func TestTailSampling(t *testing.T) {
 			Policies: []apmservertest.TailSamplingPolicy{{SampleRate: 0.5}},
 		},
 	}
+	srv1.Config.Monitoring = &apmservertest.MonitoringConfig{
+		Enabled:       true,
+		MetricsPeriod: 100 * time.Millisecond,
+		StatePeriod:   100 * time.Millisecond,
+	}
 	require.NoError(t, srv1.Start())
 
 	srv2 := apmservertest.NewUnstartedServer(t)
@@ -138,4 +144,8 @@ func TestTailSampling(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, result.Hits.Hits, expected)
 	}
+
+	// Make sure apm-server.sampling.tail metrics are published. Metric values are unit tested.
+	doc := getBeatsMonitoringStats(t, srv1, nil)
+	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.tail").Exists())
 }

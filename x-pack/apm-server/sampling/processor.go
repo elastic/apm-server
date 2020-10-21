@@ -7,6 +7,7 @@ package sampling
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
@@ -20,10 +21,15 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 const (
 	badgerValueLogFileSize = 128 * 1024 * 1024
+
+	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
+	// "too many groups" log messages are logged.
+	tooManyGroupsLoggerRateLimit = time.Minute
 )
 
 // ErrStopped is returned when calling ProcessTransformables on a stopped Processor.
@@ -31,17 +37,25 @@ var ErrStopped = errors.New("processor is stopped")
 
 // Processor is a tail-sampling event processor.
 type Processor struct {
-	config Config
-	logger *logp.Logger
-	groups *traceGroups
+	config              Config
+	logger              *logp.Logger
+	tooManyGroupsLogger *logp.Logger
+	groups              *traceGroups
 
-	storageMu sync.RWMutex
-	db        *badger.DB
-	storage   *eventstorage.ShardedReadWriter
+	storageMu    sync.RWMutex
+	db           *badger.DB
+	storage      *eventstorage.ShardedReadWriter
+	eventMetrics eventMetrics
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
+}
+
+type eventMetrics struct {
+	processed int64
+	dropped   int64
+	stored    int64
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
@@ -64,15 +78,51 @@ func NewProcessor(config Config) (*Processor, error) {
 	readWriter := storage.NewShardedReadWriter()
 
 	p := &Processor{
-		config:   config,
-		logger:   logger,
-		groups:   newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		db:       db,
-		storage:  readWriter,
-		stopping: make(chan struct{}),
-		stopped:  make(chan struct{}),
+		config:              config,
+		logger:              logger,
+		tooManyGroupsLogger: logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
+		groups:              newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		db:                  db,
+		storage:             readWriter,
+		stopping:            make(chan struct{}),
+		stopped:             make(chan struct{}),
 	}
 	return p, nil
+}
+
+// CollectMonitoring may be called to collect monitoring metrics related to
+// tail-sampling. It is intended to be used with libbeat/monitoring.NewFunc.
+//
+// The metrics should be added to the "apm-server.sampling.tail" registry.
+func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
+	// TODO(axw) it might be nice to also report some metrics about:
+	//
+	//   - The time between receiving events and when they are indexed.
+	//     This could be accomplished by recording the time when the
+	//     payload was received in the ECS field `event.created`. The
+	//     final metric would ideally be a distribution, which is not
+	//     currently an option in libbeat/monitoring.
+
+	p.groups.mu.RLock()
+	numDynamicGroups := len(p.groups.dynamicGroups)
+	p.groups.mu.RUnlock()
+	monitoring.ReportInt(V, "dynamic_service_groups", int64(numDynamicGroups))
+
+	monitoring.ReportNamespace(V, "storage", func() {
+		p.storageMu.RLock()
+		defer p.storageMu.RUnlock()
+		lsmSize, valueLogSize := p.db.Size()
+		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
+		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
+	})
+	monitoring.ReportNamespace(V, "events", func() {
+		monitoring.ReportInt(V, "processed", atomic.LoadInt64(&p.eventMetrics.processed))
+		monitoring.ReportInt(V, "dropped", atomic.LoadInt64(&p.eventMetrics.dropped))
+		monitoring.ReportInt(V, "stored", atomic.LoadInt64(&p.eventMetrics.stored))
+	})
 }
 
 // ProcessTransformables tail-samples transactions and spans.
@@ -93,13 +143,15 @@ func (p *Processor) ProcessTransformables(ctx context.Context, events []transfor
 		return nil, ErrStopped
 	}
 	for i := 0; i < len(events); i++ {
-		var drop bool
+		var drop, stored bool
 		var err error
 		switch event := events[i].(type) {
 		case *model.Transaction:
-			drop, err = p.processTransaction(event)
+			atomic.AddInt64(&p.eventMetrics.processed, 1)
+			drop, stored, err = p.processTransaction(event)
 		case *model.Span:
-			drop, err = p.processSpan(event)
+			atomic.AddInt64(&p.eventMetrics.processed, 1)
+			drop, stored, err = p.processSpan(event)
 		default:
 			continue
 		}
@@ -112,15 +164,28 @@ func (p *Processor) ProcessTransformables(ctx context.Context, events []transfor
 			events = events[:n-1]
 			i--
 		}
+		if stored {
+			atomic.AddInt64(&p.eventMetrics.stored, 1)
+		} else if drop {
+			// We only increment the "dropped" counter if
+			// we didn't also store the event, so we can
+			// track how many events are definitely dropped
+			// and indexing isn't just deferred until later.
+			//
+			// The counter does not include events that are
+			// implicitly dropped, i.e. stored and never
+			// indexed.
+			atomic.AddInt64(&p.eventMetrics.dropped, 1)
+		}
 	}
 	return events, nil
 }
 
-func (p *Processor) processTransaction(tx *model.Transaction) (bool, error) {
+func (p *Processor) processTransaction(tx *model.Transaction) (drop, stored bool, _ error) {
 	if tx.Sampled != nil && !*tx.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
-		return false, nil
+		return false, false, nil
 	}
 
 	traceSampled, err := p.storage.IsTraceSampled(tx.TraceID)
@@ -128,29 +193,32 @@ func (p *Processor) processTransaction(tx *model.Transaction) (bool, error) {
 	case nil:
 		// Tail-sampling decision has been made, index or drop the transaction.
 		drop := !traceSampled
-		return drop, nil
+		return drop, false, nil
 	case eventstorage.ErrNotFound:
 		// Tail-sampling decision has not yet been made.
 		break
 	default:
-		return false, err
+		return false, false, err
 	}
 
 	if tx.ParentID != "" {
 		// Non-root transaction: write to local storage while we wait
 		// for a sampling decision.
-		return true, p.storage.WriteTransaction(tx)
+		return true, true, p.storage.WriteTransaction(tx)
 	}
 
 	// Root transaction: apply reservoir sampling.
 	reservoirSampled, err := p.groups.sampleTrace(tx)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
-		//
-		// TODO(axw) log a warning with a rate limit.
-		return true, nil
+		p.tooManyGroupsLogger.Warn(`
+Tail-sampling service group limit reached, discarding trace events.
+This is caused by having many unique service names while relying on
+sampling policies without service name specified.
+`[1:])
+		return true, false, nil
 	} else if err != nil {
-		return false, err
+		return false, false, err
 	}
 
 	if !reservoirSampled {
@@ -160,27 +228,29 @@ func (p *Processor) processTransaction(tx *model.Transaction) (bool, error) {
 		// This is a local optimisation only. To avoid creating network
 		// traffic and load on Elasticsearch for uninteresting root
 		// transactions, we do not propagate this to other APM Servers.
-		return true, p.storage.WriteTraceSampled(tx.TraceID, false)
+		return true, false, p.storage.WriteTraceSampled(tx.TraceID, false)
 	}
 
 	// The root transaction was admitted to the sampling reservoir, so we
 	// can proceed to write the transaction to storage and then drop it;
 	// we may index it later, after finalising the sampling decision.
-	return true, p.storage.WriteTransaction(tx)
+	return true, true, p.storage.WriteTransaction(tx)
 }
 
-func (p *Processor) processSpan(span *model.Span) (bool, error) {
+func (p *Processor) processSpan(span *model.Span) (drop, stored bool, _ error) {
 	traceSampled, err := p.storage.IsTraceSampled(span.TraceID)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
 			// Tail-sampling decision has not yet been made, write span to local storage.
-			return true, p.storage.WriteSpan(span)
+			return true, true, p.storage.WriteSpan(span)
 		}
-		return false, err
+		return false, false, err
 	}
 	// Tail-sampling decision has been made, index or drop the event.
-	drop := !traceSampled
-	return drop, nil
+	if !traceSampled {
+		return true, false, nil
+	}
+	return false, false, nil
 }
 
 // Stop stops the processor, flushing and closing the event storage.

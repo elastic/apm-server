@@ -6,8 +6,10 @@ package sampling_test
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"sort"
 	"strings"
 	"testing"
@@ -24,6 +26,7 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 func TestProcessUnsampled(t *testing.T) {
@@ -96,6 +99,12 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// reported immediately, whereas the second ones should be written storage since
 	// they were received after the trace sampling entry expired.
 	assert.Equal(t, []transform.Transformable{transaction1, span1}, out)
+
+	expectedMonitoring := monitoring.MakeFlatSnapshot()
+	expectedMonitoring.Ints["sampling.events.processed"] = 4
+	expectedMonitoring.Ints["sampling.events.stored"] = 2
+	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
@@ -186,6 +195,12 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		unsampledTraceEvents = trace1Events
 		sampledTraceEvents = trace2Events
 	}
+
+	expectedMonitoring := monitoring.MakeFlatSnapshot()
+	expectedMonitoring.Ints["sampling.events.processed"] = 4
+	expectedMonitoring.Ints["sampling.events.stored"] = 4
+	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
@@ -325,6 +340,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.Empty(t, published) // remote decisions don't get republished
 
+	expectedMonitoring := monitoring.MakeFlatSnapshot()
+	expectedMonitoring.Ints["sampling.events.processed"] = 1
+	expectedMonitoring.Ints["sampling.events.stored"] = 1
+	expectedMonitoring.Ints["sampling.events.dropped"] = 0
+	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+
 	withBadger(t, config.StorageDir, func(db *badger.DB) {
 		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
 		reader := storage.NewReadWriter()
@@ -348,6 +369,67 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Zero(t, batch)
 	})
+}
+
+func TestGroupsMonitoring(t *testing.T) {
+	config := newTempdirConfig(t)
+	config.MaxDynamicServices = 5
+	config.FlushInterval = time.Minute
+	config.Policies[0].SampleRate = 0.99
+
+	processor, err := sampling.NewProcessor(config)
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	for i := 0; i < config.MaxDynamicServices+1; i++ {
+		_, err := processor.ProcessTransformables(context.Background(), []transform.Transformable{&model.Transaction{
+			Metadata: model.Metadata{
+				Service: model.Service{Name: fmt.Sprintf("service_%d", i)},
+			},
+			TraceID:  uuid.Must(uuid.NewV4()).String(),
+			ID:       "0102030405060709",
+			Duration: 123,
+		}})
+		require.NoError(t, err)
+	}
+
+	expectedMonitoring := monitoring.MakeFlatSnapshot()
+	expectedMonitoring.Ints["sampling.dynamic_service_groups"] = int64(config.MaxDynamicServices)
+	expectedMonitoring.Ints["sampling.events.processed"] = int64(config.MaxDynamicServices) + 1
+	expectedMonitoring.Ints["sampling.events.stored"] = int64(config.MaxDynamicServices)
+	expectedMonitoring.Ints["sampling.events.dropped"] = 1 // final event dropped, after service limit reached
+	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`, `sampling.dynamic_service_groups`)
+}
+
+func TestStorageMonitoring(t *testing.T) {
+	config := newTempdirConfig(t)
+
+	processor, err := sampling.NewProcessor(config)
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+	for i := 0; i < 100; i++ {
+		traceID := uuid.Must(uuid.NewV4()).String()
+		out, err := processor.ProcessTransformables(context.Background(), []transform.Transformable{&model.Transaction{
+			TraceID:  traceID,
+			ID:       traceID,
+			Duration: 123,
+		}})
+		require.NoError(t, err)
+		assert.Empty(t, out)
+	}
+
+	// Stop the processor and create a new one, which will reopen storage
+	// and calculate the storage size. Otherwise we must wait for a minute
+	// (hard-coded in badger) for storage metrics to be updated.
+	processor.Stop(context.Background())
+	processor, err = sampling.NewProcessor(config)
+	require.NoError(t, err)
+
+	metrics := collectProcessorMetrics(processor)
+	assert.NotZero(t, metrics.Ints, "sampling.storage.lsm_size")
+	assert.NotZero(t, metrics.Ints, "sampling.storage.value_log_size")
 }
 
 func TestStorageGC(t *testing.T) {
@@ -449,6 +531,62 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			TTL:               30 * time.Minute,
 		},
 	}
+}
+
+func assertMonitoring(t testing.TB, p *sampling.Processor, expected monitoring.FlatSnapshot, matches ...string) {
+	t.Helper()
+	actual := collectProcessorMetrics(p)
+	matchAny := func(k string) bool { return true }
+	if len(matches) > 0 {
+		matchAny = func(k string) bool {
+			for _, pattern := range matches {
+				matched, err := path.Match(pattern, k)
+				if err != nil {
+					panic(err)
+				}
+				if matched {
+					return true
+				}
+			}
+			return false
+		}
+	}
+	for k := range actual.Bools {
+		if !matchAny(k) {
+			delete(actual.Bools, k)
+		}
+	}
+	for k := range actual.Ints {
+		if !matchAny(k) {
+			delete(actual.Ints, k)
+		}
+	}
+	for k := range actual.Floats {
+		if !matchAny(k) {
+			delete(actual.Floats, k)
+		}
+	}
+	for k := range actual.Strings {
+		if !matchAny(k) {
+			delete(actual.Strings, k)
+		}
+	}
+	for k := range actual.StringSlices {
+		if !matchAny(k) {
+			delete(actual.StringSlices, k)
+		}
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func collectProcessorMetrics(p *sampling.Processor) monitoring.FlatSnapshot {
+	registry := monitoring.NewRegistry()
+	monitoring.NewFunc(registry, "sampling", p.CollectMonitoring)
+	return monitoring.CollectFlatSnapshot(
+		registry,
+		monitoring.Full,
+		false, // expvar
+	)
 }
 
 func newBool(v bool) *bool {
