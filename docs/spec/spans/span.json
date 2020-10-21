@@ -243,6 +243,10 @@
                         },
                         "service": {
                             "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
+                            "type": [
+                                "object",
+                                "null"
+                            ],
                             "properties": {
                                 "agent": {
                                     "description": "Name and version of the Elastic APM agent",
