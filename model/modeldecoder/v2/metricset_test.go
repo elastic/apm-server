@@ -111,7 +111,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			{Name: defaultVal.Str + "1", Value: defaultVal.Float},
 			{Name: defaultVal.Str + "2", Value: defaultVal.Float},
 		}
-		assert.Equal(t, defaultSamples, out1.Samples)
+		assert.ElementsMatch(t, defaultSamples, out1.Samples)
 
 		// set Timestamp to requestTime if eventTime is zero
 		defaultVal.Update(time.Time{})
@@ -130,8 +130,8 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			{Name: otherVal.Str + "0", Value: otherVal.Float},
 			{Name: otherVal.Str + "1", Value: otherVal.Float},
 		}
-		assert.Equal(t, otherSamples, out2.Samples)
+		assert.ElementsMatch(t, otherSamples, out2.Samples)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
-		assert.Equal(t, defaultSamples, out1.Samples)
+		assert.ElementsMatch(t, defaultSamples, out1.Samples)
 	})
 }
