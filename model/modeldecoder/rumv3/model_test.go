@@ -42,6 +42,7 @@ func TestUserValidationRules(t *testing.T) {
 	}
 	testValidation(t, "m", testcases, "u")
 	testValidation(t, "x", testcases, "c", "u")
+	testValidation(t, "e", testcases, "c", "u")
 }
 
 func TestServiceValidationRules(t *testing.T) {
@@ -55,12 +56,14 @@ func TestServiceValidationRules(t *testing.T) {
 	}
 	testValidation(t, "m", testcases, "se")
 	testValidation(t, "x", testcases, "c", "se")
+	testValidation(t, "e", testcases, "c", "se")
 }
 
 func TestLabelValidationRules(t *testing.T) {
 	testcases := []testcase{
-		{name: "valid", data: `{"k1":"v1","k2":2.3,"k3":3,"k4":true,"k5":null}`},
+		{name: "valid", data: `{"k1":"v1.s*\"","k2":2.3,"k3":3,"k4":true,"k5":null}`},
 		{name: "restricted-type", errorKey: "typesVals", data: `{"k1":{"k2":"v1"}}`},
+		{name: "restricted-type", errorKey: "typesVals", data: `{"k1":{"k2":[1,2,3]}}`},
 		{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
 		{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
 		{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
@@ -68,6 +71,8 @@ func TestLabelValidationRules(t *testing.T) {
 		{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
 	}
 	testValidation(t, "m", testcases, "l")
+	testValidation(t, "x", testcases, "c", "g")
+	testValidation(t, "e", testcases, "c", "g")
 }
 
 func TestMaxLenValidationRules(t *testing.T) {
@@ -90,20 +95,7 @@ func TestContextValidationRules(t *testing.T) {
 			{name: "custom-key-quote", errorKey: "patternKeys", data: `{"cu":{"k1\"":{"v1":123,"v2":"value"}}}`},
 		}
 		testValidation(t, "x", testcases, "c")
-	})
-
-	t.Run("tags", func(t *testing.T) {
-		testcases := []testcase{
-			{name: "tags", data: `{"g":{"k1":"v1.s*\"","k2":34,"k3":23.56,"k4":true}}`},
-			{name: "tags-key-dot", errorKey: "patternKeys", data: `{"g":{"k1.":"v1"}}`},
-			{name: "tags-key-asterisk", errorKey: "patternKeys", data: `{"g":{"k1*":"v1"}}`},
-			{name: "tags-key-quote", errorKey: "patternKeys", data: `{"g":{"k1\"":"v1"}}`},
-			{name: "tags-invalid-type", errorKey: "typesVals", data: `{"g":{"k1":{"v1":"abc"}}}`},
-			{name: "tags-invalid-type", errorKey: "typesVals", data: `{"g":{"k1":{"v1":[1,2,3]}}}`},
-			{name: "tags-maxVal", data: `{"g":{"k1":"` + modeldecodertest.BuildString(1024) + `"}}`},
-			{name: "tags-maxVal-exceeded", errorKey: "maxVals", data: `{"g":{"k1":"` + modeldecodertest.BuildString(1025) + `"}}`},
-		}
-		testValidation(t, "x", testcases, "c")
+		testValidation(t, "e", testcases, "c")
 	})
 }
 
@@ -247,6 +239,8 @@ func testFileName(eventType string) string {
 	switch eventType {
 	case "me":
 		return eventType
+	case "e":
+		return "rum_errors"
 	default:
 		return "rum_events"
 	}
@@ -261,8 +255,10 @@ func testValidation(t *testing.T, eventType string, testcases []testcase, keys .
 				event = &metadata{}
 			case "x":
 				event = &transaction{}
-				// case "y":
-				// 	event = &span{}
+			// case "y":
+			// 	event = &span{}
+			case "e":
+				event = &errorEvent{}
 			}
 			r := testdataReader(t, testFileName(eventType))
 			modeldecodertest.DecodeDataWithReplacement(t, r, eventType, tc.data, event, keys...)

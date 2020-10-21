@@ -45,22 +45,14 @@ func TestResetTransactionOnRelease(t *testing.T) {
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: true}}
-		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"exper":"test"}}`
+		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{}}
+		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Transaction
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
 		assert.Equal(t, "request", out.Type)
-		assert.Equal(t, "test", out.Experimental)
 		// fall back to request time
 		assert.Equal(t, now, out.Timestamp)
-
-		// experimental should only be set if allowed by configuration
-		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
-		dec = decoder.NewJSONDecoder(strings.NewReader(str))
-		out = model.Transaction{}
-		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
-		assert.Nil(t, out.Experimental)
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
 		require.Error(t, err)
@@ -138,15 +130,23 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 	t.Run("transaction-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
-			// metadata are tested separately
-			// Page.URL parts are derived from url (separately tested)
-			// exclude attributes that are not set for RUM
-			if strings.HasPrefix(key, "Metadata") || strings.HasPrefix(key, "Page.URL") ||
-				key == "HTTP.Request.Body" || key == "HTTP.Request.Cookies" || key == "HTTP.Request.Socket" ||
-				key == "HTTP.Response.HeadersSent" || key == "HTTP.Response.Finished" ||
-				key == "Experimental" || key == "RepresentativeCount" || key == "Message" ||
-				key == "URL" {
-				return true
+
+			for _, s := range []string{
+				// metadata are tested separately
+				"Metadata",
+				// values not set for RUM v3
+				"HTTP.Request.Env", "HTTP.Request.Body", "HTTP.Request.Socket", "HTTP.Request.Cookies",
+				"HTTP.Response.HeadersSent", "HTTP.Response.Finished",
+				"Experimental",
+				"RepresentativeCount", "Message",
+				// URL parts are derived from url (separately tested)
+				"URL", "Page.URL",
+				// RUM is set in stream processor
+				"RUM",
+			} {
+				if strings.HasPrefix(key, s) {
+					return true
+				}
 			}
 			return false
 		}
@@ -165,7 +165,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		otherVal := modeldecodertest.NonDefaultValues()
 		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out2)
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})

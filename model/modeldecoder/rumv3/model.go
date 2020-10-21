@@ -35,8 +35,16 @@ var (
 
 // entry points
 
+type errorRoot struct {
+	Error errorEvent `json:"e" validate:"required"`
+}
+
 type metadataRoot struct {
 	Metadata metadata `json:"m" validate:"required"`
+}
+
+type metricsetRoot struct {
+	Metricset metricset `json:"me" validate:"required"`
 }
 
 type transactionRoot struct {
@@ -61,7 +69,7 @@ type contextPage struct {
 }
 
 type contextRequest struct {
-	Env         nullable.Interface  `json:"en"`
+	Env         common.MapStr       `json:"en"`
 	Headers     nullable.HTTPHeader `json:"he"`
 	HTTPVersion nullable.String     `json:"hve" validate:"max=1024"`
 	Method      nullable.String     `json:"mt" validate:"required,max=1024"`
@@ -105,6 +113,46 @@ type contextServiceRuntime struct {
 	Version nullable.String `json:"ve" validate:"max=1024"`
 }
 
+type errorEvent struct {
+	Context       context                 `json:"c"`
+	Culprit       nullable.String         `json:"cu" validate:"max=1024"`
+	Exception     errorException          `json:"ex"`
+	ID            nullable.String         `json:"id" validate:"required,max=1024"`
+	Log           errorLog                `json:"log"`
+	ParentID      nullable.String         `json:"pid" validate:"requiredIfAny=xid;tid,max=1024"`
+	Timestamp     nullable.TimeMicrosUnix `json:"timestamp"`
+	TraceID       nullable.String         `json:"tid" validate:"requiredIfAny=xid;pid,max=1024"`
+	Transaction   errorTransactionRef     `json:"x"`
+	TransactionID nullable.String         `json:"xid" validate:"max=1024"`
+	_             struct{}                `validate:"requiredOneOf=ex;log"`
+}
+
+type errorException struct {
+	Attributes common.MapStr      `json:"at"`
+	Code       nullable.Interface `json:"cd" validate:"types=string;int,max=1024"`
+	Cause      []errorException   `json:"ca"`
+	Handled    nullable.Bool      `json:"hd"`
+	Message    nullable.String    `json:"mg"`
+	Module     nullable.String    `json:"mo" validate:"max=1024"`
+	Stacktrace []stacktraceFrame  `json:"st"`
+	Type       nullable.String    `json:"t" validate:"max=1024"`
+	_          struct{}           `validate:"requiredOneOf=mg;t"`
+}
+
+type errorLog struct {
+	Level nullable.String `json:"lv" validate:"max=1024"`
+	//TODO(simitt): set default value `default` for loggername
+	LoggerName   nullable.String   `json:"ln" validate:"max=1024"`
+	Message      nullable.String   `json:"mg" validate:"required"`
+	ParamMessage nullable.String   `json:"pmg" validate:"max=1024"`
+	Stacktrace   []stacktraceFrame `json:"st"`
+}
+
+type errorTransactionRef struct {
+	Sampled nullable.Bool   `json:"sm"`
+	Type    nullable.String `json:"t" validate:"max=1024"`
+}
+
 type metadata struct {
 	Labels  common.MapStr   `json:"l" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
 	Service metadataService `json:"se" validate:"required"`
@@ -141,6 +189,44 @@ type metadataServiceRuntime struct {
 	Version nullable.String `json:"ve" validate:"required,max=1024"`
 }
 
+type metricset struct {
+	Samples metricsetSample  `json:"sa" validate:"required"`
+	Span    metricsetSpanRef `json:"y"`
+	Tags    common.MapStr    `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	//TODO(simitt): implement adding transaction information
+	// see https://github.com/elastic/apm-server/pull/3733/files
+}
+
+type metricsetSample struct {
+	TransactionDurationCount  metricsetSampleValue `json:"xdc"`
+	TransactionDurationSum    metricsetSampleValue `json:"xds"`
+	TransactionBreakdownCount metricsetSampleValue `json:"xbc"`
+	SpanSelfTimeCount         metricsetSampleValue `json:"ysc"`
+	SpanSelfTimeSum           metricsetSampleValue `json:"yss"`
+}
+
+type metricsetSampleValue struct {
+	Value nullable.Float64 `json:"v" validate:"required"`
+}
+
+type metricsetSpanRef struct {
+	Subtype nullable.String `json:"su" validate:"max=1024"`
+	Type    nullable.String `json:"t" validate:"max=1024"`
+}
+
+type stacktraceFrame struct {
+	AbsPath      nullable.String `json:"ap"`
+	Classname    nullable.String `json:"cn"`
+	ColumnNumber nullable.Int    `json:"co"`
+	ContextLine  nullable.String `json:"cli"`
+	Filename     nullable.String `json:"f" validate:"required"`
+	Function     nullable.String `json:"fn"`
+	LineNumber   nullable.Int    `json:"li"`
+	Module       nullable.String `json:"mo"`
+	PostContext  []string        `json:"poc"`
+	PreContext   []string        `json:"prc"`
+}
+
 type transaction struct {
 	Context        context                   `json:"c"`
 	Duration       nullable.Float64          `json:"d" validate:"required,min=0"`
@@ -156,7 +242,10 @@ type transaction struct {
 	TraceID        nullable.String           `json:"tid" validate:"required,max=1024"`
 	Type           nullable.String           `json:"t" validate:"required,max=1024"`
 	UserExperience transactionUserExperience `json:"exp"`
-	Experimental   nullable.Interface        `json:"exper"`
+	//TODO(simitt): implement
+	// Metricsets     []metricset               `json:"me"`
+	//TODO(simitt): implement
+	// Spans          []span                    `json:"y"`
 }
 
 type transactionMarks struct {
