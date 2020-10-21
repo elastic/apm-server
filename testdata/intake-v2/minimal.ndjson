@@ -5,4 +5,4 @@
 {"span": {"id": "0123456a89012345", "trace_id": "0123456789abcdef0123456789abcdef", "parent_id": "ab23456a89012345", "name": "GET /api/types", "type": "request", "start": 1.845, "duration": 3.5642981}}
 {"span": {"id": "0123456a89012345", "trace_id": "0123456789abcdef0123456789abcdef", "parent_id": "ab23456a89012345",  "name": "GET /api/types", "type": "request", "timestamp": 1535655207154000, "duration": 3.5642981}}
 {"transaction": {"trace_id": "01234567890123456789abcdefabcdef", "id": "abcdef1478523690", "type": "request", "duration": 32.592981, "span_count": {"started": 0}}}
-{"metricset": {"samples": {}, "timestamp": 1496170422281000}}
+{"metricset": {"samples":{"a":{"value":3.2}}, "timestamp": 1496170422281000}}

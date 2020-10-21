@@ -363,7 +363,6 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 				ptr.Elem().Set(mVal)
 				iterateStruct(ptr.Elem(), fmt.Sprintf("%s.[%s]", fKey, mKey), fn)
 				f.SetMapIndex(mKey, ptr.Elem())
-				i++
 			}
 		case reflect.Slice, reflect.Array:
 			if v.Type() == f.Type().Elem() {
