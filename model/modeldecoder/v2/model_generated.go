@@ -600,58 +600,53 @@ func (val *user) validate() error {
 	return nil
 }
 
-func (val *transactionRoot) IsSet() bool {
-	return val.Transaction.IsSet()
+func (val *errorRoot) IsSet() bool {
+	return val.Error.IsSet()
 }
 
-func (val *transactionRoot) Reset() {
-	val.Transaction.Reset()
+func (val *errorRoot) Reset() {
+	val.Error.Reset()
 }
 
-func (val *transactionRoot) validate() error {
-	if err := val.Transaction.validate(); err != nil {
-		return errors.Wrapf(err, "transaction")
+func (val *errorRoot) validate() error {
+	if err := val.Error.validate(); err != nil {
+		return errors.Wrapf(err, "error")
 	}
-	if !val.Transaction.IsSet() {
-		return fmt.Errorf("'transaction' required")
+	if !val.Error.IsSet() {
+		return fmt.Errorf("'error' required")
 	}
 	return nil
 }
 
-func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+func (val *errorEvent) IsSet() bool {
+	return val.Context.IsSet() || val.Culprit.IsSet() || val.Exception.IsSet() || val.ID.IsSet() || val.Log.IsSet() || val.ParentID.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Transaction.IsSet() || val.TransactionID.IsSet()
 }
 
-func (val *transaction) Reset() {
+func (val *errorEvent) Reset() {
 	val.Context.Reset()
-	val.Duration.Reset()
+	val.Culprit.Reset()
+	val.Exception.Reset()
 	val.ID.Reset()
-	val.Marks.Reset()
-	val.Name.Reset()
-	val.Outcome.Reset()
+	val.Log.Reset()
 	val.ParentID.Reset()
-	val.Result.Reset()
-	val.Sampled.Reset()
-	val.SampleRate.Reset()
-	val.SpanCount.Reset()
 	val.Timestamp.Reset()
 	val.TraceID.Reset()
-	val.Type.Reset()
-	val.UserExperience.Reset()
+	val.Transaction.Reset()
+	val.TransactionID.Reset()
 }
 
-func (val *transaction) validate() error {
+func (val *errorEvent) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
 	if err := val.Context.validate(); err != nil {
 		return errors.Wrapf(err, "context")
 	}
-	if val.Duration.Val < 0 {
-		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
+	if utf8.RuneCountInString(val.Culprit.Val) > 1024 {
+		return fmt.Errorf("'culprit': validation rule 'max(1024)' violated")
 	}
-	if !val.Duration.IsSet() {
-		return fmt.Errorf("'duration' required")
+	if err := val.Exception.validate(); err != nil {
+		return errors.Wrapf(err, "exception")
 	}
 	if utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
@@ -659,50 +654,39 @@ func (val *transaction) validate() error {
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
 	}
-	if err := val.Marks.validate(); err != nil {
-		return errors.Wrapf(err, "marks")
-	}
-	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'max(1024)' violated")
-	}
-	if val.Outcome.Val != "" {
-		var matchEnum bool
-		for _, s := range enumOutcome {
-			if val.Outcome.Val == s {
-				matchEnum = true
-				break
-			}
-		}
-		if !matchEnum {
-			return fmt.Errorf("'outcome': validation rule 'enum(enumOutcome)' violated")
-		}
+	if err := val.Log.validate(); err != nil {
+		return errors.Wrapf(err, "log")
 	}
 	if utf8.RuneCountInString(val.ParentID.Val) > 1024 {
 		return fmt.Errorf("'parent_id': validation rule 'max(1024)' violated")
 	}
-	if utf8.RuneCountInString(val.Result.Val) > 1024 {
-		return fmt.Errorf("'result': validation rule 'max(1024)' violated")
-	}
-	if err := val.SpanCount.validate(); err != nil {
-		return errors.Wrapf(err, "span_count")
-	}
-	if !val.SpanCount.IsSet() {
-		return fmt.Errorf("'span_count' required")
+	if !val.ParentID.IsSet() {
+		if val.TraceID.IsSet() {
+			return fmt.Errorf("'parent_id' required when 'trace_id' is set")
+		}
+		if val.TransactionID.IsSet() {
+			return fmt.Errorf("'parent_id' required when 'transaction_id' is set")
+		}
 	}
 	if utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'trace_id': validation rule 'max(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
-		return fmt.Errorf("'trace_id' required")
+		if val.ParentID.IsSet() {
+			return fmt.Errorf("'trace_id' required when 'parent_id' is set")
+		}
+		if val.TransactionID.IsSet() {
+			return fmt.Errorf("'trace_id' required when 'transaction_id' is set")
+		}
 	}
-	if utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'type': validation rule 'max(1024)' violated")
+	if err := val.Transaction.validate(); err != nil {
+		return errors.Wrapf(err, "transaction")
 	}
-	if !val.Type.IsSet() {
-		return fmt.Errorf("'type' required")
+	if utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
+		return fmt.Errorf("'transaction_id': validation rule 'max(1024)' violated")
 	}
-	if err := val.UserExperience.validate(); err != nil {
-		return errors.Wrapf(err, "experience")
+	if !val.Exception.IsSet() && !val.Log.IsSet() {
+		return fmt.Errorf("requires at least one of the fields 'exception;log'")
 	}
 	return nil
 }
@@ -1147,228 +1131,6 @@ func (val *contextServiceRuntime) validate() error {
 	return nil
 }
 
-func (val *transactionMarks) IsSet() bool {
-	return len(val.Events) > 0
-}
-
-func (val *transactionMarks) Reset() {
-	for k := range val.Events {
-		delete(val.Events, k)
-	}
-}
-
-func (val *transactionMarks) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	for k, v := range val.Events {
-		if err := v.validate(); err != nil {
-			return errors.Wrapf(err, "events")
-		}
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'events': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
-		}
-	}
-	return nil
-}
-
-func (val *transactionMarkEvents) IsSet() bool {
-	return len(val.Measurements) > 0
-}
-
-func (val *transactionMarkEvents) Reset() {
-	for k := range val.Measurements {
-		delete(val.Measurements, k)
-	}
-}
-
-func (val *transactionMarkEvents) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	for k := range val.Measurements {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'measurements': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
-		}
-	}
-	return nil
-}
-
-func (val *transactionSpanCount) IsSet() bool {
-	return val.Dropped.IsSet() || val.Started.IsSet()
-}
-
-func (val *transactionSpanCount) Reset() {
-	val.Dropped.Reset()
-	val.Started.Reset()
-}
-
-func (val *transactionSpanCount) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if !val.Started.IsSet() {
-		return fmt.Errorf("'started' required")
-	}
-	return nil
-}
-
-func (val *transactionUserExperience) IsSet() bool {
-	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.Longtask.IsSet() || val.TotalBlockingTime.IsSet()
-}
-
-func (val *transactionUserExperience) Reset() {
-	val.CumulativeLayoutShift.Reset()
-	val.FirstInputDelay.Reset()
-	val.Longtask.Reset()
-	val.TotalBlockingTime.Reset()
-}
-
-func (val *transactionUserExperience) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.CumulativeLayoutShift.Val < 0 {
-		return fmt.Errorf("'cls': validation rule 'min(0)' violated")
-	}
-	if val.FirstInputDelay.Val < 0 {
-		return fmt.Errorf("'fid': validation rule 'min(0)' violated")
-	}
-	if err := val.Longtask.validate(); err != nil {
-		return errors.Wrapf(err, "longtask")
-	}
-	if val.TotalBlockingTime.Val < 0 {
-		return fmt.Errorf("'tbt': validation rule 'min(0)' violated")
-	}
-	return nil
-}
-
-func (val *longtaskMetrics) IsSet() bool {
-	return val.Count.IsSet() || val.Max.IsSet() || val.Sum.IsSet()
-}
-
-func (val *longtaskMetrics) Reset() {
-	val.Count.Reset()
-	val.Max.Reset()
-	val.Sum.Reset()
-}
-
-func (val *longtaskMetrics) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Count.Val < 0 {
-		return fmt.Errorf("'count': validation rule 'min(0)' violated")
-	}
-	if !val.Count.IsSet() {
-		return fmt.Errorf("'count' required")
-	}
-	if val.Max.Val < 0 {
-		return fmt.Errorf("'max': validation rule 'min(0)' violated")
-	}
-	if !val.Max.IsSet() {
-		return fmt.Errorf("'max' required")
-	}
-	if val.Sum.Val < 0 {
-		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
-	}
-	if !val.Sum.IsSet() {
-		return fmt.Errorf("'sum' required")
-	}
-	return nil
-}
-
-func (val *errorRoot) IsSet() bool {
-	return val.Error.IsSet()
-}
-
-func (val *errorRoot) Reset() {
-	val.Error.Reset()
-}
-
-func (val *errorRoot) validate() error {
-	if err := val.Error.validate(); err != nil {
-		return errors.Wrapf(err, "error")
-	}
-	if !val.Error.IsSet() {
-		return fmt.Errorf("'error' required")
-	}
-	return nil
-}
-
-func (val *errorEvent) IsSet() bool {
-	return val.Context.IsSet() || val.Culprit.IsSet() || val.Exception.IsSet() || val.ID.IsSet() || val.Log.IsSet() || val.ParentID.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Transaction.IsSet() || val.TransactionID.IsSet()
-}
-
-func (val *errorEvent) Reset() {
-	val.Context.Reset()
-	val.Culprit.Reset()
-	val.Exception.Reset()
-	val.ID.Reset()
-	val.Log.Reset()
-	val.ParentID.Reset()
-	val.Timestamp.Reset()
-	val.TraceID.Reset()
-	val.Transaction.Reset()
-	val.TransactionID.Reset()
-}
-
-func (val *errorEvent) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if err := val.Context.validate(); err != nil {
-		return errors.Wrapf(err, "context")
-	}
-	if utf8.RuneCountInString(val.Culprit.Val) > 1024 {
-		return fmt.Errorf("'culprit': validation rule 'max(1024)' violated")
-	}
-	if err := val.Exception.validate(); err != nil {
-		return errors.Wrapf(err, "exception")
-	}
-	if utf8.RuneCountInString(val.ID.Val) > 1024 {
-		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
-	}
-	if !val.ID.IsSet() {
-		return fmt.Errorf("'id' required")
-	}
-	if err := val.Log.validate(); err != nil {
-		return errors.Wrapf(err, "log")
-	}
-	if utf8.RuneCountInString(val.ParentID.Val) > 1024 {
-		return fmt.Errorf("'parent_id': validation rule 'max(1024)' violated")
-	}
-	if !val.ParentID.IsSet() {
-		if val.TraceID.IsSet() {
-			return fmt.Errorf("'parent_id' required when 'trace_id' is set")
-		}
-		if val.TransactionID.IsSet() {
-			return fmt.Errorf("'parent_id' required when 'transaction_id' is set")
-		}
-	}
-	if utf8.RuneCountInString(val.TraceID.Val) > 1024 {
-		return fmt.Errorf("'trace_id': validation rule 'max(1024)' violated")
-	}
-	if !val.TraceID.IsSet() {
-		if val.ParentID.IsSet() {
-			return fmt.Errorf("'trace_id' required when 'parent_id' is set")
-		}
-		if val.TransactionID.IsSet() {
-			return fmt.Errorf("'trace_id' required when 'transaction_id' is set")
-		}
-	}
-	if err := val.Transaction.validate(); err != nil {
-		return errors.Wrapf(err, "transaction")
-	}
-	if utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
-		return fmt.Errorf("'transaction_id': validation rule 'max(1024)' violated")
-	}
-	if !val.Exception.IsSet() && !val.Log.IsSet() {
-		return fmt.Errorf("requires at least one of the fields 'exception;log'")
-	}
-	return nil
-}
-
 func (val *errorException) IsSet() bool {
 	return len(val.Attributes) > 0 || val.Code.IsSet() || len(val.Cause) > 0 || val.Handled.IsSet() || val.Message.IsSet() || val.Module.IsSet() || len(val.Stacktrace) > 0 || val.Type.IsSet()
 }
@@ -1514,6 +1276,142 @@ func (val *errorTransactionRef) Reset() {
 func (val *errorTransactionRef) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	if utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'max(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metricsetRoot) IsSet() bool {
+	return val.Metricset.IsSet()
+}
+
+func (val *metricsetRoot) Reset() {
+	val.Metricset.Reset()
+}
+
+func (val *metricsetRoot) validate() error {
+	if err := val.Metricset.validate(); err != nil {
+		return errors.Wrapf(err, "metricset")
+	}
+	if !val.Metricset.IsSet() {
+		return fmt.Errorf("'metricset' required")
+	}
+	return nil
+}
+
+func (val *metricset) IsSet() bool {
+	return val.Timestamp.IsSet() || len(val.Samples) > 0 || val.Span.IsSet() || len(val.Tags) > 0 || val.Transaction.IsSet()
+}
+
+func (val *metricset) Reset() {
+	val.Timestamp.Reset()
+	for k := range val.Samples {
+		delete(val.Samples, k)
+	}
+	val.Span.Reset()
+	for k := range val.Tags {
+		delete(val.Tags, k)
+	}
+	val.Transaction.Reset()
+}
+
+func (val *metricset) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if len(val.Samples) == 0 {
+		return fmt.Errorf("'samples' required")
+	}
+	for k, v := range val.Samples {
+		if err := v.validate(); err != nil {
+			return errors.Wrapf(err, "samples")
+		}
+		if k != "" && !regexpNoAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("'samples': validation rule 'patternKeys(regexpNoAsteriskQuote)' violated")
+		}
+	}
+	if err := val.Span.validate(); err != nil {
+		return errors.Wrapf(err, "span")
+	}
+	for k, v := range val.Tags {
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("'tags': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		}
+		switch t := v.(type) {
+		case nil:
+		case string:
+			if utf8.RuneCountInString(t) > 1024 {
+				return fmt.Errorf("'tags': validation rule 'maxVals(1024)' violated")
+			}
+		case bool:
+		case json.Number:
+		default:
+			return fmt.Errorf("'tags': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+		}
+	}
+	if err := val.Transaction.validate(); err != nil {
+		return errors.Wrapf(err, "transaction")
+	}
+	return nil
+}
+
+func (val *metricsetSampleValue) IsSet() bool {
+	return val.Value.IsSet()
+}
+
+func (val *metricsetSampleValue) Reset() {
+	val.Value.Reset()
+}
+
+func (val *metricsetSampleValue) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.Value.IsSet() {
+		return fmt.Errorf("'value' required")
+	}
+	return nil
+}
+
+func (val *metricsetSpanRef) IsSet() bool {
+	return val.Subtype.IsSet() || val.Type.IsSet()
+}
+
+func (val *metricsetSpanRef) Reset() {
+	val.Subtype.Reset()
+	val.Type.Reset()
+}
+
+func (val *metricsetSpanRef) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if utf8.RuneCountInString(val.Subtype.Val) > 1024 {
+		return fmt.Errorf("'subtype': validation rule 'max(1024)' violated")
+	}
+	if utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'max(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metricsetTransactionRef) IsSet() bool {
+	return val.Name.IsSet() || val.Type.IsSet()
+}
+
+func (val *metricsetTransactionRef) Reset() {
+	val.Name.Reset()
+	val.Type.Reset()
+}
+
+func (val *metricsetTransactionRef) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'max(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'max(1024)' violated")
@@ -1820,6 +1718,244 @@ func (val *spanContextHTTPResponse) Reset() {
 func (val *spanContextHTTPResponse) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	return nil
+}
+
+func (val *transactionRoot) IsSet() bool {
+	return val.Transaction.IsSet()
+}
+
+func (val *transactionRoot) Reset() {
+	val.Transaction.Reset()
+}
+
+func (val *transactionRoot) validate() error {
+	if err := val.Transaction.validate(); err != nil {
+		return errors.Wrapf(err, "transaction")
+	}
+	if !val.Transaction.IsSet() {
+		return fmt.Errorf("'transaction' required")
+	}
+	return nil
+}
+
+func (val *transaction) IsSet() bool {
+	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+}
+
+func (val *transaction) Reset() {
+	val.Context.Reset()
+	val.Duration.Reset()
+	val.ID.Reset()
+	val.Marks.Reset()
+	val.Name.Reset()
+	val.Outcome.Reset()
+	val.ParentID.Reset()
+	val.Result.Reset()
+	val.Sampled.Reset()
+	val.SampleRate.Reset()
+	val.SpanCount.Reset()
+	val.Timestamp.Reset()
+	val.TraceID.Reset()
+	val.Type.Reset()
+	val.UserExperience.Reset()
+}
+
+func (val *transaction) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Context.validate(); err != nil {
+		return errors.Wrapf(err, "context")
+	}
+	if val.Duration.Val < 0 {
+		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
+	}
+	if !val.Duration.IsSet() {
+		return fmt.Errorf("'duration' required")
+	}
+	if utf8.RuneCountInString(val.ID.Val) > 1024 {
+		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
+	}
+	if !val.ID.IsSet() {
+		return fmt.Errorf("'id' required")
+	}
+	if err := val.Marks.validate(); err != nil {
+		return errors.Wrapf(err, "marks")
+	}
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'max(1024)' violated")
+	}
+	if val.Outcome.Val != "" {
+		var matchEnum bool
+		for _, s := range enumOutcome {
+			if val.Outcome.Val == s {
+				matchEnum = true
+				break
+			}
+		}
+		if !matchEnum {
+			return fmt.Errorf("'outcome': validation rule 'enum(enumOutcome)' violated")
+		}
+	}
+	if utf8.RuneCountInString(val.ParentID.Val) > 1024 {
+		return fmt.Errorf("'parent_id': validation rule 'max(1024)' violated")
+	}
+	if utf8.RuneCountInString(val.Result.Val) > 1024 {
+		return fmt.Errorf("'result': validation rule 'max(1024)' violated")
+	}
+	if err := val.SpanCount.validate(); err != nil {
+		return errors.Wrapf(err, "span_count")
+	}
+	if !val.SpanCount.IsSet() {
+		return fmt.Errorf("'span_count' required")
+	}
+	if utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+		return fmt.Errorf("'trace_id': validation rule 'max(1024)' violated")
+	}
+	if !val.TraceID.IsSet() {
+		return fmt.Errorf("'trace_id' required")
+	}
+	if utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'max(1024)' violated")
+	}
+	if !val.Type.IsSet() {
+		return fmt.Errorf("'type' required")
+	}
+	if err := val.UserExperience.validate(); err != nil {
+		return errors.Wrapf(err, "experience")
+	}
+	return nil
+}
+
+func (val *transactionMarks) IsSet() bool {
+	return len(val.Events) > 0
+}
+
+func (val *transactionMarks) Reset() {
+	for k := range val.Events {
+		delete(val.Events, k)
+	}
+}
+
+func (val *transactionMarks) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	for k, v := range val.Events {
+		if err := v.validate(); err != nil {
+			return errors.Wrapf(err, "events")
+		}
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("'events': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		}
+	}
+	return nil
+}
+
+func (val *transactionMarkEvents) IsSet() bool {
+	return len(val.Measurements) > 0
+}
+
+func (val *transactionMarkEvents) Reset() {
+	for k := range val.Measurements {
+		delete(val.Measurements, k)
+	}
+}
+
+func (val *transactionMarkEvents) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	for k := range val.Measurements {
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("'measurements': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		}
+	}
+	return nil
+}
+
+func (val *transactionSpanCount) IsSet() bool {
+	return val.Dropped.IsSet() || val.Started.IsSet()
+}
+
+func (val *transactionSpanCount) Reset() {
+	val.Dropped.Reset()
+	val.Started.Reset()
+}
+
+func (val *transactionSpanCount) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.Started.IsSet() {
+		return fmt.Errorf("'started' required")
+	}
+	return nil
+}
+
+func (val *transactionUserExperience) IsSet() bool {
+	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.Longtask.IsSet() || val.TotalBlockingTime.IsSet()
+}
+
+func (val *transactionUserExperience) Reset() {
+	val.CumulativeLayoutShift.Reset()
+	val.FirstInputDelay.Reset()
+	val.Longtask.Reset()
+	val.TotalBlockingTime.Reset()
+}
+
+func (val *transactionUserExperience) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.CumulativeLayoutShift.Val < 0 {
+		return fmt.Errorf("'cls': validation rule 'min(0)' violated")
+	}
+	if val.FirstInputDelay.Val < 0 {
+		return fmt.Errorf("'fid': validation rule 'min(0)' violated")
+	}
+	if err := val.Longtask.validate(); err != nil {
+		return errors.Wrapf(err, "longtask")
+	}
+	if val.TotalBlockingTime.Val < 0 {
+		return fmt.Errorf("'tbt': validation rule 'min(0)' violated")
+	}
+	return nil
+}
+
+func (val *longtaskMetrics) IsSet() bool {
+	return val.Count.IsSet() || val.Max.IsSet() || val.Sum.IsSet()
+}
+
+func (val *longtaskMetrics) Reset() {
+	val.Count.Reset()
+	val.Max.Reset()
+	val.Sum.Reset()
+}
+
+func (val *longtaskMetrics) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Count.Val < 0 {
+		return fmt.Errorf("'count': validation rule 'min(0)' violated")
+	}
+	if !val.Count.IsSet() {
+		return fmt.Errorf("'count' required")
+	}
+	if val.Max.Val < 0 {
+		return fmt.Errorf("'max': validation rule 'min(0)' violated")
+	}
+	if !val.Max.IsSet() {
+		return fmt.Errorf("'max' required")
+	}
+	if val.Sum.Val < 0 {
+		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
+	}
+	if !val.Sum.IsSet() {
+		return fmt.Errorf("'sum' required")
 	}
 	return nil
 }
