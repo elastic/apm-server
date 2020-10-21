@@ -378,7 +378,7 @@ func (sr *streamReader) wrapError(err error) error {
 	}
 
 	var e = err
-	if err, ok := err.(v2.DecodeError); ok {
+	if err, ok := err.(modeldecoder.DecoderError); ok {
 		e = err.Unwrap()
 	}
 	if errors.Is(e, decoder.ErrLineTooLong) {
