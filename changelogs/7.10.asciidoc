@@ -46,11 +46,8 @@ https://github.com/elastic/apm-server/compare/v7.9.2\...v7.10.0[View commits]
 * Add mapping for `system.process.cgroup.*` metrics {pull}4176[4176]
 * Use transaction.sample_rate to calculate transaction metrics {pull}4212[4212]
 * Add longtask metric fields to transaction.experience {pull}4230[4230]
-<<<<<<< HEAD
-=======
 
 [float]
 ==== Comments
 
 A big thank you to https://github.com/tobiasstadler[@tobiasstadler] for their contributions to this release!
->>>>>>> e654a65cd... docs: sync changelogs take two (#4341)
