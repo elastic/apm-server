@@ -105,7 +105,6 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 	if err = d.Decode(&root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
-	fmt.Println(root.Error.ID)
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
