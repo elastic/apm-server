@@ -112,12 +112,8 @@ func (p *intakeTestProcessor) Decode(data interface{}) error {
 			var event model.Transaction
 			err = v2.DecodeNestedTransaction(d, &input, &event)
 		case "metricset":
-			var m map[string]interface{}
-			if err = d.Decode(&m); err != nil && err != io.EOF {
-				return err
-			}
-			input.Raw = m[eventType]
-			err = modeldecoder.DecodeMetricset(input, &model.Batch{})
+			var event model.Metricset
+			err = v2.DecodeNestedMetricset(d, &input, &event)
 		default:
 			return errors.New("root key required")
 		}
