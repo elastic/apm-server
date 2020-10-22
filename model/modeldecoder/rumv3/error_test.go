@@ -18,7 +18,6 @@
 package rumv3
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -58,8 +57,6 @@ func TestDecodeNestedError(t *testing.T) {
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		out = model.Error{}
 		require.NoError(t, DecodeNestedError(dec, &input, &out))
-		fmt.Println(out.Timestamp)
-		fmt.Println(now)
 		assert.Equal(t, now, out.Timestamp)
 
 		// test decode
@@ -77,22 +74,6 @@ func TestDecodeNestedError(t *testing.T) {
 }
 
 func TestDecodeMapToErrorModel(t *testing.T) {
-	metadataExceptions := func(key string) bool {
-		// values not set for rumV3:
-		for _, k := range []string{"Cloud", "System", "Process", "Service.Node", "Node"} {
-			if strings.HasPrefix(key, k) {
-				return true
-			}
-		}
-		for _, k := range []string{"Service.Agent.EphemeralID",
-			"Agent.EphemeralID", "Message", "RepresentativeCount"} {
-			if k == key {
-				return true
-			}
-		}
-		return false
-	}
-
 	t.Run("metadata-set", func(t *testing.T) {
 		// do not overwrite metadata with zero event values
 		var input errorEvent
@@ -100,7 +81,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		// iterate through metadata model and assert values are set
 		defaultVal := modeldecodertest.DefaultValues()
-		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions, defaultVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions(), defaultVal)
 	})
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
@@ -125,8 +106,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		assert.Equal(t, mLabels, out.Metadata.Labels)
 		assert.Equal(t, &tLabels, out.Labels)
 		// service and user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, metadataExceptions, otherVal)
-		modeldecodertest.AssertStructValues(t, &out.Metadata.User, metadataExceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, metadataExceptions(), otherVal)
 	})
 
 	t.Run("error-values", func(t *testing.T) {

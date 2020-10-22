@@ -190,14 +190,14 @@ type metadataServiceRuntime struct {
 }
 
 type metricset struct {
-	Samples metricsetSample  `json:"sa" validate:"required"`
+	Samples metricsetSamples `json:"sa" validate:"required"`
 	Span    metricsetSpanRef `json:"y"`
 	Tags    common.MapStr    `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
 	//TODO(simitt): implement adding transaction information
 	// see https://github.com/elastic/apm-server/pull/3733/files
 }
 
-type metricsetSample struct {
+type metricsetSamples struct {
 	TransactionDurationCount  metricsetSampleValue `json:"xdc"`
 	TransactionDurationSum    metricsetSampleValue `json:"xds"`
 	TransactionBreakdownCount metricsetSampleValue `json:"xbc"`

@@ -45,6 +45,11 @@ var (
 			return &metadataRoot{}
 		},
 	}
+	metricsetRootPool = sync.Pool{
+		New: func() interface{} {
+			return &metricsetRoot{}
+		},
+	}
 	transactionRootPool = sync.Pool{
 		New: func() interface{} {
 			return &transactionRoot{}
@@ -68,6 +73,15 @@ func fetchMetadataRoot() *metadataRoot {
 func releaseMetadataRoot(m *metadataRoot) {
 	m.Reset()
 	metadataRootPool.Put(m)
+}
+
+func fetchMetricsetRoot() *metricsetRoot {
+	return metricsetRootPool.Get().(*metricsetRoot)
+}
+
+func releaseMetricsetRoot(root *metricsetRoot) {
+	root.Reset()
+	metricsetRootPool.Put(root)
 }
 
 func fetchTransactionRoot() *transactionRoot {
@@ -96,6 +110,25 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 		return modeldecoder.NewValidationErr(err)
 	}
 	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config, out)
+	return err
+}
+
+// DecodeNestedMetricset uses the given decoder to create the input model,
+// then runs the defined validations on the input model
+// and finally maps the values fom the input model to the given *model.Metricset instance
+//
+// DecodeNestedMetricset should be used when the stream in the decoder contains the `metricset` key
+func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, out *model.Metricset) error {
+	root := fetchMetricsetRoot()
+	defer releaseMetricsetRoot(root)
+	var err error
+	if err = d.Decode(&root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return modeldecoder.NewValidationErr(err)
+	}
+	mapToMetricsetModel(&root.Metricset, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -324,6 +357,53 @@ func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	}
 	if m.User.Name.IsSet() {
 		out.User.Name = m.User.Name.Val
+	}
+}
+
+func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Metricset) {
+	// set metadata as they are - no values are overwritten by the event
+	if metadata != nil {
+		out.Metadata = *metadata
+	}
+	if from == nil {
+		return
+	}
+	// set timestamp from requst time
+	out.Timestamp = reqTime
+
+	// map samples information
+	if from.Samples.IsSet() {
+		if from.Samples.TransactionDurationCount.Value.IsSet() {
+			s := model.Sample{Name: "transaction.duration.count", Value: from.Samples.TransactionDurationCount.Value.Val}
+			out.Samples = append(out.Samples, s)
+		}
+		if from.Samples.TransactionDurationSum.Value.IsSet() {
+			s := model.Sample{Name: "transaction.duration.sum.us", Value: from.Samples.TransactionDurationSum.Value.Val}
+			out.Samples = append(out.Samples, s)
+		}
+		if from.Samples.TransactionBreakdownCount.Value.IsSet() {
+			s := model.Sample{Name: "transaction.breakdown.count", Value: from.Samples.TransactionBreakdownCount.Value.Val}
+			out.Samples = append(out.Samples, s)
+		}
+		if from.Samples.SpanSelfTimeCount.Value.IsSet() {
+			s := model.Sample{Name: "span.self_time.count", Value: from.Samples.SpanSelfTimeCount.Value.Val}
+			out.Samples = append(out.Samples, s)
+		}
+		if from.Samples.SpanSelfTimeSum.Value.IsSet() {
+			s := model.Sample{Name: "span.self_time.sum.us", Value: from.Samples.SpanSelfTimeSum.Value.Val}
+			out.Samples = append(out.Samples, s)
+		}
+	}
+
+	if len(from.Tags) > 0 {
+		out.Labels = from.Tags.Clone()
+	}
+	// map span information
+	if from.Span.Subtype.IsSet() {
+		out.Span.Subtype = from.Span.Subtype.Val
+	}
+	if from.Span.Type.IsSet() {
+		out.Span.Type = from.Span.Type.Val
 	}
 }
 

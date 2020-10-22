@@ -57,7 +57,7 @@ func genV2() {
 }
 
 func genRUMV3() {
-	rootObjs := []string{"metadataRoot", "errorRoot", "transactionRoot"}
+	rootObjs := []string{"metadataRoot", "errorRoot", "metricsetRoot", "transactionRoot"}
 	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "model_generated.go")
 	gen, err := generator.NewGenerator(importPath, pkgV3RUM, typPath, rootObjs)
 	if err != nil {

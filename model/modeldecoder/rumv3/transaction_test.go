@@ -69,21 +69,6 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
 	localhostIP := net.ParseIP("127.0.0.1")
-	exceptions := func(key string) bool {
-		// values not set for rumV3:
-		for _, k := range []string{"Cloud", "System", "Process", "Service.Node", "Node"} {
-			if strings.HasPrefix(key, k) {
-				return true
-			}
-		}
-		for _, k := range []string{"Service.Agent.EphemeralID",
-			"Agent.EphemeralID", "Message", "RepresentativeCount"} {
-			if k == key {
-				return true
-			}
-		}
-		return false
-	}
 
 	t.Run("metadata-set", func(t *testing.T) {
 		// do not overwrite metadata with zero transaction values
@@ -91,7 +76,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.Transaction
 		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 		// iterate through metadata model and assert values are set
-		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, modeldecodertest.DefaultValues())
+		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions(), modeldecodertest.DefaultValues())
 	})
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
@@ -112,9 +97,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
 		assert.Equal(t, &tLabels, out.Labels)
 		// service values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
 		// user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, metadataExceptions(), otherVal)
 	})
 
 	t.Run("overwrite-user", func(t *testing.T) {
@@ -130,7 +115,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 	t.Run("transaction-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
-
 			for _, s := range []string{
 				// metadata are tested separately
 				"Metadata",
