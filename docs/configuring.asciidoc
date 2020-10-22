@@ -21,6 +21,7 @@ include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 * <<configuration-path>>
 * <<configuration-rum>>
 * <<configuration-ssl-landing>>
+* <<transaction-metrics>>
 * <<using-environ-vars>>
 
 --
@@ -72,6 +73,8 @@ include::{libbeat-dir}/shared-ssl-config.asciidoc[]
 
 include::ssl-input-settings.asciidoc[]
 // END SSL SECTION --------------------------------------------
+
+include::./transaction-metrics.asciidoc[]
 
 :standalone:
 include::{libbeat-dir}/shared-env-vars.asciidoc[]
