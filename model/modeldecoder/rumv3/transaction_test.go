@@ -46,13 +46,18 @@ func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
 		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{}}
-		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2}}}`
+		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"me":[{"sa":{"xds":{"v":2048}}},{"sa":{"ysc":{"v":5}}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var out model.Transaction
+		var out Transaction
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
-		assert.Equal(t, "request", out.Type)
+		assert.Equal(t, "request", out.Transaction.Type)
 		// fall back to request time
-		assert.Equal(t, now, out.Timestamp)
+		assert.Equal(t, now, out.Transaction.Timestamp)
+		// ensure nested metricsets are decoded
+		require.Equal(t, 2, len(out.Metricsets))
+		assert.Equal(t, []model.Sample{{Name: "transaction.duration.sum.us", Value: 2048}}, out.Metricsets[0].Samples)
+		assert.Equal(t, []model.Sample{{Name: "span.self_time.count", Value: 5}}, out.Metricsets[1].Samples)
+		assert.Equal(t, now, out.Metricsets[0].Timestamp)
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
 		require.Error(t, err)
@@ -60,7 +65,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var out model.Transaction
+		var out Transaction
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")

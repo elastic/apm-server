@@ -242,10 +242,7 @@ type transaction struct {
 	TraceID        nullable.String           `json:"tid" validate:"required,max=1024"`
 	Type           nullable.String           `json:"t" validate:"required,max=1024"`
 	UserExperience transactionUserExperience `json:"exp"`
-	//TODO(simitt): implement
-	// Metricsets     []metricset               `json:"me"`
-	//TODO(simitt): implement
-	// Spans          []span                    `json:"y"`
+	Metricsets     []metricset               `json:"me"`
 }
 
 type transactionMarks struct {

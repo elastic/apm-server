@@ -938,7 +938,7 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
+	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || len(val.Metricsets) > 0
 }
 
 func (val *transaction) Reset() {
@@ -956,6 +956,10 @@ func (val *transaction) Reset() {
 	val.TraceID.Reset()
 	val.Type.Reset()
 	val.UserExperience.Reset()
+	for i := range val.Metricsets {
+		val.Metricsets[i].Reset()
+	}
+	val.Metricsets = val.Metricsets[:0]
 }
 
 func (val *transaction) validate() error {
@@ -1021,6 +1025,11 @@ func (val *transaction) validate() error {
 	}
 	if err := val.UserExperience.validate(); err != nil {
 		return errors.Wrapf(err, "exp")
+	}
+	for _, elem := range val.Metricsets {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "me")
+		}
 	}
 	return nil
 }

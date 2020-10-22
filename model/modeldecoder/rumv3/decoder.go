@@ -132,12 +132,19 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, out *mo
 	return err
 }
 
+// Transaction is a wrapper around input models that can be nested inside a
+// RUM v3 transaction
+type Transaction struct {
+	Transaction model.Transaction
+	Metricsets  []model.Metricset
+}
+
 // DecodeNestedTransaction uses the given decoder to create the input model,
 // then runs the defined validations on the input model
 // and finally maps the values fom the input model to the given *model.Transaction instance
 //
 // DecodeNestedTransaction should be used when the decoder contains the `transaction` key
-func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *model.Transaction) error {
+func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *Transaction) error {
 	root := fetchTransactionRoot()
 	defer releaseTransactionRoot(root)
 	if err := d.Decode(&root); err != nil {
@@ -146,7 +153,13 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config, out)
+	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config, &out.Transaction)
+	for _, m := range root.Transaction.Metricsets {
+		var outM model.Metricset
+		//TODO(simitt): deep copy metadata?
+		mapToMetricsetModel(&m, &input.Metadata, input.RequestTime, input.Config, &outM)
+		out.Metricsets = append(out.Metricsets, outM)
+	}
 	return nil
 }
 
