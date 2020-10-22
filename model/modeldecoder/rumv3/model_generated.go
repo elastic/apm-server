@@ -329,7 +329,7 @@ func (val *errorEvent) validate() error {
 		return errors.Wrapf(err, "c")
 	}
 	if utf8.RuneCountInString(val.Culprit.Val) > 1024 {
-		return fmt.Errorf("'cu': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'cl': validation rule 'max(1024)' violated")
 	}
 	if err := val.Exception.validate(); err != nil {
 		return errors.Wrapf(err, "ex")

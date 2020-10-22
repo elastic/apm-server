@@ -115,7 +115,7 @@ type contextServiceRuntime struct {
 
 type errorEvent struct {
 	Context       context                 `json:"c"`
-	Culprit       nullable.String         `json:"cu" validate:"max=1024"`
+	Culprit       nullable.String         `json:"cl" validate:"max=1024"`
 	Exception     errorException          `json:"ex"`
 	ID            nullable.String         `json:"id" validate:"required,max=1024"`
 	Log           errorLog                `json:"log"`

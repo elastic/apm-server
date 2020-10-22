@@ -22,7 +22,8 @@ const RUMV3Schema = `{
     "type": "object",
     "description": "An error or a logged error message captured by an agent occurring in a monitored service",
     "allOf": [
-        {     "$id": "docs/spec/timestamp_epoch.json",
+        {
+                "$id": "docs/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
     "type": ["object"],
@@ -31,39 +32,60 @@ const RUMV3Schema = `{
             "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
         }
-    } },
+    }
+        },
         {
             "properties": {
                 "id": {
-                    "type": ["string"],
+                    "type": [
+                        "string"
+                    ],
                     "description": "Hex encoded 128 random bits ID of the error.",
                     "maxLength": 1024
                 },
                 "tid": {
                     "description": "Hex encoded 128 random bits ID of the correlated trace. Must be present if transaction_id and parent_id are set.",
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
                 "xid": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "description": "Hex encoded 64 random bits ID of the correlated transaction. Must be present if trace_id and parent_id are set.",
                     "maxLength": 1024
                 },
                 "pid": {
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.",
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
                 "x": {
-                    "type": ["object", "null"],
+                    "type": [
+                        "object",
+                        "null"
+                    ],
                     "description": "Data for correlating errors with transactions",
                     "properties": {
                         "sm": {
-                            "type": ["boolean", "null"],
+                            "type": [
+                                "boolean",
+                                "null"
+                            ],
                             "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
                         },
                         "t": {
-                            "type": ["string", "null"],
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
                             "maxLength": 1024
                         }
@@ -401,34 +423,56 @@ const RUMV3Schema = `{
         }
     }
                 },
-                "cu": {
+                "cl": {
                     "description": "Function call which was the primary perpetrator of this event.",
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
                 "ex": {
                     "description": "Information about the originally thrown error.",
-                    "type": ["object", "null"],
+                    "type": [
+                        "object",
+                        "null"
+                    ],
                     "properties": {
                         "cd": {
-                            "type": ["string", "integer", "null"],
+                            "type": [
+                                "string",
+                                "integer",
+                                "null"
+                            ],
                             "maxLength": 1024,
                             "description": "The error code set when the error happened, e.g. database error code."
                         },
                         "mg": {
                             "description": "The original error message.",
-                            "type": ["string", "null"]
+                            "type": [
+                                "string",
+                                "null"
+                            ]
                         },
                         "mo": {
                             "description": "Describes the exception type's module namespace.",
-                            "type": ["string", "null"],
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "maxLength": 1024
                         },
                         "at": {
-                            "type": ["object", "null"]
+                            "type": [
+                                "object",
+                                "null"
+                            ]
                         },
                         "st": {
-                            "type": ["array", "null"],
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
                                     "$id": "docs/spec/rum_v3_stacktrace_frame.json",
     "title": "Stacktrace",
@@ -521,17 +565,29 @@ const RUMV3Schema = `{
                             "minItems": 0
                         },
                         "t": {
-                            "type": ["string", "null"],
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "maxLength": 1024
                         },
                         "hd": {
-                            "type": ["boolean", "null"],
+                            "type": [
+                                "boolean",
+                                "null"
+                            ],
                             "description": "Indicator whether the error was caught somewhere in the code or not."
                         },
                         "ca": {
-                            "type": ["array", "null"],
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
-                                "type": ["object", "null"],
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
                                 "description": "Recursive exception object"
                             },
                             "minItems": 0,
@@ -539,22 +595,49 @@ const RUMV3Schema = `{
                         }
                     },
                     "anyOf": [
-                        {"required": ["mg"], "properties": {"mg": {"type": "string"}}},
-                        {"required": ["t"], "properties": {"t": {"type": "string"}}}
+                        {
+                            "required": [
+                                "mg"
+                            ],
+                            "properties": {
+                                "mg": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        {
+                            "required": [
+                                "t"
+                            ],
+                            "properties": {
+                                "t": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     ]
                 },
                 "log": {
-                    "type": ["object", "null"],
+                    "type": [
+                        "object",
+                        "null"
+                    ],
                     "description": "Additional information added when logging the error.",
                     "properties": {
                         "lv": {
                             "description": "The severity of the record.",
-                            "type": ["string", "null"],
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "maxLength": 1024
                         },
                         "ln": {
                             "description": "The name of the logger instance used.",
-                            "type": ["string", "null"],
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "default": "default",
                             "maxLength": 1024
                         },
@@ -564,12 +647,17 @@ const RUMV3Schema = `{
                         },
                         "pmg": {
                             "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
-                            "type": ["string", "null"],
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "maxLength": 1024
-
                         },
                         "st": {
-                            "type": ["array", "null"],
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
                                     "$id": "docs/spec/rum_v3_stacktrace_frame.json",
     "title": "Stacktrace",
@@ -662,23 +750,110 @@ const RUMV3Schema = `{
                             "minItems": 0
                         }
                     },
-                    "required": ["mg"]
+                    "required": [
+                        "mg"
+                    ]
                 }
             },
             "allOf": [
-                { "required": ["id"] },
-                { "if": {"required": ["xid"], "properties": {"xid": { "type": "string" }}},
-                    "then": { "required": ["tid", "pid"], "properties": {"tid": { "type": "string" }, "pid": {"type": "string"}}}},
-                { "if": {"required": ["tid"], "properties": {"tid": { "type": "string" }}},
-                    "then": { "required": ["pid"], "properties": {"pid": { "type": "string" }}} },
-                { "if": {"required": ["pid"], "properties": {"pid": { "type": "string" }}},
-                    "then": { "required": ["tid"], "properties": {"tid": { "type": "string" }}} }
+                {
+                    "required": [
+                        "id"
+                    ]
+                },
+                {
+                    "if": {
+                        "required": [
+                            "xid"
+                        ],
+                        "properties": {
+                            "xid": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "tid",
+                            "pid"
+                        ],
+                        "properties": {
+                            "tid": {
+                                "type": "string"
+                            },
+                            "pid": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "tid"
+                        ],
+                        "properties": {
+                            "tid": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "pid"
+                        ],
+                        "properties": {
+                            "pid": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "pid"
+                        ],
+                        "properties": {
+                            "pid": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "tid"
+                        ],
+                        "properties": {
+                            "tid": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             ],
             "anyOf": [
-                { "required": ["ex"], "properties": {"ex": { "type": "object" }} },
-                { "required": ["log"], "properties": {"log": { "type": "object" }} }
+                {
+                    "required": [
+                        "ex"
+                    ],
+                    "properties": {
+                        "ex": {
+                            "type": "object"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "log"
+                    ],
+                    "properties": {
+                        "log": {
+                            "type": "object"
+                        }
+                    }
+                }
             ]
         }
     ]
-}
-`
+}`

@@ -98,13 +98,13 @@ func RUMV2Processor(cfg *config.Config) *Processor {
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
-		MaxEventSize:   cfg.MaxEventSize,
-		decodeMetadata: rumv3.DecodeNestedMetadata,
+		Mconfig:         modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
+		MaxEventSize:    cfg.MaxEventSize,
+		decodeMetadata:  rumv3.DecodeNestedMetadata,
+		decodeError:     rumv3.DecodeNestedError,
+		decodeMetricset: rumv3.DecodeNestedMetricset,
 		models: map[string]decodeEventFunc{
-			"x":  modeldecoder.DecodeRUMV3Transaction,
-			"e":  modeldecoder.DecodeRUMV3Error,
-			"me": modeldecoder.DecodeRUMV3Metricset,
+			"x": modeldecoder.DecodeRUMV3Transaction,
 		},
 		isRUM: true,
 	}
@@ -228,14 +228,14 @@ func (p *Processor) readBatch(
 			}
 		} else {
 			switch eventType {
-			case "error":
+			case "error", "e":
 				var event model.Error
 				if handleDecodeErr(p.decodeError(reader, &input, &event), reader, response) {
 					continue
 				}
 				event.RUM = p.isRUM
 				batch.Errors = append(batch.Errors, &event)
-			case "metricset":
+			case "metricset", "me":
 				var event model.Metricset
 				if handleDecodeErr(p.decodeMetricset(reader, &input, &event), reader, response) {
 					continue
