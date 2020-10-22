@@ -1,3 +1,4 @@
+[x-pack]
 [[transaction-metrics]]
 == Configure transaction metrics
 
