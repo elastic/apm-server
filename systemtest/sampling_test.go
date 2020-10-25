@@ -152,9 +152,9 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
 	srv.Config.Sampling = &apmservertest.SamplingConfig{
 		Tail: &apmservertest.TailSamplingConfig{
-			Enabled:           true,
-			DefaultSampleRate: 0.5,
-			Interval:          time.Second,
+			Enabled:  true,
+			Interval: time.Second,
+			Policies: []apmservertest.TailSamplingPolicy{{SampleRate: 0.5}},
 		},
 	}
 	require.NoError(t, srv.Start())
