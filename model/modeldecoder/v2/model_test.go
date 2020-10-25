@@ -69,8 +69,9 @@ func TestServiceValidationRules(t *testing.T) {
 
 func TestLabelValidationRules(t *testing.T) {
 	testcases := []testcase{
-		{name: "valid", data: `{"k1":"v1","k2":2.3,"k3":3,"k4":true,"k5":null}`},
+		{name: "valid", data: `{"k1":"v1.s*\"","k2":2.3,"k3":3,"k4":true,"k5":null}`},
 		{name: "restricted-type", errorKey: "typesVals", data: `{"k1":{"k2":"v1"}}`},
+		{name: "restricted-type-slice", errorKey: "typesVals", data: `{"k1":{"v1":[1,2,3]}}`},
 		{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
 		{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
 		{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
@@ -78,6 +79,18 @@ func TestLabelValidationRules(t *testing.T) {
 		{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
 	}
 	testValidation(t, "metadata", testcases, "labels")
+	testValidation(t, "transaction", testcases, "context", "tags")
+	testValidation(t, "span", testcases, "context", "tags")
+	testValidation(t, "metricset", testcases, "tags")
+}
+
+func TestSamplesValidationRules(t *testing.T) {
+	testcases := []testcase{
+		{name: "valid", data: `{"k.1":{"value": 34.5},"k.2.a":{"value":5}}`},
+		{name: "key-asterisk", errorKey: "patternKeys(regexpNoAsteriskQuote)", data: `{"k1*":{"value": 34.5},"k.2.a":{"value":5}}`},
+		{name: "key-quotemark", errorKey: "patternKeys(regexpNoAsteriskQuote)", data: `{"k1\"":{"value": 34.5}}`},
+	}
+	testValidation(t, "metricset", testcases, "samples")
 }
 
 func TestMaxLenValidationRules(t *testing.T) {
@@ -99,21 +112,6 @@ func TestContextValidationRules(t *testing.T) {
 			{name: "custom-key-quote", errorKey: "patternKeys", data: `{"custom":{"k1\"":{"v1":123,"v2":"value"}}}`},
 		}
 		testValidation(t, "transaction", testcases, "context")
-	})
-
-	t.Run("tags", func(t *testing.T) {
-		testcases := []testcase{
-			{name: "tags", data: `{"tags":{"k1":"v1.s*\"","k2":34,"k3":23.56,"k4":true}}`},
-			{name: "tags-key-dot", errorKey: "patternKeys", data: `{"tags":{"k1.":"v1"}}`},
-			{name: "tags-key-asterisk", errorKey: "patternKeys", data: `{"tags":{"k1*":"v1"}}`},
-			{name: "tags-key-quote", errorKey: "patternKeys", data: `{"tags":{"k1\"":"v1"}}`},
-			{name: "tags-invalid-type", errorKey: "typesVals", data: `{"tags":{"k1":{"v1":"abc"}}}`},
-			{name: "tags-invalid-type", errorKey: "typesVals", data: `{"tags":{"k1":{"v1":[1,2,3]}}}`},
-			{name: "tags-maxVal", data: `{"tags":{"k1":"` + modeldecodertest.BuildString(1024) + `"}}`},
-			{name: "tags-maxVal-exceeded", errorKey: "maxVals", data: `{"tags":{"k1":"` + modeldecodertest.BuildString(1025) + `"}}`},
-		}
-		testValidation(t, "transaction", testcases, "context")
-		testValidation(t, "span", testcases, "context")
 	})
 
 	t.Run("request", func(t *testing.T) {
@@ -513,6 +511,34 @@ func TestMetadataRequiredValidationRules(t *testing.T) {
 	})
 }
 
+func TestMetricsetRequiredValidationRules(t *testing.T) {
+	// setup: create full struct with sample values set
+	var root metricsetRoot
+	s := `{"metricset":{"samples":{"a.b.":{"value":2048}},"timestamp":1496170421366000,"transaction":{"type":"request","name":"GET /"},"span":{"type":"db","subtype":"mysql"},"tags":{"a":"b"}}}`
+	modeldecodertest.DecodeData(t, strings.NewReader(s), "metricset", &root)
+	// test vanilla struct is valid
+	event := root.Metricset
+	require.NoError(t, event.validate())
+
+	// iterate through struct, remove every key one by one
+	// and test that validation behaves as expected
+	requiredKeys := map[string]interface{}{
+		"samples":       nil,
+		"samples.value": nil,
+	}
+	modeldecodertest.SetZeroStructValue(&event, func(key string) {
+		err := event.validate()
+		if _, ok := requiredKeys[key]; ok {
+			require.Error(t, err, key)
+			for _, part := range strings.Split(key, ".") {
+				assert.Contains(t, err.Error(), part)
+			}
+		} else {
+			assert.NoError(t, err, key)
+		}
+	})
+}
+
 func TestSpanRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with arbitrary values set
 	var event span
@@ -591,6 +617,7 @@ func TestResetIsSet(t *testing.T) {
 	for name, root := range map[string]setter{
 		"error":       &errorRoot{},
 		"metadata":    &metadataRoot{},
+		"metricset":   &metricsetRoot{},
 		"span":        &spanRoot{},
 		"transaction": &transactionRoot{},
 	} {
@@ -643,6 +670,8 @@ func testValidation(t *testing.T, eventType string, testcases []testcase, keys .
 				event = &errorEvent{}
 			case "metadata":
 				event = &metadata{}
+			case "metricset":
+				event = &metricset{}
 			case "span":
 				event = &span{}
 			case "transaction":

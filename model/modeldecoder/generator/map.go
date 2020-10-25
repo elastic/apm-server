@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagTypesVals, tagRequired}
+var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagRequired, tagTypesVals}
 
 func generateMapValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	typ := f.Type().Underlying().(*types.Map)
@@ -93,14 +93,13 @@ if err := v.validate(); err != nil{
 	if typesValsValue, ok := vTag[tagTypesVals]; ok {
 		mapRuleTypesVals(w, f, vTag, validationRule{name: tagTypesVals, value: typesValsValue})
 	}
-	// close iteration over map
 	fmt.Fprintf(w, `
 }
 `[1:])
 	return nil
 }
 
-func mapRuleTypesVals(w io.Writer, f structField, rules map[string]string, rule validationRule) error {
+func mapRuleTypesVals(w io.Writer, f structField, rules map[string]string, rule validationRule) {
 	fmt.Fprintf(w, `
 switch t := v.(type){
 `[1:])
@@ -128,32 +127,28 @@ default:
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated for key %%s",k)
 }
 `[1:], jsonName(f), rule.name, rule.value)
-	return nil
 }
 
-func mapRuleRequired(w io.Writer, f structField, rule validationRule) error {
+func mapRuleRequired(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if len(val.%s) == 0{
 	return fmt.Errorf("'%s' required")
 }
 `[1:], f.Name(), jsonName(f))
-	return nil
 }
 
-func mapRulePatternKeys(w io.Writer, f structField, rule validationRule) error {
+func mapRulePatternKeys(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if k != "" && !%s.MatchString(k){
 		return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], rule.value, jsonName(f), rule.name, rule.value)
-	return nil
 }
 
-func mapRuleMaxVals(w io.Writer, f structField, rule validationRule) error {
+func mapRuleMaxVals(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
 if utf8.RuneCountInString(t) > %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], rule.value, jsonName(f), rule.name, rule.value)
-	return nil
 }

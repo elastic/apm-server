@@ -83,6 +83,11 @@ var (
 			return &metadataRoot{}
 		},
 	}
+	metricsetRootPool = sync.Pool{
+		New: func() interface{} {
+			return &metricsetRoot{}
+		},
+	}
 	spanRootPool = sync.Pool{
 		New: func() interface{} {
 			return &spanRoot{}
@@ -111,6 +116,15 @@ func fetchMetadataRoot() *metadataRoot {
 func releaseMetadataRoot(root *metadataRoot) {
 	root.Reset()
 	metadataRootPool.Put(root)
+}
+
+func fetchMetricsetRoot() *metricsetRoot {
+	return metricsetRootPool.Get().(*metricsetRoot)
+}
+
+func releaseMetricsetRoot(root *metricsetRoot) {
+	root.Reset()
+	metricsetRootPool.Put(root)
 }
 
 func fetchSpanRoot() *spanRoot {
@@ -166,6 +180,25 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 		return ValidationError{err}
 	}
 	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config, out)
+	return err
+}
+
+// DecodeNestedMetricset uses the given decoder to create the input model,
+// then runs the defined validations on the input model
+// and finally maps the values fom the input model to the given *model.Metricset instance
+//
+// DecodeNestedMetricset should be used when the stream in the decoder contains the `metricset` key
+func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, out *model.Metricset) error {
+	root := fetchMetricsetRoot()
+	defer releaseMetricsetRoot(root)
+	var err error
+	if err = d.Decode(&root); err != nil && err != io.EOF {
+		return newDecodeErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return ValidationError{err}
+	}
+	mapToMetricsetModel(&root.Metricset, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
 }
 
@@ -247,7 +280,9 @@ func mapToClientModel(from contextRequest, out *model.Metadata) {
 
 func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Error) {
 	// set metadata information
-	out.Metadata = *metadata
+	if metadata != nil {
+		out.Metadata = *metadata
+	}
 	if from == nil {
 		return
 	}
@@ -393,7 +428,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 
 func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	// Cloud
-	if from == nil {
+	if from == nil || out == nil {
 		return
 	}
 	if from.Cloud.Account.ID.IsSet() {
@@ -531,6 +566,50 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	}
 	if from.User.Name.IsSet() {
 		out.User.Name = from.User.Name.Val
+	}
+}
+
+func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Metricset) {
+	// set metadata as they are - no values are overwritten by the event
+	if metadata != nil {
+		out.Metadata = *metadata
+	}
+	if from == nil {
+		return
+	}
+	// set timestamp from input or requst time
+	if from.Timestamp.Val.IsZero() {
+		out.Timestamp = reqTime
+	} else {
+		out.Timestamp = from.Timestamp.Val
+	}
+
+	// map samples information
+	if len(from.Samples) > 0 {
+		out.Samples = make([]model.Sample, len(from.Samples))
+		i := 0
+		for name, sample := range from.Samples {
+			out.Samples[i] = model.Sample{Name: name, Value: sample.Value.Val}
+			i++
+		}
+	}
+
+	if len(from.Tags) > 0 {
+		out.Labels = from.Tags.Clone()
+	}
+	// map span information
+	if from.Span.Subtype.IsSet() {
+		out.Span.Subtype = from.Span.Subtype.Val
+	}
+	if from.Span.Type.IsSet() {
+		out.Span.Type = from.Span.Type.Val
+	}
+	// map transaction information
+	if from.Transaction.Name.IsSet() {
+		out.Transaction.Name = from.Transaction.Name.Val
+	}
+	if from.Transaction.Type.IsSet() {
+		out.Transaction.Type = from.Transaction.Type.Val
 	}
 }
 
@@ -684,7 +763,9 @@ func mapToServiceModel(from contextService, out *model.Service) {
 
 func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Span) {
 	// set metadata information for span
-	out.Metadata = *metadata
+	if metadata != nil {
+		out.Metadata = *metadata
+	}
 	if from == nil {
 		return
 	}
@@ -956,7 +1037,9 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 
 func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime time.Time, config modeldecoder.Config, out *model.Transaction) {
 	// set metadata information
-	out.Metadata = *metadata
+	if metadata != nil {
+		out.Metadata = *metadata
+	}
 	if from == nil {
 		return
 	}
