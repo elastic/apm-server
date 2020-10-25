@@ -22,7 +22,8 @@ const ModelSchema = `{
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
-        {     "$id": "docs/spec/timestamp_epoch.json",
+        {
+                "$id": "docs/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
     "type": ["object"],
@@ -31,47 +32,8 @@ const ModelSchema = `{
             "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
         }
-    }},
-        {     "$id": "docs/spec/span_type.json",
-    "title": "Span Type",
-    "type": ["object"],
-    "properties": {
-        "type": {
-            "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
-            "maxLength": 1024
-        }
-    } },
-        {     "$id": "docs/spec/span_subtype.json",
-    "title": "Span Subtype",
-    "type": ["object"],
-    "properties": {
-        "subtype": {
-            "type": ["string", "null"],
-            "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
-            "maxLength": 1024
-        }
-    } },
-        {     "$id": "docs/spec/transaction_name.json",
-    "title": "Transaction Name",
-    "type": ["object"],
-    "properties": {
-        "name": {
-            "type": ["string","null"],
-            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
-            "maxLength": 1024
-        }
-    } },
-        {     "$id": "docs/spec/transaction_type.json",
-    "title": "Transaction Type",
-    "type": ["object"],
-    "properties": {
-        "type": {
-            "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
-            "maxLength": 1024
-        }
-    } },
+    }
+        },
         {
             "properties": {
                 "samples": {
@@ -93,6 +55,30 @@ const ModelSchema = `{
                     },
                     "additionalProperties": false
                 },
+                "span": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "subtype": {
+                            "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "type": {
+                            "description": "Keyword of specific relevance in the service's domain (eg: 'db', 'template', etc)",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    }
+                },
                 "tags": {
                         "$id": "docs/spec/tags.json",
     "title": "Tags",
@@ -105,10 +91,35 @@ const ModelSchema = `{
         }
     },
     "additionalProperties": false
+                },
+                "transaction": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "name": {
+                            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        },
+                        "type": {
+                            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    }
                 }
             },
-            "required": ["samples"]
+            "required": [
+                "samples"
+            ]
         }
     ]
-}
-`
+}`

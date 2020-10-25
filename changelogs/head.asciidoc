@@ -8,6 +8,8 @@ https://github.com/elastic/apm-server/compare/7.10\...master[View commits]
 
 [float]
 ==== Bug fixes
+* JSON schema metricset: nest type and subtype under span {pull}4329[4329]
+* JSON schema metricset: nest type and name under transaction {pull}4329[4329]
 
 [float]
 ==== Intake API Changes
@@ -16,3 +18,4 @@ https://github.com/elastic/apm-server/compare/7.10\...master[View commits]
 ==== Added
 * Monitoring for aggregation of transaction metrics {pull}4287[4287]
 * Log warnings in aggregation of transaction metrics when grouping limit is reached {pull}4313[4313]
+* Configurable tail-based sampling policies {pull}4320[4320]

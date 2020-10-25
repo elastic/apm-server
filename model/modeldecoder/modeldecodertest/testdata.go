@@ -37,11 +37,14 @@ func DecodeData(t *testing.T, r io.Reader, eventType string, out interface{}) {
 	var et string
 	var err error
 	for et != eventType {
-		et, err = readEventType(dec)
-		require.NoError(t, err)
+		if et, err = readEventType(dec); err != nil {
+			require.Equal(t, io.EOF, err)
+		}
 	}
 	// decode data
-	require.NoError(t, dec.Decode(&out))
+	if err = dec.Decode(&out); err != nil {
+		require.Equal(t, io.EOF, err)
+	}
 }
 
 // DecodeDataWithReplacement decodes input from the io.Reader and replaces data for the

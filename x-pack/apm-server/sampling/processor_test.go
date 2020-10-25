@@ -120,7 +120,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 func TestProcessLocalTailSampling(t *testing.T) {
 	config := newTempdirConfig(t)
-	config.DefaultSampleRate = 0.5
+	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 	published := make(chan string)
 	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
@@ -265,7 +265,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 func TestProcessRemoteTailSampling(t *testing.T) {
 	config := newTempdirConfig(t)
-	config.DefaultSampleRate = 0.5
+	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 
 	var published []string
@@ -433,9 +433,11 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 		Reporter: func(ctx context.Context, req publish.PendingReq) error { return nil },
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         time.Second,
-			MaxTraceGroups:        1000,
-			DefaultSampleRate:     0.1,
+			MaxDynamicServices:    1000,
 			IngestRateDecayFactor: 0.9,
+			Policies: []sampling.Policy{
+				{SampleRate: 0.1},
+			},
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
 			Elasticsearch:      pubsubtest.Client(nil, nil),

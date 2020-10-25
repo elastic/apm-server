@@ -49,9 +49,10 @@ const (
 )
 
 type decodeMetadataFunc func(decoder.Decoder, *model.Metadata) error
-type decodeTransactionFunc func(decoder.Decoder, *modeldecoder.Input, *model.Transaction) error
 type decodeErrorFunc func(decoder.Decoder, *modeldecoder.Input, *model.Error) error
+type decodeMetricsetFunc func(decoder.Decoder, *modeldecoder.Input, *model.Metricset) error
 type decodeSpanFunc func(decoder.Decoder, *modeldecoder.Input, *model.Span) error
+type decodeTransactionFunc func(decoder.Decoder, *modeldecoder.Input, *model.Transaction) error
 
 // functions with the decodeEventFunc signature decode their input argument into their batch argument (output)
 type decodeEventFunc func(modeldecoder.Input, *model.Batch) error
@@ -62,6 +63,7 @@ type Processor struct {
 	streamReaderPool  sync.Pool
 	decodeMetadata    decodeMetadataFunc
 	decodeError       decodeErrorFunc
+	decodeMetricset   decodeMetricsetFunc
 	decodeSpan        decodeSpanFunc
 	decodeTransaction decodeTransactionFunc
 	models            map[string]decodeEventFunc
@@ -74,12 +76,10 @@ func BackendProcessor(cfg *config.Config) *Processor {
 		MaxEventSize:      cfg.MaxEventSize,
 		decodeMetadata:    v2.DecodeNestedMetadata,
 		decodeError:       v2.DecodeNestedError,
+		decodeMetricset:   v2.DecodeNestedMetricset,
 		decodeSpan:        v2.DecodeNestedSpan,
 		decodeTransaction: v2.DecodeNestedTransaction,
-		models: map[string]decodeEventFunc{
-			"metricset": modeldecoder.DecodeMetricset,
-		},
-		isRUM: false,
+		isRUM:             false,
 	}
 }
 
@@ -89,12 +89,10 @@ func RUMV2Processor(cfg *config.Config) *Processor {
 		MaxEventSize:      cfg.MaxEventSize,
 		decodeMetadata:    v2.DecodeNestedMetadata,
 		decodeError:       v2.DecodeNestedError,
+		decodeMetricset:   v2.DecodeNestedMetricset,
 		decodeSpan:        v2.DecodeNestedSpan,
 		decodeTransaction: v2.DecodeNestedTransaction,
-		models: map[string]decodeEventFunc{
-			"metricset": modeldecoder.DecodeRUMV2Metricset,
-		},
-		isRUM: true,
+		isRUM:             true,
 	}
 }
 
@@ -237,6 +235,12 @@ func (p *Processor) readBatch(
 				}
 				event.RUM = p.isRUM
 				batch.Errors = append(batch.Errors, &event)
+			case "metricset":
+				var event model.Metricset
+				if handleDecodeErr(p.decodeMetricset(reader, &input, &event), reader, response) {
+					continue
+				}
+				batch.Metricsets = append(batch.Metricsets, &event)
 			case "span":
 				var event model.Span
 				if handleDecodeErr(p.decodeSpan(reader, &input, &event), reader, response) {

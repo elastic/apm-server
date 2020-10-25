@@ -96,21 +96,15 @@ func TestTailSampling(t *testing.T) {
 	srv1 := apmservertest.NewUnstartedServer(t)
 	srv1.Config.Sampling = &apmservertest.SamplingConfig{
 		Tail: &apmservertest.TailSamplingConfig{
-			Enabled:           true,
-			DefaultSampleRate: 0.5,
-			Interval:          time.Second,
+			Enabled:  true,
+			Interval: time.Second,
+			Policies: []apmservertest.TailSamplingPolicy{{SampleRate: 0.5}},
 		},
 	}
 	require.NoError(t, srv1.Start())
 
 	srv2 := apmservertest.NewUnstartedServer(t)
-	srv2.Config.Sampling = &apmservertest.SamplingConfig{
-		Tail: &apmservertest.TailSamplingConfig{
-			Enabled:           true,
-			DefaultSampleRate: 0.5,
-			Interval:          time.Second,
-		},
-	}
+	srv2.Config.Sampling = srv1.Config.Sampling
 	require.NoError(t, srv2.Start())
 
 	const total = 200
