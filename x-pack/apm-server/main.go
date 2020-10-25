@@ -90,14 +90,26 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
 	}
+	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
+	for i, in := range tailSamplingConfig.Policies {
+		policies[i] = sampling.Policy{
+			PolicyCriteria: sampling.PolicyCriteria{
+				ServiceName:        in.Service.Name,
+				ServiceEnvironment: in.Service.Environment,
+				TraceName:          in.Trace.Name,
+				TraceOutcome:       in.Trace.Outcome,
+			},
+			SampleRate: in.SampleRate,
+		}
+	}
 	return sampling.NewProcessor(sampling.Config{
 		BeatID:   args.Info.ID.String(),
 		Reporter: args.Reporter,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval: tailSamplingConfig.Interval,
-			// TODO(axw) make MaxTraceGroups configurable?
-			MaxTraceGroups:        1000,
-			DefaultSampleRate:     tailSamplingConfig.DefaultSampleRate,
+			// TODO(axw) make MaxDynamicServices configurable?
+			MaxDynamicServices:    1000,
+			Policies:              policies,
 			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{

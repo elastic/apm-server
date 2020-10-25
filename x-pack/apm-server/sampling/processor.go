@@ -66,7 +66,7 @@ func NewProcessor(config Config) (*Processor, error) {
 	p := &Processor{
 		config:   config,
 		logger:   logger,
-		groups:   newTraceGroups(config.MaxTraceGroups, config.DefaultSampleRate, config.IngestRateDecayFactor),
+		groups:   newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		db:       db,
 		storage:  readWriter,
 		stopping: make(chan struct{}),
@@ -148,11 +148,6 @@ func (p *Processor) processTransaction(tx *model.Transaction) (bool, error) {
 		// Too many trace groups, drop the transaction.
 		//
 		// TODO(axw) log a warning with a rate limit.
-		// TODO(axw) should we have an "other" bucket to capture,
-		//           and capture them with the default rate?
-		//           likely does not make sense to reservoir sample,
-		//           except when there is a single logical trace group
-		//           with high cardinality transaction names.
 		return true, nil
 	} else if err != nil {
 		return false, err

@@ -110,24 +110,33 @@ type SamplingConfig struct {
 
 // TailSamplingConfig holds APM Server tail-based sampling configuration.
 type TailSamplingConfig struct {
-	Enabled           bool
-	Interval          time.Duration
-	DefaultSampleRate float64
+	Enabled  bool
+	Interval time.Duration
+	Policies []TailSamplingPolicy
 }
 
 func (t *TailSamplingConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled           bool     `json:"enabled"`
-		Interval          duration `json:"interval"`
-		DefaultSampleRate float64  `json:"default_sample_rate"`
+		Enabled  bool                 `json:"enabled"`
+		Interval duration             `json:"interval"`
+		Policies []TailSamplingPolicy `json:"policies,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:           t.Enabled,
-		Interval:          duration(t.Interval),
-		DefaultSampleRate: t.DefaultSampleRate,
+		Enabled:  t.Enabled,
+		Interval: duration(t.Interval),
+		Policies: t.Policies,
 	})
+}
+
+// TailSamplingPolicy holds an APM Server tail-based sampling policy.
+type TailSamplingPolicy struct {
+	ServiceName        string  `json:"service.name,omitempty"`
+	ServiceEnvironment string  `json:"service.environment,omitempty"`
+	TraceName          string  `json:"trace.name,omitempty"`
+	TraceOutcome       string  `json:"trace.outcome,omitempty"`
+	SampleRate         float64 `json:"sample_rate"`
 }
 
 // RUMConfig holds APM Server RUM configuration.

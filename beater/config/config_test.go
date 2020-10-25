@@ -235,7 +235,6 @@ func TestUnpackConfig(t *testing.T) {
 					Tail: &TailSamplingConfig{
 						Enabled:               false,
 						ESConfig:              elasticsearch.DefaultConfig(),
-						DefaultSampleRate:     0.5,
 						Interval:              1 * time.Minute,
 						IngestRateDecayFactor: 0.25,
 						StorageDir:            "tail_sampling",
@@ -372,7 +371,6 @@ func TestUnpackConfig(t *testing.T) {
 					Tail: &TailSamplingConfig{
 						Enabled:               true,
 						ESConfig:              elasticsearch.DefaultConfig(),
-						DefaultSampleRate:     0.5,
 						Interval:              2 * time.Minute,
 						IngestRateDecayFactor: 1.0,
 						StorageDir:            "tail_sampling",
