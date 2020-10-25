@@ -91,6 +91,12 @@ func newTraceGroups(
 	}
 	for _, policy := range policies {
 		if policy.ServiceName == "" {
+			// ServiceName is a special case; see PolicyCriteria.
+			//
+			// We maintain policies which are not service-specific separately, so we
+			// can easily keep track how many dynamic services (dynamicGroups) there
+			// are to enforce a limit, and to uphold the invariant that sampling groups
+			// are service-specific, similar to head-based sampling.
 			groups.catchallServicePolicies = append(groups.catchallServicePolicies, policy)
 			continue
 		}
