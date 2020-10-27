@@ -14,6 +14,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/paths"
+	"github.com/elastic/beats/v7/x-pack/libbeat/licenser"
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/elasticsearch"
@@ -85,6 +86,19 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 }
 
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
+	// Tail-based sampling is a Platinum-licensed feature.
+	//
+	// FIXME(axw) each time licenser.Enforce is called an additional global
+	// callback is registered with Elasticsearch, which fetches the license
+	// and checks it. The root command already calls licenser.Enforce with
+	// licenser.BasicAndAboveOrTrial. We need to make this overridable to
+	// avoid redundant checks.
+	checkPlatinum := licenser.CheckLicenseCover(licenser.Platinum)
+	licenser.Enforce("apm-server", func(logger *logp.Logger, license licenser.License) bool {
+		logger.Infof("Checking license for tail-based sampling")
+		return checkPlatinum(logger, license) || licenser.CheckTrial(logger, license)
+	})
+
 	tailSamplingConfig := args.Config.Sampling.Tail
 	es, err := elasticsearch.NewClient(tailSamplingConfig.ESConfig)
 	if err != nil {
