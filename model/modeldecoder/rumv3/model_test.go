@@ -348,6 +348,9 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 	var event transaction
 	modeldecodertest.InitStructValues(&event)
 	event.Outcome.Set("success")
+	for i := 0; i < len(event.Spans); i++ {
+		event.Spans[i].Outcome.Set("failure")
+	}
 	// test vanilla struct is valid
 	require.NoError(t, event.validate())
 
@@ -357,12 +360,21 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 		"c.q.mt":       nil, //context.request.method
 		"d":            nil, //duration
 		"id":           nil, //id
-		"exp.lt.count": nil, //user_experience.longtask.count
-		"exp.lt.max":   nil, //user_experience.longtask.max
-		"exp.lt.sum":   nil, //user_experience.longtask.sum
-		"me.sa":        nil, //metricset.samples
+		"exp.lt.count": nil, //experience.longtask.count
+		"exp.lt.max":   nil, //experience.longtask.max
+		"exp.lt.sum":   nil, //experience.longtask.sum
+		"me.sa":        nil, //metricsets.samples
 		"t":            nil, //type
 		"tid":          nil, //trace_id
+		"y.c.dt.se.n":  nil, //spans.*.context.destination.service.name
+		"y.c.dt.se.rc": nil, //spans.*.context.destination.service.resource
+		"y.c.dt.se.t":  nil, //spans.*.context.destination.service.type
+		"y.d":          nil, //spans.*.duration
+		"y.id":         nil, //spans.*.id
+		"y.n":          nil, //spans.*.name
+		"y.s":          nil, //spans.*.start
+		"y.t":          nil, //spans.*.type
+		"y.st.f":       nil, //spans.*.stacktrace.*.filename
 		"yc":           nil, //span_count
 		"yc.sd":        nil, //span_count.started
 	}
@@ -370,7 +382,7 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
-var regexpArrayAccessor = regexp.MustCompile(`\[.*\]\.`)
+var regexpArrayAccessor = regexp.MustCompile(`\[[0-9]*]\.`)
 
 func assertRequiredFn(t *testing.T, keys map[string]interface{}, validate func() error) func(key string) {
 	return func(key string) {

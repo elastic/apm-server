@@ -938,7 +938,7 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || len(val.Metricsets) > 0
+	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || len(val.Metricsets) > 0 || len(val.Spans) > 0
 }
 
 func (val *transaction) Reset() {
@@ -960,6 +960,10 @@ func (val *transaction) Reset() {
 		val.Metricsets[i].Reset()
 	}
 	val.Metricsets = val.Metricsets[:0]
+	for i := range val.Spans {
+		val.Spans[i].Reset()
+	}
+	val.Spans = val.Spans[:0]
 }
 
 func (val *transaction) validate() error {
@@ -1029,6 +1033,11 @@ func (val *transaction) validate() error {
 	for _, elem := range val.Metricsets {
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "me")
+		}
+	}
+	for _, elem := range val.Spans {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "y")
 		}
 	}
 	return nil
@@ -1161,6 +1170,258 @@ func (val *longtaskMetrics) validate() error {
 	}
 	if !val.Max.IsSet() {
 		return fmt.Errorf("'max' required")
+	}
+	return nil
+}
+
+func (val *span) IsSet() bool {
+	return val.Action.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentIndex.IsSet() || val.SampleRate.IsSet() || len(val.Stacktrace) > 0 || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Type.IsSet()
+}
+
+func (val *span) Reset() {
+	val.Action.Reset()
+	val.Context.Reset()
+	val.Duration.Reset()
+	val.ID.Reset()
+	val.Name.Reset()
+	val.Outcome.Reset()
+	val.ParentIndex.Reset()
+	val.SampleRate.Reset()
+	for i := range val.Stacktrace {
+		val.Stacktrace[i].Reset()
+	}
+	val.Stacktrace = val.Stacktrace[:0]
+	val.Start.Reset()
+	val.Subtype.Reset()
+	val.Sync.Reset()
+	val.Type.Reset()
+}
+
+func (val *span) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if utf8.RuneCountInString(val.Action.Val) > 1024 {
+		return fmt.Errorf("'ac': validation rule 'max(1024)' violated")
+	}
+	if err := val.Context.validate(); err != nil {
+		return errors.Wrapf(err, "c")
+	}
+	if val.Duration.Val < 0 {
+		return fmt.Errorf("'d': validation rule 'min(0)' violated")
+	}
+	if !val.Duration.IsSet() {
+		return fmt.Errorf("'d' required")
+	}
+	if utf8.RuneCountInString(val.ID.Val) > 1024 {
+		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
+	}
+	if !val.ID.IsSet() {
+		return fmt.Errorf("'id' required")
+	}
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+	}
+	if !val.Name.IsSet() {
+		return fmt.Errorf("'n' required")
+	}
+	if val.Outcome.Val != "" {
+		var matchEnum bool
+		for _, s := range enumOutcome {
+			if val.Outcome.Val == s {
+				matchEnum = true
+				break
+			}
+		}
+		if !matchEnum {
+			return fmt.Errorf("'o': validation rule 'enum(enumOutcome)' violated")
+		}
+	}
+	for _, elem := range val.Stacktrace {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "st")
+		}
+	}
+	if !val.Start.IsSet() {
+		return fmt.Errorf("'s' required")
+	}
+	if utf8.RuneCountInString(val.Subtype.Val) > 1024 {
+		return fmt.Errorf("'su': validation rule 'max(1024)' violated")
+	}
+	if utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+	}
+	if !val.Type.IsSet() {
+		return fmt.Errorf("'t' required")
+	}
+	return nil
+}
+
+func (val *spanContext) IsSet() bool {
+	return val.Destination.IsSet() || val.HTTP.IsSet() || val.Service.IsSet() || len(val.Tags) > 0
+}
+
+func (val *spanContext) Reset() {
+	val.Destination.Reset()
+	val.HTTP.Reset()
+	val.Service.Reset()
+	for k := range val.Tags {
+		delete(val.Tags, k)
+	}
+}
+
+func (val *spanContext) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Destination.validate(); err != nil {
+		return errors.Wrapf(err, "dt")
+	}
+	if err := val.HTTP.validate(); err != nil {
+		return errors.Wrapf(err, "h")
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "se")
+	}
+	for k, v := range val.Tags {
+		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
+			return fmt.Errorf("'g': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		}
+		switch t := v.(type) {
+		case nil:
+		case string:
+			if utf8.RuneCountInString(t) > 1024 {
+				return fmt.Errorf("'g': validation rule 'maxVals(1024)' violated")
+			}
+		case bool:
+		case json.Number:
+		default:
+			return fmt.Errorf("'g': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+		}
+	}
+	return nil
+}
+
+func (val *spanContextDestination) IsSet() bool {
+	return val.Address.IsSet() || val.Port.IsSet() || val.Service.IsSet()
+}
+
+func (val *spanContextDestination) Reset() {
+	val.Address.Reset()
+	val.Port.Reset()
+	val.Service.Reset()
+}
+
+func (val *spanContextDestination) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if utf8.RuneCountInString(val.Address.Val) > 1024 {
+		return fmt.Errorf("'ad': validation rule 'max(1024)' violated")
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "se")
+	}
+	return nil
+}
+
+func (val *spanContextDestinationService) IsSet() bool {
+	return val.Name.IsSet() || val.Resource.IsSet() || val.Type.IsSet()
+}
+
+func (val *spanContextDestinationService) Reset() {
+	val.Name.Reset()
+	val.Resource.Reset()
+	val.Type.Reset()
+}
+
+func (val *spanContextDestinationService) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+	}
+	if !val.Name.IsSet() {
+		return fmt.Errorf("'n' required")
+	}
+	if utf8.RuneCountInString(val.Resource.Val) > 1024 {
+		return fmt.Errorf("'rc': validation rule 'max(1024)' violated")
+	}
+	if !val.Resource.IsSet() {
+		return fmt.Errorf("'rc' required")
+	}
+	if utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+	}
+	if !val.Type.IsSet() {
+		return fmt.Errorf("'t' required")
+	}
+	return nil
+}
+
+func (val *spanContextHTTP) IsSet() bool {
+	return val.Method.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet() || val.Response.IsSet()
+}
+
+func (val *spanContextHTTP) Reset() {
+	val.Method.Reset()
+	val.StatusCode.Reset()
+	val.URL.Reset()
+	val.Response.Reset()
+}
+
+func (val *spanContextHTTP) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if utf8.RuneCountInString(val.Method.Val) > 1024 {
+		return fmt.Errorf("'mt': validation rule 'max(1024)' violated")
+	}
+	if err := val.Response.validate(); err != nil {
+		return errors.Wrapf(err, "r")
+	}
+	return nil
+}
+
+func (val *spanContextHTTPResponse) IsSet() bool {
+	return val.DecodedBodySize.IsSet() || val.EncodedBodySize.IsSet() || val.TransferSize.IsSet()
+}
+
+func (val *spanContextHTTPResponse) Reset() {
+	val.DecodedBodySize.Reset()
+	val.EncodedBodySize.Reset()
+	val.TransferSize.Reset()
+}
+
+func (val *spanContextHTTPResponse) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *spanContextService) IsSet() bool {
+	return val.Agent.IsSet() || val.Name.IsSet()
+}
+
+func (val *spanContextService) Reset() {
+	val.Agent.Reset()
+	val.Name.Reset()
+}
+
+func (val *spanContextService) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Agent.validate(); err != nil {
+		return errors.Wrapf(err, "a")
+	}
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+	}
+	if val.Name.Val != "" && !regexpAlphaNumericExt.MatchString(val.Name.Val) {
+		return fmt.Errorf("'n': validation rule 'pattern(regexpAlphaNumericExt)' violated")
 	}
 	return nil
 }

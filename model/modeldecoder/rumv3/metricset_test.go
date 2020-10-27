@@ -42,7 +42,7 @@ func TestResetMetricsetOnRelease(t *testing.T) {
 func TestDecodeNestedMetricset(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{}}
+		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now}
 		str := `{"me":{"sa":{"xds":{"v":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Metricset
@@ -71,7 +71,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		var out model.Metricset
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToMetricsetModel(&input, initializedMetadata(), time.Now(), &out)
 		// iterate through metadata model and assert values are set to default values
 		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions(), modeldecodertest.DefaultValues())
 	})
@@ -81,7 +81,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			// metadata are tested separately
 			if strings.HasPrefix(key, "Metadata") ||
 				// transaction is only set when metricset is nested inside transaction
-				//TODO(simitt): implement
+				// tested within transaction tests
 				strings.HasPrefix(key, "Transaction") ||
 				// only set by aggregator
 				strings.HasPrefix(key, "Event") ||
@@ -109,7 +109,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
+		mapToMetricsetModel(&input, initializedMetadata(), reqTime, &out1)
 		input.Reset()
 		// metricset timestamp is always set to request time
 		defaultVal.Update(reqTime)
@@ -119,7 +119,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out2)
+		mapToMetricsetModel(&input, initializedMetadata(), reqTime, &out2)
 		otherVal.Update(reqTime)
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		assert.ElementsMatch(t, samples(otherVal.Float), out2.Samples)

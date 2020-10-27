@@ -51,7 +51,9 @@ func (e *ValidationError) Unwrap() error {
 
 var jsoniterErrRegexp = regexp.MustCompile(` but found .*error found in .* bigger context.*`)
 
-//TODO(simitt): Add comment
+// NewDecoderErrFromJSONIter returns a DecoderError where
+// any text from the original input is stripped,
+// when decoded via jsoniter.
 func NewDecoderErrFromJSONIter(err error) DecoderError {
 	if jsoniterErrRegexp.MatchString(err.Error()) {
 		err = errors.New(jsoniterErrRegexp.ReplaceAllString(err.Error(), ""))
@@ -59,7 +61,7 @@ func NewDecoderErrFromJSONIter(err error) DecoderError {
 	return DecoderError{err}
 }
 
-//TODO(simitt): Add comment
+// NewValidationErr returns a ValidationError
 func NewValidationErr(err error) ValidationError {
 	return ValidationError{err}
 }

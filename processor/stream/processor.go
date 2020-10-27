@@ -49,64 +49,39 @@ const (
 )
 
 type decodeMetadataFunc func(decoder.Decoder, *model.Metadata) error
-type decodeErrorFunc func(decoder.Decoder, *modeldecoder.Input, *model.Error) error
-type decodeMetricsetFunc func(decoder.Decoder, *modeldecoder.Input, *model.Metricset) error
-type decodeSpanFunc func(decoder.Decoder, *modeldecoder.Input, *model.Span) error
-type decodeTransactionFunc func(decoder.Decoder, *modeldecoder.Input, *model.Transaction) error
-
-// functions with the decodeEventFunc signature decode their input argument into their batch argument (output)
-type decodeEventFunc func(modeldecoder.Input, *model.Batch) error
 
 type Processor struct {
-	Mconfig           modeldecoder.Config
-	MaxEventSize      int
-	streamReaderPool  sync.Pool
-	decodeMetadata    decodeMetadataFunc
-	decodeError       decodeErrorFunc
-	decodeMetricset   decodeMetricsetFunc
-	decodeSpan        decodeSpanFunc
-	decodeTransaction decodeTransactionFunc
-	models            map[string]decodeEventFunc
-	isRUM             bool
+	Mconfig          modeldecoder.Config
+	MaxEventSize     int
+	streamReaderPool sync.Pool
+	decodeMetadata   decodeMetadataFunc
+	isRUM            bool
 }
 
 func BackendProcessor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:      cfg.MaxEventSize,
-		decodeMetadata:    v2.DecodeNestedMetadata,
-		decodeError:       v2.DecodeNestedError,
-		decodeMetricset:   v2.DecodeNestedMetricset,
-		decodeSpan:        v2.DecodeNestedSpan,
-		decodeTransaction: v2.DecodeNestedTransaction,
-		isRUM:             false,
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: v2.DecodeNestedMetadata,
+		isRUM:          false,
 	}
 }
 
 func RUMV2Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:           modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
-		MaxEventSize:      cfg.MaxEventSize,
-		decodeMetadata:    v2.DecodeNestedMetadata,
-		decodeError:       v2.DecodeNestedError,
-		decodeMetricset:   v2.DecodeNestedMetricset,
-		decodeSpan:        v2.DecodeNestedSpan,
-		decodeTransaction: v2.DecodeNestedTransaction,
-		isRUM:             true,
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: v2.DecodeNestedMetadata,
+		isRUM:          true,
 	}
 }
 
 func RUMV3Processor(cfg *config.Config) *Processor {
 	return &Processor{
-		Mconfig:         modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental, HasShortFieldNames: true},
-		MaxEventSize:    cfg.MaxEventSize,
-		decodeMetadata:  rumv3.DecodeNestedMetadata,
-		decodeError:     rumv3.DecodeNestedError,
-		decodeMetricset: rumv3.DecodeNestedMetricset,
-		models: map[string]decodeEventFunc{
-			"x": modeldecoder.DecodeRUMV3Transaction,
-		},
-		isRUM: true,
+		Mconfig:        modeldecoder.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		MaxEventSize:   cfg.MaxEventSize,
+		decodeMetadata: rumv3.DecodeNestedMetadata,
+		isRUM:          true,
 	}
 }
 
@@ -202,66 +177,71 @@ func (p *Processor) readBatch(
 			Metadata:    *streamMetadata,
 			Config:      p.Mconfig,
 		}
-		if decodeFn, ok := p.models[eventType]; ok {
-			var rawModel map[string]interface{}
-			err = reader.Decode(&rawModel)
-			err = reader.wrapError(err)
-			if err != nil && err != io.EOF {
-				if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
-					response.LimitedAdd(e)
-					continue
-				}
-				// return early, we assume we can only recover from a input error types
-				response.Add(err)
-				return true
-			}
-			if len(rawModel) > 0 {
-				input.Raw = rawModel[eventType]
-				if err := decodeFn(input, batch); err != nil {
-					response.LimitedAdd(&Error{
-						Type:     InvalidInputErrType,
-						Message:  err.Error(),
-						Document: string(reader.LatestLine()),
-					})
-					continue
-				}
-			}
-		} else {
-			switch eventType {
-			case "error", "e":
-				var event model.Error
-				if handleDecodeErr(p.decodeError(reader, &input, &event), reader, response) {
-					continue
-				}
-				event.RUM = p.isRUM
-				batch.Errors = append(batch.Errors, &event)
-			case "metricset", "me":
-				var event model.Metricset
-				if handleDecodeErr(p.decodeMetricset(reader, &input, &event), reader, response) {
-					continue
-				}
-				batch.Metricsets = append(batch.Metricsets, &event)
-			case "span":
-				var event model.Span
-				if handleDecodeErr(p.decodeSpan(reader, &input, &event), reader, response) {
-					continue
-				}
-				event.RUM = p.isRUM
-				batch.Spans = append(batch.Spans, &event)
-			case "transaction":
-				var event model.Transaction
-				if handleDecodeErr(p.decodeTransaction(reader, &input, &event), reader, response) {
-					continue
-				}
-				batch.Transactions = append(batch.Transactions, &event)
-			default:
-				response.LimitedAdd(&Error{
-					Type:     InvalidInputErrType,
-					Message:  errors.Wrap(ErrUnrecognizedObject, eventType).Error(),
-					Document: string(reader.LatestLine()),
-				})
+		switch eventType {
+		case "error":
+			var event model.Error
+			err := v2.DecodeNestedError(reader, &input, &event)
+			if handleDecodeErr(err, reader, response) {
 				continue
 			}
+			event.RUM = p.isRUM
+			batch.Errors = append(batch.Errors, &event)
+		case "metricset":
+			var event model.Metricset
+			err := v2.DecodeNestedMetricset(reader, &input, &event)
+			if handleDecodeErr(err, reader, response) {
+				continue
+			}
+			batch.Metricsets = append(batch.Metricsets, &event)
+		case "span":
+			var event model.Span
+			err := v2.DecodeNestedSpan(reader, &input, &event)
+			if handleDecodeErr(err, reader, response) {
+				continue
+			}
+			event.RUM = p.isRUM
+			batch.Spans = append(batch.Spans, &event)
+		case "transaction":
+			var event model.Transaction
+			err := v2.DecodeNestedTransaction(reader, &input, &event)
+			if handleDecodeErr(err, reader, response) {
+				continue
+			}
+			batch.Transactions = append(batch.Transactions, &event)
+		case "e":
+			var event model.Error
+			err := rumv3.DecodeNestedError(reader, &input, &event)
+			if handleDecodeErr(err, reader, response) {
+				continue
+			}
+			event.RUM = p.isRUM
+			batch.Errors = append(batch.Errors, &event)
+		case "me":
+			var event model.Metricset
+			err := rumv3.DecodeNestedMetricset(reader, &input, &event)
+			if handleDecodeErr(err, reader, response) {
+				continue
+			}
+			batch.Metricsets = append(batch.Metricsets, &event)
+		case "x":
+			var event rumv3.Transaction
+			err := rumv3.DecodeNestedTransaction(reader, &input, &event)
+			if handleDecodeErr(err, reader, response) {
+				continue
+			}
+			batch.Transactions = append(batch.Transactions, &event.Transaction)
+			batch.Metricsets = append(batch.Metricsets, event.Metricsets...)
+			for _, span := range event.Spans {
+				span.RUM = true
+				batch.Spans = append(batch.Spans, span)
+			}
+		default:
+			response.LimitedAdd(&Error{
+				Type:     InvalidInputErrType,
+				Message:  errors.Wrap(ErrUnrecognizedObject, eventType).Error(),
+				Document: string(reader.LatestLine()),
+			})
+			continue
 		}
 	}
 	return reader.IsEOF()

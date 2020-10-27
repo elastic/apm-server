@@ -140,8 +140,7 @@ type errorException struct {
 }
 
 type errorLog struct {
-	Level nullable.String `json:"lv" validate:"max=1024"`
-	//TODO(simitt): set default value `default` for loggername
+	Level        nullable.String   `json:"lv" validate:"max=1024"`
 	LoggerName   nullable.String   `json:"ln" validate:"max=1024"`
 	Message      nullable.String   `json:"mg" validate:"required"`
 	ParamMessage nullable.String   `json:"pmg" validate:"max=1024"`
@@ -193,8 +192,6 @@ type metricset struct {
 	Samples metricsetSamples `json:"sa" validate:"required"`
 	Span    metricsetSpanRef `json:"y"`
 	Tags    common.MapStr    `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
-	//TODO(simitt): implement adding transaction information
-	// see https://github.com/elastic/apm-server/pull/3733/files
 }
 
 type metricsetSamples struct {
@@ -205,6 +202,14 @@ type metricsetSamples struct {
 	SpanSelfTimeSum           metricsetSampleValue `json:"yss"`
 }
 
+var (
+	metricsetSamplesTransactionDurationCountName  = "transaction.duration.count"
+	metricsetSamplesTransactionDurationSumName    = "transaction.duration.sum.us"
+	metricsetSamplesTransactionBreakdownCountName = "transaction.breakdown.count"
+	metricsetSamplesSpanSelfTimeCountName         = "span.self_time.count"
+	metricsetSamplesSpanSelfTimeSumName           = "span.self_time.sum.us"
+)
+
 type metricsetSampleValue struct {
 	Value nullable.Float64 `json:"v" validate:"required"`
 }
@@ -212,6 +217,59 @@ type metricsetSampleValue struct {
 type metricsetSpanRef struct {
 	Subtype nullable.String `json:"su" validate:"max=1024"`
 	Type    nullable.String `json:"t" validate:"max=1024"`
+}
+
+type span struct {
+	Action      nullable.String   `json:"ac" validate:"max=1024"`
+	Context     spanContext       `json:"c"`
+	Duration    nullable.Float64  `json:"d" validate:"required,min=0"`
+	ID          nullable.String   `json:"id" validate:"required,max=1024"`
+	Name        nullable.String   `json:"n" validate:"required,max=1024"`
+	Outcome     nullable.String   `json:"o" validate:"enum=enumOutcome"`
+	ParentIndex nullable.Int      `json:"pi"`
+	SampleRate  nullable.Float64  `json:"sr"`
+	Stacktrace  []stacktraceFrame `json:"st"`
+	Start       nullable.Float64  `json:"s" validate:"required"`
+	Subtype     nullable.String   `json:"su" validate:"max=1024"`
+	Sync        nullable.Bool     `json:"sy"`
+	Type        nullable.String   `json:"t" validate:"required,max=1024"`
+}
+
+type spanContext struct {
+	Destination spanContextDestination `json:"dt"`
+	HTTP        spanContextHTTP        `json:"h"`
+	Service     spanContextService     `json:"se"`
+	Tags        common.MapStr          `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+}
+
+type spanContextDestination struct {
+	Address nullable.String               `json:"ad" validate:"max=1024"`
+	Port    nullable.Int                  `json:"po"`
+	Service spanContextDestinationService `json:"se"`
+}
+
+type spanContextDestinationService struct {
+	Name     nullable.String `json:"n" validate:"required,max=1024"`
+	Resource nullable.String `json:"rc" validate:"required,max=1024"`
+	Type     nullable.String `json:"t" validate:"required,max=1024"`
+}
+
+type spanContextHTTP struct {
+	Method     nullable.String         `json:"mt" validate:"max=1024"`
+	StatusCode nullable.Int            `json:"sc"`
+	URL        nullable.String         `json:"url"`
+	Response   spanContextHTTPResponse `json:"r"`
+}
+
+type spanContextHTTPResponse struct {
+	DecodedBodySize nullable.Float64 `json:"dbs"`
+	EncodedBodySize nullable.Float64 `json:"ebs"`
+	TransferSize    nullable.Float64 `json:"ts"`
+}
+
+type spanContextService struct {
+	Agent contextServiceAgent `json:"a"`
+	Name  nullable.String     `json:"n" validate:"max=1024,pattern=regexpAlphaNumericExt"`
 }
 
 type stacktraceFrame struct {
@@ -243,24 +301,73 @@ type transaction struct {
 	Type           nullable.String           `json:"t" validate:"required,max=1024"`
 	UserExperience transactionUserExperience `json:"exp"`
 	Metricsets     []metricset               `json:"me"`
+	Spans          []span                    `json:"y"`
 }
 
 type transactionMarks struct {
 	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
 }
 
-//TODO(simitt): generate
+var markEventsLongNames = map[string]string{
+	"a":  "agent",
+	"nt": "navigationTiming",
+}
+
 func (m *transactionMarks) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &m.Events)
+	if err := json.Unmarshal(data, &m.Events); err != nil {
+		return err
+	}
+	for name, val := range m.Events {
+		nameLong, ok := markEventsLongNames[name]
+		if !ok {
+			// there is no long name defined for this event
+			continue
+		}
+		delete(m.Events, name)
+		m.Events[nameLong] = val
+	}
+	return nil
 }
 
 type transactionMarkEvents struct {
 	Measurements map[string]float64 `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
 }
 
-//TODO(simitt): generate
 func (m *transactionMarkEvents) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &m.Measurements)
+	if err := json.Unmarshal(data, &m.Measurements); err != nil {
+		return err
+	}
+	for name, val := range m.Measurements {
+		nameLong, ok := markMeasurementsLongNames[name]
+		if !ok {
+			// there is no long name defined for this measurement
+			continue
+		}
+		delete(m.Measurements, name)
+		m.Measurements[nameLong] = val
+	}
+	return nil
+}
+
+var markMeasurementsLongNames = map[string]string{
+	"ce": "connectEnd",
+	"cs": "connectStart",
+	"dc": "domComplete",
+	"de": "domContentLoadedEventEnd",
+	"di": "domInteractive",
+	"dl": "domLoading",
+	"ds": "domContentLoadedEventStart",
+	"ee": "loadEventEnd",
+	"es": "loadEventStart",
+	"fb": "timeToFirstByte",
+	"fp": "firstContentfulPaint",
+	"fs": "fetchStart",
+	"le": "domainLookupEnd",
+	"lp": "largestContentfulPaint",
+	"ls": "domainLookupStart",
+	"re": "responseEnd",
+	"rs": "responseStart",
+	"qs": "requestStart",
 }
 
 type transactionSpanCount struct {

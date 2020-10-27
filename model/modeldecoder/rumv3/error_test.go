@@ -44,7 +44,7 @@ func TestResetErrorOnRelease(t *testing.T) {
 func TestDecodeNestedError(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{}}
+		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now}
 		str := `{"e":{"id":"a-b-c","timestamp":1599996822281000,"log":{"mg":"abc"}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Error
@@ -52,7 +52,7 @@ func TestDecodeNestedError(t *testing.T) {
 		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", out.Timestamp.String())
 
 		// if no timestamp is provided, fall back to request time
-		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{}}
+		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now}
 		str = `{"e":{"id":"a-b-c","log":{"mg":"abc"}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		out = model.Error{}
@@ -78,7 +78,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		// do not overwrite metadata with zero event values
 		var input errorEvent
 		var out model.Error
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		// iterate through metadata model and assert values are set
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions(), defaultVal)
@@ -90,7 +90,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var out model.Error
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		input.Reset()
 
 		// ensure event Metadata are updated where expected
@@ -149,14 +149,14 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
+		mapToErrorModel(&input, initializedMetadata(), reqTime, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 
 		// set Timestamp to requestTime if eventTime is zero
 		defaultVal.Update(time.Time{})
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
+		mapToErrorModel(&input, initializedMetadata(), reqTime, &out1)
 		defaultVal.Update(reqTime)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
@@ -165,7 +165,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToErrorModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out2)
+		mapToErrorModel(&input, initializedMetadata(), reqTime, &out2)
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
@@ -174,9 +174,18 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var input errorEvent
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		var out model.Error
-		mapToErrorModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		assert.Equal(t, "https://my.site.test:9201", *out.Page.URL.Full)
 		assert.Equal(t, 9201, *out.Page.URL.Port)
 		assert.Equal(t, "https", *out.Page.URL.Scheme)
+	})
+
+	t.Run("loggerName", func(t *testing.T) {
+		var input errorEvent
+		input.Log.Message.Set("log message")
+		var out model.Error
+		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
+		require.NotNil(t, out.Log.LoggerName)
+		assert.Equal(t, "default", *out.Log.LoggerName)
 	})
 }
