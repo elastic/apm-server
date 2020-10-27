@@ -18,8 +18,11 @@
 package utility
 
 import (
+	"net/http"
+	"net/textproto"
 	"net/url"
 	"path"
+	"strings"
 )
 
 func UrlPath(p string) string {
@@ -37,4 +40,10 @@ func CleanUrlPath(p string) string {
 	}
 	url.Path = path.Clean(url.Path)
 	return url.String()
+}
+
+// UserAgentHeader fetches all `user-agent` values from a given header and combines them into one string.
+// Values are separated by `;`.
+func UserAgentHeader(header http.Header) string {
+	return strings.Join(header[textproto.CanonicalMIMEHeaderKey("User-Agent")], ", ")
 }
