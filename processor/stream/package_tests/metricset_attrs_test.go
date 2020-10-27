@@ -46,7 +46,6 @@ func TestAttributesPresenceInMetric(t *testing.T) {
 		"service",
 		"metricset",
 		"metricset.samples",
-		"metricset.samples.+.value",
 	)
 	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
 }
@@ -58,33 +57,29 @@ func TestInvalidPayloads(t *testing.T) {
 	validMetric := obj{"value": json.Number("1.0")}
 	payloadData := []tests.SchemaTestData{
 		{Key: "metricset.timestamp",
-			Valid: val{json.Number("1496170422281000")},
-			Invalid: []tests.Invalid{
-				{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
+			Valid:   val{json.Number("1496170422281000")},
+			Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{"1496170422281000"}}}},
 		{Key: "metricset.tags",
 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 			Invalid: []tests.Invalid{
-				{Msg: `tags/type`, Values: val{"tags"}},
-				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
-				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
+				{Msg: `decode error`, Values: val{"tags"}},
+				{Msg: `validation error`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
+				{Msg: `validation error`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
 		},
 		{
-			Key: "metricset.samples",
-			Valid: val{
-				obj{"valid-metric": validMetric},
-			},
+			Key:   "metricset.samples",
+			Valid: val{obj{"valid-metric": validMetric}},
 			Invalid: []tests.Invalid{
 				{
-					Msg: "/properties/samples/additionalproperties",
+					Msg: `validation error`,
 					Values: val{
 						obj{"metric\"key\"_quotes": validMetric},
 						obj{"metric-*-key-star": validMetric},
 					},
 				},
 				{
-					Msg: "/properties/samples/patternproperties",
+					Msg: `decode error`,
 					Values: val{
-						obj{"nil-value": obj{"value": nil}},
 						obj{"string-value": obj{"value": "foo"}},
 					},
 				},
