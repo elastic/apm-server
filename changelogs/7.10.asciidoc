@@ -21,6 +21,7 @@ https://github.com/elastic/apm-server/compare/v7.9.2\...v7.10.0[View commits]
 * Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
 * De-dot Jaeger process tag keys, fixing indexing errors when using jaeger-php {pull}4191[4191]
 * Fix json schema validation on `metadata.service.*` fields {pull}4142[4142]
+* Carriage returns are now stripped from source-mapped context source lines {pull}4348[4348]
 
 [float]
 ==== Intake API Changes
