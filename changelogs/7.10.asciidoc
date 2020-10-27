@@ -22,6 +22,7 @@ https://github.com/elastic/apm-server/compare/v7.9.2\...v7.10.0[View commits]
 * De-dot Jaeger process tag keys, fixing indexing errors when using jaeger-php {pull}4191[4191]
 * Fix json schema validation on `metadata.service.*` fields {pull}4142[4142]
 * Carriage returns are now stripped from source-mapped context source lines {pull}4348[4348]
+* Fix regression where policy_name was ignored in ILM setup {pull}4354[4354]
 
 [float]
 ==== Intake API Changes
