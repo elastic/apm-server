@@ -3,12 +3,9 @@ module github.com/elastic/apm-server/systemtest
 go 1.14
 
 require (
-	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
-	github.com/containerd/containerd v1.3.6 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v1.13.1
-	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/docker v17.12.0-ce-rc1.0.20200916142827-bd33bbf0497b+incompatible
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v7 v7.8.0
 	github.com/elastic/go-sysinfo v1.4.0 // indirect
@@ -17,9 +14,9 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/prometheus/procfs v0.1.3 // indirect
 	github.com/stretchr/testify v1.6.1
+	github.com/testcontainers/testcontainers-go v0.9.0
 	github.com/tidwall/gjson v1.6.0
 	go.elastic.co/apm v1.8.1-0.20200913025752-7af7e1529586
 	go.elastic.co/fastjson v1.1.0
