@@ -222,8 +222,9 @@ func (c *ElasticsearchContainer) Start() error {
 	config.Addresses[0] = esURL.String()
 	client, err := elasticsearch.NewClient(config)
 	if err != nil {
-		c.Client = &estest.Client{Client: client}
+		return err
 	}
+	c.Client = &estest.Client{Client: client}
 
 	c.container = container
 	return nil

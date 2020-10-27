@@ -159,7 +159,7 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	}
 	require.NoError(t, srv.Start())
 
-	timeout := time.After(10 * time.Second)
+	timeout := time.After(time.Minute)
 	logs := srv.Logs.Iterator()
 	for {
 		select {
