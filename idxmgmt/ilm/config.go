@@ -85,6 +85,9 @@ func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
 			return Config{}, err
 		}
 	}
+	if len(config.Setup.Policies) == 0 {
+		config.Setup.Policies = defaultPolicies()
+	}
 	// replace variable rollover_alias parts with beat information if available
 	// otherwise fail as the full alias needs to be known during setup.
 	for et, m := range config.Setup.Mappings {
@@ -94,9 +97,13 @@ func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
 		}
 		m.Index = idx
 		config.Setup.Mappings[et] = m
-	}
-	if len(config.Setup.Policies) == 0 {
-		config.Setup.Policies = defaultPolicies()
+		if config.Setup.RequirePolicy {
+			continue
+		}
+		if _, ok := config.Setup.Policies[m.PolicyName]; !ok {
+			// if require_policy=false and policy does not exist, add it with an empty body
+			config.Setup.Policies[m.PolicyName] = Policy{Name: m.PolicyName}
+		}
 	}
 	return config, validate(&config)
 }
