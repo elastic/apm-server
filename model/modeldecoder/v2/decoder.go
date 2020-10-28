@@ -135,7 +135,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 	root := fetchErrorRoot()
 	defer releaseErrorRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
+	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
@@ -154,7 +154,7 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, out *mo
 	root := fetchMetricsetRoot()
 	defer releaseMetricsetRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
+	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
@@ -173,7 +173,7 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, out *model.S
 	root := fetchSpanRoot()
 	defer releaseSpanRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
+	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
@@ -192,7 +192,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	root := fetchTransactionRoot()
 	defer releaseTransactionRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
+	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
