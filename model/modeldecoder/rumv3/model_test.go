@@ -432,6 +432,10 @@ type setter interface {
 	Reset()
 }
 
+type validator interface {
+	validate() error
+}
+
 func testdataReader(t *testing.T, typ string) io.Reader {
 	p := filepath.Join("..", "..", "..", "testdata", "intake-v3", fmt.Sprintf("%s.ndjson", typ))
 	r, err := os.Open(p)

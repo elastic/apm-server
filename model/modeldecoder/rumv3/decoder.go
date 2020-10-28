@@ -99,8 +99,11 @@ func releaseTransactionRoot(m *transactionRoot) {
 func DecodeNestedMetadata(d decoder.Decoder, out *model.Metadata) error {
 	root := fetchMetadataRoot()
 	defer releaseMetadataRoot(root)
-	if err := decodeValidate(d, root); err != nil {
-		return err
+	if err := d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToMetadataModel(&root.Metadata, out)
 	return nil
@@ -114,8 +117,11 @@ func DecodeNestedMetadata(d decoder.Decoder, out *model.Metadata) error {
 func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.Error) error {
 	root := fetchErrorRoot()
 	defer releaseErrorRoot(root)
-	if err := decodeValidate(d, root); err != nil {
-		return err
+	if err := d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, out)
 	return nil
@@ -129,8 +135,11 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, out *model.Metricset) error {
 	root := fetchMetricsetRoot()
 	defer releaseMetricsetRoot(root)
-	if err := decodeValidate(d, root); err != nil {
-		return err
+	if err := d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToMetricsetModel(&root.Metricset, &input.Metadata, input.RequestTime, out)
 	return nil
@@ -152,8 +161,11 @@ type Transaction struct {
 func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *Transaction) error {
 	root := fetchTransactionRoot()
 	defer releaseTransactionRoot(root)
-	if err := decodeValidate(d, root); err != nil {
-		return err
+	if err := d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, &out.Transaction)
 	for _, m := range root.Transaction.Metricsets {
@@ -175,20 +187,6 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 			outS.ParentID = out.Transaction.ID
 		}
 		out.Spans[idx] = &outS
-	}
-	return nil
-}
-
-type validator interface {
-	validate() error
-}
-
-func decodeValidate(d decoder.Decoder, out validator) error {
-	if err := d.Decode(out); err != nil && err != io.EOF {
-		return modeldecoder.NewDecoderErrFromJSONIter(err)
-	}
-	if err := out.validate(); err != nil {
-		return modeldecoder.NewValidationErr(err)
 	}
 	return nil
 }
