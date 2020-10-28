@@ -143,22 +143,23 @@ func (p *Processor) ProcessTransformables(ctx context.Context, events []transfor
 		return nil, ErrStopped
 	}
 	for i := 0; i < len(events); i++ {
-		var drop, stored bool
+		var report, stored bool
 		var err error
 		switch event := events[i].(type) {
 		case *model.Transaction:
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			drop, stored, err = p.processTransaction(event)
+			report, stored, err = p.processTransaction(event)
 		case *model.Span:
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			drop, stored, err = p.processSpan(event)
+			report, stored, err = p.processSpan(event)
 		default:
 			continue
 		}
 		if err != nil {
 			return nil, err
 		}
-		if drop {
+		if !report {
+			// We shouldn't report this event, so remove it from the slice.
 			n := len(events)
 			events[i], events[n-1] = events[n-1], events[i]
 			events = events[:n-1]
@@ -166,11 +167,12 @@ func (p *Processor) ProcessTransformables(ctx context.Context, events []transfor
 		}
 		if stored {
 			atomic.AddInt64(&p.eventMetrics.stored, 1)
-		} else if drop {
+		} else if !report {
 			// We only increment the "dropped" counter if
-			// we didn't also store the event, so we can
-			// track how many events are definitely dropped
-			// and indexing isn't just deferred until later.
+			// we neither reported nor stored the event, so
+			// we can track how many events are definitely
+			// dropped and indexing isn't just deferred until
+			// later.
 			//
 			// The counter does not include events that are
 			// implicitly dropped, i.e. stored and never
@@ -181,19 +183,20 @@ func (p *Processor) ProcessTransformables(ctx context.Context, events []transfor
 	return events, nil
 }
 
-func (p *Processor) processTransaction(tx *model.Transaction) (drop, stored bool, _ error) {
+func (p *Processor) processTransaction(tx *model.Transaction) (report, stored bool, _ error) {
 	if tx.Sampled != nil && !*tx.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
-		return false, false, nil
+		return true, false, nil
 	}
 
 	traceSampled, err := p.storage.IsTraceSampled(tx.TraceID)
 	switch err {
 	case nil:
-		// Tail-sampling decision has been made, index or drop the transaction.
-		drop := !traceSampled
-		return drop, false, nil
+		// Tail-sampling decision has been made: report the transaction
+		// if it was sampled.
+		report := traceSampled
+		return report, false, nil
 	case eventstorage.ErrNotFound:
 		// Tail-sampling decision has not yet been made.
 		break
@@ -204,7 +207,7 @@ func (p *Processor) processTransaction(tx *model.Transaction) (drop, stored bool
 	if tx.ParentID != "" {
 		// Non-root transaction: write to local storage while we wait
 		// for a sampling decision.
-		return true, true, p.storage.WriteTransaction(tx)
+		return false, true, p.storage.WriteTransaction(tx)
 	}
 
 	// Root transaction: apply reservoir sampling.
@@ -216,7 +219,7 @@ Tail-sampling service group limit reached, discarding trace events.
 This is caused by having many unique service names while relying on
 sampling policies without service name specified.
 `[1:])
-		return true, false, nil
+		return false, false, nil
 	} else if err != nil {
 		return false, false, err
 	}
@@ -228,29 +231,29 @@ sampling policies without service name specified.
 		// This is a local optimisation only. To avoid creating network
 		// traffic and load on Elasticsearch for uninteresting root
 		// transactions, we do not propagate this to other APM Servers.
-		return true, false, p.storage.WriteTraceSampled(tx.TraceID, false)
+		return false, false, p.storage.WriteTraceSampled(tx.TraceID, false)
 	}
 
 	// The root transaction was admitted to the sampling reservoir, so we
-	// can proceed to write the transaction to storage and then drop it;
-	// we may index it later, after finalising the sampling decision.
-	return true, true, p.storage.WriteTransaction(tx)
+	// can proceed to write the transaction to storage; we may index it later,
+	// after finalising the sampling decision.
+	return false, true, p.storage.WriteTransaction(tx)
 }
 
-func (p *Processor) processSpan(span *model.Span) (drop, stored bool, _ error) {
+func (p *Processor) processSpan(span *model.Span) (report, stored bool, _ error) {
 	traceSampled, err := p.storage.IsTraceSampled(span.TraceID)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
 			// Tail-sampling decision has not yet been made, write span to local storage.
-			return true, true, p.storage.WriteSpan(span)
+			return false, true, p.storage.WriteSpan(span)
 		}
 		return false, false, err
 	}
-	// Tail-sampling decision has been made, index or drop the event.
+	// Tail-sampling decision has been made, report or drop the event.
 	if !traceSampled {
-		return true, false, nil
+		return false, false, nil
 	}
-	return false, false, nil
+	return true, false, nil
 }
 
 // Stop stops the processor, flushing and closing the event storage.
