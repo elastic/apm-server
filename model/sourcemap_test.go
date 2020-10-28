@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/elasticsearch/estest"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
@@ -79,16 +78,7 @@ func TestParseSourcemaps(t *testing.T) {
 }
 
 func TestInvalidateCache(t *testing.T) {
-	// load sourcemap from file and decode
-	//
-	// TODO(axw) this should be done without decoding,
-	// or moved to a separate integration test package.
-	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
-	assert.NoError(t, err)
-	decoded, err := modeldecoder.DecodeSourcemap(data)
-	require.NoError(t, err)
-	event := decoded.(*model.Sourcemap)
-
+	event := model.Sourcemap{ServiceName: "service", ServiceVersion: "1", BundleFilepath: "js/bundle.js", Sourcemap: "testmap"}
 	t.Run("withSourcemapStore", func(t *testing.T) {
 		// collect logs
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
