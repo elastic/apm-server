@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -296,17 +297,8 @@ func TestErrorRequiredValidationRules(t *testing.T) {
 		"parent_id":                            nil, //requiredIf
 		"trace_id":                             nil, //requiredIf
 	}
-	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
-	})
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
 func TestErrorRequiredOneOfValidationRules(t *testing.T) {
@@ -478,11 +470,11 @@ func TestErrorRequiredIfAnyValidationRules(t *testing.T) {
 }
 
 func TestMetadataRequiredValidationRules(t *testing.T) {
-	// setup: create full metadata struct with arbitrary values set
-	var metadata metadata
-	modeldecodertest.InitStructValues(&metadata)
+	// setup: create full event struct with arbitrary values set
+	var event metadata
+	modeldecodertest.InitStructValues(&event)
 	// test vanilla struct is valid
-	require.NoError(t, metadata.validate())
+	require.NoError(t, event.validate())
 
 	// iterate through struct, remove every key one by one
 	// and test that validation behaves as expected
@@ -498,17 +490,8 @@ func TestMetadataRequiredValidationRules(t *testing.T) {
 		"service.runtime.version": nil,
 		"service.name":            nil,
 	}
-	modeldecodertest.SetZeroStructValue(&metadata, func(key string) {
-		err := metadata.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
-	})
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
 func TestMetricsetRequiredValidationRules(t *testing.T) {
@@ -527,15 +510,7 @@ func TestMetricsetRequiredValidationRules(t *testing.T) {
 		"samples.value": nil,
 	}
 	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
+		assertRequiredFn(t, requiredKeys, event.validate)
 	})
 }
 
@@ -557,21 +532,11 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 		"duration":                             nil,
 		"name":                                 nil,
 		"parent_id":                            nil,
-		"stacktrace.filename":                  nil,
 		"trace_id":                             nil,
 		"type":                                 nil,
 	}
-	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
-	})
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
 func TestTransactionRequiredValidationRules(t *testing.T) {
@@ -596,17 +561,25 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 		"experience.longtask.sum":   nil,
 		"experience.longtask.max":   nil,
 	}
-	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
+}
+
+var regexpArrayAccessor = regexp.MustCompile(`\[.*\]\.`)
+
+func assertRequiredFn(t *testing.T, keys map[string]interface{}, validate func() error) func(key string) {
+	return func(key string) {
+		s := regexpArrayAccessor.ReplaceAllString(key, "")
+		err := validate()
+		if _, ok := keys[s]; ok {
 			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
+			for _, part := range strings.Split(s, ".") {
 				assert.Contains(t, err.Error(), part)
 			}
 		} else {
 			assert.NoError(t, err, key)
 		}
-	})
+	}
 }
 
 //

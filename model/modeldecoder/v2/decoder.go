@@ -22,13 +22,10 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
@@ -36,41 +33,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 	"github.com/elastic/apm-server/utility"
 )
-
-// DecodeError represents an error due to JSON decoding.
-type DecodeError struct {
-	err error
-}
-
-var jsoniterErrRegexp = regexp.MustCompile(` but found .*error found in .* bigger context.*`)
-
-func newDecodeErrFromJSONIter(err error) DecodeError {
-	if jsoniterErrRegexp.MatchString(err.Error()) {
-		err = errors.New(jsoniterErrRegexp.ReplaceAllString(err.Error(), ""))
-	}
-	return DecodeError{err}
-}
-
-func (e DecodeError) Error() string {
-	return errors.Wrap(e.err, "decode error").Error()
-}
-
-func (e *DecodeError) Unwrap() error {
-	return e.err
-}
-
-// ValidationError represents an error due to JSON validation.
-type ValidationError struct {
-	err error
-}
-
-func (e ValidationError) Error() string {
-	return errors.Wrap(e.err, "validation error").Error()
-}
-
-func (e *ValidationError) Unwrap() error {
-	return e.err
-}
 
 var (
 	errorRootPool = sync.Pool{
@@ -173,11 +135,11 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, out *model.
 	root := fetchErrorRoot()
 	defer releaseErrorRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return newDecodeErrFromJSONIter(err)
+	if err = d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
-		return ValidationError{err}
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToErrorModel(&root.Error, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
@@ -192,11 +154,11 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, out *mo
 	root := fetchMetricsetRoot()
 	defer releaseMetricsetRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return newDecodeErrFromJSONIter(err)
+	if err = d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
-		return ValidationError{err}
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToMetricsetModel(&root.Metricset, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
@@ -211,11 +173,11 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, out *model.S
 	root := fetchSpanRoot()
 	defer releaseSpanRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return newDecodeErrFromJSONIter(err)
+	if err = d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
-		return ValidationError{err}
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToSpanModel(&root.Span, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
@@ -230,11 +192,11 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, out *
 	root := fetchTransactionRoot()
 	defer releaseTransactionRoot(root)
 	var err error
-	if err = d.Decode(&root); err != nil && err != io.EOF {
-		return newDecodeErrFromJSONIter(err)
+	if err = d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := root.validate(); err != nil {
-		return ValidationError{err}
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToTransactionModel(&root.Transaction, &input.Metadata, input.RequestTime, input.Config, out)
 	return err
@@ -245,10 +207,10 @@ func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d deco
 	defer releaseMetadataRoot(m)
 	var err error
 	if err = decFn(d, m); err != nil && err != io.EOF {
-		return newDecodeErrFromJSONIter(err)
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
 	if err := m.validate(); err != nil {
-		return ValidationError{err}
+		return modeldecoder.NewValidationErr(err)
 	}
 	mapToMetadataModel(&m.Metadata, out)
 	return err

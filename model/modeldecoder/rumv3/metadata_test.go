@@ -44,6 +44,19 @@ func initializedMetadata() *model.Metadata {
 	return &out
 }
 
+func metadataExceptions(keys ...string) func(key string) bool {
+	missing := []string{"Cloud", "System", "Process", "Service.Node", "Service.Agent.EphemeralID"}
+	exceptions := append(missing, keys...)
+	return func(key string) bool {
+		for _, k := range exceptions {
+			if strings.HasPrefix(key, k) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 func TestMetadataResetModelOnRelease(t *testing.T) {
 	inp := `{"m":{"se":{"n":"service-a"}}}`
 	m := fetchMetadataRoot()
