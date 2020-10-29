@@ -76,6 +76,49 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		assert.Contains(t, err.Error(), "decode")
 	})
 
+	t.Run("decode-marks", func(t *testing.T) {
+		now := time.Now()
+		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now}
+		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"k":{"a":{"dc":0.1,"di":0.2,"ds":0.3,"de":0.4,"fb":0.5,"fp":0.6,"lp":0.7,"long":0.8},"nt":{"fs":0.1,"ls":0.2,"le":0.3,"cs":0.4,"ce":0.5,"qs":0.6,"rs":0.7,"re":0.8,"dl":0.9,"di":0.11,"ds":0.21,"de":0.31,"dc":0.41,"es":0.51,"ee":6,"long":0.99},"long":{"long":0.1}}}}`
+		dec := decoder.NewJSONDecoder(strings.NewReader(str))
+		var out Transaction
+		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
+		marks := model.TransactionMarks{
+			"agent": map[string]float64{
+				"domComplete":                0.1,
+				"domInteractive":             0.2,
+				"domContentLoadedEventStart": 0.3,
+				"domContentLoadedEventEnd":   0.4,
+				"timeToFirstByte":            0.5,
+				"firstContentfulPaint":       0.6,
+				"largestContentfulPaint":     0.7,
+				"long":                       0.8,
+			},
+			"navigationTiming": map[string]float64{
+				"fetchStart":                 0.1,
+				"domainLookupStart":          0.2,
+				"domainLookupEnd":            0.3,
+				"connectStart":               0.4,
+				"connectEnd":                 0.5,
+				"requestStart":               0.6,
+				"responseStart":              0.7,
+				"responseEnd":                0.8,
+				"domLoading":                 0.9,
+				"domInteractive":             0.11,
+				"domContentLoadedEventStart": 0.21,
+				"domContentLoadedEventEnd":   0.31,
+				"domComplete":                0.41,
+				"loadEventStart":             0.51,
+				"loadEventEnd":               6,
+				"long":                       0.99,
+			},
+			"long": map[string]float64{
+				"long": 0.1,
+			},
+		}
+		assert.Equal(t, marks, out.Transaction.Marks)
+	})
+
 	t.Run("validate", func(t *testing.T) {
 		var out Transaction
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
