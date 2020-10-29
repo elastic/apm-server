@@ -19,7 +19,7 @@
                             "application/json"
                         ]
                     },
-                    "method": "get",
+                    "method": "GET",
                     "referrer": "http://localhost:8000/test/e2e/"
                 },
                 "response": {
@@ -497,7 +497,7 @@
                     "us": 6724
                 },
                 "http": {
-                    "method": "get",
+                    "method": "GET",
                     "response": {
                         "status_code": 200
                     },
@@ -587,7 +587,7 @@
                     "us": 11584
                 },
                 "http": {
-                    "method": "post",
+                    "method": "POST",
                     "response": {
                         "status_code": 200
                     },
@@ -678,7 +678,7 @@
                     "us": 15949
                 },
                 "http": {
-                    "method": "post",
+                    "method": "POST",
                     "response": {
                         "status_code": 200
                     },

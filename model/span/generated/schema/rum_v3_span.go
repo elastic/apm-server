@@ -30,7 +30,10 @@ const RUMV3Schema = `{
                 },
                 "pi": {
                     "description": "Index of the parent span in the list. Absent when the parent is a transaction.",
-                    "type": ["integer", "null"],
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
                     "maxLength": 1024
                 },
                 "s": {
@@ -42,7 +45,10 @@ const RUMV3Schema = `{
                 },
                 "sr": {
                     "description": "Sampling rate",
-                    "type": ["number", "null"]
+                    "type": [
+                        "number",
+                        "null"
+                    ]
                 },
                 "t": {
                     "type": "string",
@@ -149,6 +155,36 @@ const RUMV3Schema = `{
                             ],
                             "description": "An object containing contextual data of the related http request.",
                             "properties": {
+                                "r": {
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "description": "An object containing contextual data of the related http response.",
+                                    "properties": {
+                                        "dbs": {
+                                            "type": [
+                                                "number",
+                                                "null"
+                                            ],
+                                            "description": "The decoded size of the payload."
+                                        },
+                                        "ebs": {
+                                            "type": [
+                                                "number",
+                                                "null"
+                                            ],
+                                            "description": "The encoded size of the payload."
+                                        },
+                                        "ts": {
+                                            "type": [
+                                                "number",
+                                                "null"
+                                            ],
+                                            "description": "Total size of the payload."
+                                        }
+                                    }
+                                },
                                 "url": {
                                     "type": [
                                         "string",
@@ -360,5 +396,4 @@ const RUMV3Schema = `{
             }
         }
     ]
-}
-`
+}`

@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modeldecoder"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -115,7 +116,7 @@ func Handler(report publish.Reporter) request.Handler {
 							err: err,
 						}
 					}
-					if _, ok := err.(v2.ValidationError); ok {
+					if _, ok := err.(modeldecoder.ValidationError); ok {
 						return nil, requestError{
 							id:  request.IDResponseErrorsValidate,
 							err: errors.Wrap(err, "invalid metadata"),
