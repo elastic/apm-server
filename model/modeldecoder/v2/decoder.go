@@ -500,8 +500,8 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 		out.System.DetectedHostname = from.System.DetectedHostname.Val
 	}
 	if !from.System.ConfiguredHostname.IsSet() && !from.System.DetectedHostname.IsSet() &&
-		from.System.HostnameDeprecated.IsSet() {
-		out.System.DetectedHostname = from.System.HostnameDeprecated.Val
+		from.System.DeprecatedHostname.IsSet() {
+		out.System.DetectedHostname = from.System.DeprecatedHostname.Val
 	}
 	if from.System.Kubernetes.Namespace.IsSet() {
 		out.System.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val

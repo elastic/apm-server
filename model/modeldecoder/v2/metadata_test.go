@@ -153,6 +153,33 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 	})
 
 	t.Run("system", func(t *testing.T) {
+		var input metadata
+		var out model.Metadata
+		// full input information
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		input.System.ConfiguredHostname.Set("configured-host")
+		input.System.DetectedHostname.Set("detected-host")
+		input.System.DeprecatedHostname.Set("deprecated-host")
+		mapToMetadataModel(&input, &out)
+		assert.Equal(t, "configured-host", out.System.ConfiguredHostname)
+		assert.Equal(t, "detected-host", out.System.DetectedHostname)
+		// no detected-host information
+		out = model.Metadata{}
+		input.System.DetectedHostname.Reset()
+		mapToMetadataModel(&input, &out)
+		assert.Equal(t, "configured-host", out.System.ConfiguredHostname)
+		assert.Empty(t, out.System.DetectedHostname)
+		// no configured-host information
+		out = model.Metadata{}
+		input.System.ConfiguredHostname.Reset()
+		mapToMetadataModel(&input, &out)
+		assert.Empty(t, out.System.ConfiguredHostname)
+		assert.Equal(t, "deprecated-host", out.System.DetectedHostname)
+		// no host information given
+		out = model.Metadata{}
+		input.System.DeprecatedHostname.Reset()
+		assert.Empty(t, out.System.ConfiguredHostname)
+		assert.Empty(t, out.System.DetectedHostname)
 
 	})
 }

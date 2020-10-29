@@ -442,7 +442,7 @@ func (val *metadataServiceRuntime) validate() error {
 }
 
 func (val *metadataSystem) IsSet() bool {
-	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.HostnameDeprecated.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet()
+	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet()
 }
 
 func (val *metadataSystem) Reset() {
@@ -450,7 +450,7 @@ func (val *metadataSystem) Reset() {
 	val.ConfiguredHostname.Reset()
 	val.Container.Reset()
 	val.DetectedHostname.Reset()
-	val.HostnameDeprecated.Reset()
+	val.DeprecatedHostname.Reset()
 	val.Kubernetes.Reset()
 	val.Platform.Reset()
 }
@@ -471,7 +471,7 @@ func (val *metadataSystem) validate() error {
 	if utf8.RuneCountInString(val.DetectedHostname.Val) > 1024 {
 		return fmt.Errorf("'detected_hostname': validation rule 'max(1024)' violated")
 	}
-	if utf8.RuneCountInString(val.HostnameDeprecated.Val) > 1024 {
+	if utf8.RuneCountInString(val.DeprecatedHostname.Val) > 1024 {
 		return fmt.Errorf("'hostname': validation rule 'max(1024)' violated")
 	}
 	if err := val.Kubernetes.validate(); err != nil {

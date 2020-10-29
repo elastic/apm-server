@@ -291,7 +291,7 @@ type metadataSystem struct {
 	ConfiguredHostname nullable.String          `json:"configured_hostname" validate:"max=1024"`
 	Container          metadataSystemContainer  `json:"container"`
 	DetectedHostname   nullable.String          `json:"detected_hostname" validate:"max=1024"`
-	HostnameDeprecated nullable.String          `json:"hostname" validate:"max=1024"`
+	DeprecatedHostname nullable.String          `json:"hostname" validate:"max=1024"`
 	Kubernetes         metadataSystemKubernetes `json:"kubernetes"`
 	Platform           nullable.String          `json:"platform" validate:"max=1024"`
 }
