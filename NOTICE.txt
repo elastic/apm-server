@@ -639,7 +639,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 9ab0a9182373
+Revision: 633285e75a03
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3718,7 +3718,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/ecszap
-Version: v0.2.0
+Version: v0.3.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE.txt":
 
@@ -3909,7 +3909,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 84dcc777aaee
+Revision: 9e8e0b390897
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3943,7 +3943,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 4f7140c49acb
+Revision: 942e2f445f3c
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4045,7 +4045,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: dfb3f7c4e634
+Revision: 201ba4db2418
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4079,7 +4079,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/text
-Version: v0.3.3
+Version: v0.3.4
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4309,7 +4309,7 @@ Contents of "LICENSE.libyaml":
 
 --------------------------------------------------------------------
 Dependency: howett.net/plist
-Revision: 3b63eb3a43b5
+Revision: 117a925f2150
 License type (autodetected): BSD-2-Clause
 Contents of "LICENSE":
 
