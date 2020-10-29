@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -135,6 +136,32 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+	})
+
+	t.Run("outcome", func(t *testing.T) {
+		var input span
+		var out model.Span
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		// set from input, ignore status code
+		input.Outcome.Set("failure")
+		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from other fields - success
+		input.Outcome.Reset()
+		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "success", out.Outcome)
+		// derive from other fields - failure
+		input.Outcome.Reset()
+		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from other fields - unknown
+		input.Outcome.Reset()
+		input.Context.HTTP.StatusCode.Reset()
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "unknown", out.Outcome)
 	})
 
 	t.Run("timestamp", func(t *testing.T) {

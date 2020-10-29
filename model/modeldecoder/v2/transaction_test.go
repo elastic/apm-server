@@ -124,18 +124,28 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out model.Transaction
 		input.Context.Request.Headers.Set(http.Header{})
-		input.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
 		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
+		// from headers (case insensitive)
+		input.Context.Request.Headers.Val.Add("x-Real-ip", gatewayIP.String())
 		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{Experimental: false}, &out)
-		assert.Equal(t, gatewayIP, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
+		assert.Equal(t, gatewayIP.String(), out.Metadata.Client.IP.String())
+		// ignore if set in metadata
+		out = model.Transaction{}
+		metadata := model.Metadata{Client: model.Client{IP: net.ParseIP("192.17.1.1")}}
+		mapToTransactionModel(&input, &metadata, time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		assert.Equal(t, "192.17.1.1", out.Metadata.Client.IP.String())
 	})
 
 	t.Run("client-ip-socket", func(t *testing.T) {
 		var input transaction
 		var out model.Transaction
+		// set invalid headers
+		input.Context.Request.Headers.Set(http.Header{})
+		input.Context.Request.Headers.Val.Add("x-Real-ip", "192.13.14:8097")
 		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
 		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{Experimental: false}, &out)
-		assert.Equal(t, randomIP, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
+		// ensure client ip is populated from socket
+		assert.Equal(t, randomIP.String(), out.Metadata.Client.IP.String())
 	})
 
 	t.Run("overwrite-user", func(t *testing.T) {
@@ -219,4 +229,29 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, 0.0, out.RepresentativeCount)
 	})
 
+	t.Run("outcome", func(t *testing.T) {
+		var input transaction
+		var out model.Transaction
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		// set from input, ignore status code
+		input.Outcome.Set("failure")
+		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from other fields - success
+		input.Outcome.Reset()
+		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "success", out.Outcome)
+		// derive from other fields - failure
+		input.Outcome.Reset()
+		input.Context.Response.StatusCode.Set(http.StatusInternalServerError)
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from other fields - unknown
+		input.Outcome.Reset()
+		input.Context.Response.StatusCode.Reset()
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), modeldecoder.Config{}, &out)
+		assert.Equal(t, "unknown", out.Outcome)
+	})
 }

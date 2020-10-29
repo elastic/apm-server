@@ -19,6 +19,7 @@ package rumv3
 
 import (
 	"net"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -232,6 +233,58 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		otherVal.Update(reqTime.Add(otherStart)) //for rumv3 the timestamp is always set from the request time
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+	})
+
+	t.Run("span-outcome", func(t *testing.T) {
+		var input span
+		var out model.Span
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		// set from input, ignore status code
+		input.Outcome.Set("failure")
+		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from span fields - success
+		input.Outcome.Reset()
+		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "success", out.Outcome)
+		// derive from span fields - failure
+		input.Outcome.Reset()
+		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from span fields - unknown
+		input.Outcome.Reset()
+		input.Context.HTTP.StatusCode.Reset()
+		mapToSpanModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "unknown", out.Outcome)
+	})
+
+	t.Run("transaction-outcome", func(t *testing.T) {
+		var input transaction
+		var out model.Transaction
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		// set from input, ignore status code
+		input.Outcome.Set("failure")
+		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from span fields - success
+		input.Outcome.Reset()
+		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "success", out.Outcome)
+		// derive from span fields - failure
+		input.Outcome.Reset()
+		input.Context.Response.StatusCode.Set(http.StatusInternalServerError)
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "failure", out.Outcome)
+		// derive from span fields - unknown
+		input.Outcome.Reset()
+		input.Context.Response.StatusCode.Reset()
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, "unknown", out.Outcome)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
