@@ -66,7 +66,7 @@ type context struct {
 	Response     contextResponse    `json:"response"`
 	Request      contextRequest     `json:"request"`
 	Service      contextService     `json:"service"`
-	Tags         common.MapStr      `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Tags         common.MapStr      `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 	User         user               `json:"user"`
 }
 
@@ -91,7 +91,7 @@ type contextPage struct {
 }
 
 type contextRequest struct {
-	Body        nullable.Interface   `json:"body" validate:"types=string;map[string]interface"`
+	Body        nullable.Interface   `json:"body" validate:"inputTypes=string;map[string]interface"`
 	Cookies     common.MapStr        `json:"cookies"`
 	Env         common.MapStr        `json:"env"`
 	Headers     nullable.HTTPHeader  `json:"headers"`
@@ -109,7 +109,7 @@ type contextRequestURL struct {
 	Hash     nullable.String    `json:"hash" validate:"max=1024"`
 	Hostname nullable.String    `json:"hostname" validate:"max=1024"`
 	Path     nullable.String    `json:"pathname" validate:"max=1024"`
-	Port     nullable.Interface `json:"port" validate:"max=1024,types=string;int"`
+	Port     nullable.Interface `json:"port" validate:"inputTypes=string;int,targetType=int"`
 	Protocol nullable.String    `json:"protocol" validate:"max=1024"`
 	Raw      nullable.String    `json:"raw" validate:"max=1024"`
 	Search   nullable.String    `json:"search" validate:"max=1024"`
@@ -182,7 +182,7 @@ type errorEvent struct {
 
 type errorException struct {
 	Attributes common.MapStr      `json:"attributes"`
-	Code       nullable.Interface `json:"code" validate:"types=string;int,max=1024"`
+	Code       nullable.Interface `json:"code" validate:"inputTypes=string;int,max=1024"`
 	Cause      []errorException   `json:"cause"`
 	Handled    nullable.Bool      `json:"handled"`
 	Message    nullable.String    `json:"message"`
@@ -207,7 +207,7 @@ type errorTransactionRef struct {
 
 type metadata struct {
 	Cloud   metadataCloud   `json:"cloud"`
-	Labels  common.MapStr   `json:"labels" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Labels  common.MapStr   `json:"labels" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 	Process metadataProcess `json:"process"`
 	Service metadataService `json:"service" validate:"required"`
 	System  metadataSystem  `json:"system"`
@@ -325,7 +325,7 @@ type metricset struct {
 	Timestamp   nullable.TimeMicrosUnix         `json:"timestamp"`
 	Samples     map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=regexpNoAsteriskQuote"`
 	Span        metricsetSpanRef                `json:"span"`
-	Tags        common.MapStr                   `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Tags        common.MapStr                   `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 	Transaction metricsetTransactionRef         `json:"transaction"`
 }
 
@@ -377,7 +377,7 @@ type spanContext struct {
 	HTTP         spanContextHTTP        `json:"http"`
 	Message      contextMessage         `json:"message"`
 	Service      contextService         `json:"service"`
-	Tags         common.MapStr          `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Tags         common.MapStr          `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 }
 
 type spanContextDatabase struct {
@@ -498,7 +498,7 @@ type longtaskMetrics struct {
 }
 
 type user struct {
-	ID    nullable.Interface `json:"id" validate:"max=1024,types=string;int"`
+	ID    nullable.Interface `json:"id" validate:"max=1024,inputTypes=string;int"`
 	Email nullable.String    `json:"email" validate:"max=1024"`
 	Name  nullable.String    `json:"username" validate:"max=1024"`
 }

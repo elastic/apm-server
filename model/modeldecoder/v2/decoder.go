@@ -644,6 +644,7 @@ func mapToRequestURLModel(from contextRequestURL, out *model.URL) {
 		out.Scheme = &trimmed
 	}
 	if from.Port.IsSet() {
+		// should never result in an error, type is checked when decoding
 		port, err := strconv.Atoi(fmt.Sprint(from.Port.Val))
 		if err == nil {
 			out.Port = &port

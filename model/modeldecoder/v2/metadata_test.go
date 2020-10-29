@@ -151,4 +151,8 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
+
+	t.Run("system", func(t *testing.T) {
+
+	})
 }
