@@ -68,7 +68,7 @@ func Handler(report publish.Reporter) request.Handler {
 		}
 		validateCount.Inc()
 		if err := validate(smap); err != nil {
-			validateCount.Inc()
+			validateError.Inc()
 			c.Result.SetWithError(request.IDResponseErrorsValidate, err)
 			c.Write()
 			return
