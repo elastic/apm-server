@@ -100,7 +100,7 @@ if utf8.RuneCountInString(t) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], ruleMinMaxOperator(maxRule.name), maxRule.value, jsonName(f), maxRule.name, maxRule.value)
-			} else if targetTypeRule != (validationRule{}) {
+			} else if targetTypeRule.value == "int" {
 				fmt.Fprintf(w, `
 if _, err := strconv.Atoi(t); err != nil{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
