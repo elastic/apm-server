@@ -500,8 +500,8 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 		out.System.DetectedHostname = from.System.DetectedHostname.Val
 	}
 	if !from.System.ConfiguredHostname.IsSet() && !from.System.DetectedHostname.IsSet() &&
-		from.System.HostnameDeprecated.IsSet() {
-		out.System.DetectedHostname = from.System.HostnameDeprecated.Val
+		from.System.DeprecatedHostname.IsSet() {
+		out.System.DetectedHostname = from.System.DeprecatedHostname.Val
 	}
 	if from.System.Kubernetes.Namespace.IsSet() {
 		out.System.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val
@@ -644,6 +644,7 @@ func mapToRequestURLModel(from contextRequestURL, out *model.URL) {
 		out.Scheme = &trimmed
 	}
 	if from.Port.IsSet() {
+		// should never result in an error, type is checked when decoding
 		port, err := strconv.Atoi(fmt.Sprint(from.Port.Val))
 		if err == nil {
 			out.Port = &port

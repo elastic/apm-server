@@ -188,8 +188,7 @@ func (h *Http) UserAgent() string {
 	if h == nil || h.Request == nil {
 		return ""
 	}
-	dec := utility.ManualDecoder{}
-	return dec.UserAgentHeader(h.Request.Headers)
+	return utility.UserAgentHeader(h.Request.Headers)
 }
 
 // Fields returns common.MapStr holding transformed data for attribute page.

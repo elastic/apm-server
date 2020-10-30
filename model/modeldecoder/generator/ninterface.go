@@ -32,12 +32,14 @@ func generateNullableInterfaceValidation(w io.Writer, fields []structField, f st
 	}
 	for _, rule := range rules {
 		switch rule.name {
-		case tagMin, tagMax:
+		case tagMin, tagMax, tagTargetType:
 			//handled in switch statement for string types
 		case tagRequired:
 			ruleNullableRequired(w, f)
-		case tagTypes:
-			nullableInterfaceRuleTypes(w, f, rules, rule)
+		case tagInputTypes:
+			if err := nullableInterfaceRuleTypes(w, f, rules, rule); err != nil {
+				return errors.Wrap(err, "nullableInterface")
+			}
 		default:
 			errors.Wrap(errUnhandledTagRule(rule), "nullableInterface")
 		}
@@ -45,9 +47,11 @@ func generateNullableInterfaceValidation(w io.Writer, fields []structField, f st
 	return nil
 }
 
-func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRule, rule validationRule) {
+func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRule, rule validationRule) error {
 	var isRequired bool
 	var maxRule validationRule
+	var targetTypeRule validationRule
+	var useValue bool
 	for _, r := range rules {
 		if r.name == tagRequired {
 			isRequired = true
@@ -55,12 +59,21 @@ func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRu
 		}
 		if r.name == tagMax {
 			maxRule = r
+			useValue = true
+			continue
+		}
+		if r.name == tagTargetType {
+			targetTypeRule = r
+			if targetTypeRule.value != "int" {
+				return fmt.Errorf("unhandled targetType %s", targetTypeRule.value)
+			}
+			useValue = true
 			continue
 		}
 	}
 
 	var switchStmt string
-	if maxRule != (validationRule{}) {
+	if useValue {
 		switchStmt = `switch t := val.%s.Val.(type){`
 	} else {
 		switchStmt = `switch val.%s.Val.(type){`
@@ -87,19 +100,19 @@ if utf8.RuneCountInString(t) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], ruleMinMaxOperator(maxRule.name), maxRule.value, jsonName(f), maxRule.name, maxRule.value)
+			} else if targetTypeRule.value == "int" {
+				fmt.Fprintf(w, `
+if _, err := strconv.Atoi(t); err != nil{
+	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
+}
+`[1:], jsonName(f), targetTypeRule.name, targetTypeRule.value)
 			}
-		case "interface":
-			fmt.Fprint(w, `
-case interface{}:
-`[1:])
 		case "map[string]interface":
 			fmt.Fprint(w, `
 case map[string]interface{}:
 `[1:])
 		default:
-			fmt.Fprintf(w, `
-case %s:
-`[1:], typ)
+			return fmt.Errorf("unhandled %s %s", rule.name, rule.value)
 		}
 	}
 	if !isRequired {
@@ -112,4 +125,5 @@ default:
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated ")
 }
 `[1:], jsonName(f), rule.name, rule.value)
+	return nil
 }
