@@ -71,7 +71,7 @@ func TestTransactionAggregation(t *testing.T) {
 	}
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
