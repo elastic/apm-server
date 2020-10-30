@@ -63,7 +63,7 @@ Default: `1000`.
 The fixed, worst-case percentage error (specified as a number of significant digits)
 to maintain for recorded metrics.
 Supported values are `1` through `5`.
-See {ref}/search-aggregations-metrics-percentile-aggregation.html#_hdr_histogram[HDR histogram] for more information.
+See {ref}/search-aggregations-metrics-percentile-aggregation.html#_hdr_histogram_2[HDR histogram] for more information.
 
 Default: `2`.
 
