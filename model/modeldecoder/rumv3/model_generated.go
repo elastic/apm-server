@@ -74,7 +74,7 @@ func (val *metadata) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'l': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'l': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	if err := val.Service.validate(); err != nil {
@@ -271,11 +271,11 @@ func (val *user) validate() error {
 	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
-			return fmt.Errorf("'id': validation rule 'types(string;int)' violated")
+			return fmt.Errorf("'id': validation rule 'inputTypes(string;int)' violated")
 		}
 	case nil:
 	default:
-		return fmt.Errorf("'id': validation rule 'types(string;int)' violated ")
+		return fmt.Errorf("'id': validation rule 'inputTypes(string;int)' violated ")
 	}
 	if utf8.RuneCountInString(val.Email.Val) > 1024 {
 		return fmt.Errorf("'em': validation rule 'max(1024)' violated")
@@ -429,7 +429,7 @@ func (val *context) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'g': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'g': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	if err := val.User.validate(); err != nil {
@@ -670,11 +670,11 @@ func (val *errorException) validate() error {
 	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
-			return fmt.Errorf("'cd': validation rule 'types(string;int)' violated")
+			return fmt.Errorf("'cd': validation rule 'inputTypes(string;int)' violated")
 		}
 	case nil:
 	default:
-		return fmt.Errorf("'cd': validation rule 'types(string;int)' violated ")
+		return fmt.Errorf("'cd': validation rule 'inputTypes(string;int)' violated ")
 	}
 	for _, elem := range val.Cause {
 		if err := elem.validate(); err != nil {
@@ -839,7 +839,7 @@ func (val *metricset) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'g': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'g': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	return nil
@@ -1296,7 +1296,7 @@ func (val *spanContext) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'g': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'g': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	return nil

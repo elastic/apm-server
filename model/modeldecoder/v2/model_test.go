@@ -43,8 +43,8 @@ func TestUserValidationRules(t *testing.T) {
 	testcases := []testcase{
 		{name: "id-string", data: `{"id":"user123"}`},
 		{name: "id-int", data: `{"id":44}`},
-		{name: "id-float", errorKey: "types", data: `{"id":45.6}`},
-		{name: "id-bool", errorKey: "types", data: `{"id":true}`},
+		{name: "id-float", errorKey: "inputTypes", data: `{"id":45.6}`},
+		{name: "id-bool", errorKey: "inputTypes", data: `{"id":true}`},
 		{name: "id-string-max-len", data: `{"id":"` + modeldecodertest.BuildString(1024) + `"}`},
 		{name: "id-string-max-len-exceeded", errorKey: "max", data: `{"id":"` + modeldecodertest.BuildString(1025) + `"}`},
 	}
@@ -71,8 +71,8 @@ func TestServiceValidationRules(t *testing.T) {
 func TestLabelValidationRules(t *testing.T) {
 	testcases := []testcase{
 		{name: "valid", data: `{"k1":"v1.s*\"","k2":2.3,"k3":3,"k4":true,"k5":null}`},
-		{name: "restricted-type", errorKey: "typesVals", data: `{"k1":{"k2":"v1"}}`},
-		{name: "restricted-type-slice", errorKey: "typesVals", data: `{"k1":{"v1":[1,2,3]}}`},
+		{name: "restricted-type", errorKey: "inputTypesVals", data: `{"k1":{"k2":"v1"}}`},
+		{name: "restricted-type-slice", errorKey: "inputTypesVals", data: `{"k1":{"v1":[1,2,3]}}`},
 		{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
 		{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
 		{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
@@ -162,9 +162,11 @@ func TestURLValidationRules(t *testing.T) {
 	testcases := []testcase{
 		{name: "port-string", data: `{"request":{"method":"get","url":{"port":"8200"}}}`},
 		{name: "port-int", data: `{"request":{"method":"get","url":{"port":8200}}}`},
-		{name: "port-invalid-type", errorKey: "types",
+		{name: "port-invalid-string", errorKey: "targetType",
+			data: `{"request":{"method":"get","url":{"port":"invalid"}}}`},
+		{name: "port-invalid-type", errorKey: "inputTypes",
 			data: `{"request":{"method":"get","url":{"port":[8200,8201]}}}`},
-		{name: "port-invalid-type", errorKey: "types",
+		{name: "port-invalid-type", errorKey: "inputTypes",
 			data: `{"request":{"method":"get","url":{"port":{"val":8200}}}}`},
 	}
 	testValidation(t, "transaction", testcases, "context")

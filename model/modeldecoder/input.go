@@ -25,9 +25,6 @@ import (
 
 // Input holds the input required for decoding an event.
 type Input struct {
-	// Raw holds the raw input, decoded by encoding/json.
-	Raw interface{}
-
 	// RequestTime is the time at which the event was received
 	// by the server. This is used to set the timestamp for
 	// events sent by RUM.
@@ -47,6 +44,4 @@ type Input struct {
 // Config holds static configuration which applies to all decoding.
 type Config struct {
 	Experimental bool
-	// RUM v3 support
-	HasShortFieldNames bool
 }
