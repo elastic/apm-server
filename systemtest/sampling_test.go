@@ -26,6 +26,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -95,24 +96,21 @@ func TestTailSampling(t *testing.T) {
 
 	srv1 := apmservertest.NewUnstartedServer(t)
 	srv1.Config.Sampling = &apmservertest.SamplingConfig{
-		KeepUnsampled: false,
 		Tail: &apmservertest.TailSamplingConfig{
-			Enabled:           true,
-			DefaultSampleRate: 0.5,
-			Interval:          time.Second,
+			Enabled:  true,
+			Interval: time.Second,
+			Policies: []apmservertest.TailSamplingPolicy{{SampleRate: 0.5}},
 		},
+	}
+	srv1.Config.Monitoring = &apmservertest.MonitoringConfig{
+		Enabled:       true,
+		MetricsPeriod: 100 * time.Millisecond,
+		StatePeriod:   100 * time.Millisecond,
 	}
 	require.NoError(t, srv1.Start())
 
 	srv2 := apmservertest.NewUnstartedServer(t)
-	srv2.Config.Sampling = &apmservertest.SamplingConfig{
-		KeepUnsampled: false,
-		Tail: &apmservertest.TailSamplingConfig{
-			Enabled:           true,
-			DefaultSampleRate: 0.5,
-			Interval:          time.Second,
-		},
-	}
+	srv2.Config.Sampling = srv1.Config.Sampling
 	require.NoError(t, srv2.Start())
 
 	const total = 200
@@ -145,4 +143,63 @@ func TestTailSampling(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, result.Hits.Hits, expected)
 	}
+
+	// Make sure apm-server.sampling.tail metrics are published. Metric values are unit tested.
+	doc := getBeatsMonitoringStats(t, srv1, nil)
+	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.tail").Exists())
+
+	// Check tail-sampling config is reported in telemetry.
+	var state struct {
+		APMServer struct {
+			Sampling struct {
+				Tail struct {
+					Enabled  bool
+					Policies int
+				}
+			}
+		} `mapstructure:"apm-server"`
+	}
+	getBeatsMonitoringState(t, srv1, &state)
+	assert.True(t, state.APMServer.Sampling.Tail.Enabled)
+	assert.Equal(t, 1, state.APMServer.Sampling.Tail.Policies)
+}
+
+func TestTailSamplingUnlicensed(t *testing.T) {
+	// Start an ephemeral Elasticsearch container with a Basic license to
+	// test that tail-based sampling requires a platinum or trial license.
+	es, err := systemtest.NewUnstartedElasticsearchContainer()
+	require.NoError(t, err)
+	es.Env["xpack.license.self_generated.type"] = "basic"
+	require.NoError(t, es.Start())
+	defer es.Close()
+
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
+	srv.Config.Sampling = &apmservertest.SamplingConfig{
+		Tail: &apmservertest.TailSamplingConfig{
+			Enabled:  true,
+			Interval: time.Second,
+			Policies: []apmservertest.TailSamplingPolicy{{SampleRate: 0.5}},
+		},
+	}
+	require.NoError(t, srv.Start())
+
+	timeout := time.After(time.Minute)
+	logs := srv.Logs.Iterator()
+	for {
+		select {
+		case entry := <-logs.C():
+			if strings.Contains(entry.Message, "invalid license") {
+				return
+			}
+		case <-timeout:
+			t.Fatal("timed out waiting for log message")
+		}
+	}
+
+	// Due to the failing license check, APM Server will refuse to index anything.
+	var result estest.SearchResult
+	_, err = es.Client.Search("apm-*").Do(context.Background(), &result)
+	assert.NoError(t, err)
+	assert.Empty(t, result.Hits.Hits)
 }

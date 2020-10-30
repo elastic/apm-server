@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
-	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 )
@@ -133,7 +132,7 @@ func rumV3IntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter p
 }
 
 func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := sourcemap.Handler(sourcemap.DecodeSourcemapFormData, psourcemap.Processor, reporter)
+	h := sourcemap.Handler(reporter)
 	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
 	return middleware.Wrap(h, sourcemapMiddleware(cfg, authHandler)...)
 }

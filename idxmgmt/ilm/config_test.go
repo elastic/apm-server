@@ -163,7 +163,11 @@ func TestConfig_Valid(t *testing.T) {
 							Index: "apm-9.9.9-error"}
 						return m
 					}(),
-					Policies: defaultPolicies(),
+					Policies: func() map[string]Policy {
+						p := defaultPolicies()
+						p["errorPolicy"] = Policy{Name: "errorPolicy"}
+						return p
+					}(),
 				}},
 		},
 	} {

@@ -23,7 +23,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
-	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -45,6 +44,8 @@ type configTelemetry struct {
 	jaegerGRPCEnabled         *monitoring.Bool
 	jaegerHTTPEnabled         *monitoring.Bool
 	sslEnabled                *monitoring.Bool
+	tailSamplingEnabled       *monitoring.Bool
+	tailSamplingPolicies      *monitoring.Int
 }
 
 var configMonitors = &configTelemetry{
@@ -63,13 +64,14 @@ var configMonitors = &configTelemetry{
 	jaegerGRPCEnabled:         monitoring.NewBool(apmRegistry, "jaeger.grpc.enabled"),
 	jaegerHTTPEnabled:         monitoring.NewBool(apmRegistry, "jaeger.http.enabled"),
 	sslEnabled:                monitoring.NewBool(apmRegistry, "ssl.enabled"),
+	tailSamplingEnabled:       monitoring.NewBool(apmRegistry, "sampling.tail.enabled"),
+	tailSamplingPolicies:      monitoring.NewInt(apmRegistry, "sampling.tail.policies"),
 }
 
-func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config, logger *logp.Logger) {
+func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config) error {
 	indexManagementCfg, err := idxmgmt.NewIndexManagementConfig(info, rootCfg)
 	if err != nil {
-		logger.Errorf("Error recording telemetry data", err)
-		return
+		return err
 	}
 	configMonitors.rumEnabled.Set(apmCfg.RumConfig.IsEnabled())
 	configMonitors.apiKeysEnabled.Set(apmCfg.APIKeyConfig.IsEnabled())
@@ -87,4 +89,11 @@ func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config
 	configMonitors.ilmSetupRequirePolicy.Set(indexManagementCfg.ILM.Setup.RequirePolicy)
 	mode := indexManagementCfg.ILM.Mode
 	configMonitors.ilmEnabled.Set(mode == ilm.ModeAuto || mode == ilm.ModeEnabled)
+
+	tailSamplingEnabled := apmCfg.Sampling.Tail != nil && apmCfg.Sampling.Tail.Enabled
+	configMonitors.tailSamplingEnabled.Set(tailSamplingEnabled)
+	if tailSamplingEnabled {
+		configMonitors.tailSamplingPolicies.Set(int64(len(apmCfg.Sampling.Tail.Policies)))
+	}
+	return nil
 }

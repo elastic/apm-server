@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -42,8 +43,8 @@ func TestUserValidationRules(t *testing.T) {
 	testcases := []testcase{
 		{name: "id-string", data: `{"id":"user123"}`},
 		{name: "id-int", data: `{"id":44}`},
-		{name: "id-float", errorKey: "types", data: `{"id":45.6}`},
-		{name: "id-bool", errorKey: "types", data: `{"id":true}`},
+		{name: "id-float", errorKey: "inputTypes", data: `{"id":45.6}`},
+		{name: "id-bool", errorKey: "inputTypes", data: `{"id":true}`},
 		{name: "id-string-max-len", data: `{"id":"` + modeldecodertest.BuildString(1024) + `"}`},
 		{name: "id-string-max-len-exceeded", errorKey: "max", data: `{"id":"` + modeldecodertest.BuildString(1025) + `"}`},
 	}
@@ -70,8 +71,8 @@ func TestServiceValidationRules(t *testing.T) {
 func TestLabelValidationRules(t *testing.T) {
 	testcases := []testcase{
 		{name: "valid", data: `{"k1":"v1.s*\"","k2":2.3,"k3":3,"k4":true,"k5":null}`},
-		{name: "restricted-type", errorKey: "typesVals", data: `{"k1":{"k2":"v1"}}`},
-		{name: "restricted-type-slice", errorKey: "typesVals", data: `{"k1":{"v1":[1,2,3]}}`},
+		{name: "restricted-type", errorKey: "inputTypesVals", data: `{"k1":{"k2":"v1"}}`},
+		{name: "restricted-type-slice", errorKey: "inputTypesVals", data: `{"k1":{"v1":[1,2,3]}}`},
 		{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
 		{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
 		{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
@@ -161,9 +162,11 @@ func TestURLValidationRules(t *testing.T) {
 	testcases := []testcase{
 		{name: "port-string", data: `{"request":{"method":"get","url":{"port":"8200"}}}`},
 		{name: "port-int", data: `{"request":{"method":"get","url":{"port":8200}}}`},
-		{name: "port-invalid-type", errorKey: "types",
+		{name: "port-invalid-string", errorKey: "targetType",
+			data: `{"request":{"method":"get","url":{"port":"invalid"}}}`},
+		{name: "port-invalid-type", errorKey: "inputTypes",
 			data: `{"request":{"method":"get","url":{"port":[8200,8201]}}}`},
-		{name: "port-invalid-type", errorKey: "types",
+		{name: "port-invalid-type", errorKey: "inputTypes",
 			data: `{"request":{"method":"get","url":{"port":{"val":8200}}}}`},
 	}
 	testValidation(t, "transaction", testcases, "context")
@@ -296,17 +299,8 @@ func TestErrorRequiredValidationRules(t *testing.T) {
 		"parent_id":                            nil, //requiredIf
 		"trace_id":                             nil, //requiredIf
 	}
-	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
-	})
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
 func TestErrorRequiredOneOfValidationRules(t *testing.T) {
@@ -478,11 +472,11 @@ func TestErrorRequiredIfAnyValidationRules(t *testing.T) {
 }
 
 func TestMetadataRequiredValidationRules(t *testing.T) {
-	// setup: create full metadata struct with arbitrary values set
-	var metadata metadata
-	modeldecodertest.InitStructValues(&metadata)
+	// setup: create full event struct with arbitrary values set
+	var event metadata
+	modeldecodertest.InitStructValues(&event)
 	// test vanilla struct is valid
-	require.NoError(t, metadata.validate())
+	require.NoError(t, event.validate())
 
 	// iterate through struct, remove every key one by one
 	// and test that validation behaves as expected
@@ -498,17 +492,8 @@ func TestMetadataRequiredValidationRules(t *testing.T) {
 		"service.runtime.version": nil,
 		"service.name":            nil,
 	}
-	modeldecodertest.SetZeroStructValue(&metadata, func(key string) {
-		err := metadata.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
-	})
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
 func TestMetricsetRequiredValidationRules(t *testing.T) {
@@ -527,15 +512,7 @@ func TestMetricsetRequiredValidationRules(t *testing.T) {
 		"samples.value": nil,
 	}
 	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
+		assertRequiredFn(t, requiredKeys, event.validate)
 	})
 }
 
@@ -557,21 +534,11 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 		"duration":                             nil,
 		"name":                                 nil,
 		"parent_id":                            nil,
-		"stacktrace.filename":                  nil,
 		"trace_id":                             nil,
 		"type":                                 nil,
 	}
-	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
-			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
-				assert.Contains(t, err.Error(), part)
-			}
-		} else {
-			assert.NoError(t, err, key)
-		}
-	})
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
 }
 
 func TestTransactionRequiredValidationRules(t *testing.T) {
@@ -596,17 +563,25 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 		"experience.longtask.sum":   nil,
 		"experience.longtask.max":   nil,
 	}
-	modeldecodertest.SetZeroStructValue(&event, func(key string) {
-		err := event.validate()
-		if _, ok := requiredKeys[key]; ok {
+	cb := assertRequiredFn(t, requiredKeys, event.validate)
+	modeldecodertest.SetZeroStructValue(&event, cb)
+}
+
+var regexpArrayAccessor = regexp.MustCompile(`\[.*\]\.`)
+
+func assertRequiredFn(t *testing.T, keys map[string]interface{}, validate func() error) func(key string) {
+	return func(key string) {
+		s := regexpArrayAccessor.ReplaceAllString(key, "")
+		err := validate()
+		if _, ok := keys[s]; ok {
 			require.Error(t, err, key)
-			for _, part := range strings.Split(key, ".") {
+			for _, part := range strings.Split(s, ".") {
 				assert.Contains(t, err.Error(), part)
 			}
 		} else {
 			assert.NoError(t, err, key)
 		}
-	})
+	}
 }
 
 //

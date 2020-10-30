@@ -14,6 +14,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/elastic/beats/v7/libbeat/paths"
+	"github.com/elastic/beats/v7/x-pack/libbeat/licenser"
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/elasticsearch"
@@ -27,6 +28,10 @@ import (
 
 var (
 	aggregationMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.aggregation")
+
+	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
+	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
+	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
 )
 
 type namedProcessor struct {
@@ -79,25 +84,51 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", name)
 		}
+		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
 		processors = append(processors, namedProcessor{name: name, processor: sampler})
 	}
 	return processors, nil
 }
 
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
+	// Tail-based sampling is a Platinum-licensed feature.
+	//
+	// FIXME(axw) each time licenser.Enforce is called an additional global
+	// callback is registered with Elasticsearch, which fetches the license
+	// and checks it. The root command already calls licenser.Enforce with
+	// licenser.BasicAndAboveOrTrial. We need to make this overridable to
+	// avoid redundant checks.
+	checkPlatinum := licenser.CheckLicenseCover(licenser.Platinum)
+	licenser.Enforce("apm-server", func(logger *logp.Logger, license licenser.License) bool {
+		logger.Infof("Checking license for tail-based sampling")
+		return checkPlatinum(logger, license) || licenser.CheckTrial(logger, license)
+	})
+
 	tailSamplingConfig := args.Config.Sampling.Tail
 	es, err := elasticsearch.NewClient(tailSamplingConfig.ESConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
+	}
+	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
+	for i, in := range tailSamplingConfig.Policies {
+		policies[i] = sampling.Policy{
+			PolicyCriteria: sampling.PolicyCriteria{
+				ServiceName:        in.Service.Name,
+				ServiceEnvironment: in.Service.Environment,
+				TraceName:          in.Trace.Name,
+				TraceOutcome:       in.Trace.Outcome,
+			},
+			SampleRate: in.SampleRate,
+		}
 	}
 	return sampling.NewProcessor(sampling.Config{
 		BeatID:   args.Info.ID.String(),
 		Reporter: args.Reporter,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval: tailSamplingConfig.Interval,
-			// TODO(axw) make MaxTraceGroups configurable?
-			MaxTraceGroups:        1000,
-			DefaultSampleRate:     tailSamplingConfig.DefaultSampleRate,
+			// TODO(axw) make MaxDynamicServices configurable?
+			MaxDynamicServices:    1000,
+			Policies:              policies,
 			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{

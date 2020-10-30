@@ -15,19 +15,90 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-func TestTraceGroups(t *testing.T) {
-	const (
-		maxGroups               = 100
-		defaultSamplingFraction = 1.0
-		ingestRateCoefficient   = 1.0
-	)
+func TestTraceGroupsPolicies(t *testing.T) {
+	makeTransaction := func(serviceName, serviceEnvironment, traceOutcome, traceName string) *model.Transaction {
+		return &model.Transaction{
+			Metadata: model.Metadata{
+				Service: model.Service{
+					Name:        serviceName,
+					Environment: serviceEnvironment,
+				},
+			},
+			Name:    traceName,
+			Outcome: traceOutcome,
+			TraceID: uuid.Must(uuid.NewV4()).String(),
+			ID:      uuid.Must(uuid.NewV4()).String(),
+		}
+	}
+	makePolicy := func(sampleRate float64, serviceName, serviceEnvironment, traceOutcome, traceName string) Policy {
+		return Policy{
+			SampleRate: sampleRate,
+			PolicyCriteria: PolicyCriteria{
+				ServiceName:        serviceName,
+				ServiceEnvironment: serviceEnvironment,
+				TraceName:          traceName,
+				TraceOutcome:       traceOutcome,
+			},
+		}
+	}
 
-	groups := newTraceGroups(maxGroups, defaultSamplingFraction, ingestRateCoefficient)
-	for i := 0; i < maxGroups; i++ {
-		transactionName := fmt.Sprintf("transaction_group_%d", i)
+	const (
+		staticServiceName  = "static-service"
+		dynamicServiceName = "dynamic-service"
+	)
+	policies := []Policy{
+		makePolicy(0.4, staticServiceName, "production", "error", "GET /healthcheck"),
+		makePolicy(0.3, staticServiceName, "production", "error", ""),
+		makePolicy(0.2, staticServiceName, "production", "", ""),
+		makePolicy(0.1, staticServiceName, "", "", ""),
+	}
+
+	// Clone the policies without ServiceName set, so we have identical catch-all policies
+	// that will match the dynamic service name.
+	for _, policy := range policies[:] {
+		policy.ServiceName = ""
+		policies = append(policies, policy)
+	}
+	groups := newTraceGroups(policies, 1000, 1.0)
+
+	assertSampleRate := func(sampleRate float64, serviceName, serviceEnvironment, traceOutcome, traceName string) {
+		tx := makeTransaction(serviceName, serviceEnvironment, traceOutcome, traceName)
+		const N = 1000
+		for i := 0; i < N; i++ {
+			if _, err := groups.sampleTrace(tx); err != nil {
+				t.Fatal(err)
+			}
+		}
+		sampled := groups.finalizeSampledTraces(nil)
+		assert.Len(t, sampled, int(sampleRate*N))
+	}
+
+	for _, serviceName := range []string{staticServiceName, dynamicServiceName} {
+		assertSampleRate(0.1, serviceName, "testing", "error", "GET /healthcheck")
+		assertSampleRate(0.2, serviceName, "production", "success", "GET /healthcheck")
+		assertSampleRate(0.3, serviceName, "production", "error", "GET /")
+		assertSampleRate(0.4, serviceName, "production", "error", "GET /healthcheck")
+	}
+}
+
+func TestTraceGroupsMax(t *testing.T) {
+	const (
+		maxDynamicServices    = 100
+		ingestRateCoefficient = 1.0
+	)
+	policies := []Policy{{SampleRate: 1.0}}
+	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
+
+	for i := 0; i < maxDynamicServices; i++ {
+		serviceName := fmt.Sprintf("service_group_%d", i)
 		for i := 0; i < minReservoirSize; i++ {
 			admitted, err := groups.sampleTrace(&model.Transaction{
-				Name:    transactionName,
+				Metadata: model.Metadata{
+					Service: model.Service{
+						Name: serviceName,
+					},
+				},
+				Name:    "whatever",
 				TraceID: uuid.Must(uuid.NewV4()).String(),
 				ID:      uuid.Must(uuid.NewV4()).String(),
 			})
@@ -47,11 +118,11 @@ func TestTraceGroups(t *testing.T) {
 
 func TestTraceGroupReservoirResize(t *testing.T) {
 	const (
-		maxGroups               = 1
-		defaultSamplingFraction = 0.2
-		ingestRateCoefficient   = 0.75
+		maxDynamicServices    = 1
+		ingestRateCoefficient = 0.75
 	)
-	groups := newTraceGroups(maxGroups, defaultSamplingFraction, ingestRateCoefficient)
+	policies := []Policy{{SampleRate: 0.2}}
+	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
 
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
@@ -85,11 +156,11 @@ func TestTraceGroupReservoirResize(t *testing.T) {
 
 func TestTraceGroupReservoirResizeMinimum(t *testing.T) {
 	const (
-		maxGroups               = 1
-		defaultSamplingFraction = 0.1
-		ingestRateCoefficient   = 1.0
+		maxDynamicServices    = 1
+		ingestRateCoefficient = 1.0
 	)
-	groups := newTraceGroups(maxGroups, defaultSamplingFraction, ingestRateCoefficient)
+	policies := []Policy{{SampleRate: 0.1}}
+	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
 
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
@@ -114,38 +185,56 @@ func TestTraceGroupReservoirResizeMinimum(t *testing.T) {
 
 func TestTraceGroupsRemoval(t *testing.T) {
 	const (
-		maxGroups               = 2
-		defaultSamplingFraction = 0.5
-		ingestRateCoefficient   = 1.0
+		maxDynamicServices    = 2
+		ingestRateCoefficient = 1.0
 	)
-	groups := newTraceGroups(maxGroups, defaultSamplingFraction, ingestRateCoefficient)
+	policies := []Policy{
+		{SampleRate: 0.5},
+		{PolicyCriteria: PolicyCriteria{ServiceName: "defined"}, SampleRate: 0.5},
+	}
+	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
 
 	for i := 0; i < 10000; i++ {
-		_, err := groups.sampleTrace(&model.Transaction{Name: "many"})
+		_, err := groups.sampleTrace(&model.Transaction{
+			Metadata: model.Metadata{Service: model.Service{Name: "many"}},
+		})
 		assert.NoError(t, err)
 	}
-	_, err := groups.sampleTrace(&model.Transaction{Name: "few"})
+	_, err := groups.sampleTrace(&model.Transaction{
+		Metadata: model.Metadata{Service: model.Service{Name: "few"}},
+	})
 	assert.NoError(t, err)
 
-	_, err = groups.sampleTrace(&model.Transaction{Name: "another"})
+	_, err = groups.sampleTrace(&model.Transaction{
+		Metadata: model.Metadata{Service: model.Service{Name: "another"}},
+	})
 	assert.Equal(t, errTooManyTraceGroups, err)
+
+	// When there is a policy with an explicitly defined service name, that
+	// will not be affected by the limit.
+	_, err = groups.sampleTrace(&model.Transaction{
+		Metadata: model.Metadata{Service: model.Service{Name: "defined"}},
+	})
+	assert.NoError(t, err)
 
 	// Finalizing should remove the "few" trace group, since its reservoir
 	// size is at the minimum, and the number of groups is at the maximum.
 	groups.finalizeSampledTraces(nil)
 
 	// We should now be able to add another trace group.
-	_, err = groups.sampleTrace(&model.Transaction{Name: "another"})
+	_, err = groups.sampleTrace(&model.Transaction{
+		Metadata: model.Metadata{Service: model.Service{Name: "another"}},
+	})
 	assert.NoError(t, err)
 }
 
 func BenchmarkTraceGroups(b *testing.B) {
 	const (
-		maxGroups               = 1000
-		defaultSamplingFraction = 1.0
-		ingestRateCoefficient   = 1.0
+		maxDynamicServices    = 1000
+		ingestRateCoefficient = 1.0
 	)
-	groups := newTraceGroups(maxGroups, defaultSamplingFraction, ingestRateCoefficient)
+	policies := []Policy{{SampleRate: 1.0}}
+	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
 
 	b.RunParallel(func(pb *testing.PB) {
 		// Transaction identifiers are different for each goroutine, simulating

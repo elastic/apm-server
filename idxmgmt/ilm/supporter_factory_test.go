@@ -18,19 +18,22 @@
 package ilm
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	libcommon "github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/idxmgmt/common"
 )
 
 func TestMakeDefaultSupporter(t *testing.T) {
 	info := beat.Info{Beat: "mockapm", Version: "9.9.9"}
-	cfg, err := NewConfig(info, nil)
+	input := `{"setup":{"require_policy":false,"mapping":[{"event_type":"span","policy_name":"rollover-10d"}]}}`
+	cfg, err := NewConfig(info, libcommon.MustNewConfigFrom(input))
 	require.NoError(t, err)
 
 	s, err := MakeDefaultSupporter(nil, 0, cfg)
@@ -39,7 +42,11 @@ func TestMakeDefaultSupporter(t *testing.T) {
 	var aliases []string
 	for _, sup := range s {
 		aliases = append(aliases, sup.Alias().Name)
-		assert.Equal(t, defaultPolicyName, sup.Policy().Name)
+		expectedPolicyName := defaultPolicyName
+		if strings.Contains(sup.Alias().Name, "span") {
+			expectedPolicyName = "rollover-10d"
+		}
+		assert.Equal(t, expectedPolicyName, sup.Policy().Name)
 	}
 	var defaultAliases []string
 	for _, et := range common.EventTypes {

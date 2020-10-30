@@ -41,7 +41,7 @@ type SamplingConfig struct {
 type TailSamplingConfig struct {
 	Enabled bool `config:"enabled"`
 
-	DefaultSampleRate     float64               `config:"default_sample_rate" validate:"min=0, max=1"`
+	Policies              []TailSamplingPolicy  `config:"policies"`
 	ESConfig              *elasticsearch.Config `config:"elasticsearch"`
 	Interval              time.Duration         `config:"interval" validate:"min=1s"`
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
@@ -50,6 +50,24 @@ type TailSamplingConfig struct {
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 
 	esConfigured bool
+}
+
+// TailSamplingPolicy holds a tail-sampling policy.
+type TailSamplingPolicy struct {
+	// Service holds attributes of the service which this policy matches.
+	Service struct {
+		Name        string `config:"name"`
+		Environment string `config:"environment"`
+	} `config:"service"`
+
+	// Trace holds attributes of the trace which this policy matches.
+	Trace struct {
+		Name    string `config:"name"`
+		Outcome string `config:"outcome"`
+	} `config:"trace"`
+
+	// SampleRate holds the sample rate applied for this policy.
+	SampleRate float64 `config:"sample_rate" validate:"min=0, max=1"`
 }
 
 func (c *TailSamplingConfig) Unpack(in *common.Config) error {
@@ -90,7 +108,6 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 	return TailSamplingConfig{
 		Enabled:               false,
 		ESConfig:              elasticsearch.DefaultConfig(),
-		DefaultSampleRate:     0.5,
 		Interval:              1 * time.Minute,
 		IngestRateDecayFactor: 0.25,
 		StorageDir:            "tail_sampling",

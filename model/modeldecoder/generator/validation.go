@@ -26,17 +26,18 @@ import (
 )
 
 const (
-	tagEnum          = "enum"
-	tagMax           = "max"
-	tagMaxVals       = "maxVals"
-	tagMin           = "min"
-	tagPattern       = "pattern"
-	tagPatternKeys   = "patternKeys"
-	tagRequired      = "required"
-	tagRequiredOneOf = "requiredOneOf"
-	tagRequiredIfAny = "requiredIfAny"
-	tagTypes         = "types"
-	tagTypesVals     = "typesVals"
+	tagEnum           = "enum"
+	tagInputTypes     = "inputTypes"
+	tagInputTypesVals = "inputTypesVals"
+	tagMax            = "max"
+	tagMaxVals        = "maxVals"
+	tagMin            = "min"
+	tagPattern        = "pattern"
+	tagPatternKeys    = "patternKeys"
+	tagRequired       = "required"
+	tagRequiredOneOf  = "requiredOneOf"
+	tagRequiredIfAny  = "requiredIfAny"
+	tagTargetType     = "targetType"
 )
 
 type validationRule struct {

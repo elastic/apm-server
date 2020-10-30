@@ -18,6 +18,7 @@
 package sourcemap
 
 import (
+	"bufio"
 	"strings"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -34,28 +35,34 @@ func Map(mapper *sourcemap.Consumer, lineno, colno int) (
 		return
 	}
 	file, function, line, col, ok = mapper.Source(lineno, colno)
-	src := strings.Split(mapper.SourceContent(file), "\n")
-	contextLine = strings.Join(subSlice(line-1, line, src), "")
-	preContext = subSlice(line-1-sourcemapContentSnippetSize, line-1, src)
-	postContext = subSlice(line, line+sourcemapContentSnippetSize, src)
+	scanner := bufio.NewScanner(strings.NewReader(mapper.SourceContent(file)))
+
+	var currentLine int
+	for scanner.Scan() {
+		currentLine++
+		if currentLine == line {
+			contextLine = scanner.Text()
+		} else if abs(line-currentLine) <= sourcemapContentSnippetSize {
+			if currentLine < line {
+				preContext = append(preContext, scanner.Text())
+			} else {
+				postContext = append(postContext, scanner.Text())
+			}
+		} else if currentLine > line {
+			// More than sourcemapContentSnippetSize lines past, we're done.
+			break
+		}
+	}
+	if scanner.Err() != nil {
+		ok = false
+		return
+	}
 	return
 }
 
-func subSlice(from, to int, content []string) []string {
-	if len(content) == 0 {
-		return content
+func abs(n int) int {
+	if n < 0 {
+		return -n
 	}
-	if from < 0 {
-		from = 0
-	}
-	if to < 0 {
-		to = 0
-	}
-	if from > len(content) {
-		from = len(content)
-	}
-	if to > len(content) {
-		to = len(content)
-	}
-	return content[from:to]
+	return n
 }
