@@ -45,22 +45,30 @@ func TestResetTransactionOnRelease(t *testing.T) {
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: true}}
-		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"exper":"test"}}`
+		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now}
+		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"xds":{"v":2048}}},{"sa":{"ysc":{"v":5}}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var out model.Transaction
+		var out Transaction
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
-		assert.Equal(t, "request", out.Type)
-		assert.Equal(t, "test", out.Experimental)
+		assert.Equal(t, "request", out.Transaction.Type)
 		// fall back to request time
-		assert.Equal(t, now, out.Timestamp)
-
-		// experimental should only be set if allowed by configuration
-		input = modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{Experimental: false}}
-		dec = decoder.NewJSONDecoder(strings.NewReader(str))
-		out = model.Transaction{}
-		require.NoError(t, DecodeNestedTransaction(dec, &input, &out))
-		assert.Nil(t, out.Experimental)
+		assert.Equal(t, now, out.Transaction.Timestamp)
+		// ensure nested metricsets are decoded
+		require.Equal(t, 2, len(out.Metricsets))
+		assert.Equal(t, []model.Sample{{Name: "transaction.duration.sum.us", Value: 2048}}, out.Metricsets[0].Samples)
+		m := out.Metricsets[1]
+		assert.Equal(t, []model.Sample{{Name: "span.self_time.count", Value: 5}}, m.Samples)
+		assert.Equal(t, "tr-a", m.Transaction.Name)
+		assert.Equal(t, "request", m.Transaction.Type)
+		assert.Equal(t, now, m.Timestamp)
+		// ensure nested spans are decoded
+		require.Equal(t, 1, len(out.Spans))
+		sp := out.Spans[0]
+		start := time.Duration(20 * 1000 * 1000)
+		assert.Equal(t, now.Add(start), sp.Timestamp) //add start to timestamp
+		assert.Equal(t, "100", sp.TransactionID)
+		assert.Equal(t, "1", sp.TraceID)
+		assert.Equal(t, "100", sp.ParentID)
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
 		require.Error(t, err)
@@ -68,7 +76,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var out model.Transaction
+		var out Transaction
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
@@ -77,38 +85,24 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
 	localhostIP := net.ParseIP("127.0.0.1")
-	exceptions := func(key string) bool {
-		// values not set for rumV3:
-		for _, k := range []string{"Cloud", "System", "Process", "Service.Node", "Node"} {
-			if strings.HasPrefix(key, k) {
-				return true
-			}
-		}
-		for _, k := range []string{"Service.Agent.EphemeralID",
-			"Agent.EphemeralID", "Message", "RepresentativeCount"} {
-			if k == key {
-				return true
-			}
-		}
-		return false
-	}
 
 	t.Run("metadata-set", func(t *testing.T) {
 		// do not overwrite metadata with zero transaction values
 		var input transaction
 		var out model.Transaction
-		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), &out)
 		// iterate through metadata model and assert values are set
-		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, modeldecodertest.DefaultValues())
+		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions(), modeldecodertest.DefaultValues())
 	})
 
+	//TODO(simitt):test metadata are not sharing memory between events (nested labels!)
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
 		var input transaction
 		var out model.Transaction
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), &out)
 
 		// user-agent should be set to context request header values
 		assert.Equal(t, "d, e", out.Metadata.UserAgent.Original)
@@ -120,9 +114,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
 		assert.Equal(t, &tLabels, out.Labels)
 		// service values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
 		// user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Metadata.User, metadataExceptions(), otherVal)
 	})
 
 	t.Run("overwrite-user", func(t *testing.T) {
@@ -130,23 +124,31 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var inputTr transaction
 		var tr model.Transaction
 		inputTr.Context.User.Email.Set("test@user.com")
-		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), modeldecoder.Config{}, &tr)
+		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), &tr)
 		assert.Equal(t, "test@user.com", tr.Metadata.User.Email)
 		assert.Zero(t, tr.Metadata.User.ID)
 		assert.Zero(t, tr.Metadata.User.Name)
 	})
 
 	t.Run("transaction-values", func(t *testing.T) {
+		//TODO(simitt): add tests for spans
 		exceptions := func(key string) bool {
-			// metadata are tested separately
-			// Page.URL parts are derived from url (separately tested)
-			// exclude attributes that are not set for RUM
-			if strings.HasPrefix(key, "Metadata") || strings.HasPrefix(key, "Page.URL") ||
-				key == "HTTP.Request.Body" || key == "HTTP.Request.Cookies" || key == "HTTP.Request.Socket" ||
-				key == "HTTP.Response.HeadersSent" || key == "HTTP.Response.Finished" ||
-				key == "Experimental" || key == "RepresentativeCount" || key == "Message" ||
-				key == "URL" {
-				return true
+			for _, s := range []string{
+				// metadata are tested separately
+				"Metadata",
+				// values not set for RUM v3
+				"HTTP.Request.Env", "HTTP.Request.Body", "HTTP.Request.Socket", "HTTP.Request.Cookies",
+				"HTTP.Response.HeadersSent", "HTTP.Response.Finished",
+				"Experimental",
+				"RepresentativeCount", "Message",
+				// URL parts are derived from url (separately tested)
+				"URL", "Page.URL",
+				// RUM is set in stream processor
+				"RUM",
+			} {
+				if strings.HasPrefix(key, s) {
+					return true
+				}
 			}
 			return false
 		}
@@ -156,7 +158,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, &out1)
 		input.Reset()
 		defaultVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
@@ -165,7 +167,69 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		otherVal := modeldecodertest.NonDefaultValues()
 		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the request time
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToTransactionModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{Experimental: true}, &out2)
+		mapToTransactionModel(&input, initializedMetadata(), reqTime, &out2)
+		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+	})
+
+	t.Run("span-values", func(t *testing.T) {
+		exceptions := func(key string) bool {
+			for _, s := range []string{
+				// metadata are tested separately
+				"Metadata",
+				// values not set for RUM v3
+				"ChildIDs",
+				"DB",
+				"Experimental",
+				"HTTP.Response.Headers",
+				"Message",
+				"RepresentativeCount",
+				"Service.Agent.EphemeralID",
+				"Service.Environment",
+				"Service.Framework",
+				"Service.Language",
+				"Service.Node",
+				"Service.Runtime",
+				"Service.Version",
+				"Stacktrace.LibraryFrame",
+				"Stacktrace.Vars",
+				// set as HTTP.StatusCode for RUM v3
+				"HTTP.Response.StatusCode",
+				// stacktrace original and sourcemap values are set when sourcemapping is applied
+				"Stacktrace.Original",
+				"Stacktrace.Sourcemap",
+				// ExcludeFromGrouping is set when processing the event
+				"Stacktrace.ExcludeFromGrouping",
+				// RUM is set in stream processor
+				"RUM",
+				// Transaction related information is set within the DecodeNestedTransaction method
+				// it is separatly tested in TestDecodeNestedTransaction
+				"TransactionID", "TraceID", "ParentID",
+			} {
+				if strings.HasPrefix(key, s) {
+					return true
+				}
+			}
+			return false
+		}
+
+		var input span
+		var out1, out2 model.Span
+		reqTime := time.Now().Add(time.Second)
+		defaultVal := modeldecodertest.DefaultValues()
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		mapToSpanModel(&input, initializedMetadata(), reqTime, &out1)
+		input.Reset()
+		defaultStart := time.Duration(defaultVal.Float * 1000 * 1000)
+		defaultVal.Update(reqTime.Add(defaultStart)) //for rumv3 the timestamp is always set from the request time
+		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+
+		// ensure memory is not shared by reusing input model
+		otherVal := modeldecodertest.NonDefaultValues()
+		modeldecodertest.SetStructValues(&input, otherVal)
+		mapToSpanModel(&input, initializedMetadata(), reqTime, &out2)
+		otherStart := time.Duration(otherVal.Float * 1000 * 1000)
+		otherVal.Update(reqTime.Add(otherStart)) //for rumv3 the timestamp is always set from the request time
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
 	})
@@ -174,7 +238,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var inputTr transaction
 		inputTr.Context.Page.URL.Set("https://my.site.test:9201")
 		var tr model.Transaction
-		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), modeldecoder.Config{}, &tr)
+		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), &tr)
 		assert.Equal(t, "https://my.site.test:9201", *tr.Page.URL.Full)
 		assert.Equal(t, 9201, *tr.Page.URL.Port)
 		assert.Equal(t, "https", *tr.Page.URL.Scheme)

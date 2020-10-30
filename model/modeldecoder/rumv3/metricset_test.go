@@ -15,24 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package v2
+package rumv3
 
 import (
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResetMetricsetOnRelease(t *testing.T) {
-	inp := `{"metricset":{"samples":{"a.b.":{"value":2048}}}}`
+	inp := `{"me":{"sa":{"xdc":{"v":2048}}}}`
 	root := fetchMetricsetRoot()
 	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(root))
 	require.True(t, root.IsSet())
@@ -43,13 +42,13 @@ func TestResetMetricsetOnRelease(t *testing.T) {
 func TestDecodeNestedMetricset(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now()
-		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now, Config: modeldecoder.Config{}}
-		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
+		input := modeldecoder.Input{Metadata: model.Metadata{}, RequestTime: now}
+		str := `{"me":{"sa":{"xds":{"v":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var out model.Metricset
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &out))
-		assert.Equal(t, []model.Sample{{Name: "a.b", Value: 2048}}, out.Samples)
-		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", out.Timestamp.String())
+		assert.Equal(t, []model.Sample{{Name: "transaction.duration.sum.us", Value: 2048}}, out.Samples)
+		assert.Equal(t, now, out.Timestamp)
 
 		// invalid type
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &out)
@@ -66,28 +65,27 @@ func TestDecodeNestedMetricset(t *testing.T) {
 }
 
 func TestDecodeMapToMetricsetModel(t *testing.T) {
-	exceptions := func(key string) bool { return false }
-
 	t.Run("metadata-set", func(t *testing.T) {
 		// set metadata - metricsets do not hold metadata themselves
 		var input metricset
 		var out model.Metricset
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
+		mapToMetricsetModel(&input, initializedMetadata(), time.Now(), &out)
 		// iterate through metadata model and assert values are set to default values
-		modeldecodertest.AssertStructValues(t, &out.Metadata, exceptions, modeldecodertest.DefaultValues())
+		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions(), modeldecodertest.DefaultValues())
 	})
 
 	t.Run("metricset-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
 			// metadata are tested separately
 			if strings.HasPrefix(key, "Metadata") ||
+				// transaction is only set when metricset is nested inside transaction
+				// tested within transaction tests
+				strings.HasPrefix(key, "Transaction") ||
 				// only set by aggregator
 				strings.HasPrefix(key, "Event") ||
 				key == "TimeseriesInstanceID" ||
-				key == "Transaction.Result" ||
-				key == "Transaction.Root" ||
 				strings.HasPrefix(key, "Span.DestinationService") ||
 				// test Samples separately
 				strings.HasPrefix(key, "Samples") {
@@ -96,40 +94,36 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			return false
 		}
 
+		samples := func(val float64) []model.Sample {
+			return []model.Sample{
+				{Name: "transaction.duration.count", Value: val},
+				{Name: "transaction.duration.sum.us", Value: val},
+				{Name: "transaction.breakdown.count", Value: val},
+				{Name: "span.self_time.count", Value: val},
+				{Name: "span.self_time.sum.us", Value: val},
+			}
+		}
+
 		var input metricset
 		var out1, out2 model.Metricset
 		reqTime := time.Now().Add(time.Second)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
+		mapToMetricsetModel(&input, initializedMetadata(), reqTime, &out1)
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
-		defaultSamples := []model.Sample{
-			{Name: defaultVal.Str + "0", Value: defaultVal.Float},
-			{Name: defaultVal.Str + "1", Value: defaultVal.Float},
-			{Name: defaultVal.Str + "2", Value: defaultVal.Float},
-		}
-		assert.ElementsMatch(t, defaultSamples, out1.Samples)
-
-		// set Timestamp to requestTime if eventTime is zero
-		defaultVal.Update(time.Time{})
-		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out1)
+		// metricset timestamp is always set to request time
 		defaultVal.Update(reqTime)
-		input.Reset()
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
+		assert.ElementsMatch(t, samples(defaultVal.Float), out1.Samples)
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToMetricsetModel(&input, initializedMetadata(), reqTime, modeldecoder.Config{}, &out2)
+		mapToMetricsetModel(&input, initializedMetadata(), reqTime, &out2)
+		otherVal.Update(reqTime)
 		modeldecodertest.AssertStructValues(t, &out2, exceptions, otherVal)
-		otherSamples := []model.Sample{
-			{Name: otherVal.Str + "0", Value: otherVal.Float},
-			{Name: otherVal.Str + "1", Value: otherVal.Float},
-		}
-		assert.ElementsMatch(t, otherSamples, out2.Samples)
+		assert.ElementsMatch(t, samples(otherVal.Float), out2.Samples)
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)
-		assert.ElementsMatch(t, defaultSamples, out1.Samples)
+		assert.ElementsMatch(t, samples(defaultVal.Float), out1.Samples)
 	})
 }
