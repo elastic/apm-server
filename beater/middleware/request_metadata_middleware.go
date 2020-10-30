@@ -27,8 +27,7 @@ import (
 func UserMetadataMiddleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			dec := utility.ManualDecoder{}
-			c.RequestMetadata.UserAgent = dec.UserAgentHeader(c.Request.Header)
+			c.RequestMetadata.UserAgent = utility.UserAgentHeader(c.Request.Header)
 			c.RequestMetadata.ClientIP = utility.ExtractIP(c.Request)
 			h(c)
 		}, nil

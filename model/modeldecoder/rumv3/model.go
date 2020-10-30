@@ -59,7 +59,7 @@ type context struct {
 	Request  contextRequest  `json:"q"`
 	Response contextResponse `json:"r"`
 	Service  contextService  `json:"se"`
-	Tags     common.MapStr   `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Tags     common.MapStr   `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 	User     user            `json:"u"`
 }
 
@@ -129,7 +129,7 @@ type errorEvent struct {
 
 type errorException struct {
 	Attributes common.MapStr      `json:"at"`
-	Code       nullable.Interface `json:"cd" validate:"types=string;int,max=1024"`
+	Code       nullable.Interface `json:"cd" validate:"inputTypes=string;int,max=1024"`
 	Cause      []errorException   `json:"ca"`
 	Handled    nullable.Bool      `json:"hd"`
 	Message    nullable.String    `json:"mg"`
@@ -153,7 +153,7 @@ type errorTransactionRef struct {
 }
 
 type metadata struct {
-	Labels  common.MapStr   `json:"l" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Labels  common.MapStr   `json:"l" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 	Service metadataService `json:"se" validate:"required"`
 	User    user            `json:"u"`
 }
@@ -191,7 +191,7 @@ type metadataServiceRuntime struct {
 type metricset struct {
 	Samples metricsetSamples `json:"sa" validate:"required"`
 	Span    metricsetSpanRef `json:"y"`
-	Tags    common.MapStr    `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Tags    common.MapStr    `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 }
 
 type metricsetSamples struct {
@@ -239,7 +239,7 @@ type spanContext struct {
 	Destination spanContextDestination `json:"dt"`
 	HTTP        spanContextHTTP        `json:"h"`
 	Service     spanContextService     `json:"se"`
-	Tags        common.MapStr          `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,typesVals=string;bool;number,maxVals=1024"`
+	Tags        common.MapStr          `json:"g" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
 }
 
 type spanContextDestination struct {
@@ -400,7 +400,7 @@ type longtaskMetrics struct {
 }
 
 type user struct {
-	ID    nullable.Interface `json:"id" validate:"max=1024,types=string;int"`
+	ID    nullable.Interface `json:"id" validate:"max=1024,inputTypes=string;int"`
 	Email nullable.String    `json:"em" validate:"max=1024"`
 	Name  nullable.String    `json:"un" validate:"max=1024"`
 }

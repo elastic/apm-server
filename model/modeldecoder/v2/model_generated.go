@@ -22,6 +22,7 @@ package v2
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -80,7 +81,7 @@ func (val *metadata) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'labels': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'labels': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	if err := val.Process.validate(); err != nil {
@@ -441,7 +442,7 @@ func (val *metadataServiceRuntime) validate() error {
 }
 
 func (val *metadataSystem) IsSet() bool {
-	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.HostnameDeprecated.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet()
+	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet()
 }
 
 func (val *metadataSystem) Reset() {
@@ -449,7 +450,7 @@ func (val *metadataSystem) Reset() {
 	val.ConfiguredHostname.Reset()
 	val.Container.Reset()
 	val.DetectedHostname.Reset()
-	val.HostnameDeprecated.Reset()
+	val.DeprecatedHostname.Reset()
 	val.Kubernetes.Reset()
 	val.Platform.Reset()
 }
@@ -470,7 +471,7 @@ func (val *metadataSystem) validate() error {
 	if utf8.RuneCountInString(val.DetectedHostname.Val) > 1024 {
 		return fmt.Errorf("'detected_hostname': validation rule 'max(1024)' violated")
 	}
-	if utf8.RuneCountInString(val.HostnameDeprecated.Val) > 1024 {
+	if utf8.RuneCountInString(val.DeprecatedHostname.Val) > 1024 {
 		return fmt.Errorf("'hostname': validation rule 'max(1024)' violated")
 	}
 	if err := val.Kubernetes.validate(); err != nil {
@@ -585,11 +586,11 @@ func (val *user) validate() error {
 	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
-			return fmt.Errorf("'id': validation rule 'types(string;int)' violated")
+			return fmt.Errorf("'id': validation rule 'inputTypes(string;int)' violated")
 		}
 	case nil:
 	default:
-		return fmt.Errorf("'id': validation rule 'types(string;int)' violated ")
+		return fmt.Errorf("'id': validation rule 'inputTypes(string;int)' violated ")
 	}
 	if utf8.RuneCountInString(val.Email.Val) > 1024 {
 		return fmt.Errorf("'email': validation rule 'max(1024)' violated")
@@ -748,7 +749,7 @@ func (val *context) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'tags': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'tags': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	if err := val.User.validate(); err != nil {
@@ -879,7 +880,7 @@ func (val *contextRequest) validate() error {
 	case map[string]interface{}:
 	case nil:
 	default:
-		return fmt.Errorf("'body': validation rule 'types(string;map[string]interface)' violated ")
+		return fmt.Errorf("'body': validation rule 'inputTypes(string;map[string]interface)' violated ")
 	}
 	if utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
 		return fmt.Errorf("'http_version': validation rule 'max(1024)' violated")
@@ -948,17 +949,17 @@ func (val *contextRequestURL) validate() error {
 	}
 	switch t := val.Port.Val.(type) {
 	case string:
-		if utf8.RuneCountInString(t) > 1024 {
-			return fmt.Errorf("'port': validation rule 'max(1024)' violated")
+		if _, err := strconv.Atoi(t); err != nil {
+			return fmt.Errorf("'port': validation rule 'targetType(int)' violated")
 		}
 	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
-			return fmt.Errorf("'port': validation rule 'types(string;int)' violated")
+			return fmt.Errorf("'port': validation rule 'inputTypes(string;int)' violated")
 		}
 	case nil:
 	default:
-		return fmt.Errorf("'port': validation rule 'types(string;int)' violated ")
+		return fmt.Errorf("'port': validation rule 'inputTypes(string;int)' violated ")
 	}
 	if utf8.RuneCountInString(val.Protocol.Val) > 1024 {
 		return fmt.Errorf("'protocol': validation rule 'max(1024)' violated")
@@ -1166,11 +1167,11 @@ func (val *errorException) validate() error {
 	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
-			return fmt.Errorf("'code': validation rule 'types(string;int)' violated")
+			return fmt.Errorf("'code': validation rule 'inputTypes(string;int)' violated")
 		}
 	case nil:
 	default:
-		return fmt.Errorf("'code': validation rule 'types(string;int)' violated ")
+		return fmt.Errorf("'code': validation rule 'inputTypes(string;int)' violated ")
 	}
 	for _, elem := range val.Cause {
 		if err := elem.validate(); err != nil {
@@ -1348,7 +1349,7 @@ func (val *metricset) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'tags': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'tags': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	if err := val.Transaction.validate(); err != nil {
@@ -1592,7 +1593,7 @@ func (val *spanContext) validate() error {
 		case bool:
 		case json.Number:
 		default:
-			return fmt.Errorf("'tags': validation rule 'typesVals(string;bool;number)' violated for key %s", k)
+			return fmt.Errorf("'tags': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
 	return nil

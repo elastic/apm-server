@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagRequired, tagTypesVals}
+var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagRequired, tagInputTypesVals}
 
 func generateMapValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	typ := f.Type().Underlying().(*types.Map)
@@ -69,7 +69,7 @@ func generateMapValidation(w io.Writer, fields []structField, f structField, isC
 		return nil
 	}
 	// 2. iterate over map and apply validation rules to its elements
-	if _, ok := vTag[tagTypesVals]; ok || isCustomStruct {
+	if _, ok := vTag[tagInputTypesVals]; ok || isCustomStruct {
 		fmt.Fprintf(w, `
 for k,v := range val.%s{
 `[1:], f.Name())
@@ -90,8 +90,8 @@ if err := v.validate(); err != nil{
 	if patternKeysValue, ok := vTag[tagPatternKeys]; ok {
 		mapRulePatternKeys(w, f, validationRule{name: tagPatternKeys, value: patternKeysValue})
 	}
-	if typesValsValue, ok := vTag[tagTypesVals]; ok {
-		mapRuleTypesVals(w, f, vTag, validationRule{name: tagTypesVals, value: typesValsValue})
+	if typesValsValue, ok := vTag[tagInputTypesVals]; ok {
+		mapRuleTypesVals(w, f, vTag, validationRule{name: tagInputTypesVals, value: typesValsValue})
 	}
 	fmt.Fprintf(w, `
 }
