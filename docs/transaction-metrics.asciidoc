@@ -2,6 +2,8 @@
 [[transaction-metrics]]
 == Configure transaction metrics
 
+experimental[]
+
 ++++
 <titleabbrev>Transaction metrics</titleabbrev>
 ++++
@@ -58,7 +60,7 @@ Default: `1000`.
 [float]
 ==== `hdrhistogram_significant_figures`
 
-The fixed, worse-case percentage error (specified as a number of significant digits)
+The fixed, worst-case percentage error (specified as a number of significant digits)
 to maintain for recorded metrics.
 Supported values are `1` through `5`.
 See {ref}/search-aggregations-metrics-percentile-aggregation.html#_hdr_histogram[HDR histogram] for more information.
