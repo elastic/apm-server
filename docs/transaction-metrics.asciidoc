@@ -9,7 +9,7 @@ experimental[]
 ++++
 
 When enabled, {beatname_uc} produces the transaction histogram metrics that are used to power the APM app.
-Shifting this responsibility from APM app to APM Server results in improved query performance.
+Shifting this responsibility from APM app to APM Server results in improved query performance and removes the need to store unsampled transactions.
 
 Example config file:
 
