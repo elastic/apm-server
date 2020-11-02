@@ -36,7 +36,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :win_os:
 :linux_os:
 
-:github_repo_link: https://github.com/elastic/apm-server/blob/{version}
+:github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
 ifeval::["{version}" == "8.0.0"]
 :github_repo_link: https://github.com/elastic/apm-server/blob/master
 endif::[]
