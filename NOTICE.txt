@@ -412,7 +412,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/dlclark/regexp2
-Version: v1.2.1
+Version: v1.4.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -639,7 +639,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: f6bfa2d5b3f5
+Revision: 6828089afec3
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -1009,7 +1009,7 @@ Contents of "NOTICE":
 
 --------------------------------------------------------------------
 Dependency: github.com/fatih/color
-Version: v1.9.0
+Version: v1.10.0
 License type (autodetected): MIT
 Contents of "LICENSE.md":
 
@@ -3600,8 +3600,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm
-Version: v1.8.1
-Revision: 2aef45b9cf4b
+Version: v1.9.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -3707,7 +3706,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/ecszap
-Version: v0.2.0
+Version: v0.3.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE.txt":
 
@@ -3898,7 +3897,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 7f63de1d35b0
+Revision: 9e8e0b390897
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3932,7 +3931,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: a7d1128ccaa0
+Revision: ff519b6c9102
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4034,7 +4033,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: a893ed343c85
+Revision: da207088b7d1
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4068,7 +4067,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/text
-Version: v0.3.3
+Version: v0.3.4
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4298,7 +4297,7 @@ Contents of "LICENSE.libyaml":
 
 --------------------------------------------------------------------
 Dependency: howett.net/plist
-Revision: 3b63eb3a43b5
+Revision: 117a925f2150
 License type (autodetected): BSD-2-Clause
 Contents of "LICENSE":
 
