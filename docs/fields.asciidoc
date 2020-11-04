@@ -18,6 +18,7 @@ grouped in the following categories:
 * <<exported-fields-apm-sourcemap>>
 * <<exported-fields-apm-span>>
 * <<exported-fields-apm-span-metrics-xpack>>
+* <<exported-fields-apm-system-metrics>>
 * <<exported-fields-apm-transaction>>
 * <<exported-fields-apm-transaction-metrics>>
 * <<exported-fields-apm-transaction-metrics-xpack>>
@@ -28,7 +29,6 @@ grouped in the following categories:
 * <<exported-fields-host-processor>>
 * <<exported-fields-kubernetes-processor>>
 * <<exported-fields-process>>
-* <<exported-fields-system>>
 
 --
 [[exported-fields-apm]]
@@ -1817,6 +1817,167 @@ type: long
 +
 --
 type: long
+
+--
+
+[[exported-fields-apm-system-metrics]]
+== APM System Metrics fields
+
+System status metrics, like CPU and memory usage, that are collected from the operating system.
+
+
+
+[float]
+=== system
+
+`system` contains local system metrics.
+
+
+
+[float]
+=== cpu
+
+`cpu` contains local CPU stats.
+
+
+
+*`system.cpu.total.norm.pct`*::
++
+--
+The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+
+
+type: scaled_float
+
+format: percent
+
+--
+
+[float]
+=== memory
+
+`memory` contains local memory stats.
+
+
+
+*`system.memory.total`*::
++
+--
+Total memory.
+
+
+type: long
+
+format: bytes
+
+--
+
+[float]
+=== actual
+
+Actual memory used and free.
+
+
+
+*`system.memory.actual.free`*::
++
+--
+Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
+
+
+type: long
+
+format: bytes
+
+--
+
+[float]
+=== process
+
+`process` contains process metadata, CPU metrics, and memory metrics.
+
+
+
+[float]
+=== cpu
+
+`cpu` contains local CPU stats.
+
+
+
+*`system.process.cpu.total.norm.pct`*::
++
+--
+The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+
+
+type: scaled_float
+
+format: percent
+
+--
+
+[float]
+=== memory
+
+Memory-specific statistics per process.
+
+
+*`system.process.memory.size`*::
++
+--
+The total virtual memory the process has.
+
+
+type: long
+
+format: bytes
+
+--
+
+*`system.process.memory.rss.bytes`*::
++
+--
+The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
+
+
+type: long
+
+format: bytes
+
+--
+
+[float]
+=== cgroup
+
+Metrics and limits for the cgroup, collected by APM agents on Linux.
+
+
+[float]
+=== memory
+
+Memory-specific cgroup metrics and limits.
+
+
+*`system.process.cgroup.memory.mem.limit.bytes`*::
++
+--
+Memory limit for the current cgroup slice.
+
+type: long
+
+format: bytes
+
+--
+
+*`system.process.cgroup.memory.mem.usage.bytes`*::
++
+--
+Memory usage by the current cgroup slice.
+
+type: long
+
+format: bytes
 
 --
 
@@ -10589,167 +10750,6 @@ Process metadata fields
 type: alias
 
 alias to: process.executable
-
---
-
-[[exported-fields-system]]
-== APM System Metrics fields
-
-System status metrics, like CPU and memory usage, that are collected from the operating system.
-
-
-
-[float]
-=== system
-
-`system` contains local system metrics.
-
-
-
-[float]
-=== cpu
-
-`cpu` contains local CPU stats.
-
-
-
-*`system.cpu.total.norm.pct`*::
-+
---
-The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
-
-
-type: scaled_float
-
-format: percent
-
---
-
-[float]
-=== memory
-
-`memory` contains local memory stats.
-
-
-
-*`system.memory.total`*::
-+
---
-Total memory.
-
-
-type: long
-
-format: bytes
-
---
-
-[float]
-=== actual
-
-Actual memory used and free.
-
-
-
-*`system.memory.actual.free`*::
-+
---
-Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
-
-
-type: long
-
-format: bytes
-
---
-
-[float]
-=== process
-
-`process` contains process metadata, CPU metrics, and memory metrics.
-
-
-
-[float]
-=== cpu
-
-`cpu` contains local CPU stats.
-
-
-
-*`system.process.cpu.total.norm.pct`*::
-+
---
-The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
-
-
-type: scaled_float
-
-format: percent
-
---
-
-[float]
-=== memory
-
-Memory-specific statistics per process.
-
-
-*`system.process.memory.size`*::
-+
---
-The total virtual memory the process has.
-
-
-type: long
-
-format: bytes
-
---
-
-*`system.process.memory.rss.bytes`*::
-+
---
-The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
-
-
-type: long
-
-format: bytes
-
---
-
-[float]
-=== cgroup
-
-Metrics and limits for the cgroup, collected by APM agents on Linux.
-
-
-[float]
-=== memory
-
-Memory-specific cgroup metrics and limits.
-
-
-*`system.process.cgroup.memory.mem.limit.bytes`*::
-+
---
-Memory limit for the current cgroup slice.
-
-type: long
-
-format: bytes
-
---
-
-*`system.process.cgroup.memory.mem.usage.bytes`*::
-+
---
-Memory usage by the current cgroup slice.
-
-type: long
-
-format: bytes
 
 --
 
