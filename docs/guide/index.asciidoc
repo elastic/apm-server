@@ -15,8 +15,6 @@ include::./overview.asciidoc[]
 
 include::./apm-doc-directory.asciidoc[]
 
-include::./whats-new.asciidoc[]
-
 include::./install-and-run.asciidoc[]
 
 include::./quick-start-overview.asciidoc[]
