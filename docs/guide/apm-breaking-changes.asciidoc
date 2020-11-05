@@ -3,6 +3,7 @@
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
 
+* <<breaking-7.10.0>>
 * <<breaking-7.9.0>>
 * <<breaking-7.8.0>>
 * <<breaking-7.7.0>>
@@ -19,13 +20,20 @@ This section discusses the changes that you need to be aware of when migrating y
 * <<breaking-6.5.0>>
 * <<breaking-6.4.0>>
 
-Also see <<whats-new>>.
+Also see {observability-guide}/whats-new.html[What's new in Observability {minor-version}].
 
 //NOTE: The notable-breaking-changes tagged regions are re-used in the
 //Installation and Upgrade Guide
+// Remove this tag in a future PR
 // tag::notable-v8-breaking-changes[]
-
 // end::notable-v8-breaking-changes[]
+
+[[breaking-7.10.0]]
+=== 7.10.0 APM Breaking changes
+
+// tag::notable-breaking-changes[]
+No breaking changes.
+// end::notable-breaking-changes[]
 
 [[breaking-7.9.0]]
 === 7.9.0 APM Breaking changes
