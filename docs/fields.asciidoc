@@ -10593,7 +10593,7 @@ alias to: process.executable
 --
 
 [[exported-fields-system]]
-== APM System Metrics fields
+== System Metrics fields
 
 System status metrics, like CPU and memory usage, that are collected from the operating system.
 
