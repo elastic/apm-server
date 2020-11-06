@@ -1,0 +1,672 @@
+{
+  "$id": "docs/spec/v2/transaction",
+  "type": "object",
+  "properties": {
+    "context": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "custom": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^.*\"]*$": {}
+          }
+        },
+        "experimental": {},
+        "message": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "age": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "ms": {
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                }
+              }
+            },
+            "body": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "headers": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "queue": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            }
+          }
+        },
+        "page": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "referer": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "url": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "request": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "body": {
+              "type": [
+                "null",
+                "string",
+                "object"
+              ]
+            },
+            "cookies": {
+              "type": [
+                "null",
+                "object"
+              ]
+            },
+            "env": {
+              "type": [
+                "null",
+                "object"
+              ]
+            },
+            "headers": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "http_version": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "method": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "socket": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "encrypted": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                },
+                "remote_address": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            },
+            "url": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "full": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "hash": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "hostname": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "pathname": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "port": {
+                  "type": [
+                    "null",
+                    "string",
+                    "integer"
+                  ],
+                  "maxLength": 1024
+                },
+                "protocol": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "raw": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "search": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            }
+          },
+          "required": [
+            "method"
+          ]
+        },
+        "response": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "decoded_body_size": {
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "encoded_body_size": {
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "finished": {
+              "type": [
+                "null",
+                "boolean"
+              ]
+            },
+            "headers": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "headers_sent": {
+              "type": [
+                "null",
+                "boolean"
+              ]
+            },
+            "status_code": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "transfer_size": {
+              "type": [
+                "null",
+                "number"
+              ]
+            }
+          }
+        },
+        "service": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "agent": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "ephemeral_id": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "environment": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "framework": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "language": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "name": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024,
+              "pattern": "^[a-zA-Z0-9 _-]+$"
+            },
+            "node": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "configured_name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "runtime": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "version": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "tags": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^.*\"]*$": {
+              "type": [
+                "null",
+                "string",
+                "boolean",
+                "number"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "user": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "email": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "id": {
+              "type": [
+                "null",
+                "string",
+                "integer"
+              ],
+              "maxLength": 1024
+            },
+            "username": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        }
+      }
+    },
+    "duration": {
+      "type": "number",
+      "minimum": 0
+    },
+    "experience": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "cls": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "minimum": 0
+        },
+        "fid": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "minimum": 0
+        },
+        "longtask": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max": {
+              "type": "number",
+              "minimum": 0
+            },
+            "sum": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "count",
+            "max",
+            "sum"
+          ]
+        },
+        "tbt": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "id": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "marks": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^.*\"]*$": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^.*\"]*$": {
+              "type": [
+                "null",
+                "number"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "name": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "outcome": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "enum": [
+        "success",
+        "failure",
+        "unknown",
+        null
+      ]
+    },
+    "parent_id": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "result": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "sample_rate": {
+      "type": [
+        "null",
+        "number"
+      ]
+    },
+    "sampled": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "span_count": {
+      "type": "object",
+      "properties": {
+        "dropped": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "started": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "started"
+      ]
+    },
+    "timestamp": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "trace_id": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "type": {
+      "type": "string",
+      "maxLength": 1024
+    }
+  },
+  "required": [
+    "duration",
+    "id",
+    "span_count",
+    "trace_id",
+    "type"
+  ]
+}

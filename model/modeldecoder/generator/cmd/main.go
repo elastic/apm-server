@@ -23,6 +23,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/tools/imports"
 
@@ -52,6 +53,7 @@ func generateV2() {
 		panic(err)
 	}
 	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "spanRoot", "transactionRoot"})
+	generateJSONSchema(p, pkg, parsed, []string{"metadata", "errorEvent", "metricset", "span", "transaction"})
 }
 
 func generateV3RUM() {
@@ -62,6 +64,7 @@ func generateV3RUM() {
 		panic(err)
 	}
 	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "transactionRoot"})
+	generateJSONSchema(p, pkg, parsed, []string{"metadata", "errorEvent", "metricset", "span", "transaction"})
 }
 
 func generateCode(path string, pkg string, parsed *generator.Parsed, root []string) {
@@ -78,17 +81,36 @@ func generateCode(path string, pkg string, parsed *generator.Parsed, root []stri
 	if err != nil {
 		panic(err)
 	}
-	print(b, out)
+	print(b, out, true)
 }
 
-func print(b bytes.Buffer, p string) {
+func generateJSONSchema(path string, pkg string, parsed *generator.Parsed, root []string) {
+	jsonSchema, err := generator.NewJSONSchemaGenerator(parsed)
+	if err != nil {
+		panic(err)
+	}
+	outPath := filepath.Join(filepath.FromSlash(jsonSchemaPath), pkg)
+	for _, rootEventName := range root {
+		rootEvent := fmt.Sprintf("%s.%s", path, rootEventName)
+		b, err := jsonSchema.Generate(outPath, rootEvent)
+		if err != nil {
+			panic(err)
+		}
+		out := filepath.Join(outPath, fmt.Sprintf("%s.json", strings.TrimSuffix(rootEventName, "Event")))
+		print(b, out, false)
+	}
+}
+
+func print(b bytes.Buffer, p string, sanitize bool) {
 	f, err := os.Create(p)
 	if err != nil {
 		panic(err)
 	}
 	var out = b.Bytes()
-	if out, err = imports.Process(p, out, nil); err != nil {
-		panic(err)
+	if sanitize {
+		if out, err = imports.Process(p, out, nil); err != nil {
+			panic(err)
+		}
 	}
 	if _, err := f.Write(out); err != nil {
 		panic(err)

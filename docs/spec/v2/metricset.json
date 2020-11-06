@@ -1,0 +1,93 @@
+{
+  "$id": "docs/spec/v2/metricset",
+  "type": "object",
+  "properties": {
+    "samples": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^*\"]*$": {
+          "properties": {
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      }
+    },
+    "span": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "subtype": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "type": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "tags": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^.*\"]*$": {
+          "type": [
+            "null",
+            "string",
+            "boolean",
+            "number"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "timestamp": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "transaction": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "type": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    }
+  },
+  "required": [
+    "samples"
+  ]
+}

@@ -17,19 +17,8 @@
 
 package generator
 
-import (
-	"fmt"
-	"path/filepath"
-)
-
-var (
-	typPath = filepath.FromSlash("github.com/elastic/apm-server/model/modeldecoder/nullable")
-
-	nullableTypeBool           = fmt.Sprintf("%s.Bool", typPath)
-	nullableTypeFloat64        = fmt.Sprintf("%s.Float64", typPath)
-	nullableTypeHTTPHeader     = fmt.Sprintf("%s.HTTPHeader", typPath)
-	nullableTypeInt            = fmt.Sprintf("%s.Int", typPath)
-	nullableTypeInterface      = fmt.Sprintf("%s.Interface", typPath)
-	nullableTypeString         = fmt.Sprintf("%s.String", typPath)
-	nullableTypeTimeMicrosUnix = fmt.Sprintf("%s.TimeMicrosUnix", typPath)
-)
+func generateJSONPropertyJSONNumber(info *fieldInfo, parent *property, child *property) error {
+	child.Type.add(TypeNameNumber)
+	parent.Properties[jsonSchemaName(info.field)] = child
+	return setPropertyRulesInteger(info, child)
+}

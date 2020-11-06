@@ -1,0 +1,446 @@
+{
+  "$id": "docs/spec/v2/metadata",
+  "type": "object",
+  "properties": {
+    "cloud": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "account": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "id": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "name": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "availability_zone": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "instance": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "id": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "name": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "machine": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "project": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "id": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "name": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "provider": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "region": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "provider"
+      ]
+    },
+    "labels": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^.*\"]*$": {
+          "type": [
+            "null",
+            "string",
+            "boolean",
+            "number"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "process": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "argv": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "minItems": 0
+        },
+        "pid": {
+          "type": "integer"
+        },
+        "ppid": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "title": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "pid"
+      ]
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "object",
+          "properties": {
+            "ephemeral_id": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ]
+        },
+        "environment": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "framework": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "name": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "version": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "language": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "version": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9 _-]+$"
+        },
+        "node": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "configured_name": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "runtime": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "version": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ]
+        },
+        "version": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "agent",
+        "name"
+      ]
+    },
+    "system": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "architecture": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "configured_hostname": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "container": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "detected_hostname": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "hostname": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "kubernetes": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "namespace": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "node": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "pod": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "uid": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            }
+          }
+        },
+        "platform": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "user": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "email": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "id": {
+          "type": [
+            "null",
+            "string",
+            "integer"
+          ],
+          "maxLength": 1024
+        },
+        "username": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    }
+  },
+  "required": [
+    "service"
+  ]
+}

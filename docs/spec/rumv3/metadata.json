@@ -1,0 +1,168 @@
+{
+  "$id": "docs/spec/rumv3/metadata",
+  "type": "object",
+  "properties": {
+    "l": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^.*\"]*$": {
+          "type": [
+            "null",
+            "string",
+            "boolean",
+            "number"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "se": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "ve": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "n",
+            "ve"
+          ]
+        },
+        "en": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "fw": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "n": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "ve": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "la": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "n": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "ve": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "n"
+          ]
+        },
+        "n": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9 _-]+$"
+        },
+        "ru": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "n": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "ve": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "n",
+            "ve"
+          ]
+        },
+        "ve": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "a",
+        "n"
+      ]
+    },
+    "u": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "em": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "id": {
+          "type": [
+            "null",
+            "string",
+            "integer"
+          ],
+          "maxLength": 1024
+        },
+        "un": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    }
+  },
+  "required": [
+    "se"
+  ]
+}

@@ -18,18 +18,25 @@
 package generator
 
 import (
-	"fmt"
-	"path/filepath"
+	"encoding/json"
 )
 
-var (
-	typPath = filepath.FromSlash("github.com/elastic/apm-server/model/modeldecoder/nullable")
+func generateJSONPropertyInteger(info *fieldInfo, parent *property, child *property) error {
+	child.Type.add(TypeNameInteger)
+	parent.Properties[jsonSchemaName(info.field)] = child
+	return setPropertyRulesInteger(info, child)
+}
 
-	nullableTypeBool           = fmt.Sprintf("%s.Bool", typPath)
-	nullableTypeFloat64        = fmt.Sprintf("%s.Float64", typPath)
-	nullableTypeHTTPHeader     = fmt.Sprintf("%s.HTTPHeader", typPath)
-	nullableTypeInt            = fmt.Sprintf("%s.Int", typPath)
-	nullableTypeInterface      = fmt.Sprintf("%s.Interface", typPath)
-	nullableTypeString         = fmt.Sprintf("%s.String", typPath)
-	nullableTypeTimeMicrosUnix = fmt.Sprintf("%s.TimeMicrosUnix", typPath)
-)
+func setPropertyRulesInteger(info *fieldInfo, p *property) error {
+	for tagName, tagValue := range info.tags {
+		switch tagName {
+		case tagMax:
+			p.Max = json.Number(tagValue)
+			delete(info.tags, tagName)
+		case tagMin:
+			p.Min = json.Number(tagValue)
+			delete(info.tags, tagName)
+		}
+	}
+	return nil
+}

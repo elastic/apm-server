@@ -15,6 +15,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
+	github.com/elastic/beats v7.6.2+incompatible
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201029160358-633285e75a03
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
@@ -60,6 +61,7 @@ require (
 	github.com/ua-parser/uap-go v0.0.0-20200325213135-e1c09f13e2fe
 	github.com/uber/tchannel-go v1.16.0 // indirect
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
+	github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56
 	go.elastic.co/apm v1.8.1-0.20200909061013-2aef45b9cf4b
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0

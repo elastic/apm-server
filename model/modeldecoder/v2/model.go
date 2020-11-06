@@ -455,7 +455,6 @@ type transactionMarks struct {
 	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
 }
 
-//TODO(simitt): generate
 func (m *transactionMarks) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &m.Events)
 }
@@ -464,7 +463,6 @@ type transactionMarkEvents struct {
 	Measurements map[string]float64 `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
 }
 
-//TODO(simitt): generate
 func (m *transactionMarkEvents) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &m.Measurements)
 }

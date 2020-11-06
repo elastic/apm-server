@@ -1,0 +1,754 @@
+{
+  "$id": "docs/spec/rumv3/error",
+  "type": "object",
+  "properties": {
+    "c": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "cu": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^.*\"]*$": {}
+          }
+        },
+        "g": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^.*\"]*$": {
+              "type": [
+                "null",
+                "string",
+                "boolean",
+                "number"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "p": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "rf": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "url": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "q": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "en": {
+              "type": [
+                "null",
+                "object"
+              ]
+            },
+            "he": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "hve": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "mt": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "mt"
+          ]
+        },
+        "r": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "dbs": {
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "ebs": {
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "he": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "sc": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "ts": {
+              "type": [
+                "null",
+                "number"
+              ]
+            }
+          }
+        },
+        "se": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "a": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "en": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "fw": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "la": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "n": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024,
+              "pattern": "^[a-zA-Z0-9 _-]+$"
+            },
+            "ru": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "ve": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "u": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "em": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "id": {
+              "type": [
+                "null",
+                "string",
+                "integer"
+              ],
+              "maxLength": 1024
+            },
+            "un": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        }
+      }
+    },
+    "cl": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "ex": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "at": {
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "ca": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "minItems": 0
+        },
+        "cd": {
+          "type": [
+            "null",
+            "string",
+            "integer"
+          ],
+          "maxLength": 1024
+        },
+        "hd": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "mg": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "mo": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "st": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "properties": {
+            "ap": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cli": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cn": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "co": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "f": {
+              "type": "string"
+            },
+            "fn": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "li": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "mo": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "poc": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            },
+            "prc": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "f"
+          ],
+          "minItems": 0
+        },
+        "t": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "mg": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mg"
+          ]
+        },
+        {
+          "properties": {
+            "t": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t"
+          ]
+        }
+      ]
+    },
+    "id": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "log": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "ln": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "lv": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "mg": {
+          "type": "string"
+        },
+        "pmg": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "st": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "properties": {
+            "ap": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cli": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cn": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "co": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "f": {
+              "type": "string"
+            },
+            "fn": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "li": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "mo": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "poc": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            },
+            "prc": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "f"
+          ],
+          "minItems": 0
+        }
+      },
+      "required": [
+        "mg"
+      ]
+    },
+    "pid": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "tid": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "timestamp": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "x": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "sm": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "t": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "xid": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "xid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "xid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "pid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pid"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "pid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pid"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "xid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "xid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tid"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "pid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tid"
+        ]
+      }
+    }
+  ],
+  "anyOf": [
+    {
+      "properties": {
+        "ex": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "ex"
+      ]
+    },
+    {
+      "properties": {
+        "log": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "log"
+      ]
+    }
+  ]
+}

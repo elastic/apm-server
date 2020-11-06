@@ -17,19 +17,13 @@
 
 package generator
 
-import (
-	"fmt"
-	"path/filepath"
-)
-
-var (
-	typPath = filepath.FromSlash("github.com/elastic/apm-server/model/modeldecoder/nullable")
-
-	nullableTypeBool           = fmt.Sprintf("%s.Bool", typPath)
-	nullableTypeFloat64        = fmt.Sprintf("%s.Float64", typPath)
-	nullableTypeHTTPHeader     = fmt.Sprintf("%s.HTTPHeader", typPath)
-	nullableTypeInt            = fmt.Sprintf("%s.Int", typPath)
-	nullableTypeInterface      = fmt.Sprintf("%s.Interface", typPath)
-	nullableTypeString         = fmt.Sprintf("%s.String", typPath)
-	nullableTypeTimeMicrosUnix = fmt.Sprintf("%s.TimeMicrosUnix", typPath)
-)
+func generateJSONPropertyHTTPHeader(info *fieldInfo, parent *property, child *property) error {
+	child.Type.add(TypeNameObject)
+	child.PatternProperties = make(map[string]*property)
+	child.PatternProperties[patternHTTPHeaders] = &property{
+		Type:  &propertyType{names: []propertyTypeName{TypeNameArray, TypeNameString}},
+		Items: &property{Type: &propertyType{names: []propertyTypeName{TypeNameString}, required: true}}}
+	child.AdditionalProperties = new(bool)
+	parent.Properties[jsonSchemaName(info.field)] = child
+	return nil
+}

@@ -111,7 +111,7 @@ func TestIntegrationESOutput(t *testing.T) {
 		{path: "invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
 		{path: "invalid-metadata.ndjson", name: "InvalidMetadata"},
 		{path: "invalid-metadata-2.ndjson", name: "InvalidMetadata2"},
-		{path: "unrecognized-event.ndjson", name: "UnrecognizedEvent"},
+		{path: "invalid-event-type.ndjson", name: "UnrecognizedEvent"},
 		{path: "optional-timestamps.ndjson", name: "OptionalTimestamps"},
 	} {
 		t.Run(test.name, func(t *testing.T) {

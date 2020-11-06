@@ -51,3 +51,9 @@ func generateStructValidation(w io.Writer, fields []structField, f structField, 
 	}
 	return nil
 }
+
+func generateJSONPropertyStruct(info *fieldInfo, parent *property, child *property) error {
+	child.Type.add(TypeNameObject)
+	parent.Properties[jsonSchemaName(info.field)] = child
+	return nil
+}

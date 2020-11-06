@@ -1,0 +1,124 @@
+{
+  "$id": "docs/spec/rumv3/metricset",
+  "type": "object",
+  "properties": {
+    "g": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^.*\"]*$": {
+          "type": [
+            "null",
+            "string",
+            "boolean",
+            "number"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "sa": {
+      "type": "object",
+      "properties": {
+        "xbc": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "v": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "v"
+          ]
+        },
+        "xdc": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "v": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "v"
+          ]
+        },
+        "xds": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "v": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "v"
+          ]
+        },
+        "ysc": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "v": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "v"
+          ]
+        },
+        "yss": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "v": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "v"
+          ]
+        }
+      }
+    },
+    "y": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "su": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "t": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    }
+  },
+  "required": [
+    "sa"
+  ]
+}
