@@ -19,7 +19,6 @@ package v2
 
 import (
 	"encoding/json"
-	"regexp"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
@@ -27,9 +26,9 @@ import (
 )
 
 var (
-	regexpAlphaNumericExt    = regexp.MustCompile("^[a-zA-Z0-9 _-]+$")
-	regexpNoDotAsteriskQuote = regexp.MustCompile("^[^.*\"]*$") //do not allow '.' '*' '"'
-	regexpNoAsteriskQuote    = regexp.MustCompile("^[^*\"]*$")  //do not allow '*' '"'
+	patternAlphaNumericExt    = `^[a-zA-Z0-9 _-]+$`
+	patternNoDotAsteriskQuote = `^[^.*"]*$` //do not allow '.' '*' '"'
+	patternNoAsteriskQuote    = `^[^*"]*$`  //do not allow '*' '"'
 
 	enumOutcome = []string{"success", "failure", "unknown"}
 )
@@ -58,15 +57,17 @@ type transactionRoot struct {
 
 // other structs
 
+// context holds arbitrary contextual information regarding the event,
+// captured by the APM agent or optionally configured by the user
 type context struct {
-	Custom       common.MapStr      `json:"custom" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+	Custom       common.MapStr      `json:"custom" validate:"patternKeys=patternNoDotAsteriskQuote"`
 	Experimental nullable.Interface `json:"experimental"`
 	Message      contextMessage     `json:"message"`
 	Page         contextPage        `json:"page"`
 	Response     contextResponse    `json:"response"`
 	Request      contextRequest     `json:"request"`
 	Service      contextService     `json:"service"`
-	Tags         common.MapStr      `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
+	Tags         common.MapStr      `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	User         user               `json:"user"`
 }
 
@@ -82,7 +83,7 @@ type contextMessageAge struct {
 }
 
 type contextMessageQueue struct {
-	Name nullable.String `json:"name" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 
 type contextPage struct {
@@ -95,8 +96,8 @@ type contextRequest struct {
 	Cookies     common.MapStr        `json:"cookies"`
 	Env         common.MapStr        `json:"env"`
 	Headers     nullable.HTTPHeader  `json:"headers"`
-	HTTPVersion nullable.String      `json:"http_version" validate:"max=1024"`
-	Method      nullable.String      `json:"method" validate:"required,max=1024"`
+	HTTPVersion nullable.String      `json:"http_version" validate:"maxLength=1024"`
+	Method      nullable.String      `json:"method" validate:"required,maxLength=1024"`
 	Socket      contextRequestSocket `json:"socket"`
 	// context.request.url was required in json schema,
 	// but none of its attributes is required, which could lead to
@@ -105,14 +106,14 @@ type contextRequest struct {
 }
 
 type contextRequestURL struct {
-	Full     nullable.String    `json:"full" validate:"max=1024"`
-	Hash     nullable.String    `json:"hash" validate:"max=1024"`
-	Hostname nullable.String    `json:"hostname" validate:"max=1024"`
-	Path     nullable.String    `json:"pathname" validate:"max=1024"`
-	Port     nullable.Interface `json:"port" validate:"inputTypes=string;int,targetType=int"`
-	Protocol nullable.String    `json:"protocol" validate:"max=1024"`
-	Raw      nullable.String    `json:"raw" validate:"max=1024"`
-	Search   nullable.String    `json:"search" validate:"max=1024"`
+	Full     nullable.String    `json:"full" validate:"maxLength=1024"`
+	Hash     nullable.String    `json:"hash" validate:"maxLength=1024"`
+	Hostname nullable.String    `json:"hostname" validate:"maxLength=1024"`
+	Path     nullable.String    `json:"pathname" validate:"maxLength=1024"`
+	Port     nullable.Interface `json:"port" validate:"inputTypes=string;int,targetType=int,maxLength=1024"`
+	Protocol nullable.String    `json:"protocol" validate:"maxLength=1024"`
+	Raw      nullable.String    `json:"raw" validate:"maxLength=1024"`
+	Search   nullable.String    `json:"search" validate:"maxLength=1024"`
 }
 
 type contextRequestSocket struct {
@@ -132,82 +133,82 @@ type contextResponse struct {
 
 type contextService struct {
 	Agent       contextServiceAgent     `json:"agent"`
-	Environment nullable.String         `json:"environment" validate:"max=1024"`
+	Environment nullable.String         `json:"environment" validate:"maxLength=1024"`
 	Framework   contextServiceFramework `json:"framework"`
 	Language    contextServiceLanguage  `json:"language"`
-	Name        nullable.String         `json:"name" validate:"max=1024,pattern=regexpAlphaNumericExt"`
+	Name        nullable.String         `json:"name" validate:"maxLength=1024,pattern=patternAlphaNumericExt"`
 	Node        contextServiceNode      `json:"node"`
 	Runtime     contextServiceRuntime   `json:"runtime"`
-	Version     nullable.String         `json:"version" validate:"max=1024"`
+	Version     nullable.String         `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceAgent struct {
-	EphemeralID nullable.String `json:"ephemeral_id" validate:"max=1024"`
-	Name        nullable.String `json:"name" validate:"max=1024"`
-	Version     nullable.String `json:"version" validate:"max=1024"`
+	EphemeralID nullable.String `json:"ephemeral_id" validate:"maxLength=1024"`
+	Name        nullable.String `json:"name" validate:"maxLength=1024"`
+	Version     nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceFramework struct {
-	Name    nullable.String `json:"name" validate:"max=1024"`
-	Version nullable.String `json:"version" validate:"max=1024"`
+	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceLanguage struct {
-	Name    nullable.String `json:"name" validate:"max=1024"`
-	Version nullable.String `json:"version" validate:"max=1024"`
+	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceNode struct {
-	Name nullable.String `json:"configured_name" validate:"max=1024"`
+	Name nullable.String `json:"configured_name" validate:"maxLength=1024"`
 }
 
 type contextServiceRuntime struct {
-	Name    nullable.String `json:"name" validate:"max=1024"`
-	Version nullable.String `json:"version" validate:"max=1024"`
+	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type errorEvent struct {
 	Context       context                 `json:"context"`
-	Culprit       nullable.String         `json:"culprit" validate:"max=1024"`
+	Culprit       nullable.String         `json:"culprit" validate:"maxLength=1024"`
 	Exception     errorException          `json:"exception"`
-	ID            nullable.String         `json:"id" validate:"required,max=1024"`
+	ID            nullable.String         `json:"id" validate:"required,maxLength=1024"`
 	Log           errorLog                `json:"log"`
-	ParentID      nullable.String         `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,max=1024"`
+	ParentID      nullable.String         `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,maxLength=1024"`
 	Timestamp     nullable.TimeMicrosUnix `json:"timestamp"`
-	TraceID       nullable.String         `json:"trace_id" validate:"requiredIfAny=transaction_id;parent_id,max=1024"`
+	TraceID       nullable.String         `json:"trace_id" validate:"requiredIfAny=transaction_id;parent_id,maxLength=1024"`
 	Transaction   errorTransactionRef     `json:"transaction"`
-	TransactionID nullable.String         `json:"transaction_id" validate:"max=1024"`
-	_             struct{}                `validate:"requiredOneOf=exception;log"`
+	TransactionID nullable.String         `json:"transaction_id" validate:"maxLength=1024"`
+	_             struct{}                `validate:"requiredAnyOf=exception;log"`
 }
 
 type errorException struct {
 	Attributes common.MapStr      `json:"attributes"`
-	Code       nullable.Interface `json:"code" validate:"inputTypes=string;int,max=1024"`
+	Code       nullable.Interface `json:"code" validate:"inputTypes=string;int,maxLength=1024"`
 	Cause      []errorException   `json:"cause"`
 	Handled    nullable.Bool      `json:"handled"`
 	Message    nullable.String    `json:"message"`
-	Module     nullable.String    `json:"module" validate:"max=1024"`
+	Module     nullable.String    `json:"module" validate:"maxLength=1024"`
 	Stacktrace []stacktraceFrame  `json:"stacktrace"`
-	Type       nullable.String    `json:"type" validate:"max=1024"`
-	_          struct{}           `validate:"requiredOneOf=message;type"`
+	Type       nullable.String    `json:"type" validate:"maxLength=1024"`
+	_          struct{}           `validate:"requiredAnyOf=message;type"`
 }
 
 type errorLog struct {
-	Level        nullable.String   `json:"level" validate:"max=1024"`
-	LoggerName   nullable.String   `json:"logger_name" validate:"max=1024"`
+	Level        nullable.String   `json:"level" validate:"maxLength=1024"`
+	LoggerName   nullable.String   `json:"logger_name" validate:"maxLength=1024"`
 	Message      nullable.String   `json:"message" validate:"required"`
-	ParamMessage nullable.String   `json:"param_message" validate:"max=1024"`
+	ParamMessage nullable.String   `json:"param_message" validate:"maxLength=1024"`
 	Stacktrace   []stacktraceFrame `json:"stacktrace"`
 }
 
 type errorTransactionRef struct {
 	Sampled nullable.Bool   `json:"sampled"`
-	Type    nullable.String `json:"type" validate:"max=1024"`
+	Type    nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 type metadata struct {
 	Cloud   metadataCloud   `json:"cloud"`
-	Labels  common.MapStr   `json:"labels" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
+	Labels  common.MapStr   `json:"labels" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	Process metadataProcess `json:"process"`
 	Service metadataService `json:"service" validate:"required"`
 	System  metadataSystem  `json:"system"`
@@ -216,84 +217,84 @@ type metadata struct {
 
 type metadataCloud struct {
 	Account          metadataCloudAccount  `json:"account"`
-	AvailabilityZone nullable.String       `json:"availability_zone" validate:"max=1024"`
+	AvailabilityZone nullable.String       `json:"availability_zone" validate:"maxLength=1024"`
 	Instance         metadataCloudInstance `json:"instance"`
 	Machine          metadataCloudMachine  `json:"machine"`
 	Project          metadataCloudProject  `json:"project"`
-	Provider         nullable.String       `json:"provider" validate:"required,max=1024"`
-	Region           nullable.String       `json:"region" validate:"max=1024"`
+	Provider         nullable.String       `json:"provider" validate:"required,maxLength=1024"`
+	Region           nullable.String       `json:"region" validate:"maxLength=1024"`
 }
 
 type metadataCloudAccount struct {
-	ID   nullable.String `json:"id" validate:"max=1024"`
-	Name nullable.String `json:"name" validate:"max=1024"`
+	ID   nullable.String `json:"id" validate:"maxLength=1024"`
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 
 type metadataCloudInstance struct {
-	ID   nullable.String `json:"id" validate:"max=1024"`
-	Name nullable.String `json:"name" validate:"max=1024"`
+	ID   nullable.String `json:"id" validate:"maxLength=1024"`
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 
 type metadataCloudMachine struct {
-	Type nullable.String `json:"type" validate:"max=1024"`
+	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 type metadataCloudProject struct {
-	ID   nullable.String `json:"id" validate:"max=1024"`
-	Name nullable.String `json:"name" validate:"max=1024"`
+	ID   nullable.String `json:"id" validate:"maxLength=1024"`
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 
 type metadataProcess struct {
 	Argv  []string        `json:"argv"`
 	Pid   nullable.Int    `json:"pid" validate:"required"`
 	Ppid  nullable.Int    `json:"ppid"`
-	Title nullable.String `json:"title" validate:"max=1024"`
+	Title nullable.String `json:"title" validate:"maxLength=1024"`
 }
 
 type metadataService struct {
 	Agent       metadataServiceAgent     `json:"agent" validate:"required"`
-	Environment nullable.String          `json:"environment" validate:"max=1024"`
+	Environment nullable.String          `json:"environment" validate:"maxLength=1024"`
 	Framework   metadataServiceFramework `json:"framework"`
 	Language    metadataServiceLanguage  `json:"language"`
-	Name        nullable.String          `json:"name" validate:"required,min=1,max=1024,pattern=regexpAlphaNumericExt"`
+	Name        nullable.String          `json:"name" validate:"required,minLength=1,maxLength=1024,pattern=patternAlphaNumericExt"`
 	Node        metadataServiceNode      `json:"node"`
 	Runtime     metadataServiceRuntime   `json:"runtime"`
-	Version     nullable.String          `json:"version" validate:"max=1024"`
+	Version     nullable.String          `json:"version" validate:"maxLength=1024"`
 }
 
 type metadataServiceAgent struct {
-	EphemeralID nullable.String `json:"ephemeral_id" validate:"max=1024"`
-	Name        nullable.String `json:"name" validate:"required,min=1,max=1024"`
-	Version     nullable.String `json:"version" validate:"required,max=1024"`
+	EphemeralID nullable.String `json:"ephemeral_id" validate:"maxLength=1024"`
+	Name        nullable.String `json:"name" validate:"required,minLength=1,maxLength=1024"`
+	Version     nullable.String `json:"version" validate:"required,maxLength=1024"`
 }
 
 type metadataServiceFramework struct {
-	Name    nullable.String `json:"name" validate:"max=1024"`
-	Version nullable.String `json:"version" validate:"max=1024"`
+	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type metadataServiceLanguage struct {
-	Name    nullable.String `json:"name" validate:"required,max=1024"`
-	Version nullable.String `json:"version" validate:"max=1024"`
+	Name    nullable.String `json:"name" validate:"required,maxLength=1024"`
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type metadataServiceNode struct {
-	Name nullable.String `json:"configured_name" validate:"max=1024"`
+	Name nullable.String `json:"configured_name" validate:"maxLength=1024"`
 }
 
 type metadataServiceRuntime struct {
-	Name    nullable.String `json:"name" validate:"required,max=1024"`
-	Version nullable.String `json:"version" validate:"required,max=1024"`
+	Name    nullable.String `json:"name" validate:"required,maxLength=1024"`
+	Version nullable.String `json:"version" validate:"required,maxLength=1024"`
 }
 
 type metadataSystem struct {
-	Architecture       nullable.String          `json:"architecture" validate:"max=1024"`
-	ConfiguredHostname nullable.String          `json:"configured_hostname" validate:"max=1024"`
+	Architecture       nullable.String          `json:"architecture" validate:"maxLength=1024"`
+	ConfiguredHostname nullable.String          `json:"configured_hostname" validate:"maxLength=1024"`
 	Container          metadataSystemContainer  `json:"container"`
-	DetectedHostname   nullable.String          `json:"detected_hostname" validate:"max=1024"`
-	DeprecatedHostname nullable.String          `json:"hostname" validate:"max=1024"`
+	DetectedHostname   nullable.String          `json:"detected_hostname" validate:"maxLength=1024"`
+	DeprecatedHostname nullable.String          `json:"hostname" validate:"maxLength=1024"`
 	Kubernetes         metadataSystemKubernetes `json:"kubernetes"`
-	Platform           nullable.String          `json:"platform" validate:"max=1024"`
+	Platform           nullable.String          `json:"platform" validate:"maxLength=1024"`
 }
 
 type metadataSystemContainer struct {
@@ -304,18 +305,18 @@ type metadataSystemContainer struct {
 }
 
 type metadataSystemKubernetes struct {
-	Namespace nullable.String              `json:"namespace" validate:"max=1024"`
+	Namespace nullable.String              `json:"namespace" validate:"maxLength=1024"`
 	Node      metadataSystemKubernetesNode `json:"node"`
 	Pod       metadataSystemKubernetesPod  `json:"pod"`
 }
 
 type metadataSystemKubernetesNode struct {
-	Name nullable.String `json:"name" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 
 type metadataSystemKubernetesPod struct {
-	Name nullable.String `json:"name" validate:"max=1024"`
-	UID  nullable.String `json:"uid" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	UID  nullable.String `json:"uid" validate:"maxLength=1024"`
 }
 
 // NOTE(simitt):
@@ -323,9 +324,9 @@ type metadataSystemKubernetesPod struct {
 // TimeseriesInstanceID is only set by aggregator
 type metricset struct {
 	Timestamp   nullable.TimeMicrosUnix         `json:"timestamp"`
-	Samples     map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=regexpNoAsteriskQuote"`
+	Samples     map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=patternNoAsteriskQuote"`
 	Span        metricsetSpanRef                `json:"span"`
-	Tags        common.MapStr                   `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
+	Tags        common.MapStr                   `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	Transaction metricsetTransactionRef         `json:"transaction"`
 }
 
@@ -337,52 +338,52 @@ type metricsetSampleValue struct {
 // NOTE(simitt):
 // span.DestinationService is only set by aggregator
 type metricsetSpanRef struct {
-	Subtype nullable.String `json:"subtype" validate:"max=1024"`
-	Type    nullable.String `json:"type" validate:"max=1024"`
+	Subtype nullable.String `json:"subtype" validate:"maxLength=1024"`
+	Type    nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 // NOTE(simitt):
 // transaction.Result is only set by aggregator and rumV3
 // transaction.Root is only set by aggregator
 type metricsetTransactionRef struct {
-	Name nullable.String `json:"name" validate:"max=1024"`
-	Type nullable.String `json:"type" validate:"max=1024"`
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 type span struct {
-	Action        nullable.String         `json:"action" validate:"max=1024"`
-	ChildIDs      []string                `json:"child_ids" validate:"max=1024"`
+	Action        nullable.String         `json:"action" validate:"maxLength=1024"`
+	ChildIDs      []string                `json:"child_ids" validate:"maxLength=1024"`
 	Context       spanContext             `json:"context"`
 	Duration      nullable.Float64        `json:"duration" validate:"required,min=0"`
-	ID            nullable.String         `json:"id" validate:"required,max=1024"`
-	Name          nullable.String         `json:"name" validate:"required,max=1024"`
+	ID            nullable.String         `json:"id" validate:"required,maxLength=1024"`
+	Name          nullable.String         `json:"name" validate:"required,maxLength=1024"`
 	Outcome       nullable.String         `json:"outcome" validate:"enum=enumOutcome"`
-	ParentID      nullable.String         `json:"parent_id" validate:"required,max=1024"`
+	ParentID      nullable.String         `json:"parent_id" validate:"required,maxLength=1024"`
 	SampleRate    nullable.Float64        `json:"sample_rate"`
 	Stacktrace    []stacktraceFrame       `json:"stacktrace"`
 	Start         nullable.Float64        `json:"start"`
-	Subtype       nullable.String         `json:"subtype" validate:"max=1024"`
+	Subtype       nullable.String         `json:"subtype" validate:"maxLength=1024"`
 	Sync          nullable.Bool           `json:"sync"`
 	Timestamp     nullable.TimeMicrosUnix `json:"timestamp"`
-	TraceID       nullable.String         `json:"trace_id" validate:"required,max=1024"`
-	TransactionID nullable.String         `json:"transaction_id" validate:"max=1024"`
-	Type          nullable.String         `json:"type" validate:"required,max=1024"`
-	_             struct{}                `validate:"requiredOneOf=start;timestamp"`
+	TraceID       nullable.String         `json:"trace_id" validate:"required,maxLength=1024"`
+	TransactionID nullable.String         `json:"transaction_id" validate:"maxLength=1024"`
+	Type          nullable.String         `json:"type" validate:"required,maxLength=1024"`
+	_             struct{}                `validate:"requiredAnyOf=start;timestamp"`
 }
 
 type spanContext struct {
 	Database     spanContextDatabase    `json:"db"`
 	Destination  spanContextDestination `json:"destination"`
-	Experimental nullable.Interface     `json:"experimental"`
+	Experimental nullable.Interface     `json:"experimental" `
 	HTTP         spanContextHTTP        `json:"http"`
 	Message      contextMessage         `json:"message"`
 	Service      contextService         `json:"service"`
-	Tags         common.MapStr          `json:"tags" validate:"patternKeys=regexpNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxVals=1024"`
+	Tags         common.MapStr          `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type spanContextDatabase struct {
 	Instance     nullable.String `json:"instance"`
-	Link         nullable.String `json:"link" validate:"max=1024"`
+	Link         nullable.String `json:"link" validate:"maxLength=1024"`
 	RowsAffected nullable.Int    `json:"rows_affected"`
 	Statement    nullable.String `json:"statement"`
 	Type         nullable.String `json:"type"`
@@ -390,19 +391,19 @@ type spanContextDatabase struct {
 }
 
 type spanContextDestination struct {
-	Address nullable.String               `json:"address" validate:"max=1024"`
+	Address nullable.String               `json:"address" validate:"maxLength=1024"`
 	Port    nullable.Int                  `json:"port"`
 	Service spanContextDestinationService `json:"service"`
 }
 
 type spanContextDestinationService struct {
-	Name     nullable.String `json:"name" validate:"required,max=1024"`
-	Resource nullable.String `json:"resource" validate:"required,max=1024"`
-	Type     nullable.String `json:"type" validate:"required,max=1024"`
+	Name     nullable.String `json:"name" validate:"required,maxLength=1024"`
+	Resource nullable.String `json:"resource" validate:"required,maxLength=1024"`
+	Type     nullable.String `json:"type" validate:"required,maxLength=1024"`
 }
 
 type spanContextHTTP struct {
-	Method     nullable.String         `json:"method" validate:"max=1024"`
+	Method     nullable.String         `json:"method" validate:"maxLength=1024"`
 	Response   spanContextHTTPResponse `json:"response"`
 	StatusCode nullable.Int            `json:"status_code"`
 	URL        nullable.String         `json:"url"`
@@ -429,29 +430,29 @@ type stacktraceFrame struct {
 	PostContext  []string        `json:"post_context"`
 	PreContext   []string        `json:"pre_context"`
 	Vars         common.MapStr   `json:"vars"`
-	_            struct{}        `validate:"requiredOneOf=classname;filename"`
+	_            struct{}        `validate:"requiredAnyOf=classname;filename"`
 }
 
 type transaction struct {
 	Context        context                   `json:"context"`
 	Duration       nullable.Float64          `json:"duration" validate:"required,min=0"`
-	ID             nullable.String           `json:"id" validate:"required,max=1024"`
+	ID             nullable.String           `json:"id" validate:"required,maxLength=1024"`
 	Marks          transactionMarks          `json:"marks"`
-	Name           nullable.String           `json:"name" validate:"max=1024"`
+	Name           nullable.String           `json:"name" validate:"maxLength=1024"`
 	Outcome        nullable.String           `json:"outcome" validate:"enum=enumOutcome"`
-	ParentID       nullable.String           `json:"parent_id" validate:"max=1024"`
-	Result         nullable.String           `json:"result" validate:"max=1024"`
+	ParentID       nullable.String           `json:"parent_id" validate:"maxLength=1024"`
+	Result         nullable.String           `json:"result" validate:"maxLength=1024"`
 	Sampled        nullable.Bool             `json:"sampled"`
 	SampleRate     nullable.Float64          `json:"sample_rate"`
 	SpanCount      transactionSpanCount      `json:"span_count" validate:"required"`
 	Timestamp      nullable.TimeMicrosUnix   `json:"timestamp"`
-	TraceID        nullable.String           `json:"trace_id" validate:"required,max=1024"`
-	Type           nullable.String           `json:"type" validate:"required,max=1024"`
+	TraceID        nullable.String           `json:"trace_id" validate:"required,maxLength=1024"`
+	Type           nullable.String           `json:"type" validate:"required,maxLength=1024"`
 	UserExperience transactionUserExperience `json:"experience"`
 }
 
 type transactionMarks struct {
-	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
 }
 
 //TODO(simitt): generate
@@ -460,7 +461,7 @@ func (m *transactionMarks) UnmarshalJSON(data []byte) error {
 }
 
 type transactionMarkEvents struct {
-	Measurements map[string]float64 `json:"-" validate:"patternKeys=regexpNoDotAsteriskQuote"`
+	Measurements map[string]float64 `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
 }
 
 //TODO(simitt): generate
@@ -498,7 +499,7 @@ type longtaskMetrics struct {
 }
 
 type user struct {
-	ID    nullable.Interface `json:"id" validate:"max=1024,inputTypes=string;int"`
-	Email nullable.String    `json:"email" validate:"max=1024"`
-	Name  nullable.String    `json:"username" validate:"max=1024"`
+	ID    nullable.Interface `json:"id" validate:"maxLength=1024,inputTypes=string;int"`
+	Email nullable.String    `json:"email" validate:"maxLength=1024"`
+	Name  nullable.String    `json:"username" validate:"maxLength=1024"`
 }

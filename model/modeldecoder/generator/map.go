@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagRequired, tagInputTypesVals}
+var mapSupportedTags = []string{tagMaxLengthVals, tagPatternKeys, tagRequired, tagInputTypesVals}
 
 func generateMapValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	typ := f.Type().Underlying().(*types.Map)
@@ -117,8 +117,8 @@ case nil:
 case %s:
 `[1:], typ)
 		if typ == "string" {
-			if maxValValue, ok := rules[tagMaxVals]; ok {
-				mapRuleMaxVals(w, f, validationRule{name: tagMaxVals, value: maxValValue})
+			if maxValValue, ok := rules[tagMaxLengthVals]; ok {
+				mapRuleMaxVals(w, f, validationRule{name: tagMaxLengthVals, value: maxValValue})
 			}
 		}
 	}
@@ -139,7 +139,7 @@ if len(val.%s) == 0{
 
 func mapRulePatternKeys(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
-if k != "" && !%s.MatchString(k){
+if k != "" && !%sRegexp.MatchString(k){
 		return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], rule.value, jsonName(f), rule.name, rule.value)

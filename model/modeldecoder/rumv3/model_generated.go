@@ -22,12 +22,16 @@ package rumv3
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
 )
 
-var ()
+var (
+	patternAlphaNumericExtRegexp    = regexp.MustCompile(patternAlphaNumericExt)
+	patternNoDotAsteriskQuoteRegexp = regexp.MustCompile(patternNoDotAsteriskQuote)
+)
 
 func (val *metadataRoot) IsSet() bool {
 	return val.Metadata.IsSet()
@@ -64,14 +68,14 @@ func (val *metadata) validate() error {
 		return nil
 	}
 	for k, v := range val.Labels {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'l': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
+			return fmt.Errorf("'l': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
 		}
 		switch t := v.(type) {
 		case nil:
 		case string:
 			if utf8.RuneCountInString(t) > 1024 {
-				return fmt.Errorf("'l': validation rule 'maxVals(1024)' violated")
+				return fmt.Errorf("'l': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
 		case json.Number:
@@ -116,7 +120,7 @@ func (val *metadataService) validate() error {
 		return fmt.Errorf("'a' required")
 	}
 	if utf8.RuneCountInString(val.Environment.Val) > 1024 {
-		return fmt.Errorf("'en': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'en': validation rule 'maxLength(1024)' violated")
 	}
 	if err := val.Framework.validate(); err != nil {
 		return errors.Wrapf(err, "fw")
@@ -125,13 +129,13 @@ func (val *metadataService) validate() error {
 		return errors.Wrapf(err, "la")
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Name.Val) < 1 {
-		return fmt.Errorf("'n': validation rule 'min(1)' violated")
+		return fmt.Errorf("'n': validation rule 'minLength(1)' violated")
 	}
-	if val.Name.Val != "" && !regexpAlphaNumericExt.MatchString(val.Name.Val) {
-		return fmt.Errorf("'n': validation rule 'pattern(regexpAlphaNumericExt)' violated")
+	if val.Name.Val != "" && !patternAlphaNumericExtRegexp.MatchString(val.Name.Val) {
+		return fmt.Errorf("'n': validation rule 'pattern(patternAlphaNumericExt)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'n' required")
@@ -140,7 +144,7 @@ func (val *metadataService) validate() error {
 		return errors.Wrapf(err, "ru")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -159,16 +163,16 @@ func (val *metadataServiceAgent) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Name.Val) < 1 {
-		return fmt.Errorf("'n': validation rule 'min(1)' violated")
+		return fmt.Errorf("'n': validation rule 'minLength(1)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'n' required")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Version.IsSet() {
 		return fmt.Errorf("'ve' required")
@@ -190,10 +194,10 @@ func (val *metadataServiceFramework) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -212,13 +216,13 @@ func (val *metadataServiceLanguage) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'n' required")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -237,13 +241,13 @@ func (val *metadataServiceRuntime) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'n' required")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Version.IsSet() {
 		return fmt.Errorf("'ve' required")
@@ -268,7 +272,7 @@ func (val *user) validate() error {
 	switch t := val.ID.Val.(type) {
 	case string:
 		if utf8.RuneCountInString(t) > 1024 {
-			return fmt.Errorf("'id': validation rule 'max(1024)' violated")
+			return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 		}
 	case int:
 	case json.Number:
@@ -280,10 +284,10 @@ func (val *user) validate() error {
 		return fmt.Errorf("'id': validation rule 'inputTypes(string;int)' violated ")
 	}
 	if utf8.RuneCountInString(val.Email.Val) > 1024 {
-		return fmt.Errorf("'em': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'em': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'un': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'un': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -331,13 +335,13 @@ func (val *errorEvent) validate() error {
 		return errors.Wrapf(err, "c")
 	}
 	if utf8.RuneCountInString(val.Culprit.Val) > 1024 {
-		return fmt.Errorf("'cl': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'cl': validation rule 'maxLength(1024)' violated")
 	}
 	if err := val.Exception.validate(); err != nil {
 		return errors.Wrapf(err, "ex")
 	}
 	if utf8.RuneCountInString(val.ID.Val) > 1024 {
-		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
@@ -346,7 +350,7 @@ func (val *errorEvent) validate() error {
 		return errors.Wrapf(err, "log")
 	}
 	if utf8.RuneCountInString(val.ParentID.Val) > 1024 {
-		return fmt.Errorf("'pid': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'pid': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ParentID.IsSet() {
 		if val.TraceID.IsSet() {
@@ -357,7 +361,7 @@ func (val *errorEvent) validate() error {
 		}
 	}
 	if utf8.RuneCountInString(val.TraceID.Val) > 1024 {
-		return fmt.Errorf("'tid': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'tid': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
 		if val.ParentID.IsSet() {
@@ -371,7 +375,7 @@ func (val *errorEvent) validate() error {
 		return errors.Wrapf(err, "x")
 	}
 	if utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
-		return fmt.Errorf("'xid': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'xid': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Exception.IsSet() && !val.Log.IsSet() {
 		return fmt.Errorf("requires at least one of the fields 'ex;log'")
@@ -402,8 +406,8 @@ func (val *context) validate() error {
 		return nil
 	}
 	for k := range val.Custom {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'cu': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
+			return fmt.Errorf("'cu': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
 		}
 	}
 	if err := val.Page.validate(); err != nil {
@@ -419,14 +423,14 @@ func (val *context) validate() error {
 		return errors.Wrapf(err, "se")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'g': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
+			return fmt.Errorf("'g': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
 		}
 		switch t := v.(type) {
 		case nil:
 		case string:
 			if utf8.RuneCountInString(t) > 1024 {
-				return fmt.Errorf("'g': validation rule 'maxVals(1024)' violated")
+				return fmt.Errorf("'g': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
 		case json.Number:
@@ -474,10 +478,10 @@ func (val *contextRequest) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
-		return fmt.Errorf("'hve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'hve': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Method.Val) > 1024 {
-		return fmt.Errorf("'mt': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'mt': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Method.IsSet() {
 		return fmt.Errorf("'mt' required")
@@ -526,7 +530,7 @@ func (val *contextService) validate() error {
 		return errors.Wrapf(err, "a")
 	}
 	if utf8.RuneCountInString(val.Environment.Val) > 1024 {
-		return fmt.Errorf("'en': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'en': validation rule 'maxLength(1024)' violated")
 	}
 	if err := val.Framework.validate(); err != nil {
 		return errors.Wrapf(err, "fw")
@@ -535,16 +539,16 @@ func (val *contextService) validate() error {
 		return errors.Wrapf(err, "la")
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.Val != "" && !regexpAlphaNumericExt.MatchString(val.Name.Val) {
-		return fmt.Errorf("'n': validation rule 'pattern(regexpAlphaNumericExt)' violated")
+	if val.Name.Val != "" && !patternAlphaNumericExtRegexp.MatchString(val.Name.Val) {
+		return fmt.Errorf("'n': validation rule 'pattern(patternAlphaNumericExt)' violated")
 	}
 	if err := val.Runtime.validate(); err != nil {
 		return errors.Wrapf(err, "ru")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -563,10 +567,10 @@ func (val *contextServiceAgent) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -585,10 +589,10 @@ func (val *contextServiceFramework) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -607,10 +611,10 @@ func (val *contextServiceLanguage) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -629,10 +633,10 @@ func (val *contextServiceRuntime) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'ve': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ve': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -667,7 +671,7 @@ func (val *errorException) validate() error {
 	switch t := val.Code.Val.(type) {
 	case string:
 		if utf8.RuneCountInString(t) > 1024 {
-			return fmt.Errorf("'cd': validation rule 'max(1024)' violated")
+			return fmt.Errorf("'cd': validation rule 'maxLength(1024)' violated")
 		}
 	case int:
 	case json.Number:
@@ -684,7 +688,7 @@ func (val *errorException) validate() error {
 		}
 	}
 	if utf8.RuneCountInString(val.Module.Val) > 1024 {
-		return fmt.Errorf("'mo': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'mo': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.Stacktrace {
 		if err := elem.validate(); err != nil {
@@ -692,7 +696,7 @@ func (val *errorException) validate() error {
 		}
 	}
 	if utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Message.IsSet() && !val.Type.IsSet() {
 		return fmt.Errorf("requires at least one of the fields 'mg;t'")
@@ -747,16 +751,16 @@ func (val *errorLog) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Level.Val) > 1024 {
-		return fmt.Errorf("'lv': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'lv': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.LoggerName.Val) > 1024 {
-		return fmt.Errorf("'ln': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ln': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Message.IsSet() {
 		return fmt.Errorf("'mg' required")
 	}
 	if utf8.RuneCountInString(val.ParamMessage.Val) > 1024 {
-		return fmt.Errorf("'pmg': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'pmg': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.Stacktrace {
 		if err := elem.validate(); err != nil {
@@ -780,7 +784,7 @@ func (val *errorTransactionRef) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -829,14 +833,14 @@ func (val *metricset) validate() error {
 		return errors.Wrapf(err, "y")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'g': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
+			return fmt.Errorf("'g': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
 		}
 		switch t := v.(type) {
 		case nil:
 		case string:
 			if utf8.RuneCountInString(t) > 1024 {
-				return fmt.Errorf("'g': validation rule 'maxVals(1024)' violated")
+				return fmt.Errorf("'g': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
 		case json.Number:
@@ -913,10 +917,10 @@ func (val *metricsetSpanRef) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Subtype.Val) > 1024 {
-		return fmt.Errorf("'su': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'su': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
@@ -982,7 +986,7 @@ func (val *transaction) validate() error {
 		return fmt.Errorf("'d' required")
 	}
 	if utf8.RuneCountInString(val.ID.Val) > 1024 {
-		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
@@ -991,7 +995,7 @@ func (val *transaction) validate() error {
 		return errors.Wrapf(err, "k")
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Outcome.Val != "" {
 		var matchEnum bool
@@ -1006,10 +1010,10 @@ func (val *transaction) validate() error {
 		}
 	}
 	if utf8.RuneCountInString(val.ParentID.Val) > 1024 {
-		return fmt.Errorf("'pid': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'pid': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Result.Val) > 1024 {
-		return fmt.Errorf("'rt': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'rt': validation rule 'maxLength(1024)' violated")
 	}
 	if err := val.SpanCount.validate(); err != nil {
 		return errors.Wrapf(err, "yc")
@@ -1018,13 +1022,13 @@ func (val *transaction) validate() error {
 		return fmt.Errorf("'yc' required")
 	}
 	if utf8.RuneCountInString(val.TraceID.Val) > 1024 {
-		return fmt.Errorf("'tid': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'tid': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
 		return fmt.Errorf("'tid' required")
 	}
 	if utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Type.IsSet() {
 		return fmt.Errorf("'t' required")
@@ -1063,8 +1067,8 @@ func (val *transactionMarks) validate() error {
 		if err := v.validate(); err != nil {
 			return errors.Wrapf(err, "events")
 		}
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'events': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
+			return fmt.Errorf("'events': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
 		}
 	}
 	return nil
@@ -1085,8 +1089,8 @@ func (val *transactionMarkEvents) validate() error {
 		return nil
 	}
 	for k := range val.Measurements {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'measurements': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
+			return fmt.Errorf("'measurements': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
 		}
 	}
 	return nil
@@ -1204,7 +1208,7 @@ func (val *span) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Action.Val) > 1024 {
-		return fmt.Errorf("'ac': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ac': validation rule 'maxLength(1024)' violated")
 	}
 	if err := val.Context.validate(); err != nil {
 		return errors.Wrapf(err, "c")
@@ -1216,13 +1220,13 @@ func (val *span) validate() error {
 		return fmt.Errorf("'d' required")
 	}
 	if utf8.RuneCountInString(val.ID.Val) > 1024 {
-		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'n' required")
@@ -1248,10 +1252,10 @@ func (val *span) validate() error {
 		return fmt.Errorf("'s' required")
 	}
 	if utf8.RuneCountInString(val.Subtype.Val) > 1024 {
-		return fmt.Errorf("'su': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'su': validation rule 'maxLength(1024)' violated")
 	}
 	if utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Type.IsSet() {
 		return fmt.Errorf("'t' required")
@@ -1286,14 +1290,14 @@ func (val *spanContext) validate() error {
 		return errors.Wrapf(err, "se")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !regexpNoDotAsteriskQuote.MatchString(k) {
-			return fmt.Errorf("'g': validation rule 'patternKeys(regexpNoDotAsteriskQuote)' violated")
+		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
+			return fmt.Errorf("'g': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
 		}
 		switch t := v.(type) {
 		case nil:
 		case string:
 			if utf8.RuneCountInString(t) > 1024 {
-				return fmt.Errorf("'g': validation rule 'maxVals(1024)' violated")
+				return fmt.Errorf("'g': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
 		case json.Number:
@@ -1319,7 +1323,7 @@ func (val *spanContextDestination) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Address.Val) > 1024 {
-		return fmt.Errorf("'ad': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'ad': validation rule 'maxLength(1024)' violated")
 	}
 	if err := val.Service.validate(); err != nil {
 		return errors.Wrapf(err, "se")
@@ -1342,19 +1346,19 @@ func (val *spanContextDestinationService) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'n' required")
 	}
 	if utf8.RuneCountInString(val.Resource.Val) > 1024 {
-		return fmt.Errorf("'rc': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'rc': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Resource.IsSet() {
 		return fmt.Errorf("'rc' required")
 	}
 	if utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'t': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'t': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Type.IsSet() {
 		return fmt.Errorf("'t' required")
@@ -1378,7 +1382,7 @@ func (val *spanContextHTTP) validate() error {
 		return nil
 	}
 	if utf8.RuneCountInString(val.Method.Val) > 1024 {
-		return fmt.Errorf("'mt': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'mt': validation rule 'maxLength(1024)' violated")
 	}
 	if err := val.Response.validate(); err != nil {
 		return errors.Wrapf(err, "r")
@@ -1420,10 +1424,10 @@ func (val *spanContextService) validate() error {
 		return errors.Wrapf(err, "a")
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'n': validation rule 'max(1024)' violated")
+		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.Val != "" && !regexpAlphaNumericExt.MatchString(val.Name.Val) {
-		return fmt.Errorf("'n': validation rule 'pattern(regexpAlphaNumericExt)' violated")
+	if val.Name.Val != "" && !patternAlphaNumericExtRegexp.MatchString(val.Name.Val) {
+		return fmt.Errorf("'n': validation rule 'pattern(patternAlphaNumericExt)' violated")
 	}
 	return nil
 }

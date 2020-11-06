@@ -43,11 +43,11 @@ for _, elem := range val.%s{
 	}
 	for _, rule := range rules {
 		switch rule.name {
-		case tagMin, tagMax:
-			err = sliceRuleMinMax(w, f, rule)
+		case tagMinLength, tagMaxLength:
+			err = sliceRuleMinMaxLength(w, f, rule)
 		case tagRequired:
 			sliceRuleRequired(w, f, rule)
-		case tagRequiredOneOf:
+		case tagRequiredAnyOf:
 			err = ruleRequiredOneOf(w, fields, rule.value)
 		default:
 			return errors.Wrap(errUnhandledTagRule(rule), "slice")
@@ -59,7 +59,7 @@ for _, elem := range val.%s{
 	return nil
 }
 
-func sliceRuleMinMax(w io.Writer, f structField, rule validationRule) error {
+func sliceRuleMinMaxLength(w io.Writer, f structField, rule validationRule) error {
 	sliceT, ok := f.Type().Underlying().(*types.Slice)
 	if !ok {
 		return fmt.Errorf("unexpected error handling %s for slice", rule.name)
