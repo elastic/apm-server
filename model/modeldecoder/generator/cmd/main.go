@@ -19,6 +19,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -31,59 +32,65 @@ import (
 const (
 	basePath         = "github.com/elastic/apm-server"
 	modeldecoderPath = "model/modeldecoder"
-
-	pkgV2    = "v2"
-	pkgV3RUM = "rumv3"
+	jsonSchemaPath   = "docs/spec/"
 )
 
 var (
 	importPath = path.Join(basePath, modeldecoderPath)
-	typPath    = path.Join(importPath, "nullable")
 )
 
 func main() {
-	genV2()
-	genRUMV3()
+	generateV2()
+	generateV3RUM()
 }
 
-func genV2() {
-	rootObjs := []string{"metadataRoot", "errorRoot", "metricsetRoot", "spanRoot", "transactionRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "model_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
+func generateV2() {
+	pkg := "v2"
+	p := path.Join(importPath, pkg)
+	parsed, err := generator.Parse(p)
 	if err != nil {
 		panic(err)
 	}
-	generate(gen, out)
+	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "spanRoot", "transactionRoot"})
 }
 
-func genRUMV3() {
-	rootObjs := []string{"metadataRoot", "errorRoot", "metricsetRoot", "transactionRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "model_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkgV3RUM, typPath, rootObjs)
+func generateV3RUM() {
+	pkg := "rumv3"
+	p := path.Join(importPath, pkg)
+	parsed, err := generator.Parse(p)
 	if err != nil {
 		panic(err)
 	}
-	generate(gen, out)
+	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "transactionRoot"})
 }
 
-type gen interface {
-	Generate() (bytes.Buffer, error)
-}
-
-func generate(g gen, p string) {
-	b, err := g.Generate()
+func generateCode(path string, pkg string, parsed *generator.Parsed, root []string) {
+	rootTypes := make([]string, len(root))
+	for i := 0; i < len(root); i++ {
+		rootTypes[i] = fmt.Sprintf("%s.%s", path, root[i])
+	}
+	code, err := generator.NewCodeGenerator(parsed, rootTypes)
 	if err != nil {
 		panic(err)
 	}
-	processed, err := imports.Process(p, b.Bytes(), nil)
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkg, "model_generated.go")
+	b, err := code.Generate()
 	if err != nil {
 		panic(err)
 	}
+	print(b, out)
+}
+
+func print(b bytes.Buffer, p string) {
 	f, err := os.Create(p)
 	if err != nil {
 		panic(err)
 	}
-	if _, err := f.Write(processed); err != nil {
+	var out = b.Bytes()
+	if out, err = imports.Process(p, out, nil); err != nil {
+		panic(err)
+	}
+	if _, err := f.Write(out); err != nil {
 		panic(err)
 	}
 }

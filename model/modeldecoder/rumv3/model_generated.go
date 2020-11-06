@@ -27,6 +27,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ()
+
 func (val *metadataRoot) IsSet() bool {
 	return val.Metadata.IsSet()
 }
