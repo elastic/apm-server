@@ -19,6 +19,7 @@ package generator
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -286,8 +287,8 @@ func validate(schema string, data string) (*gojsonschema.Result, error) {
 
 func generateJSONSchema(root string) (string, error) {
 	var s string
-	path := "github.com/elastic/apm-server/model/modeldecoder/generator/generatortest"
-	parsed, err := Parse(path)
+	p := filepath.Join("github.com", "elastic", "apm-server", "model", "modeldecoder", "generator", "generatortest")
+	parsed, err := Parse(p)
 	if err != nil {
 		return s, err
 	}
@@ -295,7 +296,7 @@ func generateJSONSchema(root string) (string, error) {
 	if err != nil {
 		return s, err
 	}
-	rootEvent := fmt.Sprintf("%s.%s", path, root)
+	rootEvent := fmt.Sprintf("%s.%s", p, root)
 	b, err := jsonSchema.Generate("jsonschematest", rootEvent)
 	return b.String(), err
 }
