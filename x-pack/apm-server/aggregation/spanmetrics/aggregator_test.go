@@ -26,7 +26,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	})
 	require.NoError(b, err)
 
-	span := makeSpan("test_service", "test_destination", "success", time.Second, 1)
+	span := makeSpan("test_service", "agent", "test_destination", "success", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			agg.ProcessTransformables([]transform.Transformable{span})
@@ -75,6 +75,7 @@ func TestAggregatorRun(t *testing.T) {
 
 	type input struct {
 		serviceName string
+		agentName   string
 		destination string
 		outcome     string
 		count       float64
@@ -83,13 +84,13 @@ func TestAggregatorRun(t *testing.T) {
 	destinationX := "destination-X"
 	destinationZ := "destination-Z"
 	inputs := []input{
-		{serviceName: "service-A", destination: destinationZ, outcome: "success", count: 2},
-		{serviceName: "service-A", destination: destinationX, outcome: "success", count: 1},
-		{serviceName: "service-B", destination: destinationZ, outcome: "success", count: 1},
-		{serviceName: "service-A", destination: destinationZ, outcome: "success", count: 1},
-		{serviceName: "service-A", destination: destinationZ, outcome: "success", count: 0},
-		{serviceName: "service-A", outcome: "success", count: 1}, // no destination
-		{serviceName: "service-A", destination: destinationZ, outcome: "failure", count: 1},
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 2},
+		{serviceName: "service-A", agentName: "java", destination: destinationX, outcome: "success", count: 1},
+		{serviceName: "service-B", agentName: "python", destination: destinationZ, outcome: "success", count: 1},
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 1},
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 0},
+		{serviceName: "service-A", agentName: "java", outcome: "success", count: 1}, // no destination
+		{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "failure", count: 1},
 	}
 
 	var wg sync.WaitGroup
@@ -97,7 +98,7 @@ func TestAggregatorRun(t *testing.T) {
 		wg.Add(1)
 		go func(in input) {
 			defer wg.Done()
-			span := makeSpan(in.serviceName, in.destination, in.outcome, 100*time.Millisecond, in.count)
+			span := makeSpan(in.serviceName, in.agentName, in.destination, in.outcome, 100*time.Millisecond, in.count)
 			for i := 0; i < 100; i++ {
 				assert.Len(t, agg.ProcessTransformables([]transform.Transformable{span}), 1)
 			}
@@ -120,7 +121,7 @@ func TestAggregatorRun(t *testing.T) {
 
 	assert.ElementsMatch(t, []*model.Metricset{{
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-A"},
+			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "success",
@@ -135,7 +136,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	}, {
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-A"},
+			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "failure",
@@ -150,7 +151,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	}, {
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-A"},
+			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "success",
@@ -165,7 +166,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	}, {
 		Metadata: model.Metadata{
-			Service: model.Service{Name: "service-B"},
+			Service: model.Service{Name: "service-B", Agent: model.Agent{Name: "python"}},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: "success",
@@ -200,15 +201,15 @@ func TestAggregatorOverflow(t *testing.T) {
 	// as we have configured the spanmetrics with a maximum of two buckets.
 	var input []transform.Transformable
 	for i := 0; i < 10; i++ {
-		input = append(input, makeSpan("service", "destination1", "success", 100*time.Millisecond, 1))
-		input = append(input, makeSpan("service", "destination2", "success", 100*time.Millisecond, 1))
+		input = append(input, makeSpan("service", "agent", "destination1", "success", 100*time.Millisecond, 1))
+		input = append(input, makeSpan("service", "agent", "destination2", "success", 100*time.Millisecond, 1))
 	}
 	output := agg.ProcessTransformables(input)
 	assert.Equal(t, input, output)
 
 	// The third group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
-		input = append(input, makeSpan("service", "destination3", "success", 100*time.Millisecond, 1))
+		input = append(input, makeSpan("service", "agent", "destination3", "success", 100*time.Millisecond, 1))
 	}
 	output = agg.ProcessTransformables(input)
 	assert.Len(t, output, len(input)+2)
@@ -223,7 +224,7 @@ func TestAggregatorOverflow(t *testing.T) {
 		m.Timestamp = time.Time{}
 		assert.Equal(t, &model.Metricset{
 			Metadata: model.Metadata{
-				Service: model.Service{Name: "service"},
+				Service: model.Service{Name: "service", Agent: model.Agent{Name: "agent"}},
 			},
 			Event: model.MetricsetEventCategorization{
 				Outcome: "success",
@@ -241,12 +242,12 @@ func TestAggregatorOverflow(t *testing.T) {
 }
 
 func makeSpan(
-	serviceName string, destinationServiceResource, outcome string,
+	serviceName, agentName, destinationServiceResource, outcome string,
 	duration time.Duration,
 	count float64,
 ) *model.Span {
 	span := &model.Span{
-		Metadata:            model.Metadata{Service: model.Service{Name: serviceName}},
+		Metadata:            model.Metadata{Service: model.Service{Name: serviceName, Agent: model.Agent{Name: agentName}}},
 		Name:                serviceName + ":" + destinationServiceResource,
 		Duration:            duration.Seconds() * 1000,
 		RepresentativeCount: count,
