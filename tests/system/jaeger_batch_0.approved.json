@@ -10,7 +10,8 @@
             "version": "1.5.0"
         },
         "event": {
-            "ingested": "2020-04-22T14:57:44.517370Z"
+            "ingested": "2020-04-22T14:57:44.517370Z",
+            "outcome": "unknown"
         },
         "host": {
             "hostname": "host01",
