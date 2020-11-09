@@ -51,7 +51,7 @@ func (g *JSONSchemaGenerator) Generate(idPath string, rootType string) (bytes.Bu
 		return bytes.Buffer{}, fmt.Errorf("object with root key %s not found", rootType)
 	}
 	typ := propertyType{names: []propertyTypeName{TypeNameObject}, required: true}
-	property := property{Type: &typ, Properties: make(map[string]*property)}
+	property := property{Type: &typ, Properties: make(map[string]*property), Description: root.comment}
 	if err := g.generate(root, "", &property); err != nil {
 		return bytes.Buffer{}, errors.Wrap(err, "json-schema generator")
 	}
@@ -68,7 +68,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 		var err error
 		f := st.fields[i]
 		name := jsonSchemaName(f)
-		childProp := property{Properties: make(map[string]*property), Type: &propertyType{}}
+		childProp := property{Properties: make(map[string]*property), Type: &propertyType{}, Description: f.comment}
 		tags, err := validationTag(f.tag)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("%s%s", key, name))
@@ -239,7 +239,6 @@ type schema struct {
 }
 
 type property struct {
-	//TODO(simitt): Add comment as description
 	Description string        `json:"description,omitempty"`
 	Type        *propertyType `json:"type,omitempty"`
 	// AdditionalProperties should default to `true` and be set to `false`

@@ -35,150 +35,266 @@ var (
 
 // entry points
 
+// errorRoot requires an error event to be present
 type errorRoot struct {
 	Error errorEvent `json:"error" validate:"required"`
 }
 
+// metadatatRoot requires a metadata event to be present
 type metadataRoot struct {
 	Metadata metadata `json:"metadata" validate:"required"`
 }
 
+// metricsetRoot requires a metricset event to be present
 type metricsetRoot struct {
 	Metricset metricset `json:"metricset" validate:"required"`
 }
 
+// spanRoot requires a span event to be present
 type spanRoot struct {
 	Span span `json:"span" validate:"required"`
 }
 
+// transactionRoot requires a transaction event to be present
 type transactionRoot struct {
 	Transaction transaction `json:"transaction" validate:"required"`
 }
 
 // other structs
 
-// context holds arbitrary contextual information regarding the event,
-// captured by the APM agent or optionally configured by the user
 type context struct {
-	Custom       common.MapStr      `json:"custom" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	// Custom can contain additional metadata to be stored with the event.
+	// The format is unspecified and can be deeply nested objects.
+	// The information will not be indexed or searchable in Elasticsearch.
+	Custom common.MapStr `json:"custom" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	// Experimental information is only processed when APM Server is started
+	// in development mode and should only be used by APM agent developers
+	// implementing new, unreleased features. The format is unspecified.
 	Experimental nullable.Interface `json:"experimental"`
-	Message      contextMessage     `json:"message"`
-	Page         contextPage        `json:"page"`
-	Response     contextResponse    `json:"response"`
-	Request      contextRequest     `json:"request"`
-	Service      contextService     `json:"service"`
-	Tags         common.MapStr      `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
-	User         user               `json:"user"`
+	// Message holds details related to message receiving and publishing
+	// if the captured event integrates with a messaging system
+	Message contextMessage `json:"message"`
+	// Page holds information related to the current page and page referers.
+	// It is only sent from RUM agents.
+	Page contextPage `json:"page"`
+	// Response describes the HTTP response information in case the event was
+	// created as a result of an HTTP request.
+	Response contextResponse `json:"response"`
+	// Request describes the HTTP request information in case the event was
+	// created as a result of an HTTP request.
+	Request contextRequest `json:"request"`
+	// Service related information can be sent per event. Information provided
+	// here will override the more generic information retrieved from metadata,
+	// missing service fields will still by retrieving the metadata information.
+	Service contextService `json:"service"`
+	// Tags are a flat mapping of user-defined tags. Allowed value types are
+	// string, boolean and number values. Tags are indexed and searchable.
+	Tags common.MapStr `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	// User holds information about the correlated user for this event. If
+	// user data are provided here, all user related information from metadata
+	// is ignored, otherwise the metadata's user information will be stored
+	// with the event.
+	User user `json:"user"`
 }
 
 type contextMessage struct {
-	Age     contextMessageAge   `json:"age"`
-	Body    nullable.String     `json:"body"`
+	// Age of the message. If the monitored messaging framework provides a
+	// timestamp for the message, agents may use it. Otherwise, the sending
+	// agent can add a timestamp in milliseconds since the Unix epoch to the
+	// message's metadata to be retrieved by the receiving agent. If a
+	// timestamp is not available, agents should omit this field.
+	Age contextMessageAge `json:"age"`
+	// Body of the received message, similar to an HTTP request body
+	Body nullable.String `json:"body"`
+	// Headers received with the message, similar to HTTP request headers.
 	Headers nullable.HTTPHeader `json:"headers"`
-	Queue   contextMessageQueue `json:"queue"`
+	// Queue holds information about the message queue where the message is received.
+	Queue contextMessageQueue `json:"queue"`
 }
 
 type contextMessageAge struct {
+	// Age of the message in milliseconds. If the monitored messaging
+	// framework provides a timestamp for the message, agents may use it.
+	// Otherwise, the sending agent can add a timestamp in milliseconds since
+	// the Unix epoch to the message's metadata to be retrieved by the
+	// receiving agent. If a timestamp is not available, agents should omit
+	// this field.
 	Milliseconds nullable.Int `json:"ms"`
 }
 
 type contextMessageQueue struct {
+	// Name holds the name of the message queue where the message is received.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 
 type contextPage struct {
+	// Referer holds the URL of the page that 'linked' to the current page.
 	Referer nullable.String `json:"referer"`
-	URL     nullable.String `json:"url"`
+	// URL of the current page
+	URL nullable.String `json:"url"`
 }
 
 type contextRequest struct {
-	Body        nullable.Interface   `json:"body" validate:"inputTypes=string;map[string]interface"`
-	Cookies     common.MapStr        `json:"cookies"`
-	Env         common.MapStr        `json:"env"`
-	Headers     nullable.HTTPHeader  `json:"headers"`
-	HTTPVersion nullable.String      `json:"http_version" validate:"maxLength=1024"`
-	Method      nullable.String      `json:"method" validate:"required,maxLength=1024"`
-	Socket      contextRequestSocket `json:"socket"`
-	// context.request.url was required in json schema,
-	// but none of its attributes is required, which could lead to
-	// an empty URL struct - no difference to making it optional
+	// Body only contais the request bod, not the query string information.
+	// It can either be a dictionary (for standard HTTP requests) or a raw
+	// request body.
+	Body nullable.Interface `json:"body" validate:"inputTypes=string;map[string]interface"`
+	// Cookies used by the request, parsed as key-value objects.
+	Cookies common.MapStr `json:"cookies"`
+	// Env holds environment variable information passed to the monitored service.
+	Env common.MapStr `json:"env"`
+	// Headers includes any HTTP headers sent by the requester. Cookies will
+	// be taken by headers if supplied.
+	Headers nullable.HTTPHeader `json:"headers"`
+	// HTTPVersion holds information about the used HTTP version.
+	HTTPVersion nullable.String `json:"http_version" validate:"maxLength=1024"`
+	// Method holds information about the method of the HTTP request.
+	Method nullable.String `json:"method" validate:"required,maxLength=1024"`
+	// Socket holds information related to the recorded request,
+	// such as whether or not data were encrypted and the remote address.
+	Socket contextRequestSocket `json:"socket"`
+	// URL holds information sucha as the raw URL, scheme, host and path.
 	URL contextRequestURL `json:"url"`
 }
 
 type contextRequestURL struct {
-	Full     nullable.String    `json:"full" validate:"maxLength=1024"`
-	Hash     nullable.String    `json:"hash" validate:"maxLength=1024"`
-	Hostname nullable.String    `json:"hostname" validate:"maxLength=1024"`
-	Path     nullable.String    `json:"pathname" validate:"maxLength=1024"`
-	Port     nullable.Interface `json:"port" validate:"inputTypes=string;int,targetType=int,maxLength=1024"`
-	Protocol nullable.String    `json:"protocol" validate:"maxLength=1024"`
-	Raw      nullable.String    `json:"raw" validate:"maxLength=1024"`
-	Search   nullable.String    `json:"search" validate:"maxLength=1024"`
+	// Full, possibly agent-assembled URL of the request,
+	// e.g. https://example.com:443/search?q=elasticsearch#top.
+	Full nullable.String `json:"full" validate:"maxLength=1024"`
+	// Hash of the request URL, e.g. 'top'
+	Hash nullable.String `json:"hash" validate:"maxLength=1024"`
+	// Hostname information of the request, e.g. 'example.com'."
+	Hostname nullable.String `json:"hostname" validate:"maxLength=1024"`
+	// Path of the request, e.g. '/search'
+	Path nullable.String `json:"pathname" validate:"maxLength=1024"`
+	// Port of the request, e.g. '443'. Can be sent as string or int.
+	Port nullable.Interface `json:"port" validate:"inputTypes=string;int,targetType=int,maxLength=1024"`
+	// Protocol information for the recorded request, e.g. 'https:'.
+	Protocol nullable.String `json:"protocol" validate:"maxLength=1024"`
+	// Raw unparsed URL of the HTTP request line,
+	// e.g https://example.com:443/search?q=elasticsearch. This URL may be
+	// absolute or relative. For more details, see
+	// https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2.
+	Raw nullable.String `json:"raw" validate:"maxLength=1024"`
+	// Search contains the query string information of the request. It is
+	// expected to have values delimited by ampersands.
+	Search nullable.String `json:"search" validate:"maxLength=1024"`
 }
 
 type contextRequestSocket struct {
-	Encrypted     nullable.Bool   `json:"encrypted"`
+	// Encrypted indicates whether a request was sent as TLS/HTTPS request.
+	Encrypted nullable.Bool `json:"encrypted"`
+	// RemoteAddress holds the network address sending the request. It should
+	// be obtained through standard APIs and not be parsed from any headers
+	// like 'Forwarded'.
 	RemoteAddress nullable.String `json:"remote_address"`
 }
 
 type contextResponse struct {
-	DecodedBodySize nullable.Float64    `json:"decoded_body_size"`
-	EncodedBodySize nullable.Float64    `json:"encoded_body_size"`
-	Finished        nullable.Bool       `json:"finished"`
-	Headers         nullable.HTTPHeader `json:"headers"`
-	HeadersSent     nullable.Bool       `json:"headers_sent"`
-	StatusCode      nullable.Int        `json:"status_code"`
-	TransferSize    nullable.Float64    `json:"transfer_size"`
+	// DecodedBodySize holds the size of the decoded payload.
+	DecodedBodySize nullable.Float64 `json:"decoded_body_size"`
+	// EncodedBodySize holds the size of the encoded payload.
+	EncodedBodySize nullable.Float64 `json:"encoded_body_size"`
+	// Finished indicates whether the response was finished or not.
+	Finished nullable.Bool `json:"finished"`
+	// Headers holds the http headers sent in the http response.
+	Headers nullable.HTTPHeader `json:"headers"`
+	// HeadersSent indicates whether http headers were sent.
+	HeadersSent nullable.Bool `json:"headers_sent"`
+	// StatusCode describes the status code sent in the http response.
+	StatusCode nullable.Int `json:"status_code"`
+	// TransferSize holds the total size of the payload.
+	TransferSize nullable.Float64 `json:"transfer_size"`
 }
 
 type contextService struct {
-	Agent       contextServiceAgent     `json:"agent"`
-	Environment nullable.String         `json:"environment" validate:"maxLength=1024"`
-	Framework   contextServiceFramework `json:"framework"`
-	Language    contextServiceLanguage  `json:"language"`
-	Name        nullable.String         `json:"name" validate:"maxLength=1024,pattern=patternAlphaNumericExt"`
-	Node        contextServiceNode      `json:"node"`
-	Runtime     contextServiceRuntime   `json:"runtime"`
-	Version     nullable.String         `json:"version" validate:"maxLength=1024"`
+	// Agent holds information about the APM agent capturing the event.
+	Agent contextServiceAgent `json:"agent"`
+	// Environment in which the monitored service is running,
+	// e.g. `production` or `staging`.
+	Environment nullable.String `json:"environment" validate:"maxLength=1024"`
+	// Framework holds information about the framework used in the
+	// monitored service.
+	Framework contextServiceFramework `json:"framework"`
+	// Language holds information about the programming language of the
+	// monitored service.
+	Language contextServiceLanguage `json:"language"`
+	// Name of the monitored service.
+	Name nullable.String `json:"name" validate:"maxLength=1024,pattern=patternAlphaNumericExt"`
+	// Node must be a unique meaningful name of the service node.
+	Node contextServiceNode `json:"node"`
+	// Runtime holds information about the language runtime running the
+	// monitored service
+	Runtime contextServiceRuntime `json:"runtime"`
+	// Version of the monitored service.
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceAgent struct {
+	// EphemeralID is a free format ID used for metrics correlation by agents
 	EphemeralID nullable.String `json:"ephemeral_id" validate:"maxLength=1024"`
-	Name        nullable.String `json:"name" validate:"maxLength=1024"`
-	Version     nullable.String `json:"version" validate:"maxLength=1024"`
+	// Name of the APM agent capturing information.
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Version of the APM agent capturing information.
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceFramework struct {
-	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	// Name of the used framework
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Version of the used framework
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceLanguage struct {
-	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	// Name of the used programming language
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Version of the used programming language
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type contextServiceNode struct {
+	// Name of the service node
 	Name nullable.String `json:"configured_name" validate:"maxLength=1024"`
 }
 
 type contextServiceRuntime struct {
-	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	// Name of the language runtime
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Version of the language runtime
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
+// errorEvent represents an error or a logged error message,
+// captured by an APM agent in a monitored service.
 type errorEvent struct {
-	Context       context                 `json:"context"`
-	Culprit       nullable.String         `json:"culprit" validate:"maxLength=1024"`
-	Exception     errorException          `json:"exception"`
-	ID            nullable.String         `json:"id" validate:"required,maxLength=1024"`
-	Log           errorLog                `json:"log"`
-	ParentID      nullable.String         `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,maxLength=1024"`
-	Timestamp     nullable.TimeMicrosUnix `json:"timestamp"`
-	TraceID       nullable.String         `json:"trace_id" validate:"requiredIfAny=transaction_id;parent_id,maxLength=1024"`
-	Transaction   errorTransactionRef     `json:"transaction"`
-	TransactionID nullable.String         `json:"transaction_id" validate:"maxLength=1024"`
-	_             struct{}                `validate:"requiredAnyOf=exception;log"`
+	// Context holds arbitrary contextual information for the event.
+	Context context `json:"context"`
+	// Culprit identifies the function call which was the primary perpetrator
+	// of this event.
+	Culprit nullable.String `json:"culprit" validate:"maxLength=1024"`
+	// Exception holds information about the original error.
+	Exception errorException `json:"exception"`
+	// ID holds the hex encoded 128 random bits ID of the event.
+	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
+	// Log holds additional information added when the error is logged.
+	Log errorLog `json:"log"`
+	// ParentID holds the hex encoded 64 random bits ID of the parent
+	// transaction or span. It must be present if TraceID or TransactionID
+	// are set.
+	ParentID nullable.String `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,maxLength=1024"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch.
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+	// TraceID holds the hex encoded 128 random bits ID of the correlated
+	// trace. It must be present if TransactionID or ParentID are set.
+	TraceID nullable.String `json:"trace_id" validate:"requiredIfAny=transaction_id;parent_id,maxLength=1024"`
+	// Transaction holds information about the correlated transaction.
+	Transaction errorTransactionRef `json:"transaction"`
+	// TransactionID holds the hex encoded 64 random bits ID of the correlated
+	// transaction. It must be present if TraceID or ParentID are set.
+	TransactionID nullable.String `json:"transaction_id" validate:"maxLength=1024"`
+	_             struct{}        `validate:"requiredAnyOf=exception;log"`
 }
 
 type errorException struct {
@@ -202,8 +318,13 @@ type errorLog struct {
 }
 
 type errorTransactionRef struct {
-	Sampled nullable.Bool   `json:"sampled"`
-	Type    nullable.String `json:"type" validate:"maxLength=1024"`
+	// Sampled indicates whether or not the full information for a transaction
+	// is captured. If a transaction is unsampled no spans and less context
+	// information will be reported.
+	Sampled nullable.Bool `json:"sampled"`
+	// Type holds the transaction's type, and can have specific keywords
+	// within the service's domain (eg: 'request', 'backgroundjob', etc)
+	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 type metadata struct {
@@ -252,38 +373,60 @@ type metadataProcess struct {
 }
 
 type metadataService struct {
-	Agent       metadataServiceAgent     `json:"agent" validate:"required"`
-	Environment nullable.String          `json:"environment" validate:"maxLength=1024"`
-	Framework   metadataServiceFramework `json:"framework"`
-	Language    metadataServiceLanguage  `json:"language"`
-	Name        nullable.String          `json:"name" validate:"required,minLength=1,maxLength=1024,pattern=patternAlphaNumericExt"`
-	Node        metadataServiceNode      `json:"node"`
-	Runtime     metadataServiceRuntime   `json:"runtime"`
-	Version     nullable.String          `json:"version" validate:"maxLength=1024"`
+	// Agent holds information about the APM agent capturing the event.
+	Agent metadataServiceAgent `json:"agent" validate:"required"`
+	// Environment in which the monitored service is running,
+	// e.g. `production` or `staging`.
+	Environment nullable.String `json:"environment" validate:"maxLength=1024"`
+	// Framework holds information about the framework used in the
+	// monitored service.
+	Framework metadataServiceFramework `json:"framework"`
+	// Language holds information about the programming language of the
+	// monitored service.
+	Language metadataServiceLanguage `json:"language"`
+	// Name of the monitored service.
+	Name nullable.String `json:"name" validate:"required,minLength=1,maxLength=1024,pattern=patternAlphaNumericExt"`
+	// Node must be a unique meaningful name of the service node.
+	Node metadataServiceNode `json:"node"`
+	// Runtime holds information about the language runtime running the
+	// monitored service
+	Runtime metadataServiceRuntime `json:"runtime"`
+	// Version of the monitored service.
+	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type metadataServiceAgent struct {
+	// EphemeralID is a free format ID used for metrics correlation by agents
 	EphemeralID nullable.String `json:"ephemeral_id" validate:"maxLength=1024"`
-	Name        nullable.String `json:"name" validate:"required,minLength=1,maxLength=1024"`
-	Version     nullable.String `json:"version" validate:"required,maxLength=1024"`
+	// Name of the APM agent capturing information.
+	Name nullable.String `json:"name" validate:"required,minLength=1,maxLength=1024"`
+	// Version of the APM agent capturing information.
+	Version nullable.String `json:"version" validate:"required,maxLength=1024"`
 }
 
 type metadataServiceFramework struct {
-	Name    nullable.String `json:"name" validate:"maxLength=1024"`
+	// Name of the used framework
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Version of the used framework
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type metadataServiceLanguage struct {
-	Name    nullable.String `json:"name" validate:"required,maxLength=1024"`
+	// Name of the used programming language
+	Name nullable.String `json:"name" validate:"required,maxLength=1024"`
+	// Version of the used programming language
 	Version nullable.String `json:"version" validate:"maxLength=1024"`
 }
 
 type metadataServiceNode struct {
+	// Name of the service node
 	Name nullable.String `json:"configured_name" validate:"maxLength=1024"`
 }
 
 type metadataServiceRuntime struct {
-	Name    nullable.String `json:"name" validate:"required,maxLength=1024"`
+	// Name of the language runtime
+	Name nullable.String `json:"name" validate:"required,maxLength=1024"`
+	// Name of the language runtime
 	Version nullable.String `json:"version" validate:"required,maxLength=1024"`
 }
 
@@ -323,6 +466,8 @@ type metadataSystemKubernetesPod struct {
 // Event is only set by aggregator
 // TimeseriesInstanceID is only set by aggregator
 type metricset struct {
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
 	Timestamp   nullable.TimeMicrosUnix         `json:"timestamp"`
 	Samples     map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=patternNoAsteriskQuote"`
 	Span        metricsetSpanRef                `json:"span"`
@@ -339,7 +484,9 @@ type metricsetSampleValue struct {
 // span.DestinationService is only set by aggregator
 type metricsetSpanRef struct {
 	Subtype nullable.String `json:"subtype" validate:"maxLength=1024"`
-	Type    nullable.String `json:"type" validate:"maxLength=1024"`
+	// Type holds the span's type, and can have specific keywords
+	// within the service's domain (eg: 'request', 'backgroundjob', etc)
+	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 // NOTE(simitt):
@@ -347,38 +494,48 @@ type metricsetSpanRef struct {
 // transaction.Root is only set by aggregator
 type metricsetTransactionRef struct {
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
+	// Type holds the transaction's type, and can have specific keywords
+	// within the service's domain (eg: 'request', 'backgroundjob', etc)
 	Type nullable.String `json:"type" validate:"maxLength=1024"`
 }
 
 type span struct {
-	Action        nullable.String         `json:"action" validate:"maxLength=1024"`
-	ChildIDs      []string                `json:"child_ids" validate:"maxLength=1024"`
-	Context       spanContext             `json:"context"`
-	Duration      nullable.Float64        `json:"duration" validate:"required,min=0"`
-	ID            nullable.String         `json:"id" validate:"required,maxLength=1024"`
-	Name          nullable.String         `json:"name" validate:"required,maxLength=1024"`
-	Outcome       nullable.String         `json:"outcome" validate:"enum=enumOutcome"`
-	ParentID      nullable.String         `json:"parent_id" validate:"required,maxLength=1024"`
-	SampleRate    nullable.Float64        `json:"sample_rate"`
-	Stacktrace    []stacktraceFrame       `json:"stacktrace"`
-	Start         nullable.Float64        `json:"start"`
-	Subtype       nullable.String         `json:"subtype" validate:"maxLength=1024"`
-	Sync          nullable.Bool           `json:"sync"`
+	Action   nullable.String `json:"action" validate:"maxLength=1024"`
+	ChildIDs []string        `json:"child_ids" validate:"maxLength=1024"`
+	// Context holds arbitrary contextual information for the event.
+	Context    spanContext       `json:"context"`
+	Duration   nullable.Float64  `json:"duration" validate:"required,min=0"`
+	ID         nullable.String   `json:"id" validate:"required,maxLength=1024"`
+	Name       nullable.String   `json:"name" validate:"required,maxLength=1024"`
+	Outcome    nullable.String   `json:"outcome" validate:"enum=enumOutcome"`
+	ParentID   nullable.String   `json:"parent_id" validate:"required,maxLength=1024"`
+	SampleRate nullable.Float64  `json:"sample_rate"`
+	Stacktrace []stacktraceFrame `json:"stacktrace"`
+	Start      nullable.Float64  `json:"start"`
+	Subtype    nullable.String   `json:"subtype" validate:"maxLength=1024"`
+	Sync       nullable.Bool     `json:"sync"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
 	Timestamp     nullable.TimeMicrosUnix `json:"timestamp"`
 	TraceID       nullable.String         `json:"trace_id" validate:"required,maxLength=1024"`
 	TransactionID nullable.String         `json:"transaction_id" validate:"maxLength=1024"`
-	Type          nullable.String         `json:"type" validate:"required,maxLength=1024"`
-	_             struct{}                `validate:"requiredAnyOf=start;timestamp"`
+	// Type holds the span's type, and can have specific keywords
+	// within the service's domain (eg: 'request', 'backgroundjob', etc)
+	Type nullable.String `json:"type" validate:"required,maxLength=1024"`
+	_    struct{}        `validate:"requiredAnyOf=start;timestamp"`
 }
 
 type spanContext struct {
-	Database     spanContextDatabase    `json:"db"`
-	Destination  spanContextDestination `json:"destination"`
-	Experimental nullable.Interface     `json:"experimental" `
-	HTTP         spanContextHTTP        `json:"http"`
-	Message      contextMessage         `json:"message"`
-	Service      contextService         `json:"service"`
-	Tags         common.MapStr          `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Database    spanContextDatabase    `json:"db"`
+	Destination spanContextDestination `json:"destination"`
+	// Experimental information is only processed when APM Server is started
+	// in development mode and should only be used by APM agent developers
+	// implementing new, unreleased features. The format is unspecified.
+	Experimental nullable.Interface `json:"experimental" `
+	HTTP         spanContextHTTP    `json:"http"`
+	Message      contextMessage     `json:"message"`
+	Service      contextService     `json:"service"`
+	Tags         common.MapStr      `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type spanContextDatabase struct {
@@ -434,19 +591,27 @@ type stacktraceFrame struct {
 }
 
 type transaction struct {
-	Context        context                   `json:"context"`
-	Duration       nullable.Float64          `json:"duration" validate:"required,min=0"`
-	ID             nullable.String           `json:"id" validate:"required,maxLength=1024"`
-	Marks          transactionMarks          `json:"marks"`
-	Name           nullable.String           `json:"name" validate:"maxLength=1024"`
-	Outcome        nullable.String           `json:"outcome" validate:"enum=enumOutcome"`
-	ParentID       nullable.String           `json:"parent_id" validate:"maxLength=1024"`
-	Result         nullable.String           `json:"result" validate:"maxLength=1024"`
-	Sampled        nullable.Bool             `json:"sampled"`
-	SampleRate     nullable.Float64          `json:"sample_rate"`
-	SpanCount      transactionSpanCount      `json:"span_count" validate:"required"`
-	Timestamp      nullable.TimeMicrosUnix   `json:"timestamp"`
-	TraceID        nullable.String           `json:"trace_id" validate:"required,maxLength=1024"`
+	// Context holds arbitrary contextual information for the event.
+	Context  context          `json:"context"`
+	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
+	ID       nullable.String  `json:"id" validate:"required,maxLength=1024"`
+	Marks    transactionMarks `json:"marks"`
+	Name     nullable.String  `json:"name" validate:"maxLength=1024"`
+	Outcome  nullable.String  `json:"outcome" validate:"enum=enumOutcome"`
+	ParentID nullable.String  `json:"parent_id" validate:"maxLength=1024"`
+	Result   nullable.String  `json:"result" validate:"maxLength=1024"`
+	// Sampled indicates whether or not the full information for a transaction
+	// is captured. If a transaction is unsampled no spans and less context
+	// information will be reported.
+	Sampled    nullable.Bool        `json:"sampled"`
+	SampleRate nullable.Float64     `json:"sample_rate"`
+	SpanCount  transactionSpanCount `json:"span_count" validate:"required"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+	TraceID   nullable.String         `json:"trace_id" validate:"required,maxLength=1024"`
+	// Type holds the transaction's type, and can have specific keywords
+	// within the service's domain (eg: 'request', 'backgroundjob', etc)
 	Type           nullable.String           `json:"type" validate:"required,maxLength=1024"`
 	UserExperience transactionUserExperience `json:"experience"`
 }

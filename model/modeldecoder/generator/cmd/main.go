@@ -42,11 +42,12 @@ var (
 
 func main() {
 	generateV2()
-	generateV3RUM()
+	// generateV3RUM()
 }
 
 func generateV2() {
 	pkg := "v2"
+
 	p := path.Join(importPath, pkg)
 	parsed, err := generator.Parse(p)
 	if err != nil {

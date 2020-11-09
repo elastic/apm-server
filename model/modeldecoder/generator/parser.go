@@ -44,13 +44,15 @@ type Parsed struct {
 }
 
 type structType struct {
-	name   string
-	fields []structField
+	name    string
+	comment string
+	fields  []structField
 }
 
 type structField struct {
 	*types.Var
-	tag reflect.StructTag
+	tag     reflect.StructTag
+	comment string
 }
 
 // Parse loads the Go package named by the given package pattern
@@ -86,12 +88,19 @@ func loadPackage(pkg string) (*packages.Package, error) {
 }
 
 func parse(pkg *packages.Package, parsed *Parsed) error {
-	for _, syntax := range pkg.Syntax {
-		for _, decl := range syntax.Decls {
+	for _, file := range pkg.Syntax {
+		// parse type comments
+		typeComments := make(map[int]string)
+		for _, c := range file.Comments {
+			typeComments[int(c.End())] = trimComment(c.Text())
+		}
+
+		for _, decl := range file.Decls {
 			genDecl, ok := decl.(*ast.GenDecl)
 			if !ok {
 				continue
 			}
+
 			switch genDecl.Tok {
 			case token.VAR:
 				for _, spec := range genDecl.Specs {
@@ -118,6 +127,14 @@ func parse(pkg *packages.Package, parsed *Parsed) error {
 					}
 				}
 			case token.TYPE:
+				// find comments for the generic declaration node, in the format of
+				// //MyComment
+				// type MyComment struct {..}
+				var genDeclComment string
+				if c, ok := typeComments[int(genDecl.Pos()-1)]; ok {
+					genDeclComment = c
+				}
+				// iterate through the type declaration for this generic declaration node
 				for _, spec := range genDecl.Specs {
 					typeSpec, ok := spec.(*ast.TypeSpec)
 					if !ok {
@@ -127,6 +144,28 @@ func parse(pkg *packages.Package, parsed *Parsed) error {
 					if obj == nil {
 						continue
 					}
+					var st structType
+					st.name = obj.Name()
+					// find comments for the specific type declaration, in the format of
+					// type (
+					//	 //MyComment
+					//   MyComment struct {..}
+					// )
+					// fallback to generic declaration comment otherwise if it starts with the type name
+					if c, ok := typeComments[int(genDecl.Pos()-1)]; ok && st.name == strings.Split(c, " ")[0] {
+						st.comment = c
+					} else if st.name == strings.Split(genDeclComment, " ")[0] {
+						st.comment = genDeclComment
+					}
+					// find field comments (ignoring line comments)
+					fieldComments := make(map[string]string)
+					if st, ok := typeSpec.Type.(*ast.StructType); ok {
+						for _, f := range st.Fields.List {
+							if f.Doc != nil && len(f.Doc.Text()) > 0 {
+								fieldComments[f.Names[0].Name] = trimComment(f.Doc.Text())
+							}
+						}
+					}
 					named := obj.(*types.TypeName).Type().(*types.Named)
 					typesStruct, ok := named.Underlying().(*types.Struct)
 					if !ok {
@@ -135,16 +174,25 @@ func parse(pkg *packages.Package, parsed *Parsed) error {
 					numFields := typesStruct.NumFields()
 					structFields := make([]structField, 0, numFields)
 					for i := 0; i < numFields; i++ {
-						f := typesStruct.Field(i)
-						structFields = append(structFields, structField{
-							Var: f,
+						structField := structField{
+							Var: typesStruct.Field(i),
 							tag: reflect.StructTag(typesStruct.Tag(i)),
-						})
+						}
+						if c, ok := fieldComments[structField.Name()]; ok {
+							structField.comment = c
+						}
+						structFields = append(structFields, structField)
 					}
-					parsed.structTypes[obj.Type().String()] = structType{name: obj.Name(), fields: structFields}
+					st.fields = structFields
+					parsed.structTypes[obj.Type().String()] = st
 				}
 			}
 		}
 	}
 	return nil
+}
+
+func trimComment(c string) string {
+	c = strings.ReplaceAll(c, "\n", " ")
+	return strings.TrimSuffix(c, " ")
 }
