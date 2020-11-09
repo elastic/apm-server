@@ -2,6 +2,9 @@
     "events": [
         {
             "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
             "ecs": {
                 "version": "dynamic"
             },
