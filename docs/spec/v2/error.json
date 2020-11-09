@@ -1,14 +1,17 @@
 {
   "$id": "docs/spec/v2/error",
+  "description": "errorEvent represents an error or a logged error message, captured by an APM agent in a monitored service.",
   "type": "object",
   "properties": {
     "context": {
+      "description": "Context holds arbitrary contextual information for the event.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "custom": {
+          "description": "Custom can contain additional metadata to be stored with the event. The format is unspecified and can be deeply nested objects. The information will not be indexed or searchable in Elasticsearch.",
           "type": [
             "null",
             "object"
@@ -18,20 +21,25 @@
             "^[^.*\"]*$": {}
           }
         },
-        "experimental": {},
+        "experimental": {
+          "description": "Experimental information is only processed when APM Server is started in development mode and should only be used by APM agent developers implementing new, unreleased features. The format is unspecified."
+        },
         "message": {
+          "description": "Message holds details related to message receiving and publishing if the captured event integrates with a messaging system",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "age": {
+              "description": "Age of the message. If the monitored messaging framework provides a timestamp for the message, agents may use it. Otherwise, the sending agent can add a timestamp in milliseconds since the Unix epoch to the message's metadata to be retrieved by the receiving agent. If a timestamp is not available, agents should omit this field.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "ms": {
+                  "description": "Age of the message in milliseconds.",
                   "type": [
                     "null",
                     "integer"
@@ -40,12 +48,14 @@
               }
             },
             "body": {
+              "description": "Body of the received message, similar to an HTTP request body",
               "type": [
                 "null",
                 "string"
               ]
             },
             "headers": {
+              "description": "Headers received with the message, similar to HTTP request headers.",
               "type": [
                 "null",
                 "object"
@@ -65,12 +75,14 @@
               }
             },
             "queue": {
+              "description": "Queue holds information about the message queue where the message is received.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name holds the name of the message queue where the message is received.",
                   "type": [
                     "null",
                     "string"
@@ -82,18 +94,21 @@
           }
         },
         "page": {
+          "description": "Page holds information related to the current page and page referers. It is only sent from RUM agents.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "referer": {
+              "description": "Referer holds the URL of the page that 'linked' to the current page.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "url": {
+              "description": "URL of the current page",
               "type": [
                 "null",
                 "string"
@@ -102,12 +117,14 @@
           }
         },
         "request": {
+          "description": "Request describes the HTTP request information in case the event was created as a result of an HTTP request.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "body": {
+              "description": "Body only contais the request bod, not the query string information. It can either be a dictionary (for standard HTTP requests) or a raw request body.",
               "type": [
                 "null",
                 "string",
@@ -115,18 +132,21 @@
               ]
             },
             "cookies": {
+              "description": "Cookies used by the request, parsed as key-value objects.",
               "type": [
                 "null",
                 "object"
               ]
             },
             "env": {
+              "description": "Env holds environment variable information passed to the monitored service.",
               "type": [
                 "null",
                 "object"
               ]
             },
             "headers": {
+              "description": "Headers includes any HTTP headers sent by the requester. Cookies will be taken by headers if supplied.",
               "type": [
                 "null",
                 "object"
@@ -146,6 +166,7 @@
               }
             },
             "http_version": {
+              "description": "HTTPVersion holds information about the used HTTP version.",
               "type": [
                 "null",
                 "string"
@@ -153,22 +174,26 @@
               "maxLength": 1024
             },
             "method": {
+              "description": "Method holds information about the method of the HTTP request.",
               "type": "string",
               "maxLength": 1024
             },
             "socket": {
+              "description": "Socket holds information related to the recorded request, such as whether or not data were encrypted and the remote address.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "encrypted": {
+                  "description": "Encrypted indicates whether a request was sent as TLS/HTTPS request.",
                   "type": [
                     "null",
                     "boolean"
                   ]
                 },
                 "remote_address": {
+                  "description": "RemoteAddress holds the network address sending the request. It should be obtained through standard APIs and not be parsed from any headers like 'Forwarded'.",
                   "type": [
                     "null",
                     "string"
@@ -177,12 +202,14 @@
               }
             },
             "url": {
+              "description": "URL holds information sucha as the raw URL, scheme, host and path.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "full": {
+                  "description": "Full, possibly agent-assembled URL of the request, e.g. https://example.com:443/search?q=elasticsearch#top.",
                   "type": [
                     "null",
                     "string"
@@ -190,6 +217,7 @@
                   "maxLength": 1024
                 },
                 "hash": {
+                  "description": "Hash of the request URL, e.g. 'top'",
                   "type": [
                     "null",
                     "string"
@@ -197,6 +225,7 @@
                   "maxLength": 1024
                 },
                 "hostname": {
+                  "description": "Hostname information of the request, e.g. 'example.com'.\"",
                   "type": [
                     "null",
                     "string"
@@ -204,6 +233,7 @@
                   "maxLength": 1024
                 },
                 "pathname": {
+                  "description": "Path of the request, e.g. '/search'",
                   "type": [
                     "null",
                     "string"
@@ -211,6 +241,7 @@
                   "maxLength": 1024
                 },
                 "port": {
+                  "description": "Port of the request, e.g. '443'. Can be sent as string or int.",
                   "type": [
                     "null",
                     "string",
@@ -219,6 +250,7 @@
                   "maxLength": 1024
                 },
                 "protocol": {
+                  "description": "Protocol information for the recorded request, e.g. 'https:'.",
                   "type": [
                     "null",
                     "string"
@@ -226,6 +258,7 @@
                   "maxLength": 1024
                 },
                 "raw": {
+                  "description": "Raw unparsed URL of the HTTP request line, e.g https://example.com:443/search?q=elasticsearch. This URL may be absolute or relative. For more details, see https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2.",
                   "type": [
                     "null",
                     "string"
@@ -233,6 +266,7 @@
                   "maxLength": 1024
                 },
                 "search": {
+                  "description": "Search contains the query string information of the request. It is expected to have values delimited by ampersands.",
                   "type": [
                     "null",
                     "string"
@@ -247,30 +281,35 @@
           ]
         },
         "response": {
+          "description": "Response describes the HTTP response information in case the event was created as a result of an HTTP request.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "decoded_body_size": {
+              "description": "DecodedBodySize holds the size of the decoded payload.",
               "type": [
                 "null",
                 "number"
               ]
             },
             "encoded_body_size": {
+              "description": "EncodedBodySize holds the size of the encoded payload.",
               "type": [
                 "null",
                 "number"
               ]
             },
             "finished": {
+              "description": "Finished indicates whether the response was finished or not.",
               "type": [
                 "null",
                 "boolean"
               ]
             },
             "headers": {
+              "description": "Headers holds the http headers sent in the http response.",
               "type": [
                 "null",
                 "object"
@@ -290,18 +329,21 @@
               }
             },
             "headers_sent": {
+              "description": "HeadersSent indicates whether http headers were sent.",
               "type": [
                 "null",
                 "boolean"
               ]
             },
             "status_code": {
+              "description": "StatusCode sent in the http response.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "transfer_size": {
+              "description": "TransferSize holds the total size of the payload.",
               "type": [
                 "null",
                 "number"
@@ -310,18 +352,21 @@
           }
         },
         "service": {
+          "description": "Service related information can be sent per event. Information provided here will override the more generic information retrieved from metadata, missing service fields will be retrieved from the metadata information.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "agent": {
+              "description": "Agent holds information about the APM agent capturing the event.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "ephemeral_id": {
+                  "description": "EphemeralID is a free format ID used for metrics correlation by agents",
                   "type": [
                     "null",
                     "string"
@@ -329,6 +374,7 @@
                   "maxLength": 1024
                 },
                 "name": {
+                  "description": "Name of the APM agent capturing information.",
                   "type": [
                     "null",
                     "string"
@@ -336,6 +382,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the APM agent capturing information.",
                   "type": [
                     "null",
                     "string"
@@ -345,6 +392,7 @@
               }
             },
             "environment": {
+              "description": "Environment in which the monitored service is running, e.g. `production` or `staging`.",
               "type": [
                 "null",
                 "string"
@@ -352,12 +400,14 @@
               "maxLength": 1024
             },
             "framework": {
+              "description": "Framework holds information about the framework used in the monitored service.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name of the used framework",
                   "type": [
                     "null",
                     "string"
@@ -365,6 +415,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the used framework",
                   "type": [
                     "null",
                     "string"
@@ -374,12 +425,14 @@
               }
             },
             "language": {
+              "description": "Language holds information about the programming language of the monitored service.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name of the used programming language",
                   "type": [
                     "null",
                     "string"
@@ -387,6 +440,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the used programming language",
                   "type": [
                     "null",
                     "string"
@@ -396,6 +450,7 @@
               }
             },
             "name": {
+              "description": "Name of the monitored service.",
               "type": [
                 "null",
                 "string"
@@ -404,12 +459,14 @@
               "pattern": "^[a-zA-Z0-9 _-]+$"
             },
             "node": {
+              "description": "Node must be a unique meaningful name of the service node.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "configured_name": {
+                  "description": "Name of the service node",
                   "type": [
                     "null",
                     "string"
@@ -419,12 +476,14 @@
               }
             },
             "runtime": {
+              "description": "Runtime holds information about the language runtime running the monitored service",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name of the language runtime",
                   "type": [
                     "null",
                     "string"
@@ -432,6 +491,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the language runtime",
                   "type": [
                     "null",
                     "string"
@@ -441,6 +501,7 @@
               }
             },
             "version": {
+              "description": "Version of the monitored service.",
               "type": [
                 "null",
                 "string"
@@ -450,6 +511,7 @@
           }
         },
         "tags": {
+          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
           "type": [
             "null",
             "object"
@@ -468,12 +530,14 @@
           }
         },
         "user": {
+          "description": "User holds information about the correlated user for this event. If user data are provided here, all user related information from metadata is ignored, otherwise the metadata's user information will be stored with the event.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "email": {
+              "description": "Email of the user.",
               "type": [
                 "null",
                 "string"
@@ -481,6 +545,7 @@
               "maxLength": 1024
             },
             "id": {
+              "description": "ID identifies the logged in user, e.g. can be the primary key of the user",
               "type": [
                 "null",
                 "string",
@@ -489,6 +554,7 @@
               "maxLength": 1024
             },
             "username": {
+              "description": "Name of the user.",
               "type": [
                 "null",
                 "string"
@@ -500,6 +566,7 @@
       }
     },
     "culprit": {
+      "description": "Culprit identifies the function call which was the primary perpetrator of this event.",
       "type": [
         "null",
         "string"
@@ -507,18 +574,21 @@
       "maxLength": 1024
     },
     "exception": {
+      "description": "Exception holds information about the original error. The information is language specific.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "attributes": {
+          "description": "Attributes of the exception.",
           "type": [
             "null",
             "object"
           ]
         },
         "cause": {
+          "description": "Cause can hold a collection of error exceptions representing chained exceptions. The chain starts with the outermost exception, followed by its cause, and so on.",
           "type": [
             "null",
             "array"
@@ -532,6 +602,7 @@
           "minItems": 0
         },
         "code": {
+          "description": "Code that is set when the error happened, e.g. database error code.",
           "type": [
             "null",
             "string",
@@ -540,18 +611,21 @@
           "maxLength": 1024
         },
         "handled": {
+          "description": "Handled indicates whether the error was caught in the code or not.",
           "type": [
             "null",
             "boolean"
           ]
         },
         "message": {
+          "description": "Message contains the originally captured error message.",
           "type": [
             "null",
             "string"
           ]
         },
         "module": {
+          "description": "Module describes the exception type's module namespace.",
           "type": [
             "null",
             "string"
@@ -559,66 +633,77 @@
           "maxLength": 1024
         },
         "stacktrace": {
+          "description": "Stacktrace information of the captured exception.",
           "type": [
             "null",
             "array"
           ],
           "properties": {
             "abs_path": {
+              "description": "AbsPath is the absolute path of the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "classname": {
+              "description": "Classname of the frame.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "colno": {
+              "description": "ColumnNumber of the frame.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "context_line": {
+              "description": "ContextLine is the line from the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "filename": {
+              "description": "Filename is the relative name of the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "function": {
+              "description": "Function represented by the frame.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "library_frame": {
+              "description": "LibraryFrame indicates whether the frame is from a third party library.",
               "type": [
                 "null",
                 "boolean"
               ]
             },
             "lineno": {
+              "description": "LineNumber of the frame.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "module": {
+              "description": "Module to which the frame belongs to.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "post_context": {
+              "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
               "type": [
                 "null",
                 "array"
@@ -629,6 +714,7 @@
               "minItems": 0
             },
             "pre_context": {
+              "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
               "type": [
                 "null",
                 "array"
@@ -639,6 +725,7 @@
               "minItems": 0
             },
             "vars": {
+              "description": "Vars is a flat mapping of local variables of the frame.",
               "type": [
                 "null",
                 "object"
@@ -670,6 +757,7 @@
           ]
         },
         "type": {
+          "description": "Type of the exception.",
           "type": [
             "null",
             "string"
@@ -701,16 +789,19 @@
       ]
     },
     "id": {
+      "description": "ID holds the hex encoded 128 random bits ID of the event.",
       "type": "string",
       "maxLength": 1024
     },
     "log": {
+      "description": "Log holds additional information added when the error is logged.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "level": {
+          "description": "Level represents the severity of the recorded log.",
           "type": [
             "null",
             "string"
@@ -718,6 +809,7 @@
           "maxLength": 1024
         },
         "logger_name": {
+          "description": "LoggerName holds the name of the used logger instance.",
           "type": [
             "null",
             "string"
@@ -725,9 +817,11 @@
           "maxLength": 1024
         },
         "message": {
+          "description": "Message of the logged error. In case a parameterized message is captured, Message should contain the same information, but with any placeholders being replaced.",
           "type": "string"
         },
         "param_message": {
+          "description": "ParamMessage should contain the same information as Message, but with placeholders where parameters were logged, e.g. 'error connecting to %s'. The string is not interpreted, allowing differnt placeholders per client languange. The information might be used to group errors together.",
           "type": [
             "null",
             "string"
@@ -735,66 +829,77 @@
           "maxLength": 1024
         },
         "stacktrace": {
+          "description": "Stacktrace information of the captured error.",
           "type": [
             "null",
             "array"
           ],
           "properties": {
             "abs_path": {
+              "description": "AbsPath is the absolute path of the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "classname": {
+              "description": "Classname of the frame.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "colno": {
+              "description": "ColumnNumber of the frame.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "context_line": {
+              "description": "ContextLine is the line from the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "filename": {
+              "description": "Filename is the relative name of the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "function": {
+              "description": "Function represented by the frame.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "library_frame": {
+              "description": "LibraryFrame indicates whether the frame is from a third party library.",
               "type": [
                 "null",
                 "boolean"
               ]
             },
             "lineno": {
+              "description": "LineNumber of the frame.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "module": {
+              "description": "Module to which the frame belongs to.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "post_context": {
+              "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
               "type": [
                 "null",
                 "array"
@@ -805,6 +910,7 @@
               "minItems": 0
             },
             "pre_context": {
+              "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
               "type": [
                 "null",
                 "array"
@@ -815,6 +921,7 @@
               "minItems": 0
             },
             "vars": {
+              "description": "Vars is a flat mapping of local variables of the frame.",
               "type": [
                 "null",
                 "object"
@@ -851,6 +958,7 @@
       ]
     },
     "parent_id": {
+      "description": "ParentID holds the hex encoded 64 random bits ID of the parent transaction or span.",
       "type": [
         "null",
         "string"
@@ -858,12 +966,14 @@
       "maxLength": 1024
     },
     "timestamp": {
+      "description": "Timestamp holds the recorded time of the event, UTC based and formatted as microseconds since Unix epoch.",
       "type": [
         "null",
         "integer"
       ]
     },
     "trace_id": {
+      "description": "TraceID holds the hex encoded 128 random bits ID of the correlated trace.",
       "type": [
         "null",
         "string"
@@ -871,18 +981,21 @@
       "maxLength": 1024
     },
     "transaction": {
+      "description": "Transaction holds information about the correlated transaction.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "sampled": {
+          "description": "Sampled indicates whether or not the full information for a transaction is captured. If a transaction is unsampled no spans and less context information will be reported.",
           "type": [
             "null",
             "boolean"
           ]
         },
         "type": {
+          "description": "Type expresses the correlated transaction's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
           "type": [
             "null",
             "string"
@@ -892,6 +1005,7 @@
       }
     },
     "transaction_id": {
+      "description": "TransactionID holds the hex encoded 64 random bits ID of the correlated transaction.",
       "type": [
         "null",
         "string"

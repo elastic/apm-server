@@ -3,12 +3,14 @@
   "type": "object",
   "properties": {
     "samples": {
+      "description": "Samples hold application metrics collected from the agent.",
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
         "^[^*\"]*$": {
           "properties": {
             "value": {
+              "description": "Value holds the value of a single metric sample.",
               "type": "number"
             }
           },
@@ -19,12 +21,14 @@
       }
     },
     "span": {
+      "description": "Span holds selected information about the correlated transaction.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "subtype": {
+          "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
           "type": [
             "null",
             "string"
@@ -32,6 +36,7 @@
           "maxLength": 1024
         },
         "type": {
+          "description": "Type expresses the correlated span's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
           "type": [
             "null",
             "string"
@@ -41,6 +46,7 @@
       }
     },
     "tags": {
+      "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
       "type": [
         "null",
         "object"
@@ -59,18 +65,21 @@
       }
     },
     "timestamp": {
+      "description": "Timestamp holds the recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
       "type": [
         "null",
         "integer"
       ]
     },
     "transaction": {
+      "description": "Transaction holds selected information about the correlated transaction.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "name": {
+          "description": "Name of the correlated transaction.",
           "type": [
             "null",
             "string"
@@ -78,6 +87,7 @@
           "maxLength": 1024
         },
         "type": {
+          "description": "Type expresses the correlated transaction's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
           "type": [
             "null",
             "string"

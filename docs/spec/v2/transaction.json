@@ -3,12 +3,14 @@
   "type": "object",
   "properties": {
     "context": {
+      "description": "Context holds arbitrary contextual information for the event.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "custom": {
+          "description": "Custom can contain additional metadata to be stored with the event. The format is unspecified and can be deeply nested objects. The information will not be indexed or searchable in Elasticsearch.",
           "type": [
             "null",
             "object"
@@ -18,20 +20,25 @@
             "^[^.*\"]*$": {}
           }
         },
-        "experimental": {},
+        "experimental": {
+          "description": "Experimental information is only processed when APM Server is started in development mode and should only be used by APM agent developers implementing new, unreleased features. The format is unspecified."
+        },
         "message": {
+          "description": "Message holds details related to message receiving and publishing if the captured event integrates with a messaging system",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "age": {
+              "description": "Age of the message. If the monitored messaging framework provides a timestamp for the message, agents may use it. Otherwise, the sending agent can add a timestamp in milliseconds since the Unix epoch to the message's metadata to be retrieved by the receiving agent. If a timestamp is not available, agents should omit this field.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "ms": {
+                  "description": "Age of the message in milliseconds.",
                   "type": [
                     "null",
                     "integer"
@@ -40,12 +47,14 @@
               }
             },
             "body": {
+              "description": "Body of the received message, similar to an HTTP request body",
               "type": [
                 "null",
                 "string"
               ]
             },
             "headers": {
+              "description": "Headers received with the message, similar to HTTP request headers.",
               "type": [
                 "null",
                 "object"
@@ -65,12 +74,14 @@
               }
             },
             "queue": {
+              "description": "Queue holds information about the message queue where the message is received.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name holds the name of the message queue where the message is received.",
                   "type": [
                     "null",
                     "string"
@@ -82,18 +93,21 @@
           }
         },
         "page": {
+          "description": "Page holds information related to the current page and page referers. It is only sent from RUM agents.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "referer": {
+              "description": "Referer holds the URL of the page that 'linked' to the current page.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "url": {
+              "description": "URL of the current page",
               "type": [
                 "null",
                 "string"
@@ -102,12 +116,14 @@
           }
         },
         "request": {
+          "description": "Request describes the HTTP request information in case the event was created as a result of an HTTP request.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "body": {
+              "description": "Body only contais the request bod, not the query string information. It can either be a dictionary (for standard HTTP requests) or a raw request body.",
               "type": [
                 "null",
                 "string",
@@ -115,18 +131,21 @@
               ]
             },
             "cookies": {
+              "description": "Cookies used by the request, parsed as key-value objects.",
               "type": [
                 "null",
                 "object"
               ]
             },
             "env": {
+              "description": "Env holds environment variable information passed to the monitored service.",
               "type": [
                 "null",
                 "object"
               ]
             },
             "headers": {
+              "description": "Headers includes any HTTP headers sent by the requester. Cookies will be taken by headers if supplied.",
               "type": [
                 "null",
                 "object"
@@ -146,6 +165,7 @@
               }
             },
             "http_version": {
+              "description": "HTTPVersion holds information about the used HTTP version.",
               "type": [
                 "null",
                 "string"
@@ -153,22 +173,26 @@
               "maxLength": 1024
             },
             "method": {
+              "description": "Method holds information about the method of the HTTP request.",
               "type": "string",
               "maxLength": 1024
             },
             "socket": {
+              "description": "Socket holds information related to the recorded request, such as whether or not data were encrypted and the remote address.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "encrypted": {
+                  "description": "Encrypted indicates whether a request was sent as TLS/HTTPS request.",
                   "type": [
                     "null",
                     "boolean"
                   ]
                 },
                 "remote_address": {
+                  "description": "RemoteAddress holds the network address sending the request. It should be obtained through standard APIs and not be parsed from any headers like 'Forwarded'.",
                   "type": [
                     "null",
                     "string"
@@ -177,12 +201,14 @@
               }
             },
             "url": {
+              "description": "URL holds information sucha as the raw URL, scheme, host and path.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "full": {
+                  "description": "Full, possibly agent-assembled URL of the request, e.g. https://example.com:443/search?q=elasticsearch#top.",
                   "type": [
                     "null",
                     "string"
@@ -190,6 +216,7 @@
                   "maxLength": 1024
                 },
                 "hash": {
+                  "description": "Hash of the request URL, e.g. 'top'",
                   "type": [
                     "null",
                     "string"
@@ -197,6 +224,7 @@
                   "maxLength": 1024
                 },
                 "hostname": {
+                  "description": "Hostname information of the request, e.g. 'example.com'.\"",
                   "type": [
                     "null",
                     "string"
@@ -204,6 +232,7 @@
                   "maxLength": 1024
                 },
                 "pathname": {
+                  "description": "Path of the request, e.g. '/search'",
                   "type": [
                     "null",
                     "string"
@@ -211,6 +240,7 @@
                   "maxLength": 1024
                 },
                 "port": {
+                  "description": "Port of the request, e.g. '443'. Can be sent as string or int.",
                   "type": [
                     "null",
                     "string",
@@ -219,6 +249,7 @@
                   "maxLength": 1024
                 },
                 "protocol": {
+                  "description": "Protocol information for the recorded request, e.g. 'https:'.",
                   "type": [
                     "null",
                     "string"
@@ -226,6 +257,7 @@
                   "maxLength": 1024
                 },
                 "raw": {
+                  "description": "Raw unparsed URL of the HTTP request line, e.g https://example.com:443/search?q=elasticsearch. This URL may be absolute or relative. For more details, see https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2.",
                   "type": [
                     "null",
                     "string"
@@ -233,6 +265,7 @@
                   "maxLength": 1024
                 },
                 "search": {
+                  "description": "Search contains the query string information of the request. It is expected to have values delimited by ampersands.",
                   "type": [
                     "null",
                     "string"
@@ -247,30 +280,35 @@
           ]
         },
         "response": {
+          "description": "Response describes the HTTP response information in case the event was created as a result of an HTTP request.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "decoded_body_size": {
+              "description": "DecodedBodySize holds the size of the decoded payload.",
               "type": [
                 "null",
                 "number"
               ]
             },
             "encoded_body_size": {
+              "description": "EncodedBodySize holds the size of the encoded payload.",
               "type": [
                 "null",
                 "number"
               ]
             },
             "finished": {
+              "description": "Finished indicates whether the response was finished or not.",
               "type": [
                 "null",
                 "boolean"
               ]
             },
             "headers": {
+              "description": "Headers holds the http headers sent in the http response.",
               "type": [
                 "null",
                 "object"
@@ -290,18 +328,21 @@
               }
             },
             "headers_sent": {
+              "description": "HeadersSent indicates whether http headers were sent.",
               "type": [
                 "null",
                 "boolean"
               ]
             },
             "status_code": {
+              "description": "StatusCode sent in the http response.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "transfer_size": {
+              "description": "TransferSize holds the total size of the payload.",
               "type": [
                 "null",
                 "number"
@@ -310,18 +351,21 @@
           }
         },
         "service": {
+          "description": "Service related information can be sent per event. Information provided here will override the more generic information retrieved from metadata, missing service fields will be retrieved from the metadata information.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "agent": {
+              "description": "Agent holds information about the APM agent capturing the event.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "ephemeral_id": {
+                  "description": "EphemeralID is a free format ID used for metrics correlation by agents",
                   "type": [
                     "null",
                     "string"
@@ -329,6 +373,7 @@
                   "maxLength": 1024
                 },
                 "name": {
+                  "description": "Name of the APM agent capturing information.",
                   "type": [
                     "null",
                     "string"
@@ -336,6 +381,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the APM agent capturing information.",
                   "type": [
                     "null",
                     "string"
@@ -345,6 +391,7 @@
               }
             },
             "environment": {
+              "description": "Environment in which the monitored service is running, e.g. `production` or `staging`.",
               "type": [
                 "null",
                 "string"
@@ -352,12 +399,14 @@
               "maxLength": 1024
             },
             "framework": {
+              "description": "Framework holds information about the framework used in the monitored service.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name of the used framework",
                   "type": [
                     "null",
                     "string"
@@ -365,6 +414,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the used framework",
                   "type": [
                     "null",
                     "string"
@@ -374,12 +424,14 @@
               }
             },
             "language": {
+              "description": "Language holds information about the programming language of the monitored service.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name of the used programming language",
                   "type": [
                     "null",
                     "string"
@@ -387,6 +439,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the used programming language",
                   "type": [
                     "null",
                     "string"
@@ -396,6 +449,7 @@
               }
             },
             "name": {
+              "description": "Name of the monitored service.",
               "type": [
                 "null",
                 "string"
@@ -404,12 +458,14 @@
               "pattern": "^[a-zA-Z0-9 _-]+$"
             },
             "node": {
+              "description": "Node must be a unique meaningful name of the service node.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "configured_name": {
+                  "description": "Name of the service node",
                   "type": [
                     "null",
                     "string"
@@ -419,12 +475,14 @@
               }
             },
             "runtime": {
+              "description": "Runtime holds information about the language runtime running the monitored service",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "name": {
+                  "description": "Name of the language runtime",
                   "type": [
                     "null",
                     "string"
@@ -432,6 +490,7 @@
                   "maxLength": 1024
                 },
                 "version": {
+                  "description": "Version of the language runtime",
                   "type": [
                     "null",
                     "string"
@@ -441,6 +500,7 @@
               }
             },
             "version": {
+              "description": "Version of the monitored service.",
               "type": [
                 "null",
                 "string"
@@ -450,6 +510,7 @@
           }
         },
         "tags": {
+          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
           "type": [
             "null",
             "object"
@@ -468,12 +529,14 @@
           }
         },
         "user": {
+          "description": "User holds information about the correlated user for this event. If user data are provided here, all user related information from metadata is ignored, otherwise the metadata's user information will be stored with the event.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "email": {
+              "description": "Email of the user.",
               "type": [
                 "null",
                 "string"
@@ -481,6 +544,7 @@
               "maxLength": 1024
             },
             "id": {
+              "description": "ID identifies the logged in user, e.g. can be the primary key of the user",
               "type": [
                 "null",
                 "string",
@@ -489,6 +553,7 @@
               "maxLength": 1024
             },
             "username": {
+              "description": "Name of the user.",
               "type": [
                 "null",
                 "string"
@@ -500,16 +565,19 @@
       }
     },
     "duration": {
+      "description": "Duration how long the transaction took to complete, in milliseconds with 3 decimal points.",
       "type": "number",
       "minimum": 0
     },
     "experience": {
+      "description": "UserExperience holds metrics for measuring real user experience. This information is only sent by RUM agents.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "cls": {
+          "description": "CumulativeLayoutShift holds the Cumulative Layout Shift (CLS) metric value, or a negative value if CLS is unknown. See https://web.dev/cls/",
           "type": [
             "null",
             "number"
@@ -517,6 +585,7 @@
           "minimum": 0
         },
         "fid": {
+          "description": "FirstInputDelay holds the First Input Delay (FID) metric value, or a negative value if FID is unknown. See https://web.dev/fid/",
           "type": [
             "null",
             "number"
@@ -524,20 +593,24 @@
           "minimum": 0
         },
         "longtask": {
+          "description": "Longtask holds longtask duration/count metrics.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "count": {
+              "description": "Count is the total number of of longtasks.",
               "type": "integer",
               "minimum": 0
             },
             "max": {
+              "description": "Max longtask duration",
               "type": "number",
               "minimum": 0
             },
             "sum": {
+              "description": "Sum of longtask durations",
               "type": "number",
               "minimum": 0
             }
@@ -549,6 +622,7 @@
           ]
         },
         "tbt": {
+          "description": "TotalBlockingTime holds the Total Blocking Time (TBT) metric value, or a negative value if TBT is unknown. See https://web.dev/tbt/",
           "type": [
             "null",
             "number"
@@ -558,10 +632,12 @@
       }
     },
     "id": {
+      "description": "ID holds the hex encoded 64 random bits ID of the event.",
       "type": "string",
       "maxLength": 1024
     },
     "marks": {
+      "description": "Marks capture the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent. Marks are only reported by RUM agents.",
       "type": [
         "null",
         "object"
@@ -586,6 +662,7 @@
       }
     },
     "name": {
+      "description": "Name is the generic designation of a transaction in the scope of a single service, eg: 'GET /users/:id'.",
       "type": [
         "null",
         "string"
@@ -593,6 +670,7 @@
       "maxLength": 1024
     },
     "outcome": {
+      "description": "Outcome of the transaction with a limited set of permitted values, describing the success or failure of the transaction from the service's perspective. It is used for calculating error rates for incoming requests. Permitted values: success, failure, unknown.",
       "type": [
         "null",
         "string"
@@ -605,6 +683,7 @@
       ]
     },
     "parent_id": {
+      "description": "ParentID holds the hex encoded 64 random bits ID of the parent transaction or span.",
       "type": [
         "null",
         "string"
@@ -612,6 +691,7 @@
       "maxLength": 1024
     },
     "result": {
+      "description": "Result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
       "type": [
         "null",
         "string"
@@ -619,27 +699,32 @@
       "maxLength": 1024
     },
     "sample_rate": {
+      "description": "SampleRate applied to the monitored service at the time where this transaction was recorded. Allowed values are [0..1]. A SampleRate \u003c1 indicates that not all spans are recorded.",
       "type": [
         "null",
         "number"
       ]
     },
     "sampled": {
+      "description": "Sampled indicates whether or not the full information for a transaction is captured. If a transaction is unsampled no spans and less context information will be reported.",
       "type": [
         "null",
         "boolean"
       ]
     },
     "span_count": {
+      "description": "SpanCount counts correlated spans.",
       "type": "object",
       "properties": {
         "dropped": {
+          "description": "Dropped is the number of correlated spans that have been dropped by the APM agent recording the transaction.",
           "type": [
             "null",
             "integer"
           ]
         },
         "started": {
+          "description": "Started is the number of correlated spans that are recorded.",
           "type": "integer"
         }
       },
@@ -648,16 +733,19 @@
       ]
     },
     "timestamp": {
+      "description": "Timestamp holds the recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
       "type": [
         "null",
         "integer"
       ]
     },
     "trace_id": {
+      "description": "TraceID holds the hex encoded 128 random bits ID of the correlated trace.",
       "type": "string",
       "maxLength": 1024
     },
     "type": {
+      "description": "Type expresses the transaction's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
       "type": "string",
       "maxLength": 1024
     }
