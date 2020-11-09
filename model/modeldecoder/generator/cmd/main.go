@@ -42,7 +42,7 @@ var (
 
 func main() {
 	generateV2()
-	// generateV3RUM()
+	generateV3RUM()
 }
 
 func generateV2() {

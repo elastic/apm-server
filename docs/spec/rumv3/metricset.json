@@ -3,6 +3,7 @@
   "type": "object",
   "properties": {
     "g": {
+      "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
       "type": [
         "null",
         "object"
@@ -21,15 +22,18 @@
       }
     },
     "sa": {
+      "description": "Samples hold application metrics collected from the agent.",
       "type": "object",
       "properties": {
         "xbc": {
+          "description": "TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created. As the Java agent tracks the breakdown for both sampled and non-sampled transactions, this metric is equivalent to transaction.duration.count",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "v": {
+              "description": "Value holds the value of a single metric sample.",
               "type": "number"
             }
           },
@@ -38,12 +42,14 @@
           ]
         },
         "xdc": {
+          "description": "TransactionDurationCount is the number of transactions since the last report (the delta). The duration of transactions is tracked, which allows for the creation of graphs displaying a weighted average.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "v": {
+              "description": "Value holds the value of a single metric sample.",
               "type": "number"
             }
           },
@@ -52,12 +58,14 @@
           ]
         },
         "xds": {
+          "description": "TransactionDurationSum is the sum of all transactions durations in ms since the last report (the delta). The duration of transactions is tracked, which allows for the creation of graphs displaying a weighted average.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "v": {
+              "description": "Value holds the value of a single metric sample.",
               "type": "number"
             }
           },
@@ -66,12 +74,14 @@
           ]
         },
         "ysc": {
+          "description": "SpanSelfTimeCount holds the count of the related spans' self_time.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "v": {
+              "description": "Value holds the value of a single metric sample.",
               "type": "number"
             }
           },
@@ -80,12 +90,14 @@
           ]
         },
         "yss": {
+          "description": "SpanSelfTimeSum holds the sum of the related spans' self_time.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "v": {
+              "description": "Value holds the value of a single metric sample.",
               "type": "number"
             }
           },
@@ -96,12 +108,14 @@
       }
     },
     "y": {
+      "description": "Span holds selected information about the correlated transaction.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "su": {
+          "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
           "type": [
             "null",
             "string"
@@ -109,6 +123,7 @@
           "maxLength": 1024
         },
         "t": {
+          "description": "Type expresses the correlated span's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
           "type": [
             "null",
             "string"

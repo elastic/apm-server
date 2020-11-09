@@ -384,7 +384,7 @@ func (val *errorEvent) validate() error {
 }
 
 func (val *context) IsSet() bool {
-	return len(val.Custom) > 0 || val.Page.IsSet() || val.Request.IsSet() || val.Response.IsSet() || val.Service.IsSet() || len(val.Tags) > 0 || val.User.IsSet()
+	return len(val.Custom) > 0 || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || len(val.Tags) > 0 || val.User.IsSet()
 }
 
 func (val *context) Reset() {
@@ -392,8 +392,8 @@ func (val *context) Reset() {
 		delete(val.Custom, k)
 	}
 	val.Page.Reset()
-	val.Request.Reset()
 	val.Response.Reset()
+	val.Request.Reset()
 	val.Service.Reset()
 	for k := range val.Tags {
 		delete(val.Tags, k)
@@ -413,11 +413,11 @@ func (val *context) validate() error {
 	if err := val.Page.validate(); err != nil {
 		return errors.Wrapf(err, "p")
 	}
-	if err := val.Request.validate(); err != nil {
-		return errors.Wrapf(err, "q")
-	}
 	if err := val.Response.validate(); err != nil {
 		return errors.Wrapf(err, "r")
+	}
+	if err := val.Request.validate(); err != nil {
+		return errors.Wrapf(err, "q")
 	}
 	if err := val.Service.validate(); err != nil {
 		return errors.Wrapf(err, "se")
@@ -445,15 +445,34 @@ func (val *context) validate() error {
 }
 
 func (val *contextPage) IsSet() bool {
-	return val.URL.IsSet() || val.Referer.IsSet()
+	return val.Referer.IsSet() || val.URL.IsSet()
 }
 
 func (val *contextPage) Reset() {
-	val.URL.Reset()
 	val.Referer.Reset()
+	val.URL.Reset()
 }
 
 func (val *contextPage) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *contextResponse) IsSet() bool {
+	return val.DecodedBodySize.IsSet() || val.EncodedBodySize.IsSet() || val.Headers.IsSet() || val.StatusCode.IsSet() || val.TransferSize.IsSet()
+}
+
+func (val *contextResponse) Reset() {
+	val.DecodedBodySize.Reset()
+	val.EncodedBodySize.Reset()
+	val.Headers.Reset()
+	val.StatusCode.Reset()
+	val.TransferSize.Reset()
+}
+
+func (val *contextResponse) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
@@ -485,25 +504,6 @@ func (val *contextRequest) validate() error {
 	}
 	if !val.Method.IsSet() {
 		return fmt.Errorf("'mt' required")
-	}
-	return nil
-}
-
-func (val *contextResponse) IsSet() bool {
-	return val.DecodedBodySize.IsSet() || val.EncodedBodySize.IsSet() || val.Headers.IsSet() || val.StatusCode.IsSet() || val.TransferSize.IsSet()
-}
-
-func (val *contextResponse) Reset() {
-	val.DecodedBodySize.Reset()
-	val.EncodedBodySize.Reset()
-	val.Headers.Reset()
-	val.StatusCode.Reset()
-	val.TransferSize.Reset()
-}
-
-func (val *contextResponse) validate() error {
-	if !val.IsSet() {
-		return nil
 	}
 	return nil
 }
@@ -944,7 +944,7 @@ func (val *transactionRoot) validate() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || len(val.Metricsets) > 0 || len(val.Spans) > 0
+	return val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || len(val.Metricsets) > 0 || val.Name.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.SpanCount.IsSet() || len(val.Spans) > 0 || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet()
 }
 
 func (val *transaction) Reset() {
@@ -952,6 +952,10 @@ func (val *transaction) Reset() {
 	val.Duration.Reset()
 	val.ID.Reset()
 	val.Marks.Reset()
+	for i := range val.Metricsets {
+		val.Metricsets[i].Reset()
+	}
+	val.Metricsets = val.Metricsets[:0]
 	val.Name.Reset()
 	val.Outcome.Reset()
 	val.ParentID.Reset()
@@ -959,17 +963,13 @@ func (val *transaction) Reset() {
 	val.Sampled.Reset()
 	val.SampleRate.Reset()
 	val.SpanCount.Reset()
-	val.TraceID.Reset()
-	val.Type.Reset()
-	val.UserExperience.Reset()
-	for i := range val.Metricsets {
-		val.Metricsets[i].Reset()
-	}
-	val.Metricsets = val.Metricsets[:0]
 	for i := range val.Spans {
 		val.Spans[i].Reset()
 	}
 	val.Spans = val.Spans[:0]
+	val.TraceID.Reset()
+	val.Type.Reset()
+	val.UserExperience.Reset()
 }
 
 func (val *transaction) validate() error {
@@ -993,6 +993,11 @@ func (val *transaction) validate() error {
 	}
 	if err := val.Marks.validate(); err != nil {
 		return errors.Wrapf(err, "k")
+	}
+	for _, elem := range val.Metricsets {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "me")
+		}
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'n': validation rule 'maxLength(1024)' violated")
@@ -1021,6 +1026,11 @@ func (val *transaction) validate() error {
 	if !val.SpanCount.IsSet() {
 		return fmt.Errorf("'yc' required")
 	}
+	for _, elem := range val.Spans {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "y")
+		}
+	}
 	if utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'tid': validation rule 'maxLength(1024)' violated")
 	}
@@ -1035,16 +1045,6 @@ func (val *transaction) validate() error {
 	}
 	if err := val.UserExperience.validate(); err != nil {
 		return errors.Wrapf(err, "exp")
-	}
-	for _, elem := range val.Metricsets {
-		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "me")
-		}
-	}
-	for _, elem := range val.Spans {
-		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "y")
-		}
 	}
 	return nil
 }
@@ -1111,71 +1111,6 @@ func (val *transactionSpanCount) validate() error {
 	}
 	if !val.Started.IsSet() {
 		return fmt.Errorf("'sd' required")
-	}
-	return nil
-}
-
-func (val *transactionUserExperience) IsSet() bool {
-	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.TotalBlockingTime.IsSet() || val.Longtask.IsSet()
-}
-
-func (val *transactionUserExperience) Reset() {
-	val.CumulativeLayoutShift.Reset()
-	val.FirstInputDelay.Reset()
-	val.TotalBlockingTime.Reset()
-	val.Longtask.Reset()
-}
-
-func (val *transactionUserExperience) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.CumulativeLayoutShift.Val < 0 {
-		return fmt.Errorf("'cls': validation rule 'min(0)' violated")
-	}
-	if val.FirstInputDelay.Val < 0 {
-		return fmt.Errorf("'fid': validation rule 'min(0)' violated")
-	}
-	if val.TotalBlockingTime.Val < 0 {
-		return fmt.Errorf("'tbt': validation rule 'min(0)' violated")
-	}
-	if err := val.Longtask.validate(); err != nil {
-		return errors.Wrapf(err, "lt")
-	}
-	return nil
-}
-
-func (val *longtaskMetrics) IsSet() bool {
-	return val.Count.IsSet() || val.Sum.IsSet() || val.Max.IsSet()
-}
-
-func (val *longtaskMetrics) Reset() {
-	val.Count.Reset()
-	val.Sum.Reset()
-	val.Max.Reset()
-}
-
-func (val *longtaskMetrics) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Count.Val < 0 {
-		return fmt.Errorf("'count': validation rule 'min(0)' violated")
-	}
-	if !val.Count.IsSet() {
-		return fmt.Errorf("'count' required")
-	}
-	if val.Sum.Val < 0 {
-		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
-	}
-	if !val.Sum.IsSet() {
-		return fmt.Errorf("'sum' required")
-	}
-	if val.Max.Val < 0 {
-		return fmt.Errorf("'max': validation rule 'min(0)' violated")
-	}
-	if !val.Max.IsSet() {
-		return fmt.Errorf("'max' required")
 	}
 	return nil
 }
@@ -1367,14 +1302,14 @@ func (val *spanContextDestinationService) validate() error {
 }
 
 func (val *spanContextHTTP) IsSet() bool {
-	return val.Method.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet() || val.Response.IsSet()
+	return val.Method.IsSet() || val.Response.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet()
 }
 
 func (val *spanContextHTTP) Reset() {
 	val.Method.Reset()
+	val.Response.Reset()
 	val.StatusCode.Reset()
 	val.URL.Reset()
-	val.Response.Reset()
 }
 
 func (val *spanContextHTTP) validate() error {
@@ -1428,6 +1363,71 @@ func (val *spanContextService) validate() error {
 	}
 	if val.Name.Val != "" && !patternAlphaNumericExtRegexp.MatchString(val.Name.Val) {
 		return fmt.Errorf("'n': validation rule 'pattern(patternAlphaNumericExt)' violated")
+	}
+	return nil
+}
+
+func (val *transactionUserExperience) IsSet() bool {
+	return val.CumulativeLayoutShift.IsSet() || val.FirstInputDelay.IsSet() || val.TotalBlockingTime.IsSet() || val.Longtask.IsSet()
+}
+
+func (val *transactionUserExperience) Reset() {
+	val.CumulativeLayoutShift.Reset()
+	val.FirstInputDelay.Reset()
+	val.TotalBlockingTime.Reset()
+	val.Longtask.Reset()
+}
+
+func (val *transactionUserExperience) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.CumulativeLayoutShift.Val < 0 {
+		return fmt.Errorf("'cls': validation rule 'min(0)' violated")
+	}
+	if val.FirstInputDelay.Val < 0 {
+		return fmt.Errorf("'fid': validation rule 'min(0)' violated")
+	}
+	if val.TotalBlockingTime.Val < 0 {
+		return fmt.Errorf("'tbt': validation rule 'min(0)' violated")
+	}
+	if err := val.Longtask.validate(); err != nil {
+		return errors.Wrapf(err, "lt")
+	}
+	return nil
+}
+
+func (val *longtaskMetrics) IsSet() bool {
+	return val.Count.IsSet() || val.Max.IsSet() || val.Sum.IsSet()
+}
+
+func (val *longtaskMetrics) Reset() {
+	val.Count.Reset()
+	val.Max.Reset()
+	val.Sum.Reset()
+}
+
+func (val *longtaskMetrics) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Count.Val < 0 {
+		return fmt.Errorf("'count': validation rule 'min(0)' violated")
+	}
+	if !val.Count.IsSet() {
+		return fmt.Errorf("'count' required")
+	}
+	if val.Max.Val < 0 {
+		return fmt.Errorf("'max': validation rule 'min(0)' violated")
+	}
+	if !val.Max.IsSet() {
+		return fmt.Errorf("'max' required")
+	}
+	if val.Sum.Val < 0 {
+		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
+	}
+	if !val.Sum.IsSet() {
+		return fmt.Errorf("'sum' required")
 	}
 	return nil
 }

@@ -3,12 +3,14 @@
   "type": "object",
   "properties": {
     "c": {
+      "description": "Context holds arbitrary contextual information for the event.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "cu": {
+          "description": "Custom can contain additional metadata to be stored with the event. The format is unspecified and can be deeply nested objects. The information will not be indexed or searchable in Elasticsearch.",
           "type": [
             "null",
             "object"
@@ -19,6 +21,7 @@
           }
         },
         "g": {
+          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
           "type": [
             "null",
             "object"
@@ -37,18 +40,21 @@
           }
         },
         "p": {
+          "description": "Page holds information related to the current page and page referers. It is only sent from RUM agents.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "rf": {
+              "description": "Referer holds the URL of the page that 'linked' to the current page.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "url": {
+              "description": "URL of the current page",
               "type": [
                 "null",
                 "string"
@@ -57,18 +63,21 @@
           }
         },
         "q": {
+          "description": "Request describes the HTTP request information in case the event was created as a result of an HTTP request.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "en": {
+              "description": "Env holds environment variable information passed to the monitored service.",
               "type": [
                 "null",
                 "object"
               ]
             },
             "he": {
+              "description": "Headers includes any HTTP headers sent by the requester. Cookies will be taken by headers if supplied.",
               "type": [
                 "null",
                 "object"
@@ -88,6 +97,7 @@
               }
             },
             "hve": {
+              "description": "HTTPVersion holds information about the used HTTP version.",
               "type": [
                 "null",
                 "string"
@@ -95,6 +105,7 @@
               "maxLength": 1024
             },
             "mt": {
+              "description": "Method holds information about the method of the HTTP request.",
               "type": "string",
               "maxLength": 1024
             }
@@ -104,24 +115,28 @@
           ]
         },
         "r": {
+          "description": "Response describes the HTTP response information in case the event was created as a result of an HTTP request.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "dbs": {
+              "description": "DecodedBodySize holds the size of the decoded payload.",
               "type": [
                 "null",
                 "number"
               ]
             },
             "ebs": {
+              "description": "EncodedBodySize holds the size of the encoded payload.",
               "type": [
                 "null",
                 "number"
               ]
             },
             "he": {
+              "description": "Headers holds the http headers sent in the http response.",
               "type": [
                 "null",
                 "object"
@@ -141,12 +156,14 @@
               }
             },
             "sc": {
+              "description": "StatusCode sent in the http response.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "ts": {
+              "description": "TransferSize holds the total size of the payload.",
               "type": [
                 "null",
                 "number"
@@ -155,18 +172,21 @@
           }
         },
         "se": {
+          "description": "Service related information can be sent per event. Information provided here will override the more generic information retrieved from metadata, missing service fields will be retrieved from the metadata information.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "a": {
+              "description": "Agent holds information about the APM agent capturing the event.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "n": {
+                  "description": "Name of the APM agent capturing information.",
                   "type": [
                     "null",
                     "string"
@@ -174,6 +194,7 @@
                   "maxLength": 1024
                 },
                 "ve": {
+                  "description": "Version of the APM agent capturing information.",
                   "type": [
                     "null",
                     "string"
@@ -183,6 +204,7 @@
               }
             },
             "en": {
+              "description": "Environment in which the monitored service is running, e.g. `production` or `staging`.",
               "type": [
                 "null",
                 "string"
@@ -190,12 +212,14 @@
               "maxLength": 1024
             },
             "fw": {
+              "description": "Framework holds information about the framework used in the monitored service.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "n": {
+                  "description": "Name of the used framework",
                   "type": [
                     "null",
                     "string"
@@ -203,6 +227,7 @@
                   "maxLength": 1024
                 },
                 "ve": {
+                  "description": "Version of the used framework",
                   "type": [
                     "null",
                     "string"
@@ -212,12 +237,14 @@
               }
             },
             "la": {
+              "description": "Language holds information about the programming language of the monitored service.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "n": {
+                  "description": "Name of the used programming language",
                   "type": [
                     "null",
                     "string"
@@ -225,6 +252,7 @@
                   "maxLength": 1024
                 },
                 "ve": {
+                  "description": "Version of the used programming language",
                   "type": [
                     "null",
                     "string"
@@ -234,6 +262,7 @@
               }
             },
             "n": {
+              "description": "Name of the monitored service.",
               "type": [
                 "null",
                 "string"
@@ -242,12 +271,14 @@
               "pattern": "^[a-zA-Z0-9 _-]+$"
             },
             "ru": {
+              "description": "Runtime holds information about the language runtime running the monitored service",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "n": {
+                  "description": "Name of the language runtime",
                   "type": [
                     "null",
                     "string"
@@ -255,6 +286,7 @@
                   "maxLength": 1024
                 },
                 "ve": {
+                  "description": "Version of the language runtime",
                   "type": [
                     "null",
                     "string"
@@ -264,6 +296,7 @@
               }
             },
             "ve": {
+              "description": "Version of the monitored service.",
               "type": [
                 "null",
                 "string"
@@ -273,12 +306,14 @@
           }
         },
         "u": {
+          "description": "User holds information about the correlated user for this event. If user data are provided here, all user related information from metadata is ignored, otherwise the metadata's user information will be stored with the event.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "em": {
+              "description": "Email of the user.",
               "type": [
                 "null",
                 "string"
@@ -286,6 +321,7 @@
               "maxLength": 1024
             },
             "id": {
+              "description": "ID identifies the logged in user, e.g. can be the primary key of the user",
               "type": [
                 "null",
                 "string",
@@ -294,6 +330,7 @@
               "maxLength": 1024
             },
             "un": {
+              "description": "Name of the user.",
               "type": [
                 "null",
                 "string"
@@ -305,16 +342,19 @@
       }
     },
     "d": {
+      "description": "Duration how long the transaction took to complete, in milliseconds with 3 decimal points.",
       "type": "number",
       "minimum": 0
     },
     "exp": {
+      "description": "UserExperience holds metrics for measuring real user experience. This information is only sent by RUM agents.",
       "type": [
         "null",
         "object"
       ],
       "properties": {
         "cls": {
+          "description": "CumulativeLayoutShift holds the Cumulative Layout Shift (CLS) metric value, or a negative value if CLS is unknown. See https://web.dev/cls/",
           "type": [
             "null",
             "number"
@@ -322,6 +362,7 @@
           "minimum": 0
         },
         "fid": {
+          "description": "FirstInputDelay holds the First Input Delay (FID) metric value, or a negative value if FID is unknown. See https://web.dev/fid/",
           "type": [
             "null",
             "number"
@@ -329,31 +370,36 @@
           "minimum": 0
         },
         "lt": {
+          "description": "Longtask holds longtask duration/count metrics.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "count": {
+              "description": "Count is the total number of of longtasks.",
               "type": "integer",
               "minimum": 0
             },
             "max": {
+              "description": "Max longtask duration",
               "type": "number",
               "minimum": 0
             },
             "sum": {
+              "description": "Sum of longtask durations",
               "type": "number",
               "minimum": 0
             }
           },
           "required": [
             "count",
-            "sum",
-            "max"
+            "max",
+            "sum"
           ]
         },
         "tbt": {
+          "description": "TotalBlockingTime holds the Total Blocking Time (TBT) metric value, or a negative value if TBT is unknown. See https://web.dev/tbt/",
           "type": [
             "null",
             "number"
@@ -363,10 +409,12 @@
       }
     },
     "id": {
+      "description": "ID holds the hex encoded 64 random bits ID of the event.",
       "type": "string",
       "maxLength": 1024
     },
     "k": {
+      "description": "Marks capture the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent. Marks are only reported by RUM agents.",
       "type": [
         "null",
         "object"
@@ -391,12 +439,14 @@
       }
     },
     "me": {
+      "description": "Metricsets is a collection metrics related to this transaction.",
       "type": [
         "null",
         "array"
       ],
       "properties": {
         "g": {
+          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
           "type": [
             "null",
             "object"
@@ -415,15 +465,18 @@
           }
         },
         "sa": {
+          "description": "Samples hold application metrics collected from the agent.",
           "type": "object",
           "properties": {
             "xbc": {
+              "description": "TransactionBreakdownCount The number of transactions for which breakdown metrics (span.self_time) have been created. As the Java agent tracks the breakdown for both sampled and non-sampled transactions, this metric is equivalent to transaction.duration.count",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "v": {
+                  "description": "Value holds the value of a single metric sample.",
                   "type": "number"
                 }
               },
@@ -432,12 +485,14 @@
               ]
             },
             "xdc": {
+              "description": "TransactionDurationCount is the number of transactions since the last report (the delta). The duration of transactions is tracked, which allows for the creation of graphs displaying a weighted average.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "v": {
+                  "description": "Value holds the value of a single metric sample.",
                   "type": "number"
                 }
               },
@@ -446,12 +501,14 @@
               ]
             },
             "xds": {
+              "description": "TransactionDurationSum is the sum of all transactions durations in ms since the last report (the delta). The duration of transactions is tracked, which allows for the creation of graphs displaying a weighted average.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "v": {
+                  "description": "Value holds the value of a single metric sample.",
                   "type": "number"
                 }
               },
@@ -460,12 +517,14 @@
               ]
             },
             "ysc": {
+              "description": "SpanSelfTimeCount holds the count of the related spans' self_time.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "v": {
+                  "description": "Value holds the value of a single metric sample.",
                   "type": "number"
                 }
               },
@@ -474,12 +533,14 @@
               ]
             },
             "yss": {
+              "description": "SpanSelfTimeSum holds the sum of the related spans' self_time.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "v": {
+                  "description": "Value holds the value of a single metric sample.",
                   "type": "number"
                 }
               },
@@ -490,12 +551,14 @@
           }
         },
         "y": {
+          "description": "Span holds selected information about the correlated transaction.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "su": {
+              "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
               "type": [
                 "null",
                 "string"
@@ -503,6 +566,7 @@
               "maxLength": 1024
             },
             "t": {
+              "description": "Type expresses the correlated span's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
               "type": [
                 "null",
                 "string"
@@ -518,6 +582,7 @@
       "minItems": 0
     },
     "n": {
+      "description": "Name is the generic designation of a transaction in the scope of a single service, eg: 'GET /users/:id'.",
       "type": [
         "null",
         "string"
@@ -525,6 +590,7 @@
       "maxLength": 1024
     },
     "o": {
+      "description": "Outcome of the transaction with a limited set of permitted values, describing the success or failure of the transaction from the service's perspective. It is used for calculating error rates for incoming requests. Permitted values: success, failure, unknown.",
       "type": [
         "null",
         "string"
@@ -537,6 +603,7 @@
       ]
     },
     "pid": {
+      "description": "ParentID holds the hex encoded 64 random bits ID of the parent transaction or span.",
       "type": [
         "null",
         "string"
@@ -544,6 +611,7 @@
       "maxLength": 1024
     },
     "rt": {
+      "description": "Result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
       "type": [
         "null",
         "string"
@@ -551,32 +619,38 @@
       "maxLength": 1024
     },
     "sm": {
+      "description": "Sampled indicates whether or not the full information for a transaction is captured. If a transaction is unsampled no spans and less context information will be reported.",
       "type": [
         "null",
         "boolean"
       ]
     },
     "sr": {
+      "description": "SampleRate applied to the monitored service at the time where this transaction was recorded. Allowed values are [0..1]. A SampleRate \u003c1 indicates that not all spans are recorded.",
       "type": [
         "null",
         "number"
       ]
     },
     "t": {
+      "description": "Type expresses the transaction's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
       "type": "string",
       "maxLength": 1024
     },
     "tid": {
+      "description": "TraceID holds the hex encoded 128 random bits ID of the correlated trace.",
       "type": "string",
       "maxLength": 1024
     },
     "y": {
+      "description": "Spans is a collection of spans related to this transaction.",
       "type": [
         "null",
         "array"
       ],
       "properties": {
         "ac": {
+          "description": "Action holds the specific kind of event within the sub-type represented by the span (e.g. query, connect)",
           "type": [
             "null",
             "string"
@@ -584,18 +658,21 @@
           "maxLength": 1024
         },
         "c": {
+          "description": "Context holds arbitrary contextual information for the event.",
           "type": [
             "null",
             "object"
           ],
           "properties": {
             "dt": {
+              "description": "Destination contains contextual data about the destination of spans",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "ad": {
+                  "description": "Address is the destination network address: hostname (e.g. 'localhost'), FQDN (e.g. 'elastic.co'), IPv4 (e.g. '127.0.0.1') IPv6 (e.g. '::1')",
                   "type": [
                     "null",
                     "string"
@@ -603,26 +680,31 @@
                   "maxLength": 1024
                 },
                 "po": {
+                  "description": "Port is the destination network port (e.g. 443)",
                   "type": [
                     "null",
                     "integer"
                   ]
                 },
                 "se": {
+                  "description": "Service describes the destination service",
                   "type": [
                     "null",
                     "object"
                   ],
                   "properties": {
                     "n": {
+                      "description": "Name is the identifier for the destination service, e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq'",
                       "type": "string",
                       "maxLength": 1024
                     },
                     "rc": {
+                      "description": "Resource identifies the destination service resource being operated on e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'",
                       "type": "string",
                       "maxLength": 1024
                     },
                     "t": {
+                      "description": "Type of the destination service, e.g. db, elasticsearch. Should typically be the same as span.type.",
                       "type": "string",
                       "maxLength": 1024
                     }
@@ -636,6 +718,7 @@
               }
             },
             "g": {
+              "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
               "type": [
                 "null",
                 "object"
@@ -654,12 +737,14 @@
               }
             },
             "h": {
+              "description": "HTTP contains contextual information when the span concerns an HTTP request.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "mt": {
+                  "description": "Method holds information about the method of the HTTP request.",
                   "type": [
                     "null",
                     "string"
@@ -667,24 +752,28 @@
                   "maxLength": 1024
                 },
                 "r": {
+                  "description": "Response describes the HTTP response information in case the event was created as a result of an HTTP request.",
                   "type": [
                     "null",
                     "object"
                   ],
                   "properties": {
                     "dbs": {
+                      "description": "DecodedBodySize holds the size of the decoded payload.",
                       "type": [
                         "null",
                         "number"
                       ]
                     },
                     "ebs": {
+                      "description": "EncodedBodySize holds the size of the encoded payload.",
                       "type": [
                         "null",
                         "number"
                       ]
                     },
                     "ts": {
+                      "description": "TransferSize holds the total size of the payload.",
                       "type": [
                         "null",
                         "number"
@@ -693,12 +782,14 @@
                   }
                 },
                 "sc": {
+                  "description": "Deprecated: Use Response.StatusCode instead. StatusCode sent in the http response.",
                   "type": [
                     "null",
                     "integer"
                   ]
                 },
                 "url": {
+                  "description": "URL is the raw url of the correlating HTTP request.",
                   "type": [
                     "null",
                     "string"
@@ -707,18 +798,21 @@
               }
             },
             "se": {
+              "description": "Service related information can be sent per span. Information provided here will override the more generic information retrieved from metadata, missing service fields will be retrieved from the metadata information.",
               "type": [
                 "null",
                 "object"
               ],
               "properties": {
                 "a": {
+                  "description": "Agent holds information about the APM agent capturing the event.",
                   "type": [
                     "null",
                     "object"
                   ],
                   "properties": {
                     "n": {
+                      "description": "Name of the APM agent capturing information.",
                       "type": [
                         "null",
                         "string"
@@ -726,6 +820,7 @@
                       "maxLength": 1024
                     },
                     "ve": {
+                      "description": "Version of the APM agent capturing information.",
                       "type": [
                         "null",
                         "string"
@@ -735,6 +830,7 @@
                   }
                 },
                 "n": {
+                  "description": "Name of the monitored service.",
                   "type": [
                     "null",
                     "string"
@@ -747,18 +843,22 @@
           }
         },
         "d": {
+          "description": "Duration of the span in milliseconds",
           "type": "number",
           "minimum": 0
         },
         "id": {
+          "description": "ID holds the hex encoded 64 random bits ID of the event.",
           "type": "string",
           "maxLength": 1024
         },
         "n": {
+          "description": "Name is the generic designation of a span in the scope of a transaction.",
           "type": "string",
           "maxLength": 1024
         },
         "o": {
+          "description": "Outcome of the span: success, failure, or unknown. Outcome may be one of a limited set of permitted values describing the success or failure of the span. It can be used for calculating error rates for outgoing requests.",
           "type": [
             "null",
             "string"
@@ -771,72 +871,85 @@
           ]
         },
         "pi": {
+          "description": "ParentIndex is the index of the parent span in the list. Absent when the parent is a transaction.",
           "type": [
             "null",
             "integer"
           ]
         },
         "s": {
+          "description": "Start is the offset relative to the transaction's timestamp identifying the start of the span, in milliseconds.",
           "type": "number"
         },
         "sr": {
+          "description": "SampleRate applied to the monitored service at the time where this span was recorded.",
           "type": [
             "null",
             "number"
           ]
         },
         "st": {
+          "description": "Stacktrace connected to this span event.",
           "type": [
             "null",
             "array"
           ],
           "properties": {
             "ap": {
+              "description": "AbsPath is the absolute path of the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "cli": {
+              "description": "ContextLine is the line from the frame's file.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "cn": {
+              "description": "Classname of the frame.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "co": {
+              "description": "ColumnNumber of the frame.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "f": {
+              "description": "Filename is the relative name of the frame's file.",
               "type": "string"
             },
             "fn": {
+              "description": "Function represented by the frame.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "li": {
+              "description": "LineNumber of the frame.",
               "type": [
                 "null",
                 "integer"
               ]
             },
             "mo": {
+              "description": "Module to which the frame belongs to.",
               "type": [
                 "null",
                 "string"
               ]
             },
             "poc": {
+              "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
               "type": [
                 "null",
                 "array"
@@ -847,6 +960,7 @@
               "minItems": 0
             },
             "prc": {
+              "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
               "type": [
                 "null",
                 "array"
@@ -863,6 +977,7 @@
           "minItems": 0
         },
         "su": {
+          "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
           "type": [
             "null",
             "string"
@@ -870,12 +985,14 @@
           "maxLength": 1024
         },
         "sy": {
+          "description": "Sync indicates whether the span was executed synchronously or asynchronously.",
           "type": [
             "null",
             "boolean"
           ]
         },
         "t": {
+          "description": "Type holds the span's type, and can have specific keywords within the service's domain (eg: 'request', 'backgroundjob', etc)",
           "type": "string",
           "maxLength": 1024
         }
@@ -890,15 +1007,18 @@
       "minItems": 0
     },
     "yc": {
+      "description": "SpanCount counts correlated spans.",
       "type": "object",
       "properties": {
         "dd": {
+          "description": "Dropped is the number of correlated spans that have been dropped by the APM agent recording the transaction.",
           "type": [
             "null",
             "integer"
           ]
         },
         "sd": {
+          "description": "Started is the number of correlated spans that are recorded.",
           "type": "integer"
         }
       },
