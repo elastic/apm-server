@@ -17,7 +17,6 @@
 
 package main
 
-//go:generate go run script/inline_schemas/inline_schemas.go
 //go:generate go run model/modeldecoder/generator/cmd/main.go
 
 import (

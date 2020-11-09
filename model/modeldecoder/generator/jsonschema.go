@@ -28,8 +28,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-//TODO(simitt): remove old JSON schemas
-
 // JSONSchemaGenerator holds the parsed package information
 // from which it can generate a JSON schema
 type JSONSchemaGenerator struct {
