@@ -99,7 +99,6 @@ func TestAggregatorRun(t *testing.T) {
 		go func(in input) {
 			defer wg.Done()
 			span := makeSpan(in.serviceName, in.agentName, in.destination, in.outcome, 100*time.Millisecond, in.count)
-			transformables := []transform.Transformable{span}
 			for i := 0; i < 100; i++ {
 				assert.Len(t, agg.ProcessTransformables([]transform.Transformable{span}), 1)
 			}
