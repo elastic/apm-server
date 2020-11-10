@@ -412,8 +412,12 @@ pipeline {
               expression { return params.release_ci }
               expression { return env.ONLY_DOCS == "false" }
               anyOf {
-                expression { return env.BEATS_UPDATED != "false" }
+                branch 'master'
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+                expression { return isPR() && env.BEATS_UPDATED != "false" }
                 expression { return env.GITHUB_COMMENT?.contains('package tests') }
+                expression { return params.Run_As_Master_Branch }
               }
             }
           }
@@ -435,17 +439,6 @@ pipeline {
               }
             }
             stage('Publish') {
-              when {
-                beforeAgent true
-                anyOf {
-                  branch 'master'
-                  branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                  branch pattern: 'v\\d?', comparator: 'REGEXP'
-                  tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-                  expression { return params.Run_As_Master_Branch }
-                  expression { return env.BEATS_UPDATED != "false" }
-                }
-              }
               steps {
                 googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
                   credentialsId: "${JOB_GCS_CREDENTIALS}",
