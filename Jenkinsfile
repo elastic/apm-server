@@ -12,6 +12,7 @@ pipeline {
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
+    ONLY_DOCS = "false"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
