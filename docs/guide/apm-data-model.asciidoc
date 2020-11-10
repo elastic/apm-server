@@ -206,7 +206,7 @@ Defining too many unique fields in an index is a condition that can lead to a
 ===== Agent API reference
 
 * Go: {apm-go-ref-v}/api.html#context-set-label[`SetLabel`]
-* Java: {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`addLabel`]
+* Java: {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`setLabel`]
 * .NET: {apm-dotnet-ref-v}/public-api.html#api-transaction-tags[`Labels`]
 * Node.js: {apm-node-ref-v}/agent-api.html#apm-set-label[`setLabel`] | {apm-node-ref-v}/agent-api.html#apm-add-labels[`addLabel`]
 * Python: {apm-py-ref-v}/api.html#api-label[`elasticapm.label()`]
