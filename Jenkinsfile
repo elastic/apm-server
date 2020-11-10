@@ -437,17 +437,6 @@ pipeline {
               }
             }
             stage('Publish') {
-              when {
-                beforeAgent true
-                anyOf {
-                  branch 'master'
-                  branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                  branch pattern: 'v\\d?', comparator: 'REGEXP'
-                  tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-                  expression { return params.Run_As_Master_Branch }
-                  expression { return env.BEATS_UPDATED != "false" }
-                }
-              }
               environment {
                 BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
               }
