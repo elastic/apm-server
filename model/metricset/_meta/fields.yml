@@ -1,5 +1,5 @@
 - key: system
-  title: "APM System Metrics"
+  title: "System Metrics"
   description: >
     System status metrics, like CPU and memory usage, that are collected from the operating system.
   short_config: true
@@ -89,11 +89,11 @@
             - name: mem.limit.bytes
               type: long
               format: bytes
-              description: Memory limit for the current cgroup slice. 
+              description: Memory limit for the current cgroup slice.
             - name: mem.usage.bytes
               type: long
               format: bytes
-              description:  Memory usage by the current cgroup slice. 
+              description:  Memory usage by the current cgroup slice.
 
 - key: apm-transaction-metrics
   title: "APM Transaction Metrics"
