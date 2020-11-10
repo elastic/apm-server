@@ -371,91 +371,56 @@ pipeline {
     /**
       build release packages.
     */
-    stage('Release') {
+    stage('Package') {
+      agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
-        SNAPSHOT="true"
+        SNAPSHOT = "true"
       }
       when {
         beforeAgent true
         allOf {
+          expression { return params.release_ci }
+          expression { return env.ONLY_DOCS == "false" }
           anyOf {
             branch 'master'
             branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-            branch pattern: 'v\\d?', comparator: 'REGEXP'
             tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+            expression { return isPR() && env.BEATS_UPDATED != "false" }
+            expression { return env.GITHUB_COMMENT?.contains('package tests') }
             expression { return params.Run_As_Master_Branch }
-            expression { return env.BEATS_UPDATED != "false" }
-          }
-          expression { return params.release_ci }
-          expression { return env.ONLY_DOCS == "false" }
-        }
-        stage('Package') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-            SNAPSHOT = "true"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.release_ci }
-              expression { return env.ONLY_DOCS == "false" }
-              anyOf {
-                branch 'master'
-                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-                expression { return isPR() && env.BEATS_UPDATED != "false" }
-                expression { return env.GITHUB_COMMENT?.contains('package tests') }
-                expression { return params.Run_As_Master_Branch }
-              }
-            }
-          }
-          stages {
-            stage('Package') {
-              steps {
-                withGithubNotify(context: 'Package') {
-                  deleteDir()
-                  unstash 'source'
-                  golang(){
-                    dir("${BASE_DIR}"){
-                      sh(label: 'Build packages', script: './script/jenkins/package.sh')
-                      sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
-                      dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                      sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
-                    }
-                  }
-                }
-              }
-            }
-            stage('Publish') {
-              steps {
-                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
-                  credentialsId: "${JOB_GCS_CREDENTIALS}",
-                  pathPrefix: "${BASE_DIR}/build/distributions/",
-                  pattern: "${BASE_DIR}/build/distributions/**/*",
-                  sharedPublicly: true,
-                  showInline: true)
-              }
-            }
           }
         }
       }
-      post {
-        success {
-          echo "Archive packages"
-          googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
-            credentialsId: "${JOB_GCS_CREDENTIALS}",
-            pathPrefix: "${BASE_DIR}/build/distributions/",
-            pattern: "${BASE_DIR}/build/distributions/**/*",
-            sharedPublicly: true,
-            showInline: true)
+      stages {
+        stage('Package') {
+          steps {
+            withGithubNotify(context: 'Package') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Build packages', script: './script/jenkins/package.sh')
+                  sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
+                  dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+                  sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                }
+              }
+            }
+          }
+        }
+        stage('Publish') {
+          steps {
+            googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
+              credentialsId: "${JOB_GCS_CREDENTIALS}",
+              pathPrefix: "${BASE_DIR}/build/distributions/",
+              pattern: "${BASE_DIR}/build/distributions/**/*",
+              sharedPublicly: true,
+              showInline: true)
+          }
         }
       }
     }
