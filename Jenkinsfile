@@ -12,6 +12,9 @@ pipeline {
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
+    DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+    DOCKER_REGISTRY = 'docker.elastic.co'
+    DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
     ONLY_DOCS = "false"
   }
   options {
