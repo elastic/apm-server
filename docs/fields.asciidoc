@@ -38,6 +38,39 @@ Fields common to various APM events.
 
 
 
+*`data_stream.type`*::
++
+--
+Data stream type, e.g. logs, metrics, or traces.
+
+type: keyword
+
+example: traces
+
+--
+
+*`data_stream.dataset`*::
++
+--
+Data stream dataset name.
+
+type: keyword
+
+example: backend_service
+
+--
+
+*`data_stream.namespace`*::
++
+--
+User-defined data stream namespace.
+
+type: keyword
+
+example: production
+
+--
+
 *`processor.name`*::
 +
 --
