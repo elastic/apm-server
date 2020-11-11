@@ -413,8 +413,20 @@ pipeline {
           }
         }
         stage('Publish') {
+          environment {
+            BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
+          }
           steps {
-            googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
+            // Upload files to the default location
+            googleStorageUpload(bucket: "${BUCKET_URI}",
+              credentialsId: "${JOB_GCS_CREDENTIALS}",
+              pathPrefix: "${BASE_DIR}/build/distributions/",
+              pattern: "${BASE_DIR}/build/distributions/**/*",
+              sharedPublicly: true,
+              showInline: true)
+
+            // Copy those files to another location with the sha commit to test them afterward.
+            googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
               credentialsId: "${JOB_GCS_CREDENTIALS}",
               pathPrefix: "${BASE_DIR}/build/distributions/",
               pattern: "${BASE_DIR}/build/distributions/**/*",
