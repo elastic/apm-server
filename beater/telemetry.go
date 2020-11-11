@@ -29,6 +29,7 @@ import (
 var apmRegistry = monitoring.GetNamespace("state").GetRegistry().NewRegistry("apm-server")
 
 type configTelemetry struct {
+	dataStreamsEnabled        *monitoring.Bool
 	rumEnabled                *monitoring.Bool
 	apiKeysEnabled            *monitoring.Bool
 	kibanaEnabled             *monitoring.Bool
@@ -49,6 +50,7 @@ type configTelemetry struct {
 }
 
 var configMonitors = &configTelemetry{
+	dataStreamsEnabled:        monitoring.NewBool(apmRegistry, "data_streams.enabled"),
 	rumEnabled:                monitoring.NewBool(apmRegistry, "rum.enabled"),
 	apiKeysEnabled:            monitoring.NewBool(apmRegistry, "api_key.enabled"),
 	kibanaEnabled:             monitoring.NewBool(apmRegistry, "kibana.enabled"),
@@ -73,6 +75,7 @@ func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config
 	if err != nil {
 		return err
 	}
+	configMonitors.dataStreamsEnabled.Set(apmCfg.DataStreams.Enabled)
 	configMonitors.rumEnabled.Set(apmCfg.RumConfig.IsEnabled())
 	configMonitors.apiKeysEnabled.Set(apmCfg.APIKeyConfig.IsEnabled())
 	configMonitors.kibanaEnabled.Set(apmCfg.Kibana.Enabled)

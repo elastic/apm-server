@@ -85,6 +85,7 @@ type Config struct {
 	JaegerConfig        JaegerConfig            `config:"jaeger"`
 	Aggregation         AggregationConfig       `config:"aggregation"`
 	Sampling            SamplingConfig          `config:"sampling"`
+	DataStreams         DataStreamsConfig       `config:"data_streams"`
 
 	Pipeline string
 }
@@ -189,5 +190,6 @@ func DefaultConfig() *Config {
 		JaegerConfig: defaultJaeger(),
 		Aggregation:  defaultAggregationConfig(),
 		Sampling:     defaultSamplingConfig(),
+		DataStreams:  defaultDataStreamsConfig(),
 	}
 }
