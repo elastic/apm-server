@@ -29,7 +29,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package)\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package)')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -378,7 +378,7 @@ pipeline {
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
+            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') || env.GITHUB_COMMENT?.contains('/hey-apm')}
           }
           steps {
             withGithubNotify(context: 'Hey-Apm') {
@@ -412,8 +412,12 @@ pipeline {
               expression { return params.release_ci }
               expression { return env.ONLY_DOCS == "false" }
               anyOf {
-                expression { return env.BEATS_UPDATED != "false" }
-                expression { return env.GITHUB_COMMENT?.contains('package tests') }
+                branch 'master'
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+                expression { return isPR() && env.BEATS_UPDATED != "false" }
+                expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
+                expression { return params.Run_As_Master_Branch }
               }
             }
           }
@@ -435,19 +439,20 @@ pipeline {
               }
             }
             stage('Publish') {
-              when {
-                beforeAgent true
-                anyOf {
-                  branch 'master'
-                  branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                  branch pattern: 'v\\d?', comparator: 'REGEXP'
-                  tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-                  expression { return params.Run_As_Master_Branch }
-                  expression { return env.BEATS_UPDATED != "false" }
-                }
+              environment {
+                BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
               }
               steps {
-                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
+                // Upload files to the default location
+                googleStorageUpload(bucket: "${BUCKET_URI}",
+                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                  pathPrefix: "${BASE_DIR}/build/distributions/",
+                  pattern: "${BASE_DIR}/build/distributions/**/*",
+                  sharedPublicly: true,
+                  showInline: true)
+
+                // Copy those files to another location with the sha commit to test them afterward.
+                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
                   credentialsId: "${JOB_GCS_CREDENTIALS}",
                   pathPrefix: "${BASE_DIR}/build/distributions/",
                   pattern: "${BASE_DIR}/build/distributions/**/*",
