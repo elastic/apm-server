@@ -133,7 +133,9 @@ func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	metadataProcSetup().KeywordLimitation(
 		t,
-		tests.NewSet("processor.event", "processor.name",
+		tests.NewSet(
+			"data_stream.type", "data_stream.dataset", "data_stream.namespace",
+			"processor.event", "processor.name",
 			"process.args",
 			tests.Group("observer"),
 			tests.Group("event"),

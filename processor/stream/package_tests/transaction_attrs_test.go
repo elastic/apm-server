@@ -109,6 +109,7 @@ func transactionRequiredKeys() *tests.Set {
 
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name",
 		"transaction.marks",
 		"context.tags",

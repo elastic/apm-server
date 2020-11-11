@@ -151,6 +151,7 @@ func transactionContext() *tests.Set {
 
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name",
 		"context.tags", "transaction.type", "transaction.name",
 		"event.outcome",

@@ -128,6 +128,7 @@ func errorCondRequiredKeys() map[string]tests.Condition {
 
 func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name", "error.grouping_key",
 		"context.tags", "transaction.name",
 		"event.outcome", // not relevant
