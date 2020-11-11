@@ -13,6 +13,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "experimental-java",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -194,6 +196,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "1234_service-12a3",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -339,6 +343,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "1234_service-12a3.apm.internal",
+            "data_stream.type": "metrics",
             "dotted": {
                 "float": {
                     "gauge": 6.12
@@ -463,6 +469,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "service1.apm.error",
+            "data_stream.type": "logs",
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
                 "custom": {

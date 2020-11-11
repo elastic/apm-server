@@ -6,6 +6,8 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "data_stream.dataset": "unknown",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -45,6 +47,8 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "data_stream.dataset": "unknown",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },

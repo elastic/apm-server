@@ -6,6 +6,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "1234_service-12a3.apm.error",
+            "data_stream.type": "logs",
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",

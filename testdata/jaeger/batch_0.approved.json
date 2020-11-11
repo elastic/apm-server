@@ -7,6 +7,8 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "driver",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -60,6 +62,8 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "driver.apm.error",
+            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -110,6 +114,8 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "driver.apm.error",
+            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -160,6 +166,8 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "driver.apm.error",
+            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {

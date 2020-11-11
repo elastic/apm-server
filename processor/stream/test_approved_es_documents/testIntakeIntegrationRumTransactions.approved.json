@@ -9,6 +9,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm-agent-js",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -75,6 +77,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm-agent-js",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
