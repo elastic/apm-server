@@ -887,7 +887,7 @@ func (val *contextRequest) validate() error {
 	case map[string]interface{}:
 	case nil:
 	default:
-		return fmt.Errorf("'body': validation rule 'inputTypes(string;map[string]interface)' violated ")
+		return fmt.Errorf("'body': validation rule 'inputTypes(string;object)' violated ")
 	}
 	if utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
 		return fmt.Errorf("'http_version': validation rule 'maxLength(1024)' violated")

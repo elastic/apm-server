@@ -133,7 +133,7 @@ type contextRequest struct {
 	// Body only contais the request bod, not the query string information.
 	// It can either be a dictionary (for standard HTTP requests) or a raw
 	// request body.
-	Body nullable.Interface `json:"body" validate:"inputTypes=string;map[string]interface"`
+	Body nullable.Interface `json:"body" validate:"inputTypes=string;object"`
 	// Cookies used by the request, parsed as key-value objects.
 	Cookies common.MapStr `json:"cookies"`
 	// Env holds environment variable information passed to the monitored service.

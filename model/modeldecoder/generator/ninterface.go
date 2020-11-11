@@ -108,7 +108,7 @@ if _, err := strconv.Atoi(t); err != nil{
 }
 `[1:], jsonName(f), targetTypeRule.name, targetTypeRule.value)
 			}
-		case "map[string]interface":
+		case "object":
 			fmt.Fprint(w, `
 case map[string]interface{}:
 `[1:])

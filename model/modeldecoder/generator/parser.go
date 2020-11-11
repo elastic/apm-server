@@ -23,6 +23,7 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -108,21 +109,25 @@ func parse(pkg *packages.Package, parsed *Parsed) error {
 					if !ok {
 						continue
 					}
-					for i := 0; i < len(valueSpec.Values); i++ {
+					for i, expr := range valueSpec.Values {
 						name := valueSpec.Names[i].Name
-						switch v := valueSpec.Values[i].(type) {
+						var err error
+						switch v := expr.(type) {
 						case *ast.BasicLit:
 							if strings.HasPrefix(name, "pattern") {
-								parsed.patternVariables[name] = strings.Trim(v.Value, "`\"")
+								parsed.patternVariables[name], err = strconv.Unquote(v.Value)
 							}
 						case *ast.CompositeLit:
 							if strings.HasPrefix(name, "enum") {
 								elems := make([]string, len(v.Elts))
 								for i := 0; i < len(v.Elts); i++ {
-									elems[i] = strings.Trim(v.Elts[i].(*ast.BasicLit).Value, "`\"")
+									elems[i], err = strconv.Unquote(v.Elts[i].(*ast.BasicLit).Value)
 								}
 								parsed.enumVariables[name] = elems
 							}
+						}
+						if err != nil {
+							return err
 						}
 					}
 				}

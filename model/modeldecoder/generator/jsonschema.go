@@ -62,9 +62,8 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 	if key != "" {
 		key += "."
 	}
-	for i := 0; i < len(st.fields); i++ {
+	for _, f := range st.fields {
 		var err error
-		f := st.fields[i]
 		name := jsonSchemaName(f)
 		childProp := property{Properties: make(map[string]*property), Type: &propertyType{}, Description: f.comment}
 		tags, err := validationTag(f.tag)
@@ -78,7 +77,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 			delete(tags, tagRequired)
 		}
 		if val, ok := tags[tagRequiredIfAny]; ok {
-			// add all property names as entries to the propertie's AllOf collection
+			// add all property names as entries to the property's AllOf collection
 			// after processing all child fields iterate through the AllOf collection
 			// and ensure the types for the properties in the If and Then clauses do not allow null values
 			// this can only be done after all fields have been processed and their types are known
@@ -91,7 +90,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 			delete(tags, tagRequiredIfAny)
 		}
 		if val, ok := tags[tagRequiredAnyOf]; ok {
-			// add all property names as entries to the propertie's AnyOf collection
+			// add all property names as entries to the property's AnyOf collection
 			// after processing all child fields iterate through the AnyOf collection
 			// and ensure the types for the properties do not allow null values
 			// this can only be done after all fields have been processed and their types are known
@@ -221,7 +220,7 @@ var (
 		nullableTypeString:         TypeNameString,
 		"string":                   TypeNameString,
 		nullableTypeHTTPHeader:     TypeNameObject,
-		"map[string]interface":     TypeNameObject,
+		"object":                   TypeNameObject,
 	}
 )
 

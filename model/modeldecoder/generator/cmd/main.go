@@ -18,9 +18,8 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
@@ -82,7 +81,11 @@ func generateCode(path string, pkg string, parsed *generator.Parsed, root []stri
 	if err != nil {
 		panic(err)
 	}
-	print(b, out, true)
+	formatted, err := imports.Process(out, b.Bytes(), nil)
+	if err != nil {
+		panic(err)
+	}
+	ioutil.WriteFile(out, formatted, 0644)
 }
 
 func generateJSONSchema(path string, pkg string, parsed *generator.Parsed, root []string) {
@@ -98,22 +101,6 @@ func generateJSONSchema(path string, pkg string, parsed *generator.Parsed, root 
 			panic(err)
 		}
 		out := filepath.Join(outPath, fmt.Sprintf("%s.json", strings.TrimSuffix(rootEventName, "Event")))
-		print(b, out, false)
-	}
-}
-
-func print(b bytes.Buffer, p string, sanitize bool) {
-	f, err := os.Create(p)
-	if err != nil {
-		panic(err)
-	}
-	var out = b.Bytes()
-	if sanitize {
-		if out, err = imports.Process(p, out, nil); err != nil {
-			panic(err)
-		}
-	}
-	if _, err := f.Write(out); err != nil {
-		panic(err)
+		ioutil.WriteFile(out, b.Bytes(), 0644)
 	}
 }

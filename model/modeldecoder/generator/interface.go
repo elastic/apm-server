@@ -52,7 +52,6 @@ func generateJSONPropertyInterface(info *fieldInfo, parent *property, child *pro
 				}
 			case TypeNameObject:
 				child.Type.add(TypeNameObject)
-			//TODO(implement):
 			default:
 				return fmt.Errorf("unhandled value %s for tag %s", t, tagInputTypes)
 			}

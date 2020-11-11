@@ -341,11 +341,9 @@ func parseTag(structTag reflect.StructTag, tagName string) []string {
 }
 
 func sortKeys(input map[string]string) []string {
-	keys := make(sort.StringSlice, len(input))
-	var i int
+	keys := make(sort.StringSlice, 0, len(input))
 	for k := range input {
-		keys[i] = k
-		i++
+		keys = append(keys, k)
 	}
 	keys.Sort()
 	return keys

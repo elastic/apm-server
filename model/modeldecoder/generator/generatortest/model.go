@@ -21,7 +21,7 @@ package generatortest
 
 import (
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var (
@@ -53,7 +53,7 @@ type HTTPHeader struct {
 }
 
 type Interface struct {
-	Required nullable.Interface `json:"required" validate:"required,inputTypes=string;int;float64;bool;map[string]interface,maxLength=5,minLength=2,pattern=patternA,max=250,min=1.5"`
+	Required nullable.Interface `json:"required" validate:"required,inputTypes=string;int;float64;bool;object,maxLength=5,minLength=2,pattern=patternA,max=250,min=1.5"`
 	Nullable nullable.Interface `json:"nullable" validate:"inputTypes=string,enum=enumA"`
 }
 
@@ -91,6 +91,7 @@ type RequiredIfAny struct {
 	A nullable.String `json:"a" validate:"requiredIfAny=b;c"`
 	B nullable.String `json:"b"`
 	C nullable.String `json:"c" validate:"requiredIfAny=b"`
+	D nullable.String `json:"d" validate:"required"`
 }
 
 type RequiredAnyOf struct {
