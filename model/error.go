@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -109,7 +110,15 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 		addStacktraceCounter(e.Log.Stacktrace)
 	}
 
+	// Errors are stored in an APM errors-specific "logs" data stream, per service.
+	// By storing errors in a "logs" data stream, they can be viewed in the Logs app
+	// in Kibana.
+	dataset := fmt.Sprintf("%s.apm.error", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+
 	fields := common.MapStr{
+		datastreams.TypeField:    datastreams.LogsType,
+		datastreams.DatasetField: dataset,
+
 		"error":     e.fields(ctx, cfg),
 		"processor": errorProcessorEntry,
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -111,7 +112,13 @@ func (e *Transaction) fields() common.MapStr {
 func (e *Transaction) Transform(_ context.Context, _ *transform.Config) []beat.Event {
 	transactionTransformations.Inc()
 
+	// Transactions are stored in a "traces" data stream along with spans.
+	dataset := datastreams.NormalizeServiceName(e.Metadata.Service.Name)
+
 	fields := common.MapStr{
+		datastreams.TypeField:    datastreams.TracesType,
+		datastreams.DatasetField: dataset,
+
 		"processor":        transactionProcessorEntry,
 		transactionDocType: e.fields(),
 	}

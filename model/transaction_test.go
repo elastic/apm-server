@@ -181,10 +181,12 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	events := txWithContext.Transform(context.Background(), &transform.Config{})
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
-		"user":       common.MapStr{"id": "123", "name": "jane"},
-		"client":     common.MapStr{"ip": ip},
-		"source":     common.MapStr{"ip": ip},
-		"user_agent": common.MapStr{"original": userAgent},
+		"data_stream.type":    "traces",
+		"data_stream.dataset": serviceName,
+		"user":                common.MapStr{"id": "123", "name": "jane"},
+		"client":              common.MapStr{"ip": ip},
+		"source":              common.MapStr{"ip": ip},
+		"user_agent":          common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",
 			"hostname":     "a.b.c",

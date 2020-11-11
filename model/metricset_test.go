@@ -62,73 +62,15 @@ func TestTransform(t *testing.T) {
 			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata},
 			Output: []common.MapStr{
 				{
-					"processor": common.MapStr{"event": "metric", "name": "metric"},
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "myservice",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service": common.MapStr{
 						"name": "myservice",
 					},
 				},
 			},
 			Msg: "Payload with empty metric.",
-		},
-		{
-			Metricset: &Metricset{
-				Metadata:  metadata,
-				Timestamp: timestamp,
-				Samples: []Sample{{
-					Name:   "transaction.duration.histogram",
-					Counts: []int64{1},
-					Values: []float64{42},
-				}},
-				Transaction: MetricsetTransaction{
-					Type:   trType,
-					Name:   trName,
-					Result: trResult,
-					Root:   true,
-				},
-				TimeseriesInstanceID: "foo",
-			},
-			Output: []common.MapStr{
-				{
-					"processor":  common.MapStr{"event": "metric", "name": "metric"},
-					"service":    common.MapStr{"name": "myservice"},
-					"timeseries": common.MapStr{"instance": "foo"},
-					"transaction": common.MapStr{
-						"name":   trName,
-						"type":   trType,
-						"result": trResult,
-						"root":   true,
-						"duration": common.MapStr{
-							"histogram": common.MapStr{
-								"counts": []int64{1},
-								"values": []float64{42},
-							},
-						},
-					},
-				},
-			},
-			Msg: "Payload with extended transaction metadata.",
-		},
-		{
-			Metricset: &Metricset{
-				Metadata:  metadata,
-				Timestamp: timestamp,
-				Samples: []Sample{{
-					Name:  "metric_field",
-					Value: 123,
-				}},
-				Event: MetricsetEventCategorization{
-					Outcome: eventOutcome,
-				},
-			},
-			Output: []common.MapStr{
-				{
-					"processor":    common.MapStr{"event": "metric", "name": "metric"},
-					"service":      common.MapStr{"name": "myservice"},
-					"event":        common.MapStr{"outcome": eventOutcome},
-					"metric_field": 123.0,
-				},
-			},
-			Msg: "Payload with event categorization metadata.",
 		},
 		{
 			Metricset: &Metricset{
@@ -144,35 +86,94 @@ func TestTransform(t *testing.T) {
 						Name:  "some.gauge",
 						Value: 9.16,
 					},
+				},
+			},
+			Output: []common.MapStr{
+				{
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "myservice",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
+					"service":             common.MapStr{"name": "myservice"},
+					"labels":              common.MapStr{"a.b": "a.b.value"},
+
+					"a":    common.MapStr{"counter": float64(612)},
+					"some": common.MapStr{"gauge": float64(9.16)},
+				},
+			},
+			Msg: "Payload with valid metric.",
+		},
+		{
+			Metricset: &Metricset{
+				Timestamp:   timestamp,
+				Metadata:    metadata,
+				Span:        MetricsetSpan{Type: spType, Subtype: spSubtype},
+				Transaction: MetricsetTransaction{Type: trType, Name: trName},
+				Samples: []Sample{{
+					Name:  "span.self_time.count",
+					Value: 123,
+				}},
+			},
+			Output: []common.MapStr{
+				{
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "myservice.apm.internal",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
+					"service":             common.MapStr{"name": "myservice"},
+					"transaction":         common.MapStr{"type": trType, "name": trName},
+					"span": common.MapStr{
+						"type": spType, "subtype": spSubtype,
+						"self_time": common.MapStr{
+							"count": 123.0,
+						},
+					},
+				},
+			},
+			Msg: "Payload with breakdown metrics.",
+		},
+		{
+			Metricset: &Metricset{
+				Timestamp: timestamp,
+				Metadata:  metadata,
+				Event:     MetricsetEventCategorization{Outcome: eventOutcome},
+				Transaction: MetricsetTransaction{
+					Type:   trType,
+					Name:   trName,
+					Result: trResult,
+					Root:   true,
+				},
+				TimeseriesInstanceID: "foo",
+				Samples: []Sample{
 					{
-						Name:   "histo.gram",
+						Name:   "transaction.duration.histogram",
 						Value:  666, // Value is ignored when Counts/Values are specified
 						Counts: []int64{1, 2, 3},
 						Values: []float64{4.5, 6.0, 9.0},
 					},
 				},
-				Span:        MetricsetSpan{Type: spType, Subtype: spSubtype},
-				Transaction: MetricsetTransaction{Type: trType, Name: trName},
 			},
 			Output: []common.MapStr{
 				{
-					"processor":   common.MapStr{"event": "metric", "name": "metric"},
-					"service":     common.MapStr{"name": "myservice"},
-					"transaction": common.MapStr{"name": trName, "type": trType},
-					"span":        common.MapStr{"type": spType, "subtype": spSubtype},
-					"labels":      common.MapStr{"a.b": "a.b.value"},
-
-					"a":    common.MapStr{"counter": float64(612)},
-					"some": common.MapStr{"gauge": float64(9.16)},
-					"histo": common.MapStr{
-						"gram": common.MapStr{
-							"counts": []int64{1, 2, 3},
-							"values": []float64{4.5, 6.0, 9.0},
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "myservice.apm.internal",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
+					"service":             common.MapStr{"name": "myservice"},
+					"event":               common.MapStr{"outcome": eventOutcome},
+					"timeseries":          common.MapStr{"instance": "foo"},
+					"transaction": common.MapStr{
+						"type":   trType,
+						"name":   trName,
+						"result": trResult,
+						"root":   true,
+						"duration": common.MapStr{
+							"histogram": common.MapStr{
+								"counts": []int64{1, 2, 3},
+								"values": []float64{4.5, 6.0, 9.0},
+							},
 						},
 					},
 				},
 			},
-			Msg: "Payload with valid metric.",
+			Msg: "Payload with transaction duration.",
 		},
 		{
 			Metricset: &Metricset{
@@ -194,8 +195,10 @@ func TestTransform(t *testing.T) {
 			},
 			Output: []common.MapStr{
 				{
-					"processor": common.MapStr{"event": "metric", "name": "metric"},
-					"service":   common.MapStr{"name": "myservice"},
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "myservice.apm.internal",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
+					"service":             common.MapStr{"name": "myservice"},
 					"span": common.MapStr{"type": spType, "subtype": spSubtype,
 						"destination": common.MapStr{"service": common.MapStr{"resource": resource}}},
 					"destination": common.MapStr{"service": common.MapStr{"response_time": common.MapStr{
