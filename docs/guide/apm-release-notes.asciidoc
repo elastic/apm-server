@@ -92,7 +92,7 @@ Configure the {apm-rum-ref}/configuration.html#api-version[`api-version`] in you
 Auto instrumentation for `System.Data.SqlClient` is now available for both .NET Core and .NET Framework applications.
 This means you can get out-of-the-box visibility, including service maps and distributed traces, for the SqlClient calls made from your .NET applications.
 +
-Learn more in {apm-dotnet-ref}/setup.html#setup-sqlclient[set up SQLClient],
+Learn more in {apm-dotnet-ref}/setup-sqlclient.html[set up SQLClient],
 and upgrade to the latest version of the .NET agent to get started.
 
 // end::notable-v78-highlights[]
