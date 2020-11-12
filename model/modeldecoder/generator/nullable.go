@@ -19,11 +19,10 @@ package generator
 
 import (
 	"fmt"
-	"path/filepath"
 )
 
 var (
-	typPath = filepath.FromSlash("github.com/elastic/apm-server/model/modeldecoder/nullable")
+	typPath = "github.com/elastic/apm-server/model/modeldecoder/nullable"
 
 	nullableTypeBool           = fmt.Sprintf("%s.Bool", typPath)
 	nullableTypeFloat64        = fmt.Sprintf("%s.Float64", typPath)
