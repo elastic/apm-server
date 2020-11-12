@@ -79,45 +79,6 @@ var (
 	Str1025        = createStr(1025, "")
 )
 
-// This test checks
-// * that all payload attributes are reflected in the json Schema, except for
-// dynamic attributes not be specified in the schema;
-// * that all attributes in the json schema are also included in the payload,
-// to ensure full test coverage.
-// Parameters:
-// - payloadAttrsNotInSchema: attributes sent with the payload but should not be
-// specified in the schema.
-// - schemaAttrsNotInPayload: attributes that are reflected in the json schema but are
-// not part of the payload.
-func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
-	require.True(t, len(ps.Schema) > 0, "Schema must be set")
-
-	// check payload attrs in json schema
-	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
-	require.NoError(t, err, fmt.Sprintf("File %s not loaded", ps.FullPayloadPath))
-	payloadAttrs := NewSet()
-	flattenJsonKeys(payload, "", payloadAttrs)
-
-	ps.AttrsMatchJsonSchema(t, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload)
-}
-
-func (ps *ProcessorSetup) AttrsMatchJsonSchema(t *testing.T, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
-	schemaKeys := NewSet()
-	schema, err := ParseSchema(ps.Schema)
-	require.NoError(t, err)
-
-	FlattenSchemaNames(schema, ps.SchemaPrefix, nil, schemaKeys)
-
-	missing := Difference(payloadAttrs, schemaKeys)
-	missing = differenceWithGroup(missing, payloadAttrsNotInSchema)
-	t.Logf("schemaKeys: %s", schemaKeys)
-	assertEmptySet(t, missing, fmt.Sprintf("Json payload fields missing in schema %v", missing))
-
-	missing = Difference(schemaKeys, payloadAttrs)
-	missing = differenceWithGroup(missing, schemaAttrsNotInPayload)
-	assertEmptySet(t, missing, fmt.Sprintf("Json schema fields missing in payload %v", missing))
-}
-
 // Test that payloads missing `required `attributes fail validation.
 // - `required`: ensure required keys must not be missing or nil
 // - `conditionally required`: prepare payload according to conditions, then

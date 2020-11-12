@@ -122,14 +122,6 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
 
-func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
-	metadataProcSetup().AttrsMatchJsonSchema(t,
-		getMetadataEventAttrs(t, ""),
-		tests.NewSet(tests.Group("labels"), "system.ip"),
-		nil,
-	)
-}
-
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	metadataProcSetup().KeywordLimitation(
 		t,

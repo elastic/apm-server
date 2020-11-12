@@ -76,21 +76,6 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 	)
 }
 
-func transactionPayloadAttrsNotInJsonSchema() *tests.Set {
-	return tests.NewSet(
-		"transaction",
-		tests.Group("transaction.context.request.env."),
-		tests.Group("transaction.context.request.body"),
-		tests.Group("transaction.context.request.cookies"),
-		tests.Group("transaction.context.custom"),
-		tests.Group("transaction.context.tags"),
-		tests.Group("transaction.marks"),
-		tests.Group("transaction.context.request.headers."),
-		tests.Group("transaction.context.response.headers."),
-		tests.Group("transaction.context.message.headers."),
-	)
-}
-
 func transactionRequiredKeys() *tests.Set {
 	return tests.NewSet(
 		"transaction",
@@ -135,12 +120,6 @@ func TestTransactionPayloadMatchFields(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchFields(t,
 		transactionPayloadAttrsNotInFields(),
 		transactionFieldsNotInPayloadAttrs())
-}
-
-func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
-	transactionProcSetup().PayloadAttrsMatchJsonSchema(t,
-		transactionPayloadAttrsNotInJsonSchema(),
-		tests.NewSet("transaction.context.user.email", "transaction.context.experimental", "transaction.sample_rate"))
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {

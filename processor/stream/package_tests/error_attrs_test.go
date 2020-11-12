@@ -74,22 +74,6 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 	)
 }
 
-func errorPayloadAttrsNotInJsonSchema() *tests.Set {
-	return tests.NewSet(
-		"error",
-		"error.log.stacktrace.vars.key",
-		"error.exception.stacktrace.vars.key",
-		"error.exception.attributes.foo",
-		tests.Group("error.exception.cause."),
-		tests.Group("error.context.custom"),
-		tests.Group("error.context.request.env"),
-		tests.Group("error.context.request.cookies"),
-		tests.Group("error.context.tags"),
-		tests.Group("error.context.request.headers."),
-		tests.Group("error.context.response.headers."),
-	)
-}
-
 func errorRequiredKeys() *tests.Set {
 	return tests.NewSet(
 		"error",
@@ -153,20 +137,6 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchFields(t,
 		errorPayloadAttrsNotInFields(),
 		errorFieldsNotInPayloadAttrs())
-}
-
-func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
-	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
-		errorPayloadAttrsNotInJsonSchema(),
-		tests.NewSet(
-			"error.context.user.email",
-			"error.context.experimental",
-			"error.exception.parent", // it will never be present in the top (first) exception
-			tests.Group("error.context.message"),
-			"error.context.response.decoded_body_size",
-			"error.context.response.encoded_body_size",
-			"error.context.response.transfer_size",
-		))
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {
