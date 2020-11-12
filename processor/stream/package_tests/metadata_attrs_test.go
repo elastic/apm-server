@@ -26,7 +26,6 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
@@ -72,7 +71,7 @@ func metadataProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
 		Proc: &MetadataProcessor{
 			intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}}},
-		Schema: schema.ModelSchema,
+		SchemaPath: "../../../docs/spec/v2/metadata.json",
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
 		},

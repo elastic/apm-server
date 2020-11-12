@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -33,8 +32,7 @@ func spanProcSetup() *tests.ProcessorSetup {
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
 		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
-		Schema:          schema.ModelSchema,
-		SchemaPrefix:    "span",
+		SchemaPath:      "../../../docs/spec/v2/span.json",
 		TemplatePaths: []string{
 			"../../../model/span/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",

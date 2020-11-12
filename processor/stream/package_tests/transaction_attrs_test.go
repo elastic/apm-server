@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -33,8 +32,7 @@ func transactionProcSetup() *tests.ProcessorSetup {
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
 		FullPayloadPath: "../testdata/intake-v2/transactions.ndjson",
-		Schema:          schema.ModelSchema,
-		SchemaPrefix:    "transaction",
+		SchemaPath:      "../../../docs/spec/v2/transaction.json",
 		TemplatePaths: []string{
 			"../../../model/transaction/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",

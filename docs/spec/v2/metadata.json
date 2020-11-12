@@ -375,7 +375,8 @@
               "type": [
                 "null",
                 "string"
-              ]
+              ],
+              "maxLength": 1024
             }
           }
         },

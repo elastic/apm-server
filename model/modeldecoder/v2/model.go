@@ -497,7 +497,7 @@ type metadataSystem struct {
 
 type metadataSystemContainer struct {
 	// ID of the container the monitored service is running in.
-	ID nullable.String `json:"id"`
+	ID nullable.String `json:"id" validate:"maxLength=1024"`
 }
 
 type metadataSystemKubernetes struct {

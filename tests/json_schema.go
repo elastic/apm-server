@@ -21,6 +21,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -45,10 +47,8 @@ type ProcessorSetup struct {
 	FullPayloadPath string
 	// path to ES template definitions
 	TemplatePaths []string
-	// json schema string
-	Schema string
-	// prefix schema fields with this
-	SchemaPrefix string
+	// path to json schema
+	SchemaPath string
 }
 
 type SchemaTestData struct {
@@ -160,7 +160,10 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 		return s.MaxLength > 0
 	}
 	schemaKeys := NewSet()
-	schema, err := ParseSchema(ps.Schema)
+
+	r, err := os.Open(ps.SchemaPath)
+	require.NoError(t, err)
+	schema, err := ParseSchema(r)
 	require.NoError(t, err)
 	FlattenSchemaNames(schema, "", maxLengthFilter, schemaKeys)
 
@@ -353,8 +356,8 @@ type Schema struct {
 	MaxLength            int
 }
 
-func ParseSchema(s string) (*Schema, error) {
-	decoder := json.NewDecoder(bytes.NewBufferString(s))
+func ParseSchema(r io.Reader) (*Schema, error) {
+	decoder := json.NewDecoder(r)
 	var schema Schema
 	err := decoder.Decode(&schema)
 	return &schema, err
@@ -379,6 +382,9 @@ func FlattenSchemaNames(s *Schema, prefix string, filter func(*Schema) bool, fla
 		for _, e := range schemas {
 			FlattenSchemaNames(e, prefix, filter, flattened)
 		}
+	}
+	if filter(s) {
+		flattened.Add(prefix)
 	}
 }
 

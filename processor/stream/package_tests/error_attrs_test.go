@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -37,8 +36,7 @@ func errorProcSetup() *tests.ProcessorSetup {
 			"../../../model/error/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
 		},
-		Schema:       schema.ModelSchema,
-		SchemaPrefix: "error",
+		SchemaPath: "../../../docs/spec/v2/error.json",
 	}
 }
 
