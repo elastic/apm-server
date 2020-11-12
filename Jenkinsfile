@@ -76,6 +76,7 @@ pipeline {
               "^tests/packaging.*",
               "^vendor/github.com/elastic/beats.*"
             ]
+            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
             whenTrue(isPR()) {
@@ -494,6 +495,15 @@ pipeline {
     }
   }
   post {
+    success {
+      writeFile(file: 'beats-tester.properties',
+                text: """\
+                ## To be consumed by the beats-tester pipeline
+                COMMIT=${env.GIT_BASE_COMMIT}
+                APM_URL_BASE=https://storage.googleapis.com/${env.JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}
+                VERSION=${env.APM_SERVER_VERSION}-SNAPSHOT""".stripIndent()) // stripIdent() requires '''/
+      archiveArtifacts artifacts: 'beats-tester.properties'
+    }
     cleanup {
       notifyBuildResult()
     }
