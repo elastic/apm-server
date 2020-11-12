@@ -77,7 +77,7 @@ pipeline {
               "^vendor/github.com/elastic/beats.*"
             ]
             // It requires to use /dev/null with tail to avoid the mage output installation
-            setEnvVar('BEAT_VERSION', sh(label: 'Get beat version', script: 'make get-version 2>/dev/null | tail -n 1', returnStdout: true)?.trim())
+            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version 2>/dev/null | tail -n 1', returnStdout: true)?.trim())
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
             whenTrue(isPR()) {
@@ -502,7 +502,7 @@ pipeline {
                 ## To be consumed by the beats-tester pipeline
                 COMMIT=${env.GIT_BASE_COMMIT}
                 APM_URL_BASE=https://storage.googleapis.com/${env.JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}
-                VERSION=${env.BEAT_VERSION}-SNAPSHOT""".stripIndent()) // stripIdent() requires '''/
+                VERSION=${env.APM_SERVER_VERSION}-SNAPSHOT""".stripIndent()) // stripIdent() requires '''/
       archiveArtifacts artifacts: 'beats-tester.properties'
     }
     cleanup {
