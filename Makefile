@@ -136,10 +136,10 @@ ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -license Elastic x-pack
 endif
 
-## get-version : Get the libbeat version
+## get-version : Get the apm server version
 .PHONY: get-version
-get-version: $(MAGE)
-	@$(MAGE) dumpVariables | grep 'beat_version' | cut -d"=" -f 2 | tr -d " "
+get-version:
+	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '"'
 
 ##############################################################################
 # Documentation.

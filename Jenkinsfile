@@ -76,8 +76,7 @@ pipeline {
               "^tests/packaging.*",
               "^vendor/github.com/elastic/beats.*"
             ]
-            // It requires to use /dev/null with tail to avoid the mage output installation
-            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version 2>/dev/null | tail -n 1', returnStdout: true)?.trim())
+            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
             whenTrue(isPR()) {
