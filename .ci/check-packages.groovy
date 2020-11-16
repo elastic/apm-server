@@ -39,19 +39,21 @@ pipeline {
       steps {
         pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
-        if(isUpstreamTrigger()) {
-          try {
-            copyArtifacts(filter: 'beats-tester.properties',
-                          flatten: true,
-                          projectName: "apm-server/apm-server-mbp/${env.JOB_BASE_NAME}",
-                          selector: upstream(fallbackToLastSuccessful: true))
-            def props = readProperties(file: 'beats-tester.properties')
-            setEnvVar('APM_URL_BASE', props.get('APM_URL_BASE', ''))
-            setEnvVar('VERSION', props.get('VERSION', '8.0.0-SNAPSHOT'))
-          } catch(err) {
-            // Fallback to the head of the branch as used to be.
-            setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE', 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'))
-            setEnvVar('VERSION', params.get('VERSION', '8.0.0-SNAPSHOT'))
+        script {
+          if(isUpstreamTrigger()) {
+            try {
+              copyArtifacts(filter: 'beats-tester.properties',
+                            flatten: true,
+                            projectName: "apm-server/apm-server-mbp/${env.JOB_BASE_NAME}",
+                            selector: upstream(fallbackToLastSuccessful: true))
+              def props = readProperties(file: 'beats-tester.properties')
+              setEnvVar('APM_URL_BASE', props.get('APM_URL_BASE', ''))
+              setEnvVar('VERSION', props.get('VERSION', '8.0.0-SNAPSHOT'))
+            } catch(err) {
+              // Fallback to the head of the branch as used to be.
+              setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE', 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'))
+              setEnvVar('VERSION', params.get('VERSION', '8.0.0-SNAPSHOT'))
+            }
           }
         }
         gitCheckout(basedir: "${BASE_DIR}", repo: 'git@github.com:elastic/beats-tester.git', branch: 'master', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba')
