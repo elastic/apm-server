@@ -15,21 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
-
-//go:generate go run model/modeldecoder/generator/cmd/main.go
+package generator
 
 import (
-	"os"
-
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/cmd"
+	"fmt"
 )
 
-var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}), cmd.DefaultSettings())
+var (
+	typPath = "github.com/elastic/apm-server/model/modeldecoder/nullable"
 
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
-}
+	nullableTypeBool           = fmt.Sprintf("%s.Bool", typPath)
+	nullableTypeFloat64        = fmt.Sprintf("%s.Float64", typPath)
+	nullableTypeHTTPHeader     = fmt.Sprintf("%s.HTTPHeader", typPath)
+	nullableTypeInt            = fmt.Sprintf("%s.Int", typPath)
+	nullableTypeInterface      = fmt.Sprintf("%s.Interface", typPath)
+	nullableTypeString         = fmt.Sprintf("%s.String", typPath)
+	nullableTypeTimeMicrosUnix = fmt.Sprintf("%s.TimeMicrosUnix", typPath)
+)

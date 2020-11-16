@@ -15,21 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
-
-//go:generate go run model/modeldecoder/generator/cmd/main.go
+package generator
 
 import (
-	"os"
-
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/cmd"
+	"encoding/json"
 )
 
-var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}), cmd.DefaultSettings())
+func generateJSONPropertyInteger(info *fieldInfo, parent *property, child *property) error {
+	child.Type.add(TypeNameInteger)
+	parent.Properties[jsonSchemaName(info.field)] = child
+	return setPropertyRulesInteger(info, child)
+}
 
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
+func setPropertyRulesInteger(info *fieldInfo, p *property) error {
+	for tagName, tagValue := range info.tags {
+		switch tagName {
+		case tagMax:
+			p.Max = json.Number(tagValue)
+			delete(info.tags, tagName)
+		case tagMin:
+			p.Min = json.Number(tagValue)
+			delete(info.tags, tagName)
+		}
 	}
+	return nil
 }

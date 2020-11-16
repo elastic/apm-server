@@ -59,6 +59,7 @@ require (
 	github.com/ua-parser/uap-go v0.0.0-20200325213135-e1c09f13e2fe
 	github.com/uber/tchannel-go v1.16.0 // indirect
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
+	github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56
 	go.elastic.co/apm v1.9.0
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0
