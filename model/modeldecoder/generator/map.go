@@ -18,13 +18,14 @@
 package generator
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/types"
 	"io"
 	"strings"
 )
 
-var mapSupportedTags = []string{tagMaxVals, tagPatternKeys, tagRequired, tagInputTypesVals}
+var mapSupportedTags = []string{tagMaxLengthVals, tagPatternKeys, tagRequired, tagInputTypesVals}
 
 func generateMapValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
 	typ := f.Type().Underlying().(*types.Map)
@@ -117,8 +118,8 @@ case nil:
 case %s:
 `[1:], typ)
 		if typ == "string" {
-			if maxValValue, ok := rules[tagMaxVals]; ok {
-				mapRuleMaxVals(w, f, validationRule{name: tagMaxVals, value: maxValValue})
+			if maxValValue, ok := rules[tagMaxLengthVals]; ok {
+				mapRuleMaxVals(w, f, validationRule{name: tagMaxLengthVals, value: maxValValue})
 			}
 		}
 	}
@@ -139,7 +140,7 @@ if len(val.%s) == 0{
 
 func mapRulePatternKeys(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
-if k != "" && !%s.MatchString(k){
+if k != "" && !%sRegexp.MatchString(k){
 		return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], rule.value, jsonName(f), rule.name, rule.value)
@@ -151,4 +152,73 @@ if utf8.RuneCountInString(t) > %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], rule.value, jsonName(f), rule.name, rule.value)
+}
+
+func generateJSONPropertyMap(info *fieldInfo, parent *property, child *property, nested *property) error {
+	name := jsonSchemaName(info.field)
+	child.Type.add(TypeNameObject)
+	patternName, isPatternProp := info.tags[tagPatternKeys]
+	delete(info.tags, tagPatternKeys)
+	if !isPatternProp && name == "" {
+		// the object (map) can be places as a property with a defined key,
+		// or as a patternProperty with a defined key pattern
+		// if both are missing the field cannot be added
+		return fmt.Errorf("invalid combination: either json name or tag %s must be given", tagPatternKeys)
+	}
+	if !isPatternProp {
+		// if no pattern property is given, the child map will be nested directly as
+		// property inside the parent property, identified by it's json name
+		//   e.g. {"parent":{"properties":{"jsonNameXY":{..}}}}
+		*nested = *child
+		parent.Properties[name] = nested
+	}
+	if maxLen, ok := info.tags[tagMaxLengthVals]; ok {
+		nested.MaxLength = json.Number(maxLen)
+		delete(info.tags, tagMaxLengthVals)
+	}
+	if inputTypes, ok := info.tags[tagInputTypesVals]; ok {
+		names, err := propertyTypesFromTag(tagInputTypesVals, inputTypes)
+		if err != nil {
+			return err
+		}
+		delete(info.tags, tagInputTypesVals)
+		nested.Type = &propertyType{names: names}
+	}
+	if !isPatternProp {
+		// nothing more to do when no key pattern is given
+		return nil
+	}
+	pattern, ok := info.parsed.patternVariables[patternName]
+	if !ok {
+		return fmt.Errorf("unhandled %s tag value %s", tagPatternKeys, pattern)
+	}
+	// for map key patterns two options are supported:
+	// - the map does not have a json name defined, in which case it is nested directly
+	//   inside the parent object's patternProperty
+	//   e.g. {"parent":{"patternProperties":{"patternXY":{..}}}}
+	// - the map does have a json name defined, in which case it is nested as
+	//   patternProperty inside an object, which itself is nested
+	//   inside the parent property, identified by it's json name
+	//   e.g. {"parent":{"properties":{"jsonNameXY":{"patternProperties":{"patternXY":{..}}}}}}
+	if name == "" {
+		if parent.PatternProperties == nil {
+			parent.PatternProperties = make(map[string]*property)
+		}
+		valueType := info.field.Type().Underlying().(*types.Map).Elem()
+		typeName, ok := propertyTypes[valueType.String()]
+		if !ok {
+			typeName = TypeNameObject
+		}
+		nested.Type = &propertyType{names: []propertyTypeName{typeName}}
+		parent.PatternProperties[pattern] = nested
+		parent.AdditionalProperties = new(bool)
+		return nil
+	}
+	if child.PatternProperties == nil {
+		child.PatternProperties = make(map[string]*property)
+	}
+	child.PatternProperties[pattern] = nested
+	child.AdditionalProperties = new(bool)
+	parent.Properties[name] = child
+	return nil
 }

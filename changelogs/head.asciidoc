@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/7.10\...master[View commits]
 [float]
 ==== Intake API Changes
 * Intake RUM v3: Changed error messages for invalid events due to internal changes of decoder logic {pull}4358[4358]
+* Auto-generate JSON schemas for Intake API v2 and v3/rum {pull}4393[4393]
 
 [float]
 ==== Added

@@ -43,11 +43,11 @@ for _, elem := range val.%s{
 	}
 	for _, rule := range rules {
 		switch rule.name {
-		case tagMin, tagMax:
-			err = sliceRuleMinMax(w, f, rule)
+		case tagMinLength, tagMaxLength:
+			err = sliceRuleMinMaxLength(w, f, rule)
 		case tagRequired:
 			sliceRuleRequired(w, f, rule)
-		case tagRequiredOneOf:
+		case tagRequiredAnyOf:
 			err = ruleRequiredOneOf(w, fields, rule.value)
 		default:
 			return errors.Wrap(errUnhandledTagRule(rule), "slice")
@@ -59,7 +59,7 @@ for _, elem := range val.%s{
 	return nil
 }
 
-func sliceRuleMinMax(w io.Writer, f structField, rule validationRule) error {
+func sliceRuleMinMaxLength(w io.Writer, f structField, rule validationRule) error {
 	sliceT, ok := f.Type().Underlying().(*types.Slice)
 	if !ok {
 		return fmt.Errorf("unexpected error handling %s for slice", rule.name)
@@ -85,4 +85,36 @@ if len(val.%s) == 0{
 	return fmt.Errorf("'%s' required")
 }
 `[1:], f.Name(), jsonName(f))
+}
+
+func generateJSONPropertySlice(info *fieldInfo, parent *property, child *property) error {
+	child.Type.add(TypeNameArray)
+	var minItems int
+	if child.Type.required {
+		minItems = 1
+	}
+	child.MinItems = &minItems
+	parent.Properties[jsonSchemaName(info.field)] = child
+
+	itemType := info.field.Type().Underlying().(*types.Slice).Elem()
+	if _, ok := info.parsed.structTypes[itemType.String()]; ok {
+		// parsed struct - no type specific tags will be handled
+		return nil
+	}
+	// non-parsed struct
+	// check if type is known, otherwise raise unhandled error
+	itemsType, ok := propertyTypes[itemType.String()]
+	if !ok {
+		return fmt.Errorf("unhandled type %T", itemType)
+	}
+	// NOTE(simi): set required=true to be aligned with previous JSON schema definitions
+	items := property{Type: &propertyType{names: []propertyTypeName{itemsType}, required: true}}
+	switch itemsType {
+	case TypeNameString:
+		setPropertyRulesString(info, &items)
+	default:
+		return fmt.Errorf("unhandled slice item type %s", itemsType)
+	}
+	child.Items = &items
+	return nil
 }
