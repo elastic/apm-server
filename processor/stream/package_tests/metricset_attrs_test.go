@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -37,7 +36,7 @@ func metricsetProcSetup() *tests.ProcessorSetup {
 			"../../../model/metricset/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
 		},
-		Schema: schema.ModelSchema,
+		SchemaPath: "../../../docs/spec/v2/metricset.json",
 	}
 }
 

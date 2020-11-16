@@ -33,7 +33,7 @@ func generateNullableStringValidation(w io.Writer, fields []structField, f struc
 		switch rule.name {
 		case tagEnum:
 			nstringRuleEnum(w, f, rule)
-		case tagMin, tagMax:
+		case tagMinLength, tagMaxLength:
 			nstringRuleMinMax(w, f, rule)
 		case tagPattern:
 			nstringRulePattern(w, f, rule)
@@ -77,7 +77,7 @@ if utf8.RuneCountInString(val.%s.Val) %s %s{
 
 func nstringRulePattern(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
-if val.%s.Val != "" && !%s.MatchString(val.%s.Val){
+if val.%s.Val != "" && !%sRegexp.MatchString(val.%s.Val){
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], f.Name(), rule.value, f.Name(), jsonName(f), rule.name, rule.value)

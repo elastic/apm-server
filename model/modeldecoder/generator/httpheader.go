@@ -15,21 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
+package generator
 
-//go:generate go run model/modeldecoder/generator/cmd/main.go
-
-import (
-	"os"
-
-	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/cmd"
-)
-
-var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}))
-
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+func generateJSONPropertyHTTPHeader(info *fieldInfo, parent *property, child *property) error {
+	child.Type.add(TypeNameObject)
+	child.PatternProperties = make(map[string]*property)
+	child.PatternProperties[patternHTTPHeaders] = &property{
+		Type:  &propertyType{names: []propertyTypeName{TypeNameArray, TypeNameString}},
+		Items: &property{Type: &propertyType{names: []propertyTypeName{TypeNameString}, required: true}}}
+	child.AdditionalProperties = new(bool)
+	parent.Properties[jsonSchemaName(info.field)] = child
+	return nil
 }

@@ -124,7 +124,7 @@ func TestIntakeHandler(t *testing.T) {
 			path: "invalid-metadata-2.ndjson",
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate},
 		"UnrecognizedEvent": {
-			path: "unrecognized-event.ndjson",
+			path: "invalid-event-type.ndjson",
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate},
 		"Success": {
 			path: "errors.ndjson",
