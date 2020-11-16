@@ -1,0 +1,835 @@
+{
+  "$id": "docs/spec/rumv3/error",
+  "type": "object",
+  "properties": {
+    "c": {
+      "description": "Context holds arbitrary contextual information for the event.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "cu": {
+          "description": "Custom can contain additional metadata to be stored with the event. The format is unspecified and can be deeply nested objects. The information will not be indexed or searchable in Elasticsearch.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^.*\"]*$": {}
+          }
+        },
+        "g": {
+          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^.*\"]*$": {
+              "type": [
+                "null",
+                "string",
+                "boolean",
+                "number"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "p": {
+          "description": "Page holds information related to the current page and page referers. It is only sent from RUM agents.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "rf": {
+              "description": "Referer holds the URL of the page that 'linked' to the current page.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "url": {
+              "description": "URL of the current page",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "q": {
+          "description": "Request describes the HTTP request information in case the event was created as a result of an HTTP request.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "en": {
+              "description": "Env holds environment variable information passed to the monitored service.",
+              "type": [
+                "null",
+                "object"
+              ]
+            },
+            "he": {
+              "description": "Headers includes any HTTP headers sent by the requester. Cookies will be taken by headers if supplied.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "hve": {
+              "description": "HTTPVersion holds information about the used HTTP version.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "mt": {
+              "description": "Method holds information about the method of the HTTP request.",
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "mt"
+          ]
+        },
+        "r": {
+          "description": "Response describes the HTTP response information in case the event was created as a result of an HTTP request.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "dbs": {
+              "description": "DecodedBodySize holds the size of the decoded payload.",
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "ebs": {
+              "description": "EncodedBodySize holds the size of the encoded payload.",
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "he": {
+              "description": "Headers holds the http headers sent in the http response.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "sc": {
+              "description": "StatusCode sent in the http response.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "ts": {
+              "description": "TransferSize holds the total size of the payload.",
+              "type": [
+                "null",
+                "number"
+              ]
+            }
+          }
+        },
+        "se": {
+          "description": "Service related information can be sent per event. Information provided here will override the more generic information retrieved from metadata, missing service fields will be retrieved from the metadata information.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "a": {
+              "description": "Agent holds information about the APM agent capturing the event.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "description": "Name of the APM agent capturing information.",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "description": "Version of the APM agent capturing information.",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "en": {
+              "description": "Environment in which the monitored service is running, e.g. `production` or `staging`.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "fw": {
+              "description": "Framework holds information about the framework used in the monitored service.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "description": "Name of the used framework",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "description": "Version of the used framework",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "la": {
+              "description": "Language holds information about the programming language of the monitored service.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "description": "Name of the used programming language",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "description": "Version of the used programming language",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "n": {
+              "description": "Name of the monitored service.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024,
+              "pattern": "^[a-zA-Z0-9 _-]+$"
+            },
+            "ru": {
+              "description": "Runtime holds information about the language runtime running the monitored service",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "n": {
+                  "description": "Name of the language runtime",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "ve": {
+                  "description": "Version of the language runtime",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "ve": {
+              "description": "Version of the monitored service.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "u": {
+          "description": "User holds information about the correlated user for this event. If user data are provided here, all user related information from metadata is ignored, otherwise the metadata's user information will be stored with the event.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "em": {
+              "description": "Email of the user.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "id": {
+              "description": "ID identifies the logged in user, e.g. can be the primary key of the user",
+              "type": [
+                "null",
+                "string",
+                "integer"
+              ],
+              "maxLength": 1024
+            },
+            "un": {
+              "description": "Name of the user.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        }
+      }
+    },
+    "cl": {
+      "description": "Culprit identifies the function call which was the primary perpetrator of this event.",
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "ex": {
+      "description": "Exception holds information about the original error. The information is language specific.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "at": {
+          "description": "Attributes of the exception.",
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "ca": {
+          "description": "Cause can hold a collection of error exceptions representing chained exceptions. The chain starts with the outermost exception, followed by its cause, and so on.",
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "minItems": 0
+        },
+        "cd": {
+          "description": "Code that is set when the error happened, e.g. database error code.",
+          "type": [
+            "null",
+            "string",
+            "integer"
+          ],
+          "maxLength": 1024
+        },
+        "hd": {
+          "description": "Handled indicates whether the error was caught in the code or not.",
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "mg": {
+          "description": "Message contains the originally captured error message.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "mo": {
+          "description": "Module describes the exception type's module namespace.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "st": {
+          "description": "Stacktrace information of the captured exception.",
+          "type": [
+            "null",
+            "array"
+          ],
+          "properties": {
+            "ap": {
+              "description": "AbsPath is the absolute path of the frame's file.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cli": {
+              "description": "ContextLine is the line from the frame's file.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cn": {
+              "description": "Classname of the frame.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "co": {
+              "description": "ColumnNumber of the frame.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "f": {
+              "description": "Filename is the relative name of the frame's file.",
+              "type": "string"
+            },
+            "fn": {
+              "description": "Function represented by the frame.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "li": {
+              "description": "LineNumber of the frame.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "mo": {
+              "description": "Module to which the frame belongs to.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "poc": {
+              "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            },
+            "prc": {
+              "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "f"
+          ],
+          "minItems": 0
+        },
+        "t": {
+          "description": "Type of the exception.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "mg": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mg"
+          ]
+        },
+        {
+          "properties": {
+            "t": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t"
+          ]
+        }
+      ]
+    },
+    "id": {
+      "description": "ID holds the hex encoded 128 random bits ID of the event.",
+      "type": "string",
+      "maxLength": 1024
+    },
+    "log": {
+      "description": "Log holds additional information added when the error is logged.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "ln": {
+          "description": "LoggerName holds the name of the used logger instance.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "lv": {
+          "description": "Level represents the severity of the recorded log.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "mg": {
+          "description": "Message of the logged error. In case a parameterized message is captured, Message should contain the same information, but with any placeholders being replaced.",
+          "type": "string"
+        },
+        "pmg": {
+          "description": "ParamMessage should contain the same information as Message, but with placeholders where parameters were logged, e.g. 'error connecting to %s'. The string is not interpreted, allowing differnt placeholders per client languange. The information might be used to group errors together.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "st": {
+          "description": "Stacktrace information of the captured error.",
+          "type": [
+            "null",
+            "array"
+          ],
+          "properties": {
+            "ap": {
+              "description": "AbsPath is the absolute path of the frame's file.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cli": {
+              "description": "ContextLine is the line from the frame's file.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "cn": {
+              "description": "Classname of the frame.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "co": {
+              "description": "ColumnNumber of the frame.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "f": {
+              "description": "Filename is the relative name of the frame's file.",
+              "type": "string"
+            },
+            "fn": {
+              "description": "Function represented by the frame.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "li": {
+              "description": "LineNumber of the frame.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "mo": {
+              "description": "Module to which the frame belongs to.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "poc": {
+              "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            },
+            "prc": {
+              "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "f"
+          ],
+          "minItems": 0
+        }
+      },
+      "required": [
+        "mg"
+      ]
+    },
+    "pid": {
+      "description": "ParentID holds the hex encoded 64 random bits ID of the parent transaction or span.",
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "tid": {
+      "description": "TraceID holds the hex encoded 128 random bits ID of the correlated trace.",
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "timestamp": {
+      "description": "Timestamp holds the recorded time of the event, UTC based and formatted as microseconds since Unix epoch.",
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "x": {
+      "description": "Transaction holds information about the correlated transaction.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "sm": {
+          "description": "Sampled indicates whether or not the full information for a transaction is captured. If a transaction is unsampled no spans and less context information will be reported.",
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "t": {
+          "description": "Type expresses the correlated transaction's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "xid": {
+      "description": "TransactionID holds the hex encoded 64 random bits ID of the correlated transaction.",
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "xid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "xid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "pid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pid"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "pid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pid"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "xid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "xid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tid"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "pid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tid"
+        ]
+      }
+    }
+  ],
+  "anyOf": [
+    {
+      "properties": {
+        "ex": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "ex"
+      ]
+    },
+    {
+      "properties": {
+        "log": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "log"
+      ]
+    }
+  ]
+}

@@ -30,12 +30,14 @@ const (
 	tagInputTypes     = "inputTypes"
 	tagInputTypesVals = "inputTypesVals"
 	tagMax            = "max"
-	tagMaxVals        = "maxVals"
+	tagMaxLength      = "maxLength"
+	tagMaxLengthVals  = "maxLengthVals"
 	tagMin            = "min"
+	tagMinLength      = "minLength"
 	tagPattern        = "pattern"
 	tagPatternKeys    = "patternKeys"
 	tagRequired       = "required"
-	tagRequiredOneOf  = "requiredOneOf"
+	tagRequiredAnyOf  = "requiredAnyOf"
 	tagRequiredIfAny  = "requiredIfAny"
 	tagTargetType     = "targetType"
 )
@@ -94,9 +96,9 @@ func validationRules(structTag reflect.StructTag) ([]validationRule, error) {
 
 func ruleMinMaxOperator(ruleName string) string {
 	switch ruleName {
-	case tagMin:
+	case tagMin, tagMinLength:
 		return "<"
-	case tagMax:
+	case tagMax, tagMaxLength:
 		return ">"
 	default:
 		panic("unexpected rule: " + ruleName)

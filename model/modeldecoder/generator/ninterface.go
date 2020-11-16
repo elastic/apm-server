@@ -32,7 +32,7 @@ func generateNullableInterfaceValidation(w io.Writer, fields []structField, f st
 	}
 	for _, rule := range rules {
 		switch rule.name {
-		case tagMin, tagMax, tagTargetType:
+		case tagMaxLength, tagTargetType:
 			//handled in switch statement for string types
 		case tagRequired:
 			ruleNullableRequired(w, f)
@@ -49,7 +49,7 @@ func generateNullableInterfaceValidation(w io.Writer, fields []structField, f st
 
 func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRule, rule validationRule) error {
 	var isRequired bool
-	var maxRule validationRule
+	var maxLengthRule validationRule
 	var targetTypeRule validationRule
 	var useValue bool
 	for _, r := range rules {
@@ -57,8 +57,8 @@ func nullableInterfaceRuleTypes(w io.Writer, f structField, rules []validationRu
 			isRequired = true
 			continue
 		}
-		if r.name == tagMax {
-			maxRule = r
+		if r.name == tagMaxLength {
+			maxLengthRule = r
 			useValue = true
 			continue
 		}
@@ -94,20 +94,21 @@ case json.Number:
 			fmt.Fprintf(w, `
 case %s:
 `[1:], typ)
-			if maxRule != (validationRule{}) {
+			if maxLengthRule != (validationRule{}) {
 				fmt.Fprintf(w, `
 if utf8.RuneCountInString(t) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
-`[1:], ruleMinMaxOperator(maxRule.name), maxRule.value, jsonName(f), maxRule.name, maxRule.value)
-			} else if targetTypeRule.value == "int" {
+`[1:], ruleMinMaxOperator(maxLengthRule.name), maxLengthRule.value, jsonName(f), maxLengthRule.name, maxLengthRule.value)
+			}
+			if targetTypeRule.value == "int" {
 				fmt.Fprintf(w, `
 if _, err := strconv.Atoi(t); err != nil{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], jsonName(f), targetTypeRule.name, targetTypeRule.value)
 			}
-		case "map[string]interface":
+		case "object":
 			fmt.Fprint(w, `
 case map[string]interface{}:
 `[1:])
