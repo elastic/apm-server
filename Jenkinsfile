@@ -29,7 +29,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package)\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package)')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -76,6 +76,7 @@ pipeline {
               "^tests/packaging.*",
               "^vendor/github.com/elastic/beats.*"
             ]
+            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
             whenTrue(isPR()) {
@@ -376,7 +377,7 @@ pipeline {
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
+            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') || env.GITHUB_COMMENT?.contains('/hey-apm')}
           }
           steps {
             withGithubNotify(context: 'Hey-Apm') {
@@ -414,7 +415,7 @@ pipeline {
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
                 tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return isPR() && env.BEATS_UPDATED != "false" }
-                expression { return env.GITHUB_COMMENT?.contains('package tests') }
+                expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
                 expression { return params.Run_As_Master_Branch }
               }
             }
@@ -494,6 +495,15 @@ pipeline {
     }
   }
   post {
+    success {
+      writeFile(file: 'beats-tester.properties',
+                text: """\
+                ## To be consumed by the beats-tester pipeline
+                COMMIT=${env.GIT_BASE_COMMIT}
+                APM_URL_BASE=https://storage.googleapis.com/${env.JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}
+                VERSION=${env.APM_SERVER_VERSION}-SNAPSHOT""".stripIndent()) // stripIdent() requires '''/
+      archiveArtifacts artifacts: 'beats-tester.properties'
+    }
     cleanup {
       notifyBuildResult()
     }

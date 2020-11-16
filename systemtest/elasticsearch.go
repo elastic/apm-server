@@ -121,7 +121,9 @@ func CleanupElasticsearch(t testing.TB) {
 			break
 		}
 		// Retry deleting, in case indices are still being deleted.
-		time.Sleep(100 * time.Millisecond)
+		const delay = 100 * time.Millisecond
+		t.Logf("failed to delete ILM policy (retrying in %s): %s", delay, err)
+		time.Sleep(delay)
 	}
 }
 
