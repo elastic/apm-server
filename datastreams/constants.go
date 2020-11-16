@@ -32,6 +32,6 @@ const (
 )
 
 // IndexFormat holds the variable "index" format to use for the libbeat Elasticsearch output.
-// Each event the server publishes is expected to contain data_stream.* fields, which will
+// Each event the server publishes is expected to contain data_stream.* fields, which will be
 // added to the documents as well as be used for routing documents to the correct data stream.
 const IndexFormat = "%{[data_stream.type]}-%{[data_stream.dataset]}-%{[data_stream.namespace]}"

@@ -30,6 +30,6 @@ func TestNormalizeServiceName(t *testing.T) {
 		t.Helper()
 		assert.Equal(t, expected, datastreams.NormalizeServiceName(input))
 	}
-	testNormalizeServiceName("uppercase", "UPPERCASE")
+	testNormalizeServiceName("upper_case", "UPPER-CASE")
 	testNormalizeServiceName("____________", "\\/*?\"<>| ,#:")
 }
