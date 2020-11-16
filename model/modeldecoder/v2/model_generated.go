@@ -494,6 +494,9 @@ func (val *metadataSystemContainer) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
+	if utf8.RuneCountInString(val.ID.Val) > 1024 {
+		return fmt.Errorf("'id': validation rule 'max(1024)' violated")
+	}
 	return nil
 }
 
