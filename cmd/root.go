@@ -74,15 +74,14 @@ var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 },
 }
 
-// NewRootCommand returns the "apm-server" root command.
-func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
-
-	var runFlags = pflag.NewFlagSet(beatName, pflag.ExitOnError)
-	settings := instance.Settings{
+// DefaultSettings return the default settings for APM Server to pass into
+// the GenRootCmdWithSettings.
+func DefaultSettings() instance.Settings {
+	return instance.Settings{
 		Name:        beatName,
 		IndexPrefix: apmIndexPattern,
 		Version:     defaultBeatVersion,
-		RunFlags:    runFlags,
+		RunFlags:    pflag.NewFlagSet(beatName, pflag.ExitOnError),
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",
 		},
@@ -90,7 +89,10 @@ func NewRootCommand(newBeat beat.Creator) *cmd.BeatsRootCmd {
 		Processing:      processing.MakeDefaultObserverSupport(false),
 		ConfigOverrides: libbeatConfigOverrides,
 	}
+}
 
+// NewRootCommand returns the "apm-server" root command.
+func NewRootCommand(newBeat beat.Creator, settings instance.Settings) *cmd.BeatsRootCmd {
 	rootCmd := cmd.GenRootCmdWithSettings(newBeat, settings)
 	rootCmd.AddCommand(genApikeyCmd(settings))
 	modifyBuiltinCommands(rootCmd, settings)

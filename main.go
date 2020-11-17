@@ -26,7 +26,7 @@ import (
 	"github.com/elastic/apm-server/cmd"
 )
 
-var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}))
+var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}), cmd.DefaultSettings())
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {

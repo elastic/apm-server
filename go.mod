@@ -9,20 +9,20 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
-	github.com/dgraph-io/badger/v2 v2.2007.2
-	github.com/dlclark/regexp2 v1.2.1 // indirect
-	github.com/dop251/goja v0.0.0-20201006093642-33737909d64e // indirect
+	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
+	github.com/dlclark/regexp2 v1.4.0 // indirect
+	github.com/dop251/goja v0.0.0-20201107160812-7545ac6de48a // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201006123310-bad38abf9473
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201116144021-7027b43552e1
 	github.com/elastic/go-elasticsearch/v7 v7.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-sysinfo v1.4.0 // indirect
 	github.com/elastic/go-ucfg v0.8.3
-	github.com/fatih/color v1.9.0 // indirect
+	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gogo/googleapis v1.3.1-0.20190914144012-b8d18e97a9a1 // indirect
@@ -41,7 +41,6 @@ require (
 	github.com/klauspost/compress v1.9.3-0.20191122130757-c099ac9f21dd // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/magefile/mage v1.10.0
-	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/open-telemetry/opentelemetry-collector v0.2.1-0.20191218182225-c300f1341702
@@ -61,26 +60,26 @@ require (
 	github.com/uber/tchannel-go v1.16.0 // indirect
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56
-	go.elastic.co/apm v1.8.1-0.20200909061013-2aef45b9cf4b
+	go.elastic.co/apm v1.9.0
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0
 	go.elastic.co/apm/module/apmhttp v1.7.2
-	go.elastic.co/ecszap v0.2.0 // indirect
+	go.elastic.co/ecszap v0.3.0 // indirect
 	go.elastic.co/fastjson v1.1.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
+	golang.org/x/crypto v0.0.0-20201116153603-4be66e5b6582 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c
+	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect
-	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/sys v0.0.0-20201113233024-12cec1faf1ba // indirect
+	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20201005185003-576e169c3de7
+	golang.org/x/tools v0.0.0-20201116002733-ac45abd4c88c
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
-	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
+	howett.net/plist v0.0.0-20201026045517-117a925f2150 // indirect
 )
 
 replace (
