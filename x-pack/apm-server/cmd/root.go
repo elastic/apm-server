@@ -15,7 +15,9 @@ import (
 
 // NewXPackRootCommand returns the Elastic licensed "apm-server" root command.
 func NewXPackRootCommand(newBeat beat.Creator) *libbeatcmd.BeatsRootCmd {
-	rootCmd := cmd.NewRootCommand(newBeat)
+	settings := cmd.DefaultSettings()
+	settings.ElasticLicensed = true
+	rootCmd := cmd.NewRootCommand(newBeat, settings)
 	xpackcmd.AddXPack(rootCmd, rootCmd.Name())
 	if enrollCmd, _, err := rootCmd.Find([]string{"enroll"}); err == nil {
 		// error is ok => enroll has already been removed
