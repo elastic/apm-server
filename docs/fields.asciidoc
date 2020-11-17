@@ -41,7 +41,7 @@ Fields common to various APM events.
 *`data_stream.type`*::
 +
 --
-Data stream type, e.g. logs, metrics, or traces.
+Data stream type: logs, metrics, or traces.
 
 type: keyword
 

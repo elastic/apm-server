@@ -5,7 +5,7 @@
   fields:
     - name: data_stream.type
       type: keyword
-      description: Data stream type, e.g. logs, metrics, or traces.
+      description: "Data stream type: logs, metrics, or traces."
       example: traces
 
     - name: data_stream.dataset
