@@ -1,0 +1,7 @@
+- name: error
+  description: |
+    Data captured by an agent representing an event occurring in a monitored service.
+  fields:
+  - name: id
+    description: |
+      The ID of the error.

@@ -1,0 +1,35 @@
+- name: error
+  description: |
+    Data captured by an agent representing an event occurring in a monitored service.
+  fields:
+  - name: culprit
+    description: Function call which was the primary perpetrator of this event.
+  - name: grouping_key
+    description: |
+      GroupingKey of the logged error for use in grouping.
+  - name: exception
+    description: |
+      Information about the originally thrown error.
+    fields:
+    - name: code
+      description: The error code set when the error happened, e.g. database error code.
+    - name: message
+      description: The original error message.
+    - name: module
+      description: The module namespace of the original error.
+    - name: type
+    - name: handled
+      description: Indicator whether the error was caught somewhere in the code or not.
+  - name: log
+    description: |
+      Additional information added by logging the error.
+    fields:
+    - name: level
+      description: The severity of the record.
+    - name: logger_name
+      description: The name of the logger instance used.
+    - name: message
+      description: The additionally logged error message.
+    - name: param_message
+      description: |
+        A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.

@@ -1,0 +1,136 @@
+- name: system
+  description: |
+    `system` contains local system metrics.
+  fields:
+  - name: cpu
+    description: |
+      `cpu` contains local CPU stats.
+    fields:
+    - name: total.norm.pct
+      format: percent
+      description: |
+        The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+  - name: memory
+    description: |
+      `memory` contains local memory stats.
+    fields:
+    - name: total
+      format: bytes
+      description: |
+        Total memory.
+    - name: actual
+      description: |
+        Actual memory used and free.
+      fields:
+      - name: free
+        format: bytes
+        description: |
+          Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
+  - name: process
+    description: |
+      `process` contains process metadata, CPU metrics, and memory metrics.
+    fields:
+    - name: cpu
+      description: |
+        `cpu` contains local CPU stats.
+      fields:
+      - name: total.norm.pct
+        format: percent
+        description: |
+          The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+    - name: memory
+      description: Memory-specific statistics per process.
+      fields:
+      - name: size
+        format: bytes
+        description: |
+          The total virtual memory the process has.
+      - name: rss.bytes
+        format: bytes
+        description: |
+          The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
+    - name: cgroup
+      description: Metrics and limits for the cgroup, collected by APM agents on Linux.
+      fields:
+      - name: memory
+        description: Memory-specific cgroup metrics and limits.
+        fields:
+        - name: mem.limit.bytes
+          format: bytes
+          description: Memory limit for the current cgroup slice.
+        - name: mem.usage.bytes
+          format: bytes
+          description: Memory usage by the current cgroup slice.
+- name: transaction
+  fields:
+  - name: root
+    description: |
+      Identifies metrics for root transactions. This can be used for calculating metrics for traces.
+- name: profile
+  fields:
+  - name: id
+    description: |
+      Unique ID for the profile.
+      All samples within a profile will have the same profile ID.
+  - name: duration
+    description: |
+      Duration of the profile, in microseconds.
+      All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+  - name: cpu
+    fields:
+    - name: ns
+      description: |
+        Amount of CPU time profiled, in nanoseconds.
+  - name: samples
+    fields:
+    - name: count
+      description: |
+        Number of profile samples for the profiling period.
+  - name: alloc_objects
+    fields:
+    - name: count
+      description: |
+        Number of objects allocated since the process started.
+  - name: alloc_space
+    fields:
+    - name: bytes
+      description: |
+        Amount of memory allocated, in bytes, since the process started.
+  - name: inuse_objects
+    fields:
+    - name: count
+      description: |
+        Number of objects allocated and currently in use.
+  - name: inuse_space
+    fields:
+    - name: bytes
+      description: |
+        Amount of memory allocated, in bytes, and currently in use.
+  - name: top
+    fields:
+    - name: id
+      description: |
+        Unique ID for the top stack frame in the context of its callers.
+    - name: function
+      description: |
+        Function name for the top stack frame.
+    - name: filename
+      description: |
+        Source code filename for the top stack frame.
+    - name: line
+      description: |
+        Source code line number for the top stack frame.
+  - name: stack
+    fields:
+    - name: id
+      description: |
+        Unique ID for a stack frame in the context of its callers.
+    - name: function
+      description: |
+        Function name for a stack frame.
+    - name: filename
+      description: |
+        Source code filename for a stack frame.
+    - name: line
+      description: |
+        Source code line number for a stack frame.

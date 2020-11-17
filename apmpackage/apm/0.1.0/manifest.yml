@@ -1,0 +1,30 @@
+format_version: 1.0.0
+name: apm
+title: Elastic APM
+version: 0.1.0
+license: basic
+description: Manage Elastic APM agents
+type: solution  # integration / solution
+categories:
+  - monitoring # TODO do we need a new category?
+release: experimental # experimental / beta / ga
+conditions:
+  kibana.version: '^7.11.0'
+policy_templates:
+  - name: apmserver
+    title: Elastic APM Integration
+    description: Elastic APM Integration # Not shown in UI ?
+    inputs:
+      - type: apm
+        title: Collect application traces
+        description: Collect application traces
+        vars:
+            - name: enable_rum
+            type: bool
+            title: Enable RUM
+            # TODO would be nice a link to a description
+            required: true
+            show_user: true
+            default: false
+owner:
+  github: elastic/apm-server
