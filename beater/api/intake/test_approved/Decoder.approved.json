@@ -1,8 +1,0 @@
-{
-    "accepted": 0,
-    "errors": [
-        {
-            "message": "cannot decode `xyz`"
-        }
-    ]
-}
