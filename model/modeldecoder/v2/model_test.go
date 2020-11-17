@@ -57,7 +57,7 @@ func TestServiceValidationRules(t *testing.T) {
 		{name: "service-name-az", data: `{"agent":{"name":"go","version":"1.0"},"name":"abcdefghijklmnopqrstuvwxyz"}`},
 		{name: "service-name-AZ", data: `{"agent":{"name":"go","version":"1.0"},"name":"ABCDEFGHIJKLMNOPQRSTUVWXYZ"}`},
 		{name: "service-name-09 _-", data: `{"agent":{"name":"go","version":"1.0"},"name":"0123456789 -_"}`},
-		{name: "service-name-invalid", errorKey: "regexpAlphaNumericExt",
+		{name: "service-name-invalid", errorKey: "patternAlphaNumericExt",
 			data: `{"agent":{"name":"go","version":"1.0"},"name":"⌘"}`},
 		{name: "service-name-max", data: `{"agent":{"name":"go","version":"1.0"},"name":"` + modeldecodertest.BuildStringWith(1024, '-') + `"}`},
 		{name: "service-name-max-exceeded", errorKey: "max",
@@ -73,11 +73,11 @@ func TestLabelValidationRules(t *testing.T) {
 		{name: "valid", data: `{"k1":"v1.s*\"","k2":2.3,"k3":3,"k4":true,"k5":null}`},
 		{name: "restricted-type", errorKey: "inputTypesVals", data: `{"k1":{"k2":"v1"}}`},
 		{name: "restricted-type-slice", errorKey: "inputTypesVals", data: `{"k1":{"v1":[1,2,3]}}`},
-		{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
-		{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
-		{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
+		{name: "key-dot", errorKey: "patternNoDotAsteriskQuote", data: `{"k.1":"v1"}`},
+		{name: "key-asterisk", errorKey: "patternNoDotAsteriskQuote", data: `{"k*1":"v1"}`},
+		{name: "key-quotemark", errorKey: "patternNoDotAsteriskQuote", data: `{"k\"1":"v1"}`},
 		{name: "max-len", data: `{"k1":"` + modeldecodertest.BuildString(1024) + `"}`},
-		{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
+		{name: "max-len-exceeded", errorKey: "maxLengthVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
 	}
 	testValidation(t, "metadata", testcases, "labels")
 	testValidation(t, "transaction", testcases, "context", "tags")
@@ -87,9 +87,9 @@ func TestLabelValidationRules(t *testing.T) {
 
 func TestSamplesValidationRules(t *testing.T) {
 	testcases := []testcase{
-		{name: "valid", data: `{"k.1":{"value": 34.5},"k.2.a":{"value":5}}`},
-		{name: "key-asterisk", errorKey: "patternKeys(regexpNoAsteriskQuote)", data: `{"k1*":{"value": 34.5},"k.2.a":{"value":5}}`},
-		{name: "key-quotemark", errorKey: "patternKeys(regexpNoAsteriskQuote)", data: `{"k1\"":{"value": 34.5}}`},
+		{name: "valid", data: `{"k.1\\":{"value": 34.5},"k.2.a":{"value":5}}`},
+		{name: "key-asterisk", errorKey: "patternNoAsteriskQuote", data: `{"k1*":{"value": 34.5},"k.2.a":{"value":5}}`},
+		{name: "key-quotemark", errorKey: "patternNoAsteriskQuote", data: `{"k1\"":{"value": 34.5}}`},
 	}
 	testValidation(t, "metricset", testcases, "samples")
 }
@@ -107,10 +107,10 @@ func TestMaxLenValidationRules(t *testing.T) {
 func TestContextValidationRules(t *testing.T) {
 	t.Run("custom", func(t *testing.T) {
 		testcases := []testcase{
-			{name: "custom", data: `{"custom":{"k1":{"v1":123,"v2":"value"},"k2":34,"k3":[{"a.1":1,"b*\"":2}]}}`},
-			{name: "custom-key-dot", errorKey: "patternKeys", data: `{"custom":{"k1.":{"v1":123,"v2":"value"}}}`},
-			{name: "custom-key-asterisk", errorKey: "patternKeys", data: `{"custom":{"k1*":{"v1":123,"v2":"value"}}}`},
-			{name: "custom-key-quote", errorKey: "patternKeys", data: `{"custom":{"k1\"":{"v1":123,"v2":"value"}}}`},
+			{name: "custom", data: `{"custom":{"k\\1":{"v1":123,"v2":"value\\"},"k2":34,"k3":[{"a.1":1,"b*\"":2}]}}`},
+			{name: "custom-key-dot", errorKey: "patternNoDotAsteriskQuote", data: `{"custom":{"k1.":{"v1":123,"v2":"value"}}}`},
+			{name: "custom-key-asterisk", errorKey: "patternNoDotAsteriskQuote", data: `{"custom":{"k1*":{"v1":123,"v2":"value"}}}`},
+			{name: "custom-key-quote", errorKey: "patternNoDotAsteriskQuote", data: `{"custom":{"k1\"":{"v1":123,"v2":"value"}}}`},
 		}
 		testValidation(t, "transaction", testcases, "context")
 	})
@@ -136,13 +136,13 @@ func TestDurationValidationRules(t *testing.T) {
 
 func TestMarksValidationRules(t *testing.T) {
 	testcases := []testcase{
-		{name: "marks", data: `{"k1":{"v1":12.3}}`},
-		{name: "marks-dot", errorKey: "patternKeys", data: `{"k.1":{"v1":12.3}}`},
-		{name: "marks-events-dot", errorKey: "patternKeys", data: `{"k1":{"v.1":12.3}}`},
-		{name: "marks-asterisk", errorKey: "patternKeys", data: `{"k*1":{"v1":12.3}}`},
-		{name: "marks-events-asterisk", errorKey: "patternKeys", data: `{"k1":{"v*1":12.3}}`},
-		{name: "marks-quote", errorKey: "patternKeys", data: `{"k\"1":{"v1":12.3}}`},
-		{name: "marks-events-quote", errorKey: "patternKeys", data: `{"k1":{"v\"1":12.3}}`},
+		{name: "marks", data: `{"k1\\":{"v1\\":12.3}}`},
+		{name: "marks-dot", errorKey: "patternNoDotAsteriskQuote", data: `{"k.1":{"v1":12.3}}`},
+		{name: "marks-events-dot", errorKey: "patternNoDotAsteriskQuote", data: `{"k1":{"v.1":12.3}}`},
+		{name: "marks-asterisk", errorKey: "patternNoDotAsteriskQuote", data: `{"k*1":{"v1":12.3}}`},
+		{name: "marks-events-asterisk", errorKey: "patternNoDotAsteriskQuote", data: `{"k1":{"v*1":12.3}}`},
+		{name: "marks-quote", errorKey: "patternNoDotAsteriskQuote", data: `{"k\"1":{"v1":12.3}}`},
+		{name: "marks-events-quote", errorKey: "patternNoDotAsteriskQuote", data: `{"k1":{"v\"1":12.3}}`},
 	}
 	testValidation(t, "transaction", testcases, "marks")
 }

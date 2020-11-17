@@ -139,7 +139,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, &out.Metadata, metadataExceptions(), modeldecodertest.DefaultValues())
 	})
 
-	//TODO(simitt):test metadata are not sharing memory between events (nested labels!)
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
 		var input transaction
@@ -175,7 +174,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	})
 
 	t.Run("transaction-values", func(t *testing.T) {
-		//TODO(simitt): add tests for spans
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// metadata are tested separately

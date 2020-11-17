@@ -62,14 +62,14 @@ func TestServiceValidationRules(t *testing.T) {
 
 func TestLabelValidationRules(t *testing.T) {
 	testcases := []testcase{
-		{name: "valid", data: `{"k1":"v1.s*\"","k2":2.3,"k3":3,"k4":true,"k5":null}`},
+		{name: "valid", data: `{"k\\1":"v1\\.s*\"","k2":2.3,"k3":3,"k4":true,"k5":null}`},
 		{name: "restricted-type", errorKey: "inputTypesVals", data: `{"k1":{"k2":"v1"}}`},
 		{name: "restricted-type", errorKey: "inputTypesVals", data: `{"k1":{"k2":[1,2,3]}}`},
 		{name: "key-dot", errorKey: "patternKeys", data: `{"k.1":"v1"}`},
 		{name: "key-asterisk", errorKey: "patternKeys", data: `{"k*1":"v1"}`},
 		{name: "key-quotemark", errorKey: "patternKeys", data: `{"k\"1":"v1"}`},
 		{name: "max-len", data: `{"k1":"` + modeldecodertest.BuildString(1024) + `"}`},
-		{name: "max-len-exceeded", errorKey: "maxVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
+		{name: "max-len-exceeded", errorKey: "maxLengthVals", data: `{"k1":"` + modeldecodertest.BuildString(1025) + `"}`},
 	}
 	testValidation(t, "m", testcases, "l")
 	testValidation(t, "x", testcases, "c", "g")

@@ -1,0 +1,189 @@
+{
+  "$id": "docs/spec/rumv3/metadata",
+  "type": "object",
+  "properties": {
+    "l": {
+      "description": "Labels are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Labels are indexed and searchable.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^.*\"]*$": {
+          "type": [
+            "null",
+            "string",
+            "boolean",
+            "number"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "se": {
+      "description": "Service metadata about the monitored service.",
+      "type": "object",
+      "properties": {
+        "a": {
+          "description": "Agent holds information about the APM agent capturing the event.",
+          "type": "object",
+          "properties": {
+            "n": {
+              "description": "Name of the APM agent capturing information.",
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "ve": {
+              "description": "Version of the APM agent capturing information.",
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "n",
+            "ve"
+          ]
+        },
+        "en": {
+          "description": "Environment in which the monitored service is running, e.g. `production` or `staging`.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "fw": {
+          "description": "Framework holds information about the framework used in the monitored service.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "n": {
+              "description": "Name of the used framework",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "ve": {
+              "description": "Version of the used framework",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "la": {
+          "description": "Language holds information about the programming language of the monitored service.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "n": {
+              "description": "Name of the used programming language",
+              "type": "string",
+              "maxLength": 1024
+            },
+            "ve": {
+              "description": "Version of the used programming language",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "n"
+          ]
+        },
+        "n": {
+          "description": "Name of the monitored service.",
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9 _-]+$"
+        },
+        "ru": {
+          "description": "Runtime holds information about the language runtime running the monitored service",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "n": {
+              "description": "Name of the language runtime",
+              "type": "string",
+              "maxLength": 1024
+            },
+            "ve": {
+              "description": "Name of the language runtime",
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "n",
+            "ve"
+          ]
+        },
+        "ve": {
+          "description": "Version of the monitored service.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "a",
+        "n"
+      ]
+    },
+    "u": {
+      "description": "User metadata, which can be overwritten on a per event basis.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "em": {
+          "description": "Email of the user.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "id": {
+          "description": "ID identifies the logged in user, e.g. can be the primary key of the user",
+          "type": [
+            "null",
+            "string",
+            "integer"
+          ],
+          "maxLength": 1024
+        },
+        "un": {
+          "description": "Name of the user.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    }
+  },
+  "required": [
+    "se"
+  ]
+}
