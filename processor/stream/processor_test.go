@@ -211,13 +211,15 @@ func TestRateLimiting(t *testing.T) {
 		{name: "LimiterPartiallyUsedLimitDeny", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
 		{name: "LimiterDeny", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
 	} {
-		if test.hit > 0 {
-			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
-		}
+		t.Run(test.name, func(t *testing.T) {
+			if test.hit > 0 {
+				assert.True(t, test.lim.AllowN(time.Now(), test.hit))
+			}
 
-		actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
-			context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), report)
-		assertApproveResult(t, actualResult, test.name)
+			actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
+				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), report)
+			assertApproveResult(t, actualResult, test.name)
+		})
 	}
 }
 
