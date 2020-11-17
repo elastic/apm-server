@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -113,7 +114,7 @@ func (e *Transaction) Transform(_ context.Context, _ *transform.Config) []beat.E
 	transactionTransformations.Inc()
 
 	// Transactions are stored in a "traces" data stream along with spans.
-	dataset := datastreams.NormalizeServiceName(e.Metadata.Service.Name)
+	dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
 
 	fields := common.MapStr{
 		datastreams.TypeField:    datastreams.TracesType,

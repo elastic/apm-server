@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
 
@@ -191,7 +192,7 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 	}
 
 	// Spans are stored in a "traces" data stream along with transactions.
-	dataset := datastreams.NormalizeServiceName(e.Metadata.Service.Name)
+	dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
 
 	fields := common.MapStr{
 		datastreams.TypeField:    datastreams.TracesType,

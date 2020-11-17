@@ -185,13 +185,15 @@ func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.
 		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}
 	}
 
-	// Metrics are stored in a "metrics" data stream. Metrics that include well-defined
-	// transaction/span fields (i.e. breakdown metrics, transaction and span metrics)
-	// will be stored separately from application and runtime metrics.
-	dataset := datastreams.NormalizeServiceName(me.Metadata.Service.Name)
+	// Metrics are stored in "metrics" data streams.
+	dataset := "apm."
 	if isInternal {
-		dataset += ".apm.internal"
+		// Metrics that include well-defined transaction/span fields
+		// (i.e. breakdown metrics, transaction and span metrics) will
+		// be stored separately from application and runtime metrics.
+		dataset += "internal."
 	}
+	dataset += datastreams.NormalizeServiceName(me.Metadata.Service.Name)
 
 	fields["processor"] = metricsetProcessorEntry
 	fields[datastreams.TypeField] = datastreams.MetricsType

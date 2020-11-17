@@ -70,7 +70,7 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 	// Profiles are stored in their own "metrics" data stream, with a data
 	// set per service. This enables managing retention of profiling data
 	// per-service, and indepedently of lower volume metrics.
-	dataset := fmt.Sprintf("%s.profiling", datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
+	dataset := fmt.Sprintf("apm.profiling.%s", datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
 
 	samples := make([]beat.Event, len(pp.Profile.Sample))
 	for i, sample := range pp.Profile.Sample {

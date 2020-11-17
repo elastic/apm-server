@@ -7,7 +7,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -58,7 +58,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -110,7 +110,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -161,7 +161,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -212,7 +212,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -263,7 +263,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -314,7 +314,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -366,7 +366,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -417,7 +417,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -468,7 +468,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -519,7 +519,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -570,7 +570,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -622,7 +622,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -673,7 +673,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis",
+            "data_stream.dataset": "apm.redis",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -724,7 +724,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis.apm.error",
+            "data_stream.dataset": "apm.error.redis",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -772,7 +772,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis.apm.error",
+            "data_stream.dataset": "apm.error.redis",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -820,7 +820,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "redis.apm.error",
+            "data_stream.dataset": "apm.error.redis",
             "data_stream.type": "logs",
             "error": {
                 "exception": [

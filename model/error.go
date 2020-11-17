@@ -113,7 +113,7 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 	// Errors are stored in an APM errors-specific "logs" data stream, per service.
 	// By storing errors in a "logs" data stream, they can be viewed in the Logs app
 	// in Kibana.
-	dataset := fmt.Sprintf("%s.apm.error", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+	dataset := fmt.Sprintf("apm.error.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
 
 	fields := common.MapStr{
 		datastreams.TypeField:    datastreams.LogsType,
