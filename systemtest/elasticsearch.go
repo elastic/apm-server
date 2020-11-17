@@ -95,7 +95,6 @@ func CleanupElasticsearch(t testing.TB) {
 		esapi.IndicesDeleteRequest{Index: []string{prefix}},
 		esapi.IngestDeletePipelineRequest{PipelineID: prefix},
 		esapi.IndicesDeleteTemplateRequest{Name: prefix},
-		esapi.IndicesRefreshRequest{},
 	}
 
 	doReq := func(req estest.Request) error {
@@ -112,6 +111,11 @@ func CleanupElasticsearch(t testing.TB) {
 		g.Go(func() error { return doReq(req) })
 	}
 	if err := g.Wait(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Refresh indices to ensure all recent changes are visible.
+	if err := doReq(esapi.IndicesRefreshRequest{}); err != nil {
 		t.Fatal(err)
 	}
 
