@@ -26,5 +26,6 @@ var ecsDir string
 
 func main() {
 	flag.StringVar(&ecsDir, "ecsDir", "../ecs", "Path to the Elastic Common Schema repository")
+	flag.Parse()
 	apmpackage.GenerateFields(ecsDir)
 }

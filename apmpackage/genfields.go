@@ -1,14 +1,13 @@
 package apmpackage
 
 import (
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 )
 
 func GenerateFields(ecsDir string) {
+	// TODO remove all field files before generate them
 
 	// TODO get this from GH directly
 	ecsFlatFields := loadECSFields(ecsDir)
@@ -23,13 +22,12 @@ func GenerateFields(ecsDir string) {
 		var ecsFields []FieldDefinition
 		var nonECSFields []FieldDefinition
 		for _, fieldsFile := range fieldsFiles {
-			for _, fields := range populateECSInfo(ecsFlatFields, loadFields(fieldsFile)) {
+			for _, fields := range populateECSInfo(ecsFlatFields, concatFields(fieldsFile)) {
 				ecs, nonECS := splitECSFields(fields)
 				if len(ecs.Fields) > 0 || ecs.IsECS {
 					ecsFields = append(ecsFields, ecs)
 				}
-				// TODO probably should check type
-				if len(nonECS.Fields) > 0 || !ecs.IsECS {
+				if len(nonECS.Fields) > 0 || ecs.IsNonECSLeaf() {
 					nonECSFields = append(nonECSFields, nonECS)
 				}
 			}
@@ -37,7 +35,6 @@ func GenerateFields(ecsDir string) {
 		// TODO handle version better
 		dataStreamFieldsPath := filepath.Join("apmpackage/apm/0.1.0/data_stream", streamType, "fields")
 		var writeOutFields = func(fName string, data []FieldDefinition) {
-			data = rmGroupDescriptions(data)
 			bytes, err := yaml.Marshal(&data)
 			if err != nil {
 				panic(err)
@@ -54,20 +51,6 @@ func GenerateFields(ecsDir string) {
 			writeOutFields("fields.yml", nonECSFields)
 		}
 	}
-}
-
-// TODO move functionality to loadDefaultFieldValues
-func rmGroupDescriptions(data []FieldDefinition) []FieldDefinition {
-	var ret []FieldDefinition
-	for _, f := range data {
-		copy := f
-		if f.Type == "group" {
-			copy.Description = ""
-		}
-		copy.Fields = rmGroupDescriptions(copy.Fields)
-		ret = append(ret, copy)
-	}
-	return ret
 }
 
 func populateECSInfo(ecsFlatFields map[string]interface{}, fields []FieldDefinition) []FieldDefinition {
@@ -105,7 +88,7 @@ func splitECSFields(parent FieldDefinition) (FieldDefinition, FieldDefinition) {
 		if ecsChild.HasECS || ecsChild.IsECS {
 			ecsCopy.Fields = append(ecsCopy.Fields, ecsChild)
 		}
-		if nonECSChild.HasNonECS || !nonECSChild.IsECS {
+		if nonECSChild.HasNonECS || nonECSChild.IsNonECSLeaf() {
 			nonECSCopy.Fields = append(nonECSCopy.Fields, nonECSChild)
 		}
 	}
@@ -128,11 +111,8 @@ func loadECSFields(ecsDir string) map[string]interface{} {
 	return ret
 }
 
-func loadFields(fileName string) []FieldDefinition {
-	fs, err := loadFieldsFile(fileName)
-	if err != nil {
-		panic(errors.Wrapf(err, "loading module fields file failed"))
-	}
+func concatFields(fileName string) []FieldDefinition {
+	fs := loadFieldsFile(fileName)
 	var ret []FieldDefinition
 	for _, key := range fs {
 		ret = append(ret, key.Fields...)
@@ -140,33 +120,30 @@ func loadFields(fileName string) []FieldDefinition {
 	return ret
 }
 
-func loadFieldsFile(path string) ([]FieldDefinition, error) {
+func loadFieldsFile(path string) []FieldDefinition {
 	fields, err := ioutil.ReadFile(path)
-	if os.IsNotExist(err) {
-		return []FieldDefinition{}, nil // return empty array, this is a valid state
-	}
 	if err != nil {
-		return nil, errors.Wrapf(err, "reading fields failed (path: %s)", path)
+		panic(err)
 	}
 
 	var fs []FieldDefinition
-
 	err = yaml.Unmarshal(fields, &fs)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unmarshalling fields file failed (path: %s)", path)
+		panic(err)
 	}
-	fs = loadDefaultFieldValues(fs)
-	return fs, nil
+	return overrideFieldValues(fs)
 }
 
-func loadDefaultFieldValues(fs []FieldDefinition) []FieldDefinition {
-	var withDefaults []FieldDefinition
+func overrideFieldValues(fs []FieldDefinition) []FieldDefinition {
+	var ret []FieldDefinition
 	for _, f := range fs {
 		if f.Type == "" {
 			f.Type = "keyword"
+		} else if f.Type == "group" {
+			//	f.Description = "" TODO beats does this after
 		}
-		f.Fields = loadDefaultFieldValues(f.Fields)
-		withDefaults = append(withDefaults, f)
+		f.Fields = overrideFieldValues(f.Fields)
+		ret = append(ret, f)
 	}
-	return withDefaults
+	return ret
 }

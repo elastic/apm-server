@@ -41,6 +41,10 @@ type FieldDefinition struct {
 	HasNonECS   bool                   `yaml:"-"`
 }
 
+func (f FieldDefinition) IsNonECSLeaf() bool {
+	return f.Type != "group" && !f.IsECS
+}
+
 type MultiFieldDefinition struct {
 	Name         string `yaml:"Name,omitempty"`
 	Type         string `yaml:"type,omitempty"`
