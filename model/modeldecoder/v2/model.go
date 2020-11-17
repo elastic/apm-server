@@ -295,7 +295,7 @@ type metadataSystemContainer struct {
 	// `id` is the only field in `system.container`,
 	// if `system.container:{}` is sent, it should be considered valid
 	// if additional attributes are defined in the future, add the required tag
-	ID nullable.String `json:"id"` //validate:"required"
+	ID nullable.String `json:"id" validate:"max=1024"`
 }
 
 type metadataSystemKubernetes struct {
