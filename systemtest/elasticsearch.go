@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/go-elasticsearch/v7"
@@ -90,6 +91,19 @@ func newElasticsearchConfig() elasticsearch.Config {
 // and ingest node pipelines whose names start with "apm",
 // and deletes the default ILM policy "apm-rollover-30-days".
 func CleanupElasticsearch(t testing.TB) {
+	for {
+		err := tryCleanupElasticsearch(t)
+		if err == nil {
+			return
+		}
+		// Retry deleting, in case indices are still being deleted.
+		const delay = 100 * time.Millisecond
+		t.Logf("failed to cleanup Elasticsearch resources (retrying in %s): %s", delay, err)
+		time.Sleep(delay)
+	}
+}
+
+func tryCleanupElasticsearch(t testing.TB) error {
 	const prefix = "apm*"
 	requests := []estest.Request{
 		esapi.IndicesDeleteRequest{Index: []string{prefix}},
@@ -115,16 +129,10 @@ func CleanupElasticsearch(t testing.TB) {
 	}
 
 	// Delete the ILM policy last or we'll get an error due to it being in use.
-	for {
-		err := doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"})
-		if err == nil {
-			break
-		}
-		// Retry deleting, in case indices are still being deleted.
-		const delay = 100 * time.Millisecond
-		t.Logf("failed to delete ILM policy (retrying in %s): %s", delay, err)
-		time.Sleep(delay)
-	}
+	return errors.Wrap(
+		doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"}),
+		"failed to delete ILM policy",
+	)
 }
 
 // ChangeUserPassword changes the password for a given user.
