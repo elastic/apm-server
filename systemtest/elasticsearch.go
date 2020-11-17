@@ -95,6 +95,7 @@ func CleanupElasticsearch(t testing.TB) {
 		esapi.IndicesDeleteRequest{Index: []string{prefix}},
 		esapi.IngestDeletePipelineRequest{PipelineID: prefix},
 		esapi.IndicesDeleteTemplateRequest{Name: prefix},
+		esapi.IndicesRefreshRequest{},
 	}
 
 	doReq := func(req estest.Request) error {
