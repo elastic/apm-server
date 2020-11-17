@@ -25,6 +25,10 @@ func docsFilePath(version string) string {
 	return filepath.Join("apmpackage/apm/", version, "/docs/README.md")
 }
 
+func pipelinesPath(version string) string {
+	return filepath.Join("apmpackage/apm/", version, "/data_stream/traces/elasticsearch/ingest_pipeline/")
+}
+
 func dataStreamPath(version string) string {
 	return filepath.Join("apmpackage/apm/", version, "/data_stream/")
 }

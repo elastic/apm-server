@@ -61,6 +61,22 @@
   type: keyword
   description: |
     Version of the runtime used.
+- name: span.destination.service.response_time.count
+  type: long
+- name: span.destination.service.response_time.sum.us
+  type: long
+- name: span.self_time.count
+  type: long
+- name: span.self_time.sum.us
+  type: long
+- name: span.subtype
+  type: keyword
+  description: |
+    A further sub-division of the type (e.g. postgresql, elasticsearch)
+- name: span.type
+  type: keyword
+  description: |
+    Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 - name: system.cpu.total.norm.pct
   type: scaled_float
   format: percent
@@ -103,3 +119,36 @@
   type: long
   description: |
     Timestamp of the event in microseconds since Unix epoch.
+- name: transaction.breakdown.count
+  type: long
+- name: transaction.duration.count
+  type: long
+- name: transaction.duration.histogram
+  type: histogram
+  description: |
+    Pre-aggregated histogram of transaction durations.
+- name: transaction.duration.sum.us
+  type: long
+- name: transaction.name
+  type: keyword
+  description: |
+    Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+  multi_fields:
+  - name: text
+    type: text
+- name: transaction.root
+  type: boolean
+  description: |
+    Identifies metrics for root transactions. This can be used for calculating metrics for traces.
+- name: transaction.sampled
+  type: boolean
+  description: |
+    Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+- name: transaction.self_time.count
+  type: long
+- name: transaction.self_time.sum.us
+  type: long
+- name: transaction.type
+  type: keyword
+  description: |
+    Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)

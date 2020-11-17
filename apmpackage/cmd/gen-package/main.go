@@ -20,11 +20,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/elastic/apm-server/cmd"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/elastic/apm-server/cmd"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var versionMapping = map[string]string{
@@ -40,6 +41,7 @@ func main() {
 		panic(errors.New("package can't be generated for current apm-server version"))
 	}
 	clear(packageVersion)
+	generatePipelines(packageVersion)
 	inputFields := generateFields(packageVersion)
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
@@ -59,4 +61,5 @@ func clear(version string) {
 		}
 	}
 	ioutil.WriteFile(docsFilePath(version), nil, 0644)
+	os.RemoveAll(pipelinesPath(version))
 }
