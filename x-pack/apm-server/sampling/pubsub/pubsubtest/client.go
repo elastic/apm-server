@@ -79,11 +79,11 @@ func (f SubscriberFunc) Subscribe(ctx context.Context) (string, error) {
 // respective operation will be a no-op.
 func Client(pub Publisher, sub Subscriber) elasticsearch.Client {
 	client, err := elasticsearch.NewVersionedClient(
-		"",                          // API Key
-		"",                          // user
-		"",                          // password,
+		"", // API Key
+		"", // user
+		"", // password,
 		[]string{"testing.invalid"}, // addresses
-		nil,                         // headers
+		nil, // headers
 		&channelClientRoundTripper{pub: pub, sub: sub},
 	)
 	if err != nil {
@@ -163,9 +163,16 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 			var action string
 			for action = range m {
 			}
+			if action != "index" {
+				// We only ever issue index operations.
+				panic("unexpected action: " + action)
+			}
 			var doc traceIDDocument
 			if err := dec.Decode(&doc); err != nil {
 				return nil, err
+			}
+			if doc.Trace.ID == "" {
+				panic("empty trace ID")
 			}
 			if rt.pub != nil {
 				if err := rt.pub.Publish(r.Context(), doc.Trace.ID); err != nil {
