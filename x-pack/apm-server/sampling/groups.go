@@ -29,7 +29,7 @@ type traceGroups struct {
 	ingestRateDecayFactor float64
 
 	// maxGroups holds the maximum number of trace groups to maintain.
-	// Once this is reached, all trace events will be sampled.
+	// Once this is reached, no new trace group events will be sampled.
 	maxGroups int
 
 	mu sync.RWMutex
@@ -101,6 +101,9 @@ func (g *traceGroups) sampleTrace(tx *model.Transaction) (bool, error) {
 	group, ok := g.groups[key]
 	if ok {
 		defer g.mu.RUnlock()
+		if group.samplingFraction == 0 {
+			return false, nil
+		}
 		group.mu.Lock()
 		defer group.mu.Unlock()
 		group.total++
@@ -113,10 +116,15 @@ func (g *traceGroups) sampleTrace(tx *model.Transaction) (bool, error) {
 	group, ok = g.groups[key]
 	if ok {
 		// We've got a write lock on g.mu, no need to lock group too.
+		if group.samplingFraction == 0 {
+			return false, nil
+		}
 		group.total++
 		return group.reservoir.Sample(tx.Duration, tx.TraceID), nil
 	} else if len(g.groups) == g.maxGroups {
 		return false, errTooManyTraceGroups
+	} else if g.defaultSamplingFraction == 0 {
+		return false, nil
 	}
 
 	group = &traceGroup{
