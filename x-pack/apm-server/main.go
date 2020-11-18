@@ -57,7 +57,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 			MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
 			MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
 			HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
-			RUMUserAgentLRUSize:            args.Config.Aggregation.Transactions.RUMUserAgentLRUSize,
 		})
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", name)

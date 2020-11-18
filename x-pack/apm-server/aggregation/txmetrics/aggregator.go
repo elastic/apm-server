@@ -53,7 +53,6 @@ type Aggregator struct {
 	config              AggregatorConfig
 	metrics             aggregatorMetrics
 	tooManyGroupsLogger *logp.Logger
-	userAgentLookup     *userAgentLookup
 
 	mu               sync.RWMutex
 	active, inactive *metrics
@@ -88,10 +87,6 @@ type AggregatorConfig struct {
 	// to maintain in the HDR Histograms. HDRHistogramSignificantFigures
 	// must be in the range [1,5].
 	HDRHistogramSignificantFigures int
-
-	// RUMUserAgentLRUSize is the size of the LRU cache for mapping RUM
-	// page-load User-Agent strings to browser names.
-	RUMUserAgentLRUSize int
 }
 
 // Validate validates the aggregator config.
@@ -108,9 +103,6 @@ func (config AggregatorConfig) Validate() error {
 	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
 		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
 	}
-	if config.RUMUserAgentLRUSize <= 0 {
-		return errors.New("RUMUserAgentLRUSize unspecified or negative")
-	}
 	return nil
 }
 
@@ -122,16 +114,11 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
-	ual, err := newUserAgentLookup(config.RUMUserAgentLRUSize)
-	if err != nil {
-		return nil, err
-	}
 	return &Aggregator{
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
 		config:              config,
 		tooManyGroupsLogger: config.Logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
-		userAgentLookup:     ual,
 		active:              newMetrics(config.MaxTransactionGroups),
 		inactive:            newMetrics(config.MaxTransactionGroups),
 	}, nil
@@ -356,15 +343,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 }
 
 func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transactionAggregationKey {
-	var userAgentName string
-	if tx.Type == "page-load" {
-		// The APM app in Kibana has a special case for "page-load"
-		// transaction types, rendering distributions by country and
-		// browser. We use the same logic to decide whether or not
-		// to include user_agent.name in the aggregation key.
-		userAgentName = a.userAgentLookup.getUserAgentName(tx.Metadata.UserAgent.Original)
-	}
-
 	return transactionAggregationKey{
 		traceRoot:          tx.ParentID == "",
 		transactionName:    tx.Name,
@@ -380,10 +358,6 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 		hostname:          tx.Metadata.System.Hostname(),
 		containerID:       tx.Metadata.System.Container.ID,
 		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
-
-		userAgentName: userAgentName,
-
-		// TODO(axw) clientCountryISOCode, requires geoIP lookup in apm-server.
 	}
 }
 
@@ -403,10 +377,6 @@ func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, cou
 				Container:        model.Container{ID: key.containerID},
 				Kubernetes:       model.Kubernetes{PodName: key.kubernetesPodName},
 			},
-			UserAgent: model.UserAgent{
-				Name: key.userAgentName,
-			},
-			// TODO(axw) include client.geo.country_iso_code somewhere
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: key.transactionOutcome,
@@ -456,10 +426,8 @@ type metricsMapEntry struct {
 }
 
 type transactionAggregationKey struct {
-	traceRoot bool
-	agentName string
-	// TODO(axw) requires geoIP lookup in apm-server.
-	//clientCountryISOCode string
+	traceRoot          bool
+	agentName          string
 	containerID        string
 	hostname           string
 	kubernetesPodName  string
@@ -470,7 +438,6 @@ type transactionAggregationKey struct {
 	transactionOutcome string
 	transactionResult  string
 	transactionType    string
-	userAgentName      string
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
@@ -479,7 +446,6 @@ func (k *transactionAggregationKey) hash() uint64 {
 		h.WriteString("1")
 	}
 	h.WriteString(k.agentName)
-	// TODO(axw) clientCountryISOCode
 	h.WriteString(k.containerID)
 	h.WriteString(k.hostname)
 	h.WriteString(k.kubernetesPodName)
@@ -490,7 +456,6 @@ func (k *transactionAggregationKey) hash() uint64 {
 	h.WriteString(k.transactionOutcome)
 	h.WriteString(k.transactionResult)
 	h.WriteString(k.transactionType)
-	h.WriteString(k.userAgentName)
 	return h.Sum64()
 }
 
