@@ -35,7 +35,6 @@ func spanProcSetup() *tests.ProcessorSetup {
 		SchemaPath:      "../../../docs/spec/v2/span.json",
 		TemplatePaths: []string{
 			"../../../model/span/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 	}
 }
@@ -50,7 +49,6 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 	)
 }
 
-// fields in _meta/fields.common.yml that are shared between several data types, but not with spans
 func spanFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.Union(
 		tests.NewSet(

@@ -13,6 +13,10 @@ This document describes the fields that are exported by Apm-Server. They are
 grouped in the following categories:
 
 * <<exported-fields-apm>>
+* <<exported-fields-apm>>
+* <<exported-fields-apm>>
+* <<exported-fields-apm>>
+* <<exported-fields-apm>>
 * <<exported-fields-apm-error>>
 * <<exported-fields-apm-profile>>
 * <<exported-fields-apm-sourcemap>>
@@ -70,6 +74,4143 @@ type: keyword
 example: production
 
 --
+
+*`processor.name`*::
++
+--
+Processor name.
+
+type: keyword
+
+--
+
+*`processor.event`*::
++
+--
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+[float]
+=== url
+
+A complete Url, with scheme, host and path.
+
+
+
+*`url.scheme`*::
++
+--
+The protocol of the request, e.g. "https:".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.full`*::
++
+--
+The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.domain`*::
++
+--
+The hostname of the request, e.g. "example.com".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.port`*::
++
+--
+The port of the request, e.g. 443.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.path`*::
++
+--
+The path of the request, e.g. "/search".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.query`*::
++
+--
+The query string of the request, e.g. "q=elasticsearch".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.fragment`*::
++
+--
+A fragment specifying a location in a web page , e.g. "top".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`http.version`*::
++
+--
+The http version of the request leading to this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`http.request.method`*::
++
+--
+The http method of the request leading to this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`http.request.headers`*::
++
+--
+The canonical headers of the monitored HTTP request.
+
+
+type: object
+
+Object is not enabled.
+
+--
+
+*`http.request.referrer`*::
++
+--
+Referrer for this HTTP request.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`http.response.status_code`*::
++
+--
+The status code of the HTTP response.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`http.response.finished`*::
++
+--
+Used by the Node agent to indicate when in the response life cycle an error has occurred.
+
+
+type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`http.response.headers`*::
++
+--
+The canonical headers of the monitored HTTP response.
+
+
+type: object
+
+Object is not enabled.
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`transaction.id`*::
++
+--
+The transaction ID.
+
+
+type: keyword
+
+--
+
+*`transaction.sampled`*::
++
+--
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+
+
+type: boolean
+
+--
+
+*`transaction.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+
+type: keyword
+
+--
+
+*`transaction.name`*::
++
+--
+Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+
+
+type: keyword
+
+--
+
+*`transaction.name.text`*::
++
+--
+type: text
+
+--
+
+
+*`transaction.duration.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.duration.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== self_time
+
+Portion of the transaction's duration where no direct child was running
+
+
+
+*`transaction.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== breakdown
+
+Counter for collected breakdowns for the transaction
+
+
+
+*`transaction.breakdown.count`*::
++
+--
+type: long
+
+--
+
+
+*`trace.id`*::
++
+--
+The ID of the trace to which the event belongs to.
+
+
+type: keyword
+
+--
+
+
+*`parent.id`*::
++
+--
+The ID of the parent event.
+
+
+type: keyword
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments.
+May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
+Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination.
+Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[[exported-fields-apm]]
+== General APM fields
+
+Fields common to various APM events.
+
+
+
+*`processor.name`*::
++
+--
+Processor name.
+
+type: keyword
+
+--
+
+*`processor.event`*::
++
+--
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`transaction.id`*::
++
+--
+The transaction ID.
+
+
+type: keyword
+
+--
+
+*`transaction.sampled`*::
++
+--
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+
+
+type: boolean
+
+--
+
+*`transaction.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+
+type: keyword
+
+--
+
+*`transaction.name`*::
++
+--
+Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+
+
+type: keyword
+
+--
+
+*`transaction.name.text`*::
++
+--
+type: text
+
+--
+
+
+*`transaction.duration.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.duration.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== self_time
+
+Portion of the transaction's duration where no direct child was running
+
+
+
+*`transaction.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== breakdown
+
+Counter for collected breakdowns for the transaction
+
+
+
+*`transaction.breakdown.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+
+
+type: keyword
+
+--
+
+*`span.subtype`*::
++
+--
+A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+
+type: keyword
+
+--
+
+[float]
+=== self_time
+
+Portion of the span's duration where no direct child was running
+
+
+
+*`span.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments.
+May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
+Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination.
+Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[[exported-fields-apm]]
+== General APM fields
+
+Fields common to various APM events.
+
+
+
+*`processor.name`*::
++
+--
+Processor name.
+
+type: keyword
+
+--
+
+*`processor.event`*::
++
+--
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments.
+May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
+Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination.
+Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[[exported-fields-apm]]
+== General APM fields
+
+Fields common to various APM events.
+
+
+
+*`processor.name`*::
++
+--
+Processor name.
+
+type: keyword
+
+--
+
+*`processor.event`*::
++
+--
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`transaction.id`*::
++
+--
+The transaction ID.
+
+
+type: keyword
+
+--
+
+*`transaction.sampled`*::
++
+--
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+
+
+type: boolean
+
+--
+
+*`transaction.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+
+type: keyword
+
+--
+
+*`transaction.name`*::
++
+--
+Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+
+
+type: keyword
+
+--
+
+*`transaction.name.text`*::
++
+--
+type: text
+
+--
+
+
+*`transaction.duration.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.duration.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== self_time
+
+Portion of the transaction's duration where no direct child was running
+
+
+
+*`transaction.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== breakdown
+
+Counter for collected breakdowns for the transaction
+
+
+
+*`transaction.breakdown.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+
+
+type: keyword
+
+--
+
+*`span.subtype`*::
++
+--
+A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+
+type: keyword
+
+--
+
+[float]
+=== self_time
+
+Portion of the span's duration where no direct child was running
+
+
+
+*`span.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+
+*`trace.id`*::
++
+--
+The ID of the trace to which the event belongs to.
+
+
+type: keyword
+
+--
+
+
+*`parent.id`*::
++
+--
+The ID of the parent event.
+
+
+type: keyword
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments.
+May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
+Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination.
+Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[[exported-fields-apm]]
+== General APM fields
+
+Fields common to various APM events.
+
+
 
 *`processor.name`*::
 +
