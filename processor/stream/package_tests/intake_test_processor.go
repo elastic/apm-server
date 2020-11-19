@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder"
@@ -140,6 +141,17 @@ func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 				events = append(events, transformable.Transform(context.Background(), &transform.Config{})...)
 			}
 		}
+	}
+
+	for _, event := range events {
+		// TODO(axw) migrate all of these tests to systemtest,
+		// so we can use the proper event publishing pipeline.
+		// https://github.com/elastic/apm-server/issues/4408
+		//
+		// We need to set the data_stream.namespace field manually;
+		// it would normally be set by the libbeat pipeline by a
+		// processor.
+		event.Fields.Put(datastreams.NamespaceField, "default")
 	}
 
 	if len(result.Errors) > 0 {

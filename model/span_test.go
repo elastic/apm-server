@@ -58,8 +58,10 @@ func TestSpanTransform(t *testing.T) {
 			Msg:  "Span without a Stacktrace",
 			Span: Span{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
-				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"data_stream.type":    "traces",
+				"data_stream.dataset": "apm.myservice",
+				"processor":           common.MapStr{"event": "span", "name": "transaction"},
+				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
@@ -74,8 +76,10 @@ func TestSpanTransform(t *testing.T) {
 			Msg:  "Span with outcome",
 			Span: Span{Timestamp: timestamp, Metadata: metadata, Outcome: "success"},
 			Output: common.MapStr{
-				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
+				"data_stream.type":    "traces",
+				"data_stream.dataset": "apm.myservice",
+				"processor":           common.MapStr{"event": "span", "name": "transaction"},
+				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
@@ -121,6 +125,8 @@ func TestSpanTransform(t *testing.T) {
 				Message: &Message{QueueName: tests.StringPtr("users")},
 			},
 			Output: common.MapStr{
+				"data_stream.type":    "traces",
+				"data_stream.dataset": "apm.myservice",
 				"span": common.MapStr{
 					"id":       hexID,
 					"duration": common.MapStr{"us": 1200},

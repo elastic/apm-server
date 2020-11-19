@@ -9,6 +9,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.error.apm_agent_js",
+            "data_stream.type": "logs",
             "error": {
                 "culprit": "test/e2e/general-usecase/bundle.js.map",
                 "exception": [
