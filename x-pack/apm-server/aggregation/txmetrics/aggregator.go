@@ -248,7 +248,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 // This method is expected to be used immediately prior to publishing
 // the events, so that the metricsets requiring immediate publication
 // can be included in the same batch.
-func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []transform.Transformable {
+func (a *Aggregator) ProcessTransformables(ctx context.Context, in []transform.Transformable) ([]transform.Transformable, error) {
 	out := in
 	for _, tf := range in {
 		if tx, ok := tf.(*model.Transaction); ok {
@@ -257,7 +257,7 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 			}
 		}
 	}
-	return out
+	return out, nil
 }
 
 // AggregateTransaction aggregates transaction metrics.

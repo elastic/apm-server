@@ -205,6 +205,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	bt.mutex.Unlock()
 
 	return runServer(ctx, ServerParams{
+		Info:     b.Info,
 		Config:   bt.config,
 		Logger:   bt.logger,
 		Tracer:   tracer,

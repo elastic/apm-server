@@ -173,7 +173,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 //
 // This method is expected to be used immediately prior to publishing
 // the events.
-func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []transform.Transformable {
+func (a *Aggregator) ProcessTransformables(ctx context.Context, in []transform.Transformable) ([]transform.Transformable, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	out := in
@@ -184,7 +184,7 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 			}
 		}
 	}
-	return out
+	return out, nil
 }
 
 func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {

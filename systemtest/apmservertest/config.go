@@ -104,7 +104,30 @@ type JaegerConfig struct {
 
 // SamplingConfig holds APM Server trace sampling configuration.
 type SamplingConfig struct {
-	KeepUnsampled bool `json:"keep_unsampled"`
+	KeepUnsampled bool                `json:"keep_unsampled"`
+	Tail          *TailSamplingConfig `json:"tail,omitempty"`
+}
+
+// TailSamplingConfig holds APM Server tail-based sampling configuration.
+type TailSamplingConfig struct {
+	Enabled           bool
+	Interval          time.Duration
+	DefaultSampleRate float64
+}
+
+func (t *TailSamplingConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled           bool     `json:"enabled"`
+		Interval          duration `json:"interval"`
+		DefaultSampleRate float64  `json:"default_sample_rate"`
+	}
+	return json.Marshal(config{
+		Enabled:           t.Enabled,
+		Interval:          duration(t.Interval),
+		DefaultSampleRate: t.DefaultSampleRate,
+	})
 }
 
 // RUMConfig holds APM Server RUM configuration.
