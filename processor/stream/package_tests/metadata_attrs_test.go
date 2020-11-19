@@ -75,6 +75,7 @@ func metadataProcSetup() *tests.ProcessorSetup {
 		TemplatePaths: []string{
 			// we use the fields.yml file of a type that includes all the metadata fields
 			// this was changed with the removal of fields.common.yml
+			// TODO: move metadata package tests into event specific tests when refactoring package tests
 			"../../../model/transaction/_meta/fields.yml",
 		},
 		FullPayloadPath: "../testdata/intake-v2/metadata.ndjson",
