@@ -24,7 +24,6 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -40,18 +39,29 @@ import (
 
 const startContainersTimeout = 5 * time.Minute
 
+// identifier for the docker-compose used in tests
+const identifier = "apm-server"
+
+// composeFilePaths array of locations for the compose files to be executed
+var composeFilePaths = []string{"../docker-compose.yml"}
+
+// instance that manages the life cycle of testcontainers' Docker Compose
+var compose *testcontainers.LocalDockerCompose
+
+func init() {
+	compose = testcontainers.NewLocalDockerCompose(composeFilePaths, identifier)
+}
+
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
 //
 // We leave Elasticsearch and Kibana running, to avoid slowing down iterative
 // development and testing. Use docker-compose to stop services as necessary.
 func StartStackContainers() error {
-	cmd := exec.Command(
-		"docker-compose", "-f", "../docker-compose.yml",
-		"up", "-d", "elasticsearch", "kibana",
-	)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	execError := compose.
+		WithCommand([]string{"up", "-d", "elasticsearch", "kibana"}).
+		Invoke()
+	err := execError.Error
+	if err != nil {
 		return err
 	}
 
