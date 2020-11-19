@@ -1,7 +1,9 @@
-- key: apm
-  title: General APM
+- key: apm-transaction-metrics
+  title: "APM Transaction Metrics"
   description: >
-    Fields common to various APM events.
+    APM transaction metrics, and transaction metrics-specific properties,
+    such as transaction.root.
+  short_config: true
   fields:
     - name: data_stream.type
       type: keyword
@@ -176,6 +178,12 @@
           fields:
             - name: count
               type: long
+
+        - name: root
+          type: boolean
+          description: >
+            Identifies metrics for root transactions. This can be used for calculating metrics for traces.
+
 
     - name: span
       type: group
@@ -781,20 +789,3 @@
               type: long
               format: bytes
               description:  Memory usage by the current cgroup slice.
-
-- key: apm-transaction-metrics
-  title: "APM Transaction Metrics"
-  description: >
-    APM transaction metrics, and transaction metrics-specific properties,
-    such as transaction.root.
-  short_config: true
-  fields:
-    - name: transaction
-      type: group
-      dynamic: false
-      fields:
-
-      - name: root
-        type: boolean
-        description: >
-          Identifies metrics for root transactions. This can be used for calculating metrics for traces.

@@ -1,7 +1,6 @@
-- key: apm
-  title: General APM
-  description: >
-    Fields common to various APM events.
+- key: apm-span
+  title: APM Span
+  description: Span-specific data for APM.
   fields:
     - name: data_stream.type
       type: keyword
@@ -703,10 +702,6 @@
          example: success
          overwrite: true
 
-- key: apm-span
-  title: APM Span
-  description: Span-specific data for APM.
-  fields:
     - name: view spans
       format: url
       label_template: "View Spans"

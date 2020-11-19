@@ -1,7 +1,6 @@
-- key: apm
-  title: General APM
-  description: >
-    Fields common to various APM events.
+- key: apm-error
+  title: APM Error
+  description: Error-specific data for APM
   fields:
     - name: data_stream.type
       type: keyword
@@ -764,10 +763,6 @@
         example: us-east1
         overwrite: true
 
-- key: apm-error
-  title: APM Error
-  description: Error-specific data for APM
-  fields:
     - name: error
       type: group
       description: >

@@ -1,7 +1,6 @@
-- key: apm
-  title: General APM
-  description: >
-    Fields common to various APM events.
+- key: apm-profile
+  title: APM Profile
+  description: Profiling-specific data for APM.
   fields:
     - name: data_stream.type
       type: keyword
@@ -586,10 +585,6 @@
         example: us-east1
         overwrite: true
 
-- key: apm-profile
-  title: APM Profile
-  description: Profiling-specific data for APM.
-  fields:
     - name: profile
       type: group
       dynamic: false
