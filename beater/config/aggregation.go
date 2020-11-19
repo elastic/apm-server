@@ -25,7 +25,6 @@ const (
 	defaultTransactionAggregationInterval                       = time.Minute
 	defaultTransactionAggregationMaxGroups                      = 10000
 	defaultTransactionAggregationHDRHistogramSignificantFigures = 2
-	defaultTransactionAggregationRUMUserAgentLRUSize            = 5000
 
 	defaultServiceDestinationAggregationInterval  = time.Minute
 	defaultServiceDestinationAggregationMaxGroups = 10000
@@ -43,7 +42,6 @@ type TransactionAggregationConfig struct {
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
 	MaxTransactionGroups           int           `config:"max_groups" validate:"min=1"`
 	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
-	RUMUserAgentLRUSize            int           `config:"rum.user_agent.lru_size" validate:"min=1"`
 }
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
@@ -59,7 +57,6 @@ func defaultAggregationConfig() AggregationConfig {
 			Interval:                       defaultTransactionAggregationInterval,
 			MaxTransactionGroups:           defaultTransactionAggregationMaxGroups,
 			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,
-			RUMUserAgentLRUSize:            defaultTransactionAggregationRUMUserAgentLRUSize,
 		},
 		ServiceDestinations: ServiceDestinationAggregationConfig{
 			Enabled:   true,
