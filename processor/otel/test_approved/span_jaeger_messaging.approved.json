@@ -6,6 +6,8 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "data_stream.dataset": "apm.unknown",
+            "data_stream.type": "traces",
             "destination": {
                 "address": "mq",
                 "port": 1234

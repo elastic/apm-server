@@ -9,6 +9,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.error.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "logs",
             "error": {
                 "culprit": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
                 "custom": {

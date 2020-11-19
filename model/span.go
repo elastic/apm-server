@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -189,7 +191,13 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 		spanFrameCounter.Add(int64(frames))
 	}
 
+	// Spans are stored in a "traces" data stream along with transactions.
+	dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+
 	fields := common.MapStr{
+		datastreams.TypeField:    datastreams.TracesType,
+		datastreams.DatasetField: dataset,
+
 		"processor": spanProcessorEntry,
 		spanDocType: e.fields(ctx, cfg),
 	}

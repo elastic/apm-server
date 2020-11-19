@@ -100,8 +100,13 @@ func (h *httpServer) start() error {
 		h.logger.Infof("Connection limit set to: %d", h.cfg.MaxConnections)
 	}
 
-	// Create the "onboarding" document, which contains the server's listening address.
-	notifyListening(context.Background(), addr, h.reporter)
+	if !h.cfg.DataStreams.Enabled {
+		// Create the "onboarding" document, which contains the server's
+		// listening address. We only do this if data streams are not enabled,
+		// as onboarding documents are incompatible with data streams.
+		// Onboarding documents should be replaced by Fleet status later.
+		notifyListening(context.Background(), addr, h.reporter)
+	}
 
 	if h.TLSConfig != nil {
 		h.logger.Info("SSL enabled.")
