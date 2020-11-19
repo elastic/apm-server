@@ -3500,11 +3500,6 @@ Contents of "LICENSE":
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
-Dependency: github.com/ua-parser/uap-go
-Revision: e1c09f13e2fe
-License type (autodetected): Apache-2.0
-
---------------------------------------------------------------------
 Dependency: github.com/uber/tchannel-go
 Version: v1.16.0
 License type (autodetected): MIT
