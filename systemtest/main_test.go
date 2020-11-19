@@ -24,8 +24,15 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	os.Exit(testMainWrapper(m))
+}
+
+// support defer in testMain
+func testMainWrapper(m *testing.M) int {
 	if err := StartStackContainers(); err != nil {
 		log.Fatal(err)
 	}
-	os.Exit(m.Run())
+	defer ShutdownStackContainers()
+
+	return m.Run()
 }

@@ -72,6 +72,22 @@ func StartStackContainers() error {
 	return waitKibanaContainerHealthy(ctx)
 }
 
+// ShutdownStackContainers stops the stack if the "DESTROY_STACK"
+// environment variable is set
+func ShutdownStackContainers() {
+	if "" == os.Getenv("DESTROY_STACK") {
+		log.Println("We leave Elasticsearch and Kibana running, to avoid slowing down iterative development and testing. Use docker-compose to stop services as necessary")
+		return
+	}
+
+	execError := compose.Down()
+	err := execError.Error
+	if err != nil {
+		log.Fatalf("Could not destroy the stack: %v\n", err)
+	}
+	return
+}
+
 // NewUnstartedElasticsearchContainer returns a new ElasticsearchContainer.
 func NewUnstartedElasticsearchContainer() (*ElasticsearchContainer, error) {
 	// Create a testcontainer.ContainerRequest based on the "elasticsearch service
