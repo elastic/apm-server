@@ -11,12 +11,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/go-elasticsearch/v7"
-
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
 func TestConfigInvalid(t *testing.T) {
+	var elasticsearchClient struct {
+		elasticsearch.Client
+	}
+
 	type test struct {
 		config pubsub.Config
 		err    string
@@ -27,25 +30,25 @@ func TestConfigInvalid(t *testing.T) {
 		err:    "Client unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: elasticsearchClient,
 		},
 		err: "Index unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: elasticsearchClient,
 			Index:  "index",
 		},
 		err: "BeatID unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: elasticsearchClient,
 			Index:  "index",
 			BeatID: "beat_id",
 		},
 		err: "SearchInterval unspecified or negative",
 	}, {
 		config: pubsub.Config{
-			Client:         &elasticsearch.Client{},
+			Client:         elasticsearchClient,
 			Index:          "index",
 			BeatID:         "beat_id",
 			SearchInterval: time.Second,
