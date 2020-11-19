@@ -73,6 +73,8 @@ func metadataProcSetup() *tests.ProcessorSetup {
 			intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}}},
 		SchemaPath: "../../../docs/spec/v2/metadata.json",
 		TemplatePaths: []string{
+			// we use the fields.yml file of a type that includes all the metadata fields
+			// this was changed with the removal of fields.common.yml
 			"../../../model/transaction/_meta/fields.yml",
 		},
 		FullPayloadPath: "../testdata/intake-v2/metadata.ndjson",
