@@ -5,21 +5,6 @@
     such as transaction.root.
   short_config: true
   fields:
-    - name: data_stream.type
-      type: keyword
-      description: "Data stream type: logs, metrics, or traces."
-      example: traces
-
-    - name: data_stream.dataset
-      type: keyword
-      description: Data stream dataset name.
-      example: backend_service
-
-    - name: data_stream.namespace
-      type: keyword
-      description: User-defined data stream namespace.
-      example: production
-
     - name: processor.name
       type: keyword
       description: Processor name.

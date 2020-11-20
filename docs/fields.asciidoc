@@ -36,39 +36,6 @@ grouped in the following categories:
 Error-specific data for APM
 
 
-*`data_stream.type`*::
-+
---
-Data stream type: logs, metrics, or traces.
-
-type: keyword
-
-example: traces
-
---
-
-*`data_stream.dataset`*::
-+
---
-Data stream dataset name.
-
-type: keyword
-
-example: backend_service
-
---
-
-*`data_stream.namespace`*::
-+
---
-User-defined data stream namespace.
-
-type: keyword
-
-example: production
-
---
-
 *`processor.name`*::
 +
 --
@@ -1374,39 +1341,6 @@ type: keyword
 Profiling-specific data for APM.
 
 
-*`data_stream.type`*::
-+
---
-Data stream type: logs, metrics, or traces.
-
-type: keyword
-
-example: traces
-
---
-
-*`data_stream.dataset`*::
-+
---
-Data stream dataset name.
-
-type: keyword
-
-example: backend_service
-
---
-
-*`data_stream.namespace`*::
-+
---
-User-defined data stream namespace.
-
-type: keyword
-
-example: production
-
---
-
 *`processor.name`*::
 +
 --
@@ -2495,39 +2429,6 @@ type: keyword
 
 Span-specific data for APM.
 
-
-*`data_stream.type`*::
-+
---
-Data stream type: logs, metrics, or traces.
-
-type: keyword
-
-example: traces
-
---
-
-*`data_stream.dataset`*::
-+
---
-Data stream dataset name.
-
-type: keyword
-
-example: backend_service
-
---
-
-*`data_stream.namespace`*::
-+
---
-User-defined data stream namespace.
-
-type: keyword
-
-example: production
-
---
 
 *`processor.name`*::
 +
@@ -3731,39 +3632,6 @@ type: long
 
 Transaction-specific data for APM
 
-
-*`data_stream.type`*::
-+
---
-Data stream type: logs, metrics, or traces.
-
-type: keyword
-
-example: traces
-
---
-
-*`data_stream.dataset`*::
-+
---
-Data stream dataset name.
-
-type: keyword
-
-example: backend_service
-
---
-
-*`data_stream.namespace`*::
-+
---
-User-defined data stream namespace.
-
-type: keyword
-
-example: production
-
---
 
 *`processor.name`*::
 +
@@ -5029,39 +4897,6 @@ example: success
 APM transaction metrics, and transaction metrics-specific properties, such as transaction.root.
 
 
-
-*`data_stream.type`*::
-+
---
-Data stream type: logs, metrics, or traces.
-
-type: keyword
-
-example: traces
-
---
-
-*`data_stream.dataset`*::
-+
---
-Data stream dataset name.
-
-type: keyword
-
-example: backend_service
-
---
-
-*`data_stream.namespace`*::
-+
---
-User-defined data stream namespace.
-
-type: keyword
-
-example: production
-
---
 
 *`processor.name`*::
 +
