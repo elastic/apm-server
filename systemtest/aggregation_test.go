@@ -55,23 +55,15 @@ func TestTransactionAggregation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send some transactions to the server to be aggregated.
-	//
-	// Mimic a RUM transaction by using the "page-load" transaction type,
-	// which causes user-agent to be parsed and included in the aggregation
-	// and added to the document fields.
 	tracer := srv.Tracer()
-	const chromeUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
-	for _, transactionType := range []string{"backend", "page-load"} {
-		tx := tracer.StartTransaction("name", transactionType)
-		req, _ := http.NewRequest("GET", "/", nil)
-		req.Header.Set("User-Agent", chromeUserAgent)
-		tx.Context.SetHTTPRequest(req)
-		tx.Duration = time.Second
-		tx.End()
-	}
+	tx := tracer.StartTransaction("name", "backend")
+	req, _ := http.NewRequest("GET", "/", nil)
+	tx.Context.SetHTTPRequest(req)
+	tx.Duration = time.Second
+	tx.End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*",
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")

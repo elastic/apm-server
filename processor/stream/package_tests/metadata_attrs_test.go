@@ -26,7 +26,6 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
@@ -72,9 +71,12 @@ func metadataProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
 		Proc: &MetadataProcessor{
 			intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}}},
-		Schema: schema.ModelSchema,
+		SchemaPath: "../../../docs/spec/v2/metadata.json",
 		TemplatePaths: []string{
-			"../../../_meta/fields.common.yml",
+			// we use the fields.yml file of a type that includes all the metadata fields
+			// this was changed with the removal of fields.common.yml
+			// TODO: move metadata package tests into event specific tests when refactoring package tests
+			"../../../model/transaction/_meta/fields.yml",
 		},
 		FullPayloadPath: "../testdata/intake-v2/metadata.ndjson",
 	}
@@ -122,18 +124,12 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
 
-func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
-	metadataProcSetup().AttrsMatchJsonSchema(t,
-		getMetadataEventAttrs(t, ""),
-		tests.NewSet(tests.Group("labels"), "system.ip"),
-		nil,
-	)
-}
-
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	metadataProcSetup().KeywordLimitation(
 		t,
-		tests.NewSet("processor.event", "processor.name",
+		tests.NewSet(
+			"data_stream.type", "data_stream.dataset", "data_stream.namespace",
+			"processor.event", "processor.name",
 			"process.args",
 			tests.Group("observer"),
 			tests.Group("event"),

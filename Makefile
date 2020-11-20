@@ -109,7 +109,6 @@ update: fields go-generate add-headers copy-docs notice $(MAGE)
 	@$(MAGE) update
 
 fields_sources=\
-  _meta/fields.common.yml \
   $(shell find model -name fields.yml) \
   $(shell find x-pack/apm-server/fields -name fields.yml)
 
@@ -135,6 +134,11 @@ ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -exclude x-pack
 	@$(GOLICENSER) -license Elastic x-pack
 endif
+
+## get-version : Get the apm server version
+.PHONY: get-version
+get-version:
+	@grep defaultBeatVersion cmd/version.go | cut -d'=' -f2 | tr -d '"'
 
 ##############################################################################
 # Documentation.

@@ -6,6 +6,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.backendspans",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -81,6 +83,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.backendspans",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -161,6 +165,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.backendspans",
+            "data_stream.type": "metrics",
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",

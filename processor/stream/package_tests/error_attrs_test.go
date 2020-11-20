@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -35,10 +34,8 @@ func errorProcSetup() *tests.ProcessorSetup {
 		FullPayloadPath: "../testdata/intake-v2/errors.ndjson",
 		TemplatePaths: []string{
 			"../../../model/error/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
-		Schema:       schema.ModelSchema,
-		SchemaPrefix: "error",
+		SchemaPath: "../../../docs/spec/v2/error.json",
 	}
 }
 
@@ -71,22 +68,6 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("transaction.breakdown"),
 		tests.Group("transaction.duration"),
 		"experimental",
-	)
-}
-
-func errorPayloadAttrsNotInJsonSchema() *tests.Set {
-	return tests.NewSet(
-		"error",
-		"error.log.stacktrace.vars.key",
-		"error.exception.stacktrace.vars.key",
-		"error.exception.attributes.foo",
-		tests.Group("error.exception.cause."),
-		tests.Group("error.context.custom"),
-		tests.Group("error.context.request.env"),
-		tests.Group("error.context.request.cookies"),
-		tests.Group("error.context.tags"),
-		tests.Group("error.context.request.headers."),
-		tests.Group("error.context.response.headers."),
 	)
 }
 
@@ -128,6 +109,7 @@ func errorCondRequiredKeys() map[string]tests.Condition {
 
 func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name", "error.grouping_key",
 		"context.tags", "transaction.name",
 		"event.outcome", // not relevant
@@ -153,20 +135,6 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchFields(t,
 		errorPayloadAttrsNotInFields(),
 		errorFieldsNotInPayloadAttrs())
-}
-
-func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
-	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
-		errorPayloadAttrsNotInJsonSchema(),
-		tests.NewSet(
-			"error.context.user.email",
-			"error.context.experimental",
-			"error.exception.parent", // it will never be present in the top (first) exception
-			tests.Group("error.context.message"),
-			"error.context.response.decoded_body_size",
-			"error.context.response.encoded_body_size",
-			"error.context.response.transfer_size",
-		))
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {

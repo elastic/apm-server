@@ -17,7 +17,6 @@
 
 package main
 
-//go:generate go run script/inline_schemas/inline_schemas.go
 //go:generate go run model/modeldecoder/generator/cmd/main.go
 
 import (
@@ -27,7 +26,7 @@ import (
 	"github.com/elastic/apm-server/cmd"
 )
 
-var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}))
+var rootCmd = cmd.NewRootCommand(beater.NewCreator(beater.CreatorParams{}), cmd.DefaultSettings())
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {

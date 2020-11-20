@@ -7,15 +7,11 @@ pipeline {
   environment {
     BASE_DIR = 'src'
     PIPELINE_LOG_LEVEL = 'INFO'
-    URL_BASE = "${params.URL_BASE}"
     VERSION = "${params.VERSION}"
     HOME = "${WORKSPACE}"
     // This limits ourselves to just the APM tests
     ANSIBLE_EXTRA_FLAGS = "--tags apm-server"
-    // The build parameters
-    BEATS_URL_BASE = 'https://storage.googleapis.com/beats-ci-artifacts/snapshots'
-    APM_URL_BASE = 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'
-    // BRANCH_NAME = 'master'
+    APM_URL_BASE = "${params.APM_URL_BASE}"
     LANG = "C.UTF-8"
     LC_ALL = "C.UTF-8"
     PYTHONUTF8 = "1"
@@ -31,11 +27,10 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   triggers {
-    cron '@weekly'
+    upstream("apm-server/apm-server-mbp/${env.JOB_BASE_NAME}")
   }
   parameters {
     string(name: 'APM_URL_BASE', defaultValue: 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots', description: 'The location where the APM packages should be downloaded from')
-    string(name: 'BEATS_URL_BASE', defaultValue: 'https://storage.googleapis.com/beats-ci-artifacts/snapshots', description: 'The location where the Beats packages should be downloaded from')
     string(name: 'VERSION', defaultValue: '8.0.0-SNAPSHOT', description: 'The package version to test (modify the job configuration to add a new version)')
   }
   stages {
@@ -44,6 +39,23 @@ pipeline {
       steps {
         pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
+        script {
+          if(isUpstreamTrigger()) {
+            try {
+              copyArtifacts(filter: 'beats-tester.properties',
+                            flatten: true,
+                            projectName: "apm-server/apm-server-mbp/${env.JOB_BASE_NAME}",
+                            selector: upstream(fallbackToLastSuccessful: true))
+              def props = readProperties(file: 'beats-tester.properties')
+              setEnvVar('APM_URL_BASE', props.get('APM_URL_BASE', ''))
+              setEnvVar('VERSION', props.get('VERSION', '8.0.0-SNAPSHOT'))
+            } catch(err) {
+              // Fallback to the head of the branch as used to be.
+              setEnvVar('APM_URL_BASE', params.get('APM_URL_BASE', 'https://storage.googleapis.com/apm-ci-artifacts/jobs/snapshots'))
+              setEnvVar('VERSION', params.get('VERSION', '8.0.0-SNAPSHOT'))
+            }
+          }
+        }
         gitCheckout(basedir: "${BASE_DIR}", repo: 'git@github.com:elastic/beats-tester.git', branch: 'master', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba')
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
@@ -71,8 +83,7 @@ pipeline {
                 withGoEnv(os: 'linux'){
                   sh(label: 'make batch',
                     script: """#!/bin/bash
-                      echo "beats_url_base: ${BEATS_URL_BASE}" > run-settings-jenkins.yml
-                      echo "apm_url_base: ${APM_URL_BASE}" >> run-settings-jenkins.yml
+                      echo "apm_url_base: ${APM_URL_BASE}" > run-settings-jenkins.yml
                       echo "version: ${VERSION}" >> run-settings-jenkins.yml
                       RUN_SETTINGS=jenkins make batch""")
                 }
@@ -99,7 +110,7 @@ pipeline {
   }
   post {
     cleanup {
-      notifyBuildResult(prComment: true)
+      notifyBuildResult(prComment: false)
     }
   }
 }

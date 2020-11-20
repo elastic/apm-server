@@ -18,10 +18,11 @@
 package main
 
 import (
-	"bytes"
-	"os"
+	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/tools/imports"
 
@@ -31,59 +32,75 @@ import (
 const (
 	basePath         = "github.com/elastic/apm-server"
 	modeldecoderPath = "model/modeldecoder"
-
-	pkgV2    = "v2"
-	pkgV3RUM = "rumv3"
+	jsonSchemaPath   = "docs/spec/"
 )
 
 var (
 	importPath = path.Join(basePath, modeldecoderPath)
-	typPath    = path.Join(importPath, "nullable")
 )
 
 func main() {
-	genV2()
-	genRUMV3()
+	generateV2()
+	generateV3RUM()
 }
 
-func genV2() {
-	rootObjs := []string{"metadataRoot", "errorRoot", "metricsetRoot", "spanRoot", "transactionRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV2, "model_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkgV2, typPath, rootObjs)
+func generateV2() {
+	pkg := "v2"
+
+	p := path.Join(importPath, pkg)
+	parsed, err := generator.Parse(p)
 	if err != nil {
 		panic(err)
 	}
-	generate(gen, out)
+	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "spanRoot", "transactionRoot"})
+	generateJSONSchema(p, pkg, parsed, []string{"metadata", "errorEvent", "metricset", "span", "transaction"})
 }
 
-func genRUMV3() {
-	rootObjs := []string{"metadataRoot", "errorRoot", "metricsetRoot", "transactionRoot"}
-	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkgV3RUM, "model_generated.go")
-	gen, err := generator.NewGenerator(importPath, pkgV3RUM, typPath, rootObjs)
+func generateV3RUM() {
+	pkg := "rumv3"
+	p := path.Join(importPath, pkg)
+	parsed, err := generator.Parse(p)
 	if err != nil {
 		panic(err)
 	}
-	generate(gen, out)
+	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "transactionRoot"})
+	generateJSONSchema(p, pkg, parsed, []string{"metadata", "errorEvent", "metricset", "span", "transaction"})
 }
 
-type gen interface {
-	Generate() (bytes.Buffer, error)
+func generateCode(path string, pkg string, parsed *generator.Parsed, root []string) {
+	rootTypes := make([]string, len(root))
+	for i := 0; i < len(root); i++ {
+		rootTypes[i] = fmt.Sprintf("%s.%s", path, root[i])
+	}
+	code, err := generator.NewCodeGenerator(parsed, rootTypes)
+	if err != nil {
+		panic(err)
+	}
+	out := filepath.Join(filepath.FromSlash(modeldecoderPath), pkg, "model_generated.go")
+	b, err := code.Generate()
+	if err != nil {
+		panic(err)
+	}
+	formatted, err := imports.Process(out, b.Bytes(), nil)
+	if err != nil {
+		panic(err)
+	}
+	ioutil.WriteFile(out, formatted, 0644)
 }
 
-func generate(g gen, p string) {
-	b, err := g.Generate()
+func generateJSONSchema(path string, pkg string, parsed *generator.Parsed, root []string) {
+	jsonSchema, err := generator.NewJSONSchemaGenerator(parsed)
 	if err != nil {
 		panic(err)
 	}
-	processed, err := imports.Process(p, b.Bytes(), nil)
-	if err != nil {
-		panic(err)
-	}
-	f, err := os.Create(p)
-	if err != nil {
-		panic(err)
-	}
-	if _, err := f.Write(processed); err != nil {
-		panic(err)
+	outPath := filepath.Join(filepath.FromSlash(jsonSchemaPath), pkg)
+	for _, rootEventName := range root {
+		rootEvent := fmt.Sprintf("%s.%s", path, rootEventName)
+		b, err := jsonSchema.Generate(outPath, rootEvent)
+		if err != nil {
+			panic(err)
+		}
+		out := filepath.Join(outPath, fmt.Sprintf("%s.json", strings.TrimSuffix(rootEventName, "Event")))
+		ioutil.WriteFile(out, b.Bytes(), 0644)
 	}
 }

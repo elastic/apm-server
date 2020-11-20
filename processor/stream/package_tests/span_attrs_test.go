@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -33,11 +32,9 @@ func spanProcSetup() *tests.ProcessorSetup {
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
 		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
-		Schema:          schema.ModelSchema,
-		SchemaPrefix:    "span",
+		SchemaPath:      "../../../docs/spec/v2/span.json",
 		TemplatePaths: []string{
 			"../../../model/span/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 	}
 }
@@ -52,7 +49,6 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 	)
 }
 
-// fields in _meta/fields.common.yml that are shared between several data types, but not with spans
 func spanFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.Union(
 		tests.NewSet(
@@ -81,26 +77,6 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 		transactionContext(),
 	)
 
-}
-
-func spanPayloadAttrsNotInJsonSchema() *tests.Set {
-	return tests.NewSet(
-		"span",
-		"span.stacktrace.vars.key",
-		tests.Group("span.context.tags"),
-		"span.context.http.response.headers.content-type",
-		"span.context.service.environment", //used to check that only defined service fields are set on spans
-	)
-}
-
-func spanJsonSchemaNotInPayloadAttrs() *tests.Set {
-	return tests.NewSet(
-		"span.transaction_id",
-		"span.context.experimental",
-		"span.context.message.body",
-		"span.sample_rate",
-		"span.context.message.headers",
-	)
 }
 
 func spanRequiredKeys() *tests.Set {
@@ -151,6 +127,7 @@ func transactionContext() *tests.Set {
 
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name",
 		"context.tags", "transaction.type", "transaction.name",
 		"event.outcome",
@@ -177,12 +154,6 @@ func TestSpanPayloadMatchFields(t *testing.T) {
 		spanPayloadAttrsNotInFields(),
 		spanFieldsNotInPayloadAttrs())
 
-}
-
-func TestSpanPayloadMatchJsonSchema(t *testing.T) {
-	spanProcSetup().PayloadAttrsMatchJsonSchema(t,
-		spanPayloadAttrsNotInJsonSchema(),
-		spanJsonSchemaNotInPayloadAttrs())
 }
 
 func TestAttrsPresenceInSpan(t *testing.T) {

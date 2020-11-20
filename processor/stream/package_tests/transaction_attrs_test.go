@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -33,11 +32,9 @@ func transactionProcSetup() *tests.ProcessorSetup {
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
 		FullPayloadPath: "../testdata/intake-v2/transactions.ndjson",
-		Schema:          schema.ModelSchema,
-		SchemaPrefix:    "transaction",
+		SchemaPath:      "../../../docs/spec/v2/transaction.json",
 		TemplatePaths: []string{
 			"../../../model/transaction/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 	}
 }
@@ -76,21 +73,6 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 	)
 }
 
-func transactionPayloadAttrsNotInJsonSchema() *tests.Set {
-	return tests.NewSet(
-		"transaction",
-		tests.Group("transaction.context.request.env."),
-		tests.Group("transaction.context.request.body"),
-		tests.Group("transaction.context.request.cookies"),
-		tests.Group("transaction.context.custom"),
-		tests.Group("transaction.context.tags"),
-		tests.Group("transaction.marks"),
-		tests.Group("transaction.context.request.headers."),
-		tests.Group("transaction.context.response.headers."),
-		tests.Group("transaction.context.message.headers."),
-	)
-}
-
 func transactionRequiredKeys() *tests.Set {
 	return tests.NewSet(
 		"transaction",
@@ -109,6 +91,7 @@ func transactionRequiredKeys() *tests.Set {
 
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name",
 		"transaction.marks",
 		"context.tags",
@@ -135,12 +118,6 @@ func TestTransactionPayloadMatchFields(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchFields(t,
 		transactionPayloadAttrsNotInFields(),
 		transactionFieldsNotInPayloadAttrs())
-}
-
-func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
-	transactionProcSetup().PayloadAttrsMatchJsonSchema(t,
-		transactionPayloadAttrsNotInJsonSchema(),
-		tests.NewSet("transaction.context.user.email", "transaction.context.experimental", "transaction.sample_rate"))
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {

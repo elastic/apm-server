@@ -76,6 +76,16 @@ func (s *ShardedReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	return s.getWriter(traceID).IsTraceSampled(traceID)
 }
 
+// DeleteTransaction calls Writer.DeleteTransaction, using a sharded, locked, Writer.
+func (s *ShardedReadWriter) DeleteTransaction(tx *model.Transaction) error {
+	return s.getWriter(tx.TraceID).DeleteTransaction(tx)
+}
+
+// DeleteSpan calls Writer.DeleteSpan, using a sharded, locked, Writer.
+func (s *ShardedReadWriter) DeleteSpan(span *model.Span) error {
+	return s.getWriter(span.TraceID).DeleteSpan(span)
+}
+
 // getWriter returns an event storage writer for the given trace ID.
 //
 // This method is idempotent, which is necessary to avoid transaction
@@ -132,4 +142,16 @@ func (rw *lockedReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
 	return rw.rw.IsTraceSampled(traceID)
+}
+
+func (rw *lockedReadWriter) DeleteTransaction(tx *model.Transaction) error {
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
+	return rw.rw.DeleteTransaction(tx)
+}
+
+func (rw *lockedReadWriter) DeleteSpan(span *model.Span) error {
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
+	return rw.rw.DeleteSpan(span)
 }
