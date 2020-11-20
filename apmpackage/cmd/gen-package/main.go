@@ -19,15 +19,35 @@ package main
 
 import (
 	"flag"
-
 	"github.com/elastic/apm-server/apmpackage"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 var ecsDir string
+var packageVersion string
 
 func main() {
 	flag.StringVar(&ecsDir, "ecsDir", "../ecs", "Path to the Elastic Common Schema repository")
+	flag.StringVar(&packageVersion, "packageVersion", "0.1.0", "Package version")
 	flag.Parse()
-	inputFields := apmpackage.GenerateFields(ecsDir)
-	apmpackage.GenerateDocs(inputFields)
+	clear(packageVersion)
+	inputFields := apmpackage.GenerateFields(ecsDir, packageVersion)
+	apmpackage.GenerateDocs(inputFields, packageVersion)
+}
+
+func clear(version string) {
+	dir := filepath.Join("apmpackage/apm/", version, "/data_stream")
+	fileInfo, err := ioutil.ReadDir(dir)
+	if err != nil {
+		panic(err)
+	}
+	for _, f := range fileInfo {
+		if f.IsDir() {
+			os.Remove(filepath.Join(dir, f.Name(), "fields/ecs.yml"))
+			os.Remove(filepath.Join(dir, f.Name(), "fields/fields.yml"))
+		}
+	}
+	ioutil.WriteFile("apmpackage/apm/0.1.0/docs/README.md", nil, 0644)
 }

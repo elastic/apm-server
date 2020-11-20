@@ -24,8 +24,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func GenerateFields(ecsDir string) map[string][]FieldDefinition {
-	// TODO remove all field files before generate them
+func GenerateFields(ecsDir, version string) map[string][]FieldDefinition {
 
 	// TODO get this from GH directly
 	ecsFlatFields := loadECSFields(ecsDir)
@@ -48,8 +47,7 @@ func GenerateFields(ecsDir string) map[string][]FieldDefinition {
 				nonECSFields = append(nonECSFields, nonECS)
 			}
 		}
-		// TODO handle version better
-		dataStreamFieldsPath := filepath.Join("apmpackage/apm/0.1.0/data_stream", streamType, "fields")
+		dataStreamFieldsPath := filepath.Join("apmpackage/apm/", version, "/data_stream", streamType, "/fields")
 		var writeOutFields = func(fName string, data []FieldDefinition) {
 			bytes, err := yaml.Marshal(&data)
 			if err != nil {
@@ -159,7 +157,7 @@ func overrideFieldValues(fs []FieldDefinition) []FieldDefinition {
 		if f.Type == "" {
 			f.Type = "keyword"
 		} else if f.Type == "group" {
-			//	f.Description = "" TODO beats does this after
+			//	f.Description = "" beats does this after
 		}
 		f.Fields = overrideFieldValues(f.Fields)
 		ret = append(ret, f)

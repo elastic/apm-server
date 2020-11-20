@@ -22,12 +22,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
 
-func GenerateDocs(inputFields map[string][]FieldDefinition) {
-	// TODO sort alphabetically
+func GenerateDocs(inputFields map[string][]FieldDefinition, version string) {
+	// TODO sort alphabetically and add datasets (from base-fields)
 	data := FlattenAPMFields{
 		Traces:             flatten("", inputFields["traces"]),
 		Metrics:            flatten("", inputFields["metrics"]),
@@ -44,7 +45,8 @@ func GenerateDocs(inputFields map[string][]FieldDefinition) {
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.OpenFile("apmpackage/apm/0.1.0/docs/README.md", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	path := filepath.Join("apmpackage/apm/", version, "/docs/README.md")
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
 	}
