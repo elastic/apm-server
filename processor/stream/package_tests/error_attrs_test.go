@@ -34,7 +34,6 @@ func errorProcSetup() *tests.ProcessorSetup {
 		FullPayloadPath: "../testdata/intake-v2/errors.ndjson",
 		TemplatePaths: []string{
 			"../../../model/error/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 		SchemaPath: "../../../docs/spec/v2/error.json",
 	}

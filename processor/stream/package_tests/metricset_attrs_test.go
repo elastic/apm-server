@@ -34,7 +34,6 @@ func metricsetProcSetup() *tests.ProcessorSetup {
 		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
 		TemplatePaths: []string{
 			"../../../model/metricset/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 		SchemaPath: "../../../docs/spec/v2/metricset.json",
 	}
