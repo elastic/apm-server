@@ -47,6 +47,7 @@ type Config struct {
 	Aggregation *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM         *RUMConfig         `json:"apm-server.rum,omitempty"`
+	DataStreams *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -144,6 +145,11 @@ type RUMConfig struct {
 	Enabled bool `json:"enabled"`
 }
 
+// DataStreamsConfig holds APM Server data streams configuration.
+type DataStreamsConfig struct {
+	Enabled bool `json:"enabled"`
+}
+
 // InstrumentationConfig holds APM Server instrumentation configuration.
 type InstrumentationConfig struct {
 	Enabled bool `json:"enabled"`
@@ -159,6 +165,7 @@ type ElasticsearchOutputConfig struct {
 	Hosts    []string `json:"hosts,omitempty"`
 	Username string   `json:"username,omitempty"`
 	Password string   `json:"password,omitempty"`
+	APIKey   string   `json:"api_key,omitempty"`
 }
 
 // SetupConfig holds APM Server libbeat setup configuration.
