@@ -35,7 +35,6 @@ func transactionProcSetup() *tests.ProcessorSetup {
 		SchemaPath:      "../../../docs/spec/v2/transaction.json",
 		TemplatePaths: []string{
 			"../../../model/transaction/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 	}
 }
