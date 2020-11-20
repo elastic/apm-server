@@ -21,7 +21,8 @@ require (
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-sysinfo v1.4.0 // indirect
-	github.com/elastic/go-ucfg v0.8.3
+	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
+	github.com/elastic/package-registry v0.13.0
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v3.3.0+incompatible
