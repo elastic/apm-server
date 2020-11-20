@@ -1,3 +1,293 @@
+- name: url
+  description: |
+    A complete Url, with scheme, host and path.
+  fields:
+  - name: scheme
+    description: |
+      The protocol of the request, e.g. "https:".
+  - name: full
+    description: |
+      The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+  - name: domain
+    description: |
+      The hostname of the request, e.g. "example.com".
+  - name: port
+    description: |
+      The port of the request, e.g. 443.
+  - name: path
+    description: |
+      The path of the request, e.g. "/search".
+  - name: query
+    description: |
+      The query string of the request, e.g. "q=elasticsearch".
+  - name: fragment
+    description: |
+      A fragment specifying a location in a web page , e.g. "top".
+- name: http
+  fields:
+  - name: version
+    description: |
+      The http version of the request leading to this event.
+  - name: request
+    fields:
+    - name: method
+      description: |
+        The http method of the request leading to this event.
+    - name: referrer
+      description: Referrer for this HTTP request.
+      ignore_above: 1024
+  - name: response
+    fields:
+    - name: status_code
+      description: |
+        The status code of the HTTP response.
+- name: labels
+  description: |
+    A flat mapping of user-defined labels with string, boolean or number values.
+- name: service
+  description: |
+    Service fields.
+  fields:
+  - name: name
+    description: |
+      Immutable name of the service emitting this event.
+  - name: version
+    description: |
+      Version of the service emitting this event.
+  - name: node
+    fields:
+    - name: name
+      description: |
+        Unique meaningful name of the service node.
+- name: transaction
+  fields:
+  - name: id
+    description: |
+      The transaction ID.
+- name: trace
+  fields:
+  - name: id
+    description: |
+      The ID of the trace to which the event belongs to.
+- name: agent
+  fields:
+  - name: name
+    description: |
+      Name of the agent used.
+  - name: version
+    description: |
+      Version of the agent used.
+  - name: ephemeral_id
+    description: |
+      The Ephemeral ID identifies a running process.
+- name: container
+  title: Container
+  type: Container
+  description: |
+    Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+  fields:
+  - name: id
+    description: |
+      Unique container id.
+- name: host
+  description: |
+    Optional host fields.
+  fields:
+  - name: architecture
+    description: |
+      The architecture of the host the event was recorded on.
+  - name: hostname
+    description: |
+      The hostname of the host the event was recorded on.
+  - name: name
+    description: |
+      Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+  - name: ip
+    description: |
+      IP of the host that records the event.
+  - name: os
+    title: Operating System
+    group: 2
+    type: Operating System
+    description: |
+      The OS fields contain information about the operating system.
+    fields:
+    - name: platform
+      description: |
+        The platform of the host the event was recorded on.
+- name: process
+  description: |
+    Information pertaining to the running process where the data was collected
+  fields:
+  - name: args
+    level: extended
+    description: |
+      Process arguments. May be filtered to protect sensitive information.
+  - name: pid
+    description: |
+      Numeric process ID of the service process.
+  - name: ppid
+    description: |
+      Numeric ID of the service's parent process.
+  - name: title
+    description: |
+      Service process title.
+- name: observer
+  fields:
+  - name: hostname
+    description: |
+      Hostname of the APM Server.
+  - name: version
+    description: |
+      APM Server version.
+  - name: type
+    description: |
+      The type will be set to `apm-server`.
+- name: user
+  fields:
+  - name: name
+    description: |
+      The username of the logged in user.
+  - name: id
+    description: |
+      Identifier of the logged in user.
+  - name: email
+    description: |
+      Email of the logged in user.
+- name: client
+  fields:
+  - name: ip
+    description: |
+      IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+- name: source
+  fields:
+  - name: ip
+    description: |
+      IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+- name: destination
+  title: Destination
+  group: 2
+  type: Destination
+  description: |-
+    Destination fields describe details about the destination of a packet/event.
+    Destination fields are usually populated in conjunction with source fields.
+  fields:
+  - name: address
+    level: extended
+    description: Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+    ignore_above: 1024
+  - name: ip
+    level: core
+    description: IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
+  - name: port
+    level: core
+    format: string
+    description: Port of the destination.
+- name: user_agent
+  title: User agent
+  type: User agent
+  description: |
+    The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+  fields:
+  - name: original
+    description: |
+      Unparsed version of the user_agent.
+    multi_fields:
+    - type: text
+  - name: name
+    description: |
+      Name of the user agent.
+  - name: version
+    description: |
+      Version of the user agent.
+  - name: device
+    title: Device
+    type: Device
+    description: |
+      Information concerning the device.
+    fields:
+    - name: name
+      description: |
+        Name of the device.
+  - name: os
+    title: Operating System
+    type: Operating System
+    description: |
+      The OS fields contain information about the operating system.
+    fields:
+    - name: platform
+      description: |
+        Operating system platform (such centos, ubuntu, windows).
+    - name: name
+      description: |
+        Operating system name, without the version.
+    - name: full
+      description: |
+        Operating system name, including the version or code name.
+    - name: family
+      description: |
+        OS family (such as redhat, debian, freebsd, windows).
+    - name: version
+      description: |
+        Operating system version as a raw string.
+    - name: kernel
+      description: |
+        Operating system kernel version as a raw string.
+- name: cloud
+  title: Cloud
+  group: 2
+  type: Cloud
+  description: |
+    Cloud metadata reported by agents
+  fields:
+  - name: account
+    fields:
+    - name: id
+      level: extended
+      description: Cloud account ID
+      ignore_above: 1024
+    - name: name
+      level: extended
+      description: Cloud account name
+      ignore_above: 1024
+  - name: availability_zone
+    level: extended
+    description: Cloud availability zone name
+    ignore_above: 1024
+  - name: instance
+    fields:
+    - name: id
+      level: extended
+      description: Cloud instance/machine ID
+      ignore_above: 1024
+    - name: name
+      level: extended
+      description: Cloud instance/machine name
+      ignore_above: 1024
+  - name: machine
+    fields:
+    - name: type
+      level: extended
+      description: Cloud instance/machine type
+      ignore_above: 1024
+  - name: project
+    fields:
+    - name: id
+      level: extended
+      description: Cloud project ID
+      ignore_above: 1024
+    - name: name
+      level: extended
+      description: Cloud project name
+      ignore_above: 1024
+  - name: provider
+    level: extended
+    description: Cloud provider name
+    ignore_above: 1024
+  - name: region
+    level: extended
+    description: Cloud region name
+    ignore_above: 1024
 - name: error
   description: |
     Data captured by an agent representing an event occurring in a monitored service.

@@ -19,6 +19,7 @@ package main
 
 import (
 	"flag"
+
 	"github.com/elastic/apm-server/apmpackage"
 )
 
@@ -27,5 +28,6 @@ var ecsDir string
 func main() {
 	flag.StringVar(&ecsDir, "ecsDir", "../ecs", "Path to the Elastic Common Schema repository")
 	flag.Parse()
-	apmpackage.GenerateFields(ecsDir)
+	inputFields := apmpackage.GenerateFields(ecsDir)
+	apmpackage.GenerateDocs(inputFields)
 }

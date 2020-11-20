@@ -75,3 +75,9 @@ func copyFieldRoot(f FieldDefinition) FieldDefinition {
 		HasNonECS:   f.HasNonECS,
 	}
 }
+
+type APMFields struct {
+	Traces  []FieldDefinition
+	Logs    []FieldDefinition
+	Metrics []FieldDefinition
+}

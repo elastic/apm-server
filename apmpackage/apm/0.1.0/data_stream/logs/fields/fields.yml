@@ -1,3 +1,188 @@
+- name: processor.name
+  description: Processor name.
+- name: processor.event
+  description: Processor event.
+- name: timestamp
+  fields:
+  - name: us
+    description: |
+      Timestamp of the event in microseconds since Unix epoch.
+- name: url
+  description: |
+    A complete Url, with scheme, host and path.
+- name: http
+  fields:
+  - name: request
+    fields:
+    - name: headers
+      description: |
+        The canonical headers of the monitored HTTP request.
+  - name: response
+    fields:
+    - name: finished
+      description: |
+        Used by the Node agent to indicate when in the response life cycle an error has occurred.
+    - name: headers
+      description: |
+        The canonical headers of the monitored HTTP response.
+- name: service
+  description: |
+    Service fields.
+  fields:
+  - name: environment
+    description: |
+      Service environment.
+  - name: node
+  - name: language
+    fields:
+    - name: name
+      description: |
+        Name of the programming language used.
+    - name: version
+      description: |
+        Version of the programming language used.
+  - name: runtime
+    fields:
+    - name: name
+      description: |
+        Name of the runtime used.
+    - name: version
+      description: |
+        Version of the runtime used.
+  - name: framework
+    fields:
+    - name: name
+      description: |
+        Name of the framework used.
+    - name: version
+      description: |
+        Version of the framework used.
+- name: transaction
+  fields:
+  - name: sampled
+    description: |
+      Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+  - name: type
+    description: |
+      Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+  - name: name
+    description: |
+      Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+    multi_fields:
+    - type: text
+  - name: duration
+    fields:
+    - name: count
+    - name: sum
+      fields:
+      - name: us
+  - name: self_time
+    description: |
+      Portion of the transaction's duration where no direct child was running
+    fields:
+    - name: count
+    - name: sum
+      fields:
+      - name: us
+  - name: breakdown
+    description: |
+      Counter for collected breakdowns for the transaction
+    fields:
+    - name: count
+- name: trace
+- name: parent
+  fields:
+  - name: id
+    description: |
+      The ID of the parent event.
+- name: agent
+- name: container
+  title: Container
+  type: Container
+  description: |
+    Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+- name: kubernetes
+  title: Kubernetes
+  type: Kubernetes
+  description: |
+    Kubernetes metadata reported by agents
+  fields:
+  - name: namespace
+    description: |
+      Kubernetes namespace
+  - name: node
+    fields:
+    - name: name
+      description: |
+        Kubernetes node name
+  - name: pod
+    fields:
+    - name: name
+      description: |
+        Kubernetes pod name
+    - name: uid
+      description: |
+        Kubernetes Pod UID
+- name: host
+  description: |
+    Optional host fields.
+  fields:
+  - name: os
+    title: Operating System
+    group: 2
+    type: Operating System
+    description: |
+      The OS fields contain information about the operating system.
+- name: process
+  description: |
+    Information pertaining to the running process where the data was collected
+- name: observer
+  fields:
+  - name: listening
+    description: |
+      Address the server is listening on.
+  - name: version_major
+    description: |
+      Major version number of the observer
+- name: user
+- name: client
+- name: source
+- name: destination
+  title: Destination
+  group: 2
+  type: Destination
+  description: |-
+    Destination fields describe details about the destination of a packet/event.
+    Destination fields are usually populated in conjunction with source fields.
+- name: user_agent
+  title: User agent
+  type: User agent
+  description: |
+    The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+  fields:
+  - name: device
+    title: Device
+    type: Device
+    description: |
+      Information concerning the device.
+  - name: os
+    title: Operating System
+    type: Operating System
+    description: |
+      The OS fields contain information about the operating system.
+- name: experimental
+  description: Additional experimental data sent by the agents.
+- name: cloud
+  title: Cloud
+  group: 2
+  type: Cloud
+  description: |
+    Cloud metadata reported by agents
+  fields:
+  - name: account
+  - name: instance
+  - name: machine
+  - name: project
 - name: error
   description: |
     Data captured by an agent representing an event occurring in a monitored service.

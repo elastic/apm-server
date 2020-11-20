@@ -1,35 +1,51 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package apmpackage
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"path/filepath"
+
+	"gopkg.in/yaml.v2"
 )
 
-func GenerateFields(ecsDir string) {
+func GenerateFields(ecsDir string) map[string][]FieldDefinition {
 	// TODO remove all field files before generate them
 
 	// TODO get this from GH directly
 	ecsFlatFields := loadECSFields(ecsDir)
 
-	inputFieldsFiles := map[string][]string{
-		"logs":    {"model/error/_meta/fields.yml"},
-		"metrics": {"model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml"},
-		"traces":  {"_meta/fields.common.yml", "model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"},
+	inputFieldsFiles := map[string][]FieldDefinition{
+		"logs":    concatFields("model/error/_meta/fields.yml"),
+		"metrics": concatFields("model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml"),
+		"traces":  concatFields("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
 	}
 
-	for streamType, fieldsFiles := range inputFieldsFiles {
+	for streamType, inputFields := range inputFieldsFiles {
 		var ecsFields []FieldDefinition
 		var nonECSFields []FieldDefinition
-		for _, fieldsFile := range fieldsFiles {
-			for _, fields := range populateECSInfo(ecsFlatFields, concatFields(fieldsFile)) {
-				ecs, nonECS := splitECSFields(fields)
-				if len(ecs.Fields) > 0 || ecs.IsECS {
-					ecsFields = append(ecsFields, ecs)
-				}
-				if len(nonECS.Fields) > 0 || ecs.IsNonECSLeaf() {
-					nonECSFields = append(nonECSFields, nonECS)
-				}
+		for _, fields := range populateECSInfo(ecsFlatFields, inputFields) {
+			ecs, nonECS := splitECSFields(fields)
+			if len(ecs.Fields) > 0 || ecs.IsECS {
+				ecsFields = append(ecsFields, ecs)
+			}
+			if len(nonECS.Fields) > 0 || ecs.IsNonECSLeaf() {
+				nonECSFields = append(nonECSFields, nonECS)
 			}
 		}
 		// TODO handle version better
@@ -51,6 +67,7 @@ func GenerateFields(ecsDir string) {
 			writeOutFields("fields.yml", nonECSFields)
 		}
 	}
+	return inputFieldsFiles
 }
 
 func populateECSInfo(ecsFlatFields map[string]interface{}, fields []FieldDefinition) []FieldDefinition {
@@ -111,11 +128,13 @@ func loadECSFields(ecsDir string) map[string]interface{} {
 	return ret
 }
 
-func concatFields(fileName string) []FieldDefinition {
-	fs := loadFieldsFile(fileName)
+func concatFields(fileNames ...string) []FieldDefinition {
 	var ret []FieldDefinition
-	for _, key := range fs {
-		ret = append(ret, key.Fields...)
+	for _, fname := range fileNames {
+		fs := loadFieldsFile(fname)
+		for _, key := range fs {
+			ret = append(ret, key.Fields...)
+		}
 	}
 	return ret
 }
