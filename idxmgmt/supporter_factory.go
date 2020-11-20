@@ -18,7 +18,7 @@
 package idxmgmt
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -27,10 +27,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/template"
 
 	"github.com/elastic/apm-server/idxmgmt/ilm"
+	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 	logs "github.com/elastic/apm-server/log"
 )
-
-// functionality largely copied from libbeat
 
 type IndexManagementConfig struct {
 	DataStreams bool
@@ -46,8 +45,8 @@ type IndexManagementConfig struct {
 // apm-server without data streams or Fleet integration.
 //
 // If (Fleet) management is enabled, then no index, template, or ILM config
-// should be set. Index (data stream) names will be well defined, based on
-// the data type, service name, and user-defined namespace.
+// may be set. Index (data stream) names will be well defined, based on the
+// data type, service name, and user-defined namespace.
 //
 // If management is disabled, then the Supporter will operate in one of the
 // legacy modes based on configuration.
@@ -61,15 +60,20 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	} else {
 		log = log.Named(logs.IndexManagement)
 	}
+	if cfg.DataStreams {
+		return dataStreamsSupporter{}, nil
+	}
 	return newSupporter(log, info, cfg)
 }
 
+// NewIndexManagementConfig extracts and validates index management config from info and configRoot.
 func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*IndexManagementConfig, error) {
 	cfg := struct {
-		DataStreams *common.Config         `config:"apm-server.data_streams"`
-		ILM         *common.Config         `config:"apm-server.ilm"`
-		Template    *common.Config         `config:"setup.template"`
-		Output      common.ConfigNamespace `config:"output"`
+		DataStreams            *common.Config         `config:"apm-server.data_streams"`
+		RegisterIngestPipeline *common.Config         `config:"apm-server.register.ingest.pipeline"`
+		ILM                    *common.Config         `config:"apm-server.ilm"`
+		Template               *common.Config         `config:"setup.template"`
+		Output                 common.ConfigNamespace `config:"output"`
 	}{}
 	if configRoot != nil {
 		if err := configRoot.Unpack(&cfg); err != nil {
@@ -77,29 +81,49 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 		}
 	}
 
-	tmplConfig, err := unpackTemplateConfig(cfg.Template)
-	if err != nil {
-		return nil, fmt.Errorf("unpacking template config fails: %+v", err)
-	}
-
-	ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
-	if err != nil {
-		return nil, fmt.Errorf("creating ILM config fails: %v", err)
-	}
-
-	return &IndexManagementConfig{
+	out := &IndexManagementConfig{
 		DataStreams: cfg.DataStreams.Enabled(),
-		Template:    tmplConfig,
-		ILM:         ilmConfig,
 		Output:      cfg.Output,
-	}, nil
-}
-
-func unpackTemplateConfig(cfg *common.Config) (template.TemplateConfig, error) {
-	config := template.DefaultConfig()
-	if cfg == nil {
-		return config, nil
 	}
-	err := cfg.Unpack(&config)
-	return config, err
+
+	if !out.DataStreams {
+		// We only set `out.Template = template.DefaultConfig()` when data
+		// streams are disabled, so that we can return an error if the user
+		// has explicitly specified setup.template.enabled when data streams
+		// are enabled.
+		out.Template = template.DefaultConfig()
+	}
+	if cfg.Template != nil {
+		if err := cfg.Template.Unpack(&out.Template); err != nil {
+			return nil, errors.Wrap(err, "unpacking template config failed")
+		}
+	}
+
+	if out.DataStreams {
+		if out.Template.Enabled {
+			return nil, errors.New("`setup.template.enabled` cannot be specified when data streams are enabled")
+		}
+		if cfg.ILM != nil {
+			return nil, errors.New("`apm-server.ilm` cannot be specified when data streams are enabled")
+		}
+		if cfg.RegisterIngestPipeline != nil {
+			return nil, errors.New("`apm-server.register.ingest.pipeline` cannot be specified when data streams are enabled")
+		}
+		if cfg.Output.Name() == esKey {
+			var unmanagedIdxCfg unmanaged.Config
+			if err := cfg.Output.Config().Unpack(&unmanagedIdxCfg); err != nil {
+				return nil, errors.Wrap(err, "failed to unpack output.elasticsearch config")
+			}
+			if unmanagedIdxCfg.Customized() {
+				return nil, errors.New("`output.elasticsearch.{index,indices}` cannot be specified when data streams are enabled")
+			}
+		}
+	} else {
+		ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
+		if err != nil {
+			return nil, errors.Wrap(err, "creating ILM config fails")
+		}
+		out.ILM = ilmConfig
+	}
+	return out, nil
 }

@@ -26,8 +26,10 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 )
 
@@ -73,6 +75,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.Equal(t, libilm.ModeDisabled, s.ilmConfig.Mode)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
 	})
+
 	t.Run("SetupTemplateConfigConflicting", func(t *testing.T) {
 		s, err := buildSupporter(map[string]interface{}{
 			"output.elasticsearch.index": "custom-index",
@@ -80,6 +83,58 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "`setup.template.name` and `setup.template.pattern` have to be set ")
 		assert.Nil(t, s)
-
 	})
+
+}
+
+func TestMakeDefaultSupporterDataStreams(t *testing.T) {
+	supporter, err := MakeDefaultSupporter(nil, beat.Info{}, common.MustNewConfigFrom(map[string]interface{}{
+		"apm-server.data_streams.enabled": "true",
+	}))
+	require.NoError(t, err)
+
+	// The data streams supporter does not set up templates or ILM. These
+	// are expected to be set up externally, typically by Fleet.
+	assert.False(t, supporter.Enabled())
+
+	// Manager will fail when invoked; it should never be invoked automatically
+	// as supporter.Enabled() returns false. It will be invoked when running the
+	// "setup" command.
+	manager := supporter.Manager(nil, nil)
+	assert.NotNil(t, manager)
+	ok, warnings := manager.VerifySetup(idxmgmt.LoadModeEnabled, idxmgmt.LoadModeEnabled)
+	assert.True(t, ok)
+	assert.Zero(t, warnings)
+	err = manager.Setup(idxmgmt.LoadModeEnabled, idxmgmt.LoadModeEnabled)
+	assert.EqualError(t, err, "index setup must be performed externally when using data streams")
+
+	selector, err := supporter.BuildSelector(nil)
+	require.NoError(t, err)
+	index, err := selector.Select(&beat.Event{
+		Fields: common.MapStr{
+			datastreams.TypeField:      datastreams.TracesType,
+			datastreams.DatasetField:   "apm.apm_server",
+			datastreams.NamespaceField: "production",
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "traces-apm.apm_server-production", index)
+}
+
+func TestMakeDefaultSupporterDataStreamsConflicts(t *testing.T) {
+	runTest := func(attrKey string, attrValue interface{}, expectedErr string) {
+		t.Run(attrKey, func(t *testing.T) {
+			s, err := MakeDefaultSupporter(nil, beat.Info{}, common.MustNewConfigFrom(map[string]interface{}{
+				"apm-server.data_streams.enabled": "true",
+				attrKey:                           attrValue,
+			}))
+			assert.EqualError(t, err, expectedErr)
+			assert.Nil(t, s)
+		})
+	}
+	runTest("apm-server.ilm.enabled", "auto", "`apm-server.ilm` cannot be specified when data streams are enabled")
+	runTest("apm-server.register.ingest.pipeline.enabled", "true", "`apm-server.register.ingest.pipeline` cannot be specified when data streams are enabled")
+	runTest("setup.template.enabled", "true", "`setup.template.enabled` cannot be specified when data streams are enabled")
+	runTest("output.elasticsearch.index", "abc", "`output.elasticsearch.{index,indices}` cannot be specified when data streams are enabled")
+	runTest("output.elasticsearch.indices", map[string]interface{}{}, "`output.elasticsearch.{index,indices}` cannot be specified when data streams are enabled")
 }
