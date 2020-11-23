@@ -110,7 +110,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh(label: 'Run intake', script: './script/jenkins/intake.sh')
+            sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
           }
         }
       }
@@ -138,7 +138,7 @@ pipeline {
                 dir(BASE_DIR){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
-                    sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                    sh(label: 'Linux build', script: './.ci/scripts/build.sh')
                   }
                 }
               }
@@ -168,8 +168,8 @@ pipeline {
               dir(BASE_DIR){
                 retry(2) { // Retry in case there are any errors to avoid temporary glitches
                   sleep randomNumber(min: 5, max: 10)
-                  powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
-                  powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
+                  powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
+                  powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
                 }
               }
             }
@@ -243,7 +243,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
+                sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
               }
             }
           }
@@ -285,7 +285,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
+                sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
               }
             }
           }
@@ -333,7 +333,7 @@ pipeline {
               unstash 'source'
               golang(){
                 dir("${BASE_DIR}"){
-                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                  sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                   sendBenchmarks(file: 'bench.out', index: "benchmark-server")
                 }
               }
@@ -364,7 +364,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){
                 catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-                  sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
+                  sh(label: 'Test Sync', script: './.ci/scripts/sync.sh')
                 }
               }
             }
@@ -407,10 +407,7 @@ pipeline {
               unstash 'source'
               golang(){
                 dir("${BASE_DIR}"){
-                  sh(label: 'Build packages', script: './script/jenkins/package.sh')
-                  sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
-                  dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                  sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                  sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                 }
               }
             }
@@ -418,7 +415,81 @@ pipeline {
         }
         stage('Publish') {
           environment {
-            BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+            SNAPSHOT = "true"
+          }
+          when {
+            beforeAgent true
+            allOf {
+              expression { return params.release_ci }
+              expression { return env.ONLY_DOCS == "false" }
+              anyOf {
+                branch 'master'
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+                expression { return isPR() && env.BEATS_UPDATED != "false" }
+                expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
+                expression { return params.Run_As_Master_Branch }
+              }
+            }
+          }
+          stages {
+            stage('Package') {
+              steps {
+                withGithubNotify(context: 'Package') {
+                  deleteDir()
+                  unstash 'source'
+                  golang(){
+                    dir("${BASE_DIR}"){
+                      sh(label: 'Build packages', script: './.ci/scripts/package.sh')
+                      sh(label: 'Test packages install', script: './.ci/scripts/test-install-packages.sh')
+                      dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
+                      sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                    }
+                  }
+                }
+              }
+            }
+            stage('Publish') {
+              environment {
+                BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
+              }
+              steps {
+                // Upload files to the default location
+                googleStorageUpload(bucket: "${BUCKET_URI}",
+                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                  pathPrefix: "${BASE_DIR}/build/distributions/",
+                  pattern: "${BASE_DIR}/build/distributions/**/*",
+                  sharedPublicly: true,
+                  showInline: true)
+
+                // Copy those files to another location with the sha commit to test them afterward.
+                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
+                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                  pathPrefix: "${BASE_DIR}/build/distributions/",
+                  pattern: "${BASE_DIR}/build/distributions/**/*",
+                  sharedPublicly: true,
+                  showInline: true)
+              }
+            }
+          }
+        }
+        stage('APM Integration Tests') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            beforeAgent true
+            allOf {
+              anyOf {
+                changeRequest()
+                expression { return !params.Run_As_Master_Branch }
+              }
+              expression { return params.its_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
+>>>>>>> 8feaead28... chore(ci): move CI scripts to the .ci directory (#4452)
           }
           steps {
             // Upload files to the default location
