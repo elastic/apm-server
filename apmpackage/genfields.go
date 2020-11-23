@@ -19,15 +19,15 @@ package apmpackage
 
 import (
 	"io/ioutil"
+	"net/http"
 	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
 
-func GenerateFields(ecsDir, version string) map[string]fields {
+func GenerateFields(version string) map[string]fields {
 
-	// TODO get this from GH directly
-	ecsFlatFields := loadECSFields(ecsDir)
+	ecsFlatFields := loadECSFields()
 
 	inputFieldsFiles := map[string]fields{
 		"logs":    concatFields("model/error/_meta/fields.yml"),
@@ -47,13 +47,12 @@ func GenerateFields(ecsDir, version string) map[string]fields {
 				nonECSFields = append(nonECSFields, nonECS)
 			}
 		}
-		dataStreamFieldsPath := filepath.Join("apmpackage/apm/", version, "/data_stream", streamType, "/fields")
 		var writeOutFields = func(fName string, data fields) {
 			bytes, err := yaml.Marshal(&data)
 			if err != nil {
 				panic(err)
 			}
-			err = ioutil.WriteFile(filepath.Join(dataStreamFieldsPath, fName), bytes, 0644)
+			err = ioutil.WriteFile(filepath.Join(fieldsPath(version, streamType), fName), bytes, 0644)
 			if err != nil {
 				panic(err)
 			}
@@ -112,9 +111,12 @@ func splitECSFields(parent field) (field, field) {
 
 // adapted from https://github.com/elastic/integrations/tree/master/dev/import-beats
 
-func loadECSFields(ecsDir string) map[string]interface{} {
-	path := filepath.Join(ecsDir, "generated/ecs/ecs_flat.yml")
-	fields, err := ioutil.ReadFile(path)
+func loadECSFields() map[string]interface{} {
+	resp, err := http.Get("https://raw.githubusercontent.com/elastic/ecs/master/generated/ecs/ecs_flat.yml")
+	if err != nil {
+		panic(err)
+	}
+	fields, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}

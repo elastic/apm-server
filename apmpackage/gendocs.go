@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"sort"
 	"strings"
 	"text/template"
@@ -38,14 +37,14 @@ func GenerateDocs(inputFields map[string]fields, version string) {
 		MetricsExample:     loadExample("metricsets.json"),
 		ErrorExample:       loadExample("errors.json"),
 	}
-	t := template.New("apmpackage/docs/README.template.md")
+	t := template.New(docsTemplateFilePath)
 	tmpl, err := t.Funcs(map[string]interface{}{
 		"Trim": strings.TrimSpace,
-	}).ParseFiles("apmpackage/docs/README.template.md")
+	}).ParseFiles(docsTemplateFilePath)
 	if err != nil {
 		panic(err)
 	}
-	path := filepath.Join("apmpackage/apm/", version, "/docs/README.md")
+	path := DocsFilePath(version)
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
@@ -67,12 +66,9 @@ type docsData struct {
 }
 
 func prepareFields(inputFields map[string]fields, version, streamType string) fields {
-	baseFieldsPath := filepath.Join(
-		"apmpackage/apm/", version, "/data_stream/", streamType, "/fields/base-fields.yml")
 	extend := func(fs fields) fields {
-		//TODO mark aas ECS
 		var baseFields fields
-		for _, f := range loadFieldsFile(baseFieldsPath) {
+		for _, f := range loadFieldsFile(baseFieldsFilePath(version, streamType)) {
 			f.IsECS = true
 			baseFields = append(baseFields, f)
 		}
