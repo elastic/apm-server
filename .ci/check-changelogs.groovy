@@ -52,7 +52,7 @@ pipeline {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
-          sh(label: 'Run check changelogs', script: './script/jenkins/check-changelogs.sh')
+          sh(label: 'Run check changelogs', script: './.ci/scripts/check-changelogs.sh')
         }
       }
     }
