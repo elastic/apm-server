@@ -19,9 +19,10 @@ package main
 
 import (
 	"flag"
-	"github.com/elastic/apm-server/apmpackage"
 	"io/ioutil"
 	"os"
+
+	"github.com/elastic/apm-server/apmpackage"
 )
 
 var packageVersion string
