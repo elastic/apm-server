@@ -100,6 +100,7 @@ func CleanupElasticsearch(t testing.TB) {
 		esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}},
 		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
 		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
 		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
 		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
 	}
