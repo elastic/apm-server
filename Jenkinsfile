@@ -335,7 +335,7 @@ pipeline {
               unstash 'source'
               golang(){
                 dir("${BASE_DIR}"){
-                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                  sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                   sendBenchmarks(file: 'bench.out', index: "benchmark-server")
                 }
               }
