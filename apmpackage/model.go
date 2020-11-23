@@ -17,43 +17,47 @@
 
 package apmpackage
 
-type FieldDefinition struct {
-	Name        string `yaml:"name,omitempty"`
-	Key         string `yaml:"key,omitempty"`
-	Title       string `yaml:"title,omitempty"`
-	Group       *int   `yaml:"group,omitempty"`
-	Level       string `yaml:"level,omitempty"`
-	Required    *bool  `yaml:"required,omitempty"`
-	Type        string `yaml:"type,omitempty"`
-	Format      string `yaml:"format,omitempty"`
-	Description string `yaml:"description,omitempty"`
-	Release     string `yaml:"release,omitempty"`
-	Alias       string `yaml:"alias,omitempty"`
-	Path        string `yaml:"path,omitempty"`
-	Footnote    string `yaml:"footnote,omitempty"`
-	// Example is not consistent in ECS schema (either single field or array)
-	//Example     string             `yaml:"example,omitempty"`
+type field struct {
+	Name        string                 `yaml:"name,omitempty"`
+	Key         string                 `yaml:"key,omitempty"`
+	Title       string                 `yaml:"title,omitempty"`
+	Group       *int                   `yaml:"group,omitempty"`
+	Level       string                 `yaml:"level,omitempty"`
+	Required    *bool                  `yaml:"required,omitempty"`
+	Type        string                 `yaml:"type,omitempty"`
+	Format      string                 `yaml:"format,omitempty"`
+	Description string                 `yaml:"description,omitempty"`
+	Release     string                 `yaml:"release,omitempty"`
+	Alias       string                 `yaml:"alias,omitempty"`
+	Path        string                 `yaml:"path,omitempty"`
+	Footnote    string                 `yaml:"footnote,omitempty"`
 	IgnoreAbove *int                   `yaml:"ignore_above,omitempty"`
-	MultiFields []MultiFieldDefinition `yaml:"multi_fields,omitempty"`
-	Fields      []FieldDefinition      `yaml:"fields,omitempty"`
+	MultiFields []multiFieldDefinition `yaml:"multi_fields,omitempty"`
+	Fields      []field                `yaml:"fields,omitempty"`
 	IsECS       bool                   `yaml:"-"`
 	HasECS      bool                   `yaml:"-"`
 	HasNonECS   bool                   `yaml:"-"`
 }
 
-func (f FieldDefinition) IsNonECSLeaf() bool {
+func (f field) isNonECSLeaf() bool {
 	return f.Type != "group" && !f.IsECS
 }
 
-type MultiFieldDefinition struct {
+type fields []field
+
+func (f fields) Len() int           { return len(f) }
+func (f fields) Less(i, j int) bool { return f[i].Name < f[j].Name }
+func (f fields) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
+
+type multiFieldDefinition struct {
 	Name         string `yaml:"Name,omitempty"`
 	Type         string `yaml:"type,omitempty"`
 	Norms        *bool  `yaml:"norms,omitempty"`
 	DefaultField *bool  `yaml:"default_field,omitempty"`
 }
 
-func copyFieldRoot(f FieldDefinition) FieldDefinition {
-	return FieldDefinition{
+func copyFieldRoot(f field) field {
+	return field{
 		Name:        f.Name,
 		Key:         f.Key,
 		Title:       f.Title,
@@ -74,10 +78,4 @@ func copyFieldRoot(f FieldDefinition) FieldDefinition {
 		HasECS:      f.HasECS,
 		HasNonECS:   f.HasNonECS,
 	}
-}
-
-type APMFields struct {
-	Traces  []FieldDefinition
-	Logs    []FieldDefinition
-	Metrics []FieldDefinition
 }

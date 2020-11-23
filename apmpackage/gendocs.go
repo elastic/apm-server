@@ -23,16 +23,16 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 )
 
-func GenerateDocs(inputFields map[string][]FieldDefinition, version string) {
-	// TODO sort alphabetically and add datasets (from base-fields)
-	data := FlattenAPMFields{
-		Traces:             flatten("", inputFields["traces"]),
-		Metrics:            flatten("", inputFields["metrics"]),
-		Logs:               flatten("", inputFields["logs"]),
+func GenerateDocs(inputFields map[string]fields, version string) {
+	data := docsData{
+		Traces:             prepareFields(inputFields, version, "traces"),
+		Metrics:            prepareFields(inputFields, version, "metrics"),
+		Logs:               prepareFields(inputFields, version, "logs"),
 		TransactionExample: loadExample("transactions.json"),
 		SpanExample:        loadExample("spans.json"),
 		MetricsExample:     loadExample("metricsets.json"),
@@ -56,18 +56,39 @@ func GenerateDocs(inputFields map[string][]FieldDefinition, version string) {
 	}
 }
 
-type FlattenAPMFields struct {
-	Traces             []FieldDefinition
-	Metrics            []FieldDefinition
-	Logs               []FieldDefinition
+type docsData struct {
+	Traces             []field
+	Metrics            []field
+	Logs               []field
 	TransactionExample string
 	SpanExample        string
 	MetricsExample     string
 	ErrorExample       string
 }
 
-func flatten(name string, fs []FieldDefinition) []FieldDefinition {
-	var ret []FieldDefinition
+func prepareFields(inputFields map[string]fields, version, streamType string) fields {
+	baseFieldsPath := filepath.Join(
+		"apmpackage/apm/", version, "/data_stream/", streamType, "/fields/base-fields.yml")
+	extend := func(fs fields) fields {
+		//TODO mark aas ECS
+		var baseFields fields
+		for _, f := range loadFieldsFile(baseFieldsPath) {
+			f.IsECS = true
+			baseFields = append(baseFields, f)
+		}
+		fs = append(baseFields, fs...)
+		return fs
+	}
+	return extend(order(flatten("", inputFields[streamType])))
+}
+
+func order(fs fields) fields {
+	sort.Sort(fs)
+	return fs
+}
+
+func flatten(name string, fs fields) fields {
+	var ret fields
 	for _, f := range fs {
 		if name != "" {
 			f.Name = name + "." + f.Name

@@ -19,10 +19,11 @@ package main
 
 import (
 	"flag"
-	"github.com/elastic/apm-server/apmpackage"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/elastic/apm-server/apmpackage"
 )
 
 var ecsDir string
@@ -49,5 +50,5 @@ func clear(version string) {
 			os.Remove(filepath.Join(dir, f.Name(), "fields/fields.yml"))
 		}
 	}
-	ioutil.WriteFile("apmpackage/apm/0.1.0/docs/README.md", nil, 0644)
+	ioutil.WriteFile(filepath.Join("apmpackage/apm/", version, "/docs/README.md"), nil, 0644)
 }
