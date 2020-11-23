@@ -27,7 +27,7 @@ import (
 	"text/template"
 )
 
-func GenerateDocs(inputFields map[string]fields, version string) {
+func GenerateDocs(inputFields map[string]Fields, version string) {
 	data := docsData{
 		Traces:             prepareFields(inputFields, version, "traces"),
 		Metrics:            prepareFields(inputFields, version, "metrics"),
@@ -65,9 +65,9 @@ type docsData struct {
 	ErrorExample       string
 }
 
-func prepareFields(inputFields map[string]fields, version, streamType string) fields {
-	extend := func(fs fields) fields {
-		var baseFields fields
+func prepareFields(inputFields map[string]Fields, version, streamType string) Fields {
+	extend := func(fs Fields) Fields {
+		var baseFields Fields
 		for _, f := range loadFieldsFile(baseFieldsFilePath(version, streamType)) {
 			f.IsECS = true
 			baseFields = append(baseFields, f)
@@ -78,13 +78,13 @@ func prepareFields(inputFields map[string]fields, version, streamType string) fi
 	return extend(order(flatten("", inputFields[streamType])))
 }
 
-func order(fs fields) fields {
+func order(fs Fields) Fields {
 	sort.Sort(fs)
 	return fs
 }
 
-func flatten(name string, fs fields) fields {
-	var ret fields
+func flatten(name string, fs Fields) Fields {
+	var ret Fields
 	for _, f := range fs {
 		if name != "" {
 			f.Name = name + "." + f.Name

@@ -33,7 +33,7 @@ type field struct {
 	Footnote    string                 `yaml:"footnote,omitempty"`
 	IgnoreAbove *int                   `yaml:"ignore_above,omitempty"`
 	MultiFields []multiFieldDefinition `yaml:"multi_fields,omitempty"`
-	Fields      []field                `yaml:"fields,omitempty"`
+	Fields      []field                `yaml:"Fields,omitempty"`
 	IsECS       bool                   `yaml:"-"`
 	HasECS      bool                   `yaml:"-"`
 	HasNonECS   bool                   `yaml:"-"`
@@ -43,11 +43,11 @@ func (f field) isNonECSLeaf() bool {
 	return f.Type != "group" && !f.IsECS
 }
 
-type fields []field
+type Fields []field
 
-func (f fields) Len() int           { return len(f) }
-func (f fields) Less(i, j int) bool { return f[i].Name < f[j].Name }
-func (f fields) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
+func (f Fields) Len() int           { return len(f) }
+func (f Fields) Less(i, j int) bool { return f[i].Name < f[j].Name }
+func (f Fields) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
 
 type multiFieldDefinition struct {
 	Name         string `yaml:"Name,omitempty"`

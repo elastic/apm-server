@@ -25,19 +25,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func GenerateFields(version string) map[string]fields {
+func GenerateFields(version string) map[string]Fields {
 
 	ecsFlatFields := loadECSFields()
 
-	inputFieldsFiles := map[string]fields{
+	inputFieldsFiles := map[string]Fields{
 		"logs":    concatFields("model/error/_meta/fields.yml"),
 		"metrics": concatFields("model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml"),
 		"traces":  concatFields("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
 	}
 
 	for streamType, inputFields := range inputFieldsFiles {
-		var ecsFields fields
-		var nonECSFields fields
+		var ecsFields Fields
+		var nonECSFields Fields
 		for _, fields := range populateECSInfo(ecsFlatFields, inputFields) {
 			ecs, nonECS := splitECSFields(fields)
 			if len(ecs.Fields) > 0 || ecs.IsECS {
@@ -47,7 +47,7 @@ func GenerateFields(version string) map[string]fields {
 				nonECSFields = append(nonECSFields, nonECS)
 			}
 		}
-		var writeOutFields = func(fName string, data fields) {
+		var writeOutFields = func(fName string, data Fields) {
 			bytes, err := yaml.Marshal(&data)
 			if err != nil {
 				panic(err)
@@ -67,9 +67,9 @@ func GenerateFields(version string) map[string]fields {
 	return inputFieldsFiles
 }
 
-func populateECSInfo(ecsFlatFields map[string]interface{}, inputFields fields) fields {
-	var traverse func(string, fields) (fields, bool, bool)
-	traverse = func(fName string, fs fields) (fields, bool, bool) {
+func populateECSInfo(ecsFlatFields map[string]interface{}, inputFields Fields) Fields {
+	var traverse func(string, Fields) (Fields, bool, bool)
+	traverse = func(fName string, fs Fields) (Fields, bool, bool) {
 		var ecsCount int
 		for idx, field := range fs {
 			fieldName := field.Name
@@ -128,8 +128,8 @@ func loadECSFields() map[string]interface{} {
 	return ret
 }
 
-func concatFields(fileNames ...string) fields {
-	var ret fields
+func concatFields(fileNames ...string) Fields {
+	var ret Fields
 	for _, fname := range fileNames {
 		fs := loadFieldsFile(fname)
 		for _, key := range fs {
@@ -139,7 +139,7 @@ func concatFields(fileNames ...string) fields {
 	return ret
 }
 
-func loadFieldsFile(path string) fields {
+func loadFieldsFile(path string) Fields {
 	fields, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
@@ -153,7 +153,7 @@ func loadFieldsFile(path string) fields {
 	return overrideFieldValues(fs)
 }
 
-func overrideFieldValues(fs fields) fields {
+func overrideFieldValues(fs Fields) Fields {
 	var ret []field
 	for _, f := range fs {
 		if f.Type == "" {
