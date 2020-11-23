@@ -136,8 +136,6 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
-	go processor.Run()
-	defer processor.Stop(context.Background())
 
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
@@ -170,6 +168,13 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	out, err := processor.ProcessTransformables(context.Background(), in)
 	require.NoError(t, err)
 	assert.Empty(t, out)
+
+	// Start periodic tail-sampling. We start the processor after processing
+	// events to ensure all events are processed before any local sampling
+	// decisions are made, such that we have a single tail-sampling decision
+	// to check.
+	go processor.Run()
+	defer processor.Stop(context.Background())
 
 	// We have configured 50% tail-sampling, so we expect a single trace ID
 	// to be published. Sampling is non-deterministic (weighted random), so
