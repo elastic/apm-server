@@ -170,8 +170,8 @@ pipeline {
               dir(BASE_DIR){
                 retry(2) { // Retry in case there are any errors to avoid temporary glitches
                   sleep randomNumber(min: 5, max: 10)
-                  powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
-                  powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
+                  powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
+                  powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
                 }
               }
             }
