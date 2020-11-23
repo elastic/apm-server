@@ -140,7 +140,7 @@ pipeline {
                 dir(BASE_DIR){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
-                    sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                    sh(label: 'Linux build', script: './.ci/scripts/build.sh')
                   }
                 }
               }
@@ -245,7 +245,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
+                sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
               }
             }
           }
@@ -287,7 +287,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
+                sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
               }
             }
           }
