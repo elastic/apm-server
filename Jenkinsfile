@@ -386,7 +386,7 @@ pipeline {
               golang(){
                 dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                 dir("${BASE_DIR}"){
-                  sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                  sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                 }
               }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
@@ -428,10 +428,10 @@ pipeline {
                   unstash 'source'
                   golang(){
                     dir("${BASE_DIR}"){
-                      sh(label: 'Build packages', script: './script/jenkins/package.sh')
+                      sh(label: 'Build packages', script: './.ci/scripts/package.sh')
                       sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
                       dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                      sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                      sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                     }
                   }
                 }
