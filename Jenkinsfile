@@ -366,7 +366,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){
                 catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-                  sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
+                  sh(label: 'Test Sync', script: './.ci/scripts/sync.sh')
                 }
               }
             }
