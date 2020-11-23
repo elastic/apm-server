@@ -6,4 +6,4 @@ source ./script/common.bash
 
 jenkins_setup
 
-./script/jenkins/build.sh
+./.ci/scripts/build.sh
