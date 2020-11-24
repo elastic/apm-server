@@ -86,6 +86,30 @@ pipeline {
         }
       }
     }
+    stage('Lint') {
+      options { skipDefaultCheckout() }
+      environment {
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
+        GOPATH = "${env.WORKSPACE}"
+      }
+      when {
+        beforeAgent true
+        allOf {
+          expression { return params.intake_ci }
+          expression { return env.ONLY_DOCS == "false" }
+        }
+      }
+      steps {
+        withGithubNotify(context: 'Lint') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh(label: 'Run Lint', script: './.ci/scripts/lint.sh')
+          }
+        }
+      }
+    }
     /**
     Updating generated files for Beat.
     Checks the GO environment.
