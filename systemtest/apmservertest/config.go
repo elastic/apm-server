@@ -64,7 +64,7 @@ type Config struct {
 	Output OutputConfig `json:"output"`
 
 	// Setup holds configuration for libbeat setup.
-	Setup SetupConfig `json:"setup"`
+	Setup *SetupConfig `json:"setup,omitempty"`
 
 	// Queue holds configuration for the libbeat event queue.
 	Queue QueueConfig `json:"queue"`
@@ -355,7 +355,7 @@ func DefaultConfig() Config {
 				Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
 			},
 		},
-		Setup: SetupConfig{
+		Setup: &SetupConfig{
 			IndexTemplate: IndexTemplateConfig{
 				Shards:          1,
 				RefreshInterval: "250ms",

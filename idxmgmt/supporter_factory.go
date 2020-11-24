@@ -36,6 +36,11 @@ type IndexManagementConfig struct {
 	Template    template.TemplateConfig
 	ILM         ilm.Config
 	Output      common.ConfigNamespace
+
+	unmanagedIdxCfg                 unmanaged.Config
+	registerIngestPipelineSpecified bool
+	setupTemplateSpecified          bool
+	ilmSpecified                    bool
 }
 
 // MakeDefaultSupporter creates a new idxmgmt.Supporter, using the given root config.
@@ -44,9 +49,10 @@ type IndexManagementConfig struct {
 // managed, and legacy unmanaged. The legacy modes exist purely to run
 // apm-server without data streams or Fleet integration.
 //
-// If (Fleet) management is enabled, then no index, template, or ILM config
-// may be set. Index (data stream) names will be well defined, based on the
-// data type, service name, and user-defined namespace.
+// If (Fleet) management is enabled, then any index, template, and ILM config
+// defined will be ignored and warnings logged. Index (data stream) names will
+// be well defined, based on the data type, service name, and user-defined
+// namespace.
 //
 // If management is disabled, then the Supporter will operate in one of the
 // legacy modes based on configuration.
@@ -55,75 +61,113 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	if err != nil {
 		return nil, err
 	}
-	if log == nil {
-		log = logp.NewLogger(logs.IndexManagement)
-	} else {
-		log = log.Named(logs.IndexManagement)
-	}
+	log = namedLogger(log)
+	cfg.logWarnings(log)
 	if cfg.DataStreams {
+		if cfg.setupTemplateSpecified {
+		}
 		return dataStreamsSupporter{}, nil
 	}
 	return newSupporter(log, info, cfg)
 }
 
+func namedLogger(log *logp.Logger) *logp.Logger {
+	if log == nil {
+		return logp.NewLogger(logs.IndexManagement)
+	}
+	return log.Named(logs.IndexManagement)
+}
+
 // NewIndexManagementConfig extracts and validates index management config from info and configRoot.
 func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*IndexManagementConfig, error) {
-	cfg := struct {
+	var cfg struct {
 		DataStreams            *common.Config         `config:"apm-server.data_streams"`
 		RegisterIngestPipeline *common.Config         `config:"apm-server.register.ingest.pipeline"`
 		ILM                    *common.Config         `config:"apm-server.ilm"`
 		Template               *common.Config         `config:"setup.template"`
 		Output                 common.ConfigNamespace `config:"output"`
-	}{}
+	}
 	if configRoot != nil {
 		if err := configRoot.Unpack(&cfg); err != nil {
 			return nil, err
 		}
 	}
 
-	out := &IndexManagementConfig{
-		DataStreams: cfg.DataStreams.Enabled(),
-		Output:      cfg.Output,
-	}
-
-	if !out.DataStreams {
-		// We only set `out.Template = template.DefaultConfig()` when data
-		// streams are disabled, so that we can return an error if the user
-		// has explicitly specified setup.template.enabled when data streams
-		// are enabled.
-		out.Template = template.DefaultConfig()
-	}
+	templateConfig := defaultTemplateConfig()
 	if cfg.Template != nil {
-		if err := cfg.Template.Unpack(&out.Template); err != nil {
+		if err := cfg.Template.Unpack(&templateConfig); err != nil {
 			return nil, errors.Wrap(err, "unpacking template config failed")
 		}
 	}
 
-	if out.DataStreams {
-		if out.Template.Enabled {
-			return nil, errors.New("`setup.template.enabled` cannot be specified when data streams are enabled")
-		}
-		if cfg.ILM != nil {
-			return nil, errors.New("`apm-server.ilm` cannot be specified when data streams are enabled")
-		}
-		if cfg.RegisterIngestPipeline != nil {
-			return nil, errors.New("`apm-server.register.ingest.pipeline` cannot be specified when data streams are enabled")
-		}
-		if cfg.Output.Name() == esKey {
-			var unmanagedIdxCfg unmanaged.Config
-			if err := cfg.Output.Config().Unpack(&unmanagedIdxCfg); err != nil {
-				return nil, errors.Wrap(err, "failed to unpack output.elasticsearch config")
-			}
-			if unmanagedIdxCfg.Customized() {
-				return nil, errors.New("`output.elasticsearch.{index,indices}` cannot be specified when data streams are enabled")
-			}
-		}
-	} else {
-		ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
-		if err != nil {
-			return nil, errors.Wrap(err, "creating ILM config fails")
-		}
-		out.ILM = ilmConfig
+	ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating ILM config fails")
 	}
-	return out, nil
+
+	var unmanagedIdxCfg unmanaged.Config
+	if cfg.Output.Name() == esKey {
+		if err := cfg.Output.Config().Unpack(&unmanagedIdxCfg); err != nil {
+			return nil, errors.Wrap(err, "failed to unpack output.elasticsearch config")
+		}
+		if err := checkTemplateESSettings(templateConfig, &unmanagedIdxCfg); err != nil {
+			return nil, err
+		}
+	}
+
+	return &IndexManagementConfig{
+		DataStreams: cfg.DataStreams.Enabled(),
+		Output:      cfg.Output,
+		Template:    templateConfig,
+		ILM:         ilmConfig,
+
+		unmanagedIdxCfg:                 unmanagedIdxCfg,
+		registerIngestPipelineSpecified: cfg.RegisterIngestPipeline != nil,
+		setupTemplateSpecified:          cfg.Template != nil,
+		ilmSpecified:                    cfg.ILM != nil,
+	}, nil
+}
+
+func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanaged.Config) error {
+	if !tmplCfg.Enabled || indexCfg == nil {
+		return nil
+	}
+	if indexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
+		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
+	}
+	return nil
+}
+
+func (cfg *IndexManagementConfig) logWarnings(log *logp.Logger) {
+	if !cfg.DataStreams {
+		return
+	}
+	const format = "`%s` specified, but will be ignored as data streams are enabled"
+	if cfg.setupTemplateSpecified {
+		log.Warnf(format, "setup.template")
+	}
+	if cfg.ilmSpecified {
+		log.Warnf(format, "apm-server.ilm")
+	}
+	if cfg.registerIngestPipelineSpecified {
+		log.Warnf(format, "apm-server.register.ingest.pipeline")
+	}
+	if cfg.unmanagedIdxCfg.Customized() {
+		log.Warnf(format, "output.elasticsearch.{index,indices}")
+	}
+}
+
+// defaultTemplateConfig customises template.DefaultConfig() with index settings.
+// This is only meaningful when data streams are not in use.
+func defaultTemplateConfig() template.TemplateConfig {
+	cfg := template.DefaultConfig()
+	cfg.Settings = template.TemplateSettings{
+		Index: map[string]interface{}{
+			"codec": "best_compression",
+			"mapping.total_fields.limit": 2000,
+			"number_of_shards":           1,
+		},
+		Source: map[string]interface{}{"enabled": true},
+	}
+	return cfg
 }

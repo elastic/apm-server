@@ -27,6 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -41,13 +42,14 @@ func TestDataStreamsEnabled(t *testing.T) {
 			if enabled {
 				// Enable data streams.
 				srv.Config.DataStreams = &apmservertest.DataStreamsConfig{Enabled: true}
+				srv.Config.Setup = nil
 
 				// Create a data stream index template.
 				resp, err := systemtest.Elasticsearch.Indices.PutIndexTemplate("apm-data-streams", strings.NewReader(fmt.Sprintf(`{
 				  "index_patterns": ["traces-*", "logs-*", "metrics-*"],
 				  "data_stream": {},
 				  "priority": 200,
-				  "template": {"settings": {"number_of_shards": 1}}
+				  "template": {"settings": {"number_of_shards": 1, "refresh_interval": "250ms"}}
 				}`)))
 				require.NoError(t, err)
 				body, _ := ioutil.ReadAll(resp.Body)
@@ -104,6 +106,11 @@ func TestDataStreamsEnabled(t *testing.T) {
 				"@timestamp", "timestamp.us",
 				"trace.id", "transaction.id",
 			)
+
+			// There should be no warnings or errors logged.
+			for _, record := range srv.Logs.All() {
+				assert.Condition(t, func() bool { return record.Level < zapcore.WarnLevel }, record.Level)
+			}
 		})
 	}
 }

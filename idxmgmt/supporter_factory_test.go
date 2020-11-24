@@ -21,6 +21,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/stretchr/testify/require"
 
@@ -28,6 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
+	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/idxmgmt/unmanaged"
@@ -57,9 +61,10 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.True(t, s.Enabled())
 		assert.NotNil(t, s.log)
 		assert.True(t, s.templateConfig.Enabled)
+		assert.Equal(t, "best_compression", s.templateConfig.Settings.Index["codec"])
 		assert.Equal(t, libilm.ModeAuto, s.ilmConfig.Mode)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
-		assert.Equal(t, &unmanaged.Config{}, s.unmanagedIdxConfig)
+		assert.Equal(t, unmanaged.Config{}, s.unmanagedIdxConfig)
 	})
 
 	t.Run("ILMDisabled", func(t *testing.T) {
@@ -121,20 +126,34 @@ func TestMakeDefaultSupporterDataStreams(t *testing.T) {
 	assert.Equal(t, "traces-apm.apm_server-production", index)
 }
 
-func TestMakeDefaultSupporterDataStreamsConflicts(t *testing.T) {
-	runTest := func(attrKey string, attrValue interface{}, expectedErr string) {
-		t.Run(attrKey, func(t *testing.T) {
-			s, err := MakeDefaultSupporter(nil, beat.Info{}, common.MustNewConfigFrom(map[string]interface{}{
-				"apm-server.data_streams.enabled": "true",
-				attrKey:                           attrValue,
-			}))
-			assert.EqualError(t, err, expectedErr)
-			assert.Nil(t, s)
-		})
+func TestMakeDefaultSupporterDataStreamsWarnings(t *testing.T) {
+	core, observed := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
+	attrs := map[string]interface{}{
+		"apm-server.data_streams.enabled":             "true",
+		"apm-server.ilm.enabled":                      "auto",
+		"apm-server.register.ingest.pipeline.enabled": "true",
+		"output.elasticsearch.indices":                map[string]interface{}{},
+		"setup.template.name":                         "custom",
+		"setup.template.pattern":                      "custom",
 	}
-	runTest("apm-server.ilm.enabled", "auto", "`apm-server.ilm` cannot be specified when data streams are enabled")
-	runTest("apm-server.register.ingest.pipeline.enabled", "true", "`apm-server.register.ingest.pipeline` cannot be specified when data streams are enabled")
-	runTest("setup.template.enabled", "true", "`setup.template.enabled` cannot be specified when data streams are enabled")
-	runTest("output.elasticsearch.index", "abc", "`output.elasticsearch.{index,indices}` cannot be specified when data streams are enabled")
-	runTest("output.elasticsearch.indices", map[string]interface{}{}, "`output.elasticsearch.{index,indices}` cannot be specified when data streams are enabled")
+
+	s, err := MakeDefaultSupporter(logger, beat.Info{}, common.MustNewConfigFrom(attrs))
+	assert.NoError(t, err)
+	assert.NotNil(t, s)
+
+	var warnings []string
+	for _, record := range observed.All() {
+		assert.Equal(t, zapcore.WarnLevel, record.Level, record.Message)
+		warnings = append(warnings, record.Message)
+	}
+	assert.Equal(t, []string{
+		"`setup.template` specified, but will be ignored as data streams are enabled",
+		"`apm-server.ilm` specified, but will be ignored as data streams are enabled",
+		"`apm-server.register.ingest.pipeline` specified, but will be ignored as data streams are enabled",
+		"`output.elasticsearch.{index,indices}` specified, but will be ignored as data streams are enabled",
+	}, warnings)
 }
