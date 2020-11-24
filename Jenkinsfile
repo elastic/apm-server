@@ -104,7 +104,8 @@ pipeline {
         withGithubNotify(context: 'Lint') {
           deleteDir()
           unstash 'source'
-          golang(){
+          setEnvVar('GO_VERSION', readFile(file: "${BASE_DIR}/.go-version").trim())
+          withGoEnv(version: "${env.GO_VERSION}"){
             dir("${BASE_DIR}"){
               sh(label: 'Run Lint', script: 'make lint')
             }
