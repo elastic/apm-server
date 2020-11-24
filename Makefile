@@ -66,7 +66,7 @@ SYSTEM_TEST_TARGET?=./tests/system
 PYTEST_OPTIONS?=--timeout=90 --durations=20 --junit-xml=build/TEST-system.xml
 
 .PHONY: check-full
-check-full: update check golint staticcheck
+check-full: update check golint staticcheck lint
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)

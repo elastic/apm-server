@@ -86,39 +86,13 @@ pipeline {
         }
       }
     }
-    stage('Lint') {
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        allOf {
-          expression { return params.intake_ci }
-          expression { return env.ONLY_DOCS == "false" }
-        }
-      }
-      steps {
-        withGithubNotify(context: 'Lint') {
-          deleteDir()
-          unstash 'source'
-          setEnvVar('GO_VERSION', readFile(file: "${BASE_DIR}/.go-version").trim())
-          withGoEnv(version: "${env.GO_VERSION}"){
-            dir("${BASE_DIR}"){
-              sh(label: 'Run Lint', script: 'make lint')
-            }
-          }
-        }
-      }
-    }
     /**
     Updating generated files for Beat.
     Checks the GO environment.
     Checks the Python environment.
     Checks YAML files are generated.
     Validate that all updates were committed.
+    Update Go and Python format and imports.
     */
     stage('Intake') {
       options { skipDefaultCheckout() }
