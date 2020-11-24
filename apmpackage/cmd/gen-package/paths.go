@@ -15,29 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmpackage
+package main
 
 import "path/filepath"
 
 var docsTemplateFilePath = "apmpackage/docs/README.template.md"
 
-func DocsFilePath(version string) string {
+func docsFilePath(version string) string {
 	return filepath.Join("apmpackage/apm/", version, "/docs/README.md")
 }
 
-func DataStreamPath(version string) string {
+func dataStreamPath(version string) string {
 	return filepath.Join("apmpackage/apm/", version, "/data_stream/")
 }
 
 func fieldsPath(version, dataStream string) string {
-	return filepath.Join(DataStreamPath(version), dataStream, "fields/")
+	return filepath.Join(dataStreamPath(version), dataStream, "fields/")
 }
 
-func ECSFilePath(version, dataStream string) string {
+func ecsFilePath(version, dataStream string) string {
 	return filepath.Join(fieldsPath(version, dataStream), "ecs.yml")
 }
 
-func FieldsFilePath(version, dataStream string) string {
+func fieldsFilePath(version, dataStream string) string {
 	return filepath.Join(fieldsPath(version, dataStream), "fields.yml")
 }
 

@@ -110,7 +110,7 @@ docker-compose.override.yml:
 # Rules for updating config files, fields.yml, etc.
 ##############################################################################
 
-update: fields gen-package go-generate add-headers copy-docs notice $(MAGE)
+update: fields go-generate add-headers copy-docs gen-package notice $(MAGE)
 	@$(MAGE) update
 
 fields_sources=\

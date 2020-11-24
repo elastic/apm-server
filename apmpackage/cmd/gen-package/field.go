@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmpackage
+package main
 
 type field struct {
 	Name        string                 `yaml:"name,omitempty"`
@@ -33,7 +33,7 @@ type field struct {
 	Footnote    string                 `yaml:"footnote,omitempty"`
 	IgnoreAbove *int                   `yaml:"ignore_above,omitempty"`
 	MultiFields []multiFieldDefinition `yaml:"multi_fields,omitempty"`
-	Fields      []field                `yaml:"Fields,omitempty"`
+	Fields      []field                `yaml:"fields,omitempty"`
 	IsECS       bool                   `yaml:"-"`
 	HasECS      bool                   `yaml:"-"`
 	HasNonECS   bool                   `yaml:"-"`
@@ -43,39 +43,14 @@ func (f field) isNonECSLeaf() bool {
 	return f.Type != "group" && !f.IsECS
 }
 
-type Fields []field
-
-func (f Fields) Len() int           { return len(f) }
-func (f Fields) Less(i, j int) bool { return f[i].Name < f[j].Name }
-func (f Fields) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
-
 type multiFieldDefinition struct {
-	Name         string `yaml:"Name,omitempty"`
+	Name         string `yaml:"name,omitempty"`
 	Type         string `yaml:"type,omitempty"`
 	Norms        *bool  `yaml:"norms,omitempty"`
 	DefaultField *bool  `yaml:"default_field,omitempty"`
 }
 
 func copyFieldRoot(f field) field {
-	return field{
-		Name:        f.Name,
-		Key:         f.Key,
-		Title:       f.Title,
-		Group:       f.Group,
-		Level:       f.Level,
-		Required:    f.Required,
-		Type:        f.Title,
-		Format:      f.Format,
-		Description: f.Description,
-		Release:     f.Release,
-		Alias:       f.Alias,
-		Path:        f.Path,
-		Footnote:    f.Footnote,
-		IgnoreAbove: f.IgnoreAbove,
-		Fields:      nil,
-		MultiFields: f.MultiFields,
-		IsECS:       f.IsECS,
-		HasECS:      f.HasECS,
-		HasNonECS:   f.HasNonECS,
-	}
+	f.Fields = nil
+	return f
 }

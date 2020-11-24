@@ -18,33 +18,45 @@
 package main
 
 import (
-	"flag"
+	"errors"
+	"fmt"
+	"github.com/elastic/apm-server/cmd"
+	"github.com/elastic/beats/v7/libbeat/common"
 	"io/ioutil"
+	"log"
 	"os"
-
-	"github.com/elastic/apm-server/apmpackage"
 )
 
-var packageVersion string
+var versionMapping = map[string]string{
+	"7.11": "0.1.0",
+	"8.0":  "0.1.0",
+}
 
 func main() {
-	flag.StringVar(&packageVersion, "packageVersion", "0.1.0", "Package version")
-	flag.Parse()
+	stackVersion := common.MustNewVersion(cmd.DefaultSettings().Version)
+	shortVersion := fmt.Sprintf("%d.%d", stackVersion.Major, stackVersion.Minor)
+	packageVersion, ok := versionMapping[shortVersion]
+	if !ok {
+		panic(errors.New("package can't be generated for current apm-server version"))
+	}
 	clear(packageVersion)
-	inputFields := apmpackage.GenerateFields(packageVersion)
-	apmpackage.GenerateDocs(inputFields, packageVersion)
+	inputFields := generateFields(packageVersion)
+	generateDocs(inputFields, packageVersion)
+	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
 }
 
 func clear(version string) {
-	fileInfo, err := ioutil.ReadDir(apmpackage.DataStreamPath(version))
+	fileInfo, err := ioutil.ReadDir(dataStreamPath(version))
 	if err != nil {
+		log.Printf("NOTE: if you are adding a new package version, you must create the folder"+
+			" `apmpackage/apm/%s/` and copy all the contents from the previous version.", version)
 		panic(err)
 	}
 	for _, f := range fileInfo {
 		if f.IsDir() {
-			os.Remove(apmpackage.ECSFilePath(version, f.Name()))
-			os.Remove(apmpackage.FieldsFilePath(version, f.Name()))
+			os.Remove(ecsFilePath(version, f.Name()))
+			os.Remove(fieldsFilePath(version, f.Name()))
 		}
 	}
-	ioutil.WriteFile(apmpackage.DocsFilePath(version), nil, 0644)
+	ioutil.WriteFile(docsFilePath(version), nil, 0644)
 }

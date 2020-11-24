@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmpackage
+package main
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ import (
 	"text/template"
 )
 
-func GenerateDocs(inputFields map[string]Fields, version string) {
+func generateDocs(inputFields map[string][]field, version string) {
 	data := docsData{
 		Traces:             prepareFields(inputFields, version, "traces"),
 		Metrics:            prepareFields(inputFields, version, "metrics"),
@@ -44,11 +44,12 @@ func GenerateDocs(inputFields map[string]Fields, version string) {
 	if err != nil {
 		panic(err)
 	}
-	path := DocsFilePath(version)
+	path := docsFilePath(version)
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
 	}
+	defer file.Close()
 	err = tmpl.ExecuteTemplate(file, "README.template.md", data)
 	if err != nil {
 		panic(err)
@@ -65,9 +66,9 @@ type docsData struct {
 	ErrorExample       string
 }
 
-func prepareFields(inputFields map[string]Fields, version, streamType string) Fields {
-	extend := func(fs Fields) Fields {
-		var baseFields Fields
+func prepareFields(inputFields map[string][]field, version, streamType string) []field {
+	extend := func(fs []field) []field {
+		var baseFields []field
 		for _, f := range loadFieldsFile(baseFieldsFilePath(version, streamType)) {
 			f.IsECS = true
 			baseFields = append(baseFields, f)
@@ -78,13 +79,15 @@ func prepareFields(inputFields map[string]Fields, version, streamType string) Fi
 	return extend(order(flatten("", inputFields[streamType])))
 }
 
-func order(fs Fields) Fields {
-	sort.Sort(fs)
+func order(fs []field) []field {
+	sort.Slice(fs, func(i, j int) bool {
+		return fs[i].Name < fs[j].Name
+	})
 	return fs
 }
 
-func flatten(name string, fs Fields) Fields {
-	var ret Fields
+func flatten(name string, fs []field) []field {
+	var ret []field
 	for _, f := range fs {
 		if name != "" {
 			f.Name = name + "." + f.Name

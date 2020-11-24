@@ -639,7 +639,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 633285e75a03
+Revision: 0fda3061815d
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -994,8 +994,7 @@ Contents of "NOTICE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Version: v0.10.6
-Revision: f115143bb233
+Version: v0.12.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -1011,7 +1010,7 @@ Contents of "NOTICE":
 
 --------------------------------------------------------------------
 Dependency: github.com/fatih/color
-Version: v1.9.0
+Version: v1.10.0
 License type (autodetected): MIT
 Contents of "LICENSE.md":
 
@@ -3573,8 +3572,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm
-Version: v1.8.1
-Revision: 2aef45b9cf4b
+Version: v1.9.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -3905,7 +3903,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 942e2f445f3c
+Revision: 69a78807bb2b
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4007,7 +4005,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 201ba4db2418
+Revision: 5cba982894dd
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 

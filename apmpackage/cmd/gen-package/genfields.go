@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmpackage
+package main
 
 import (
 	"io/ioutil"
@@ -23,21 +23,23 @@ import (
 	"path/filepath"
 
 	"gopkg.in/yaml.v2"
+
+	"github.com/elastic/ecs/code/go/ecs"
 )
 
-func GenerateFields(version string) map[string]Fields {
+func generateFields(version string) map[string][]field {
 
 	ecsFlatFields := loadECSFields()
 
-	inputFieldsFiles := map[string]Fields{
+	inputFieldsFiles := map[string][]field{
 		"logs":    concatFields("model/error/_meta/fields.yml"),
 		"metrics": concatFields("model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml"),
 		"traces":  concatFields("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
 	}
 
 	for streamType, inputFields := range inputFieldsFiles {
-		var ecsFields Fields
-		var nonECSFields Fields
+		var ecsFields []field
+		var nonECSFields []field
 		for _, fields := range populateECSInfo(ecsFlatFields, inputFields) {
 			ecs, nonECS := splitECSFields(fields)
 			if len(ecs.Fields) > 0 || ecs.IsECS {
@@ -47,7 +49,7 @@ func GenerateFields(version string) map[string]Fields {
 				nonECSFields = append(nonECSFields, nonECS)
 			}
 		}
-		var writeOutFields = func(fName string, data Fields) {
+		var writeOutFields = func(fName string, data []field) {
 			bytes, err := yaml.Marshal(&data)
 			if err != nil {
 				panic(err)
@@ -67,9 +69,9 @@ func GenerateFields(version string) map[string]Fields {
 	return inputFieldsFiles
 }
 
-func populateECSInfo(ecsFlatFields map[string]interface{}, inputFields Fields) Fields {
-	var traverse func(string, Fields) (Fields, bool, bool)
-	traverse = func(fName string, fs Fields) (Fields, bool, bool) {
+func populateECSInfo(ecsFlatFields map[string]interface{}, inputFields []field) []field {
+	var traverse func(string, []field) ([]field, bool, bool)
+	traverse = func(fName string, fs []field) ([]field, bool, bool) {
 		var ecsCount int
 		for idx, field := range fs {
 			fieldName := field.Name
@@ -109,10 +111,10 @@ func splitECSFields(parent field) (field, field) {
 	return ecsCopy, nonECSCopy
 }
 
-// adapted from https://github.com/elastic/integrations/tree/master/dev/import-beats
-
 func loadECSFields() map[string]interface{} {
-	resp, err := http.Get("https://raw.githubusercontent.com/elastic/ecs/master/generated/ecs/ecs_flat.yml")
+	url := "https://raw.githubusercontent.com/elastic/ecs/v" + ecs.Version + "/generated/ecs/ecs_flat.yml"
+	// TODO cache this to avoid fetching each time
+	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
@@ -128,8 +130,8 @@ func loadECSFields() map[string]interface{} {
 	return ret
 }
 
-func concatFields(fileNames ...string) Fields {
-	var ret Fields
+func concatFields(fileNames ...string) []field {
+	var ret []field
 	for _, fname := range fileNames {
 		fs := loadFieldsFile(fname)
 		for _, key := range fs {
@@ -139,7 +141,7 @@ func concatFields(fileNames ...string) Fields {
 	return ret
 }
 
-func loadFieldsFile(path string) Fields {
+func loadFieldsFile(path string) []field {
 	fields, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
@@ -153,7 +155,7 @@ func loadFieldsFile(path string) Fields {
 	return overrideFieldValues(fs)
 }
 
-func overrideFieldValues(fs Fields) Fields {
+func overrideFieldValues(fs []field) []field {
 	var ret []field
 	for _, f := range fs {
 		if f.Type == "" {
