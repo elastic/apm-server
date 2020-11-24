@@ -236,7 +236,7 @@ lint: fmt
 	@if [ -n "$(GIT_STATUS)" ]; then\
 		echo "Lint detected files not following project's format. Please run 'make fmt' locally to fix this error";\
 		exit 1;\
-    fi
+	fi
 	@echo 'Lint passed'
 
 ##############################################################################
