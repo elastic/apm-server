@@ -64,8 +64,6 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	log = namedLogger(log)
 	cfg.logWarnings(log)
 	if cfg.DataStreams {
-		if cfg.setupTemplateSpecified {
-		}
 		return dataStreamsSupporter{}, nil
 	}
 	return newSupporter(log, info, cfg)
