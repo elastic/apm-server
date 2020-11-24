@@ -104,8 +104,10 @@ pipeline {
         withGithubNotify(context: 'Lint') {
           deleteDir()
           unstash 'source'
-          dir("${BASE_DIR}"){
-            sh(label: 'Run Lint', script: 'make lint')
+          golang(){
+            dir("${BASE_DIR}"){
+              sh(label: 'Run Lint', script: 'make lint')
+            }
           }
         }
       }
