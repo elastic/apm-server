@@ -5,6 +5,7 @@
 # Enforce use of modules.
 export GO111MODULE=on
 
+GIT_STATUS=$(shell git status --porcelain)
 GOOSBUILD=./build/$(shell go env GOOS)
 APPROVALS=$(GOOSBUILD)/approvals
 GOIMPORTS=$(GOOSBUILD)/goimports
@@ -229,6 +230,14 @@ gofmt: $(GOIMPORTS) add-headers
 	@$(GOIMPORTS) -local github.com/elastic -l -w $(shell find . -type f -name '*.go' 2>/dev/null)
 autopep8: $(MAGE)
 	@$(MAGE) pythonAutopep8
+
+.PHONY: lint
+lint: fmt
+	@if [ -n "$(GIT_STATUS)" ]; then\
+		echo "Lint detected files not following project's format. Please run 'make fmt' locally to fix this error";\
+		exit 1;\
+    fi
+	@echo 'Lint passed'
 
 ##############################################################################
 # Rules for creating and installing build tools.

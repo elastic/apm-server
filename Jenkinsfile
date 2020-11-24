@@ -105,7 +105,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh(label: 'Run Lint', script: './.ci/scripts/lint.sh')
+            sh(label: 'Run Lint', script: 'make lint')
           }
         }
       }
