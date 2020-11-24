@@ -17,4 +17,4 @@ source ./script/common.bash
 
 jenkins_setup
 
-script/jenkins/unit-test.sh
+./.ci/scripts/unit-test.sh
