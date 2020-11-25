@@ -75,6 +75,21 @@ To generate required configuration files and templates run:
 make update
 ```
 
+### Generate package
+
+APM-Server includes a script to generate an integration package to run with Fleet.
+To Generate a package run:
+
+```
+make fields gen-package
+```
+
+That command takes the existing `fields.yml` files and split them into `ecs.yml` and `fields.yml` files for each data stream type.
+It also generates a `README.md` with a field reference that will be shown in the integration package.
+
+After generating a package, `apmpackage/apm` should be manually copied to `elastic/integrations`.
+Then follow instructions in https://github.com/elastic/integrations/blob/master/CONTRIBUTING.md.
+
 ### Cleanup
 
 To clean APM Server source code, run the following commands:

@@ -77,7 +77,7 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 		MaxTransactionGroups:           2,
 		MetricsInterval:                time.Microsecond,
 		HDRHistogramSignificantFigures: 1,
-		Logger: logger,
+		Logger:                         logger,
 	})
 	require.NoError(t, err)
 
@@ -214,7 +214,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 		MaxTransactionGroups:           2,
 		MetricsInterval:                10 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
-		Logger: logger,
+		Logger:                         logger,
 	})
 	require.NoError(t, err)
 

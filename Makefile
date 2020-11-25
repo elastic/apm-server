@@ -8,6 +8,7 @@ export GO111MODULE=on
 GIT_STATUS=$(shell git status --porcelain)
 GOOSBUILD=./build/$(shell go env GOOS)
 APPROVALS=$(GOOSBUILD)/approvals
+GENPACKAGE=$(GOOSBUILD)/genpackage
 GOIMPORTS=$(GOOSBUILD)/goimports
 GOLICENSER=$(GOOSBUILD)/go-licenser
 GOLINT=$(GOOSBUILD)/golint
@@ -76,6 +77,10 @@ check-approvals: $(APPROVALS)
 check: $(MAGE) check-headers
 	@$(MAGE) check
 
+.PHONY: gen-package
+gen-package: $(GENPACKAGE)
+	@$(GENPACKAGE)
+
 .PHONY: bench
 bench:
 	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
@@ -106,7 +111,7 @@ docker-compose.override.yml:
 # Rules for updating config files, fields.yml, etc.
 ##############################################################################
 
-update: fields go-generate add-headers copy-docs notice $(MAGE)
+update: fields go-generate add-headers copy-docs gen-package notice $(MAGE)
 	@$(MAGE) update
 
 fields_sources=\
@@ -255,6 +260,11 @@ $(MAGE): magefile.go $(BIN_MAGE)
 
 $(STATICCHECK): go.mod
 	go build -o $@ honnef.co/go/tools/cmd/staticcheck
+
+.PHONY: $(GENPACKAGE)
+$(GENPACKAGE):
+	@go build -o $@ github.com/elastic/apm-server/apmpackage/cmd/gen-package
+
 
 $(GOLINT): go.mod
 	go build -o $@ golang.org/x/lint/golint

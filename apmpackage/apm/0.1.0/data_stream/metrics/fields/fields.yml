@@ -1,0 +1,461 @@
+- name: processor.name
+  type: keyword
+  description: Processor name.
+- name: processor.event
+  type: keyword
+  description: Processor event.
+- name: timestamp
+  type: group
+  fields:
+  - name: us
+    type: long
+    description: |
+      Timestamp of the event in microseconds since Unix epoch.
+- name: service
+  type: group
+  description: |
+    Service fields.
+  fields:
+  - name: environment
+    type: keyword
+    description: |
+      Service environment.
+  - name: language
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the programming language used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the programming language used.
+  - name: runtime
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the runtime used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the runtime used.
+  - name: framework
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the framework used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the framework used.
+- name: transaction
+  type: group
+  fields:
+  - name: sampled
+    type: boolean
+    description: |
+      Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+  - name: type
+    type: keyword
+    description: |
+      Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+  - name: name
+    type: keyword
+    description: |
+      Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+    multi_fields:
+    - name: text
+      type: text
+  - name: duration
+    type: group
+    fields:
+    - name: count
+      type: long
+    - name: sum
+      type: group
+      fields:
+      - name: us
+        type: long
+  - name: self_time
+    type: group
+    description: |
+      Portion of the transaction's duration where no direct child was running
+    fields:
+    - name: count
+      type: long
+    - name: sum
+      type: group
+      fields:
+      - name: us
+        type: long
+  - name: breakdown
+    type: group
+    description: |
+      Counter for collected breakdowns for the transaction
+    fields:
+    - name: count
+      type: long
+  - name: root
+    type: boolean
+    description: |
+      Identifies metrics for root transactions. This can be used for calculating metrics for traces.
+- name: span
+  type: group
+  fields:
+  - name: type
+    type: keyword
+    description: |
+      Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+  - name: subtype
+    type: keyword
+    description: |
+      A further sub-division of the type (e.g. postgresql, elasticsearch)
+  - name: self_time
+    type: group
+    description: |
+      Portion of the span's duration where no direct child was running
+    fields:
+    - name: count
+      type: long
+    - name: sum
+      type: group
+      fields:
+      - name: us
+        type: long
+- name: kubernetes
+  title: Kubernetes
+  type: group
+  description: |
+    Kubernetes metadata reported by agents
+  fields:
+  - name: namespace
+    type: keyword
+    description: |
+      Kubernetes namespace
+  - name: node
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Kubernetes node name
+  - name: pod
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Kubernetes pod name
+    - name: uid
+      type: keyword
+      description: |
+        Kubernetes Pod UID
+- name: observer
+  type: group
+  fields:
+  - name: listening
+    type: keyword
+    description: |
+      Address the server is listening on.
+  - name: version_major
+    type: byte
+    description: |
+      Major version number of the observer
+- name: experimental
+  type: object
+  description: Additional experimental data sent by the agents.
+- name: system
+  type: group
+  description: |
+    `system` contains local system metrics.
+  fields:
+  - name: cpu
+    type: group
+    description: |
+      `cpu` contains local CPU stats.
+    fields:
+    - name: total.norm.pct
+      type: scaled_float
+      format: percent
+      description: |
+        The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+  - name: memory
+    type: group
+    description: |
+      `memory` contains local memory stats.
+    fields:
+    - name: total
+      type: long
+      format: bytes
+      description: |
+        Total memory.
+    - name: actual
+      type: group
+      description: |
+        Actual memory used and free.
+      fields:
+      - name: free
+        type: long
+        format: bytes
+        description: |
+          Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
+  - name: process
+    type: group
+    description: |
+      `process` contains process metadata, CPU metrics, and memory metrics.
+    fields:
+    - name: cpu
+      type: group
+      description: |
+        `cpu` contains local CPU stats.
+      fields:
+      - name: total.norm.pct
+        type: scaled_float
+        format: percent
+        description: |
+          The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+    - name: memory
+      type: group
+      description: Memory-specific statistics per process.
+      fields:
+      - name: size
+        type: long
+        format: bytes
+        description: |
+          The total virtual memory the process has.
+      - name: rss.bytes
+        type: long
+        format: bytes
+        description: |
+          The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
+    - name: cgroup
+      type: group
+      description: Metrics and limits for the cgroup, collected by APM agents on Linux.
+      fields:
+      - name: memory
+        type: group
+        description: Memory-specific cgroup metrics and limits.
+        fields:
+        - name: mem.limit.bytes
+          type: long
+          format: bytes
+          description: Memory limit for the current cgroup slice.
+        - name: mem.usage.bytes
+          type: long
+          format: bytes
+          description: Memory usage by the current cgroup slice.
+- name: processor.name
+  type: keyword
+  description: Processor name.
+- name: processor.event
+  type: keyword
+  description: Processor event.
+- name: timestamp
+  type: group
+  fields:
+  - name: us
+    type: long
+    description: |
+      Timestamp of the event in microseconds since Unix epoch.
+- name: service
+  type: group
+  description: |
+    Service fields.
+  fields:
+  - name: environment
+    type: keyword
+    description: |
+      Service environment.
+  - name: language
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the programming language used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the programming language used.
+  - name: runtime
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the runtime used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the runtime used.
+  - name: framework
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the framework used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the framework used.
+- name: kubernetes
+  title: Kubernetes
+  type: group
+  description: |
+    Kubernetes metadata reported by agents
+  fields:
+  - name: namespace
+    type: keyword
+    description: |
+      Kubernetes namespace
+  - name: node
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Kubernetes node name
+  - name: pod
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Kubernetes pod name
+    - name: uid
+      type: keyword
+      description: |
+        Kubernetes Pod UID
+- name: observer
+  type: group
+  fields:
+  - name: listening
+    type: keyword
+    description: |
+      Address the server is listening on.
+  - name: version_major
+    type: byte
+    description: |
+      Major version number of the observer
+- name: experimental
+  type: object
+  description: Additional experimental data sent by the agents.
+- name: profile
+  type: group
+  fields:
+  - name: id
+    type: keyword
+    description: |
+      Unique ID for the profile. All samples within a profile will have the same profile ID.
+  - name: duration
+    type: long
+    description: |
+      Duration of the profile, in microseconds. All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+  - name: cpu
+    type: group
+    fields:
+    - name: ns
+      type: long
+      description: |
+        Amount of CPU time profiled, in nanoseconds.
+  - name: samples
+    type: group
+    fields:
+    - name: count
+      type: long
+      description: |
+        Number of profile samples for the profiling period.
+  - name: alloc_objects
+    type: group
+    fields:
+    - name: count
+      type: long
+      description: |
+        Number of objects allocated since the process started.
+  - name: alloc_space
+    type: group
+    fields:
+    - name: bytes
+      type: long
+      description: |
+        Amount of memory allocated, in bytes, since the process started.
+  - name: inuse_objects
+    type: group
+    fields:
+    - name: count
+      type: long
+      description: |
+        Number of objects allocated and currently in use.
+  - name: inuse_space
+    type: group
+    fields:
+    - name: bytes
+      type: long
+      description: |
+        Amount of memory allocated, in bytes, and currently in use.
+  - name: top
+    type: group
+    fields:
+    - name: id
+      type: keyword
+      description: |
+        Unique ID for the top stack frame in the context of its callers.
+    - name: function
+      type: keyword
+      description: |
+        Function name for the top stack frame.
+    - name: filename
+      type: keyword
+      description: |
+        Source code filename for the top stack frame.
+    - name: line
+      type: long
+      description: |
+        Source code line number for the top stack frame.
+  - name: stack
+    type: group
+    fields:
+    - name: id
+      type: keyword
+      description: |
+        Unique ID for a stack frame in the context of its callers.
+    - name: function
+      type: keyword
+      description: |
+        Function name for a stack frame.
+    - name: filename
+      type: keyword
+      description: |
+        Source code filename for a stack frame.
+    - name: line
+      type: long
+      description: |
+        Source code line number for a stack frame.
+- name: transaction
+  type: group
+  fields:
+  - name: duration
+    type: group
+    fields:
+    - name: histogram
+      type: histogram
+      description: |
+        Pre-aggregated histogram of transaction durations.
+- name: metricset.period
+  type: long
+- name: span
+  type: group
+  fields:
+  - name: destination.service
+    type: group
+    fields:
+    - name: response_time.count
+      type: long
+    - name: response_time.sum.us
+      type: long
