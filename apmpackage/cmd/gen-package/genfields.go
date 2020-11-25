@@ -33,7 +33,7 @@ func generateFields(version string) map[string][]field {
 
 	inputFieldsFiles := map[string][]field{
 		"logs":    concatFields("model/error/_meta/fields.yml"),
-		"metrics": concatFields("model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml"),
+		"metrics": concatFields("model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml", "x-pack/apm-server/fields/_meta/fields.yml"),
 		"traces":  concatFields("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
 	}
 
