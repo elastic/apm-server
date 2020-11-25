@@ -239,7 +239,6 @@
           type: keyword
           description: >
             Process arguments.
-
             May be filtered to protect sensitive information.
           overwrite: true
 
@@ -354,7 +353,6 @@
         description: 'Some event destination addresses are defined ambiguously. The
           event will sometimes list an IP, a domain or a unix socket.  You should always
           store the raw address in the `.address` field.
-
           Then it should be duplicated to `.ip` or `.domain`, depending on which one
           it is.'
         overwrite: true
@@ -363,7 +361,6 @@
         level: core
         type: ip
         description: 'IP addess of the destination.
-
           Can be one of multiple IPv4 or IPv6 addresses.'
         overwrite: true
 
@@ -579,7 +576,6 @@
           count: 1
           description: >
             Unique ID for the profile.
-
             All samples within a profile will have the same profile ID.
 
         - name: duration
@@ -587,7 +583,6 @@
           count: 1
           description: >
             Duration of the profile, in microseconds.
-
             All samples within a profile will have the same duration.
             To aggregate durations, you should first group by the profile ID.
 

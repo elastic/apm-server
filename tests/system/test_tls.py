@@ -1,3 +1,5 @@
+from apmserver import TimeoutError, integration_test
+from apmserver import ServerBaseTest
 import os
 import requests
 import shutil
@@ -6,8 +8,8 @@ import subprocess
 import socket
 import pytest
 from requests.packages.urllib3.exceptions import SubjectAltNameWarning
-from apmserver import ServerBaseTest
-from apmserver import TimeoutError, integration_test
+requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
+
 
 INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
 
