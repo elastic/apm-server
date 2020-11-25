@@ -227,7 +227,7 @@ func makeApproveEventsReporter(t *testing.T, name string) publish.Reporter {
 	return func(ctx context.Context, p publish.PendingReq) error {
 		var events []beat.Event
 		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
+			events = append(events, transformable.Transform(ctx, &transform.Config{DataStreams: true})...)
 		}
 		docs := beatertest.EncodeEventDocs(events...)
 		approvaltest.ApproveEventDocs(t, name, docs)

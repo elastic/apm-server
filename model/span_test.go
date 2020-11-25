@@ -177,7 +177,8 @@ func TestSpanTransform(t *testing.T) {
 
 	for _, test := range tests {
 		output := test.Span.Transform(context.Background(), &transform.Config{
-			RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+			DataStreams: true,
+			RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
 		})
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields, test.Msg)

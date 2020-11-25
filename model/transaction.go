@@ -110,18 +110,19 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) Transform(_ context.Context, _ *transform.Config) []beat.Event {
+func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat.Event {
 	transactionTransformations.Inc()
 
-	// Transactions are stored in a "traces" data stream along with spans.
-	dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-
 	fields := common.MapStr{
-		datastreams.TypeField:    datastreams.TracesType,
-		datastreams.DatasetField: dataset,
-
 		"processor":        transactionProcessorEntry,
 		transactionDocType: e.fields(),
+	}
+
+	if cfg.DataStreams {
+		// Transactions are stored in a "traces" data stream along with spans.
+		dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+		fields[datastreams.TypeField] = datastreams.TracesType
+		fields[datastreams.DatasetField] = dataset
 	}
 
 	// first set generic metadata (order is relevant)
