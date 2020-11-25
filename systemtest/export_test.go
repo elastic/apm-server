@@ -49,8 +49,6 @@ func TestExportConfigDefaults(t *testing.T) {
 
 	expectedConfig := strings.ReplaceAll(`
 logging:
-  files:
-    rotateeverybytes: 10485760
   metrics:
     enabled: false
 path:
@@ -58,17 +56,6 @@ path:
   data: /home/apm-server/data
   home: /home/apm-server
   logs: /home/apm-server/logs
-setup:
-  template:
-    settings:
-      _source:
-        enabled: true
-      index:
-        codec: best_compression
-        mapping:
-          total_fields:
-            limit: 2000
-        number_of_shards: 1
 `[1:], "/home/apm-server", tempdir)
 	assert.Equal(t, expectedConfig, string(out))
 }
@@ -76,15 +63,12 @@ setup:
 func TestExportConfigOverrideDefaults(t *testing.T) {
 	cmd, tempdir := exportConfigCommand(t,
 		"-E", "logging.metrics.enabled=true",
-		"-E", "setup.template.settings.index.mapping.total_fields.limit=5",
 	)
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err)
 
 	expectedConfig := strings.ReplaceAll(`
 logging:
-  files:
-    rotateeverybytes: 10485760
   metrics:
     enabled: true
 path:
@@ -92,17 +76,6 @@ path:
   data: /home/apm-server/data
   home: /home/apm-server
   logs: /home/apm-server/logs
-setup:
-  template:
-    settings:
-      _source:
-        enabled: true
-      index:
-        codec: best_compression
-        mapping:
-          total_fields:
-            limit: 5
-        number_of_shards: 1
 `[1:], "/home/apm-server", tempdir)
 	assert.Equal(t, expectedConfig, string(out))
 }
@@ -117,8 +90,6 @@ apm-server:
   data_streams:
     enabled: true
 logging:
-  files:
-    rotateeverybytes: 10485760
   metrics:
     enabled: false
 path:

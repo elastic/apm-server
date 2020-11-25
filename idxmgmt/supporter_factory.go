@@ -91,7 +91,7 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 		}
 	}
 
-	templateConfig := template.DefaultConfig()
+	templateConfig := defaultTemplateConfig()
 	if cfg.Template != nil {
 		if err := cfg.Template.Unpack(&templateConfig); err != nil {
 			return nil, errors.Wrap(err, "unpacking template config failed")
@@ -153,4 +153,19 @@ func (cfg *IndexManagementConfig) logWarnings(log *logp.Logger) {
 	if cfg.unmanagedIdxCfg.Customized() {
 		log.Warnf(format, "output.elasticsearch.{index,indices}")
 	}
+}
+
+// defaultTemplateConfig customises template.DefaultConfig() with index settings.
+// This is only meaningful when data streams are not in use.
+func defaultTemplateConfig() template.TemplateConfig {
+	cfg := template.DefaultConfig()
+	cfg.Settings = template.TemplateSettings{
+		Index: map[string]interface{}{
+			"codec": "best_compression",
+			"mapping.total_fields.limit": 2000,
+			"number_of_shards":           1,
+		},
+		Source: map[string]interface{}{"enabled": true},
+	}
+	return cfg
 }

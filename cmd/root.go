@@ -18,7 +18,6 @@
 package cmd
 
 import (
-	"flag"
 	"fmt"
 
 	"github.com/spf13/pflag"
@@ -48,54 +47,6 @@ var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 		"logging": map[string]interface{}{
 			"metrics": map[string]interface{}{
 				"enabled": false,
-			},
-			"files": map[string]interface{}{
-				"rotateeverybytes": 10 * 1024 * 1024,
-			},
-		},
-	}),
-}, {
-	Check: func(cfg *common.Config) bool {
-		if eflag := flag.CommandLine.Lookup("E"); eflag != nil {
-			// cfg is not (yet) merged with settings specified on
-			// the command line. In case apm-server is called like
-			// "apm-server -E apm-server.data_streams.enabled=false",
-			// we need to merge them in before setting legacy defaults.
-			settingsFlag, ok := eflag.Value.(*common.SettingsFlag)
-			if ok {
-				cliConfig := settingsFlag.Config()
-				merged, err := common.MergeConfigs(cfg, cliConfig)
-				if err != nil {
-					return false
-				}
-				cfg = merged
-			}
-		}
-		var unpacked struct {
-			DataStreams *common.Config `config:"apm-server.data_streams"`
-		}
-		if err := cfg.Unpack(&unpacked); err != nil {
-			return false
-		}
-		return !unpacked.DataStreams.Enabled()
-	},
-	Config: common.MustNewConfigFrom(map[string]interface{}{
-		"setup": map[string]interface{}{
-			"template": map[string]interface{}{
-				"settings": map[string]interface{}{
-					"index": map[string]interface{}{
-						"codec": "best_compression",
-						"mapping": map[string]interface{}{
-							"total_fields": map[string]int{
-								"limit": 2000,
-							},
-						},
-						"number_of_shards": 1,
-					},
-					"_source": map[string]interface{}{
-						"enabled": true,
-					},
-				},
 			},
 		},
 	}),

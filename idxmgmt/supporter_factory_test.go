@@ -61,6 +61,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.True(t, s.Enabled())
 		assert.NotNil(t, s.log)
 		assert.True(t, s.templateConfig.Enabled)
+		assert.Equal(t, "best_compression", s.templateConfig.Settings.Index["codec"])
 		assert.Equal(t, libilm.ModeAuto, s.ilmConfig.Mode)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
 		assert.Equal(t, unmanaged.Config{}, s.unmanagedIdxConfig)
