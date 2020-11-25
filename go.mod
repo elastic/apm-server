@@ -76,7 +76,6 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.0.0-20201111224557-41a3a589386c
 	google.golang.org/grpc v1.29.1
-	gopkg.in/yaml.v2 v2.3.0
 	howett.net/plist v0.0.0-20201026045517-117a925f2150 // indirect
 )
 
