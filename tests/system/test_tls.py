@@ -13,6 +13,7 @@ requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
 INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
 
+requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
 @integration_test
 class TestSecureServerBaseTest(ServerBaseTest):
