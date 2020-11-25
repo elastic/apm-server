@@ -533,6 +533,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|metricset.period||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -593,6 +594,8 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|span.destination.service.response_time.count||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|span.destination.service.response_time.sum.us||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.self_time.count||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.self_time.sum.us||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.subtype|A further sub-division of the type (e.g. postgresql, elasticsearch)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -609,6 +612,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |timestamp.us|Timestamp of the event in microseconds since Unix epoch.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.breakdown.count||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.duration.count||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|transaction.duration.histogram|Pre-aggregated histogram of transaction durations.|histogram|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.duration.sum.us||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.id|The transaction ID.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |transaction.name|Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |

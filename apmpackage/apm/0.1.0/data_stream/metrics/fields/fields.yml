@@ -437,3 +437,25 @@
       type: long
       description: |
         Source code line number for a stack frame.
+- name: transaction
+  type: group
+  fields:
+  - name: duration
+    type: group
+    fields:
+    - name: histogram
+      type: histogram
+      description: |
+        Pre-aggregated histogram of transaction durations.
+- name: metricset.period
+  type: long
+- name: span
+  type: group
+  fields:
+  - name: destination.service
+    type: group
+    fields:
+    - name: response_time.count
+      type: long
+    - name: response_time.sum.us
+      type: long
