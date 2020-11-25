@@ -5,7 +5,6 @@
 # Enforce use of modules.
 export GO111MODULE=on
 
-GIT_STATUS=$(shell git status --porcelain)
 GOOSBUILD=./build/$(shell go env GOOS)
 APPROVALS=$(GOOSBUILD)/approvals
 GENPACKAGE=$(GOOSBUILD)/genpackage
@@ -67,14 +66,14 @@ SYSTEM_TEST_TARGET?=./tests/system
 PYTEST_OPTIONS?=--timeout=90 --durations=20 --junit-xml=build/TEST-system.xml
 
 .PHONY: check-full
-check-full: update check golint staticcheck lint
+check-full: update check golint staticcheck
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
 .PHONY: check
-check: $(MAGE) check-headers
+check: $(MAGE) check-headers fmt
 	@$(MAGE) check
 
 .PHONY: gen-package
@@ -235,14 +234,6 @@ gofmt: $(GOIMPORTS) add-headers
 	@$(GOIMPORTS) -local github.com/elastic -l -w $(shell find . -type f -name '*.go' 2>/dev/null)
 autopep8: $(MAGE)
 	@$(MAGE) pythonAutopep8
-
-.PHONY: lint
-lint: fmt
-	@if [ -n "$(GIT_STATUS)" ]; then\
-		echo "Lint detected files not following project's format. Please run 'make fmt' locally to fix this error";\
-		exit 1;\
-	fi
-	@echo 'Lint passed'
 
 ##############################################################################
 # Rules for creating and installing build tools.
