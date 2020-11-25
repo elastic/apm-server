@@ -118,12 +118,9 @@ func loadECSFields() map[string]interface{} {
 	if err != nil {
 		panic(err)
 	}
-	fields, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
+	defer resp.Body.Close()
 	var ret map[string]interface{}
-	err = yaml.Unmarshal(fields, &ret)
+	err = yaml.NewDecoder(resp.Body).Decode(&ret)
 	if err != nil {
 		panic(err)
 	}
