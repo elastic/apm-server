@@ -214,7 +214,7 @@ func TestTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Metricset.Transform(context.Background(), &transform.Config{})
+		outputEvents := test.Metricset.Transform(context.Background(), &transform.Config{DataStreams: true})
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
