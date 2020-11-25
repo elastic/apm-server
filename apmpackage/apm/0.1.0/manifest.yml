@@ -11,19 +11,20 @@ release: experimental # experimental / beta / ga
 conditions:
   kibana.version: '^7.11.0'
 policy_templates:
-  - name: apmserver
-    title: Elastic APM Integration
-    description: Elastic APM Integration
-    inputs:
-      - type: apm
-        title: Collect application traces
-        description: Collect application traces
-        vars:
-          - name: enable_rum
-          type: bool
-          title: Enable RUM
-          required: true
-          show_user: true
-          default: false
+- name: apmserver
+  title: Elastic APM Integration
+  description: Elastic APM Integration
+  inputs:
+  - type: apm
+    title: Collect application traces
+    description: Collect application traces
+    vars:
+      - name: enable_rum
+        type: bool
+        title: Enable RUM
+        required: true
+        show_user: true
+        default: false
+    template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
