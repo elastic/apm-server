@@ -36,10 +36,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/processors"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
@@ -372,29 +370,12 @@ func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publis
 		Pipeline:        cfg.Pipeline,
 		TransformConfig: transformConfig,
 	}
-	if !cfg.DataStreams.Enabled {
-		// Remove data_stream.* fields during publishing when data streams are disabled.
-		processors, err := processors.New(processors.PluginConfig{common.MustNewConfigFrom(
-			map[string]interface{}{
-				"drop_fields": map[string]interface{}{
-					"fields": []interface{}{
-						datastreams.TypeField,
-						datastreams.DatasetField,
-						datastreams.NamespaceField,
-					},
-				},
-			},
-		)})
-		if err != nil {
-			return nil, err
-		}
-		publisherConfig.Processor = processors
-	}
 	return publish.NewPublisher(b.Publisher, tracer, publisherConfig)
 }
 
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
 	transformConfig := &transform.Config{
+		DataStreams: cfg.DataStreams.Enabled,
 		RUM: transform.RUMConfig{
 			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
 			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
