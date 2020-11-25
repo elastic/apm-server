@@ -682,8 +682,7 @@ Information pertaining to the running process where the data was collected
 *`process.args`*::
 +
 --
-Process arguments.
-May be filtered to protect sensitive information.
+Process arguments. May be filtered to protect sensitive information.
 
 
 type: keyword
@@ -858,8 +857,7 @@ Destination fields are usually populated in conjunction with source fields.
 *`destination.address`*::
 +
 --
-Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
-Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
 
 type: keyword
 
@@ -870,8 +868,7 @@ type: keyword
 *`destination.ip`*::
 +
 --
-IP addess of the destination.
-Can be one of multiple IPv4 or IPv6 addresses.
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
 
 type: ip
 
@@ -1688,8 +1685,7 @@ Information pertaining to the running process where the data was collected
 *`process.args`*::
 +
 --
-Process arguments.
-May be filtered to protect sensitive information.
+Process arguments. May be filtered to protect sensitive information.
 
 
 type: keyword
@@ -1864,8 +1860,7 @@ Destination fields are usually populated in conjunction with source fields.
 *`destination.address`*::
 +
 --
-Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
-Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
 
 type: keyword
 
@@ -1876,8 +1871,7 @@ type: keyword
 *`destination.ip`*::
 +
 --
-IP addess of the destination.
-Can be one of multiple IPv4 or IPv6 addresses.
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
 
 type: ip
 
@@ -2213,8 +2207,7 @@ example: us-east1
 *`profile.id`*::
 +
 --
-Unique ID for the profile.
-All samples within a profile will have the same profile ID.
+Unique ID for the profile. All samples within a profile will have the same profile ID.
 
 
 type: keyword
@@ -2224,8 +2217,7 @@ type: keyword
 *`profile.duration`*::
 +
 --
-Duration of the profile, in microseconds.
-All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+Duration of the profile, in microseconds. All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
 
 
 type: long
@@ -3043,8 +3035,7 @@ Information pertaining to the running process where the data was collected
 *`process.args`*::
 +
 --
-Process arguments.
-May be filtered to protect sensitive information.
+Process arguments. May be filtered to protect sensitive information.
 
 
 type: keyword
@@ -3219,8 +3210,7 @@ Destination fields are usually populated in conjunction with source fields.
 *`destination.address`*::
 +
 --
-Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
-Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
 
 type: keyword
 
@@ -3231,8 +3221,7 @@ type: keyword
 *`destination.ip`*::
 +
 --
-IP addess of the destination.
-Can be one of multiple IPv4 or IPv6 addresses.
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
 
 type: ip
 
@@ -4355,8 +4344,7 @@ Information pertaining to the running process where the data was collected
 *`process.args`*::
 +
 --
-Process arguments.
-May be filtered to protect sensitive information.
+Process arguments. May be filtered to protect sensitive information.
 
 
 type: keyword
@@ -4531,8 +4519,7 @@ Destination fields are usually populated in conjunction with source fields.
 *`destination.address`*::
 +
 --
-Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
-Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
 
 type: keyword
 
@@ -4543,8 +4530,7 @@ type: keyword
 *`destination.ip`*::
 +
 --
-IP addess of the destination.
-Can be one of multiple IPv4 or IPv6 addresses.
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
 
 type: ip
 
@@ -5398,8 +5384,7 @@ Information pertaining to the running process where the data was collected
 *`process.args`*::
 +
 --
-Process arguments.
-May be filtered to protect sensitive information.
+Process arguments. May be filtered to protect sensitive information.
 
 
 type: keyword
@@ -5574,8 +5559,7 @@ Destination fields are usually populated in conjunction with source fields.
 *`destination.address`*::
 +
 --
-Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
-Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
 
 type: keyword
 
@@ -5586,8 +5570,7 @@ type: keyword
 *`destination.ip`*::
 +
 --
-IP addess of the destination.
-Can be one of multiple IPv4 or IPv6 addresses.
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
 
 type: ip
 

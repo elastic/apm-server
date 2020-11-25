@@ -1,0 +1,223 @@
+- name: processor.name
+  type: keyword
+  description: Processor name.
+- name: processor.event
+  type: keyword
+  description: Processor event.
+- name: timestamp
+  type: group
+  fields:
+  - name: us
+    type: long
+    description: |
+      Timestamp of the event in microseconds since Unix epoch.
+- name: http
+  type: group
+  fields:
+  - name: request
+    type: group
+    fields:
+    - name: headers
+      type: object
+      description: |
+        The canonical headers of the monitored HTTP request.
+  - name: response
+    type: group
+    fields:
+    - name: finished
+      type: boolean
+      description: |
+        Used by the Node agent to indicate when in the response life cycle an error has occurred.
+    - name: headers
+      type: object
+      description: |
+        The canonical headers of the monitored HTTP response.
+- name: service
+  type: group
+  description: |
+    Service fields.
+  fields:
+  - name: environment
+    type: keyword
+    description: |
+      Service environment.
+  - name: language
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the programming language used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the programming language used.
+  - name: runtime
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the runtime used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the runtime used.
+  - name: framework
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Name of the framework used.
+    - name: version
+      type: keyword
+      description: |
+        Version of the framework used.
+- name: transaction
+  type: group
+  fields:
+  - name: sampled
+    type: boolean
+    description: |
+      Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+  - name: type
+    type: keyword
+    description: |
+      Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+  - name: name
+    type: keyword
+    description: |
+      Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+    multi_fields:
+    - name: text
+      type: text
+  - name: duration
+    type: group
+    fields:
+    - name: count
+      type: long
+    - name: sum
+      type: group
+      fields:
+      - name: us
+        type: long
+  - name: self_time
+    type: group
+    description: |
+      Portion of the transaction's duration where no direct child was running
+    fields:
+    - name: count
+      type: long
+    - name: sum
+      type: group
+      fields:
+      - name: us
+        type: long
+  - name: breakdown
+    type: group
+    description: |
+      Counter for collected breakdowns for the transaction
+    fields:
+    - name: count
+      type: long
+- name: parent
+  type: group
+  fields:
+  - name: id
+    type: keyword
+    description: |
+      The ID of the parent event.
+- name: kubernetes
+  title: Kubernetes
+  type: group
+  description: |
+    Kubernetes metadata reported by agents
+  fields:
+  - name: namespace
+    type: keyword
+    description: |
+      Kubernetes namespace
+  - name: node
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Kubernetes node name
+  - name: pod
+    type: group
+    fields:
+    - name: name
+      type: keyword
+      description: |
+        Kubernetes pod name
+    - name: uid
+      type: keyword
+      description: |
+        Kubernetes Pod UID
+- name: observer
+  type: group
+  fields:
+  - name: listening
+    type: keyword
+    description: |
+      Address the server is listening on.
+  - name: version_major
+    type: byte
+    description: |
+      Major version number of the observer
+- name: experimental
+  type: object
+  description: Additional experimental data sent by the agents.
+- name: error
+  type: group
+  description: |
+    Data captured by an agent representing an event occurring in a monitored service.
+  fields:
+  - name: culprit
+    type: keyword
+    description: Function call which was the primary perpetrator of this event.
+  - name: grouping_key
+    type: keyword
+    description: |
+      GroupingKey of the logged error for use in grouping.
+  - name: exception
+    type: group
+    description: |
+      Information about the originally thrown error.
+    fields:
+    - name: code
+      type: keyword
+      description: The error code set when the error happened, e.g. database error
+        code.
+    - name: message
+      type: text
+      description: The original error message.
+    - name: module
+      type: keyword
+      description: The module namespace of the original error.
+    - name: type
+      type: keyword
+    - name: handled
+      type: boolean
+      description: Indicator whether the error was caught somewhere in the code or
+        not.
+  - name: log
+    type: group
+    description: |
+      Additional information added by logging the error.
+    fields:
+    - name: level
+      type: keyword
+      description: The severity of the record.
+    - name: logger_name
+      type: keyword
+      description: The name of the logger instance used.
+    - name: message
+      type: text
+      description: The additionally logged error message.
+    - name: param_message
+      type: keyword
+      description: |
+        A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
