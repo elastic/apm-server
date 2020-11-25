@@ -23,11 +23,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/elastic/apm-server/model/modeldecoder/generator/generatortest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
-
-	"github.com/elastic/apm-server/model/modeldecoder/generator/generatortest"
 )
 
 type testcase struct {

@@ -1,8 +1,3 @@
-from kibana import Kibana
-from es_helper import index_smap, index_span, index_error, apm_prefix
-from es_helper import cleanup, default_pipelines
-from helper import wait_until
-from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 from datetime import datetime, timedelta
 import json
 import os
@@ -24,6 +19,11 @@ beats_line = [line for line in output.splitlines() if line.startswith("github.co
 beats_dir = beats_line.split(" ", 2)[1]
 sys.path.append(os.path.join(beats_dir, 'libbeat', 'tests', 'system'))
 
+from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
+from helper import wait_until
+from es_helper import cleanup, default_pipelines
+from es_helper import index_smap, index_span, index_error, apm_prefix
+from kibana import Kibana
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
