@@ -20,11 +20,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/elastic/apm-server/cmd"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/elastic/apm-server/cmd"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var versionMapping = map[string]string{
