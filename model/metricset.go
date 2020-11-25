@@ -148,7 +148,7 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
-func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
+func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	metricsetTransformations.Inc()
 	if me == nil {
 		return nil
@@ -185,19 +185,21 @@ func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.
 		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}
 	}
 
-	// Metrics are stored in "metrics" data streams.
-	dataset := "apm."
-	if isInternal {
-		// Metrics that include well-defined transaction/span fields
-		// (i.e. breakdown metrics, transaction and span metrics) will
-		// be stored separately from application and runtime metrics.
-		dataset += "internal."
-	}
-	dataset += datastreams.NormalizeServiceName(me.Metadata.Service.Name)
-
 	fields["processor"] = metricsetProcessorEntry
-	fields[datastreams.TypeField] = datastreams.MetricsType
-	fields[datastreams.DatasetField] = dataset
+
+	if cfg.DataStreams {
+		// Metrics are stored in "metrics" data streams.
+		dataset := "apm."
+		if isInternal {
+			// Metrics that include well-defined transaction/span fields
+			// (i.e. breakdown metrics, transaction and span metrics) will
+			// be stored separately from application and runtime metrics.
+			dataset = "apm.internal."
+		}
+		dataset += datastreams.NormalizeServiceName(me.Metadata.Service.Name)
+		fields[datastreams.TypeField] = datastreams.MetricsType
+		fields[datastreams.DatasetField] = dataset
+	}
 
 	return []beat.Event{{
 		Fields:    fields,

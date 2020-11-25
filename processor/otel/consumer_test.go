@@ -504,7 +504,7 @@ func testAttributeStringValue(s string) *tracepb.AttributeValue {
 func transformAll(ctx context.Context, p publish.PendingReq) []beat.Event {
 	var events []beat.Event
 	for _, transformable := range p.Transformables {
-		events = append(events, transformable.Transform(ctx, &transform.Config{})...)
+		events = append(events, transformable.Transform(ctx, &transform.Config{DataStreams: true})...)
 	}
 	return events
 }
