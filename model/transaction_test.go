@@ -282,3 +282,33 @@ func TestTransactionTransformPage(t *testing.T) {
 		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
+
+func TestTransactionTransformMarks(t *testing.T) {
+	tests := []struct {
+		Transaction Transaction
+		Output      common.MapStr
+		Msg         string
+	}{
+		{
+			Transaction: Transaction{
+				Marks: TransactionMarks{
+					"a.b": TransactionMark{
+						"c.d": 123,
+					},
+				},
+			},
+			Output: common.MapStr{
+				"a_b": common.MapStr{
+					"c_d": common.Float(123),
+				},
+			},
+			Msg: "Unsanitized transaction mark names",
+		},
+	}
+
+	for idx, test := range tests {
+		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		marks, _ := output[0].Fields.GetValue("transaction.marks")
+		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+	}
+}
