@@ -60,7 +60,7 @@ type Error struct {
 	Metadata  Metadata
 
 	Culprit *string
-	Labels  *Labels
+	Labels  common.MapStr
 	Page    *Page
 	HTTP    *Http
 	URL     *URL
@@ -125,11 +125,9 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 	}
 
 	// first set the generic metadata (order is relevant)
-	e.Metadata.Set(fields)
+	e.Metadata.Set(fields, e.Labels)
 	utility.Set(fields, "source", fields["client"])
 	// then add event specific information
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
 	urlFields := e.URL.Fields()
 	if urlFields != nil {

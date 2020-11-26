@@ -63,7 +63,7 @@ type Transaction struct {
 	Page           *Page
 	HTTP           *Http
 	URL            *URL
-	Labels         *Labels
+	Labels         common.MapStr
 	Custom         *Custom
 	UserExperience *UserExperience
 
@@ -126,15 +126,13 @@ func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat
 	}
 
 	// first set generic metadata (order is relevant)
-	e.Metadata.Set(fields)
+	e.Metadata.Set(fields, e.Labels)
 	utility.Set(fields, "source", fields["client"])
 
 	// then merge event specific information
 	utility.AddID(fields, "parent", e.ParentID)
 	utility.AddID(fields, "trace", e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
 	urlFields := e.URL.Fields()
 	if urlFields != nil {

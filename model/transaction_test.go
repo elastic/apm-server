@@ -171,7 +171,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	txWithContext := Transaction{
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
-		Labels:    &Labels{"a": "b"},
+		Labels:    common.MapStr{"a": "b"},
 		Page:      &Page{URL: &URL{Original: &url}, Referer: &referer},
 		HTTP:      &Http{Request: &request, Response: &response},
 		URL:       &URL{Original: &url},

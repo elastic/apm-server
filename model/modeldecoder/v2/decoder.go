@@ -262,8 +262,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		}
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
-			labels := model.Labels(from.Context.Tags.Clone())
-			out.Labels = &labels
+			out.Labels = from.Context.Tags.Clone()
 		}
 		if from.Context.Page.IsSet() {
 			out.Page = &model.Page{}
@@ -1024,8 +1023,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 		}
 		// metadata labels and context labels are merged when transforming the output model
 		if len(from.Context.Tags) > 0 {
-			labels := model.Labels(from.Context.Tags.Clone())
-			out.Labels = &labels
+			out.Labels = from.Context.Tags.Clone()
 		}
 		if from.Context.Message.IsSet() {
 			out.Message = &model.Message{}

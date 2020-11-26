@@ -282,7 +282,7 @@ func TestEvents(t *testing.T) {
 	email, userIP, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
 	url, referer := "https://localhost", "http://localhost"
-	labels := Labels(common.MapStr{"key": true})
+	labels := common.MapStr{"key": true}
 	custom := Custom(common.MapStr{"foo": "bar"})
 
 	serviceName, agentName, version := "myservice", "go", "1.0"
@@ -362,7 +362,7 @@ func TestEvents(t *testing.T) {
 				},
 				TransactionID:      trID,
 				TransactionSampled: &sampledTrue,
-				Labels:             &labels,
+				Labels:             labels,
 				Page:               &Page{URL: &URL{Original: &url}, Referer: &referer},
 				Custom:             &custom,
 				RUM:                true,

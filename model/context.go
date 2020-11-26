@@ -31,7 +31,7 @@ import (
 type Context struct {
 	Http         *Http
 	URL          *URL
-	Labels       *Labels
+	Labels       common.MapStr
 	Page         *Page
 	Custom       *Custom
 	Message      *Message
@@ -112,12 +112,6 @@ type Page struct {
 	URL     *URL
 	Referer *string
 }
-
-// Labels holds user defined information nested under key tags
-//
-// TODO(axw) either get rid of this type, or use it consistently
-// in all model types (looking at you, Metadata).
-type Labels common.MapStr
 
 // Custom holds user defined information nested under key custom
 type Custom common.MapStr
@@ -203,14 +197,6 @@ func (page *Page) Fields() common.MapStr {
 	}
 	utility.Set(fields, "referer", page.Referer)
 	return fields
-}
-
-// Fields returns common.MapStr holding transformed data for attribute label.
-func (labels *Labels) Fields() common.MapStr {
-	if labels == nil {
-		return nil
-	}
-	return common.MapStr(*labels)
 }
 
 // Fields returns common.MapStr holding transformed data for attribute custom.
