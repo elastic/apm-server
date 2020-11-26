@@ -288,8 +288,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			mapToRequestURLModel(from.Context.Request.URL, out.URL)
 		}
 		if len(from.Context.Custom) > 0 {
-			custom := model.Custom(from.Context.Custom.Clone())
-			out.Custom = &custom
+			out.Custom = from.Context.Custom.Clone()
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -1015,8 +1014,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			custom := model.Custom(from.Context.Custom.Clone())
-			out.Custom = &custom
+			out.Custom = from.Context.Custom.Clone()
 		}
 		if config.Experimental && from.Context.Experimental.IsSet() {
 			out.Experimental = from.Context.Experimental.Val

@@ -64,7 +64,7 @@ type Error struct {
 	Page    *Page
 	HTTP    *Http
 	URL     *URL
-	Custom  *Custom
+	Custom  common.MapStr
 
 	Exception *Exception
 	Log       *Log
@@ -176,7 +176,7 @@ func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr
 
 	e.updateCulprit(cfg)
 	e.add("culprit", e.Culprit)
-	e.add("custom", e.Custom.Fields())
+	e.add("custom", customFields(e.Custom))
 
 	e.add("grouping_key", e.calcGroupingKey(exceptionChain))
 

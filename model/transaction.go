@@ -64,7 +64,7 @@ type Transaction struct {
 	HTTP           *Http
 	URL            *URL
 	Labels         common.MapStr
-	Custom         *Custom
+	Custom         common.MapStr
 	UserExperience *UserExperience
 
 	Experimental interface{}
@@ -91,7 +91,7 @@ func (e *Transaction) fields() common.MapStr {
 	fields.maybeSetString("result", e.Result)
 	fields.maybeSetMapStr("marks", e.Marks.fields())
 	fields.maybeSetMapStr("page", e.Page.Fields())
-	fields.maybeSetMapStr("custom", e.Custom.Fields())
+	fields.maybeSetMapStr("custom", customFields(e.Custom))
 	fields.maybeSetMapStr("message", e.Message.Fields())
 	fields.maybeSetMapStr("experience", e.UserExperience.Fields())
 	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {

@@ -175,7 +175,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Page:      &Page{URL: &URL{Original: &url}, Referer: &referer},
 		HTTP:      &Http{Request: &request, Response: &response},
 		URL:       &URL{Original: &url},
-		Custom:    &Custom{"foo": "bar"},
+		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
 	}
 	events := txWithContext.Transform(context.Background(), &transform.Config{DataStreams: true})
@@ -212,7 +212,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"sampled":  true,
 			"page":     common.MapStr{"url": url, "referer": referer},
 			"custom": common.MapStr{
-				"foo": "bar",
+				"foo_bar": "baz",
 			},
 			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
 		},
