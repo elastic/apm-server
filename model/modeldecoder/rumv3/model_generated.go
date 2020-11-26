@@ -29,8 +29,7 @@ import (
 )
 
 var (
-	patternAlphaNumericExtRegexp    = regexp.MustCompile(patternAlphaNumericExt)
-	patternNoDotAsteriskQuoteRegexp = regexp.MustCompile(patternNoDotAsteriskQuote)
+	patternAlphaNumericExtRegexp = regexp.MustCompile(patternAlphaNumericExt)
 )
 
 func (val *metadataRoot) IsSet() bool {
@@ -68,9 +67,6 @@ func (val *metadata) validate() error {
 		return nil
 	}
 	for k, v := range val.Labels {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'l': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:
@@ -405,11 +401,6 @@ func (val *context) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	for k := range val.Custom {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'cu': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
-	}
 	if err := val.Page.validate(); err != nil {
 		return errors.Wrapf(err, "p")
 	}
@@ -423,9 +414,6 @@ func (val *context) validate() error {
 		return errors.Wrapf(err, "se")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'g': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:
@@ -833,9 +821,6 @@ func (val *metricset) validate() error {
 		return errors.Wrapf(err, "y")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'g': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:
@@ -1063,14 +1048,6 @@ func (val *transactionMarks) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	for k, v := range val.Events {
-		if err := v.validate(); err != nil {
-			return errors.Wrapf(err, "events")
-		}
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'events': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
-	}
 	return nil
 }
 
@@ -1087,11 +1064,6 @@ func (val *transactionMarkEvents) Reset() {
 func (val *transactionMarkEvents) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	for k := range val.Measurements {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'measurements': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 	}
 	return nil
 }
@@ -1225,9 +1197,6 @@ func (val *spanContext) validate() error {
 		return errors.Wrapf(err, "se")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'g': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:

@@ -92,7 +92,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 				"timeToFirstByte":            0.5,
 				"firstContentfulPaint":       0.6,
 				"largestContentfulPaint":     0.7,
-				"long": 0.8,
+				"long":                       0.8,
 			},
 			"navigationTiming": map[string]float64{
 				"fetchStart":                 0.1,
