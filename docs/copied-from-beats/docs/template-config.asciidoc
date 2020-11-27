@@ -55,7 +55,7 @@ relative path is set, it is considered relative to the config path. See the <<di
 section for details.
 
 *`setup.template.overwrite`*:: A boolean that specifies whether to overwrite the existing template. The default
-is false.
+is false. Do not enable this option for more than one instance of APM as it might overload your Elasticsearch with too many update requests.
 
 *`setup.template.settings`*:: A dictionary of settings to place into the `settings.index` dictionary of the
 Elasticsearch template. For more details about the available Elasticsearch mapping options, please
