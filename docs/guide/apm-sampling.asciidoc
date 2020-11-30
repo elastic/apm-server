@@ -1,0 +1,92 @@
+[[apm-sampling]]
+=== Sampling
+
+Elastic APM supports head-based, probability sampling.
+_Head-based_ means the sampling decision for each trace is made when that trace is initiated.
+_Probability sampling_ means that each trace has a defined and equal probability of being sampled.
+
+For example, a sampling value of `.2` indicates a trace sample rate of `20%`.
+This means that only `20%` of traces will send and retain all of their associated information.
+The remaining traces will drop contextual information to reduce the transfer and storage size of the trace.
+
+[float]
+==== Why sample?
+
+Distributed tracing can generate a very large amount of data,
+and storage can be a concern for users running `100%`` sampling -- especially as they scale.
+
+The goal of probability sampling is to provide you with a representative set of data that allows
+you to make statistical inferences about the entire group of data.
+In other words, in most cases, you can still find anomalous patterns in your applications, detect outages, track errors,
+and lower MTTR, even when sampling at less than `100%``.
+
+[float]
+==== Data
+
+Sampled traces retain all data.
+
+Non-sampled traces drop <<transaction-spans,`span`>> data.
+Spans contain more granular information about what is happening within a transaction,
+like external requests or database calls.
+Spans also contain contextual information and labels.
+
+Regardless of sampling decision, all traces retain `transaction` and error data.
+This means the following data will always accurately reflect *all* of your application's requests, regardless of the configured sampling rate:
+
+* Transaction duration and transactions per minute
+* Transaction breakdown metrics
+* Errors, error occurrence, and error rate
+
+// To turn off the sending of all data, including transaction and error data, set `active` to `false`.
+
+[float]
+==== Sample rate
+
+What's the best sampling rate? Unfortunately, there isn't one.
+Sampling is dependent on your data, the throughput of your application, data retainment policies, and other factors.
+A sampling rate from `.1%` to `100%` would all be considered normal.
+You may even have different services that experience different volume levels of traffic --
+which could lead to different sample rates for different services.
+
+// Regardless, cost conscious customers are likely to be fine with a lower sample rate.
+
+[float]
+==== Sampling a distributed trace
+
+In a distributed trace, the initiating service makes the sampling decision,
+and all downstream services respect that decision.
+
+In each example below, `Service A` initiates four transactions.
+In the first example, `Service A` samples at `.5` (`50%``). In the second, `Service A` samples at `1` (`100%``).
+Each subsequent service respects the initial sampling decision, regardless of their configured sample rate.
+The end result is a sampling percentage that matches the initiating service:
+
+image::images/dt-sampling-example.png[How sampling impacts distributed tracing]
+
+[float]
+==== APM app implications
+
+In head-based sampling, each service knows which transactions should and shouldn't be sampled.
+This logic prevents the APM app from showing broken traces.
+
+[float]
+==== Adjust the sample rate
+
+There are three ways to adjust the sampling rates of your APM agents:
+
+Sample rates can be changed dynamically -- no redeployment necessary -- on a per-service and per-environment
+basis with {kibana-ref}/agent-configuration.html[APM Agent Configuration] in Kibana.
+
+APM Agent configuration exposes an API which can be used to programmatically change the
+sampling rate of your agents.
+An example is provided in the {kibana-ref}/agent-config-api.html[Agent configuration API reference].
+
+Finally, each agent provides a configuration value for sampling.
+See the relevant agent's documentation for more details:
+
+* Go: {apm-go-ref-v}/configuration.html#config-transaction-sample-rate[`ELASTIC_APM_TRANSACTION_SAMPLE_RATE`]
+* Java: {apm-java-ref-v}/config-core.html#config-transaction-sample-rate[`transaction_sample_rate`]
+* .NET: {apm-dotnet-ref-v}/config-core.html#config-transaction-sample-rate[`TransactionSampleRate`]
+* Node.js: {apm-node-ref-v}/configuration.html#transaction-sample-rate[`transactionSampleRate`]
+* Python: {apm-py-ref-v}/configuration.html#config-transaction-sample-rate[`transaction_sample_rate`]
+* Ruby: {apm-ruby-ref-v}/configuration.html#config-transaction-sample-rate[`transaction_sample_rate`]

@@ -9,6 +9,8 @@ include::./distributed-tracing.asciidoc[]
 
 include::./rum.asciidoc[]
 
+include::./apm-sampling.asciidoc[]
+
 include::./opentracing.asciidoc[]
 
 include::./opentelemetry-elastic.asciidoc[]

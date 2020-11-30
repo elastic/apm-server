@@ -1,17 +1,211 @@
 [[distributed-tracing]]
 === Distributed tracing
 
-Together, <<transactions,`Transactions`>> and <<transaction-spans,`Spans`>> form a `Trace`.
-Traces are not events, but group together events that have a common root.
+TIP: Need help understanding transactions and spans? Check out the <<apm-data-model>>.
 
-Elastic APM supports distributed tracing.
-Distributed tracing enables you to analyze performance throughout your microservices architecture all in one view.
-This is accomplished by tracing all of the requests - from the initial web request to your front-end service - to queries made to your back-end services.
-This makes finding possible bottlenecks throughout your application much easier and faster.
-Best of all, there's no additional configuration needed for distributed tracing, just ensure you're using the latest version of the applicable {apm-agents-ref}/index.html[agent].
+A `trace` is a group of <<transactions,transactions>> and <<transaction-spans,spans>> with a common root.
+Each `trace` tracks the entirety of a single request.
+When a `trace` travels through multiple services, as is common in a microservice architecture,
+it is known as a distributed trace.
 
-The APM app in Kibana also supports distributed tracing.
-The Timeline visualization has been redesigned to show all of the transactions from individual services that are connected in a trace:
+[float]
+=== Why is distributed tracing important?
+
+Distributed tracing enables you to analyze performance throughout your microservice architecture
+by tracing the entirety of a request -- from the initial web request on your front-end service,
+all the way to database queries made on your back-end services.
+
+Tracking requests as they propagate through your services provides an end-to-end picture of
+where your application is spending time, where errors are occurring, and where bottlenecks are forming.
+Distributed tracing eliminates individual service's data silos and reveals what's happening outside of
+service borders.
+
+For supported technologies, no additional configuration is required.
+
+[float]
+=== Visualize distributed tracing
+
+The APM app's timeline visualization provides a visual deep-dive into each of your application's traces:
 
 [role="screenshot"]
 image::images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ********************************************
+// Trace context!
+// ********************************************
+
+All Elastic agents support the official W3C tracecontext `traceparent` header,
+instead of the previous `elastic-apm-traceparent` header.
+The table below specifies which agent versions support the official headers.
+Compatible agents use the official `tracecontext` spec to propagate traces and can therefor
+be used with the RUM agent `>= 5.0` for distributed tracing.
+
+[options="header"]
+|====
+|Agent name |Agent Version
+|**Go Agent**|>= `1.6`
+|**Java Agent**|>= `1.14`
+|**.NET Agent**|>= `1.3`
+|**Node.js Agent**|>= `3.4`
+|**Python Agent**|>= `5.4`
+|**Ruby Agent**|>= `3.5`
+|====
+
+
+
+image::images/traceparent-propagation.png[How traceparent propagation works]
+
+
+// RULES OF TRACEPARENT REQUESTS
+
+Elastic APM Agents support `traceparent` headers.
+
+1. On all incoming requests, agents look for both `elastic-apm-traceparent` and `traceparent`.
+If both are present, the agent prefers `elastic-apm-traceparent` over `traceparent`.
+
+2. On all outgoing requests, agents set `traceparent`, and optionally, `elastic-apm-traceparent`.
+Due to CORS, RUM sets either `traceparent` or `elastic-apm-traceparent`.
+The config value, `ELASTIC_APM_USE_ELASTIC_TRACEPARENT_HEADER` controls this behavior.
+If `true` (default), backwards compatibility is ensured for older APM agents.
+This value usually doesn't need to be configured.
+
+// do we need to doc this??
+In addition, APM agents should look for `tracestate`, and based on certain rules,
+forward it to all outgoing requests.
+
+// Manual instrumentation with agent APIs
+
+Distributed tracing is automatically supported with HTTP/HTTPS. If you’re using another protocol,
+like TCP, UDP, WebSocket, or or any other unsupported technology,
+you can manually instrument with agent APIs.
+// (java) manually inject RPC framework
+
+Sending services must add the `traceparent` header to outgoing requests.
+Receiving services must read the incoming `traceparent` header, and start a new child transaction.
+
+// SENDING SERVICE
+**Sending service**
+
+// Node.js
+
+1. Start a transaction with {}apm-start-transaction[`apm.startTransaction()`],
+or a span with {}apm-start-span[`apm.startSpan()`].
+
+2. Get the serialized `traceparent` string of the started transaction/span with {}apm-current-traceparent[``].
+
+3. Encode the `traceparent` and send it to the receiving service inside your regular request.
+
+Example using raw UDP to communicate between two services, A and B:
+
+[source,js]
+----
+agent.startTransaction('my-service-a-transaction'); <1>
+const traceparent = agent.currentTraceparent; <2>
+sendMetadata(`traceparent: ${traceparent}\n`); <3>
+----
+<1> Start a transaction
+<2> Get the current `traceparent`
+<3> Send the `traceparent` as a header to service B.
+
+// Java
+
+1. Start a transaction with {}/public-api.html#api-start-transaction[`startTransaction`],
+or a span with {}/public-api.html#api-span-start-span[`startSpan`].
+
+2. Inject the `traceparent` header into the request object with
+{}/public-api.html#api-transaction-inject-trace-headers[`injectTraceHeaders`]
+
+Example of manually instrumenting an RPC framework:
+
+[source,java]
+----
+// Hook into a callback provided by the RPC framework that is called on outgoing requests
+public Response onOutgoingRequest(Request request) throws Exception {
+  Span span = ElasticApm.currentSpan() <1>
+          .startSpan("external", "http", null)
+          .setName(request.getMethod() + " " + request.getHost());
+  try (final Scope scope = transaction.activate()) {
+      span.injectTraceHeaders((name, value) -> request.addHeader(name, value)); <2>
+      return request.execute();
+  } catch (Exception e) {
+      span.captureException(e);
+      throw e;
+  } finally {
+      span.end(); <3>
+  }
+}
+----
+<1> Create a span representing an external call
+<2> Inject the `traceparent` header into the request object
+<3> End the span
+
+// RECEIVING SERVICE
+**Receiving service**
+
+// Node.js
+
+1. Decode and store the `traceparent` in the receiving service.
+
+2. Manually start a new transaction as a child of the received `traceparent`,
+with {}apm-start-transaction[`apm.startTransaction()`].
+Pass in the `traceparent` as the `childOf` option.
+
+Example receiving a `traceparent` over raw UDP:
+
+[source,js]
+----
+const traceparent = readTraceparentFromUDPPacket() <1>
+agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
+----
+<1> Read the `traceparent` from the incoming request.
+<2> Use the `traceparent` to initialize a new transaction that is a child of the original `traceparent`.
+
+// Java
+
+1. Create a transaction as a parent of the incoming transaction with
+{}/public-api.html#api-transaction-inject-trace-headers[`startTransactionWithRemoteParent()`].
+
+2. Start and name the transaction with {}/public-api.html#api-transaction-activate[`activate()`]
+and {}/public-api.html#api-set-name[`setName()`].
+
+Example:
+
+[source,java]
+----
+// Hook into a callback provided by the framework that is called on incoming requests
+public Response onIncomingRequest(Request request) throws Exception {
+    // creates a transaction representing the server-side handling of the request
+    Transaction transaction = ElasticApm.startTransactionWithRemoteParent(request::getHeader, request::getHeaders); <1>
+    try (final Scope scope = transaction.activate()) { <2>
+        String name = "a useful name like ClassName#methodName where the request is handled";
+        transaction.setName(name); <3>
+        transaction.setType(Transaction.TYPE_REQUEST); <4>
+        return request.handle();
+    } catch (Exception e) {
+        transaction.captureException(e);
+        throw e;
+    } finally {
+        transaction.end(); <5>
+    }
+}
+----
+<1> Create a transaction as the child of a remote parent
+<2> Activate the transaction
+<3> Name the transaction
+<4> Add a transaction type
+<5> Eventually, end the transaction
