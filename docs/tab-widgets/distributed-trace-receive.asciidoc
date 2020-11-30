@@ -1,0 +1,95 @@
+// tag::go[]
+
+// end::go[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::java[]
+
+1. Create a transaction as a parent of the incoming transaction with
+{}/public-api.html#api-transaction-inject-trace-headers[`startTransactionWithRemoteParent()`].
+
+2. Start and name the transaction with {}/public-api.html#api-transaction-activate[`activate()`]
+and {}/public-api.html#api-set-name[`setName()`].
+
+Example:
+
+[source,java]
+----
+// Hook into a callback provided by the framework that is called on incoming requests
+public Response onIncomingRequest(Request request) throws Exception {
+    // creates a transaction representing the server-side handling of the request
+    Transaction transaction = ElasticApm.startTransactionWithRemoteParent(request::getHeader, request::getHeaders); <1>
+    try (final Scope scope = transaction.activate()) { <2>
+        String name = "a useful name like ClassName#methodName where the request is handled";
+        transaction.setName(name); <3>
+        transaction.setType(Transaction.TYPE_REQUEST); <4>
+        return request.handle();
+    } catch (Exception e) {
+        transaction.captureException(e);
+        throw e;
+    } finally {
+        transaction.end(); <5>
+    }
+}
+----
+<1> Create a transaction as the child of a remote parent
+<2> Activate the transaction
+<3> Name the transaction
+<4> Add a transaction type
+<5> Eventually, end the transaction
+
+// end::java[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::net[]
+
+// end::net[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::node[]
+
+1. Decode and store the `traceparent` in the receiving service.
+
+2. Manually start a new transaction as a child of the received `traceparent`,
+with {}apm-start-transaction[`apm.startTransaction()`].
+Pass in the `traceparent` as the `childOf` option.
+
+Example receiving a `traceparent` over raw UDP:
+
+[source,js]
+----
+const traceparent = readTraceparentFromUDPPacket() <1>
+agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
+----
+<1> Read the `traceparent` from the incoming request.
+<2> Use the `traceparent` to initialize a new transaction that is a child of the original `traceparent`.
+
+// end::node[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::python[]
+
+
+// end::python[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::ruby[]
+
+// end::ruby[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::rum[]
+
+// end::rum[]

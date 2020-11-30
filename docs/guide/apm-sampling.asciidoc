@@ -57,17 +57,17 @@ In a distributed trace, the initiating service makes the sampling decision,
 and all downstream services respect that decision.
 
 In each example below, `Service A` initiates four transactions.
-In the first example, `Service A` samples at `.5` (`50%``). In the second, `Service A` samples at `1` (`100%``).
+In the first example, `Service A` samples at `.5` (`50%`). In the second, `Service A` samples at `1` (`100%`).
 Each subsequent service respects the initial sampling decision, regardless of their configured sample rate.
 The end result is a sampling percentage that matches the initiating service:
 
 image::images/dt-sampling-example.png[How sampling impacts distributed tracing]
 
-[float]
-==== APM app implications
+// [float]
+// ==== APM app implications
 
-In head-based sampling, each service knows which transactions should and shouldn't be sampled.
-This logic prevents the APM app from showing broken traces.
+// In head-based sampling, each service knows which transactions should and shouldn't be sampled.
+// This logic prevents the APM app from showing broken traces.
 
 [float]
 ==== Adjust the sample rate
