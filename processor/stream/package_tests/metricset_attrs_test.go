@@ -18,7 +18,6 @@
 package package_tests
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -46,43 +45,4 @@ func TestAttributesPresenceInMetric(t *testing.T) {
 		"metricset.samples",
 	)
 	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
-}
-
-func TestInvalidPayloads(t *testing.T) {
-	type obj = map[string]interface{}
-	type val = []interface{}
-
-	validMetric := obj{"value": json.Number("1.0")}
-	payloadData := []tests.SchemaTestData{
-		{Key: "metricset.timestamp",
-			Valid:   val{json.Number("1496170422281000")},
-			Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{"1496170422281000"}}}},
-		{Key: "metricset.tags",
-			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
-			Invalid: []tests.Invalid{
-				{Msg: `decode error`, Values: val{"tags"}},
-				{Msg: `validation error`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
-				{Msg: `validation error`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
-		},
-		{
-			Key:   "metricset.samples",
-			Valid: val{obj{"valid-metric": validMetric}},
-			Invalid: []tests.Invalid{
-				{
-					Msg: `validation error`,
-					Values: val{
-						obj{"metric\"key\"_quotes": validMetric},
-						obj{"metric-*-key-star": validMetric},
-					},
-				},
-				{
-					Msg: `decode error`,
-					Values: val{
-						obj{"string-value": obj{"value": "foo"}},
-					},
-				},
-			},
-		},
-	}
-	metricsetProcSetup().DataValidation(t, payloadData)
 }
