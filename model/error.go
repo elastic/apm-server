@@ -110,17 +110,18 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 		addStacktraceCounter(e.Log.Stacktrace)
 	}
 
-	// Errors are stored in an APM errors-specific "logs" data stream, per service.
-	// By storing errors in a "logs" data stream, they can be viewed in the Logs app
-	// in Kibana.
-	dataset := fmt.Sprintf("apm.error.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-
 	fields := common.MapStr{
-		datastreams.TypeField:    datastreams.LogsType,
-		datastreams.DatasetField: dataset,
-
 		"error":     e.fields(ctx, cfg),
 		"processor": errorProcessorEntry,
+	}
+
+	if cfg.DataStreams {
+		// Errors are stored in an APM errors-specific "logs" data stream, per service.
+		// By storing errors in a "logs" data stream, they can be viewed in the Logs app
+		// in Kibana.
+		dataset := fmt.Sprintf("apm.error.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+		fields[datastreams.TypeField] = datastreams.LogsType
+		fields[datastreams.DatasetField] = dataset
 	}
 
 	// first set the generic metadata (order is relevant)
