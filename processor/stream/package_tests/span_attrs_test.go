@@ -18,7 +18,6 @@
 package package_tests
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -179,33 +178,4 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "span.message.queue.name", Mapping: "context.message.queue.name"},
 		},
 	)
-}
-
-func TestPayloadDataForSpans(t *testing.T) {
-	// add test data for testing
-	// * specific edge cases
-	// * multiple allowed dataypes
-	// * regex pattern, time formats
-	// * length restrictions, other than keyword length restrictions
-
-	spanProcSetup().DataValidation(t,
-		[]tests.SchemaTestData{
-			{Key: "span.context.tags",
-				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
-				Invalid: []tests.Invalid{
-					{Msg: `decode error`, Values: val{"tags"}},
-					{Msg: `validation error`, Values: val{
-						obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}},
-						obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
-			{Key: "span.timestamp",
-				Valid: val{json.Number("1496170422281000")},
-				Invalid: []tests.Invalid{
-					{Msg: `decode error`, Values: val{"1496170422281000"}}}},
-			{Key: "span.stacktrace.pre_context",
-				Valid:   val{[]interface{}{}, []interface{}{"context"}},
-				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{[]interface{}{123}, "test"}}}},
-			{Key: "span.stacktrace.post_context",
-				Valid:   val{[]interface{}{}, []interface{}{"context"}},
-				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{[]interface{}{123, "test"}}}}},
-		})
 }
