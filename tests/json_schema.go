@@ -51,17 +51,6 @@ type ProcessorSetup struct {
 	SchemaPath string
 }
 
-type SchemaTestData struct {
-	Key       string
-	Valid     []interface{}
-	Invalid   []Invalid
-	Condition Condition
-}
-type Invalid struct {
-	Msg    string
-	Values []interface{}
-}
-
 type Condition struct {
 	// If requirements for a field apply in case of anothers key absence,
 	// add the key.
@@ -182,31 +171,6 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 		}
 
 		assert.True(t, schemaKeys.Contains(key), "Expected <%s> (original: <%s>) to have the MaxLength limit set because it gets indexed as 'keyword'", key, k.(string))
-	}
-}
-
-// Test that specified values for attributes fail or pass
-// the validation accordingly.
-// The configuration and testing of valid attributes here is intended
-// to ensure correct setup and configuration to avoid false negatives.
-func (ps *ProcessorSetup) DataValidation(t *testing.T, testData []SchemaTestData) {
-	for _, d := range testData {
-		testAttrs := func(val interface{}, valid bool, msg string) {
-			ps.changePayload(t, d.Key, val, d.Condition,
-				upsertFn, func(k string) (bool, []string) {
-					return valid, []string{msg}
-				})
-		}
-
-		for _, invalid := range d.Invalid {
-			for _, v := range invalid.Values {
-				testAttrs(v, false, invalid.Msg)
-			}
-		}
-		for _, v := range d.Valid {
-			testAttrs(v, true, "")
-		}
-
 	}
 }
 

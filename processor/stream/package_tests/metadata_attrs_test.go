@@ -177,16 +177,3 @@ func metadataRequiredKeys() *tests.Set {
 func TestAttrsPresenceInMetadata(t *testing.T) {
 	metadataProcSetup().AttrsPresence(t, metadataRequiredKeys(), nil)
 }
-func TestInvalidPayloadsForMetadata(t *testing.T) {
-	type val []interface{}
-
-	payloadData := []tests.SchemaTestData{
-		{Key: "metadata.service.name",
-			Valid: val{"m"},
-			Invalid: []tests.Invalid{
-				{Msg: "validation error", Values: val{tests.Str1024Special}},
-				{Msg: "validation error", Values: val{""}},
-			},
-		}}
-	metadataProcSetup().DataValidation(t, payloadData)
-}
