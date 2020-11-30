@@ -178,7 +178,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    &Custom{"foo": "bar"},
 		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
 	}
-	events := txWithContext.Transform(context.Background(), &transform.Config{})
+	events := txWithContext.Transform(context.Background(), &transform.Config{DataStreams: true})
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"data_stream.type":    "traces",

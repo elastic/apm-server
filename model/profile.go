@@ -50,7 +50,7 @@ type PprofProfile struct {
 }
 
 // Transform transforms a Profile into a sequence of beat.Events: one per profile sample.
-func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
+func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
 	profileTimestamp := time.Unix(0, pp.Profile.TimeNanos)
@@ -70,7 +70,10 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 	// Profiles are stored in their own "metrics" data stream, with a data
 	// set per service. This enables managing retention of profiling data
 	// per-service, and indepedently of lower volume metrics.
-	dataset := fmt.Sprintf("apm.profiling.%s", datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
+	var dataset string
+	if cfg.DataStreams {
+		dataset = fmt.Sprintf("apm.profiling.%s", datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
+	}
 
 	samples := make([]beat.Event, len(pp.Profile.Sample))
 	for i, sample := range pp.Profile.Sample {
@@ -122,11 +125,13 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 		event := beat.Event{
 			Timestamp: profileTimestamp,
 			Fields: common.MapStr{
-				datastreams.TypeField:    datastreams.MetricsType,
-				datastreams.DatasetField: dataset,
-				"processor":              profileProcessorEntry,
-				profileDocType:           profileFields,
+				"processor":    profileProcessorEntry,
+				profileDocType: profileFields,
 			},
+		}
+		if cfg.DataStreams {
+			event.Fields[datastreams.TypeField] = datastreams.MetricsType
+			event.Fields[datastreams.DatasetField] = dataset
 		}
 		pp.Metadata.Set(event.Fields)
 		if len(sample.Label) > 0 {
