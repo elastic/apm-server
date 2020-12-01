@@ -83,11 +83,11 @@ string outgoingDistributedTracingData =
 
 // tag::node[]
 
-1. Start a transaction with {apm-node-ref}apm-start-transaction[`apm.startTransaction()`],
-or a span with {apm-node-ref}apm-start-span[`apm.startSpan()`].
+1. Start a transaction with {apm-node-ref}/apm-start-transaction[`apm.startTransaction()`],
+or a span with {apm-node-ref}/apm-start-span[`apm.startSpan()`].
 
 2. Get the serialized `traceparent` string of the started transaction/span with
-{apm-node-ref}apm-current-traceparent[``].
+{apm-node-ref}/apm-current-traceparent[``].
 
 3. Encode the `traceparent` and send it to the receiving service inside your regular request.
 

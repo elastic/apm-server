@@ -95,7 +95,7 @@ var transaction2 = Agent.Tracer.StartTransaction("Transaction2", "TestTransactio
 
 2. Pass in the `traceparent` as the `childOf` option to manually start a new transaction
 as a child of the received `traceparent` with
-{apm-node-ref}apm-start-transaction[`apm.startTransaction()`].
+{apm-node-ref}/apm-start-transaction[`apm.startTransaction()`].
 
 Example receiving a `traceparent` over raw UDP:
 
