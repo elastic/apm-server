@@ -18,7 +18,7 @@
 package idxmgmt
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -27,16 +27,17 @@ import (
 	"github.com/elastic/beats/v7/libbeat/template"
 
 	"github.com/elastic/apm-server/idxmgmt/ilm"
+	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 	logs "github.com/elastic/apm-server/log"
 )
-
-// functionality largely copied from libbeat
 
 type IndexManagementConfig struct {
 	DataStreams bool
 	Template    template.TemplateConfig
 	ILM         ilm.Config
 	Output      common.ConfigNamespace
+
+	unmanagedIdxCfg unmanaged.Config
 }
 
 // MakeDefaultSupporter creates a new idxmgmt.Supporter, using the given root config.
@@ -56,50 +57,89 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	if err != nil {
 		return nil, err
 	}
-	if log == nil {
-		log = logp.NewLogger(logs.IndexManagement)
-	} else {
-		log = log.Named(logs.IndexManagement)
-	}
+	log = namedLogger(log)
 	return newSupporter(log, info, cfg)
 }
 
+func namedLogger(log *logp.Logger) *logp.Logger {
+	if log == nil {
+		return logp.NewLogger(logs.IndexManagement)
+	}
+	return log.Named(logs.IndexManagement)
+}
+
+// NewIndexManagementConfig extracts and validates index management config from info and configRoot.
 func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*IndexManagementConfig, error) {
-	cfg := struct {
-		DataStreams *common.Config         `config:"apm-server.data_streams"`
-		ILM         *common.Config         `config:"apm-server.ilm"`
-		Template    *common.Config         `config:"setup.template"`
-		Output      common.ConfigNamespace `config:"output"`
-	}{}
+	var cfg struct {
+		DataStreams            *common.Config         `config:"apm-server.data_streams"`
+		RegisterIngestPipeline *common.Config         `config:"apm-server.register.ingest.pipeline"`
+		ILM                    *common.Config         `config:"apm-server.ilm"`
+		Template               *common.Config         `config:"setup.template"`
+		Output                 common.ConfigNamespace `config:"output"`
+	}
 	if configRoot != nil {
 		if err := configRoot.Unpack(&cfg); err != nil {
 			return nil, err
 		}
 	}
 
-	tmplConfig, err := unpackTemplateConfig(cfg.Template)
+	templateConfig, err := unpackTemplateConfig(cfg.Template)
 	if err != nil {
-		return nil, fmt.Errorf("unpacking template config fails: %+v", err)
+		return nil, errors.Wrap(err, "unpacking template config failed")
 	}
 
 	ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
 	if err != nil {
-		return nil, fmt.Errorf("creating ILM config fails: %v", err)
+		return nil, errors.Wrap(err, "creating ILM config fails")
+	}
+
+	var unmanagedIdxCfg unmanaged.Config
+	if cfg.Output.Name() == esKey {
+		if err := cfg.Output.Config().Unpack(&unmanagedIdxCfg); err != nil {
+			return nil, errors.Wrap(err, "failed to unpack output.elasticsearch config")
+		}
+		if err := checkTemplateESSettings(templateConfig, &unmanagedIdxCfg); err != nil {
+			return nil, err
+		}
 	}
 
 	return &IndexManagementConfig{
-		DataStreams: cfg.DataStreams.Enabled(),
-		Template:    tmplConfig,
-		ILM:         ilmConfig,
-		Output:      cfg.Output,
+		Output:   cfg.Output,
+		Template: templateConfig,
+		ILM:      ilmConfig,
+
+		unmanagedIdxCfg: unmanagedIdxCfg,
 	}, nil
 }
 
-func unpackTemplateConfig(cfg *common.Config) (template.TemplateConfig, error) {
-	config := template.DefaultConfig()
-	if cfg == nil {
-		return config, nil
+func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanaged.Config) error {
+	if !tmplCfg.Enabled || indexCfg == nil {
+		return nil
 	}
-	err := cfg.Unpack(&config)
-	return config, err
+	if indexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
+		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
+	}
+	return nil
+}
+
+// unpackTemplateConfig merges APM-specific template settings with (possibly nil)
+// user-defined config, unpacks it over template.DefaultConfig(), returning the result.
+func unpackTemplateConfig(userTemplateConfig *common.Config) (template.TemplateConfig, error) {
+	templateConfig := common.MustNewConfigFrom(`
+settings:
+  index:
+    codec: best_compression
+    mapping.total_fields.limit: 2000
+    number_of_shards: 1
+  _source.enabled: true`)
+	if userTemplateConfig != nil {
+		if err := templateConfig.Merge(userTemplateConfig); err != nil {
+			return template.TemplateConfig{}, errors.Wrap(err, "merging failed")
+		}
+	}
+	out := template.DefaultConfig()
+	if err := templateConfig.Unpack(&out); err != nil {
+		return template.TemplateConfig{}, err
+	}
+	return out, nil
 }
