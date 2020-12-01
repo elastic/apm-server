@@ -48,6 +48,7 @@ type Config struct {
 	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM         *RUMConfig         `json:"apm-server.rum,omitempty"`
 	DataStreams *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
+	APIKey      *APIKeyConfig      `json:"apm-server.api_key,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -150,10 +151,19 @@ type DataStreamsConfig struct {
 	Enabled bool `json:"enabled"`
 }
 
+// APIKeyConfig holds APM Server API Key auth configuration.
+type APIKeyConfig struct {
+	Enabled bool `json:"enabled"`
+}
+
 // InstrumentationConfig holds APM Server instrumentation configuration.
 type InstrumentationConfig struct {
 	Enabled   bool             `json:"enabled"`
 	Profiling *ProfilingConfig `json:"profiling,omitempty"`
+
+	Hosts       []string `json:"hosts,omitempty"`
+	APIKey      string   `json:"api_key,omitempty"`
+	SecretToken string   `json:"secret_token,omitempty"`
 }
 
 // ProfilingConfig holds APM Server profiling configuration.
