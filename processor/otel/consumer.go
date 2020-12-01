@@ -201,13 +201,13 @@ func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
 
 	md.Labels = make(common.MapStr)
 	for key, val := range td.Node.GetAttributes() {
-		md.Labels[replaceDots(key)] = truncate(val)
+		md.Labels[key] = truncate(val)
 	}
 	if t := td.Resource.GetType(); t != "" {
 		md.Labels["resource"] = truncate(t)
 	}
 	for key, val := range td.Resource.GetLabels() {
-		md.Labels[replaceDots(key)] = truncate(val)
+		md.Labels[key] = truncate(val)
 	}
 }
 
@@ -236,19 +236,19 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 		k := replaceDots(kDots)
 		switch v := v.Value.(type) {
 		case *tracepb.AttributeValue_BoolValue:
-			utility.DeepUpdate(labels, k, v.BoolValue)
+			labels[k] = v.BoolValue
 			if k == "error" {
 				hasFailed = v.BoolValue
 			}
 		case *tracepb.AttributeValue_DoubleValue:
-			utility.DeepUpdate(labels, k, v.DoubleValue)
+			labels[k] = v.DoubleValue
 		case *tracepb.AttributeValue_IntValue:
 			switch kDots {
 			case "http.status_code":
 				httpStatusCode = int(v.IntValue)
 				isHTTP = true
 			default:
-				utility.DeepUpdate(labels, k, v.IntValue)
+				labels[k] = v.IntValue
 			}
 		case *tracepb.AttributeValue_StringValue:
 			switch kDots {
@@ -269,7 +269,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 					version := truncate(strings.TrimPrefix(v.StringValue.Value, "HTTP/"))
 					http.Version = &version
 				} else {
-					utility.DeepUpdate(labels, k, v.StringValue.Value)
+					labels[k] = v.StringValue.Value
 				}
 				isHTTP = true
 			case "message_bus.destination":
@@ -283,7 +283,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 				component = truncate(v.StringValue.Value)
 				fallthrough
 			default:
-				utility.DeepUpdate(labels, k, truncate(v.StringValue.Value))
+				labels[k] = truncate(v.StringValue.Value)
 			}
 		}
 	}
@@ -332,11 +332,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
 	}
 
-	if len(labels) == 0 {
-		return
-	}
-	l := model.Labels(labels)
-	event.Labels = &l
+	event.Labels = labels
 }
 
 func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
@@ -365,9 +361,9 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 		k := replaceDots(kDots)
 		switch v := v.Value.(type) {
 		case *tracepb.AttributeValue_BoolValue:
-			utility.DeepUpdate(labels, k, v.BoolValue)
+			labels[k] = v.BoolValue
 		case *tracepb.AttributeValue_DoubleValue:
-			utility.DeepUpdate(labels, k, v.DoubleValue)
+			labels[k] = v.DoubleValue
 		case *tracepb.AttributeValue_IntValue:
 			switch kDots {
 			case "http.status_code":
@@ -378,7 +374,7 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 				port := int(v.IntValue)
 				destination.Port = &port
 			default:
-				utility.DeepUpdate(labels, k, v.IntValue)
+				labels[k] = v.IntValue
 			}
 		case *tracepb.AttributeValue_StringValue:
 			switch kDots {
@@ -441,7 +437,7 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 				component = truncate(v.StringValue.Value)
 				fallthrough
 			default:
-				utility.DeepUpdate(labels, k, truncate(v.StringValue.Value))
+				labels[k] = truncate(v.StringValue.Value)
 			}
 		}
 	}
@@ -534,9 +530,6 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
 	}
 
-	if len(labels) == 0 {
-		return
-	}
 	event.Labels = labels
 }
 
@@ -548,12 +541,12 @@ func parseSamplerAttributes(samplerType, samplerParam *tracepb.AttributeValue, r
 			*representativeCount = 1 / probability
 		}
 	default:
-		utility.DeepUpdate(labels, "sampler_type", samplerType.GetStringValue().GetValue())
+		labels["sampler_type"] = samplerType.GetStringValue().GetValue()
 		switch v := samplerParam.Value.(type) {
 		case *tracepb.AttributeValue_BoolValue:
-			utility.DeepUpdate(labels, "sampler_param", v.BoolValue)
+			labels["sampler_param"] = v.BoolValue
 		case *tracepb.AttributeValue_DoubleValue:
-			utility.DeepUpdate(labels, "sampler_param", v.DoubleValue)
+			labels["sampler_param"] = v.DoubleValue
 		}
 	}
 }

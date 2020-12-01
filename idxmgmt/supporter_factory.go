@@ -91,11 +91,9 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 		}
 	}
 
-	templateConfig := defaultTemplateConfig()
-	if cfg.Template != nil {
-		if err := cfg.Template.Unpack(&templateConfig); err != nil {
-			return nil, errors.Wrap(err, "unpacking template config failed")
-		}
+	templateConfig, err := unpackTemplateConfig(cfg.Template)
+	if err != nil {
+		return nil, errors.Wrap(err, "unpacking template config failed")
 	}
 
 	ilmConfig, err := ilm.NewConfig(info, cfg.ILM)
@@ -155,17 +153,24 @@ func (cfg *IndexManagementConfig) logWarnings(log *logp.Logger) {
 	}
 }
 
-// defaultTemplateConfig customises template.DefaultConfig() with index settings.
-// This is only meaningful when data streams are not in use.
-func defaultTemplateConfig() template.TemplateConfig {
-	cfg := template.DefaultConfig()
-	cfg.Settings = template.TemplateSettings{
-		Index: map[string]interface{}{
-			"codec": "best_compression",
-			"mapping.total_fields.limit": 2000,
-			"number_of_shards":           1,
-		},
-		Source: map[string]interface{}{"enabled": true},
+// unpackTemplateConfig merges APM-specific template settings with (possibly nil)
+// user-defined config, unpacks it over template.DefaultConfig(), returning the result.
+func unpackTemplateConfig(userTemplateConfig *common.Config) (template.TemplateConfig, error) {
+	templateConfig := common.MustNewConfigFrom(`
+settings:
+  index:
+    codec: best_compression
+    mapping.total_fields.limit: 2000
+    number_of_shards: 1
+  _source.enabled: true`)
+	if userTemplateConfig != nil {
+		if err := templateConfig.Merge(userTemplateConfig); err != nil {
+			return template.TemplateConfig{}, errors.Wrap(err, "merging failed")
+		}
 	}
-	return cfg
+	out := template.DefaultConfig()
+	if err := templateConfig.Unpack(&out); err != nil {
+		return template.TemplateConfig{}, err
+	}
+	return out, nil
 }

@@ -26,9 +26,8 @@ import (
 )
 
 var (
-	patternAlphaNumericExt    = `^[a-zA-Z0-9 _-]+$`
-	patternNoDotAsteriskQuote = `^[^.*"]*$` //do not allow '.' '*' '"'
-	patternNoAsteriskQuote    = `^[^*"]*$`  //do not allow '*' '"'
+	patternAlphaNumericExt = `^[a-zA-Z0-9 _-]+$`
+	patternNoAsteriskQuote = `^[^*"]*$` //do not allow '*' '"'
 
 	enumOutcome = []string{"success", "failure", "unknown"}
 )
@@ -66,7 +65,7 @@ type context struct {
 	// Custom can contain additional metadata to be stored with the event.
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
-	Custom common.MapStr `json:"custom" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	Custom common.MapStr `json:"custom"`
 	// Experimental information is only processed when APM Server is started
 	// in development mode and should only be used by APM agent developers
 	// implementing new, unreleased features. The format is unspecified.
@@ -89,7 +88,7 @@ type context struct {
 	Service contextService `json:"service"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// User holds information about the correlated user for this event. If
 	// user data are provided here, all user related information from metadata
 	// is ignored, otherwise the metadata's user information will be stored
@@ -347,7 +346,7 @@ type metadata struct {
 	Cloud metadataCloud `json:"cloud"`
 	// Labels are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Labels are indexed and searchable.
-	Labels common.MapStr `json:"labels" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Labels common.MapStr `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Process metadata about the monitored service.
 	Process metadataProcess `json:"process"`
 	// Service metadata about the monitored service.
@@ -531,7 +530,7 @@ type metricset struct {
 	Span metricsetSpanRef `json:"span"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Transaction holds selected information about the correlated transaction.
 	Transaction metricsetTransactionRef `json:"transaction"`
 }
@@ -625,7 +624,7 @@ type spanContext struct {
 	Service contextService `json:"service"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"tags" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type spanContextDatabase struct {
@@ -774,7 +773,7 @@ type transaction struct {
 }
 
 type transactionMarks struct {
-	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	Events map[string]transactionMarkEvents `json:"-"`
 }
 
 func (m *transactionMarks) UnmarshalJSON(data []byte) error {
@@ -782,7 +781,7 @@ func (m *transactionMarks) UnmarshalJSON(data []byte) error {
 }
 
 type transactionMarkEvents struct {
-	Measurements map[string]float64 `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	Measurements map[string]float64 `json:"-"`
 }
 
 func (m *transactionMarkEvents) UnmarshalJSON(data []byte) error {

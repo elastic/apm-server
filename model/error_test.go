@@ -282,8 +282,8 @@ func TestEvents(t *testing.T) {
 	email, userIP, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
 	url, referer := "https://localhost", "http://localhost"
-	labels := Labels(common.MapStr{"key": true})
-	custom := Custom(common.MapStr{"foo": "bar"})
+	labels := common.MapStr{"key": true}
+	custom := common.MapStr{"foo.bar": "baz"}
 
 	serviceName, agentName, version := "myservice", "go", "1.0"
 	md := Metadata{
@@ -362,9 +362,9 @@ func TestEvents(t *testing.T) {
 				},
 				TransactionID:      trID,
 				TransactionSampled: &sampledTrue,
-				Labels:             &labels,
+				Labels:             labels,
 				Page:               &Page{URL: &URL{Original: &url}, Referer: &referer},
-				Custom:             &custom,
+				Custom:             custom,
 				RUM:                true,
 			},
 
@@ -380,7 +380,7 @@ func TestEvents(t *testing.T) {
 				"user_agent":          common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{
-						"foo": "bar",
+						"foo_bar": "baz",
 					},
 					"grouping_key": "a61a65e048f403d9bcb2863d517fb48d",
 					"log":          common.MapStr{"message": "error log message"},

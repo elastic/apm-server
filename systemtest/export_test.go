@@ -79,24 +79,3 @@ path:
 `[1:], "/home/apm-server", tempdir)
 	assert.Equal(t, expectedConfig, string(out))
 }
-
-func TestExportConfigDataStreams(t *testing.T) {
-	cmd, tempdir := exportConfigCommand(t, "-E", "apm-server.data_streams.enabled=true")
-	out, err := cmd.CombinedOutput()
-	require.NoError(t, err)
-
-	expectedConfig := strings.ReplaceAll(`
-apm-server:
-  data_streams:
-    enabled: true
-logging:
-  metrics:
-    enabled: false
-path:
-  config: /home/apm-server
-  data: /home/apm-server/data
-  home: /home/apm-server
-  logs: /home/apm-server/logs
-`[1:], "/home/apm-server", tempdir)
-	assert.Equal(t, expectedConfig, string(out))
-}
