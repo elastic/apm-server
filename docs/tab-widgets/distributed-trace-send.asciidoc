@@ -1,5 +1,21 @@
 // tag::go[]
 
+// Need help with this example
+
+1. Start a transaction with
+{apm-go-ref}/api.html#tracer-api-start-transaction[`StartTransaction`] or a span with
+{apm-go-ref}/api.html#transaction-start-span[`StartSpan`].
+
+2. Get the active TraceContext.
+
+3. Send the TraceContext to the receiving service.
+
+[source,go]
+----
+transaction := apm.DefaultTracer.StartTransaction("GET /", "request")
+// Get TraceContext from current Transaction
+// Send TraceContext to receiving service
+----
 // end::go[]
 
 // ***************************************************
@@ -7,11 +23,11 @@
 
 // tag::java[]
 
-1. Start a transaction with {}/public-api.html#api-start-transaction[`startTransaction`],
-or a span with {}/public-api.html#api-span-start-span[`startSpan`].
+1. Start a transaction with {apm-java-ref}/public-api.html#api-start-transaction[`startTransaction`],
+or a span with {apm-java-ref}/public-api.html#api-span-start-span[`startSpan`].
 
 2. Inject the `traceparent` header into the request object with
-{}/public-api.html#api-transaction-inject-trace-headers[`injectTraceHeaders`]
+{apm-java-ref}/public-api.html#api-transaction-inject-trace-headers[`injectTraceHeaders`]
 
 Example of manually instrumenting an RPC framework:
 
@@ -44,6 +60,22 @@ public Response onOutgoingRequest(Request request) throws Exception {
 
 // tag::net[]
 
+1. Serialize the distributed tracing context of the active transaction or span with
+{apm-dotnet-ref}/public-api.html#api-current-transaction[`CurrentTransaction`] or
+{apm-dotnet-ref}/public-api.html#api-current-span[`CurrentSpan`].
+
+2. Send the serialized context the receiving service.
+
+Example:
+
+[source,csharp]
+----
+string outgoingDistributedTracingData =
+    (Agent.Tracer.CurrentSpan?.OutgoingDistributedTracingData
+        ?? Agent.Tracer.CurrentTransaction?.OutgoingDistributedTracingData)?.SerializeToString();
+// Now send `outgoingDistributedTracingData` to the receiving service
+----
+
 // end::net[]
 
 // ***************************************************
@@ -51,10 +83,11 @@ public Response onOutgoingRequest(Request request) throws Exception {
 
 // tag::node[]
 
-1. Start a transaction with {}apm-start-transaction[`apm.startTransaction()`],
-or a span with {}apm-start-span[`apm.startSpan()`].
+1. Start a transaction with {apm-node-ref}apm-start-transaction[`apm.startTransaction()`],
+or a span with {apm-node-ref}apm-start-span[`apm.startSpan()`].
 
-2. Get the serialized `traceparent` string of the started transaction/span with {}apm-current-traceparent[``].
+2. Get the serialized `traceparent` string of the started transaction/span with
+{apm-node-ref}apm-current-traceparent[``].
 
 3. Encode the `traceparent` and send it to the receiving service inside your regular request.
 
@@ -77,6 +110,25 @@ sendMetadata(`traceparent: ${traceparent}\n`); <3>
 
 // tag::python[]
 
+// help
+
+Start a transaction with {apm-py-ref}/api.html#client-api-begin-transaction[`begin_transaction()`].
+
+Get the `trace_parent` of the active transaction.
+
+Send the `trace_parent` to the receiving service.
+
+Example:
+
+[source,python]
+----
+client.begin_transaction('new-transaction')
+# Get trace_parent
+transaction = execution_context.get_transaction()
+trace_parent = transaction.trace_parent
+trace_parent_str = trace_parent.to_string()
+# Send `trace_parent_str` to another service
+----
 
 // end::python[]
 
@@ -84,6 +136,24 @@ sendMetadata(`traceparent: ${traceparent}\n`); <3>
 // ***************************************************
 
 // tag::ruby[]
+
+// halp
+
+Start a transaction or span with
+{apm-ruby-ref}/api.html#api-agent-start_transaction[`start_transaction`] or
+{apm-ruby-ref}/api.html#api-agent-start_span[`start_span`].
+
+Get the active `trace_context`.
+
+Send the `trace_context` to the receiving service.
+
+[source,ruby]
+----
+ElasticAPM.start_transaction('Name') <1>
+# Get the trace_context and save to variable
+# Send the trace_context to another service
+----
+<1> Start a transaction
 
 // end::ruby[]
 

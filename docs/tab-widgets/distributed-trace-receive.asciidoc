@@ -1,5 +1,28 @@
 // tag::go[]
 
+// Need help with this example
+
+1. Get the incoming TraceContext.
+
+2. Start a new transaction or span as a child of the incoming transaction with
+{apm-go-ref}/api.html#tracer-api-start-transaction-options[`StartTransactionOptions`] or
+{apm-go-ref}/api.html#transaction-start-span-options[`StartSpanOptions`]
+
+Example starting a new transaction:
+
+[source,go]
+----
+// Receive incoming TraceContext
+
+opts := apm.TransactionOptions{
+	Start: time.Now(),
+	TraceContext: parentTraceContext, <1>
+}
+transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opts) <2>
+----
+<1> Set the parent trace context
+<2> Start a new transaction as a child of the received TraceContext
+
 // end::go[]
 
 // ***************************************************
@@ -7,11 +30,11 @@
 
 // tag::java[]
 
-1. Create a transaction as a parent of the incoming transaction with
-{}/public-api.html#api-transaction-inject-trace-headers[`startTransactionWithRemoteParent()`].
+1. Create a transaction as a child of the incoming transaction with
+{apm-java-ref}/public-api.html#api-transaction-inject-trace-headers[`startTransactionWithRemoteParent()`].
 
-2. Start and name the transaction with {}/public-api.html#api-transaction-activate[`activate()`]
-and {}/public-api.html#api-set-name[`setName()`].
+2. Start and name the transaction with {apm-java-ref}/public-api.html#api-transaction-activate[`activate()`]
+and {apm-java-ref}/public-api.html#api-set-name[`setName()`].
 
 Example:
 
@@ -47,6 +70,20 @@ public Response onIncomingRequest(Request request) throws Exception {
 
 // tag::net[]
 
+Deserialize the incoming distributed tracing context, and pass it to any of the
+{apm-dotnet-ref}/public-api.html#api-start-transaction[`StartTransaction`] or
+{apm-dotnet-ref}/public-api.html#convenient-capture-transaction[`CaptureTransaction`] APIs --
+all of which have an optional `DistributedTracingData` parameter.
+This will create a new transaction or span as a child of the incoming trace context.
+
+Example starting a new transaction:
+
+[source,csharp]
+----
+var transaction2 = Agent.Tracer.StartTransaction("Transaction2", "TestTransaction",
+     DistributedTracingData.TryDeserializeFromString(serializedDistributedTracingData));
+----
+
 // end::net[]
 
 // ***************************************************
@@ -56,9 +93,9 @@ public Response onIncomingRequest(Request request) throws Exception {
 
 1. Decode and store the `traceparent` in the receiving service.
 
-2. Manually start a new transaction as a child of the received `traceparent`,
-with {}apm-start-transaction[`apm.startTransaction()`].
-Pass in the `traceparent` as the `childOf` option.
+2. Pass in the `traceparent` as the `childOf` option to manually start a new transaction
+as a child of the received `traceparent` with
+{apm-node-ref}apm-start-transaction[`apm.startTransaction()`].
 
 Example receiving a `traceparent` over raw UDP:
 
@@ -77,6 +114,20 @@ agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
 
 // tag::python[]
 
+Start a new transaction as a child of the `TraceParent` by passing in a `TraceParent` object.
+As described in {apm-py-ref}/api.html#traceparent-api[`TraceParent`],
+the Python agent offers multiple methods to accomplish this.
+
+Example getting the `TraceParent` from a string:
+
+[source,python]
+----
+# Receive the TraceParent string from the sending service
+parent = elasticapm.trace_parent_from_string('00-03d67dcdd62b7c0f7a675424347eee3a-5f0e87be26015733-01') <1>
+client.begin_transaction('transaction_name', trace_parent=parent) <2>
+----
+<1> Decode the `TraceParent` from a string
+<2> Begin a new transaction as a child of the received `TraceParent`
 
 // end::python[]
 
@@ -84,6 +135,23 @@ agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
 // ***************************************************
 
 // tag::ruby[]
+
+Start a new transaction or span as a child of the incoming transaction or span with
+{apm-ruby-ref}/api.html#api-agent-start_transaction[`start_transaction`] or
+{apm-ruby-ref}/api.html#api-agent-start_span[`start_span`].
+
+Example starting a span:
+
+[source,ruby]
+----
+# how to decode `trace_context`?
+
+ElasticAPM.with_transaction 'Do things' do
+  ElasticAPM.start_span 'Do one of the things' # How do we add `trace_context` to this?
+   # ... do something
+  ElasticAPM.end_span
+end
+----
 
 // end::ruby[]
 

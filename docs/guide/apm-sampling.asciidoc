@@ -66,8 +66,18 @@ image::images/dt-sampling-example.png[How sampling impacts distributed tracing]
 // [float]
 // ==== APM app implications
 
+// To do::
+
 // In head-based sampling, each service knows which transactions should and shouldn't be sampled.
 // This logic prevents the APM app from showing broken traces.
+
+// Distributed tracing is also what enables Service maps in the APM app.
+// Service maps rely on distributed traces to draw connections between services.
+// A minimum required version of APM agents is required for Service maps to work.
+// See https://www.elastic.co/guide/en/kibana/current/service-maps.html#service-maps-supported.
+
+// Follow-up: Add link from https://www.elastic.co/guide/en/kibana/current/service-maps.html#service-maps-how
+// to this page.
 
 [float]
 ==== Adjust the sample rate

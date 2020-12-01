@@ -38,7 +38,8 @@ image::images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
 
 Distributed tracing works by injecting a custom `traceparent` HTTP header into outgoing requests.
 This header includes information, like `trace-id`, which is used to identify the current trace,
-and `parent-id`, which is used to identify the parent of the current span.
+and `parent-id`, which is used to identify the parent of the current span on incoming requests,
+or the current span on an outgoing request.
 
 When a service is working on a request, it checks for the existence of this HTTP header.
 If it's missing, the service starts a new trace.
@@ -89,9 +90,10 @@ For backward-compatibility purposes, new versions of Elastic agents still suppor
 [float]
 === Manual distributed tracing
 
-Distributed tracing is automatically supported with HTTP/HTTPS.
-If you’re using another protocol, like TCP, UDP, WebSocket, or any other unsupported technology,
-you can manually instrument your project with Elastic's agent APIs.
+Elastic agents automatically propagate distributed tracing context for supported technologies.
+If your service communicates over an unsupported protocol, like TCP, UDP, WebSocket,
+you can manually propagate distributed tracing context from the sending service to the receiving service
+with the agent's API.
 
 [float]
 ==== Add the `traceparent` header to outgoing requests
@@ -110,3 +112,12 @@ Receiving services must read the incoming `traceparent` header, and start a new 
 --
 include::../tab-widgets/distributed-trace-receive-widget.asciidoc[]
 --
+
+[float]
+=== Distributed tracing with RUM
+
+Some additional setup may be required to correlate requests correctly with the Real User Monitoring (RUM) agent.
+
+See the {apm-rum-ref}/distributed-tracing-guide.html[RUM distributed tracing guide]
+for information on enabling cross-origin requests, setting up server configuration,
+and working with dynamically-generated HTML.
