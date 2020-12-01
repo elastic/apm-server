@@ -76,17 +76,14 @@
             "null",
             "object"
           ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {
-              "type": [
-                "null",
-                "string",
-                "boolean",
-                "number"
-              ],
-              "maxLength": 1024
-            }
+          "additionalProperties": {
+            "type": [
+              "null",
+              "string",
+              "boolean",
+              "number"
+            ],
+            "maxLength": 1024
           }
         },
         "h": {

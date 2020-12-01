@@ -191,25 +191,24 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 		spanFrameCounter.Add(int64(frames))
 	}
 
-	// Spans are stored in a "traces" data stream along with transactions.
-	dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-
 	fields := common.MapStr{
-		datastreams.TypeField:    datastreams.TracesType,
-		datastreams.DatasetField: dataset,
-
 		"processor": spanProcessorEntry,
 		spanDocType: e.fields(ctx, cfg),
 	}
 
+	if cfg.DataStreams {
+		// Spans are stored in a "traces" data stream along with transactions.
+		dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+		fields[datastreams.TypeField] = datastreams.TracesType
+		fields[datastreams.DatasetField] = dataset
+	}
+
 	// first set the generic metadata
-	e.Metadata.Set(fields)
+	e.Metadata.Set(fields, e.Labels)
 
 	// then add event specific information
 	utility.DeepUpdate(fields, "service", e.Service.Fields("", ""))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", e.Labels)
 	utility.AddID(fields, "parent", e.ParentID)
 	if e.ChildIDs != nil {
 		utility.Set(fields, "child", common.MapStr{"id": e.ChildIDs})

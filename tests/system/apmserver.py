@@ -13,12 +13,7 @@ from urllib.parse import urlparse
 from elasticsearch import Elasticsearch, NotFoundError
 import requests
 
-# Add libbeat/tests/system to the import path.
-output = subprocess.check_output(["go", "list", "-m", "-f", "{{.Path}} {{.Dir}}", "all"]).decode("utf-8")
-beats_line = [line for line in output.splitlines() if line.startswith("github.com/elastic/beats/")][0]
-beats_dir = beats_line.split(" ", 2)[1]
-sys.path.append(os.path.join(beats_dir, 'libbeat', 'tests', 'system'))
-
+import libbeat_paths
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 from helper import wait_until
 from es_helper import cleanup, default_pipelines
@@ -273,7 +268,7 @@ class ElasticTest(ServerBaseTest):
 
     def wait_until_pipeline_logged(self):
         registration_enabled = self.config().get("register_pipeline_enabled")
-        msg = "Registered Ingest Pipelines successfully" if registration_enabled != "false" else "No pipeline callback registered"
+        msg = "Registered Ingest Pipelines successfully" if registration_enabled != "false" else "Pipeline registration disabled"
         wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,

@@ -32,6 +32,10 @@ type Transformable interface {
 
 // Config holds general transformation configuration.
 type Config struct {
+	// DataStreams records whether or not data streams are enabled.
+	// If true, then data_stream fields should be added to all events.
+	DataStreams bool
+
 	RUM RUMConfig
 }
 

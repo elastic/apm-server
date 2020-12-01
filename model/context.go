@@ -31,9 +31,9 @@ import (
 type Context struct {
 	Http         *Http
 	URL          *URL
-	Labels       *Labels
+	Labels       common.MapStr
 	Page         *Page
-	Custom       *Custom
+	Custom       common.MapStr
 	Message      *Message
 	Experimental interface{}
 }
@@ -112,15 +112,6 @@ type Page struct {
 	URL     *URL
 	Referer *string
 }
-
-// Labels holds user defined information nested under key tags
-//
-// TODO(axw) either get rid of this type, or use it consistently
-// in all model types (looking at you, Metadata).
-type Labels common.MapStr
-
-// Custom holds user defined information nested under key custom
-type Custom common.MapStr
 
 // Req bundles information related to an http request
 type Req struct {
@@ -205,28 +196,6 @@ func (page *Page) Fields() common.MapStr {
 	return fields
 }
 
-// Fields returns common.MapStr holding transformed data for attribute label.
-func (labels *Labels) Fields() common.MapStr {
-	if labels == nil {
-		return nil
-	}
-	return common.MapStr(*labels)
-}
-
-// Fields returns common.MapStr holding transformed data for attribute custom.
-func (custom *Custom) Fields() common.MapStr {
-	if custom == nil {
-		return nil
-	}
-	// We use utility.Set to normalise decoded JSON types,
-	// e.g. json.Number is converted to a float64 if possible.
-	m := make(common.MapStr)
-	for k, v := range *custom {
-		utility.Set(m, k, v)
-	}
-	return m
-}
-
 func (req *Req) fields() common.MapStr {
 	if req == nil {
 		return nil
@@ -287,4 +256,20 @@ func (s *Socket) fields() common.MapStr {
 	utility.Set(fields, "encrypted", s.Encrypted)
 	utility.Set(fields, "remote_address", s.RemoteAddress)
 	return fields
+}
+
+// customFields transforms in, returning a copy with sanitized keys
+// and normalized field values, suitable for storing as "custom"
+// in transaction and error documents..
+func customFields(in common.MapStr) common.MapStr {
+	if in == nil {
+		return nil
+	}
+	// We use utility.Set to normalise decoded JSON types,
+	// e.g. json.Number is converted to a float64 if possible.
+	out := make(common.MapStr, len(in))
+	for k, v := range in {
+		utility.Set(out, sanitizeLabelKey(k), v)
+	}
+	return out
 }

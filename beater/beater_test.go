@@ -74,10 +74,9 @@ func setupBeater(
 							// Add a label to test that everything
 							// goes through the wrapped reporter.
 							if tf.Labels == nil {
-								labels := make(model.Labels)
-								tf.Labels = &labels
+								tf.Labels = common.MapStr{}
 							}
-							(*tf.Labels)["wrapped_reporter"] = true
+							tf.Labels["wrapped_reporter"] = true
 						}
 					}
 					return origReporter(ctx, req)

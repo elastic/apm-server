@@ -26,8 +26,7 @@ import (
 )
 
 var (
-	patternAlphaNumericExt    = `^[a-zA-Z0-9 _-]+$`
-	patternNoDotAsteriskQuote = `^[^.*"]*$` //do not allow '.' '*' '"'
+	patternAlphaNumericExt = `^[a-zA-Z0-9 _-]+$`
 
 	enumOutcome = []string{"success", "failure", "unknown"}
 )
@@ -60,7 +59,7 @@ type context struct {
 	// Custom can contain additional metadata to be stored with the event.
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
-	Custom common.MapStr `json:"cu" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	Custom common.MapStr `json:"cu"`
 	// Page holds information related to the current page and page referers.
 	// It is only sent from RUM agents.
 	Page contextPage `json:"p"`
@@ -76,7 +75,7 @@ type context struct {
 	Service contextService `json:"se"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"g" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags common.MapStr `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// User holds information about the correlated user for this event. If
 	// user data are provided here, all user related information from metadata
 	// is ignored, otherwise the metadata's user information will be stored
@@ -248,7 +247,7 @@ type errorTransactionRef struct {
 type metadata struct {
 	// Labels are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Labels are indexed and searchable.
-	Labels common.MapStr `json:"l" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Labels common.MapStr `json:"l" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Service metadata about the monitored service.
 	Service metadataService `json:"se" validate:"required"`
 	// User metadata, which can be overwritten on a per event basis.
@@ -311,7 +310,7 @@ type metricset struct {
 	Span metricsetSpanRef `json:"y"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"g" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags common.MapStr `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type metricsetSamples struct {
@@ -399,7 +398,7 @@ type spanContext struct {
 	Service spanContextService `json:"se"`
 	// Tags are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Tags are indexed and searchable.
-	Tags common.MapStr `json:"g" validate:"patternKeys=patternNoDotAsteriskQuote,inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags common.MapStr `json:"g" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type spanContextDestination struct {
@@ -532,7 +531,7 @@ type transaction struct {
 }
 
 type transactionMarks struct {
-	Events map[string]transactionMarkEvents `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	Events map[string]transactionMarkEvents `json:"-"`
 }
 
 var markEventsLongNames = map[string]string{
@@ -557,7 +556,7 @@ func (m *transactionMarks) UnmarshalJSON(data []byte) error {
 }
 
 type transactionMarkEvents struct {
-	Measurements map[string]float64 `json:"-" validate:"patternKeys=patternNoDotAsteriskQuote"`
+	Measurements map[string]float64 `json:"-"`
 }
 
 func (m *transactionMarkEvents) UnmarshalJSON(data []byte) error {
