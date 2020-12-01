@@ -129,7 +129,7 @@ func TestDataStreamsSetupErrors(t *testing.T) {
 		assert.Equal(t, "Exiting: "+expected+"\n", string(out))
 	}
 
-	test([]string{}, "index setup must be performed externally when using data streams")
-	test([]string{"--index-management"}, "index setup must be performed externally when using data streams")
-	test([]string{"--pipelines"}, "index pipeline setup must be performed externally when using data streams")
+	test([]string{}, "index setup must be performed externally when using data streams, by installing the 'apm' integration package")
+	test([]string{"--index-management"}, "index setup must be performed externally when using data streams, by installing the 'apm' integration package")
+	test([]string{"--pipelines"}, "index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
 }
