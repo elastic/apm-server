@@ -106,6 +106,7 @@ func (defaultMetadataFilter) FilterEventMetadata(m *EventMetadata) {
 	m.System.Container = nil
 	m.System.Kubernetes = nil
 	m.System.Hostname = "beowulf"
+	m.Process.Argv = nil
 	m.Process.Pid = 1
 	m.Process.Ppid = nil
 	m.Service.Agent.Version = "0.0.0"

@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -128,6 +129,9 @@ func removeReceived(name string) {
 }
 
 func writeReceived(name string, received interface{}) {
+	if err := os.MkdirAll(filepath.Dir(name), 0755); err != nil {
+		panic(err)
+	}
 	f, err := os.Create(name + ReceivedSuffix)
 	if err != nil {
 		panic(err)
