@@ -162,7 +162,7 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 		}
 	}
 
-	me.Metadata.Set(fields)
+	me.Metadata.Set(fields, me.Labels)
 
 	var isInternal bool
 	if eventFields := me.Event.fields(); eventFields != nil {
@@ -177,9 +177,6 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 		isInternal = true
 		utility.DeepUpdate(fields, metricsetSpanKey, spanFields)
 	}
-
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", me.Labels)
 
 	if me.TimeseriesInstanceID != "" {
 		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}

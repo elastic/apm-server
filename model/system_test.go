@@ -62,7 +62,7 @@ func TestSystemTransformation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			fields := make(common.MapStr)
 			metadata := &Metadata{System: system}
-			metadata.Set(fields)
+			metadata.Set(fields, nil)
 			resultJSON, err := json.Marshal(fields["host"])
 			require.NoError(t, err)
 			name := filepath.Join("test_approved", "system", strings.ReplaceAll(name, " ", "_"))
