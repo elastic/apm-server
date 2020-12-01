@@ -14,11 +14,7 @@
           "type": [
             "null",
             "object"
-          ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {}
-          }
+          ]
         },
         "g": {
           "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
@@ -26,17 +22,14 @@
             "null",
             "object"
           ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {
-              "type": [
-                "null",
-                "string",
-                "boolean",
-                "number"
-              ],
-              "maxLength": 1024
-            }
+          "additionalProperties": {
+            "type": [
+              "null",
+              "string",
+              "boolean",
+              "number"
+            ],
+            "maxLength": 1024
           }
         },
         "p": {

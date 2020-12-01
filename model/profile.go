@@ -133,14 +133,14 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 			event.Fields[datastreams.TypeField] = datastreams.MetricsType
 			event.Fields[datastreams.DatasetField] = dataset
 		}
-		pp.Metadata.Set(event.Fields)
+		var profileLabels common.MapStr
 		if len(sample.Label) > 0 {
-			labels := make(common.MapStr)
+			profileLabels = make(common.MapStr)
 			for k, v := range sample.Label {
-				utility.Set(labels, k, v)
+				profileLabels[k] = v
 			}
-			utility.DeepUpdate(event.Fields, "labels", labels)
 		}
+		pp.Metadata.Set(event.Fields, profileLabels)
 		samples[i] = event
 	}
 	return samples

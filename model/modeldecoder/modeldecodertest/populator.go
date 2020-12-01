@@ -30,7 +30,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
 )
 
@@ -240,18 +239,6 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				m.Put(fmt.Sprintf("%s%v", values.Str, i), values.Str)
 			}
 			newVal = m
-		case *model.Labels:
-			m := model.Labels{}
-			for i := 0; i < values.N; i++ {
-				m[fmt.Sprintf("%s%v", values.Str, i)] = values.Str
-			}
-			newVal = &m
-		case *model.Custom:
-			m := model.Custom{}
-			for i := 0; i < values.N; i++ {
-				m[fmt.Sprintf("%s%v", values.Str, i)] = values.Str
-			}
-			newVal = &m
 		case []string:
 			m := make([]string, values.N)
 			for i := 0; i < values.N; i++ {

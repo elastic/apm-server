@@ -208,8 +208,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 	if from.Context.IsSet() {
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
-			labels := model.Labels(from.Context.Tags.Clone())
-			out.Labels = &labels
+			out.Labels = from.Context.Tags.Clone()
 		}
 		if from.Context.Page.IsSet() {
 			out.Page = &model.Page{}
@@ -231,8 +230,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
 		}
 		if len(from.Context.Custom) > 0 {
-			custom := model.Custom(from.Context.Custom.Clone())
-			out.Custom = &custom
+			out.Custom = from.Context.Custom.Clone()
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -729,13 +727,11 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			custom := model.Custom(from.Context.Custom.Clone())
-			out.Custom = &custom
+			out.Custom = from.Context.Custom.Clone()
 		}
 		// metadata labels and context labels are merged when transforming the output model
 		if len(from.Context.Tags) > 0 {
-			labels := model.Labels(from.Context.Tags.Clone())
-			out.Labels = &labels
+			out.Labels = from.Context.Tags.Clone()
 		}
 		if from.Context.Page.IsSet() {
 			out.Page = &model.Page{}
