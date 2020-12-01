@@ -48,31 +48,9 @@ var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 			"metrics": map[string]interface{}{
 				"enabled": false,
 			},
-			"files": map[string]interface{}{
-				"rotateeverybytes": 10 * 1024 * 1024,
-			},
-		},
-		"setup": map[string]interface{}{
-			"template": map[string]interface{}{
-				"settings": map[string]interface{}{
-					"index": map[string]interface{}{
-						"codec": "best_compression",
-						"mapping": map[string]interface{}{
-							"total_fields": map[string]int{
-								"limit": 2000,
-							},
-						},
-						"number_of_shards": 1,
-					},
-					"_source": map[string]interface{}{
-						"enabled": true,
-					},
-				},
-			},
 		},
 	}),
-},
-}
+}}
 
 // DefaultSettings return the default settings for APM Server to pass into
 // the GenRootCmdWithSettings.
