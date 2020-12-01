@@ -3,18 +3,23 @@
 
 https://github.com/elastic/apm-server/compare/7.9\...7.10[View commits]
 
-// * <<release-notes-7.10.1>>
+* <<release-notes-7.10.1>>
 * <<release-notes-7.10.0>>
 
-////
+
 [float]
 [[release-notes-7.10.1]]
 === APM Server version 7.10.1
 
 https://github.com/elastic/apm-server/compare/v7.10.0\...v7.10.1[View commits]
 
+[float]
+==== Added
 * Upgrade Go to 1.14.12 {pull}4478[4478]
-////
+
+[float]
+==== Bug fixes
+* Add maxLen=1024 requirement to `metadata.system.container.id` {pull}4429[4429]
 
 [float]
 [[release-notes-7.10.0]]
@@ -32,6 +37,7 @@ https://github.com/elastic/apm-server/compare/v7.9.2\...v7.10.0[View commits]
 * Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
 * De-dot Jaeger process tag keys, fixing indexing errors when using jaeger-php {pull}4191[4191]
 * Fix json schema validation on `metadata.service.*` fields {pull}4142[4142]
+* Carriage returns are now stripped from source-mapped context source lines {pull}4348[4348]
 * Fix regression where policy_name was ignored in ILM setup {pull}4354[4354]
 
 [float]
