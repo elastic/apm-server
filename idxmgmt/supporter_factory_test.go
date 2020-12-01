@@ -111,7 +111,7 @@ func TestMakeDefaultSupporterDataStreams(t *testing.T) {
 	assert.True(t, ok)
 	assert.Zero(t, warnings)
 	err = manager.Setup(idxmgmt.LoadModeEnabled, idxmgmt.LoadModeEnabled)
-	assert.EqualError(t, err, "index setup must be performed externally when using data streams")
+	assert.EqualError(t, err, "index setup must be performed externally when using data streams, by installing the 'apm' integration package")
 
 	selector, err := supporter.BuildSelector(nil)
 	require.NoError(t, err)

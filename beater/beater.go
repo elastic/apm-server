@@ -265,7 +265,7 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 	if bt.config.DataStreams.Enabled {
 		bt.logger.Info("Data streams enabled: pipeline registration disabled")
 		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
-			return errors.New("index pipeline setup must be performed externally when using data streams")
+			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
 		}
 		return nil
 	}

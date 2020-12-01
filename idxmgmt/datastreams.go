@@ -67,5 +67,5 @@ func (dataStreamsManager) VerifySetup(template, ilm idxmgmt.LoadMode) (bool, str
 
 // Setup will always return an error, in response to manual setup (i.e. `apm-server setup`).
 func (dataStreamsManager) Setup(template, ilm idxmgmt.LoadMode) error {
-	return errors.New("index setup must be performed externally when using data streams")
+	return errors.New("index setup must be performed externally when using data streams, by installing the 'apm' integration package")
 }
