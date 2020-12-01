@@ -639,7 +639,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 7027b43552e1
+Revision: 6d0785f9b8b2
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3174,7 +3174,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/mitchellh/hashstructure
-Version: v1.0.0
+Version: v1.1.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -3862,7 +3862,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 4be66e5b6582
+Revision: c8d3bf9c5392
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3896,7 +3896,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 69a78807bb2b
+Revision: 5d6afe98e0b7
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3998,7 +3998,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 12cec1faf1ba
+Revision: ef89a241ccb3
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4032,7 +4032,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/term
-Revision: d7a72108b828
+Revision: f5c789dd3221
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4238,7 +4238,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: gopkg.in/yaml.v2
-Version: v2.3.0
+Version: v2.4.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -4258,7 +4258,7 @@ Contents of "NOTICE":
 
 --------------------------------------------------------------------
 Dependency: gopkg.in/yaml.v2
-Version: v2.3.0
+Version: v2.4.0
 License type (autodetected): MIT
 Contents of "LICENSE.libyaml":
 

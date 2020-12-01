@@ -12,10 +12,10 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/dop251/goja v0.0.0-20201107160812-7545ac6de48a // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20201201133918-0226646606a0 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201116144021-7027b43552e1
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201201203623-6d0785f9b8b2
 	github.com/elastic/go-elasticsearch/v7 v7.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -41,7 +41,7 @@ require (
 	github.com/klauspost/compress v1.9.3-0.20191122130757-c099ac9f21dd // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/magefile/mage v1.10.0
-	github.com/mitchellh/hashstructure v1.0.0 // indirect
+	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/open-telemetry/opentelemetry-collector v0.2.1-0.20191218182225-c300f1341702
 	github.com/opentracing/opentracing-go v1.1.1-0.20190913142402-a7454ce5950e // indirect
@@ -69,16 +69,16 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20201116153603-4be66e5b6582 // indirect
+	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+	golang.org/x/net v0.0.0-20201201195509-5d6afe98e0b7
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20201113233024-12cec1faf1ba // indirect
+	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20201116002733-ac45abd4c88c
+	golang.org/x/tools v0.0.0-20201201210846-92771a23d8e3
 	google.golang.org/grpc v1.29.1
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	howett.net/plist v0.0.0-20201026045517-117a925f2150 // indirect
 )
 
