@@ -19,7 +19,9 @@ package systemtest_test
 
 import (
 	"encoding/json"
+	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -82,4 +84,75 @@ func TestAPMServerInstrumentation(t *testing.T) {
 		return
 	}
 	t.Fatal("failed to identify log message with matching trace IDs")
+}
+
+func TestAPMServerProfiling(t *testing.T) {
+	test := func(t *testing.T, profilingConfig *apmservertest.ProfilingConfig, expectedMetrics []string) {
+		systemtest.CleanupElasticsearch(t)
+		srv := apmservertest.NewUnstartedServer(t)
+		srv.Config.Instrumentation = &apmservertest.InstrumentationConfig{
+			Enabled:   true,
+			Profiling: profilingConfig,
+		}
+		err := srv.Start()
+		require.NoError(t, err)
+
+		// Generate some load to cause the server to consume resources.
+		tracer := srv.Tracer()
+		for i := 0; i < 1000; i++ {
+			tracer.StartTransaction("name", "type").End()
+		}
+		tracer.Flush(nil)
+
+		result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+			Field: "processor.event",
+			Value: "profile",
+		})
+		assert.Equal(t, expectedMetrics, profileMetricNames(result))
+	}
+	t.Run("cpu", func(t *testing.T) {
+		test(t, &apmservertest.ProfilingConfig{
+			CPU: &apmservertest.CPUProfilingConfig{
+				Enabled:  true,
+				Interval: time.Second,
+				Duration: time.Second,
+			},
+		}, []string{"cpu.ns", "duration", "samples.count"})
+	})
+	t.Run("heap", func(t *testing.T) {
+		test(t, &apmservertest.ProfilingConfig{
+			Heap: &apmservertest.HeapProfilingConfig{
+				Enabled:  true,
+				Interval: time.Second,
+			},
+		}, []string{
+			"alloc_objects.count",
+			"alloc_space.bytes",
+			"inuse_objects.count",
+			"inuse_space.bytes",
+		})
+	})
+}
+
+func profileMetricNames(result estest.SearchResult) []string {
+	unique := make(map[string]struct{})
+	var metricNames []string
+	for _, hit := range result.Hits.Hits {
+		profileField, ok := hit.Source["profile"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		for k, v := range profileField {
+			if _, ok := v.(float64); !ok {
+				continue
+			}
+			if _, ok := unique[k]; ok {
+				continue
+			}
+			unique[k] = struct{}{}
+			metricNames = append(metricNames, k)
+		}
+	}
+	sort.Strings(metricNames)
+	return metricNames
 }
