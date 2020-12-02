@@ -101,6 +101,7 @@ type beater struct {
 	rawConfig     *common.Config
 	config        *config.Config
 	logger        *logp.Logger
+	namespace     string
 	wrapRunServer func(RunServerFunc) RunServerFunc
 
 	mutex      sync.Mutex // guards stopServer and stopped
@@ -120,14 +121,29 @@ func (bt *beater) Run(b *beat.Beat) error {
 		// during startup. This might change when APM Server is included in Fleet
 		reloadOnce.Do(func() {
 			defer close(done)
+
+			integrationConfig := config.NewIntegrationConfig()
+			err := ucfg.Config.Unpack(integrationConfig)
+			if err != nil {
+				bt.logger.Warn("Could not parse integration configuration from Elastic Agent", err)
+			}
+
 			// TODO(axw) config received from Fleet should be modified to set data_streams.enabled.
 			var cfg *config.Config
-			cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
+			apmServerCommonConfig := integrationConfig.APMServer
+			cfg, err = config.NewConfig(apmServerCommonConfig, elasticsearchOutputConfig(b))
 			if err != nil {
-				bt.logger.Warn("Could not parse configuration from Elastic Agent ", err)
+				bt.logger.Warn("Could not parse apm-server configuration from Elastic Agent ", err)
 			}
+
 			bt.config = cfg
-			bt.rawConfig = ucfg.Config
+			bt.rawConfig = apmServerCommonConfig
+			if integrationConfig.DataStream != nil {
+				bt.namespace = integrationConfig.DataStream.Namespace
+			}
+			if bt.namespace == "" {
+				bt.namespace = "default"
+			}
 			bt.logger.Info("Applying configuration from Elastic Agent... ")
 		})
 		return err
@@ -158,7 +174,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		runServer = bt.wrapRunServer(runServer)
 	}
 
-	publisher, err := newPublisher(b, bt.config, tracer)
+	publisher, err := newPublisher(b, bt.config, bt.namespace, tracer)
 	if err != nil {
 		return err
 	}
@@ -381,7 +397,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publish.Publisher, error) {
+func newPublisher(b *beat.Beat, cfg *config.Config, namespace string, tracer *apm.Tracer) (*publish.Publisher, error) {
 	transformConfig, err := newTransformConfig(b.Info, cfg)
 	if err != nil {
 		return nil, err
@@ -391,7 +407,7 @@ func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publis
 		Pipeline:        cfg.Pipeline,
 		TransformConfig: transformConfig,
 	}
-	return publish.NewPublisher(b.Publisher, tracer, publisherConfig)
+	return publish.NewPublisher(b.Publisher, namespace, tracer, publisherConfig)
 }
 
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
