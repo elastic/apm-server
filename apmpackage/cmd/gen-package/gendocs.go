@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"sort"
 	"strings"
 	"text/template"
 )
@@ -76,29 +75,7 @@ func prepareFields(inputFields map[string][]field, version, streamType string) [
 		fs = append(baseFields, fs...)
 		return fs
 	}
-	return extend(order(flatten("", inputFields[streamType])))
-}
-
-func order(fs []field) []field {
-	sort.Slice(fs, func(i, j int) bool {
-		return fs[i].Name < fs[j].Name
-	})
-	return fs
-}
-
-func flatten(name string, fs []field) []field {
-	var ret []field
-	for _, f := range fs {
-		if name != "" {
-			f.Name = name + "." + f.Name
-		}
-		if f.Type == "group" {
-			ret = append(ret, flatten(f.Name, f.Fields)...)
-		} else {
-			ret = append(ret, f)
-		}
-	}
-	return ret
+	return extend(inputFields[streamType])
 }
 
 func loadExample(file string) string {
