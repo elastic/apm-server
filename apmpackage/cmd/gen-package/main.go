@@ -20,11 +20,13 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/elastic/apm-server/cmd"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+
+	"github.com/elastic/apm-server/cmd"
+	"github.com/elastic/beats/v7/libbeat/common"
 )
 
 var versionMapping = map[string]string{
@@ -41,6 +43,14 @@ func main() {
 	}
 	clear(packageVersion)
 	inputFields := generateFields(packageVersion)
+	for dataStream := range inputFields {
+		generatePipelines(packageVersion, dataStream)
+	}
+	// hack, remove when bugfix comes to Kibana
+	bad := filepath.Join(pipelinesPath(packageVersion, "logs"), "apm.json")
+	good := filepath.Join(pipelinesPath(packageVersion, "logs"), "default.json")
+	os.Rename(bad, good)
+
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
 }

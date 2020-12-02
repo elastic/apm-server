@@ -108,22 +108,6 @@
   type: keyword
   description: |
     The platform of the host the event was recorded on.
-- name: http.request.method
-  type: keyword
-  description: |
-    The http method of the request leading to this event.
-- name: http.request.referrer
-  type: keyword
-  description: Referrer for this HTTP request.
-  ignore_above: 1024
-- name: http.response.status_code
-  type: long
-  description: |
-    The status code of the HTTP response.
-- name: http.version
-  type: keyword
-  description: |
-    The http version of the request leading to this event.
 - name: labels
   type: object
   description: |
@@ -173,46 +157,10 @@
   type: ip
   description: |
     IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
-- name: span.id
-  type: keyword
-  description: |
-    The ID of the span stored as hex encoded string.
-- name: trace.id
-  type: keyword
-  description: |
-    The ID of the trace to which the event belongs to.
 - name: transaction.id
   type: keyword
   description: |
     The transaction ID.
-- name: url.domain
-  type: keyword
-  description: |
-    The hostname of the request, e.g. "example.com".
-- name: url.fragment
-  type: keyword
-  description: |
-    A fragment specifying a location in a web page , e.g. "top".
-- name: url.full
-  type: keyword
-  description: |
-    The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
-- name: url.path
-  type: keyword
-  description: |
-    The path of the request, e.g. "/search".
-- name: url.port
-  type: long
-  description: |
-    The port of the request, e.g. 443.
-- name: url.query
-  type: keyword
-  description: |
-    The query string of the request, e.g. "q=elasticsearch".
-- name: url.scheme
-  type: keyword
-  description: |
-    The protocol of the request, e.g. "https:".
 - name: user.email
   type: keyword
   description: |

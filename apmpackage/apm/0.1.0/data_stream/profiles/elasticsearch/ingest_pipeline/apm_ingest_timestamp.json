@@ -1,0 +1,12 @@
+{
+  "description": "Add an ingest timestamp for APM events",
+  "processors": [
+    {
+      "set": {
+        "field": "event.ingested",
+        "if": "ctx.processor?.event != 'span'",
+        "value": "{{_ingest.timestamp}}"
+      }
+    }
+  ]
+}
