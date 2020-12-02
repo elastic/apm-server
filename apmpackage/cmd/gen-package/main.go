@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/elastic/apm-server/cmd"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -45,6 +46,11 @@ func main() {
 	for dataStream := range inputFields {
 		generatePipelines(packageVersion, dataStream)
 	}
+	// hack, remove when bugfix comes to Kibana
+	bad := filepath.Join(pipelinesPath(packageVersion, "logs"), "apm.json")
+	good := filepath.Join(pipelinesPath(packageVersion, "logs"), "default.json")
+	os.Rename(bad, good)
+
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
 }
