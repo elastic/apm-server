@@ -41,8 +41,10 @@ func main() {
 		panic(errors.New("package can't be generated for current apm-server version"))
 	}
 	clear(packageVersion)
-	generatePipelines(packageVersion)
 	inputFields := generateFields(packageVersion)
+	for dataStream := range inputFields {
+		generatePipelines(packageVersion, dataStream)
+	}
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
 }
@@ -61,5 +63,4 @@ func clear(version string) {
 		}
 	}
 	ioutil.WriteFile(docsFilePath(version), nil, 0644)
-	os.RemoveAll(pipelinesPath(version))
 }

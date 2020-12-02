@@ -1,3 +1,4 @@
 title: APM internal metrics
 type: metrics
 dataset: apm.internal
+ingest_pipeline: apm

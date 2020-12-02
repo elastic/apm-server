@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 )
 
-func generatePipelines(version string) {
+func generatePipelines(version, dataStream string) {
 	pipelines, err := os.Open("ingest/pipeline/definition.json")
 	if err != nil {
 		panic(err)
@@ -42,7 +42,7 @@ func generatePipelines(version string) {
 		panic(err)
 	}
 
-	os.MkdirAll(pipelinesPath(version), 0755)
+	os.MkdirAll(pipelinesPath(version, dataStream), 0755)
 
 	for _, definition := range definitions {
 		pipeline, ok := definition["body"]
@@ -58,7 +58,7 @@ func generatePipelines(version string) {
 		if err != nil {
 			panic(err)
 		}
-		fName := filepath.Join(pipelinesPath(version), id.(string)+".json")
+		fName := filepath.Join(pipelinesPath(version, dataStream), id.(string)+".json")
 		ioutil.WriteFile(fName, out, 0644)
 	}
 }

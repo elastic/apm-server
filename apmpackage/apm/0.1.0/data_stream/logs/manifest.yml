@@ -1,3 +1,4 @@
 title: APM logs and errors
 type: logs
 dataset: apm.error
+ingest_pipeline: apm

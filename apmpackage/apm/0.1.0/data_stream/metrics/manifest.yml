@@ -1,3 +1,4 @@
 title: APM application metrics
 type: metrics
 dataset: apm
+ingest_pipeline: apm
