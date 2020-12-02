@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
+package apmpackage
 
 import (
 	"encoding/json"
@@ -26,56 +26,57 @@ import (
 	"text/template"
 )
 
-func generateDocs(inputFields map[string][]field, version string) {
-	data := docsData{
-		Traces:             prepareFields(inputFields, version, "traces"),
-		Metrics:            prepareFields(inputFields, version, "metrics"),
-		Logs:               prepareFields(inputFields, version, "logs"),
+func GenerateDocs(inputFields map[string][]FieldDefinition) {
+	// TODO sort alphabetically
+	data := FlattenAPMFields{
+		Traces:             flatten("", inputFields["traces"]),
+		Metrics:            flatten("", inputFields["metrics"]),
+		Logs:               flatten("", inputFields["logs"]),
 		TransactionExample: loadExample("transactions.json"),
 		SpanExample:        loadExample("spans.json"),
 		MetricsExample:     loadExample("metricsets.json"),
 		ErrorExample:       loadExample("errors.json"),
 	}
-	t := template.New(docsTemplateFilePath)
+	t := template.New("apmpackage/docs/README.template.md")
 	tmpl, err := t.Funcs(map[string]interface{}{
 		"Trim": strings.TrimSpace,
-	}).ParseFiles(docsTemplateFilePath)
+	}).ParseFiles("apmpackage/docs/README.template.md")
 	if err != nil {
 		panic(err)
 	}
-	path := docsFilePath(version)
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile("apmpackage/apm/0.1.0/docs/README.md", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
 	err = tmpl.ExecuteTemplate(file, "README.template.md", data)
 	if err != nil {
 		panic(err)
 	}
 }
 
-type docsData struct {
-	Traces             []field
-	Metrics            []field
-	Logs               []field
+type FlattenAPMFields struct {
+	Traces             []FieldDefinition
+	Metrics            []FieldDefinition
+	Logs               []FieldDefinition
 	TransactionExample string
 	SpanExample        string
 	MetricsExample     string
 	ErrorExample       string
 }
 
-func prepareFields(inputFields map[string][]field, version, streamType string) []field {
-	extend := func(fs []field) []field {
-		var baseFields []field
-		for _, f := range loadFieldsFile(baseFieldsFilePath(version, streamType)) {
-			f.IsECS = true
-			baseFields = append(baseFields, f)
+func flatten(name string, fs []FieldDefinition) []FieldDefinition {
+	var ret []FieldDefinition
+	for _, f := range fs {
+		if name != "" {
+			f.Name = name + "." + f.Name
 		}
-		fs = append(baseFields, fs...)
-		return fs
+		if f.Type == "group" {
+			ret = append(ret, flatten(f.Name, f.Fields)...)
+		} else {
+			ret = append(ret, f)
+		}
 	}
-	return extend(inputFields[streamType])
+	return ret
 }
 
 func loadExample(file string) string {

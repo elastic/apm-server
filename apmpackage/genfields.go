@@ -15,50 +15,47 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
+package apmpackage
 
 import (
 	"io/ioutil"
-	"net/http"
 	"path/filepath"
-	"sort"
-	"strings"
 
 	"gopkg.in/yaml.v2"
-
-	"github.com/elastic/ecs/code/go/ecs"
 )
 
-func generateFields(version string) map[string][]field {
+func GenerateFields(ecsDir string) map[string][]FieldDefinition {
+	// TODO remove all field files before generate them
 
-	ecsFlatFields := loadECSFields()
+	// TODO get this from GH directly
+	ecsFlatFields := loadECSFields(ecsDir)
 
-	inputFieldsFiles := map[string][]field{
-		"logs":             format("model/error/_meta/fields.yml"),
-		"internal_metrics": format("model/metricset/_meta/fields.yml", "x-pack/apm-server/fields/_meta/fields.yml"),
-		"profiles":         format("model/profile/_meta/fields.yml"),
-		"traces":           format("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
+	inputFieldsFiles := map[string][]FieldDefinition{
+		"logs":    concatFields("model/error/_meta/fields.yml"),
+		"metrics": concatFields("model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml"),
+		"traces":  concatFields("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
 	}
-	inputFieldsFiles["metrics"] = filterInternalMetrics(inputFieldsFiles["internal_metrics"])
 
 	for streamType, inputFields := range inputFieldsFiles {
-		var ecsFields []field
-		var nonECSFields []field
+		var ecsFields []FieldDefinition
+		var nonECSFields []FieldDefinition
 		for _, fields := range populateECSInfo(ecsFlatFields, inputFields) {
 			ecs, nonECS := splitECSFields(fields)
 			if len(ecs.Fields) > 0 || ecs.IsECS {
 				ecsFields = append(ecsFields, ecs)
 			}
-			if len(nonECS.Fields) > 0 || ecs.isNonECSLeaf() {
+			if len(nonECS.Fields) > 0 || ecs.IsNonECSLeaf() {
 				nonECSFields = append(nonECSFields, nonECS)
 			}
 		}
-		var writeOutFields = func(fName string, data []field) {
+		// TODO handle version better
+		dataStreamFieldsPath := filepath.Join("apmpackage/apm/0.1.0/data_stream", streamType, "fields")
+		var writeOutFields = func(fName string, data []FieldDefinition) {
 			bytes, err := yaml.Marshal(&data)
 			if err != nil {
 				panic(err)
 			}
-			err = ioutil.WriteFile(filepath.Join(fieldsPath(version, streamType), fName), bytes, 0644)
+			err = ioutil.WriteFile(filepath.Join(dataStreamFieldsPath, fName), bytes, 0644)
 			if err != nil {
 				panic(err)
 			}
@@ -73,24 +70,9 @@ func generateFields(version string) map[string][]field {
 	return inputFieldsFiles
 }
 
-func filterInternalMetrics(fields []field) []field {
-	var ret []field
-	var isInternal = func(s string) bool {
-		return strings.HasPrefix(s, "transaction") ||
-			strings.HasPrefix(s, "span") ||
-			strings.HasPrefix(s, "event")
-	}
-	for _, f := range fields {
-		if !isInternal(f.Name) {
-			ret = append(ret, f)
-		}
-	}
-	return ret
-}
-
-func populateECSInfo(ecsFlatFields map[string]interface{}, inputFields []field) []field {
-	var traverse func(string, []field) ([]field, bool, bool)
-	traverse = func(fName string, fs []field) ([]field, bool, bool) {
+func populateECSInfo(ecsFlatFields map[string]interface{}, fields []FieldDefinition) []FieldDefinition {
+	var traverse func(string, []FieldDefinition) ([]FieldDefinition, bool, bool)
+	traverse = func(fName string, fs []FieldDefinition) ([]FieldDefinition, bool, bool) {
 		var ecsCount int
 		for idx, field := range fs {
 			fieldName := field.Name
@@ -111,11 +93,11 @@ func populateECSInfo(ecsFlatFields map[string]interface{}, inputFields []field) 
 		// second boolean returned indicates whether there is at least a non-ECS field in the group
 		return fs, ecsCount > 0, ecsCount < len(fs)
 	}
-	ret, _, _ := traverse("", inputFields)
+	ret, _, _ := traverse("", fields)
 	return ret
 }
 
-func splitECSFields(parent field) (field, field) {
+func splitECSFields(parent FieldDefinition) (FieldDefinition, FieldDefinition) {
 	ecsCopy := copyFieldRoot(parent)
 	nonECSCopy := copyFieldRoot(parent)
 	for _, field := range parent.Fields {
@@ -123,35 +105,31 @@ func splitECSFields(parent field) (field, field) {
 		if ecsChild.HasECS || ecsChild.IsECS {
 			ecsCopy.Fields = append(ecsCopy.Fields, ecsChild)
 		}
-		if nonECSChild.HasNonECS || nonECSChild.isNonECSLeaf() {
+		if nonECSChild.HasNonECS || nonECSChild.IsNonECSLeaf() {
 			nonECSCopy.Fields = append(nonECSCopy.Fields, nonECSChild)
 		}
 	}
 	return ecsCopy, nonECSCopy
 }
 
-func loadECSFields() map[string]interface{} {
-	url := "https://raw.githubusercontent.com/elastic/ecs/v" + ecs.Version + "/generated/ecs/ecs_flat.yml"
-	// TODO cache this to avoid fetching each time
-	resp, err := http.Get(url)
+// adapted from https://github.com/elastic/integrations/tree/master/dev/import-beats
+
+func loadECSFields(ecsDir string) map[string]interface{} {
+	path := filepath.Join(ecsDir, "generated/ecs/ecs_flat.yml")
+	fields, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
 	var ret map[string]interface{}
-	err = yaml.NewDecoder(resp.Body).Decode(&ret)
+	err = yaml.Unmarshal(fields, &ret)
 	if err != nil {
 		panic(err)
 	}
 	return ret
 }
 
-func format(fileNames ...string) []field {
-	return order(dedup(flatten("", concatFields(fileNames...))))
-}
-
-func concatFields(fileNames ...string) []field {
-	var ret []field
+func concatFields(fileNames ...string) []FieldDefinition {
+	var ret []FieldDefinition
 	for _, fname := range fileNames {
 		fs := loadFieldsFile(fname)
 		for _, key := range fs {
@@ -161,13 +139,13 @@ func concatFields(fileNames ...string) []field {
 	return ret
 }
 
-func loadFieldsFile(path string) []field {
+func loadFieldsFile(path string) []FieldDefinition {
 	fields, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
-	var fs []field
+	var fs []FieldDefinition
 	err = yaml.Unmarshal(fields, &fs)
 	if err != nil {
 		panic(err)
@@ -175,48 +153,16 @@ func loadFieldsFile(path string) []field {
 	return overrideFieldValues(fs)
 }
 
-func overrideFieldValues(fs []field) []field {
-	var ret []field
+func overrideFieldValues(fs []FieldDefinition) []FieldDefinition {
+	var ret []FieldDefinition
 	for _, f := range fs {
 		if f.Type == "" {
 			f.Type = "keyword"
+		} else if f.Type == "group" {
+			//	f.Description = "" TODO beats does this after
 		}
 		f.Fields = overrideFieldValues(f.Fields)
 		ret = append(ret, f)
-	}
-	return ret
-}
-
-func dedup(fs []field) []field {
-	var m = make(map[string]field)
-	for _, f := range fs {
-		m[f.Name] = f
-	}
-	var ret []field
-	for _, v := range m {
-		ret = append(ret, v)
-	}
-	return ret
-}
-
-func order(fs []field) []field {
-	sort.Slice(fs, func(i, j int) bool {
-		return fs[i].Name < fs[j].Name
-	})
-	return fs
-}
-
-func flatten(name string, fs []field) []field {
-	var ret []field
-	for _, f := range fs {
-		if name != "" {
-			f.Name = name + "." + f.Name
-		}
-		if f.Type == "group" {
-			ret = append(ret, flatten(f.Name, f.Fields)...)
-		} else {
-			ret = append(ret, f)
-		}
 	}
 	return ret
 }

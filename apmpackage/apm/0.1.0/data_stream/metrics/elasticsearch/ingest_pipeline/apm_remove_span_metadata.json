@@ -1,0 +1,25 @@
+{
+  "description": "Removes metadata fields available already on the parent transaction, to save storage",
+  "processors": [
+    {
+      "remove": {
+        "field": [
+          "host",
+          "process",
+          "user",
+          "user_agent",
+          "container",
+          "kubernetes",
+          "service.node",
+          "service.version",
+          "service.language",
+          "service.runtime",
+          "service.framework"
+        ],
+        "if": "ctx.processor?.event == 'span'",
+        "ignore_failure": true,
+        "ignore_missing": true
+      }
+    }
+  ]
+}
