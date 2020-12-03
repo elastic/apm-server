@@ -3,7 +3,24 @@
 
 https://github.com/elastic/apm-server/compare/7.9\...7.10[View commits]
 
+* <<release-notes-7.10.1>>
 * <<release-notes-7.10.0>>
+
+
+[float]
+[[release-notes-7.10.1]]
+=== APM Server version 7.10.1
+
+https://github.com/elastic/apm-server/compare/v7.10.0\...v7.10.1[View commits]
+
+[float]
+==== Added
+* Upgrade Go to 1.14.12 {pull}4478[4478]
+
+[float]
+==== Bug fixes
+* Add maxLen=1024 requirement to `metadata.system.container.id` {pull}4429[4429]
+
 
 [float]
 [[release-notes-7.10.0]]
