@@ -124,7 +124,8 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 			integrationConfig, err := config.NewIntegrationConfig(ucfg.Config)
 			if err != nil {
-				bt.logger.Warn("Could not parse integration configuration from Elastic Agent", err)
+				bt.logger.Error("Could not parse integration configuration from Elastic Agent", err)
+				return
 			}
 
 			// TODO(axw) config received from Fleet should be modified to set data_streams.enabled.
@@ -132,7 +133,8 @@ func (bt *beater) Run(b *beat.Beat) error {
 			apmServerCommonConfig := integrationConfig.APMServer
 			cfg, err = config.NewConfig(apmServerCommonConfig, elasticsearchOutputConfig(b))
 			if err != nil {
-				bt.logger.Warn("Could not parse apm-server configuration from Elastic Agent ", err)
+				bt.logger.Error("Could not parse apm-server configuration from Elastic Agent ", err)
+				return
 			}
 
 			bt.config = cfg
