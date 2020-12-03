@@ -44,7 +44,7 @@ func TestPublisherStop(t *testing.T) {
 	// so we can simulate a pipeline that blocks indefinitely.
 	pipeline := newBlockingPipeline(t)
 	publisher, err := publish.NewPublisher(
-		pipeline, "", apmtest.DiscardTracer, &publish.PublisherConfig{
+		pipeline, apmtest.DiscardTracer, &publish.PublisherConfig{
 			TransformConfig: &transform.Config{},
 		},
 	)
@@ -90,7 +90,6 @@ func TestPublisherStop(t *testing.T) {
 func TestPublisherStopShutdownInactive(t *testing.T) {
 	publisher, err := publish.NewPublisher(
 		newBlockingPipeline(t),
-		"",
 		apmtest.DiscardTracer,
 		&publish.PublisherConfig{
 			TransformConfig: &transform.Config{},

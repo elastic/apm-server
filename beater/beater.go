@@ -122,8 +122,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		reloadOnce.Do(func() {
 			defer close(done)
 
-			integrationConfig := config.NewIntegrationConfig()
-			err := ucfg.Config.Unpack(integrationConfig)
+			integrationConfig, err := config.NewIntegrationConfig(ucfg.Config)
 			if err != nil {
 				bt.logger.Warn("Could not parse integration configuration from Elastic Agent", err)
 			}
@@ -140,9 +139,6 @@ func (bt *beater) Run(b *beat.Beat) error {
 			bt.rawConfig = apmServerCommonConfig
 			if integrationConfig.DataStream != nil {
 				bt.namespace = integrationConfig.DataStream.Namespace
-			}
-			if bt.namespace == "" {
-				bt.namespace = "default"
 			}
 			bt.logger.Info("Applying configuration from Elastic Agent... ")
 		})
@@ -405,9 +401,10 @@ func newPublisher(b *beat.Beat, cfg *config.Config, namespace string, tracer *ap
 	publisherConfig := &publish.PublisherConfig{
 		Info:            b.Info,
 		Pipeline:        cfg.Pipeline,
+		Namespace:       namespace,
 		TransformConfig: transformConfig,
 	}
-	return publish.NewPublisher(b.Publisher, namespace, tracer, publisherConfig)
+	return publish.NewPublisher(b.Publisher, tracer, publisherConfig)
 }
 
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {

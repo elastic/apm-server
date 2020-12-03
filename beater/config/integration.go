@@ -17,18 +17,23 @@
 
 package config
 
-import "github.com/elastic/beats/v7/libbeat/common"
+import (
+	"github.com/elastic/beats/v7/libbeat/common"
+)
 
-func NewIntegrationConfig() *IntegrationConfig {
-	return &IntegrationConfig{
-		Meta:       &Meta{Package: &Package{}},
-		DataStream: &DataStream{},
+func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error) {
+	config := &IntegrationConfig{
+		DataStream: &DataStream{
+			Namespace: "default",
+		},
 	}
+	err := rootConfig.Unpack(config)
+	return config, err
 }
 
 // IntegrationConfig that comes from Elastic Agent
 type IntegrationConfig struct {
-	Id         string         `config:"id"`
+	ID         string         `config:"id"`
 	Name       string         `config:"name"`
 	Revision   int            `config:"revision"`
 	Type       string         `config:"type"`

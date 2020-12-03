@@ -62,6 +62,7 @@ type PendingReq struct {
 type PublisherConfig struct {
 	Info            beat.Info
 	Pipeline        string
+	Namespace       string
 	Processor       beat.ProcessorList
 	TransformConfig *transform.Config
 }
@@ -81,7 +82,7 @@ var (
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, namespace string, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
+func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, errors.Wrap(err, "invalid config")
 	}
@@ -100,7 +101,7 @@ func NewPublisher(pipeline beat.Pipeline, namespace string, tracer *apm.Tracer, 
 		Processor: cfg.Processor,
 	}
 	if cfg.TransformConfig.DataStreams {
-		processingCfg.Fields[datastreams.NamespaceField] = namespace
+		processingCfg.Fields[datastreams.NamespaceField] = cfg.Namespace
 	}
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
