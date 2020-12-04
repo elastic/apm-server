@@ -49,7 +49,7 @@ func TestExportConfigDefaults(t *testing.T) {
 
 	expectedConfig := strings.ReplaceAll(`
 logging:
-  ecs: false
+  ecs: true
   metrics:
     enabled: false
 path:
