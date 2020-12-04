@@ -3,22 +3,22 @@
   "processors": [
     {
       "pipeline": {
-        "name": "apm_user_agent"
+        "name": "logs-apm.error-0.1.0-apm_user_agent"
       }
     },
     {
       "pipeline": {
-        "name": "apm_user_geo"
+        "name": "logs-apm.error-0.1.0-apm_user_geo"
       }
     },
     {
       "pipeline": {
-        "name": "apm_ingest_timestamp"
+        "name": "logs-apm.error-0.1.0-apm_ingest_timestamp"
       }
     },
     {
       "pipeline": {
-        "name": "apm_remove_span_metadata"
+        "name": "logs-apm.error-0.1.0-apm_remove_span_metadata"
       }
     }
   ]
