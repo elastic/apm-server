@@ -128,9 +128,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 				return
 			}
 
-			// TODO(axw) config received from Fleet should be modified to set data_streams.enabled.
 			var cfg *config.Config
 			apmServerCommonConfig := integrationConfig.APMServer
+			apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"apm-server.data_streams.enabled": true}`))
 			cfg, err = config.NewConfig(apmServerCommonConfig, elasticsearchOutputConfig(b))
 			if err != nil {
 				bt.logger.Error("Could not parse apm-server configuration from Elastic Agent ", err)
