@@ -49,6 +49,7 @@ func TestExportConfigDefaults(t *testing.T) {
 
 	expectedConfig := strings.ReplaceAll(`
 logging:
+  ecs: false
   metrics:
     enabled: false
 path:
@@ -69,6 +70,7 @@ func TestExportConfigOverrideDefaults(t *testing.T) {
 
 	expectedConfig := strings.ReplaceAll(`
 logging:
+  ecs: true
   metrics:
     enabled: true
 path:
