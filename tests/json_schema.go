@@ -21,6 +21,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -45,21 +47,8 @@ type ProcessorSetup struct {
 	FullPayloadPath string
 	// path to ES template definitions
 	TemplatePaths []string
-	// json schema string
-	Schema string
-	// prefix schema fields with this
-	SchemaPrefix string
-}
-
-type SchemaTestData struct {
-	Key       string
-	Valid     []interface{}
-	Invalid   []Invalid
-	Condition Condition
-}
-type Invalid struct {
-	Msg    string
-	Values []interface{}
+	// path to json schema
+	SchemaPath string
 }
 
 type Condition struct {
@@ -79,63 +68,11 @@ var (
 	Str1025        = createStr(1025, "")
 )
 
-// This test checks
-// * that all payload attributes are reflected in the json Schema, except for
-// dynamic attributes not be specified in the schema;
-// * that all attributes in the json schema are also included in the payload,
-// to ensure full test coverage.
-// Parameters:
-// - payloadAttrsNotInSchema: attributes sent with the payload but should not be
-// specified in the schema.
-// - schemaAttrsNotInPayload: attributes that are reflected in the json schema but are
-// not part of the payload.
-func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
-	require.True(t, len(ps.Schema) > 0, "Schema must be set")
-
-	// check payload attrs in json schema
-	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
-	require.NoError(t, err, fmt.Sprintf("File %s not loaded", ps.FullPayloadPath))
-	payloadAttrs := NewSet()
-	flattenJsonKeys(payload, "", payloadAttrs)
-
-	ps.AttrsMatchJsonSchema(t, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload)
-}
-
-func (ps *ProcessorSetup) AttrsMatchJsonSchema(t *testing.T, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
-	schemaKeys := NewSet()
-	schema, err := ParseSchema(ps.Schema)
-	require.NoError(t, err)
-
-	FlattenSchemaNames(schema, ps.SchemaPrefix, nil, schemaKeys)
-
-	missing := Difference(payloadAttrs, schemaKeys)
-	missing = differenceWithGroup(missing, payloadAttrsNotInSchema)
-	t.Logf("schemaKeys: %s", schemaKeys)
-	assertEmptySet(t, missing, fmt.Sprintf("Json payload fields missing in schema %v", missing))
-
-	missing = Difference(schemaKeys, payloadAttrs)
-	missing = differenceWithGroup(missing, schemaAttrsNotInPayload)
-	assertEmptySet(t, missing, fmt.Sprintf("Json schema fields missing in payload %v", missing))
-}
-
 // Test that payloads missing `required `attributes fail validation.
 // - `required`: ensure required keys must not be missing or nil
 // - `conditionally required`: prepare payload according to conditions, then
 //   ensure required keys must not be missing
-func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condRequiredKeys map[string]Condition) {
-
-	required := Union(requiredKeys, NewSet(
-		"service",
-		"service.name",
-		"service.agent",
-		"service.agent.name",
-		"service.agent.version",
-		"service.language.name",
-		"service.runtime.name",
-		"service.runtime.version",
-		"process.pid",
-	))
-
+func (ps *ProcessorSetup) AttrsPresence(t *testing.T, required *Set, condRequiredKeys map[string]Condition) {
 	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
 	require.NoError(t, err)
 
@@ -149,7 +86,8 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		//test sending nil value for key
 		ps.changePayload(t, key, nil, Condition{}, upsertFn,
 			func(k string) (bool, []string) {
-				return !required.ContainsStrPattern(k), []string{keyLast}
+				errMsgs := []string{keyLast, "did not recognize object type", "requires at least one of the fields", "required"}
+				return !required.ContainsStrPattern(k), errMsgs
 			},
 		)
 
@@ -157,14 +95,30 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		cond := condRequiredKeys[key]
 		ps.changePayload(t, key, nil, cond, deleteFn,
 			func(k string) (bool, []string) {
+				validationErr := "validation error:"
+				keyParts := strings.Split(key, ".")
+				prefix := " "
+				for i := 0; i < len(keyParts); i++ {
+					if i == len(keyParts)-1 {
+						validationErr = fmt.Sprintf("%s%s'%s'", validationErr, prefix, keyParts[i])
+						continue
+					}
+					validationErr = fmt.Sprintf("%s%s%s", validationErr, prefix, keyParts[i])
+					prefix = ": "
+				}
 				errMsgs := []string{
 					fmt.Sprintf("missing properties: \"%s\"", keyLast),
+					fmt.Sprintf("'%s'", key),
 					"did not recognize object type",
+					validationErr,
+					"requires at least one of the fields",
+					"required",
 				}
 
 				if required.ContainsStrPattern(k) {
 					return false, errMsgs
-				} else if _, ok := condRequiredKeys[k]; ok {
+				}
+				if _, ok := condRequiredKeys[k]; ok {
 					return false, errMsgs
 				}
 				return true, []string{}
@@ -195,7 +149,10 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 		return s.MaxLength > 0
 	}
 	schemaKeys := NewSet()
-	schema, err := ParseSchema(ps.Schema)
+
+	r, err := os.Open(ps.SchemaPath)
+	require.NoError(t, err)
+	schema, err := ParseSchema(r)
 	require.NoError(t, err)
 	FlattenSchemaNames(schema, "", maxLengthFilter, schemaKeys)
 
@@ -217,31 +174,6 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 	}
 }
 
-// Test that specified values for attributes fail or pass
-// the validation accordingly.
-// The configuration and testing of valid attributes here is intended
-// to ensure correct setup and configuration to avoid false negatives.
-func (ps *ProcessorSetup) DataValidation(t *testing.T, testData []SchemaTestData) {
-	for _, d := range testData {
-		testAttrs := func(val interface{}, valid bool, msg string) {
-			ps.changePayload(t, d.Key, val, d.Condition,
-				upsertFn, func(k string) (bool, []string) {
-					return valid, []string{msg}
-				})
-		}
-
-		for _, invalid := range d.Invalid {
-			for _, v := range invalid.Values {
-				testAttrs(v, false, invalid.Msg)
-			}
-		}
-		for _, v := range d.Valid {
-			testAttrs(v, true, "")
-		}
-
-	}
-}
-
 func logPayload(t *testing.T, payload interface{}) {
 	j, _ := json.MarshalIndent(payload, "", " ")
 	t.Log("payload:", string(j))
@@ -260,7 +192,7 @@ func (ps *ProcessorSetup) changePayload(
 	require.NoError(t, err)
 
 	err = ps.Proc.Validate(payload)
-	assert.NoError(t, err, "vanilla payload did not validate")
+	require.NoError(t, err, "vanilla payload did not validate, error: %v", err)
 
 	// prepare payload according to conditions:
 
@@ -297,12 +229,12 @@ func (ps *ProcessorSetup) changePayload(
 	} else {
 		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v>, but received no error.`, key)) {
 			for _, errMsg := range errMsgs {
-				if strings.Contains(strings.ToLower(err.Error()), errMsg) {
+				if strings.Contains(strings.ToLower(err.Error()), strings.ToLower(errMsg)) {
 					return
 				}
 			}
 			wantLog = true
-			assert.Fail(t, fmt.Sprintf("Expected error to be one of %v, but was %v", errMsgs, err.Error()))
+			assert.Fail(t, fmt.Sprintf("Expected error to be one of <%v>, but was <%v>", errMsgs, err.Error()))
 		} else {
 			wantLog = true
 		}
@@ -388,8 +320,8 @@ type Schema struct {
 	MaxLength            int
 }
 
-func ParseSchema(s string) (*Schema, error) {
-	decoder := json.NewDecoder(bytes.NewBufferString(s))
+func ParseSchema(r io.Reader) (*Schema, error) {
+	decoder := json.NewDecoder(r)
 	var schema Schema
 	err := decoder.Decode(&schema)
 	return &schema, err
@@ -414,6 +346,9 @@ func FlattenSchemaNames(s *Schema, prefix string, filter func(*Schema) bool, fla
 		for _, e := range schemas {
 			FlattenSchemaNames(e, prefix, filter, flattened)
 		}
+	}
+	if filter(s) {
+		flattened.Add(prefix)
 	}
 }
 

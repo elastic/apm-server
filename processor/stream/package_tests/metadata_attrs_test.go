@@ -18,14 +18,15 @@
 package package_tests
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata/generated/schema"
-	"github.com/elastic/apm-server/model/modeldecoder"
+	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
@@ -47,14 +48,14 @@ func (p *MetadataProcessor) LoadPayload(path string) (interface{}, error) {
 func (p *MetadataProcessor) Validate(data interface{}) error {
 	events := data.([]interface{})
 	for _, e := range events {
-		rawEvent := e.(map[string]interface{})
-		rawMetadata, ok := rawEvent["metadata"].(map[string]interface{})
-		if !ok {
-			return stream.ErrUnrecognizedObject
+		//TODO(simitt): combine loading the data and validating them once the new json decoding is finished
+		b, err := json.Marshal(e)
+		if err != nil {
+			return err
 		}
-
-		// validate the metadata object against our jsonschema
-		if err := modeldecoder.DecodeMetadata(rawMetadata, false, &model.Metadata{}); err != nil {
+		dec := decoder.NewJSONDecoder(bytes.NewReader(b))
+		var m model.Metadata
+		if err := v2.DecodeNestedMetadata(dec, &m); err != nil {
 			return err
 		}
 	}
@@ -70,9 +71,12 @@ func metadataProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
 		Proc: &MetadataProcessor{
 			intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}}},
-		Schema: schema.ModelSchema,
+		SchemaPath: "../../../docs/spec/v2/metadata.json",
 		TemplatePaths: []string{
-			"../../../_meta/fields.common.yml",
+			// we use the fields.yml file of a type that includes all the metadata fields
+			// this was changed with the removal of fields.common.yml
+			// TODO: move metadata package tests into event specific tests when refactoring package tests
+			"../../../model/transaction/_meta/fields.yml",
 		},
 		FullPayloadPath: "../testdata/intake-v2/metadata.ndjson",
 	}
@@ -120,18 +124,12 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
 
-func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
-	metadataProcSetup().AttrsMatchJsonSchema(t,
-		getMetadataEventAttrs(t, ""),
-		tests.NewSet(tests.Group("labels"), "system.ip"),
-		nil,
-	)
-}
-
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	metadataProcSetup().KeywordLimitation(
 		t,
-		tests.NewSet("processor.event", "processor.name",
+		tests.NewSet(
+			"data_stream.type", "data_stream.dataset", "data_stream.namespace",
+			"processor.event", "processor.name",
 			"process.args",
 			tests.Group("observer"),
 			tests.Group("event"),
@@ -159,13 +157,23 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	)
 }
 
-func TestInvalidPayloadsForMetadata(t *testing.T) {
-	type val []interface{}
+func metadataRequiredKeys() *tests.Set {
+	return tests.NewSet(
+		"metadata",
+		"metadata.cloud.provider",
+		"metadata.service",
+		"metadata.service.name",
+		"metadata.service.agent",
+		"metadata.service.agent.name",
+		"metadata.service.agent.version",
+		"metadata.service.runtime.name",
+		"metadata.service.runtime.version",
+		"metadata.service.language.name",
+		// "metadata.system.container.id", //does not throw an error since it is the only attribute
+		"metadata.process.pid",
+	)
+}
 
-	payloadData := []tests.SchemaTestData{
-		{Key: "metadata.service.name",
-			Valid:   val{"my-service"},
-			Invalid: []tests.Invalid{{Msg: "service/properties/name", Values: val{tests.Str1024Special}}},
-		}}
-	metadataProcSetup().DataValidation(t, payloadData)
+func TestAttrsPresenceInMetadata(t *testing.T) {
+	metadataProcSetup().AttrsPresence(t, metadataRequiredKeys(), nil)
 }

@@ -29,6 +29,8 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -146,6 +148,8 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -197,7 +201,7 @@
                             "Mozilla Chrome Edge"
                         ]
                     },
-                    "method": "post",
+                    "method": "POST",
                     "referrer": "http://localhost:8000/test/e2e/",
                     "socket": {
                         "encrypted": true,
@@ -354,6 +358,8 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.service1",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -368,7 +374,7 @@
             },
             "http": {
                 "request": {
-                    "method": "post",
+                    "method": "POST",
                     "socket": {
                         "remote_address": "192.0.1"
                     }
@@ -434,6 +440,11 @@
                 "experience": {
                     "cls": 1,
                     "fid": 2,
+                    "longtask": {
+                        "count": 3,
+                        "max": 1,
+                        "sum": 2.5
+                    },
                     "tbt": 3.4
                 },
                 "id": "cdef4340a8e0df19",
@@ -489,6 +500,8 @@
             "container": {
                 "id": "container-id"
             },
+            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },

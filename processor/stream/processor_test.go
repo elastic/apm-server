@@ -111,7 +111,7 @@ func TestIntegrationESOutput(t *testing.T) {
 		{path: "invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
 		{path: "invalid-metadata.ndjson", name: "InvalidMetadata"},
 		{path: "invalid-metadata-2.ndjson", name: "InvalidMetadata2"},
-		{path: "unrecognized-event.ndjson", name: "UnrecognizedEvent"},
+		{path: "invalid-event-type.ndjson", name: "UnrecognizedEvent"},
 		{path: "optional-timestamps.ndjson", name: "OptionalTimestamps"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -211,13 +211,15 @@ func TestRateLimiting(t *testing.T) {
 		{name: "LimiterPartiallyUsedLimitDeny", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
 		{name: "LimiterDeny", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
 	} {
-		if test.hit > 0 {
-			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
-		}
+		t.Run(test.name, func(t *testing.T) {
+			if test.hit > 0 {
+				assert.True(t, test.lim.AllowN(time.Now(), test.hit))
+			}
 
-		actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
-			context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), report)
-		assertApproveResult(t, actualResult, test.name)
+			actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
+				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), report)
+			assertApproveResult(t, actualResult, test.name)
+		})
 	}
 }
 
@@ -225,7 +227,7 @@ func makeApproveEventsReporter(t *testing.T, name string) publish.Reporter {
 	return func(ctx context.Context, p publish.PendingReq) error {
 		var events []beat.Event
 		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
+			events = append(events, transformable.Transform(ctx, &transform.Config{DataStreams: true})...)
 		}
 		docs := beatertest.EncodeEventDocs(events...)
 		approvaltest.ApproveEventDocs(t, name, docs)

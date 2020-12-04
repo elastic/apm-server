@@ -19,6 +19,7 @@ package idxmgmt
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
@@ -50,7 +51,7 @@ type supporter struct {
 	info               beat.Info
 	templateConfig     template.TemplateConfig
 	ilmConfig          ilm.Config
-	unmanagedIdxConfig *unmanaged.Config
+	unmanagedIdxConfig unmanaged.Config
 	migration          bool
 	ilmSupporters      []libilm.Supporter
 
@@ -70,39 +71,28 @@ type ilmIndexSelector struct {
 	st           *indexState
 }
 
-func newSupporter(
-	log *logp.Logger,
-	info beat.Info,
-	templateConfig template.TemplateConfig,
-	ilmConfig ilm.Config,
-	outConfig common.ConfigNamespace,
-) (*supporter, error) {
+func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) (*supporter, error) {
 
 	var (
-		unmanagedIdxCfg unmanaged.Config
-		mode            = ilmConfig.Mode
-		st              = indexState{}
+		mode = cfg.ILM.Mode
+		st   = indexState{}
 	)
 
-	if outConfig.Name() == esKey {
-		if err := outConfig.Config().Unpack(&unmanagedIdxCfg); err != nil {
-			return nil, fmt.Errorf("unpacking output elasticsearch index config fails: %+v", err)
-		}
-
-		if err := checkTemplateESSettings(templateConfig, &unmanagedIdxCfg); err != nil {
-			return nil, err
+	var disableILM bool
+	if cfg.Output.Name() != esKey || cfg.ILM.Mode == libilm.ModeDisabled {
+		disableILM = true
+	} else if cfg.ILM.Mode == libilm.ModeAuto {
+		// ILM is set to "auto": disable if we're using customised, unmanaged indices.
+		if cfg.unmanagedIdxCfg.Customized() {
+			disableILM = true
 		}
 	}
-
-	if outConfig.Name() != esKey ||
-		ilmConfig.Mode == libilm.ModeDisabled ||
-		ilmConfig.Mode == libilm.ModeAuto && unmanagedIdxCfg.Customized() {
-
+	if disableILM {
 		mode = libilm.ModeDisabled
 		st.isSet.CAS(false, true)
 	}
 
-	ilmSupporters, err := ilm.MakeDefaultSupporter(log, mode, ilmConfig)
+	ilmSupporters, err := ilm.MakeDefaultSupporter(log, mode, cfg.ILM)
 	if err != nil {
 		return nil, err
 	}
@@ -110,9 +100,9 @@ func newSupporter(
 	return &supporter{
 		log:                log,
 		info:               info,
-		templateConfig:     templateConfig,
-		ilmConfig:          ilmConfig,
-		unmanagedIdxConfig: &unmanagedIdxCfg,
+		templateConfig:     cfg.Template,
+		ilmConfig:          cfg.ILM,
+		unmanagedIdxConfig: cfg.unmanagedIdxCfg,
 		migration:          false,
 		st:                 st,
 		ilmSupporters:      ilmSupporters,
@@ -176,6 +166,7 @@ func (s *supporter) buildSelector(cfg *common.Config, err error) (outil.Selector
 		MultiKey:         "indices",
 		EnableSingleOnly: true,
 		FailEmpty:        true,
+		Case:             outil.SelectorLowerCase,
 	}
 	return outil.BuildSelectorFromConfig(cfg, buildSettings)
 }
@@ -236,7 +227,7 @@ func getEventCustomIndex(evt *beat.Event) string {
 	// returns index from alias
 	if tmp := evt.Meta["alias"]; tmp != nil {
 		if alias, ok := tmp.(string); ok {
-			return alias
+			return strings.ToLower(alias)
 		}
 	}
 
@@ -245,20 +236,9 @@ func getEventCustomIndex(evt *beat.Event) string {
 		if idx, ok := tmp.(string); ok {
 			ts := evt.Timestamp.UTC()
 			return fmt.Sprintf("%s-%d.%02d.%02d",
-				idx, ts.Year(), ts.Month(), ts.Day())
+				strings.ToLower(idx), ts.Year(), ts.Month(), ts.Day())
 		}
 	}
 
 	return ""
-}
-
-func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanaged.Config) error {
-	if !tmplCfg.Enabled || indexCfg == nil {
-		return nil
-	}
-
-	if indexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
-		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
-	}
-	return nil
 }

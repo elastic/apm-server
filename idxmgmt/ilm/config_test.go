@@ -118,7 +118,7 @@ func TestConfig_Valid(t *testing.T) {
 		expected Config
 	}{
 		{name: "new policy and index suffix",
-			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","index_suffix":"production"},{"event_type":"error","index_suffix":"%{[observer.name]}"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
+			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","index_suffix":"ProdUCtion"},{"event_type":"error","index_suffix":"%{[observer.name]}"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
 					Mappings: map[string]Mapping{
@@ -129,7 +129,7 @@ func TestConfig_Valid(t *testing.T) {
 						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
 							Index: "apm-9.9.9-transaction"},
 						"metric": {EventType: "metric", PolicyName: defaultPolicyName,
-							Index: "apm-9.9.9-metric-production", IndexSuffix: "production"},
+							Index: "apm-9.9.9-metric-production", IndexSuffix: "ProdUCtion"},
 						"profile": {EventType: "profile", PolicyName: defaultPolicyName,
 							Index: "apm-9.9.9-profile"},
 					},
@@ -163,7 +163,11 @@ func TestConfig_Valid(t *testing.T) {
 							Index: "apm-9.9.9-error"}
 						return m
 					}(),
-					Policies: defaultPolicies(),
+					Policies: func() map[string]Policy {
+						p := defaultPolicies()
+						p["errorPolicy"] = Policy{Name: "errorPolicy"}
+						return p
+					}(),
 				}},
 		},
 	} {

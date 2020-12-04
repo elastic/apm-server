@@ -1,18 +1,18 @@
 [[observability-integrations]]
-== Observability integrations
+=== Observability integrations
 
 Elastic APM supports integrations with other observability solutions.
 
 // remove float tag once other integrations are added
 [float]
 [[apm-logging-integration]]
-=== Logging integration
+==== Logging integration
 
 Many applications use logging frameworks to help record, format, and append an application's logs.
 Elastic APM now offers a way to make your application logs even more useful,
 by integrating with the most popular logging frameworks in their respective languages.
 This means you can easily inject trace information into your logs,
-allowing you to explore logs in the {kibana-ref}/xpack-logs.html[Logs app],
+allowing you to explore logs in the {observability-guide}/monitor-logs.html[Logs app],
 then jump straight into the corresponding APM traces -- all while preserving the trace context.
 
 To get started:
@@ -22,7 +22,7 @@ To get started:
 . Ingest your logs into Elasticsearch
 
 [float]
-==== Enable Log correlation
+===== Enable Log correlation
 
 // temporary attribute for ECS 1.1
 // Remove after 7.4 release
@@ -42,9 +42,9 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
-==== Add APM identifiers to your logs
+===== Add APM identifiers to your logs
 
-Once log correlation is enabled, 
+Once log correlation is enabled,
 you must ensure your logs contain APM identifiers.
 In some supported frameworks, this is already done for you.
 In other scenarios, like for unstructured logs,
@@ -53,7 +53,7 @@ you'll need to add APM identifiers to your logs in any easy to parse manner.
 The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] and
 {ecs-ref}/ecs-tracing.html[`transaction.id`]. Certain Agents also support the `span.id` field.
 
-This process for adding these fields will differ based the Agent you're using, the logging framework, 
+This process for adding these fields will differ based the Agent you're using, the logging framework,
 and the type and structure of your logs.
 
 See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent documentation] to learn more.
@@ -69,7 +69,7 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
-==== Ingest your logs into Elasticsearch
+===== Ingest your logs into Elasticsearch
 
 Once your logs contain the appropriate identifiers (fields), you need to ingest them into Elasticsearch.
 Luckily, we've got a tool for that -- Filebeat is Elastic's log shipper.

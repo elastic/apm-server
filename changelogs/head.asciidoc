@@ -1,36 +1,30 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/7.9\...master[View commits]
+https://github.com/elastic/apm-server/compare/7.10\...master[View commits]
 
 [float]
 ==== Breaking Changes
 
 [float]
 ==== Bug fixes
-
-* Transaction metrics aggregation now flushes on shutdown, respecting apm-server.shutdown_timeout {pull}3971[3971]
-* De-dot Jaeger process tag keys, fixing indexing errors when using jaeger-php {pull}4191[4191]
+* JSON schema metricset: nest type and subtype under span {pull}4329[4329]
+* JSON schema metricset: nest type and name under transaction {pull}4329[4329]
+* Carriage returns are now stripped from source-mapped context source lines {pull}4348[4348]
+* Remove config defaults from `apm-server export config` {pull}4458[4458]
 
 [float]
 ==== Intake API Changes
+* Intake RUM v3: Changed error messages for invalid events due to internal changes of decoder logic {pull}4358[4358]
+* Auto-generate JSON schemas for Intake API v2 and v3/rum {pull}4393[4393]
 
 [float]
 ==== Added
-
-* Use peer.address for destinationService.Resource if peer.address is not given on Jaeger span {pull}3975[3975]
-* Add event.duration to API request logs {pull}4030[4030]
-* Set destination.service.* from http.url for Jaeger spans {pull}4046[4046]
-* Use service.version for Metadata.Service.Version when converting a Jaeger span {pull}4061[4061]
-* Report basic telemetry {pull}4055[4055]
-* Add transaction.experience fields {pull}4056[4056]
-* Upgrade Go to 1.14.7 {pull}4067[4067]
-* Aggregate service destination span metrics {pull}4077[4077]
-* Added apm-server.kibana.headers configuration {pull}4087[4087]
-* Add a new Docker image based on UBI minimal 8 to packaging. {pull}4105[4105]
-* Add event.outcome to transactions and spans {pull}4064[4064]
-* Add event.outcome to aggregated transaction metrics {pull}4110[4110]
-* Set event.outcome for Jaeger spans based on http.status_code {pull}4127[4127]
-* Set event.outcome for transactions and spans based on http.status_code {pull}4165[4165]
-* Add mapping for `system.process.cgroup.*` metrics {pull}[4176]4176 
+* Monitoring for aggregation of transaction metrics {pull}4287[4287]
+* Log warnings in aggregation of transaction metrics when grouping limit is reached {pull}4313[4313]
+* Configurable tail-based sampling policies {pull}4320[4320]
+* Monitoring and telemetry for tail-based sampling {pull}4346[4346] {pull}4360[4360]
+* Experimental support for data streams {pull}4409[4409]
+* Label/custom/mark keys are now sanitized (rather than validated and rejected) by the server {pull}4465[4465]
+* Upgrade Go to 1.14.12 {pull}4478[4478]
 * Switch logging format to be ECS compliant where possible {pull}3829[3829]

@@ -18,8 +18,11 @@
 package utility
 
 import (
+	"net/http"
+	"net/textproto"
 	"net/url"
 	"path"
+	"strings"
 )
 
 func UrlPath(p string) string {
@@ -39,32 +42,8 @@ func CleanUrlPath(p string) string {
 	return url.String()
 }
 
-// InsertInMap modifies `data` *in place*, inserting `values` at the given `key`.
-// If `key` doesn't exist in data (at the top level), it gets created.
-// If the value under `key` is not a map, InsertInMap does nothing.
-func InsertInMap(data map[string]interface{}, key string, values map[string]interface{}) {
-	if data == nil || values == nil || key == "" {
-		return
-	}
-
-	if _, ok := data[key]; !ok {
-		data[key] = make(map[string]interface{})
-	}
-
-	if nested, ok := data[key].(map[string]interface{}); ok {
-		for newKey, newValue := range values {
-			nested[newKey] = newValue
-		}
-	}
-
-}
-
-// Contains does the obvious
-func Contains(s string, a []string) bool {
-	for _, x := range a {
-		if x == s {
-			return true
-		}
-	}
-	return false
+// UserAgentHeader fetches all `user-agent` values from a given header and combines them into one string.
+// Values are separated by `;`.
+func UserAgentHeader(header http.Header) string {
+	return strings.Join(header[textproto.CanonicalMIMEHeaderKey("User-Agent")], ", ")
 }

@@ -14,7 +14,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "float_gauge": 9.16,
             "host": {
@@ -109,7 +109,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "go": {
                 "memstats": {
@@ -164,7 +164,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -207,11 +207,6 @@
                                 },
                                 "usage": {
                                     "bytes": 1024
-                                }
-                            },
-                            "stats": {
-                                "inactive_file": {
-                                    "bytes": 48
                                 }
                             }
                         }

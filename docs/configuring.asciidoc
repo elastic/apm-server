@@ -10,25 +10,48 @@
 include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 * <<configuration-process>>
-* <<configuring-output>>
-* <<configuration-ssl-landing>>
 * <<configuration-template>>
 * <<ilm-reference>>
-* <<jaeger-reference>>
-* <<configuration-logging>>
-* <<setup-kibana-endpoint>>
-* <<configuration-rum>>
 * <<configuration-instrumentation>>
+* <<jaeger-reference>>
+* <<configuration-kerberos>>
+* <<setup-kibana-endpoint>>
+* <<configuration-logging>>
+* <<configuring-output>>
 * <<configuration-path>>
+* <<configuration-rum>>
+* <<configuration-ssl-landing>>
+* <<transaction-metrics>>
 * <<using-environ-vars>>
 
 --
 
 include::./configuration-process.asciidoc[]
 
+include::{libbeat-dir}/template-config.asciidoc[]
+
+include::./ilm-reference.asciidoc[]
+
+include::{libbeat-dir}/shared-instrumentation.asciidoc[]
+
+include::./jaeger-reference.asciidoc[]
+
+ifndef::no_kerberos[]
+include::{libbeat-dir}/shared-kerberos-config.asciidoc[]
+endif::[]
+
+include::./configure-kibana-endpoint.asciidoc[]
+
+include::{libbeat-dir}/loggingconfig.asciidoc[]
+
 :no-redis-output:
 include::{libbeat-dir}/outputconfig.asciidoc[]
 
+include::{libbeat-dir}/shared-path-config.asciidoc[]
+
+include::./configuration-rum.asciidoc[]
+
+// BEGIN SSL SECTION --------------------------------------------
 [[configuration-ssl-landing]]
 == SSL/TLS settings
 
@@ -49,24 +72,9 @@ include::{libbeat-dir}/shared-ssl-config.asciidoc[]
 :leveloffset: -1
 
 include::ssl-input-settings.asciidoc[]
+// END SSL SECTION --------------------------------------------
 
-See <<securing-apm-server,Securing APM Server>> for more information.
-
-include::{libbeat-dir}/template-config.asciidoc[]
-
-include::./ilm-reference.asciidoc[]
-
-include::./jaeger-reference.asciidoc[]
-
-include::{libbeat-dir}/loggingconfig.asciidoc[]
-
-include::./configure-kibana-endpoint.asciidoc[]
-
-include::./configuration-rum.asciidoc[]
-
-include::{libbeat-dir}/shared-instrumentation.asciidoc[]
-
-include::{libbeat-dir}/shared-path-config.asciidoc[]
+include::./transaction-metrics.asciidoc[]
 
 :standalone:
 include::{libbeat-dir}/shared-env-vars.asciidoc[]

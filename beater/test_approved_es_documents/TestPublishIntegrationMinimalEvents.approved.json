@@ -7,7 +7,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -58,7 +58,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -109,7 +109,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -152,12 +152,13 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
+            "a": 3.2,
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -185,7 +186,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "error": {
                 "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
@@ -223,7 +224,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "error": {
                 "exception": [
@@ -263,7 +264,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "error": {
                 "exception": [

@@ -48,7 +48,7 @@ class SetupCmdPipelinesDisabledTest(SetupCmdPipelinesDefaultTest):
         return cfg
 
     def test_setup_pipelines(self):
-        assert self.log_contains("No pipeline callback registered")
+        assert self.log_contains("Pipeline registration disabled")
         wait_until_pipelines(self.es, [])
 
 

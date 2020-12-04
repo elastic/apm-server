@@ -62,17 +62,6 @@ class SourcemappingIntegrationTest(BaseSourcemapTest):
         self.assert_no_logged_warnings(
             ["WARN.*Overriding sourcemap", "WARN.*2 sourcemaps found for service"])
 
-    def test_rum_error(self):
-        # use an uncleaned path to test that path is cleaned in upload
-        path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
-        self.upload_sourcemap(bundle_filepath=path)
-        self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.intake_url,
-                                     'error',
-                                     1)
-        self.assert_no_logged_warnings()
-        self.check_rum_error_sourcemap(True)
-
     def test_backend_span(self):
         # ensure source mapping is not applied to backend events
         # load event for which a sourcemap would be applied when sent to rum endpoint,
@@ -157,17 +146,6 @@ class SourcemappingIntegrationTest(BaseSourcemapTest):
 
         # insert document,
         # fetching sourcemap without errors, so it must be fetched from cache
-        self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.intake_url,
-                                     'error',
-                                     1)
-        self.assert_no_logged_warnings()
-        self.check_rum_error_sourcemap(True)
-
-    def test_rum_error_changed_index(self):
-        # use an uncleaned path to test that path is cleaned in upload
-        path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
-        self.upload_sourcemap(bundle_filepath=path)
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
                                      'error',

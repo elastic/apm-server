@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -77,9 +79,9 @@ type Span struct {
 
 	Experimental interface{}
 
-	// RepresentativeCount, if positive, holds the approximate number of
-	// spans that this span represents for aggregation. This will only be set
-	// when the sampling rate is known.
+	// RepresentativeCount holds the approximate number of spans that
+	// this span represents for aggregation. This will only be set when
+	// the sampling rate is known.
 	//
 	// This may be used for scaling metrics; it is not indexed.
 	RepresentativeCount float64
@@ -194,14 +196,19 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 		spanDocType: e.fields(ctx, cfg),
 	}
 
+	if cfg.DataStreams {
+		// Spans are stored in a "traces" data stream along with transactions.
+		dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+		fields[datastreams.TypeField] = datastreams.TracesType
+		fields[datastreams.DatasetField] = dataset
+	}
+
 	// first set the generic metadata
-	e.Metadata.Set(fields)
+	e.Metadata.Set(fields, e.Labels)
 
 	// then add event specific information
 	utility.DeepUpdate(fields, "service", e.Service.Fields("", ""))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", e.Labels)
 	utility.AddID(fields, "parent", e.ParentID)
 	if e.ChildIDs != nil {
 		utility.Set(fields, "child", common.MapStr{"id": e.ChildIDs})

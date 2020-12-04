@@ -90,11 +90,19 @@ func newElasticsearchConfig() elasticsearch.Config {
 // and ingest node pipelines whose names start with "apm",
 // and deletes the default ILM policy "apm-rollover-30-days".
 func CleanupElasticsearch(t testing.TB) {
-	const prefix = "apm*"
+	const (
+		legacyPrefix     = "apm*"
+		apmTracesPrefix  = "traces-apm.*"
+		apmMetricsPrefix = "metrics-apm.*"
+		apmLogsPrefix    = "logs-apm.*"
+	)
 	requests := []estest.Request{
-		esapi.IndicesDeleteRequest{Index: []string{prefix}},
-		esapi.IngestDeletePipelineRequest{PipelineID: prefix},
-		esapi.IndicesDeleteTemplateRequest{Name: prefix},
+		esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
+		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
+		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
 	}
 
 	doReq := func(req estest.Request) error {
@@ -114,6 +122,11 @@ func CleanupElasticsearch(t testing.TB) {
 		t.Fatal(err)
 	}
 
+	// Refresh indices to ensure all recent changes are visible.
+	if err := doReq(esapi.IndicesRefreshRequest{}); err != nil {
+		t.Fatal(err)
+	}
+
 	// Delete the ILM policy last or we'll get an error due to it being in use.
 	for {
 		err := doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"})
@@ -121,7 +134,9 @@ func CleanupElasticsearch(t testing.TB) {
 			break
 		}
 		// Retry deleting, in case indices are still being deleted.
-		time.Sleep(100 * time.Millisecond)
+		const delay = 100 * time.Millisecond
+		t.Logf("failed to delete ILM policy (retrying in %s): %s", delay, err)
+		time.Sleep(delay)
 	}
 }
 

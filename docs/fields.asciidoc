@@ -12,7 +12,6 @@ This file is generated! See _meta/fields.yml and scripts/generate_fields_docs.py
 This document describes the fields that are exported by Apm-Server. They are
 grouped in the following categories:
 
-* <<exported-fields-apm>>
 * <<exported-fields-apm-error>>
 * <<exported-fields-apm-profile>>
 * <<exported-fields-apm-sourcemap>>
@@ -31,11 +30,10 @@ grouped in the following categories:
 * <<exported-fields-system>>
 
 --
-[[exported-fields-apm]]
-== General APM fields
+[[exported-fields-apm-error]]
+== APM Error fields
 
-Fields common to various APM events.
-
+Error-specific data for APM
 
 
 *`processor.name`*::
@@ -82,6 +80,8 @@ The protocol of the request, e.g. "https:".
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.full`*::
@@ -91,6 +91,8 @@ The full, possibly agent-assembled URL of the request, e.g https://example.com:4
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -102,6 +104,8 @@ The hostname of the request, e.g. "example.com".
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.port`*::
@@ -111,6 +115,8 @@ The port of the request, e.g. 443.
 
 
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -122,6 +128,8 @@ The path of the request, e.g. "/search".
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.query`*::
@@ -132,6 +140,8 @@ The query string of the request, e.g. "q=elasticsearch".
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.fragment`*::
@@ -141,6 +151,8 @@ A fragment specifying a location in a web page , e.g. "top".
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -153,6 +165,8 @@ The http version of the request leading to this event.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -163,6 +177,8 @@ The http method of the request leading to this event.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -185,6 +201,8 @@ Referrer for this HTTP request.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -196,6 +214,8 @@ The status code of the HTTP response.
 
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`http.response.finished`*::
@@ -205,6 +225,8 @@ Used by the Node agent to indicate when in the response life cycle an error has 
 
 
 type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -228,6 +250,8 @@ A flat mapping of user-defined labels with string, boolean or number values.
 
 type: object
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 [float]
@@ -245,6 +269,8 @@ Immutable name of the service emitting this event.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.version`*::
@@ -254,6 +280,8 @@ Version of the service emitting this event.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -275,6 +303,8 @@ Unique meaningful name of the service node.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -442,49 +472,6 @@ type: long
 --
 
 
-*`span.type`*::
-+
---
-Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-
-
-type: keyword
-
---
-
-*`span.subtype`*::
-+
---
-A further sub-division of the type (e.g. postgresql, elasticsearch)
-
-
-type: keyword
-
---
-
-[float]
-=== self_time
-
-Portion of the span's duration where no direct child was running
-
-
-
-*`span.self_time.count`*::
-+
---
-type: long
-
---
-
-
-*`span.self_time.sum.us`*::
-+
---
-type: long
-
---
-
-
 *`trace.id`*::
 +
 --
@@ -515,6 +502,8 @@ Name of the agent used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`agent.version`*::
@@ -525,6 +514,8 @@ Version of the agent used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`agent.ephemeral_id`*::
@@ -534,6 +525,8 @@ The Ephemeral ID identifies a running process.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -551,6 +544,8 @@ Unique container id.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -618,6 +613,8 @@ The architecture of the host the event was recorded on.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.hostname`*::
@@ -627,6 +624,8 @@ The hostname of the host the event was recorded on.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -638,6 +637,8 @@ Name of the host the event was recorded on. It can contain same information as h
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.ip`*::
@@ -647,6 +648,8 @@ IP of the host that records the event.
 
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -665,6 +668,8 @@ The platform of the host the event was recorded on.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 [float]
@@ -677,11 +682,12 @@ Information pertaining to the running process where the data was collected
 *`process.args`*::
 +
 --
-Process arguments.
-May be filtered to protect sensitive information.
+Process arguments. May be filtered to protect sensitive information.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -693,6 +699,8 @@ Numeric process ID of the service process.
 
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.ppid`*::
@@ -703,6 +711,8 @@ Numeric ID of the service's parent process.
 
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.title`*::
@@ -712,6 +722,8 @@ Service process title.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -734,6 +746,8 @@ Hostname of the APM Server.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.version`*::
@@ -743,6 +757,8 @@ APM Server version.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -764,6 +780,8 @@ The type will be set to `apm-server`.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -775,6 +793,8 @@ The username of the logged in user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user.id`*::
@@ -785,6 +805,8 @@ Identifier of the logged in user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user.email`*::
@@ -794,6 +816,8 @@ Email of the logged in user.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -806,6 +830,8 @@ IP address of the client of a recorded event. This is typically obtained from a 
 
 type: ip
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -816,6 +842,8 @@ IP address of the source of a recorded event. This is typically obtained from a 
 
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -829,20 +857,22 @@ Destination fields are usually populated in conjunction with source fields.
 *`destination.address`*::
 +
 --
-Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
-Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
 *`destination.ip`*::
 +
 --
-IP addess of the destination.
-Can be one of multiple IPv4 or IPv6 addresses.
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -854,6 +884,8 @@ Port of the destination.
 type: long
 
 format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -874,6 +906,8 @@ type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.original.text`*::
@@ -883,6 +917,8 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 
 type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -896,6 +932,8 @@ type: keyword
 
 example: Safari
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.version`*::
@@ -907,6 +945,8 @@ Version of the user agent.
 type: keyword
 
 example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -927,6 +967,8 @@ type: keyword
 
 example: iPhone
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 [float]
@@ -946,6 +988,8 @@ type: keyword
 
 example: darwin
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.os.name`*::
@@ -957,6 +1001,8 @@ Operating system name, without the version.
 type: keyword
 
 example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -970,6 +1016,8 @@ type: keyword
 
 example: Mac OS Mojave
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.os.family`*::
@@ -981,6 +1029,8 @@ OS family (such as redhat, debian, freebsd, windows).
 type: keyword
 
 example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -994,6 +1044,8 @@ type: keyword
 
 example: 10.14.1
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.os.kernel`*::
@@ -1005,6 +1057,8 @@ Operating system kernel version as a raw string.
 type: keyword
 
 example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1032,6 +1086,8 @@ Cloud account ID
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.account.name`*::
@@ -1040,6 +1096,8 @@ type: keyword
 Cloud account name
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1052,6 +1110,8 @@ type: keyword
 
 example: us-east1-a
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -1062,6 +1122,8 @@ Cloud instance/machine ID
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.instance.name`*::
@@ -1070,6 +1132,8 @@ type: keyword
 Cloud instance/machine name
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1083,6 +1147,8 @@ type: keyword
 
 example: t2.medium
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -1093,6 +1159,8 @@ Cloud project ID
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.project.name`*::
@@ -1101,6 +1169,8 @@ type: keyword
 Cloud project name
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1113,6 +1183,8 @@ type: keyword
 
 example: gcp
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.region`*::
@@ -1124,26 +1196,9 @@ type: keyword
 
 example: us-east1
 
---
-
-
-*`event.outcome`*::
-+
---
-`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
-
-
-type: keyword
-
-example: success
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
-
-[[exported-fields-apm-error]]
-== APM Error fields
-
-Error-specific data for APM
-
 
 [float]
 === error
@@ -1159,6 +1214,8 @@ The ID of the error.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1281,12 +1338,876 @@ type: keyword
 Profiling-specific data for APM.
 
 
+*`processor.name`*::
++
+--
+Processor name.
+
+type: keyword
+
+--
+
+*`processor.event`*::
++
+--
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments. May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 
 *`profile.id`*::
 +
 --
-Unique ID for the profile.
-All samples within a profile will have the same profile ID.
+Unique ID for the profile. All samples within a profile will have the same profile ID.
 
 
 type: keyword
@@ -1296,8 +2217,7 @@ type: keyword
 *`profile.duration`*::
 +
 --
-Duration of the profile, in microseconds.
-All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
+Duration of the profile, in microseconds. All samples within a profile will have the same duration. To aggregate durations, you should first group by the profile ID.
 
 
 type: long
@@ -1502,21 +2422,261 @@ type: keyword
 Span-specific data for APM.
 
 
-*`view spans`*::
+*`processor.name`*::
 +
 --
-format: url
+Processor name.
+
+type: keyword
 
 --
 
-
-*`child.id`*::
+*`processor.event`*::
 +
 --
-The ID(s)s of the child event(s).
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`transaction.id`*::
++
+--
+The transaction ID.
+
+
+type: keyword
+
+--
+
+*`transaction.sampled`*::
++
+--
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+
+
+type: boolean
+
+--
+
+*`transaction.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+
+type: keyword
+
+--
+
+*`transaction.name`*::
++
+--
+Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+
+
+type: keyword
+
+--
+
+*`transaction.name.text`*::
++
+--
+type: text
+
+--
+
+
+*`transaction.duration.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.duration.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== self_time
+
+Portion of the transaction's duration where no direct child was running
+
+
+
+*`transaction.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== breakdown
+
+Counter for collected breakdowns for the transaction
+
+
+
+*`transaction.breakdown.count`*::
++
+--
+type: long
 
 --
 
@@ -1664,6 +2824,768 @@ type: long
 
 --
 
+
+*`trace.id`*::
++
+--
+The ID of the trace to which the event belongs to.
+
+
+type: keyword
+
+--
+
+
+*`parent.id`*::
++
+--
+The ID of the parent event.
+
+
+type: keyword
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments. May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`view spans`*::
++
+--
+format: url
+
+--
+
+
+*`child.id`*::
++
+--
+The ID(s)s of the child event(s).
+
+
+type: keyword
+
+--
+
 [[exported-fields-apm-span-metrics-xpack]]
 == APM Span Metrics fields
 
@@ -1679,14 +3601,15 @@ type: long
 --
 
 
-*`destination.service.response_time.count`*::
+
+*`span.destination.service.response_time.count`*::
 +
 --
 type: long
 
 --
 
-*`destination.service.response_time.sum.us`*::
+*`span.destination.service.response_time.sum.us`*::
 +
 --
 type: long
@@ -1698,6 +3621,341 @@ type: long
 
 Transaction-specific data for APM
 
+
+*`processor.name`*::
++
+--
+Processor name.
+
+type: keyword
+
+--
+
+*`processor.event`*::
++
+--
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+[float]
+=== url
+
+A complete Url, with scheme, host and path.
+
+
+
+*`url.scheme`*::
++
+--
+The protocol of the request, e.g. "https:".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.full`*::
++
+--
+The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.domain`*::
++
+--
+The hostname of the request, e.g. "example.com".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.port`*::
++
+--
+The port of the request, e.g. 443.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.path`*::
++
+--
+The path of the request, e.g. "/search".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.query`*::
++
+--
+The query string of the request, e.g. "q=elasticsearch".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`url.fragment`*::
++
+--
+A fragment specifying a location in a web page , e.g. "top".
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`http.version`*::
++
+--
+The http version of the request leading to this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`http.request.method`*::
++
+--
+The http method of the request leading to this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`http.request.headers`*::
++
+--
+The canonical headers of the monitored HTTP request.
+
+
+type: object
+
+Object is not enabled.
+
+--
+
+*`http.request.referrer`*::
++
+--
+Referrer for this HTTP request.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`http.response.status_code`*::
++
+--
+The status code of the HTTP response.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`http.response.finished`*::
++
+--
+Used by the Node agent to indicate when in the response life cycle an error has occurred.
+
+
+type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`http.response.headers`*::
++
+--
+The canonical headers of the monitored HTTP response.
+
+
+type: object
+
+Object is not enabled.
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
 
 
 
@@ -1766,6 +4024,39 @@ type: scaled_float
 
 --
 
+[float]
+=== longtask
+
+Longtask duration/count metrics
+
+
+*`transaction.experience.longtask.count`*::
++
+--
+The total number of of longtasks
+
+type: long
+
+--
+
+*`transaction.experience.longtask.sum`*::
++
+--
+The sum of longtask durations
+
+type: scaled_float
+
+--
+
+*`transaction.experience.longtask.max`*::
++
+--
+The max longtask duration
+
+type: scaled_float
+
+--
+
 
 *`transaction.span_count.dropped`*::
 +
@@ -1799,6 +4090,793 @@ type: long
 
 --
 
+
+*`span.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+
+
+type: keyword
+
+--
+
+*`span.subtype`*::
++
+--
+A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+
+type: keyword
+
+--
+
+[float]
+=== self_time
+
+Portion of the span's duration where no direct child was running
+
+
+
+*`span.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+
+*`trace.id`*::
++
+--
+The ID of the trace to which the event belongs to.
+
+
+type: keyword
+
+--
+
+
+*`parent.id`*::
++
+--
+The ID of the parent event.
+
+
+type: keyword
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments. May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 [[exported-fields-apm-transaction-metrics]]
 == APM Transaction Metrics fields
 
@@ -1806,6 +4884,263 @@ APM transaction metrics, and transaction metrics-specific properties, such as tr
 
 
 
+*`processor.name`*::
++
+--
+Processor name.
+
+type: keyword
+
+--
+
+*`processor.event`*::
++
+--
+Processor event.
+
+type: keyword
+
+--
+
+
+*`timestamp.us`*::
++
+--
+Timestamp of the event in microseconds since Unix epoch.
+
+
+type: long
+
+--
+
+*`labels`*::
++
+--
+A flat mapping of user-defined labels with string, boolean or number values.
+
+
+type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== service
+
+Service fields.
+
+
+
+*`service.name`*::
++
+--
+Immutable name of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.version`*::
++
+--
+Version of the service emitting this event.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`service.environment`*::
++
+--
+Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`service.language.name`*::
++
+--
+Name of the programming language used.
+
+
+type: keyword
+
+--
+
+*`service.language.version`*::
++
+--
+Version of the programming language used.
+
+
+type: keyword
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+Name of the runtime used.
+
+
+type: keyword
+
+--
+
+*`service.runtime.version`*::
++
+--
+Version of the runtime used.
+
+
+type: keyword
+
+--
+
+
+*`service.framework.name`*::
++
+--
+Name of the framework used.
+
+
+type: keyword
+
+--
+
+*`service.framework.version`*::
++
+--
+Version of the framework used.
+
+
+type: keyword
+
+--
+
+
+*`transaction.id`*::
++
+--
+The transaction ID.
+
+
+type: keyword
+
+--
+
+*`transaction.sampled`*::
++
+--
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+
+
+type: boolean
+
+--
+
+*`transaction.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+
+type: keyword
+
+--
+
+*`transaction.name`*::
++
+--
+Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+
+
+type: keyword
+
+--
+
+*`transaction.name.text`*::
++
+--
+type: text
+
+--
+
+
+*`transaction.duration.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.duration.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== self_time
+
+Portion of the transaction's duration where no direct child was running
+
+
+
+*`transaction.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+=== breakdown
+
+Counter for collected breakdowns for the transaction
+
+
+
+*`transaction.breakdown.count`*::
++
+--
+type: long
+
+--
 
 *`transaction.root`*::
 +
@@ -1814,6 +5149,771 @@ Identifies metrics for root transactions. This can be used for calculating metri
 
 
 type: boolean
+
+--
+
+
+*`span.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+
+
+type: keyword
+
+--
+
+*`span.subtype`*::
++
+--
+A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+
+type: keyword
+
+--
+
+[float]
+=== self_time
+
+Portion of the span's duration where no direct child was running
+
+
+
+*`span.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+
+*`agent.name`*::
++
+--
+Name of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.version`*::
++
+--
+Version of the agent used.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+The Ephemeral ID identifies a running process.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== container
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+Unique container id.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== kubernetes
+
+Kubernetes metadata reported by agents
+
+
+
+*`kubernetes.namespace`*::
++
+--
+Kubernetes namespace
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+Kubernetes node name
+
+
+type: keyword
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+Kubernetes pod name
+
+
+type: keyword
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+Kubernetes Pod UID
+
+
+type: keyword
+
+--
+
+[float]
+=== host
+
+Optional host fields.
+
+
+
+*`host.architecture`*::
++
+--
+The architecture of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.hostname`*::
++
+--
+The hostname of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`host.ip`*::
++
+--
+IP of the host that records the event.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+The platform of the host the event was recorded on.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== process
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+Process arguments. May be filtered to protect sensitive information.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.pid`*::
++
+--
+Numeric process ID of the service process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.ppid`*::
++
+--
+Numeric ID of the service's parent process.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`process.title`*::
++
+--
+Service process title.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`observer.listening`*::
++
+--
+Address the server is listening on.
+
+
+type: keyword
+
+--
+
+*`observer.hostname`*::
++
+--
+Hostname of the APM Server.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version`*::
++
+--
+APM Server version.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`observer.version_major`*::
++
+--
+Major version number of the observer
+
+
+type: byte
+
+--
+
+*`observer.type`*::
++
+--
+The type will be set to `apm-server`.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`user.name`*::
++
+--
+The username of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.id`*::
++
+--
+Identifier of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user.email`*::
++
+--
+Email of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`client.ip`*::
++
+--
+IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.ip`*::
++
+--
+IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== user_agent
+
+The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
+
+
+
+*`user_agent.original`*::
++
+--
+Unparsed version of the user_agent.
+
+
+type: keyword
+
+example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.original.text`*::
++
+--
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
+type: text
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.name`*::
++
+--
+Name of the user agent.
+
+
+type: keyword
+
+example: Safari
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.version`*::
++
+--
+Version of the user agent.
+
+
+type: keyword
+
+example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== device
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+Name of the device.
+
+
+type: keyword
+
+example: iPhone
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== os
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+Operating system platform (such centos, ubuntu, windows).
+
+
+type: keyword
+
+example: darwin
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.name`*::
++
+--
+Operating system name, without the version.
+
+
+type: keyword
+
+example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.full`*::
++
+--
+Operating system name, including the version or code name.
+
+
+type: keyword
+
+example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.family`*::
++
+--
+OS family (such as redhat, debian, freebsd, windows).
+
+
+type: keyword
+
+example: debian
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.version`*::
++
+--
+Operating system version as a raw string.
+
+
+type: keyword
+
+example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+Operating system kernel version as a raw string.
+
+
+type: keyword
+
+example: 4.4.0-112-generic
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`experimental`*::
++
+--
+Additional experimental data sent by the agents.
+
+type: object
+
+--
+
+[float]
+=== cloud
+
+Cloud metadata reported by agents
+
+
+
+
+*`cloud.account.id`*::
++
+--
+Cloud account ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.account.name`*::
++
+--
+Cloud account name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.availability_zone`*::
++
+--
+Cloud availability zone name
+
+type: keyword
+
+example: us-east1-a
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.instance.id`*::
++
+--
+Cloud instance/machine ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.instance.name`*::
++
+--
+Cloud instance/machine name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.machine.type`*::
++
+--
+Cloud instance/machine type
+
+type: keyword
+
+example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.project.id`*::
++
+--
+Cloud project ID
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.project.name`*::
++
+--
+Cloud project name
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.provider`*::
++
+--
+Cloud provider name
+
+type: keyword
+
+example: gcp
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`cloud.region`*::
++
+--
+Cloud region name
+
+type: keyword
+
+example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`event.outcome`*::
++
+--
+`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.
+
+
+type: keyword
+
+example: success
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1907,16 +6007,6 @@ type: keyword
 Metadata from cloud providers added by the add_cloud_metadata processor.
 
 
-
-*`cloud.project.id`*::
-+
---
-Name of the project in Google Cloud.
-
-
-example: project-x
-
---
 
 *`cloud.image.id`*::
 +
@@ -2039,8 +6129,15 @@ type: object
 [[exported-fields-ecs]]
 == ECS fields
 
-ECS Fields.
 
+This section defines Elastic Common Schema (ECS) fields—a common set of fields
+to be used when storing event data in {es}.
+
+This is an exhaustive list, and fields listed here are not necessarily used by {beatname_uc}.
+The goal of ECS is to enable and encourage users of {es} to normalize their event data,
+so that they can better analyze, visualize, and correlate the data represented in their events.
+
+See the {ecs-ref}[ECS reference] for more information.
 
 *`@timestamp`*::
 +
@@ -2102,6 +6199,18 @@ The agent fields contain the data about the software entity, if any, that collec
 Examples include Beats. Agents may also run on observers. ECS agent.* fields shall be populated with details of the agent running on the host or observer where the event happened or the measurement was taken.
 
 
+*`agent.build.original`*::
++
+--
+Extended build information for the agent.
+This field is intended to contain any build information that a data source may provide, no specific formatting is required.
+
+type: keyword
+
+example: metricbeat version 7.6.0 (amd64), libbeat 7.6.0 [6a23e8f8f30f5001ba344e4e54d8d9cb82cb107c built 2020-02-05 23:10:10 +0000 UTC]
+
+--
+
 *`agent.ephemeral_id`*::
 +
 --
@@ -2143,7 +6252,7 @@ example: foo
 +
 --
 Type of the agent.
-The agent type stays always the same and should be given by the agent used. In case of Filebeat the agent would always be Filebeat also if two Filebeat instances are run on the same machine.
+The agent type always stays the same and should be given by the agent used. In case of Filebeat the agent would always be Filebeat also if two Filebeat instances are run on the same machine.
 
 type: keyword
 
@@ -2359,8 +6468,7 @@ example: Quebec
 *`client.ip`*::
 +
 --
-IP address of the client.
-Can be one or multiple IPv4 or IPv6 addresses.
+IP address of the client (IPv4 or IPv6).
 
 type: ip
 
@@ -2423,19 +6531,19 @@ format: string
 +
 --
 The highest registered client domain, stripped of the subdomain.
-For example, the registered domain for "foo.google.com" is "google.com".
+For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
 type: keyword
 
-example: google.com
+example: example.com
 
 --
 
 *`client.top_level_domain`*::
 +
 --
-The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for google.com is "com".
+The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is "com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last label will not work well for effective TLDs such as "co.uk".
 
 type: keyword
@@ -2522,7 +6630,7 @@ type: keyword
 *`client.user.id`*::
 +
 --
-Unique identifiers of the user.
+Unique identifier of the user.
 
 type: keyword
 
@@ -2546,6 +6654,17 @@ type: text
 
 --
 
+*`client.user.roles`*::
++
+--
+Array of user roles at the time of the event.
+
+type: keyword
+
+example: ["kibana_admin", "reporting_user"]
+
+--
+
 [float]
 === cloud
 
@@ -2561,6 +6680,18 @@ Examples: AWS account id, Google Cloud ORG Id, or other unique identifier.
 type: keyword
 
 example: 666777888999
+
+--
+
+*`cloud.account.name`*::
++
+--
+The cloud account name or alias used to identify different entities in a multi-tenant environment.
+Examples: AWS account name, Google Cloud ORG display name.
+
+type: keyword
+
+example: elastic-dev
 
 --
 
@@ -2603,6 +6734,30 @@ Machine type of the host machine.
 type: keyword
 
 example: t2.medium
+
+--
+
+*`cloud.project.id`*::
++
+--
+The cloud project identifier.
+Examples: Google Cloud Project id, Azure Project id.
+
+type: keyword
+
+example: my-project
+
+--
+
+*`cloud.project.name`*::
++
+--
+The cloud project name.
+Examples: Google Cloud Project name, Azure Project name.
+
+type: keyword
+
+example: my project
 
 --
 
@@ -2916,8 +7071,7 @@ example: Quebec
 *`destination.ip`*::
 +
 --
-IP address of the destination.
-Can be one or multiple IPv4 or IPv6 addresses.
+IP address of the destination (IPv4 or IPv6).
 
 type: ip
 
@@ -2980,19 +7134,19 @@ format: string
 +
 --
 The highest registered destination domain, stripped of the subdomain.
-For example, the registered domain for "foo.google.com" is "google.com".
+For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
 type: keyword
 
-example: google.com
+example: example.com
 
 --
 
 *`destination.top_level_domain`*::
 +
 --
-The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for google.com is "com".
+The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is "com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last label will not work well for effective TLDs such as "co.uk".
 
 type: keyword
@@ -3079,7 +7233,7 @@ type: keyword
 *`destination.user.id`*::
 +
 --
-Unique identifiers of the user.
+Unique identifier of the user.
 
 type: keyword
 
@@ -3100,6 +7254,17 @@ example: albert
 +
 --
 type: text
+
+--
+
+*`destination.user.roles`*::
++
+--
+Array of user roles at the time of the event.
+
+type: keyword
+
+example: ["kibana_admin", "reporting_user"]
 
 --
 
@@ -3231,6 +7396,17 @@ example: C:\Windows\System32\kernel32.dll
 
 --
 
+*`dll.pe.architecture`*::
++
+--
+CPU architecture target for the file.
+
+type: keyword
+
+example: x64
+
+--
+
 *`dll.pe.company`*::
 +
 --
@@ -3261,6 +7437,18 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+--
+
+*`dll.pe.imphash`*::
++
+--
+A hash of the imports in a PE file. An imphash -- or import hash -- can be used to fingerprint binaries even after recompilation or other code-level transformations have occurred, which would change more traditional hash values.
+Learn more at https://www.fireeye.com/blog/threat-research/2014/01/tracking-malware-import-hashing.html.
+
+type: keyword
+
+example: 0c6803c4e922103c4dca5963aad36ddf
 
 --
 
@@ -3335,7 +7523,7 @@ If a chain of CNAME is being resolved, each answer's `name` should be the one th
 
 type: keyword
 
-example: www.google.com
+example: www.example.com
 
 --
 
@@ -3414,7 +7602,7 @@ If the name field contains non-printable characters (below 32 or above 126), tho
 
 type: keyword
 
-example: www.google.com
+example: www.example.com
 
 --
 
@@ -3422,12 +7610,12 @@ example: www.google.com
 +
 --
 The highest registered domain, stripped of the subdomain.
-For example, the registered domain for "foo.google.com" is "google.com".
+For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
 type: keyword
 
-example: google.com
+example: example.com
 
 --
 
@@ -3446,7 +7634,7 @@ example: www
 *`dns.question.top_level_domain`*::
 +
 --
-The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for google.com is "com".
+The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is "com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last label will not work well for effective TLDs such as "co.uk".
 
 type: keyword
@@ -3562,6 +7750,8 @@ type: text
 The stack trace of this error in plain text.
 
 type: keyword
+
+Field is not indexed.
 
 --
 
@@ -3745,6 +7935,8 @@ type: keyword
 
 example: Sep 19 08:26:10 host CEF:0&#124;Security&#124; threatmanager&#124;1.0&#124;100&#124; worm successfully stopped&#124;10&#124;src=10.0.0.1 dst=2.1.2.2spt=1232
 
+Field is not indexed.
+
 --
 
 *`event.outcome`*::
@@ -3774,6 +7966,18 @@ example: kernel
 
 --
 
+*`event.reason`*::
++
+--
+Reason why this event happened, according to the source.
+This describes the why of a particular action or outcome captured in the event. Where `event.action` captures the action from the event, `event.reason` describes why that action was taken. For example, a web proxy with an `event.action` which denied the request may also populate `event.reason` with the reason why (e.g. `blocked site`).
+
+type: keyword
+
+example: Terminated an unexpected process
+
+--
+
 *`event.reference`*::
 +
 --
@@ -3782,7 +7986,7 @@ This URL links to a static definition of the this event. Alert events, indicated
 
 type: keyword
 
-example: https://system.vendor.com/event/#0001234
+example: https://system.example.com/event/#0001234
 
 --
 
@@ -3866,11 +8070,11 @@ type: keyword
 +
 --
 URL linking to an external system to continue investigation of this event.
-This URL links to another system where in-depth investigation of the specific occurence of this event can take place. Alert events, indicated by `event.kind:alert`, are a common use case for this field.
+This URL links to another system where in-depth investigation of the specific occurrence of this event can take place. Alert events, indicated by `event.kind:alert`, are a common use case for this field.
 
 type: keyword
 
-example: https://mysystem.mydomain.com/alert/5271dedb-f5b0-4218-87f0-4ac4870a38fe
+example: https://mysystem.example.com/alert/5271dedb-f5b0-4218-87f0-4ac4870a38fe
 
 --
 
@@ -4164,6 +8368,17 @@ type: text
 
 --
 
+*`file.pe.architecture`*::
++
+--
+CPU architecture target for the file.
+
+type: keyword
+
+example: x64
+
+--
+
 *`file.pe.company`*::
 +
 --
@@ -4194,6 +8409,18 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+--
+
+*`file.pe.imphash`*::
++
+--
+A hash of the imports in a PE file. An imphash -- or import hash -- can be used to fingerprint binaries even after recompilation or other code-level transformations have occurred, which would change more traditional hash values.
+Learn more at https://www.fireeye.com/blog/threat-research/2014/01/tracking-malware-import-hashing.html.
+
+type: keyword
+
+example: 0c6803c4e922103c4dca5963aad36ddf
 
 --
 
@@ -4266,6 +8493,270 @@ The user ID (UID) or security identifier (SID) of the file owner.
 type: keyword
 
 example: 1001
+
+--
+
+*`file.x509.alternative_names`*::
++
+--
+List of subject alternative names (SAN). Name types vary by certificate authority and certificate type but commonly contain IP addresses, DNS names (and wildcards), and email addresses.
+
+type: keyword
+
+example: *.elastic.co
+
+--
+
+*`file.x509.issuer.common_name`*::
++
+--
+List of common name (CN) of issuing certificate authority.
+
+type: keyword
+
+example: Example SHA2 High Assurance Server CA
+
+--
+
+*`file.x509.issuer.country`*::
++
+--
+List of country (C) codes
+
+type: keyword
+
+example: US
+
+--
+
+*`file.x509.issuer.distinguished_name`*::
++
+--
+Distinguished name (DN) of issuing certificate authority.
+
+type: keyword
+
+example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
+
+--
+
+*`file.x509.issuer.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: Mountain View
+
+--
+
+*`file.x509.issuer.organization`*::
++
+--
+List of organizations (O) of issuing certificate authority.
+
+type: keyword
+
+example: Example Inc
+
+--
+
+*`file.x509.issuer.organizational_unit`*::
++
+--
+List of organizational units (OU) of issuing certificate authority.
+
+type: keyword
+
+example: www.example.com
+
+--
+
+*`file.x509.issuer.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`file.x509.not_after`*::
++
+--
+Time at which the certificate is no longer considered valid.
+
+type: date
+
+example: 2020-07-16 03:15:39+00:00
+
+--
+
+*`file.x509.not_before`*::
++
+--
+Time at which the certificate is first considered valid.
+
+type: date
+
+example: 2019-08-16 01:40:25+00:00
+
+--
+
+*`file.x509.public_key_algorithm`*::
++
+--
+Algorithm used to generate the public key.
+
+type: keyword
+
+example: RSA
+
+--
+
+*`file.x509.public_key_curve`*::
++
+--
+The curve used by the elliptic curve public key algorithm. This is algorithm specific.
+
+type: keyword
+
+example: nistp521
+
+--
+
+*`file.x509.public_key_exponent`*::
++
+--
+Exponent used to derive the public key. This is algorithm specific.
+
+type: long
+
+example: 65537
+
+Field is not indexed.
+
+--
+
+*`file.x509.public_key_size`*::
++
+--
+The size of the public key space in bits.
+
+type: long
+
+example: 2048
+
+--
+
+*`file.x509.serial_number`*::
++
+--
+Unique serial number issued by the certificate authority. For consistency, if this value is alphanumeric, it should be formatted without colons and uppercase characters.
+
+type: keyword
+
+example: 55FBB9C7DEBF09809D12CCAA
+
+--
+
+*`file.x509.signature_algorithm`*::
++
+--
+Identifier for certificate signature algorithm. We recommend using names found in Go Lang Crypto library. See https://github.com/golang/go/blob/go1.14/src/crypto/x509/x509.go#L337-L353.
+
+type: keyword
+
+example: SHA256-RSA
+
+--
+
+*`file.x509.subject.common_name`*::
++
+--
+List of common names (CN) of subject.
+
+type: keyword
+
+example: shared.global.example.net
+
+--
+
+*`file.x509.subject.country`*::
++
+--
+List of country (C) code
+
+type: keyword
+
+example: US
+
+--
+
+*`file.x509.subject.distinguished_name`*::
++
+--
+Distinguished name (DN) of the certificate subject entity.
+
+type: keyword
+
+example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
+
+--
+
+*`file.x509.subject.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: San Francisco
+
+--
+
+*`file.x509.subject.organization`*::
++
+--
+List of organizations (O) of subject.
+
+type: keyword
+
+example: Example, Inc.
+
+--
+
+*`file.x509.subject.organizational_unit`*::
++
+--
+List of organizational units (OU) of subject.
+
+type: keyword
+
+--
+
+*`file.x509.subject.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`file.x509.version_number`*::
++
+--
+Version of x509 format.
+
+type: keyword
+
+example: 3
 
 --
 
@@ -4791,7 +9282,7 @@ type: keyword
 *`host.user.id`*::
 +
 --
-Unique identifiers of the user.
+Unique identifier of the user.
 
 type: keyword
 
@@ -4812,6 +9303,17 @@ example: albert
 +
 --
 type: text
+
+--
+
+*`host.user.roles`*::
++
+--
+Array of user roles at the time of the event.
+
+type: keyword
+
+example: ["kibana_admin", "reporting_user"]
 
 --
 
@@ -4869,11 +9371,13 @@ format: bytes
 +
 --
 HTTP request method.
-The field value must be normalized to lowercase for querying. See the documentation section "Implementing ECS".
+Prior to ECS 1.6.0 the following guidance was provided:
+"The field value must be normalized to lowercase for querying."
+As of ECS 1.6.0, the guidance is deprecated because the original case of the method may be useful in anomaly detection.  Original case will be mandated in ECS 2.0.0
 
 type: keyword
 
-example: get, post, put
+example: GET, POST, PUT, PoST
 
 --
 
@@ -5003,6 +9507,18 @@ The log.* fields are typically populated with details about the logging mechanis
 The details specific to your event source are typically not logged under `log.*`, but rather in `event.*` or in other ECS fields.
 
 
+*`log.file.path`*::
++
+--
+Full path to the log file this event came from, including the file name. It should include the drive letter, when appropriate.
+If the event wasn't read from a log file, do not populate this field.
+
+type: keyword
+
+example: /var/log/fun-times.log
+
+--
+
 *`log.level`*::
 +
 --
@@ -5041,7 +9557,8 @@ example: 42
 *`log.origin.file.name`*::
 +
 --
-The name of the file containing the source code which originated the log event. Note that this is not the name of the log file.
+The name of the file containing the source code which originated the log event.
+Note that this field is not meant to capture the log file. The correct field to capture the log file is `log.file.path`.
 
 type: keyword
 
@@ -5070,6 +9587,8 @@ This field is not indexed and doc_values are disabled so it can't be queried but
 type: keyword
 
 example: Sep 19 08:26:10 localhost My log
+
+Field is not indexed.
 
 --
 
@@ -6039,6 +10558,17 @@ example: 1.12.9
 These fields contain Windows Portable Executable (PE) metadata.
 
 
+*`pe.architecture`*::
++
+--
+CPU architecture target for the file.
+
+type: keyword
+
+example: x64
+
+--
+
 *`pe.company`*::
 +
 --
@@ -6069,6 +10599,18 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+--
+
+*`pe.imphash`*::
++
+--
+A hash of the imports in a PE file. An imphash -- or import hash -- can be used to fingerprint binaries even after recompilation or other code-level transformations have occurred, which would change more traditional hash values.
+Learn more at https://www.fireeye.com/blog/threat-research/2014/01/tracking-malware-import-hashing.html.
+
+type: keyword
+
+example: 0c6803c4e922103c4dca5963aad36ddf
 
 --
 
@@ -6303,12 +10845,12 @@ type: text
 *`process.parent.args`*::
 +
 --
-Array of process arguments.
+Array of process arguments, starting with the absolute path to the executable.
 May be filtered to protect sensitive information.
 
 type: keyword
 
-example: ['ssh', '-l', 'user', '10.0.0.16']
+example: ['/usr/bin/ssh', '-l', 'user', '10.0.0.16']
 
 --
 
@@ -6499,6 +11041,84 @@ type: text
 
 --
 
+*`process.parent.pe.architecture`*::
++
+--
+CPU architecture target for the file.
+
+type: keyword
+
+example: x64
+
+--
+
+*`process.parent.pe.company`*::
++
+--
+Internal company name of the file, provided at compile-time.
+
+type: keyword
+
+example: Microsoft Corporation
+
+--
+
+*`process.parent.pe.description`*::
++
+--
+Internal description of the file, provided at compile-time.
+
+type: keyword
+
+example: Paint
+
+--
+
+*`process.parent.pe.file_version`*::
++
+--
+Internal version of the file, provided at compile-time.
+
+type: keyword
+
+example: 6.3.9600.17415
+
+--
+
+*`process.parent.pe.imphash`*::
++
+--
+A hash of the imports in a PE file. An imphash -- or import hash -- can be used to fingerprint binaries even after recompilation or other code-level transformations have occurred, which would change more traditional hash values.
+Learn more at https://www.fireeye.com/blog/threat-research/2014/01/tracking-malware-import-hashing.html.
+
+type: keyword
+
+example: 0c6803c4e922103c4dca5963aad36ddf
+
+--
+
+*`process.parent.pe.original_file_name`*::
++
+--
+Internal name of the file, provided at compile-time.
+
+type: keyword
+
+example: MSPAINT.EXE
+
+--
+
+*`process.parent.pe.product`*::
++
+--
+Internal product name of the file, provided at compile-time.
+
+type: keyword
+
+example: Microsoft® Windows® Operating System
+
+--
+
 *`process.parent.pgid`*::
 +
 --
@@ -6617,6 +11237,17 @@ type: text
 
 --
 
+*`process.pe.architecture`*::
++
+--
+CPU architecture target for the file.
+
+type: keyword
+
+example: x64
+
+--
+
 *`process.pe.company`*::
 +
 --
@@ -6647,6 +11278,18 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+--
+
+*`process.pe.imphash`*::
++
+--
+A hash of the imports in a PE file. An imphash -- or import hash -- can be used to fingerprint binaries even after recompilation or other code-level transformations have occurred, which would change more traditional hash values.
+Learn more at https://www.fireeye.com/blog/threat-research/2014/01/tracking-malware-import-hashing.html.
+
+type: keyword
+
+example: 0c6803c4e922103c4dca5963aad36ddf
 
 --
 
@@ -6887,6 +11530,15 @@ A concrete example is IP addresses, which can be under host, observer, source, d
 +
 --
 All the hashes seen on your event. Populating this field, then using it to search for hashes can help in situations where you're unsure what the hash algorithm is (and therefore which key name to search).
+
+type: keyword
+
+--
+
+*`related.hosts`*::
++
+--
+All hostnames or other host identifiers seen on your event. Example identifiers include FQDNs, domain names, workstation names, or aliases.
 
 type: keyword
 
@@ -7190,8 +11842,7 @@ example: Quebec
 *`server.ip`*::
 +
 --
-IP address of the server.
-Can be one or multiple IPv4 or IPv6 addresses.
+IP address of the server (IPv4 or IPv6).
 
 type: ip
 
@@ -7254,19 +11905,19 @@ format: string
 +
 --
 The highest registered server domain, stripped of the subdomain.
-For example, the registered domain for "foo.google.com" is "google.com".
+For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
 type: keyword
 
-example: google.com
+example: example.com
 
 --
 
 *`server.top_level_domain`*::
 +
 --
-The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for google.com is "com".
+The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is "com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last label will not work well for effective TLDs such as "co.uk".
 
 type: keyword
@@ -7353,7 +12004,7 @@ type: keyword
 *`server.user.id`*::
 +
 --
-Unique identifiers of the user.
+Unique identifier of the user.
 
 type: keyword
 
@@ -7374,6 +12025,17 @@ example: albert
 +
 --
 type: text
+
+--
+
+*`server.user.roles`*::
++
+--
+Array of user roles at the time of the event.
+
+type: keyword
+
+example: ["kibana_admin", "reporting_user"]
 
 --
 
@@ -7630,8 +12292,7 @@ example: Quebec
 *`source.ip`*::
 +
 --
-IP address of the source.
-Can be one or multiple IPv4 or IPv6 addresses.
+IP address of the source (IPv4 or IPv6).
 
 type: ip
 
@@ -7694,19 +12355,19 @@ format: string
 +
 --
 The highest registered source domain, stripped of the subdomain.
-For example, the registered domain for "foo.google.com" is "google.com".
+For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
 type: keyword
 
-example: google.com
+example: example.com
 
 --
 
 *`source.top_level_domain`*::
 +
 --
-The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for google.com is "com".
+The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is "com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last label will not work well for effective TLDs such as "co.uk".
 
 type: keyword
@@ -7793,7 +12454,7 @@ type: keyword
 *`source.user.id`*::
 +
 --
-Unique identifiers of the user.
+Unique identifier of the user.
 
 type: keyword
 
@@ -7817,10 +12478,21 @@ type: text
 
 --
 
+*`source.user.roles`*::
++
+--
+Array of user roles at the time of the event.
+
+type: keyword
+
+example: ["kibana_admin", "reporting_user"]
+
+--
+
 [float]
 === threat
 
-Fields to classify events and alerts according to a threat taxonomy such as the Mitre ATT&CK framework.
+Fields to classify events and alerts according to a threat taxonomy such as the MITRE ATT&CK® framework.
 These fields are for users to classify alerts from all of their sources (e.g. IDS, NGFW, etc.) within a common taxonomy. The threat.tactic.* are meant to capture the high level category of the threat (e.g. "impact"). The threat.technique.* fields are meant to capture which kind of approach is used by this detected threat, to accomplish the goal (e.g. "endpoint denial of service").
 
 
@@ -7838,7 +12510,7 @@ example: MITRE ATT&CK
 *`threat.tactic.id`*::
 +
 --
-The id of tactic used by this threat. You can use the Mitre ATT&CK Matrix Tactic categorization, for example. (ex. https://attack.mitre.org/tactics/TA0040/ )
+The id of tactic used by this threat. You can use a MITRE ATT&CK® tactic, for example. (ex. https://attack.mitre.org/tactics/TA0040/ )
 
 type: keyword
 
@@ -7849,7 +12521,7 @@ example: TA0040
 *`threat.tactic.name`*::
 +
 --
-Name of the type of tactic used by this threat. You can use the Mitre ATT&CK Matrix Tactic categorization, for example. (ex. https://attack.mitre.org/tactics/TA0040/ )
+Name of the type of tactic used by this threat. You can use a MITRE ATT&CK® tactic, for example. (ex. https://attack.mitre.org/tactics/TA0040/)
 
 type: keyword
 
@@ -7860,7 +12532,7 @@ example: impact
 *`threat.tactic.reference`*::
 +
 --
-The reference url of tactic used by this threat. You can use the Mitre ATT&CK Matrix Tactic categorization, for example. (ex. https://attack.mitre.org/tactics/TA0040/ )
+The reference url of tactic used by this threat. You can use a MITRE ATT&CK® tactic, for example. (ex. https://attack.mitre.org/tactics/TA0040/ )
 
 type: keyword
 
@@ -7871,7 +12543,7 @@ example: https://attack.mitre.org/tactics/TA0040/
 *`threat.technique.id`*::
 +
 --
-The id of technique used by this tactic. You can use the Mitre ATT&CK Matrix Tactic categorization, for example. (ex. https://attack.mitre.org/techniques/T1499/ )
+The id of technique used by this threat. You can use a MITRE ATT&CK® technique, for example. (ex. https://attack.mitre.org/techniques/T1499/)
 
 type: keyword
 
@@ -7882,11 +12554,11 @@ example: T1499
 *`threat.technique.name`*::
 +
 --
-The name of technique used by this tactic. You can use the Mitre ATT&CK Matrix Tactic categorization, for example. (ex. https://attack.mitre.org/techniques/T1499/ )
+The name of technique used by this threat. You can use a MITRE ATT&CK® technique, for example. (ex. https://attack.mitre.org/techniques/T1499/)
 
 type: keyword
 
-example: endpoint denial of service
+example: Endpoint Denial of Service
 
 --
 
@@ -7900,7 +12572,7 @@ type: text
 *`threat.technique.reference`*::
 +
 --
-The reference url of technique used by this tactic. You can use the Mitre ATT&CK Matrix Tactic categorization, for example. (ex. https://attack.mitre.org/techniques/T1499/ )
+The reference url of technique used by this threat. You can use a MITRE ATT&CK® technique, for example. (ex. https://attack.mitre.org/techniques/T1499/ )
 
 type: keyword
 
@@ -7987,7 +12659,7 @@ Distinguished name of subject of the issuer of the x.509 certificate presented b
 
 type: keyword
 
-example: CN=MyDomain Root CA, OU=Infrastructure Team, DC=mydomain, DC=com
+example: CN=Example Root CA, OU=Infrastructure Team, DC=example, DC=com
 
 --
 
@@ -8027,7 +12699,7 @@ example: 1970-01-01T00:00:00.000Z
 *`tls.client.server_name`*::
 +
 --
-Also called an SNI, this tells the server which hostname to which the client is attempting to connect. When this value is available, it should get copied to `destination.domain`.
+Also called an SNI, this tells the server which hostname to which the client is attempting to connect to. When this value is available, it should get copied to `destination.domain`.
 
 type: keyword
 
@@ -8042,7 +12714,7 @@ Distinguished name of subject of the x.509 certificate presented by the client.
 
 type: keyword
 
-example: CN=myclient, OU=Documentation Team, DC=mydomain, DC=com
+example: CN=myclient, OU=Documentation Team, DC=example, DC=com
 
 --
 
@@ -8054,6 +12726,270 @@ Array of ciphers offered by the client during the client hello.
 type: keyword
 
 example: ['TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384', '...']
+
+--
+
+*`tls.client.x509.alternative_names`*::
++
+--
+List of subject alternative names (SAN). Name types vary by certificate authority and certificate type but commonly contain IP addresses, DNS names (and wildcards), and email addresses.
+
+type: keyword
+
+example: *.elastic.co
+
+--
+
+*`tls.client.x509.issuer.common_name`*::
++
+--
+List of common name (CN) of issuing certificate authority.
+
+type: keyword
+
+example: Example SHA2 High Assurance Server CA
+
+--
+
+*`tls.client.x509.issuer.country`*::
++
+--
+List of country (C) codes
+
+type: keyword
+
+example: US
+
+--
+
+*`tls.client.x509.issuer.distinguished_name`*::
++
+--
+Distinguished name (DN) of issuing certificate authority.
+
+type: keyword
+
+example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
+
+--
+
+*`tls.client.x509.issuer.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: Mountain View
+
+--
+
+*`tls.client.x509.issuer.organization`*::
++
+--
+List of organizations (O) of issuing certificate authority.
+
+type: keyword
+
+example: Example Inc
+
+--
+
+*`tls.client.x509.issuer.organizational_unit`*::
++
+--
+List of organizational units (OU) of issuing certificate authority.
+
+type: keyword
+
+example: www.example.com
+
+--
+
+*`tls.client.x509.issuer.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`tls.client.x509.not_after`*::
++
+--
+Time at which the certificate is no longer considered valid.
+
+type: date
+
+example: 2020-07-16 03:15:39+00:00
+
+--
+
+*`tls.client.x509.not_before`*::
++
+--
+Time at which the certificate is first considered valid.
+
+type: date
+
+example: 2019-08-16 01:40:25+00:00
+
+--
+
+*`tls.client.x509.public_key_algorithm`*::
++
+--
+Algorithm used to generate the public key.
+
+type: keyword
+
+example: RSA
+
+--
+
+*`tls.client.x509.public_key_curve`*::
++
+--
+The curve used by the elliptic curve public key algorithm. This is algorithm specific.
+
+type: keyword
+
+example: nistp521
+
+--
+
+*`tls.client.x509.public_key_exponent`*::
++
+--
+Exponent used to derive the public key. This is algorithm specific.
+
+type: long
+
+example: 65537
+
+Field is not indexed.
+
+--
+
+*`tls.client.x509.public_key_size`*::
++
+--
+The size of the public key space in bits.
+
+type: long
+
+example: 2048
+
+--
+
+*`tls.client.x509.serial_number`*::
++
+--
+Unique serial number issued by the certificate authority. For consistency, if this value is alphanumeric, it should be formatted without colons and uppercase characters.
+
+type: keyword
+
+example: 55FBB9C7DEBF09809D12CCAA
+
+--
+
+*`tls.client.x509.signature_algorithm`*::
++
+--
+Identifier for certificate signature algorithm. We recommend using names found in Go Lang Crypto library. See https://github.com/golang/go/blob/go1.14/src/crypto/x509/x509.go#L337-L353.
+
+type: keyword
+
+example: SHA256-RSA
+
+--
+
+*`tls.client.x509.subject.common_name`*::
++
+--
+List of common names (CN) of subject.
+
+type: keyword
+
+example: shared.global.example.net
+
+--
+
+*`tls.client.x509.subject.country`*::
++
+--
+List of country (C) code
+
+type: keyword
+
+example: US
+
+--
+
+*`tls.client.x509.subject.distinguished_name`*::
++
+--
+Distinguished name (DN) of the certificate subject entity.
+
+type: keyword
+
+example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
+
+--
+
+*`tls.client.x509.subject.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: San Francisco
+
+--
+
+*`tls.client.x509.subject.organization`*::
++
+--
+List of organizations (O) of subject.
+
+type: keyword
+
+example: Example, Inc.
+
+--
+
+*`tls.client.x509.subject.organizational_unit`*::
++
+--
+List of organizational units (OU) of subject.
+
+type: keyword
+
+--
+
+*`tls.client.x509.subject.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`tls.client.x509.version_number`*::
++
+--
+Version of x509 format.
+
+type: keyword
+
+example: 3
 
 --
 
@@ -8159,7 +13095,7 @@ Subject of the issuer of the x.509 certificate presented by the server.
 
 type: keyword
 
-example: CN=MyDomain Root CA, OU=Infrastructure Team, DC=mydomain, DC=com
+example: CN=Example Root CA, OU=Infrastructure Team, DC=example, DC=com
 
 --
 
@@ -8203,7 +13139,271 @@ Subject of the x.509 certificate presented by the server.
 
 type: keyword
 
-example: CN=www.mydomain.com, OU=Infrastructure Team, DC=mydomain, DC=com
+example: CN=www.example.com, OU=Infrastructure Team, DC=example, DC=com
+
+--
+
+*`tls.server.x509.alternative_names`*::
++
+--
+List of subject alternative names (SAN). Name types vary by certificate authority and certificate type but commonly contain IP addresses, DNS names (and wildcards), and email addresses.
+
+type: keyword
+
+example: *.elastic.co
+
+--
+
+*`tls.server.x509.issuer.common_name`*::
++
+--
+List of common name (CN) of issuing certificate authority.
+
+type: keyword
+
+example: Example SHA2 High Assurance Server CA
+
+--
+
+*`tls.server.x509.issuer.country`*::
++
+--
+List of country (C) codes
+
+type: keyword
+
+example: US
+
+--
+
+*`tls.server.x509.issuer.distinguished_name`*::
++
+--
+Distinguished name (DN) of issuing certificate authority.
+
+type: keyword
+
+example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
+
+--
+
+*`tls.server.x509.issuer.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: Mountain View
+
+--
+
+*`tls.server.x509.issuer.organization`*::
++
+--
+List of organizations (O) of issuing certificate authority.
+
+type: keyword
+
+example: Example Inc
+
+--
+
+*`tls.server.x509.issuer.organizational_unit`*::
++
+--
+List of organizational units (OU) of issuing certificate authority.
+
+type: keyword
+
+example: www.example.com
+
+--
+
+*`tls.server.x509.issuer.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`tls.server.x509.not_after`*::
++
+--
+Time at which the certificate is no longer considered valid.
+
+type: date
+
+example: 2020-07-16 03:15:39+00:00
+
+--
+
+*`tls.server.x509.not_before`*::
++
+--
+Time at which the certificate is first considered valid.
+
+type: date
+
+example: 2019-08-16 01:40:25+00:00
+
+--
+
+*`tls.server.x509.public_key_algorithm`*::
++
+--
+Algorithm used to generate the public key.
+
+type: keyword
+
+example: RSA
+
+--
+
+*`tls.server.x509.public_key_curve`*::
++
+--
+The curve used by the elliptic curve public key algorithm. This is algorithm specific.
+
+type: keyword
+
+example: nistp521
+
+--
+
+*`tls.server.x509.public_key_exponent`*::
++
+--
+Exponent used to derive the public key. This is algorithm specific.
+
+type: long
+
+example: 65537
+
+Field is not indexed.
+
+--
+
+*`tls.server.x509.public_key_size`*::
++
+--
+The size of the public key space in bits.
+
+type: long
+
+example: 2048
+
+--
+
+*`tls.server.x509.serial_number`*::
++
+--
+Unique serial number issued by the certificate authority. For consistency, if this value is alphanumeric, it should be formatted without colons and uppercase characters.
+
+type: keyword
+
+example: 55FBB9C7DEBF09809D12CCAA
+
+--
+
+*`tls.server.x509.signature_algorithm`*::
++
+--
+Identifier for certificate signature algorithm. We recommend using names found in Go Lang Crypto library. See https://github.com/golang/go/blob/go1.14/src/crypto/x509/x509.go#L337-L353.
+
+type: keyword
+
+example: SHA256-RSA
+
+--
+
+*`tls.server.x509.subject.common_name`*::
++
+--
+List of common names (CN) of subject.
+
+type: keyword
+
+example: shared.global.example.net
+
+--
+
+*`tls.server.x509.subject.country`*::
++
+--
+List of country (C) code
+
+type: keyword
+
+example: US
+
+--
+
+*`tls.server.x509.subject.distinguished_name`*::
++
+--
+Distinguished name (DN) of the certificate subject entity.
+
+type: keyword
+
+example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
+
+--
+
+*`tls.server.x509.subject.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: San Francisco
+
+--
+
+*`tls.server.x509.subject.organization`*::
++
+--
+List of organizations (O) of subject.
+
+type: keyword
+
+example: Example, Inc.
+
+--
+
+*`tls.server.x509.subject.organizational_unit`*::
++
+--
+List of organizational units (OU) of subject.
+
+type: keyword
+
+--
+
+*`tls.server.x509.subject.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`tls.server.x509.version_number`*::
++
+--
+Version of x509 format.
+
+type: keyword
+
+example: 3
 
 --
 
@@ -8235,6 +13435,18 @@ example: tls
 Distributed tracing makes it possible to analyze performance throughout a microservice architecture all in one view. This is accomplished by tracing all of the requests - from the initial web request in the front-end service - to queries made through multiple back-end services.
 
 
+*`tracing.span.id`*::
++
+--
+Unique identifier of the span within the scope of its trace.
+A span represents an operation within a transaction, such as a request to another service, or a database query.
+
+type: keyword
+
+example: 3ff9a8981b7ccd5a
+
+--
+
 *`tracing.trace.id`*::
 +
 --
@@ -8250,7 +13462,7 @@ example: 4bf92f3577b34da6a3ce929d0e0e4736
 *`tracing.transaction.id`*::
 +
 --
-Unique identifier of the transaction.
+Unique identifier of the transaction within the scope of its trace.
 A transaction is the highest level of work measured within a service, such as a request to a server.
 
 type: keyword
@@ -8383,12 +13595,12 @@ type: keyword
 +
 --
 The highest registered url domain, stripped of the subdomain.
-For example, the registered domain for "foo.google.com" is "google.com".
+For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
 type: keyword
 
-example: google.com
+example: example.com
 
 --
 
@@ -8407,7 +13619,7 @@ example: https
 *`url.top_level_domain`*::
 +
 --
-The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for google.com is "com".
+The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is "com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last label will not work well for effective TLDs such as "co.uk".
 
 type: keyword
@@ -8510,7 +13722,7 @@ type: keyword
 *`user.id`*::
 +
 --
-Unique identifiers of the user.
+Unique identifier of the user.
 
 type: keyword
 
@@ -8531,6 +13743,17 @@ example: albert
 +
 --
 type: text
+
+--
+
+*`user.roles`*::
++
+--
+Array of user roles at the time of the event.
+
+type: keyword
+
+example: ["kibana_admin", "reporting_user"]
 
 --
 
@@ -8862,6 +14085,276 @@ example: Critical
 
 --
 
+[float]
+=== x509
+
+This implements the common core fields for x509 certificates. This information is likely logged with TLS sessions, digital signatures found in executable binaries, S/MIME information in email bodies, or analysis of files on disk. When only a single certificate is logged in an event, it should be nested under `file`. When hashes of the DER-encoded certificate are available, the `hash` data set should be populated as well (e.g. `file.hash.sha256`). For events that contain certificate information for both sides of the connection, the x509 object could be nested under the respective side of the connection information (e.g. `tls.server.x509`).
+
+
+*`x509.alternative_names`*::
++
+--
+List of subject alternative names (SAN). Name types vary by certificate authority and certificate type but commonly contain IP addresses, DNS names (and wildcards), and email addresses.
+
+type: keyword
+
+example: *.elastic.co
+
+--
+
+*`x509.issuer.common_name`*::
++
+--
+List of common name (CN) of issuing certificate authority.
+
+type: keyword
+
+example: Example SHA2 High Assurance Server CA
+
+--
+
+*`x509.issuer.country`*::
++
+--
+List of country (C) codes
+
+type: keyword
+
+example: US
+
+--
+
+*`x509.issuer.distinguished_name`*::
++
+--
+Distinguished name (DN) of issuing certificate authority.
+
+type: keyword
+
+example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
+
+--
+
+*`x509.issuer.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: Mountain View
+
+--
+
+*`x509.issuer.organization`*::
++
+--
+List of organizations (O) of issuing certificate authority.
+
+type: keyword
+
+example: Example Inc
+
+--
+
+*`x509.issuer.organizational_unit`*::
++
+--
+List of organizational units (OU) of issuing certificate authority.
+
+type: keyword
+
+example: www.example.com
+
+--
+
+*`x509.issuer.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`x509.not_after`*::
++
+--
+Time at which the certificate is no longer considered valid.
+
+type: date
+
+example: 2020-07-16 03:15:39+00:00
+
+--
+
+*`x509.not_before`*::
++
+--
+Time at which the certificate is first considered valid.
+
+type: date
+
+example: 2019-08-16 01:40:25+00:00
+
+--
+
+*`x509.public_key_algorithm`*::
++
+--
+Algorithm used to generate the public key.
+
+type: keyword
+
+example: RSA
+
+--
+
+*`x509.public_key_curve`*::
++
+--
+The curve used by the elliptic curve public key algorithm. This is algorithm specific.
+
+type: keyword
+
+example: nistp521
+
+--
+
+*`x509.public_key_exponent`*::
++
+--
+Exponent used to derive the public key. This is algorithm specific.
+
+type: long
+
+example: 65537
+
+Field is not indexed.
+
+--
+
+*`x509.public_key_size`*::
++
+--
+The size of the public key space in bits.
+
+type: long
+
+example: 2048
+
+--
+
+*`x509.serial_number`*::
++
+--
+Unique serial number issued by the certificate authority. For consistency, if this value is alphanumeric, it should be formatted without colons and uppercase characters.
+
+type: keyword
+
+example: 55FBB9C7DEBF09809D12CCAA
+
+--
+
+*`x509.signature_algorithm`*::
++
+--
+Identifier for certificate signature algorithm. We recommend using names found in Go Lang Crypto library. See https://github.com/golang/go/blob/go1.14/src/crypto/x509/x509.go#L337-L353.
+
+type: keyword
+
+example: SHA256-RSA
+
+--
+
+*`x509.subject.common_name`*::
++
+--
+List of common names (CN) of subject.
+
+type: keyword
+
+example: shared.global.example.net
+
+--
+
+*`x509.subject.country`*::
++
+--
+List of country (C) code
+
+type: keyword
+
+example: US
+
+--
+
+*`x509.subject.distinguished_name`*::
++
+--
+Distinguished name (DN) of the certificate subject entity.
+
+type: keyword
+
+example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
+
+--
+
+*`x509.subject.locality`*::
++
+--
+List of locality names (L)
+
+type: keyword
+
+example: San Francisco
+
+--
+
+*`x509.subject.organization`*::
++
+--
+List of organizations (O) of subject.
+
+type: keyword
+
+example: Example, Inc.
+
+--
+
+*`x509.subject.organizational_unit`*::
++
+--
+List of organizational units (OU) of subject.
+
+type: keyword
+
+--
+
+*`x509.subject.state_or_province`*::
++
+--
+List of state or province names (ST, S, or P)
+
+type: keyword
+
+example: California
+
+--
+
+*`x509.version_number`*::
++
+--
+Version of x509 format.
+
+type: keyword
+
+example: 3
+
+--
+
 [[exported-fields-host-processor]]
 == Host fields
 
@@ -8946,6 +14439,16 @@ type: keyword
 +
 --
 Kubernetes node name
+
+
+type: keyword
+
+--
+
+*`kubernetes.node.hostname`*::
++
+--
+Kubernetes hostname as reported by the node’s kernel
 
 
 type: keyword
@@ -9040,7 +14543,7 @@ alias to: process.executable
 --
 
 [[exported-fields-system]]
-== APM System Metrics fields
+== System Metrics fields
 
 System status metrics, like CPU and memory usage, that are collected from the operating system.
 
@@ -9193,17 +14696,6 @@ format: bytes
 +
 --
 Memory usage by the current cgroup slice.
-
-type: long
-
-format: bytes
-
---
-
-*`system.process.cgroup.memory.stats.inactive_file.bytes`*::
-+
---
-Inactive memory for the current cgroup slice.
 
 type: long
 

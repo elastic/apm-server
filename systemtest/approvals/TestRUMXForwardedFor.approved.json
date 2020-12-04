@@ -1,0 +1,76 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "rum-js",
+                "version": "5.5.0"
+            },
+            "client": {
+                "geo": {
+                    "city_name": "Perth",
+                    "continent_name": "Oceania",
+                    "country_iso_code": "AU",
+                    "country_name": "Australia",
+                    "location": {
+                        "lat": -31.9674,
+                        "lon": 115.8621
+                    },
+                    "region_iso_code": "AU-WA",
+                    "region_name": "Western Australia"
+                },
+                "ip": "220.244.41.16"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "rum-js-test"
+            },
+            "source": {
+                "ip": "220.244.41.16"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            },
+            "trace": {
+                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 643000
+                },
+                "id": "611f4fa950f04631",
+                "sampled": true,
+                "span_count": {
+                    "started": 0
+                },
+                "type": "page-load"
+            },
+            "user_agent": {
+                "device": {
+                    "name": "Other"
+                },
+                "name": "Go-http-client",
+                "original": "Go-http-client/1.1",
+                "version": "1.1"
+            }
+        }
+    ]
+}

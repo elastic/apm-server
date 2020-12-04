@@ -16,6 +16,7 @@ pipeline {
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
     DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
+    ONLY_DOCS = "false"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -28,7 +29,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:hey-apm|package\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package)')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -75,10 +76,12 @@ pipeline {
               "^tests/packaging.*",
               "^vendor/github.com/elastic/beats.*"
             ]
+            setEnvVar('APM_SERVER_VERSION', sh(label: 'Get beat version', script: 'make get-version', returnStdout: true)?.trim())
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
-
             // Skip all the stages except docs for PR's with asciidoc changes only
-            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true)
+            whenTrue(isPR()) {
+              setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
+            }
           }
         }
       }
@@ -109,7 +112,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh(label: 'Run intake', script: './script/jenkins/intake.sh')
+            sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
           }
         }
       }
@@ -137,7 +140,7 @@ pipeline {
                 dir(BASE_DIR){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
-                    sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                    sh(label: 'Linux build', script: './.ci/scripts/build.sh')
                   }
                 }
               }
@@ -167,8 +170,8 @@ pipeline {
               dir(BASE_DIR){
                 retry(2) { // Retry in case there are any errors to avoid temporary glitches
                   sleep randomNumber(min: 5, max: 10)
-                  powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
-                  powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
+                  powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
+                  powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
                 }
               }
             }
@@ -242,7 +245,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
+                sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
               }
             }
           }
@@ -284,7 +287,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
+                sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
               }
             }
           }
@@ -332,7 +335,7 @@ pipeline {
               unstash 'source'
               golang(){
                 dir("${BASE_DIR}"){
-                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                  sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                   sendBenchmarks(file: 'bench.out', index: "benchmark-server")
                 }
               }
@@ -363,7 +366,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){
                 catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-                  sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
+                  sh(label: 'Test Sync', script: './.ci/scripts/sync.sh')
                 }
               }
             }
@@ -374,7 +377,7 @@ pipeline {
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') }
+            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') || env.GITHUB_COMMENT?.contains('/hey-apm')}
           }
           steps {
             withGithubNotify(context: 'Hey-Apm') {
@@ -383,7 +386,7 @@ pipeline {
               golang(){
                 dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                 dir("${BASE_DIR}"){
-                  sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                  sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                 }
               }
               build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
@@ -408,8 +411,12 @@ pipeline {
               expression { return params.release_ci }
               expression { return env.ONLY_DOCS == "false" }
               anyOf {
-                expression { return env.BEATS_UPDATED != "false" }
-                expression { return env.GITHUB_COMMENT?.contains('package tests') }
+                branch 'master'
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+                expression { return isPR() && env.BEATS_UPDATED != "false" }
+                expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
+                expression { return params.Run_As_Master_Branch }
               }
             }
           }
@@ -421,29 +428,30 @@ pipeline {
                   unstash 'source'
                   golang(){
                     dir("${BASE_DIR}"){
-                      sh(label: 'Build packages', script: './script/jenkins/package.sh')
-                      sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
+                      sh(label: 'Build packages', script: './.ci/scripts/package.sh')
+                      sh(label: 'Test packages install', script: './.ci/scripts/test-install-packages.sh')
                       dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                      sh(label: 'Package & Push', script: "./script/jenkins/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
+                      sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
                     }
                   }
                 }
               }
             }
             stage('Publish') {
-              when {
-                beforeAgent true
-                anyOf {
-                  branch 'master'
-                  branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
-                  branch pattern: 'v\\d?', comparator: 'REGEXP'
-                  tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
-                  expression { return params.Run_As_Master_Branch }
-                  expression { return env.BEATS_UPDATED != "false" }
-                }
+              environment {
+                BUCKET_URI = """${isPR() ? "gs://${JOB_GCS_BUCKET}/pull-requests/pr-${env.CHANGE_ID}" : "gs://${JOB_GCS_BUCKET}/snapshots"}"""
               }
               steps {
-                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
+                // Upload files to the default location
+                googleStorageUpload(bucket: "${BUCKET_URI}",
+                  credentialsId: "${JOB_GCS_CREDENTIALS}",
+                  pathPrefix: "${BASE_DIR}/build/distributions/",
+                  pattern: "${BASE_DIR}/build/distributions/**/*",
+                  sharedPublicly: true,
+                  showInline: true)
+
+                // Copy those files to another location with the sha commit to test them afterward.
+                googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}",
                   credentialsId: "${JOB_GCS_CREDENTIALS}",
                   pathPrefix: "${BASE_DIR}/build/distributions/",
                   pattern: "${BASE_DIR}/build/distributions/**/*",
@@ -487,6 +495,15 @@ pipeline {
     }
   }
   post {
+    success {
+      writeFile(file: 'beats-tester.properties',
+                text: """\
+                ## To be consumed by the beats-tester pipeline
+                COMMIT=${env.GIT_BASE_COMMIT}
+                APM_URL_BASE=https://storage.googleapis.com/${env.JOB_GCS_BUCKET}/commits/${env.GIT_BASE_COMMIT}
+                VERSION=${env.APM_SERVER_VERSION}-SNAPSHOT""".stripIndent()) // stripIdent() requires '''/
+      archiveArtifacts artifacts: 'beats-tester.properties'
+    }
     cleanup {
       notifyBuildResult()
     }

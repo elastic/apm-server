@@ -3,8 +3,30 @@
 
 https://github.com/elastic/apm-server/compare/7.8\...7.9[View commits]
 
+* <<release-notes-7.9.3>>
+* <<release-notes-7.9.2>>
 * <<release-notes-7.9.1>>
 * <<release-notes-7.9.0>>
+
+[float]
+[[release-notes-7.9.3]]
+=== APM Server version 7.9.3
+
+https://github.com/elastic/apm-server/compare/v7.9.2\...v7.9.3[View commits]
+
+[float]
+==== Bug fixes
+* Ensure custom index names are lowercased {pull}4295[4295],{pull}4322[4322]
+
+[float]
+[[release-notes-7.9.2]]
+=== APM Server version 7.9.2
+
+https://github.com/elastic/apm-server/compare/v7.9.1\...v7.9.2[View commits]
+
+[float]
+==== Bug fixes
+* De-dot metadata labels set from process and resource tags to prevent indexing errors {pull}4193[4193]
 
 [float]
 [[release-notes-7.9.1]]

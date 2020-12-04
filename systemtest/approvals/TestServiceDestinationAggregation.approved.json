@@ -1,0 +1,48 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "metricset": {
+                "period": 1000
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "systemtest"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "resource",
+                        "response_time": {
+                            "count": 5,
+                            "sum": {
+                                "us": 5000000
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

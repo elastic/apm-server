@@ -34,6 +34,22 @@ type UserExperience struct {
 	// TotalBlockingTime holds the Total Blocking Time (TBT) metric value,
 	// or a negative value if TBT is unknown. See https://web.dev/tbt/
 	TotalBlockingTime float64
+
+	// Longtask holds longtask metrics. If Longtask.Count is negative,
+	// then Longtask is considered unset. See https://www.w3.org/TR/longtasks/
+	Longtask LongtaskMetrics
+}
+
+// LongtaskMetrics holds metrics related to RUM longtasks.
+type LongtaskMetrics struct {
+	// Count holds the number of longtasks, or a negative value if unknown.
+	Count int
+
+	// Sum holds the sum of longtask durations.
+	Sum float64
+
+	// Max holds the maximum longtask duration.
+	Max float64
 }
 
 func (u *UserExperience) Fields() common.MapStr {
@@ -49,6 +65,13 @@ func (u *UserExperience) Fields() common.MapStr {
 	}
 	if u.TotalBlockingTime >= 0 {
 		fields.set("tbt", u.TotalBlockingTime)
+	}
+	if u.Longtask.Count >= 0 {
+		fields.set("longtask", common.MapStr{
+			"count": u.Longtask.Count,
+			"sum":   u.Longtask.Sum,
+			"max":   u.Longtask.Max,
+		})
 	}
 	return common.MapStr(fields)
 }

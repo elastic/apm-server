@@ -9,7 +9,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "error": {
             "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -95,6 +95,7 @@
             "geo": {
                 "continent_name": "North America",
                 "country_iso_code": "US",
+                "country_name": "United States",
                 "location": {
                     "lat": 37.751,
                     "lon": -97.822
@@ -106,7 +107,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "error": {
             "culprit": "my.module.function_name",
@@ -309,7 +310,7 @@
                         "Mozilla Chrome Edge"
                     ]
                 },
-                "method": "post",
+                "method": "POST",
                 "referrer": "http://localhost:8000/test/e2e/",
                 "socket": {
                     "encrypted": true,
@@ -420,7 +421,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "error": {
             "exception": [
@@ -507,7 +508,7 @@
             "id": "container-id"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "error": {
             "exception": [

@@ -19,51 +19,180 @@ package modeldecodertest
 
 import (
 	"fmt"
+	"net"
+	"net/http"
 	"reflect"
 	"strings"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/model/modeldecoder/nullable"
-	"github.com/elastic/beats/v7/libbeat/common"
 )
+
+// Values used for populating the model structs
+type Values struct {
+	Str        string
+	Int        int
+	Float      float64
+	Bool       bool
+	Time       time.Time
+	IP         net.IP
+	HTTPHeader http.Header
+	// N controls how many elements are added to a slice or a map
+	N int
+}
+
+// DefaultValues returns a Values struct initialized with non-zero values
+func DefaultValues() *Values {
+	initTime, _ := time.Parse(time.RFC3339, "2020-10-10T10:00:00Z")
+	return &Values{
+		Str:        "init",
+		Int:        1,
+		Float:      0.5,
+		Bool:       true,
+		Time:       initTime,
+		IP:         net.ParseIP("127.0.0.1"),
+		HTTPHeader: http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
+		N:          3,
+	}
+}
+
+// NonDefaultValues returns a Values struct initialized with non-zero values
+func NonDefaultValues() *Values {
+	updatedTime, _ := time.Parse(time.RFC3339, "2020-12-10T10:00:00Z")
+	return &Values{
+		Str:        "overwritten",
+		Int:        12,
+		Float:      3.5,
+		Bool:       false,
+		Time:       updatedTime,
+		IP:         net.ParseIP("192.168.0.1"),
+		HTTPHeader: http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
+		N:          2,
+	}
+}
+
+// Update arbitrary values
+func (v *Values) Update(args ...interface{}) {
+	for _, arg := range args {
+		switch a := arg.(type) {
+		case string:
+			v.Str = a
+		case int:
+			v.Int = a
+		case float64:
+			v.Float = a
+		case bool:
+			v.Bool = a
+		case time.Time:
+			v.Time = a
+		case net.IP:
+			v.IP = a
+		case http.Header:
+			v.HTTPHeader = a
+		default:
+			panic(fmt.Sprintf("Values Merge: value type for %v not implemented", a))
+		}
+	}
+}
 
 // InitStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with
 // some arbitrary value.
 func InitStructValues(i interface{}) {
-	SetStructValues(i, "initialized", 1)
+	SetStructValues(i, DefaultValues())
 }
 
 // SetStructValues iterates through the struct fields represented by
-// the given reflect.Value and initializes all fields with
-// the given values for strings and integers.
-func SetStructValues(in interface{}, vStr string, vInt int) {
+// the given reflect.Value and initializes all fields with the provided values
+func SetStructValues(in interface{}, values *Values) {
 	IterateStruct(in, func(f reflect.Value, key string) {
-		var newVal interface{}
-		switch v := f.Interface().(type) {
-		case map[string]interface{}:
-			newVal = map[string]interface{}{vStr: vStr}
-		case common.MapStr:
-			newVal = common.MapStr{vStr: vStr}
-		case []string:
-			newVal = []string{vStr}
-		case []int:
-			newVal = []int{vInt, vInt}
-		case nullable.String:
-			v.Set(vStr)
-			newVal = v
-		case nullable.Int:
-			v.Set(vInt)
-			newVal = v
-		case nullable.Interface:
-			v.Set(vStr)
-			newVal = v
-		default:
-			if f.Type().Kind() == reflect.Struct {
+		switch fKind := f.Kind(); fKind {
+		case reflect.Slice:
+			if f.IsNil() {
+				f.Set(reflect.MakeSlice(f.Type(), 0, values.N))
+			}
+			var newVal reflect.Value
+			switch v := f.Interface().(type) {
+			case []string:
+				newVal = reflect.ValueOf(values.Str)
+			case []int:
+				newVal = reflect.ValueOf(values.Int)
+			default:
+				if f.Type().Elem().Kind() != reflect.Struct {
+					panic(fmt.Sprintf("unhandled type %s for key %s", v, key))
+				}
+				newVal = reflect.Zero(f.Type().Elem())
+			}
+			for i := 0; i < values.N; i++ {
+				f.Set(reflect.Append(f, newVal))
+			}
+		case reflect.Map:
+			if f.IsNil() {
+				f.Set(reflect.MakeMapWithSize(f.Type(), values.N))
+			}
+			var newVal reflect.Value
+			switch v := f.Interface().(type) {
+			case map[string]interface{}, common.MapStr:
+				newVal = reflect.ValueOf(values.Str)
+			case map[string]float64:
+				newVal = reflect.ValueOf(values.Float)
+			default:
+				if f.Type().Elem().Kind() != reflect.Struct {
+					panic(fmt.Sprintf("unhandled type %s for key %s", v, key))
+				}
+				newVal = reflect.Zero(f.Type().Elem())
+			}
+			for i := 0; i < values.N; i++ {
+				f.SetMapIndex(reflect.ValueOf(fmt.Sprintf("%s%v", values.Str, i)), newVal)
+			}
+		case reflect.Struct:
+			var newVal interface{}
+			switch v := f.Interface().(type) {
+			case nullable.String:
+				v.Set(values.Str)
+				newVal = v
+			case nullable.Int:
+				v.Set(values.Int)
+				newVal = v
+			case nullable.Interface:
+				if strings.Contains(key, "port") {
+					v.Set(values.Int)
+				} else {
+					v.Set(values.Str)
+				}
+				newVal = v
+			case nullable.Bool:
+				v.Set(values.Bool)
+				newVal = v
+			case nullable.Float64:
+				v.Set(values.Float)
+				newVal = v
+			case nullable.TimeMicrosUnix:
+				v.Set(values.Time)
+				newVal = v
+			case nullable.HTTPHeader:
+				v.Set(values.HTTPHeader.Clone())
+				newVal = v
+			default:
+				if f.IsZero() {
+					f.Set(reflect.Zero(f.Type()))
+				}
 				return
 			}
-			panic(fmt.Sprintf("unhandled type %T for key %s", f.Type().Kind(), key))
+			f.Set(reflect.ValueOf(newVal))
+		case reflect.Ptr:
+			if f.IsNil() {
+				f.Set(reflect.Zero(f.Type()))
+			}
+			return
+		default:
+			panic(fmt.Sprintf("unhandled type %s for key %s", fKind, key))
 		}
-		f.Set(reflect.ValueOf(newVal))
 	})
 }
 
@@ -87,6 +216,80 @@ func SetZeroStructValue(i interface{}, callback func(string)) {
 	})
 }
 
+// AssertStructValues recursively walks through the given struct and asserts
+// that values are equal to expected values
+func AssertStructValues(t *testing.T, i interface{}, isException func(string) bool,
+	values *Values) {
+	IterateStruct(i, func(f reflect.Value, key string) {
+		if isException(key) {
+			return
+		}
+		fVal := f.Interface()
+		var newVal interface{}
+		switch fVal.(type) {
+		case map[string]interface{}:
+			m := map[string]interface{}{}
+			for i := 0; i < values.N; i++ {
+				m[fmt.Sprintf("%s%v", values.Str, i)] = values.Str
+			}
+			newVal = m
+		case common.MapStr:
+			m := common.MapStr{}
+			for i := 0; i < values.N; i++ {
+				m.Put(fmt.Sprintf("%s%v", values.Str, i), values.Str)
+			}
+			newVal = m
+		case []string:
+			m := make([]string, values.N)
+			for i := 0; i < values.N; i++ {
+				m[i] = values.Str
+			}
+			newVal = m
+		case string:
+			newVal = values.Str
+		case *string:
+			newVal = &values.Str
+		case int:
+			newVal = values.Int
+		case *int:
+			newVal = &values.Int
+		case float64:
+			newVal = values.Float
+		case *float64:
+			val := values.Float
+			newVal = &val
+		case net.IP:
+			newVal = values.IP
+		case bool:
+			newVal = values.Bool
+		case *bool:
+			newVal = &values.Bool
+		case http.Header:
+			newVal = values.HTTPHeader
+		case time.Time:
+			newVal = values.Time
+		default:
+			// the populator recursively iterates over struct and structPtr
+			// calling this function for all fields;
+			// it is enough to only assert they are not zero here
+			if f.Type().Kind() == reflect.Struct {
+				assert.NotZero(t, fVal, key)
+				return
+			}
+			if f.Type().Kind() == reflect.Ptr && f.Type().Elem().Kind() == reflect.Struct {
+				assert.NotZero(t, fVal, key)
+				return
+			}
+			if f.Type().Kind() == reflect.Map || f.Type().Kind() == reflect.Slice {
+				assert.NotZero(t, fVal, key)
+				return
+			}
+			panic(fmt.Sprintf("unhandled type %s for key %s", f.Type().Kind(), key))
+		}
+		assert.Equal(t, newVal, fVal, key)
+	})
+}
+
 // IterateStruct iterates through the struct fields represented by
 // the given reflect.Value and calls the given function on every field.
 func IterateStruct(i interface{}, fn func(reflect.Value, string)) {
@@ -100,7 +303,7 @@ func IterateStruct(i interface{}, fn func(reflect.Value, string)) {
 func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey string)) {
 	t := v.Type()
 	if t.Kind() != reflect.Struct {
-		panic(fmt.Sprintf("iterateStruct: invalid typ %T", t.Kind()))
+		panic(fmt.Sprintf("iterateStruct: invalid type %s", t.Kind()))
 	}
 	if key != "" {
 		key += "."
@@ -111,6 +314,7 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 		if !f.CanSet() {
 			continue
 		}
+
 		stf := t.Field(i)
 		fTyp := stf.Type
 		name := jsonName(stf)
@@ -119,14 +323,50 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 		}
 		fKey = fmt.Sprintf("%s%s", key, name)
 
-		if fTyp.Kind() == reflect.Struct {
+		// call the given function with every field
+		fn(f, fKey)
+		// check field type for recursive iteration
+		switch f.Kind() {
+		case reflect.Ptr:
+			if !f.IsZero() && fTyp.Elem().Kind() == reflect.Struct {
+				iterateStruct(f.Elem(), fKey, fn)
+			}
+		case reflect.Struct:
 			switch f.Interface().(type) {
-			case nullable.String, nullable.Int, nullable.Interface:
+			case nullable.String, nullable.Int, nullable.Bool, nullable.Float64,
+				nullable.Interface, nullable.HTTPHeader, nullable.TimeMicrosUnix:
 			default:
 				iterateStruct(f, fKey, fn)
 			}
+		case reflect.Map:
+			if f.Type().Elem().Kind() != reflect.Struct {
+				continue
+			}
+			iter := f.MapRange()
+			for iter.Next() {
+				mKey := iter.Key()
+				mVal := iter.Value()
+				ptr := reflect.New(mVal.Type())
+				ptr.Elem().Set(mVal)
+				iterateStruct(ptr.Elem(), fmt.Sprintf("%s.[%s]", fKey, mKey), fn)
+				f.SetMapIndex(mKey, ptr.Elem())
+			}
+		case reflect.Slice, reflect.Array:
+			if v.Type() == f.Type().Elem() {
+				continue
+			}
+			for j := 0; j < f.Len(); j++ {
+				sliceField := f.Index(j)
+				switch sliceField.Kind() {
+				case reflect.Struct:
+					iterateStruct(sliceField, fmt.Sprintf("%s.[%v]", fKey, j), fn)
+				case reflect.Ptr:
+					if !sliceField.IsZero() && sliceField.Type().Elem().Kind() == reflect.Struct {
+						iterateStruct(sliceField.Elem(), fKey, fn)
+					}
+				}
+			}
 		}
-		fn(f, fKey)
 	}
 }
 
@@ -138,6 +378,7 @@ func jsonName(f reflect.StructField) string {
 	parts := strings.Split(tag, ",")
 	if len(parts) == 0 {
 		return ""
+
 	}
 	return parts[0]
 }

@@ -122,11 +122,6 @@ func TestUnpackConfig(t *testing.T) {
 						"interval":                         "1s",
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
-						"rum": map[string]interface{}{
-							"user_agent": map[string]interface{}{
-								"lru_size": 123,
-							},
-						},
 					},
 					"service_destinations": map[string]interface{}{
 						"max_groups": 456,
@@ -222,7 +217,6 @@ func TestUnpackConfig(t *testing.T) {
 						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
-						RUMUserAgentLRUSize:            123,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						Enabled:   true,
@@ -232,6 +226,15 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				Sampling: SamplingConfig{
 					KeepUnsampled: true,
+					Tail: &TailSamplingConfig{
+						Enabled:               false,
+						ESConfig:              elasticsearch.DefaultConfig(),
+						Interval:              1 * time.Minute,
+						IngestRateDecayFactor: 0.25,
+						StorageDir:            "tail_sampling",
+						StorageGCInterval:     5 * time.Minute,
+						TTL:                   30 * time.Minute,
+					},
 				},
 			},
 		},
@@ -264,12 +267,16 @@ func TestUnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled":                              true,
-				"api_key.enabled":                                  true,
-				"aggregation.transactions.enabled":                 true,
-				"aggregation.transactions.rum.user_agent.lru_size": 123,
-				"aggregation.service_destinations.enabled":         false,
-				"sampling.keep_unsampled":                          false,
+				"jaeger.grpc.enabled":                      true,
+				"api_key.enabled":                          true,
+				"aggregation.transactions.enabled":         true,
+				"aggregation.service_destinations.enabled": false,
+				"sampling.keep_unsampled":                  false,
+				"sampling.tail": map[string]interface{}{
+					"enabled":           true,
+					"interval":          "2m",
+					"ingest_rate_decay": 1.0,
+				},
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -344,7 +351,6 @@ func TestUnpackConfig(t *testing.T) {
 						Interval:                       time.Minute,
 						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,
-						RUMUserAgentLRUSize:            123,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						Enabled:   false,
@@ -354,6 +360,15 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				Sampling: SamplingConfig{
 					KeepUnsampled: false,
+					Tail: &TailSamplingConfig{
+						Enabled:               true,
+						ESConfig:              elasticsearch.DefaultConfig(),
+						Interval:              2 * time.Minute,
+						IngestRateDecayFactor: 1.0,
+						StorageDir:            "tail_sampling",
+						StorageGCInterval:     5 * time.Minute,
+						TTL:                   30 * time.Minute,
+					},
 				},
 			},
 		},
@@ -519,7 +534,7 @@ func TestAgentConfig(t *testing.T) {
 }
 
 func TestNewConfig_ESConfig(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true}`)
+	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true,"sampling.tail.enabled":true}`)
 	require.NoError(t, err)
 
 	// no es config given
@@ -527,6 +542,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.APIKeyConfig.ESConfig)
+	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.Sampling.Tail.ESConfig)
 
 	// with es config
 	outputESCfg := common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
@@ -536,4 +552,6 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))
 	assert.NotNil(t, cfg.APIKeyConfig.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.APIKeyConfig.ESConfig.Hosts))
+	assert.NotNil(t, cfg.Sampling.Tail.ESConfig)
+	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Sampling.Tail.ESConfig.Hosts))
 }

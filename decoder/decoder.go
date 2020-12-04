@@ -24,22 +24,21 @@ import (
 )
 
 //TODO(simitt): look into config options for performance tuning
-var jsonit = jsoniter.ConfigCompatibleWithStandardLibrary
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Decoder interface {
 	Decode(v interface{}) error
 }
 
-// JSONIterDecoder can decode from a given reader, using jsoniter
-// TODO(simitt): rename to JSONDecoder when everything is integrated
-type JSONIterDecoder struct {
+type JSONDecoder struct {
 	*jsoniter.Decoder
+	reader io.Reader
 }
 
-// NewJSONIteratorDecoder returns a *json.Decoder where numbers are unmarshaled
+// NewJSONDecoder returns a *json.Decoder where numbers are unmarshaled
 // as a Number instead of a float64 into an interface{}
-func NewJSONIteratorDecoder(r io.Reader) JSONIterDecoder {
-	d := jsonit.NewDecoder(r)
+func NewJSONDecoder(r io.Reader) JSONDecoder {
+	d := json.NewDecoder(r)
 	d.UseNumber()
-	return JSONIterDecoder{Decoder: d}
+	return JSONDecoder{Decoder: d, reader: r}
 }

@@ -162,7 +162,7 @@ apm-server:
   {% if ilm_custom_suffix %}
   ilm.setup.mapping:
     - event_type: "error"
-      index_suffix: "custom"
+      index_suffix: "CUSTOM"
     - event_type: "transaction"
       index_suffix: "foo"
   {% endif %}

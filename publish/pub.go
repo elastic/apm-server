@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -61,6 +62,7 @@ type PendingReq struct {
 type PublisherConfig struct {
 	Info            beat.Info
 	Pipeline        string
+	Processor       beat.ProcessorList
 	TransformConfig *transform.Config
 }
 
@@ -95,6 +97,10 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 				"ephemeral_id":  cfg.Info.EphemeralID.String(),
 			},
 		},
+		Processor: cfg.Processor,
+	}
+	if cfg.TransformConfig.DataStreams {
+		processingCfg.Fields[datastreams.NamespaceField] = "default"
 	}
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}

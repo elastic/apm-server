@@ -18,13 +18,14 @@
 package systemtest_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
+	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -34,6 +35,11 @@ import (
 func TestTransactionAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
+		Enabled:       true,
+		MetricsPeriod: 100 * time.Millisecond,
+		StatePeriod:   100 * time.Millisecond,
+	}
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
 		Transactions: &apmservertest.TransactionAggregationConfig{
 			Enabled:  true,
@@ -49,32 +55,22 @@ func TestTransactionAggregation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send some transactions to the server to be aggregated.
-	//
-	// Mimic a RUM transaction by using the "page-load" transaction type,
-	// which causes user-agent to be parsed and included in the aggregation
-	// and added to the document fields.
 	tracer := srv.Tracer()
-	const chromeUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
-	for _, transactionType := range []string{"backend", "page-load"} {
-		tx := tracer.StartTransaction("name", transactionType)
-		req, _ := http.NewRequest("GET", "/", nil)
-		req.Header.Set("User-Agent", chromeUserAgent)
-		tx.Context.SetHTTPRequest(req)
-		tx.Duration = time.Second
-		tx.End()
-	}
+	tx := tracer.StartTransaction("name", "backend")
+	req, _ := http.NewRequest("GET", "/", nil)
+	tx.Context.SetHTTPRequest(req)
+	tx.Duration = time.Second
+	tx.End()
 	tracer.Flush(nil)
 
-	var result estest.SearchResult
-	_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
-		Filter: []interface{}{
-			estest.ExistsQuery{Field: "transaction.duration.histogram"},
-		},
-	}).Do(context.Background(), &result,
-		estest.WithCondition(result.Hits.NonEmptyCondition()),
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	require.NoError(t, err)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+
+	// Make sure apm-server.aggregation.txmetrics metrics are published. Metric values are unit tested.
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.aggregation.txmetrics").Exists())
 }
 
 func TestTransactionAggregationShutdown(t *testing.T) {
@@ -103,14 +99,41 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
-	var result estest.SearchResult
-	_, err = systemtest.Elasticsearch.Search("apm-*").WithQuery(estest.BoolQuery{
-		Filter: []interface{}{
-			estest.ExistsQuery{Field: "transaction.duration.histogram"},
-		},
-	}).Do(context.Background(), &result,
-		estest.WithCondition(result.Hits.NonEmptyCondition()),
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+}
+
+func TestServiceDestinationAggregation(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
+			Enabled:  true,
+			Interval: time.Second,
+		},
+	}
+	err := srv.Start()
 	require.NoError(t, err)
+
+	// Send spans to the server to be aggregated.
+	tracer := srv.Tracer()
+	tx := tracer.StartTransaction("name", "type")
+	for i := 0; i < 5; i++ {
+		span := tx.StartSpan("name", "type", nil)
+		span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
+			Name:     "name",
+			Resource: "resource",
+		})
+		span.Duration = time.Second
+		span.End()
+	}
+	tx.End()
+	tracer.Flush(nil)
+
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+		estest.ExistsQuery{Field: "span.destination.service.response_time.count"},
+	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }

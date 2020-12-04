@@ -7,6 +7,8 @@
                 "version": "3.14.0"
             },
             "byte_counter": 1,
+            "data_stream.dataset": "apm.internal.1234_service_12a3",
+            "data_stream.type": "metrics",
             "dotted": {
                 "float": {
                     "gauge": 6.12
@@ -97,6 +99,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.type": "metrics",
             "go": {
                 "memstats": {
                     "heap": {
@@ -141,6 +145,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.type": "metrics",
             "host": {
                 "ip": "192.0.0.1"
             },
@@ -174,11 +180,6 @@
                                 },
                                 "usage": {
                                     "bytes": 1024
-                                }
-                            },
-                            "stats": {
-                                "inactive_file": {
-                                    "bytes": 48
                                 }
                             }
                         }

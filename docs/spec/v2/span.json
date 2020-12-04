@@ -1,0 +1,716 @@
+{
+  "$id": "docs/spec/v2/span",
+  "type": "object",
+  "properties": {
+    "action": {
+      "description": "Action holds the specific kind of event within the sub-type represented by the span (e.g. query, connect)",
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "child_ids": {
+      "description": "ChildIDs holds a list of successor transactions and/or spans.",
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": "string",
+        "maxLength": 1024
+      },
+      "minItems": 0
+    },
+    "context": {
+      "description": "Context holds arbitrary contextual information for the event.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "db": {
+          "description": "Database contains contextual data for database spans",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "instance": {
+              "description": "Instance name of the database.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "link": {
+              "description": "Link to the database server.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "rows_affected": {
+              "description": "RowsAffected shows the number of rows affected by the statement.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "statement": {
+              "description": "Statement of the recorded database event, e.g. query.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "type": {
+              "description": "Type of the recorded database event., e.g. sql, cassandra, hbase, redis.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "user": {
+              "description": "User is the username with which the database is accessed.",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "destination": {
+          "description": "Destination contains contextual data about the destination of spans",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "address": {
+              "description": "Address is the destination network address: hostname (e.g. 'localhost'), FQDN (e.g. 'elastic.co'), IPv4 (e.g. '127.0.0.1') IPv6 (e.g. '::1')",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "port": {
+              "description": "Port is the destination network port (e.g. 443)",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "service": {
+              "description": "Service describes the destination service",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Name is the identifier for the destination service, e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq'",
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "resource": {
+                  "description": "Resource identifies the destination service resource being operated on e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name'",
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "type": {
+                  "description": "Type of the destination service, e.g. db, elasticsearch. Should typically be the same as span.type.",
+                  "type": "string",
+                  "maxLength": 1024
+                }
+              },
+              "required": [
+                "name",
+                "resource",
+                "type"
+              ]
+            }
+          }
+        },
+        "experimental": {
+          "description": "Experimental information is only processed when APM Server is started in development mode and should only be used by APM agent developers implementing new, unreleased features. The format is unspecified."
+        },
+        "http": {
+          "description": "HTTP contains contextual information when the span concerns an HTTP request.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "method": {
+              "description": "Method holds information about the method of the HTTP request.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "response": {
+              "description": "Response describes the HTTP response information in case the event was created as a result of an HTTP request.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "decoded_body_size": {
+                  "description": "DecodedBodySize holds the size of the decoded payload.",
+                  "type": [
+                    "null",
+                    "number"
+                  ]
+                },
+                "encoded_body_size": {
+                  "description": "EncodedBodySize holds the size of the encoded payload.",
+                  "type": [
+                    "null",
+                    "number"
+                  ]
+                },
+                "headers": {
+                  "description": "Headers holds the http headers sent in the http response.",
+                  "type": [
+                    "null",
+                    "object"
+                  ],
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "[.*]*$": {
+                      "type": [
+                        "null",
+                        "array",
+                        "string"
+                      ],
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "status_code": {
+                  "description": "StatusCode sent in the http response.",
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                },
+                "transfer_size": {
+                  "description": "TransferSize holds the total size of the payload.",
+                  "type": [
+                    "null",
+                    "number"
+                  ]
+                }
+              }
+            },
+            "status_code": {
+              "description": "Deprecated: Use Response.StatusCode instead. StatusCode sent in the http response.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "url": {
+              "description": "URL is the raw url of the correlating HTTP request.",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "message": {
+          "description": "Message holds details related to message receiving and publishing if the captured event integrates with a messaging system",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "age": {
+              "description": "Age of the message. If the monitored messaging framework provides a timestamp for the message, agents may use it. Otherwise, the sending agent can add a timestamp in milliseconds since the Unix epoch to the message's metadata to be retrieved by the receiving agent. If a timestamp is not available, agents should omit this field.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "ms": {
+                  "description": "Age of the message in milliseconds.",
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                }
+              }
+            },
+            "body": {
+              "description": "Body of the received message, similar to an HTTP request body",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "headers": {
+              "description": "Headers received with the message, similar to HTTP request headers.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "[.*]*$": {
+                  "type": [
+                    "null",
+                    "array",
+                    "string"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "queue": {
+              "description": "Queue holds information about the message queue where the message is received.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Name holds the name of the message queue where the message is received.",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            }
+          }
+        },
+        "service": {
+          "description": "Service related information can be sent per span. Information provided here will override the more generic information retrieved from metadata, missing service fields will be retrieved from the metadata information.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "agent": {
+              "description": "Agent holds information about the APM agent capturing the event.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "ephemeral_id": {
+                  "description": "EphemeralID is a free format ID used for metrics correlation by agents",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "name": {
+                  "description": "Name of the APM agent capturing information.",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "description": "Version of the APM agent capturing information.",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "environment": {
+              "description": "Environment in which the monitored service is running, e.g. `production` or `staging`.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
+            "framework": {
+              "description": "Framework holds information about the framework used in the monitored service.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Name of the used framework",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "description": "Version of the used framework",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "language": {
+              "description": "Language holds information about the programming language of the monitored service.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Name of the used programming language",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "description": "Version of the used programming language",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "name": {
+              "description": "Name of the monitored service.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024,
+              "pattern": "^[a-zA-Z0-9 _-]+$"
+            },
+            "node": {
+              "description": "Node must be a unique meaningful name of the service node.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "configured_name": {
+                  "description": "Name of the service node",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "runtime": {
+              "description": "Runtime holds information about the language runtime running the monitored service",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Name of the language runtime",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                },
+                "version": {
+                  "description": "Version of the language runtime",
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "maxLength": 1024
+                }
+              }
+            },
+            "version": {
+              "description": "Version of the monitored service.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
+        },
+        "tags": {
+          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": {
+            "type": [
+              "null",
+              "string",
+              "boolean",
+              "number"
+            ],
+            "maxLength": 1024
+          }
+        }
+      }
+    },
+    "duration": {
+      "description": "Duration of the span in milliseconds",
+      "type": "number",
+      "minimum": 0
+    },
+    "id": {
+      "description": "ID holds the hex encoded 64 random bits ID of the event.",
+      "type": "string",
+      "maxLength": 1024
+    },
+    "name": {
+      "description": "Name is the generic designation of a span in the scope of a transaction.",
+      "type": "string",
+      "maxLength": 1024
+    },
+    "outcome": {
+      "description": "Outcome of the span: success, failure, or unknown. Outcome may be one of a limited set of permitted values describing the success or failure of the span. It can be used for calculating error rates for outgoing requests.",
+      "type": [
+        "null",
+        "string"
+      ],
+      "enum": [
+        "success",
+        "failure",
+        "unknown",
+        null
+      ]
+    },
+    "parent_id": {
+      "description": "ParentID holds the hex encoded 64 random bits ID of the parent transaction or span.",
+      "type": "string",
+      "maxLength": 1024
+    },
+    "sample_rate": {
+      "description": "SampleRate applied to the monitored service at the time where this span was recorded.",
+      "type": [
+        "null",
+        "number"
+      ]
+    },
+    "stacktrace": {
+      "description": "Stacktrace connected to this span event.",
+      "type": [
+        "null",
+        "array"
+      ],
+      "properties": {
+        "abs_path": {
+          "description": "AbsPath is the absolute path of the frame's file.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "classname": {
+          "description": "Classname of the frame.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "colno": {
+          "description": "ColumnNumber of the frame.",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "context_line": {
+          "description": "ContextLine is the line from the frame's file.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "filename": {
+          "description": "Filename is the relative name of the frame's file.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "function": {
+          "description": "Function represented by the frame.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "library_frame": {
+          "description": "LibraryFrame indicates whether the frame is from a third party library.",
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "lineno": {
+          "description": "LineNumber of the frame.",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "module": {
+          "description": "Module to which the frame belongs to.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "post_context": {
+          "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "minItems": 0
+        },
+        "pre_context": {
+          "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "minItems": 0
+        },
+        "vars": {
+          "description": "Vars is a flat mapping of local variables of the frame.",
+          "type": [
+            "null",
+            "object"
+          ]
+        }
+      },
+      "minItems": 0,
+      "anyOf": [
+        {
+          "properties": {
+            "classname": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "classname"
+          ]
+        },
+        {
+          "properties": {
+            "filename": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "filename"
+          ]
+        }
+      ]
+    },
+    "start": {
+      "description": "Start is the offset relative to the transaction's timestamp identifying the start of the span, in milliseconds.",
+      "type": [
+        "null",
+        "number"
+      ]
+    },
+    "subtype": {
+      "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "sync": {
+      "description": "Sync indicates whether the span was executed synchronously or asynchronously.",
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "timestamp": {
+      "description": "Timestamp holds the recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "trace_id": {
+      "description": "TraceID holds the hex encoded 128 random bits ID of the correlated trace.",
+      "type": "string",
+      "maxLength": 1024
+    },
+    "transaction_id": {
+      "description": "TransactionID holds the hex encoded 64 random bits ID of the correlated transaction.",
+      "type": [
+        "null",
+        "string"
+      ],
+      "maxLength": 1024
+    },
+    "type": {
+      "description": "Type holds the span's type, and can have specific keywords within the service's domain (eg: 'request', 'backgroundjob', etc)",
+      "type": "string",
+      "maxLength": 1024
+    }
+  },
+  "required": [
+    "duration",
+    "id",
+    "name",
+    "parent_id",
+    "trace_id",
+    "type"
+  ],
+  "anyOf": [
+    {
+      "properties": {
+        "start": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "start"
+      ]
+    },
+    {
+      "properties": {
+        "timestamp": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "timestamp"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{\"tennis-court\": {\"name\": \"Centre Court, Wimbledon\"}}",
-            "message": "did not recognize object type"
+            "message": "tennis-court: did not recognize object type"
         }
     ]
 }

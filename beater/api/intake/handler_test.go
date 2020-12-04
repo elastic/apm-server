@@ -95,7 +95,12 @@ func TestIntakeHandler(t *testing.T) {
 			code: http.StatusAccepted, id: request.IDResponseValidAccepted,
 		},
 		"TooLarge": {
-			path: "errors.ndjson", processor: &stream.Processor{},
+			path: "errors.ndjson",
+			processor: func() *stream.Processor {
+				p := stream.BackendProcessor(config.DefaultConfig())
+				p.MaxEventSize = 10
+				return p
+			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
 			path: "errors.ndjson", reporter: beatertest.ErrorReporterFn(publish.ErrChannelClosed),
@@ -119,7 +124,7 @@ func TestIntakeHandler(t *testing.T) {
 			path: "invalid-metadata-2.ndjson",
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate},
 		"UnrecognizedEvent": {
-			path: "unrecognized-event.ndjson",
+			path: "invalid-event-type.ndjson",
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate},
 		"Success": {
 			path: "errors.ndjson",

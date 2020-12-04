@@ -7,14 +7,10 @@ This provides general metadata concerning the other objects in the stream.
 Rather than send this metadata information from the agent multiple times,
 the APM Server hangs on to this information and applies it to other objects in the stream as necessary.
 
-TIP: Metadata is stored under `context` when viewing documents in Elasticsearch. 
+TIP: Metadata is stored under `context` when viewing documents in Elasticsearch.
 
 * <<kubernetes-data>>
 * <<metadata-schema>>
-* <<metadata-service-schema>>
-* <<metadata-process-schema>>
-* <<metadata-system-schema>>
-* <<metadata-user-schema>>
 
 [[kubernetes-data]]
 [float]
@@ -61,45 +57,10 @@ The table below maps these environment variables to the APM metadata event field
 [float]
 ==== Metadata Schema
 
-The APM Server uses JSON Schema for validating requests. The specification for metadata is defined below:
+APM Server uses JSON Schema to validate requests. The specification for metadata is defined on
+{github_repo_link}/docs/spec/v2/metadata.json[GitHub] and included below:
 
 [source,json]
 ----
-include::./spec/metadata.json[]
-----
-
-[[metadata-service-schema]]
-[float]
-===== Service Schema
-
-[source,json]
-----
-include::./spec/service.json[]
-----
-
-[[metadata-process-schema]]
-[float]
-===== Process Schema
-
-[source,json]
-----
-include::./spec/process.json[]
-----
-
-[[metadata-system-schema]]
-[float]
-===== System Schema
-
-[source,json]
-----
-include::./spec/system.json[]
-----
-
-[[metadata-user-schema]]
-[float]
-===== User Schema
-
-[source,json]
-----
-include::./spec/user.json[]
+include::./spec/v2/metadata.json[]
 ----

@@ -125,7 +125,9 @@ func (s *Server) Start() error {
 	cfgargs, err := configArgs(s.Config, map[string]interface{}{
 		// These are config attributes that we always specify,
 		// as the testing framework relies on them being set.
+		"logging.ecs":               true,
 		"logging.json":              true,
+		"logging.level":             "debug",
 		"logging.to_stderr":         true,
 		"apm-server.expvar.enabled": true,
 		"apm-server.host":           "127.0.0.1:0",
@@ -287,10 +289,13 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 
 	type logEntry struct {
 		Timestamp logpTimestamp `json:"timestamp"`
+		Message   string        `json:"message"`
 		Level     zapcore.Level `json:"log.level"`
 		Logger    string        `json:"log.logger"`
-		Caller    string        `json:"caller"`
-		Message   string        `json:"message"`
+		Origin    struct {
+			File string `json:"file.name"`
+			Line int    `json:"file.line"`
+		} `json:"log.origin"`
 	}
 
 	decoder := json.NewDecoder(procStderr)
@@ -310,13 +315,14 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 		delete(fields, "timestamp")
 		delete(fields, "log.level")
 		delete(fields, "log.logger")
-		delete(fields, "caller")
+		delete(fields, "log.origin")
 		delete(fields, "message")
 		s.Logs.add(LogEntry{
 			Timestamp: time.Time(entry.Timestamp),
 			Logger:    entry.Logger,
 			Level:     entry.Level,
-			Caller:    entry.Caller,
+			File:      entry.Origin.File,
+			Line:      entry.Origin.Line,
 			Message:   entry.Message,
 			Fields:    fields,
 		})

@@ -27,7 +27,6 @@ import (
 
 	"github.com/elastic/apm-server/idxmgmt/common"
 	"github.com/elastic/apm-server/idxmgmt/ilm"
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -104,11 +103,11 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		return nil
 	}
 
-	var policiesLoaded []string
+	policiesLoaded := make(map[string]bool)
 	var err error
 	for _, ilmSupporter := range m.supporter.ilmSupporters {
 		//(2) load event type policies, respecting ILM settings
-		if policiesLoaded, err = m.loadPolicy(ilmFeature, ilmSupporter, policiesLoaded); err != nil {
+		if err := m.loadPolicy(ilmFeature, ilmSupporter, policiesLoaded); err != nil {
 			return err
 		}
 
@@ -225,22 +224,26 @@ func (m *manager) loadEventTemplate(feature feature, ilmSupporter libilm.Support
 	return nil
 }
 
-func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter, policiesLoaded []string) ([]string, error) {
+func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter, policiesLoaded map[string]bool) error {
+	if !ilmFeature.enabled {
+		return nil
+	}
 	policy := ilmSupporter.Policy().Name
-	if !ilmFeature.enabled || utility.Contains(policy, policiesLoaded) {
-		return policiesLoaded, nil
+	if policiesLoaded[policy] {
+		return nil
 	}
 	if ilmSupporter.Policy().Body == nil {
 		m.supporter.log.Infof("ILM policy %s not loaded.", policy)
-		return policiesLoaded, nil
+		return nil
 	}
-	_, err := ilmSupporter.Manager(m.clientHandler).EnsurePolicy(ilmFeature.overwrite)
-	if err != nil {
-		return policiesLoaded, err
+	if _, err := ilmSupporter.Manager(m.clientHandler).EnsurePolicy(ilmFeature.overwrite); err != nil {
+		return err
 	}
 	m.supporter.log.Infof("ILM policy %s successfully loaded.", policy)
-	return append(policiesLoaded, policy), nil
+	policiesLoaded[policy] = true
+	return nil
 }
+
 func (m *manager) loadAlias(ilmFeature feature, ilmSupporter libilm.Supporter) error {
 	if !ilmFeature.enabled {
 		return nil

@@ -37,3 +37,17 @@ This page has moved. Please see <<agent-server-compatibility>>.
 === RUM Agent Compatibility
 
 This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="apm-release-notes"]
+=== APM release highlights
+
+This page has moved.
+Please see {observability-guide}/whats-new.html[What's new in Observability {minor-version}].
+
+Please see <<whats-new>>.
+
+[role="exclude",id="whats-new"]
+=== What's new in APM {minor-version}
+
+This page has moved.
+Please see {observability-guide}/whats-new.html[What's new in Observability {minor-version}].

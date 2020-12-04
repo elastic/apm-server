@@ -9,6 +9,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -19,7 +21,7 @@
                             "application/json"
                         ]
                     },
-                    "method": "get",
+                    "method": "GET",
                     "referrer": "http://localhost:8000/test/e2e/"
                 },
                 "response": {
@@ -81,6 +83,11 @@
                 "experience": {
                     "cls": 1,
                     "fid": 2,
+                    "longtask": {
+                        "count": 3,
+                        "max": 1,
+                        "sum": 2.5
+                    },
                     "tbt": 3.4
                 },
                 "id": "ec2e280be8345240",
@@ -150,6 +157,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -219,6 +228,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -288,6 +299,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -378,6 +391,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
             },
@@ -446,6 +461,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -492,7 +509,7 @@
                     "us": 6724
                 },
                 "http": {
-                    "method": "get",
+                    "method": "GET",
                     "response": {
                         "status_code": 200
                     },
@@ -536,6 +553,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -582,7 +601,7 @@
                     "us": 11584
                 },
                 "http": {
-                    "method": "post",
+                    "method": "POST",
                     "response": {
                         "status_code": 200
                     },
@@ -626,6 +645,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -673,7 +694,7 @@
                     "us": 15949
                 },
                 "http": {
-                    "method": "post",
+                    "method": "POST",
                     "response": {
                         "status_code": 200
                     },
@@ -717,6 +738,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -808,6 +831,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -863,6 +888,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -918,6 +945,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "metrics",
             "labels": {
                 "testTagKey": "testTagValue"
             },
@@ -973,6 +1002,8 @@
             "client": {
                 "ip": "192.0.0.1"
             },
+            "data_stream.dataset": "apm.internal.apm_a_rum_test_e2e_general_usecase",
+            "data_stream.type": "metrics",
             "labels": {
                 "tag1": "value1",
                 "testTagKey": "testTagValue"

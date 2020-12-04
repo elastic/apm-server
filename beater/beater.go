@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -67,66 +68,37 @@ func NewCreator(args CreatorParams) beat.Creator {
 		if err := checkConfig(logger); err != nil {
 			return nil, err
 		}
-		var esOutputCfg *common.Config
-		if isElasticsearchOutput(b) {
-			esOutputCfg = b.Config.Output.Config()
-		}
-
-		beaterConfig, err := config.NewConfig(ucfg, esOutputCfg)
-		if err != nil {
-			return nil, err
-		}
-		// send configs to telemetry
-		recordConfigs(b.Info, beaterConfig, ucfg, logger)
-
 		bt := &beater{
-			config:        beaterConfig,
+			rawConfig:     ucfg,
 			stopped:       false,
 			logger:        logger,
 			wrapRunServer: args.WrapRunServer,
 		}
 
-		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
-		shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.IsEnabled() ||
-			(b.InSetupCmd && beaterConfig.Register.Ingest.Pipeline.Enabled == nil)
-		if isElasticsearchOutput(b) && shouldSetupPipelines {
-			logger.Info("Registering pipeline callback")
-			err := bt.registerPipelineCallback(b)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			logger.Info("No pipeline callback registered")
+		esOutputCfg := elasticsearchOutputConfig(b)
+
+		var err error
+		bt.config, err = config.NewConfig(bt.rawConfig, esOutputCfg)
+		if err != nil {
+			return nil, err
 		}
+
+		if !bt.config.DataStreams.Enabled {
+			if b.Manager != nil && b.Manager.Enabled() {
+				return nil, errors.New("data streams must be enabled when the server is managed")
+			}
+		}
+
+		if err := bt.registerPipelineCallback(b); err != nil {
+			return nil, err
+		}
+
 		return bt, nil
 	}
 }
 
-// checkConfig verifies the global configuration doesn't use unsupported settings
-func checkConfig(logger *logp.Logger) error {
-	cfg, err := cfgfile.Load("", nil)
-	if err != nil {
-		// responsibility for failing to load configuration lies elsewhere
-		// this is not reachable after going through normal beat creation
-		return nil
-	}
-
-	var s struct {
-		Dashboards *common.Config `config:"setup.dashboards"`
-	}
-	if err := cfg.Unpack(&s); err != nil {
-		return err
-	}
-	if s.Dashboards != nil {
-		if s.Dashboards.Enabled() {
-			return errSetupDashboardRemoved
-		}
-		logger.Warn(errSetupDashboardRemoved)
-	}
-	return nil
-}
-
 type beater struct {
+	rawConfig     *common.Config
 	config        *config.Config
 	logger        *logp.Logger
 	wrapRunServer func(RunServerFunc) RunServerFunc
@@ -139,6 +111,37 @@ type beater struct {
 // Run runs the APM Server, blocking until the beater's Stop method is called,
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
+	done := make(chan struct{})
+
+	var reloadOnce sync.Once
+	var reloadable = reload.ReloadableFunc(func(ucfg *reload.ConfigWithMeta) error {
+		var err error
+		// Elastic Agent might call ReloadableFunc many times, but we only need to act upon the first call,
+		// during startup. This might change when APM Server is included in Fleet
+		reloadOnce.Do(func() {
+			defer close(done)
+			// TODO(axw) config received from Fleet should be modified to set data_streams.enabled.
+			var cfg *config.Config
+			cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
+			if err != nil {
+				bt.logger.Warn("Could not parse configuration from Elastic Agent ", err)
+			}
+			bt.config = cfg
+			bt.rawConfig = ucfg.Config
+			bt.logger.Info("Applying configuration from Elastic Agent... ")
+		})
+		return err
+	})
+	if b.Manager != nil && b.Manager.Enabled() {
+		bt.logger.Info("Running under Elastic Agent, waiting for configuration... ")
+		reload.Register.MustRegister("inputs", reloadable)
+		<-done
+	}
+
+	// send configs to telemetry
+	if err := recordConfigs(b.Info, bt.config, bt.rawConfig); err != nil {
+		bt.logger.Errorf("Error recording telemetry data", err)
+	}
 
 	tracer, tracerServer, err := bt.initTracing(b)
 	if err != nil {
@@ -205,6 +208,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	bt.mutex.Unlock()
 
 	return runServer(ctx, ServerParams{
+		Info:     b.Info,
 		Config:   bt.config,
 		Logger:   bt.logger,
 		Tracer:   tracer,
@@ -212,11 +216,66 @@ func (bt *beater) Run(b *beat.Beat) error {
 	})
 }
 
-func isElasticsearchOutput(b *beat.Beat) bool {
+// checkConfig verifies the global configuration doesn't use unsupported settings
+func checkConfig(logger *logp.Logger) error {
+	cfg, err := cfgfile.Load("", nil)
+	if err != nil {
+		// responsibility for failing to load configuration lies elsewhere
+		// this is not reachable after going through normal beat creation
+		return nil
+	}
+
+	var s struct {
+		Dashboards *common.Config `config:"setup.dashboards"`
+	}
+	if err := cfg.Unpack(&s); err != nil {
+		return err
+	}
+	if s.Dashboards != nil {
+		if s.Dashboards.Enabled() {
+			return errSetupDashboardRemoved
+		}
+		logger.Warn(errSetupDashboardRemoved)
+	}
+	return nil
+}
+
+// elasticsearchOutputConfig returns nil if the output is not elasticsearch
+func elasticsearchOutputConfig(b *beat.Beat) *common.Config {
+	if hasElasticsearchOutput(b) {
+		return b.Config.Output.Config()
+	}
+	return nil
+}
+
+func hasElasticsearchOutput(b *beat.Beat) bool {
 	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
 }
 
+// registerPipelineCallback registers an Elasticsearch connection callback
+// that ensures the configured pipeline is installed, if configured to do
+// so. If data streams are enabled, then pipeline registration is always
+// disabled and `setup --pipelines` will return an error.
 func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
+	if !hasElasticsearchOutput(b) {
+		bt.logger.Info("Output is not Elasticsearch: pipeline registration disabled")
+		return nil
+	}
+
+	if bt.config.DataStreams.Enabled {
+		bt.logger.Info("Data streams enabled: pipeline registration disabled")
+		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
+			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
+		}
+		return nil
+	}
+
+	if !bt.config.Register.Ingest.Pipeline.IsEnabled() {
+		bt.logger.Info("Pipeline registration disabled")
+		return nil
+	}
+
+	bt.logger.Info("Registering pipeline callback")
 	overwrite := bt.config.Register.Ingest.Pipeline.ShouldOverwrite()
 	path := bt.config.Register.Ingest.Pipeline.Path
 
@@ -327,15 +386,17 @@ func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publis
 	if err != nil {
 		return nil, err
 	}
-	return publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
+	publisherConfig := &publish.PublisherConfig{
 		Info:            b.Info,
 		Pipeline:        cfg.Pipeline,
 		TransformConfig: transformConfig,
-	})
+	}
+	return publish.NewPublisher(b.Publisher, tracer, publisherConfig)
 }
 
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
 	transformConfig := &transform.Config{
+		DataStreams: cfg.DataStreams.Enabled,
 		RUM: transform.RUMConfig{
 			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
 			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),

@@ -46,6 +46,8 @@ type Config struct {
 	Kibana      *KibanaConfig      `json:"apm-server.kibana,omitempty"`
 	Aggregation *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
+	RUM         *RUMConfig         `json:"apm-server.rum,omitempty"`
+	DataStreams *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -62,7 +64,7 @@ type Config struct {
 	Output OutputConfig `json:"output"`
 
 	// Setup holds configuration for libbeat setup.
-	Setup SetupConfig `json:"setup"`
+	Setup *SetupConfig `json:"setup,omitempty"`
 
 	// Queue holds configuration for the libbeat event queue.
 	Queue QueueConfig `json:"queue"`
@@ -103,7 +105,49 @@ type JaegerConfig struct {
 
 // SamplingConfig holds APM Server trace sampling configuration.
 type SamplingConfig struct {
-	KeepUnsampled bool `json:"keep_unsampled"`
+	KeepUnsampled bool                `json:"keep_unsampled"`
+	Tail          *TailSamplingConfig `json:"tail,omitempty"`
+}
+
+// TailSamplingConfig holds APM Server tail-based sampling configuration.
+type TailSamplingConfig struct {
+	Enabled  bool
+	Interval time.Duration
+	Policies []TailSamplingPolicy
+}
+
+func (t *TailSamplingConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled  bool                 `json:"enabled"`
+		Interval duration             `json:"interval"`
+		Policies []TailSamplingPolicy `json:"policies,omitempty"`
+	}
+	return json.Marshal(config{
+		Enabled:  t.Enabled,
+		Interval: duration(t.Interval),
+		Policies: t.Policies,
+	})
+}
+
+// TailSamplingPolicy holds an APM Server tail-based sampling policy.
+type TailSamplingPolicy struct {
+	ServiceName        string  `json:"service.name,omitempty"`
+	ServiceEnvironment string  `json:"service.environment,omitempty"`
+	TraceName          string  `json:"trace.name,omitempty"`
+	TraceOutcome       string  `json:"trace.outcome,omitempty"`
+	SampleRate         float64 `json:"sample_rate"`
+}
+
+// RUMConfig holds APM Server RUM configuration.
+type RUMConfig struct {
+	Enabled bool `json:"enabled"`
+}
+
+// DataStreamsConfig holds APM Server data streams configuration.
+type DataStreamsConfig struct {
+	Enabled bool `json:"enabled"`
 }
 
 // InstrumentationConfig holds APM Server instrumentation configuration.
@@ -121,6 +165,7 @@ type ElasticsearchOutputConfig struct {
 	Hosts    []string `json:"hosts,omitempty"`
 	Username string   `json:"username,omitempty"`
 	Password string   `json:"password,omitempty"`
+	APIKey   string   `json:"api_key,omitempty"`
 }
 
 // SetupConfig holds APM Server libbeat setup configuration.
@@ -189,7 +234,8 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 
 // AggregationConfig holds APM Server metrics aggregation configuration.
 type AggregationConfig struct {
-	Transactions *TransactionAggregationConfig `json:"transactions,omitempty"`
+	Transactions        *TransactionAggregationConfig        `json:"transactions,omitempty"`
+	ServiceDestinations *ServiceDestinationAggregationConfig `json:"service_destinations,omitempty"`
 }
 
 // TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
@@ -208,6 +254,25 @@ func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 	return json.Marshal(config{
 		Enabled:  m.Enabled,
 		Interval: duration(m.Interval),
+	})
+}
+
+// ServiceDestinationAggregationConfig holds APM Server service destination metrics aggregation configuration.
+type ServiceDestinationAggregationConfig struct {
+	Enabled  bool
+	Interval time.Duration
+}
+
+func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled  bool     `json:"enabled"`
+		Interval duration `json:"interval,omitempty"`
+	}
+	return json.Marshal(config{
+		Enabled:  s.Enabled,
+		Interval: duration(s.Interval),
 	})
 }
 
@@ -290,7 +355,7 @@ func DefaultConfig() Config {
 				Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
 			},
 		},
-		Setup: SetupConfig{
+		Setup: &SetupConfig{
 			IndexTemplate: IndexTemplateConfig{
 				Shards:          1,
 				RefreshInterval: "250ms",

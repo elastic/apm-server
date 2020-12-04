@@ -12,13 +12,26 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/elastic/beats/v7/libbeat/paths"
+	"github.com/elastic/beats/v7/x-pack/libbeat/licenser"
 
 	"github.com/elastic/apm-server/beater"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
+)
+
+var (
+	aggregationMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.aggregation")
+
+	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
+	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
+	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
 )
 
 type namedProcessor struct {
@@ -27,7 +40,7 @@ type namedProcessor struct {
 }
 
 type processor interface {
-	ProcessTransformables([]transform.Transformable) []transform.Transformable
+	ProcessTransformables(context.Context, []transform.Transformable) ([]transform.Transformable, error)
 	Run() error
 	Stop(context.Context) error
 }
@@ -44,12 +57,12 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 			MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
 			MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
 			HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
-			RUMUserAgentLRUSize:            args.Config.Aggregation.Transactions.RUMUserAgentLRUSize,
 		})
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", name)
 		}
 		processors = append(processors, namedProcessor{name: name, processor: agg})
+		monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
 	}
 	if args.Config.Aggregation.ServiceDestinations.Enabled {
 		const name = "service destinations aggregation"
@@ -64,7 +77,70 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		}
 		processors = append(processors, namedProcessor{name: name, processor: spanAggregator})
 	}
+	if args.Config.Sampling.Tail != nil && args.Config.Sampling.Tail.Enabled {
+		const name = "tail sampler"
+		sampler, err := newTailSamplingProcessor(args)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error creating %s", name)
+		}
+		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
+		processors = append(processors, namedProcessor{name: name, processor: sampler})
+	}
 	return processors, nil
+}
+
+func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
+	// Tail-based sampling is a Platinum-licensed feature.
+	//
+	// FIXME(axw) each time licenser.Enforce is called an additional global
+	// callback is registered with Elasticsearch, which fetches the license
+	// and checks it. The root command already calls licenser.Enforce with
+	// licenser.BasicAndAboveOrTrial. We need to make this overridable to
+	// avoid redundant checks.
+	checkPlatinum := licenser.CheckLicenseCover(licenser.Platinum)
+	licenser.Enforce("apm-server", func(logger *logp.Logger, license licenser.License) bool {
+		logger.Infof("Checking license for tail-based sampling")
+		return checkPlatinum(logger, license) || licenser.CheckTrial(logger, license)
+	})
+
+	tailSamplingConfig := args.Config.Sampling.Tail
+	es, err := elasticsearch.NewClient(tailSamplingConfig.ESConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
+	}
+	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
+	for i, in := range tailSamplingConfig.Policies {
+		policies[i] = sampling.Policy{
+			PolicyCriteria: sampling.PolicyCriteria{
+				ServiceName:        in.Service.Name,
+				ServiceEnvironment: in.Service.Environment,
+				TraceName:          in.Trace.Name,
+				TraceOutcome:       in.Trace.Outcome,
+			},
+			SampleRate: in.SampleRate,
+		}
+	}
+	return sampling.NewProcessor(sampling.Config{
+		BeatID:   args.Info.ID.String(),
+		Reporter: args.Reporter,
+		LocalSamplingConfig: sampling.LocalSamplingConfig{
+			FlushInterval: tailSamplingConfig.Interval,
+			// TODO(axw) make MaxDynamicServices configurable?
+			MaxDynamicServices:    1000,
+			Policies:              policies,
+			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
+		},
+		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
+			Elasticsearch: es,
+			// TODO(axw) make index name configurable?
+			SampledTracesIndex: "apm-sampled-traces",
+		},
+		StorageConfig: sampling.StorageConfig{
+			StorageDir:        paths.Resolve(paths.Data, tailSamplingConfig.StorageDir),
+			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
+			TTL:               tailSamplingConfig.TTL,
+		},
+	})
 }
 
 // runServerWithProcessors runs the APM Server and the given list of processors.
@@ -78,8 +154,12 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 
 	origReport := args.Reporter
 	args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
+		var err error
 		for _, p := range processors {
-			req.Transformables = p.ProcessTransformables(req.Transformables)
+			req.Transformables, err = p.ProcessTransformables(ctx, req.Transformables)
+			if err != nil {
+				return err
+			}
 		}
 		return origReport(ctx, req)
 	}

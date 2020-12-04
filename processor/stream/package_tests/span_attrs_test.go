@@ -18,11 +18,9 @@
 package package_tests
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
@@ -33,11 +31,9 @@ func spanProcSetup() *tests.ProcessorSetup {
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
 		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
-		Schema:          schema.ModelSchema,
-		SchemaPrefix:    "span",
+		SchemaPath:      "../../../docs/spec/v2/span.json",
 		TemplatePaths: []string{
 			"../../../model/span/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 	}
 }
@@ -52,7 +48,6 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 	)
 }
 
-// fields in _meta/fields.common.yml that are shared between several data types, but not with spans
 func spanFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.Union(
 		tests.NewSet(
@@ -83,26 +78,6 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 
 }
 
-func spanPayloadAttrsNotInJsonSchema() *tests.Set {
-	return tests.NewSet(
-		"span",
-		"span.stacktrace.vars.key",
-		tests.Group("span.context.tags"),
-		"span.context.http.response.headers.content-type",
-		"span.context.service.environment", //used to check that only defined service fields are set on spans
-	)
-}
-
-func spanJsonSchemaNotInPayloadAttrs() *tests.Set {
-	return tests.NewSet(
-		"span.transaction_id",
-		"span.context.experimental",
-		"span.context.message.body",
-		"span.sample_rate",
-		"span.context.message.headers",
-	)
-}
-
 func spanRequiredKeys() *tests.Set {
 	return tests.NewSet(
 		"span",
@@ -115,6 +90,9 @@ func spanRequiredKeys() *tests.Set {
 		"span.start",
 		"span.timestamp",
 		"span.stacktrace.filename",
+		"span.context.destination.service.resource",
+		"span.context.destination.service.name",
+		"span.context.destination.service.type",
 	)
 }
 
@@ -148,6 +126,7 @@ func transactionContext() *tests.Set {
 
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name",
 		"context.tags", "transaction.type", "transaction.name",
 		"event.outcome",
@@ -176,12 +155,6 @@ func TestSpanPayloadMatchFields(t *testing.T) {
 
 }
 
-func TestSpanPayloadMatchJsonSchema(t *testing.T) {
-	spanProcSetup().PayloadAttrsMatchJsonSchema(t,
-		spanPayloadAttrsNotInJsonSchema(),
-		spanJsonSchemaNotInPayloadAttrs())
-}
-
 func TestAttrsPresenceInSpan(t *testing.T) {
 	spanProcSetup().AttrsPresence(t, spanRequiredKeys(), spanCondRequiredKeys())
 }
@@ -205,37 +178,4 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "span.message.queue.name", Mapping: "context.message.queue.name"},
 		},
 	)
-}
-
-func TestPayloadDataForSpans(t *testing.T) {
-	// add test data for testing
-	// * specific edge cases
-	// * multiple allowed dataypes
-	// * regex pattern, time formats
-	// * length restrictions, other than keyword length restrictions
-
-	spanProcSetup().DataValidation(t,
-		[]tests.SchemaTestData{
-			{Key: "span.context.tags",
-				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
-				Invalid: []tests.Invalid{
-					{Msg: `tags/type`, Values: val{"tags"}},
-					{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
-					{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}},
-			},
-			{Key: "span.timestamp",
-				Valid: val{json.Number("1496170422281000")},
-				Invalid: []tests.Invalid{
-					{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
-			{Key: "span.stacktrace.pre_context",
-				Valid: val{[]interface{}{}, []interface{}{"context"}},
-				Invalid: []tests.Invalid{
-					{Msg: `/stacktrace/items/properties/pre_context/items/type`, Values: val{[]interface{}{123}}},
-					{Msg: `stacktrace/items/properties/pre_context/type`, Values: val{"test"}}}},
-			{Key: "span.stacktrace.post_context",
-				Valid: val{[]interface{}{}, []interface{}{"context"}},
-				Invalid: []tests.Invalid{
-					{Msg: `/stacktrace/items/properties/post_context/items/type`, Values: val{[]interface{}{123}}},
-					{Msg: `stacktrace/items/properties/post_context/type`, Values: val{"test"}}}},
-		})
 }

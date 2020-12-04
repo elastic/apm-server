@@ -1,6 +1,10 @@
 [[setup-kibana-endpoint]]
 == Configure the Kibana endpoint
 
+++++
+<titleabbrev>Kibana endpoint</titleabbrev>
+++++
+
 Configuring the Kibana endpoint is required for
 {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
 You configure the endpoint in the `apm-server.kibana` section of the

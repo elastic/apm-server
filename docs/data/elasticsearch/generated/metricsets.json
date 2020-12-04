@@ -6,7 +6,7 @@
             "version": "3.14.0"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "event": {
             "ingested": "2020-04-22T14:55:05.425020Z"
@@ -64,7 +64,7 @@
             "version": "3.14.0"
         },
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "event": {
             "ingested": "2020-09-08T15:57:10.396695Z"
@@ -111,11 +111,6 @@
                             "usage": {
                                 "bytes": 1024
                             }
-                        },
-                        "stats": {
-                            "inactive_file": {
-                                "bytes": 48
-                            }
                         }
                     }
                 }
@@ -141,7 +136,7 @@
         },
         "double_gauge": 3.141592653589793,
         "ecs": {
-            "version": "1.5.0"
+            "version": "1.6.0"
         },
         "event": {
             "ingested": "2020-04-22T14:55:05.368308Z"

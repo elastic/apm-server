@@ -85,6 +85,7 @@ type Config struct {
 	JaegerConfig        JaegerConfig            `config:"jaeger"`
 	Aggregation         AggregationConfig       `config:"aggregation"`
 	Sampling            SamplingConfig          `config:"sampling"`
+	DataStreams         DataStreamsConfig       `config:"data_streams"`
 
 	Pipeline string
 }
@@ -117,10 +118,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, errors.New(msgInvalidConfigAgentCfg)
 	}
 
-	if outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines")) {
-		c.Pipeline = ""
-	}
-
 	if err := c.RumConfig.setup(logger, outputESCfg); err != nil {
 		return nil, err
 	}
@@ -137,6 +134,12 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, err
 	}
 
+	if c.Sampling.Tail != nil {
+		if err := c.Sampling.Tail.setup(logger, outputESCfg); err != nil {
+			return nil, err
+		}
+	}
+
 	if !c.Sampling.KeepUnsampled && !c.Aggregation.Transactions.Enabled {
 		// Unsampled transactions should only be dropped
 		// when transaction aggregation is enabled in the
@@ -148,6 +151,10 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 			"apm-server.aggregation.transactions.enabled are both false, " +
 			"which will lead to incorrect metrics being reported in the APM UI",
 		)
+	}
+
+	if c.DataStreams.Enabled || (outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines"))) {
+		c.Pipeline = ""
 	}
 	return c, nil
 }
@@ -183,5 +190,6 @@ func DefaultConfig() *Config {
 		JaegerConfig: defaultJaeger(),
 		Aggregation:  defaultAggregationConfig(),
 		Sampling:     defaultSamplingConfig(),
+		DataStreams:  defaultDataStreamsConfig(),
 	}
 }

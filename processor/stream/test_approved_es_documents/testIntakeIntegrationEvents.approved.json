@@ -13,6 +13,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.experimental_java",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -59,7 +61,7 @@
                             "MozillaChromeEdge"
                         ]
                     },
-                    "method": "post",
+                    "method": "POST",
                     "socket": {
                         "encrypted": true,
                         "remote_address": "12.53.12.1:8080"
@@ -194,6 +196,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
@@ -271,7 +275,7 @@
                     "us": 3781
                 },
                 "http": {
-                    "method": "get",
+                    "method": "GET",
                     "response": {
                         "decoded_body_size": 401,
                         "encoded_body_size": 356,
@@ -339,6 +343,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.internal.1234_service_12a3",
+            "data_stream.type": "metrics",
             "dotted": {
                 "float": {
                     "gauge": 6.12
@@ -463,6 +469,8 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
+            "data_stream.dataset": "apm.error.service1",
+            "data_stream.type": "logs",
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
                 "custom": {
@@ -629,7 +637,7 @@
                             "opbeans-java:3000"
                         ]
                     },
-                    "method": "post",
+                    "method": "POST",
                     "socket": {
                         "encrypted": true,
                         "remote_address": "12.53.12.1"

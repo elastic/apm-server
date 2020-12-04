@@ -173,7 +173,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 //
 // This method is expected to be used immediately prior to publishing
 // the events.
-func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []transform.Transformable {
+func (a *Aggregator) ProcessTransformables(ctx context.Context, in []transform.Transformable) ([]transform.Transformable, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	out := in
@@ -184,7 +184,7 @@ func (a *Aggregator) ProcessTransformables(in []transform.Transformable) []trans
 			}
 		}
 	}
-	return out
+	return out, nil
 }
 
 func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
@@ -201,6 +201,7 @@ func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
 	key := aggregationKey{
 		serviceEnvironment: span.Metadata.Service.Environment,
 		serviceName:        span.Metadata.Service.Name,
+		agentName:          span.Metadata.Service.Agent.Name,
 		outcome:            span.Outcome,
 		resource:           *span.DestinationService.Resource,
 	}
@@ -245,6 +246,7 @@ type aggregationKey struct {
 	// origin
 	serviceName        string
 	serviceEnvironment string
+	agentName          string
 	// destination
 	resource string
 	outcome  string
@@ -262,22 +264,22 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 			Service: model.Service{
 				Name:        key.serviceName,
 				Environment: key.serviceEnvironment,
+				Agent:       model.Agent{Name: key.agentName},
 			},
 		},
 		Event: model.MetricsetEventCategorization{
 			Outcome: key.outcome,
 		},
 		Span: model.MetricsetSpan{
-			// TODO add span type/subtype?
 			DestinationService: model.DestinationService{Resource: &key.resource},
 		},
 		Samples: []model.Sample{
 			{
-				Name:  "destination.service.response_time.count",
+				Name:  "span.destination.service.response_time.count",
 				Value: math.Round(metrics.count),
 			},
 			{
-				Name:  "destination.service.response_time.sum.us",
+				Name:  "span.destination.service.response_time.sum.us",
 				Value: math.Round(metrics.sum),
 			},
 		},

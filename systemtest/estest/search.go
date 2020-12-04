@@ -20,10 +20,36 @@ package estest
 import (
 	"context"
 	"encoding/json"
+	"testing"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 )
+
+// ExpectDocs searches index with query, returning the results.
+//
+// ExpectDocs is equivalent to calling ExpectMinDocs with a minimum of 1.
+func (es *Client) ExpectDocs(t testing.TB, index string, query interface{}, opts ...RequestOption) SearchResult {
+	return es.ExpectMinDocs(t, 1, index, query, opts...)
+}
+
+// ExpectMinDocs searches index with query, returning the results.
+//
+// If the search returns fewer than min results within 10 seconds
+// (by default), ExpectMinDocs will call t.Error().
+func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query interface{}, opts ...RequestOption) SearchResult {
+	t.Helper()
+	var result SearchResult
+	opts = append(opts, WithCondition(result.Hits.MinHitsCondition(min)))
+	req := es.Search(index)
+	if query != nil {
+		req = req.WithQuery(query)
+	}
+	if _, err := req.Do(context.Background(), &result, opts...); err != nil {
+		t.Error(err)
+	}
+	return result
+}
 
 func (es *Client) Search(index string) *SearchRequest {
 	req := &SearchRequest{es: es}
@@ -45,6 +71,11 @@ func (r *SearchRequest) WithQuery(q interface{}) *SearchRequest {
 	return r
 }
 
+func (r *SearchRequest) WithSize(size int) *SearchRequest {
+	r.Size = &size
+	return r
+}
+
 func (r *SearchRequest) Do(ctx context.Context, out *SearchResult, opts ...RequestOption) (*esapi.Response, error) {
 	return r.es.Do(ctx, &r.SearchRequest, out, opts...)
 }
@@ -59,7 +90,13 @@ type SearchHits struct {
 
 // NonEmptyCondition returns a ConditionFunc which will return true if h.Hits is non-empty.
 func (h *SearchHits) NonEmptyCondition() ConditionFunc {
-	return func(*esapi.Response) bool { return len(h.Hits) != 0 }
+	return h.MinHitsCondition(1)
+}
+
+// MinHitsCondition returns a ConditionFunc which will return true if the number of h.Hits
+// is at least min.
+func (h *SearchHits) MinHitsCondition(min int) ConditionFunc {
+	return func(*esapi.Response) bool { return len(h.Hits) >= min }
 }
 
 type SearchHit struct {

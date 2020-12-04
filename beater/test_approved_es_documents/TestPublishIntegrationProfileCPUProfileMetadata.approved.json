@@ -3,10 +3,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -146,10 +147,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -235,10 +237,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -396,10 +399,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -485,10 +489,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -556,10 +561,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -663,10 +669,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -764,10 +771,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -859,10 +867,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -972,10 +981,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1103,10 +1113,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1168,10 +1179,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1245,10 +1257,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1358,10 +1371,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1501,10 +1515,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1572,10 +1587,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1697,10 +1713,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1810,10 +1827,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1911,10 +1929,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2012,10 +2031,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2143,10 +2163,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2208,10 +2229,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2303,10 +2325,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2374,10 +2397,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2451,10 +2475,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2588,10 +2613,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2677,10 +2703,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2742,10 +2769,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2795,10 +2823,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2884,10 +2913,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3015,10 +3045,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3134,10 +3165,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3253,10 +3285,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3336,10 +3369,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3461,10 +3495,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3532,10 +3567,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3621,10 +3657,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3698,10 +3735,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3829,10 +3867,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4008,10 +4047,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4097,10 +4137,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4204,10 +4245,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4377,10 +4419,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4442,10 +4485,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4579,10 +4623,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4704,10 +4749,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4775,10 +4821,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4870,10 +4917,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4929,10 +4977,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5012,10 +5061,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5077,10 +5127,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5214,10 +5265,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5279,10 +5331,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5332,10 +5385,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5421,10 +5475,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5540,10 +5595,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5641,10 +5697,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5724,10 +5781,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5837,10 +5895,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5950,10 +6009,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6039,10 +6099,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6170,10 +6231,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6265,10 +6327,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6366,10 +6429,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6461,10 +6525,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6544,10 +6609,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6609,10 +6675,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6728,10 +6795,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6871,10 +6939,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7026,10 +7095,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7121,10 +7191,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7186,10 +7257,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7287,10 +7359,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7448,10 +7521,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7591,10 +7665,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7722,10 +7797,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7793,10 +7869,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7870,10 +7947,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7983,10 +8061,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8030,10 +8109,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8089,10 +8169,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8166,10 +8247,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8249,10 +8331,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8332,10 +8415,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8427,10 +8511,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8546,10 +8631,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8623,10 +8709,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8706,10 +8793,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8831,10 +8919,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8908,10 +8997,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9027,10 +9117,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9128,10 +9219,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9229,10 +9321,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9288,10 +9381,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9401,10 +9495,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9484,10 +9579,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9543,10 +9639,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9686,10 +9783,11 @@
         {
             "@timestamp": "2019-11-22T10:30:36.305Z",
             "agent": {
-                "name": "go"
+                "name": "go",
+                "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.5.0"
+                "version": "1.6.0"
             },
             "host": {
                 "ip": "127.0.0.1"

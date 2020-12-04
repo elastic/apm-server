@@ -282,8 +282,8 @@ func TestEvents(t *testing.T) {
 	email, userIP, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
 	url, referer := "https://localhost", "http://localhost"
-	labels := Labels(common.MapStr{"key": true})
-	custom := Custom(common.MapStr{"foo": "bar"})
+	labels := common.MapStr{"key": true}
+	custom := common.MapStr{"foo.bar": "baz"}
 
 	serviceName, agentName, version := "myservice", "go", "1.0"
 	md := Metadata{
@@ -307,8 +307,10 @@ func TestEvents(t *testing.T) {
 		"valid": {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md},
 			Output: common.MapStr{
-				"agent":   common.MapStr{"name": "go", "version": "1.0"},
-				"service": common.MapStr{"name": "myservice", "version": "1.0"},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"agent":               common.MapStr{"name": "go", "version": "1.0"},
+				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -320,9 +322,11 @@ func TestEvents(t *testing.T) {
 		"notSampled": {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
-				"transaction": common.MapStr{"sampled": false},
-				"agent":       common.MapStr{"name": "go", "version": "1.0"},
-				"service":     common.MapStr{"name": "myservice", "version": "1.0"},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"transaction":         common.MapStr{"sampled": false},
+				"agent":               common.MapStr{"name": "go", "version": "1.0"},
+				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -334,7 +338,9 @@ func TestEvents(t *testing.T) {
 		"withMeta": {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionType: &transactionType},
 			Output: common.MapStr{
-				"transaction": common.MapStr{"type": "request"},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"transaction":         common.MapStr{"type": "request"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -356,23 +362,25 @@ func TestEvents(t *testing.T) {
 				},
 				TransactionID:      trID,
 				TransactionSampled: &sampledTrue,
-				Labels:             &labels,
+				Labels:             labels,
 				Page:               &Page{URL: &URL{Original: &url}, Referer: &referer},
-				Custom:             &custom,
+				Custom:             custom,
 				RUM:                true,
 			},
 
 			Output: common.MapStr{
-				"labels":     common.MapStr{"key": true, "label": 101},
-				"service":    common.MapStr{"name": "myservice", "version": "1.0"},
-				"agent":      common.MapStr{"name": "go", "version": "1.0"},
-				"user":       common.MapStr{"id": uid, "email": email},
-				"client":     common.MapStr{"ip": userIP},
-				"source":     common.MapStr{"ip": userIP},
-				"user_agent": common.MapStr{"original": userAgent},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"labels":              common.MapStr{"key": true, "label": 101},
+				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
+				"agent":               common.MapStr{"name": "go", "version": "1.0"},
+				"user":                common.MapStr{"id": uid, "email": email},
+				"client":              common.MapStr{"ip": userIP},
+				"source":              common.MapStr{"ip": userIP},
+				"user_agent":          common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{
-						"foo": "bar",
+						"foo_bar": "baz",
 					},
 					"grouping_key": "a61a65e048f403d9bcb2863d517fb48d",
 					"log":          common.MapStr{"message": "error log message"},
@@ -403,7 +411,8 @@ func TestEvents(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			outputEvents := tc.Transformable.Transform(context.Background(), &transform.Config{
-				RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+				DataStreams: true,
+				RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
 			})
 			require.Len(t, outputEvents, 1)
 			outputEvent := outputEvents[0]

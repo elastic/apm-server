@@ -1,0 +1,18 @@
+[[apm-features]]
+== Elastic APM features
+
+++++
+<titleabbrev>Features</titleabbrev>
+++++
+
+include::./distributed-tracing.asciidoc[]
+
+include::./rum.asciidoc[]
+
+include::./opentracing.asciidoc[]
+
+include::./opentelemetry-elastic.asciidoc[]
+
+include::./obs-integrations.asciidoc[]
+
+include::./cross-cluster-search.asciidoc[]
