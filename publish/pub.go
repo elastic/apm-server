@@ -62,6 +62,7 @@ type PendingReq struct {
 type PublisherConfig struct {
 	Info            beat.Info
 	Pipeline        string
+	Namespace       string
 	Processor       beat.ProcessorList
 	TransformConfig *transform.Config
 }
@@ -100,7 +101,7 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 		Processor: cfg.Processor,
 	}
 	if cfg.TransformConfig.DataStreams {
-		processingCfg.Fields[datastreams.NamespaceField] = "default"
+		processingCfg.Fields[datastreams.NamespaceField] = cfg.Namespace
 	}
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
