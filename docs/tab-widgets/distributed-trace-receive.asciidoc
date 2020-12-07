@@ -13,6 +13,8 @@ Example starting a new transaction:
 [source,go]
 ----
 // Receive incoming TraceContext
+traceContext, _ := apmhttp.ParseTraceparentHeader(r.Header.Get("Traceparent"))
+traceContext.State, _ = apmhttp.ParseTracestateHeader(r.Header["Tracestate"]...)
 
 opts := apm.TransactionOptions{
 	Start: time.Now(),

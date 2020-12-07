@@ -14,7 +14,11 @@
 ----
 transaction := apm.DefaultTracer.StartTransaction("GET /", "request")
 // Get TraceContext from current Transaction
+traceContext := transaction.TraceContext()
+
 // Send TraceContext to receiving service
+traceparent := apmhttp.FormatTraceparentHeader(traceContext))
+tracestate := traceContext.State.String()
 ----
 // end::go[]
 
