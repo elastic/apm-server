@@ -7,7 +7,7 @@
 
 * <<distributed-tracing>>
 * <<rum>>
-* <<apm-sampling>>
+* <<trace-sampling>>
 * <<opentracing>>
 * <<open-telemetry-elastic>>
 * <<observability-integrations>>
@@ -17,7 +17,7 @@ include::./distributed-tracing.asciidoc[]
 
 include::./rum.asciidoc[]
 
-include::./apm-sampling.asciidoc[]
+include::./trace-sampling.asciidoc[]
 
 include::./opentracing.asciidoc[]
 

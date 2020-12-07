@@ -44,13 +44,6 @@
             tabindex="-1">
       Ruby
     </button>
-    <button role="tab"
-        aria-selected="false"
-        aria-controls="rum-tab-dt"
-        id="rum-dt"
-        tabindex="-1">
-      RUM
-    </button>
   </div>
   <div tabindex="0"
        role="tabpanel"
@@ -114,17 +107,6 @@ include::distributed-trace-send.asciidoc[tag=python]
 ++++
 
 include::distributed-trace-send.asciidoc[tag=ruby]
-
-++++
-  </div>
-  <div tabindex="0"
-      role="tabpanel"
-      id="rum-tab-dt"
-      aria-labelledby="rum-dt"
-      hidden="">
-++++
-
-include::distributed-trace-send.asciidoc[tag=rum]
 
 ++++
   </div>

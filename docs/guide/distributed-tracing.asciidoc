@@ -4,8 +4,6 @@
 // Make tab-widgets work
 include::../tab-widgets/code.asciidoc[]
 
-// TIP: Need help understanding transactions and spans? Check out APM's <<apm-data-model>>.
-
 A `trace` is a group of <<transactions,transactions>> and <<transaction-spans,spans>> with a common root.
 Each `trace` tracks the entirety of a single request.
 When a `trace` travels through multiple services, as is common in a microservice architecture,
@@ -15,7 +13,7 @@ it is known as a distributed trace.
 === Why is distributed tracing important?
 
 Distributed tracing enables you to analyze performance throughout your microservice architecture
-by tracing the entirety of a request -- from the initial web request on your front-end service,
+by tracing the entirety of a request -- from the initial web request on your front-end service
 all the way to database queries made on your back-end services.
 
 Tracking requests as they propagate through your services provides an end-to-end picture of
@@ -26,25 +24,17 @@ service borders.
 For supported technologies, distributed tracing works out-of-the-box, with no additional configuration required.
 
 [float]
-=== Visualize distributed tracing
-
-The APM app's timeline visualization provides a visual deep-dive into each of your application's traces:
-
-[role="screenshot"]
-image::images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
-
-[float]
 === How distributed tracing works
 
 Distributed tracing works by injecting a custom `traceparent` HTTP header into outgoing requests.
 This header includes information, like `trace-id`, which is used to identify the current trace,
-and `parent-id`, which is used to identify the parent of the current span on incoming requests,
+and `parent-id`, which is used to identify the parent of the current span on incoming requests
 or the current span on an outgoing request.
 
 When a service is working on a request, it checks for the existence of this HTTP header.
 If it's missing, the service starts a new trace.
-If it exists, the service ensures the current action is added as a child to existing trace,
-and continues to propagate the propagate the trace.
+If it exists, the service ensures the current action is added as a child of the existing trace,
+and continues to propagate the trace.
 
 [float]
 ==== Trace propagation examples
@@ -88,12 +78,20 @@ NOTE: Older Elastic agents use a unique `elastic-apm-traceparent` header.
 For backward-compatibility purposes, new versions of Elastic agents still support this header.
 
 [float]
+=== Visualize distributed tracing
+
+The APM app's timeline visualization provides a visual deep-dive into each of your application's traces:
+
+[role="screenshot"]
+image::images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
+
+[float]
 === Manual distributed tracing
 
 Elastic agents automatically propagate distributed tracing context for supported technologies.
-If your service communicates over an unsupported protocol, like TCP, UDP, WebSocket,
-you can manually propagate distributed tracing context from the sending service to the receiving service
-with the agent's API.
+If your service communicates over a different, unsupported protocol,
+you can manually propagate distributed tracing context from a sending service to a receiving service
+with each agent's API.
 
 [float]
 ==== Add the `traceparent` header to outgoing requests
@@ -107,7 +105,8 @@ include::../tab-widgets/distributed-trace-send-widget.asciidoc[]
 [float]
 ==== Add the `traceparent` header to incoming requests
 
-Receiving services must read the incoming `traceparent` header, and start a new child transaction.
+Receiving services must parse the incoming `traceparent` header,
+and start a new transaction or span as a child of the received context.
 
 --
 include::../tab-widgets/distributed-trace-receive-widget.asciidoc[]
