@@ -2,28 +2,32 @@
 
 // Need help with this example
 
-1. Get the incoming TraceContext.
+1. Parse the incoming TraceContext with
+https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTraceparentHeader[`ParseTraceparentHeader`] or
+https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTracestateHeader[`ParseTracestateHeader`].
 
 2. Start a new transaction or span as a child of the incoming transaction with
 {apm-go-ref}/api.html#tracer-api-start-transaction-options[`StartTransactionOptions`] or
-{apm-go-ref}/api.html#transaction-start-span-options[`StartSpanOptions`]
+{apm-go-ref}/api.html#transaction-start-span-options[`StartSpanOptions`].
 
-Example starting a new transaction:
+Example:
 
 [source,go]
 ----
 // Receive incoming TraceContext
-traceContext, _ := apmhttp.ParseTraceparentHeader(r.Header.Get("Traceparent"))
-traceContext.State, _ = apmhttp.ParseTracestateHeader(r.Header["Tracestate"]...)
+traceContext, _ := apmhttp.ParseTraceparentHeader(r.Header.Get("Traceparent")) <1>
+traceContext.State, _ = apmhttp.ParseTracestateHeader(r.Header["Tracestate"]...) <2>
 
 opts := apm.TransactionOptions{
 	Start: time.Now(),
-	TraceContext: parentTraceContext, <1>
+	TraceContext: traceContext, <1>
 }
 transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opts) <2>
 ----
-<1> Set the parent trace context
-<2> Start a new transaction as a child of the received TraceContext
+<1> Parse the TraceParent header
+<2> Parse the tracestate header
+<3> Set the parent trace context
+<4> Start a new transaction as a child of the received TraceContext
 
 // end::go[]
 
@@ -116,21 +120,21 @@ agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
 
 // tag::python[]
 
-Start a new transaction as a child of the `TraceParent` by passing in a `TraceParent` object.
-As described in {apm-py-ref}/api.html#traceparent-api[`TraceParent`],
-the Python agent offers multiple methods to accomplish this.
+1. Create a TraceParent object from a string or HTTP header.
 
-Example getting the `TraceParent` from a string:
+2. Start a new transaction as a child of the `TraceParent` by passing in a `TraceParent` object.
+
+Example using HTTP headers:
 
 [source,python]
 ----
-# Receive the TraceParent string from the sending service
-parent = elasticapm.trace_parent_from_string('00-03d67dcdd62b7c0f7a675424347eee3a-5f0e87be26015733-01') <1>
-client.begin_transaction('transaction_name', trace_parent=parent) <2>
+parent = elasticapm.trace_parent_from_headers(headers_dict) <1>
+client.begin_transaction('processors', trace_parent=parent) <2>
 ----
-<1> Decode the `TraceParent` from a string
+<1> Create a TraceParent object from HTTP headers formed as a dictionary
 <2> Begin a new transaction as a child of the received `TraceParent`
 
+TIP: See the {apm-py-ref}/api.html#traceparent-api[`TraceParent` API] for additional examples.
 // end::python[]
 
 // ***************************************************

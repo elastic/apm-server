@@ -1,7 +1,5 @@
 // tag::go[]
 
-// Need help with this example
-
 1. Start a transaction with
 {apm-go-ref}/api.html#tracer-api-start-transaction[`StartTransaction`] or a span with
 {apm-go-ref}/api.html#transaction-start-span[`StartSpan`].
@@ -10,16 +8,20 @@
 
 3. Send the TraceContext to the receiving service.
 
+Example:
+
 [source,go]
 ----
-transaction := apm.DefaultTracer.StartTransaction("GET /", "request")
-// Get TraceContext from current Transaction
-traceContext := transaction.TraceContext()
+transaction := apm.DefaultTracer.StartTransaction("GET /", "request") <1>
+traceContext := transaction.TraceContext() <2>
 
 // Send TraceContext to receiving service
-traceparent := apmhttp.FormatTraceparentHeader(traceContext))
+traceparent := apmhttp.FormatTraceparentHeader(traceContext)) <3>
 tracestate := traceContext.State.String()
 ----
+<1> Start a transaction
+<2> Get TraceContext from current Transaction
+<3> Format the TraceContext or tracestate as a traceparent header.
 // end::go[]
 
 // ***************************************************
@@ -114,26 +116,24 @@ sendMetadata(`traceparent: ${traceparent}\n`); <3>
 
 // tag::python[]
 
-// help
+1. Start a transaction with {apm-py-ref}/api.html#client-api-begin-transaction[`begin_transaction()`].
 
-Start a transaction with {apm-py-ref}/api.html#client-api-begin-transaction[`begin_transaction()`].
+2. Get the `trace_parent` of the active transaction.
 
-Get the `trace_parent` of the active transaction.
-
-Send the `trace_parent` to the receiving service.
+3. Send the `trace_parent` to the receiving service.
 
 Example:
 
 [source,python]
 ----
-client.begin_transaction('new-transaction')
-# Get trace_parent
-transaction = execution_context.get_transaction()
-trace_parent = transaction.trace_parent
-trace_parent_str = trace_parent.to_string()
+client.begin_transaction('new-transaction')<1>
+
+elasticapm.get_trace_parent_header('new-transaction') <2>
+
 # Send `trace_parent_str` to another service
 ----
-
+<1> Start a new transaction
+<2> Return the string representation of the current transaction's TraceParent object
 // end::python[]
 
 // ***************************************************
