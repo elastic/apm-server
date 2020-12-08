@@ -23,14 +23,16 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/elastic/apm-server/model"
 )
 
 var streamMappings = map[string]string{
-	"logs":             "logs-apm.error",
-	"traces":           "traces-apm",
-	"metrics":          "metrics-apm",
-	"internal_metrics": "metrics-apm.internal",
-	"profiles":         "profiles-apm",
+	"error_logs":       "logs-" + model.ErrorsDataset,
+	"traces":           "traces-" + model.TracesDataset,
+	"app_metrics":      "metrics-" + model.AppMetricsDataset,
+	"internal_metrics": "metrics-" + model.InternalMetricsDataset,
+	"profile_metrics":  "metrics-" + model.ProfilesDataset,
 }
 
 type PipelineDef struct {

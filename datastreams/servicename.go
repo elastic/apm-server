@@ -24,6 +24,8 @@ import "strings"
 //
 // Concretely, this function will lowercase the string and replace any
 // reserved characters with "_".
+//
+// TODO: use when Fleet supports variables in data streams (see #4492)
 func NormalizeServiceName(s string) string {
 	s = strings.ToLower(s)
 	s = strings.Map(replaceReservedRune, s)
