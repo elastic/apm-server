@@ -98,7 +98,7 @@ func TestDataStreamsEnabled(t *testing.T) {
 			tx.End()
 			tracer.Flush(nil)
 
-			result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*,traces-apm.*", estest.TermQuery{
+			result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*,traces-apm*", estest.TermQuery{
 				Field: "processor.event", Value: "transaction",
 			})
 			systemtest.ApproveEvents(
