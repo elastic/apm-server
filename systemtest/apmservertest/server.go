@@ -288,7 +288,7 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 	s.Stderr = stderrPipeReader
 
 	type logEntry struct {
-		Timestamp logpTimestamp `json:"timestamp"`
+		Timestamp logpTimestamp `json:"@timestamp"`
 		Message   string        `json:"message"`
 		Level     zapcore.Level `json:"log.level"`
 		Logger    string        `json:"log.logger"`
@@ -312,7 +312,7 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 		if err := json.Unmarshal(raw, &fields); err != nil {
 			break
 		}
-		delete(fields, "timestamp")
+		delete(fields, "@timestamp")
 		delete(fields, "log.level")
 		delete(fields, "log.logger")
 		delete(fields, "log.origin")
