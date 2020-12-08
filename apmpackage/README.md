@@ -40,7 +40,7 @@
     This step can be done in a separate commit to facilitate review.
 
 
-#### Create a new package
+#### Create a new package version
 
 Follow steps described above, except:
 
@@ -123,4 +123,3 @@ Generally it should be done between FF and release.
 Fleet is under active development and this guide might become obsolete quickly.
 
 Take everything with a grain of salt.
-
