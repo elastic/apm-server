@@ -3,11 +3,11 @@
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
-:ot-pipelines:  {ot-repo}/blob/master/docs/pipelines.md
+:ot-pipelines:  https://opentelemetry.io/docs/collector/configuration/
 :ot-extension:  {ot-repo}/blob/master/extension/README.md
 :ot-scaling:    {ot-repo}/blob/master/docs/performance.md
 
-:ot-collector:  https://opentelemetry.io/docs/collector/about/
+:ot-collector:  https://opentelemetry.io/docs/collector/getting-started/
 :ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib-dev
 
 // Make tab-widgets work
@@ -38,7 +38,6 @@ and the metrics data collected from your infrastructure and applications to Elas
 By extending the OpenTelemetry collector,
 no changes are needed in your instrumented services to begin using the {stack}.
 
-[role="screenshot"]
 image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
 
 [float]
@@ -99,9 +98,11 @@ make otelcontribcol
 [[open-telemetry-elastic-traces-metrics]]
 ==== Collect traces and metrics
 
+NOTE: This guide assumes your services and applications have already been instrumented with the OpenTelemetry API and/or SDK.
+If you are new to APM, we recommend <<install-and-run,getting started with Elastic APM agents>> instead.
+
 To export traces and metrics to the OpenTelemetry Collector, ensure that you have instrumented your services and applications
-with the OpenTelemetry API and/or SDK. If you haven't, see the Elastic APM <<install-and-run,install and run guide>> to get started
-with Elastic APM Agents instead.
+with the OpenTelemetry API and/or SDK.
 
 Here is an example of how to set up the OpenTelemetry Java agent.
 
@@ -129,6 +130,9 @@ public void createOrder(HttpServletRequest request) {
    orderValueCounter.add(orderPrice);
 }
 ----
+
+For more information on setting up OpenTelemetry, see the OpenTelemetry's {ot-collector}[Getting Started]
+documentation.
 
 [float]
 [[open-telemetry-elastic-configure]]
@@ -195,7 +199,7 @@ and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/open
 [[open-telemetry-elastic-verify]]
 ==== Verify OpenTelemetry metrics data
 
-To validate that metrics are successfully being reported to {kib} is by using *Discover*.
+Use *Discover* to validate that metrics are successfully being reported to {kib}.
 
 . Launch {kib}:
 +
@@ -212,13 +216,14 @@ only OpenTelemetry metrics documents.
 [[open-telemetry-elastic-kibana]]
 ==== Visualize in {kib}
 
-TSVB within {kib} is the recommended visualization for OpenTelemtry metrics. TSVB is a time series data visualizer that allows you to use the full power of the
-{ess} aggregation framework. With TSVB, you can combine an infinite number of aggregations to display complex data.
+TSVB within {kib} is the recommended visualization for OpenTelemetry metrics. TSVB is a time series data visualizer that allows you to use the full power of the
+{es} aggregation framework. With TSVB, you can combine an infinite number of aggregations to display complex data.
 
-In this example eCommerce dashboard, there are four visualizations; sales, order count, product cache, and system load. The dashboard provides us with business
+In this example eCommerce OpenTelemetry dashboard, there are four visualizations; sales, order count, product cache, and system load. The dashboard provides us with business
 KPI metrics, along with performance-related metrics.
 
-// TODO: add screenshot of dashboard
+[role="screenshot"]
+image::images/ecommerce-dashboard.png[OpenTelemetry visualizations]
 
 Let's have a look at how this dashboard was created, specifically the Sales USD and System load visualizations.
 
@@ -230,13 +235,13 @@ Let's have a look at how this dashboard was created, specifically the Sales USD 
 . For the label name, enter Sales USD, and then select the following:
 +
 * Aggregation: `Positive Rate`.
-* Field: `order_count`.
+* Field: `order_sum`.
 * Scale: `auto`.
 * Group by: `Everything`
 . Click *Save and return*.
 . Now let's create a visualization of load averages on the system. Click *Create new*.
 . Select *TSVB*.
-. Enter the label name, System load, and then select the following:
+. Enter the label name, System load per host IP, and then select the following:
 +
 * Aggregation: `Average`.
 * Field: `system.cpu.load_average.1m`.
@@ -248,6 +253,9 @@ Let's have a look at how this dashboard was created, specifically the Sales USD 
 . Click *Save and return*.
 +
 Both visualizations are now displayed on your custom dashboard.
+
+IMPORTANT: By default, Discover shows data for the last 15 minutes. If you have a time-based index,
+and no data displays, you might need to increase the time range.
 
 [[open-telemetry-elastic-config-ref]]
 ==== Elastic exporter configuration reference
