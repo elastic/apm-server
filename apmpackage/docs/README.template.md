@@ -12,7 +12,7 @@ If you have RUM enabled, you must run APM Server centrally. Otherwise, you can r
 To do so, download and enroll an Elastic Agent in the same machines where your instrumented services run.
 
 If you want to change the default APM Server configuration, you need to edit the `elastic-agent.yml` policy file manually.
-Find the input with `type:apm` and add any settings under `apm-server` like you would normally do in `apm-server.yml`.
+Find the input with `type:apm` and add any settings under `apm-server`.
 For instance:
 
 ```yaml
@@ -90,7 +90,7 @@ Traces are written to `traces-apm.*` indices.
 
 ### Metrics
 
-Metrics include application-based metrics, some basic system metrics and profiles.
+Metrics include application-based metrics and some basic system metrics.
 Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-apm.profiling.*` indices.
 
 **Exported Fields**

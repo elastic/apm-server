@@ -12,7 +12,7 @@ If you have RUM enabled, you must run APM Server centrally. Otherwise, you can r
 To do so, download and enroll an Elastic Agent in the same machines where your instrumented services run.
 
 If you want to change the default APM Server configuration, you need to edit the `elastic-agent.yml` policy file manually.
-Find the input with `type:apm` and add any settings under `apm-server` like you would normally do in `apm-server.yml`.
+Find the input with `type:apm` and add any settings under `apm-server`.
 For instance:
 
 ```yaml
@@ -35,7 +35,7 @@ inputs:
       secret_token: changeme
 ```
 
-Note that template, pipeline and ILM settings won't work - Templates and pipelines are installed by the integration,
+Note that template, pipeline and ILM settings cannot be configured through this file - Templates and pipelines are installed by the integration,
 and ILM policies must be created externally. If you need additional pipelines, they must also be created externally.
 
 #### Namespace
@@ -57,7 +57,7 @@ You must update the policy with any changes you need and restart the APM Server 
 - Sourcemap enrichment is not yet supported.
 - There is no default ILM policy for traces (spans and transactions).
 
-IMPORTANT: If you run APM Server with Elastic Agent, you must install the APM integration before ingestion starts.
+IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
 
 ### Configuration parameters
 
@@ -420,7 +420,7 @@ Traces are written to `traces-apm.*` indices.
 
 ### Metrics
 
-Metrics include application-based metrics, some basic system metrics and profiles.
+Metrics include application-based metrics and some basic system metrics.
 Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-apm.profiling.*` indices.
 
 **Exported Fields**
