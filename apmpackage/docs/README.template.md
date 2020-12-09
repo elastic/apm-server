@@ -35,7 +35,7 @@ inputs:
       secret_token: changeme
 ```
 
-Note that template, pipeline and ILM settings won't work - Templates and pipelines are installed by the integration,
+Note that template, pipeline and ILM settings cannot be configured through this file - Templates and pipelines are installed by the integration,
 and ILM policies must be created externally. If you need additional pipelines, they must also be created externally.
 
 #### Namespace
