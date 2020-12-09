@@ -11,11 +11,11 @@ require (
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20201107160812-7545ac6de48a // indirect
+	github.com/dop251/goja v0.0.0-20201207172445-6060b0671c09 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20201201133918-0226646606a0 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.10.1-0.20201201191534-1da173a9e716
+	github.com/elastic/beats/v7 v7.10.1-0.20201209104824-67c172efd662
 	github.com/elastic/go-elasticsearch/v7 v7.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -67,17 +67,17 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect
+	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20201201195509-5d6afe98e0b7
+	golang.org/x/net v0.0.0-20201207224615-747e23833adb
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
+	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20201201210846-92771a23d8e3
+	golang.org/x/tools v0.0.0-20201208233053-a543418bbed2
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.4.0
-	howett.net/plist v0.0.0-20201026045517-117a925f2150 // indirect
+	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 )
 
 replace (
