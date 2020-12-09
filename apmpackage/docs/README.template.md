@@ -57,7 +57,7 @@ You must update the policy with any changes you need and restart the APM Server 
 - Sourcemap enrichment is not yet supported.
 - There is no default ILM policy for traces (spans and transactions).
 
-IMPORTANT: If you run APM Server with Elastic Agent, you must install the APM integration before ingestion starts.
+IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
 
 ### Configuration parameters
 
