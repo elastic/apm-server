@@ -136,12 +136,15 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 				if !ok {
 					break
 				}
+				childProp.Items = &property{
+					Type:       &propertyType{names: []propertyTypeName{TypeNameObject}, required: true},
+					Properties: make(map[string]*property),
+				}
 				if child.name == st.name {
-					// if recursive reference to struct itself, set object type and do not call generate function
-					childProp.Items = &property{Type: &propertyType{names: []propertyTypeName{TypeNameObject}}}
+					// if recursive reference to struct itself do not call generate function
 					break
 				}
-				err = g.generate(child, flattenedName, &childProp)
+				err = g.generate(child, flattenedName, childProp.Items)
 			case *types.Struct:
 				if err = generateJSONPropertyStruct(&info, prop, &childProp); err != nil {
 					break
