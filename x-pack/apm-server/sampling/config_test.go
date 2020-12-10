@@ -34,14 +34,16 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	assertInvalidConfigError("invalid local sampling config: FlushInterval unspecified or negative")
 	config.FlushInterval = 1
 
-	assertInvalidConfigError("invalid local sampling config: MaxTraceGroups unspecified or negative")
-	config.MaxTraceGroups = 1
+	assertInvalidConfigError("invalid local sampling config: MaxDynamicServices unspecified or negative")
+	config.MaxDynamicServices = 1
 
+	assertInvalidConfigError("invalid local sampling config: Policies unspecified")
+	config.Policies = []sampling.Policy{{}}
 	for _, invalid := range []float64{-1, 1.0, 2.0} {
-		config.DefaultSampleRate = invalid
-		assertInvalidConfigError("invalid local sampling config: DefaultSampleRate unspecified or out of range [0,1)")
+		config.Policies[0].SampleRate = invalid
+		assertInvalidConfigError("invalid local sampling config: Policy 0 invalid: SampleRate unspecified or out of range [0,1)")
 	}
-	config.DefaultSampleRate = 0.5
+	config.Policies[0].SampleRate = 0.5
 
 	for _, invalid := range []float64{-1, 0, 2.0} {
 		config.IngestRateDecayFactor = invalid
