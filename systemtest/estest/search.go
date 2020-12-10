@@ -40,7 +40,7 @@ func (es *Client) ExpectDocs(t testing.TB, index string, query interface{}, opts
 func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query interface{}, opts ...RequestOption) SearchResult {
 	t.Helper()
 	var result SearchResult
-	opts = append(opts, WithCondition(result.Hits.NonEmptyCondition()))
+	opts = append(opts, WithCondition(result.Hits.MinHitsCondition(min)))
 	if _, err := es.Search(index).WithQuery(query).Do(context.Background(), &result, opts...); err != nil {
 		t.Error(err)
 	}
