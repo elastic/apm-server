@@ -131,8 +131,7 @@ public void createOrder(HttpServletRequest request) {
 }
 ----
 
-For more information on setting up OpenTelemetry, see the OpenTelemetry's {ot-collector}[Getting Started]
-documentation.
+For more information on setting up OpenTelemetry, see OpenTelemetry's {ot-collector}[Getting Started].
 
 [float]
 [[open-telemetry-elastic-configure]]
@@ -228,7 +227,7 @@ image::images/ecommerce-dashboard.png[OpenTelemetry visualizations]
 Let's have a look at how this dashboard was created, specifically the Sales USD and System load visualizations.
 
 . In the side navigation, under *{kib}*, select *Dashboard*.
-. Click *Dashboard* and select *Create dashboard*.
+. Click *Create dashboard*.
 . Click *Save*, enter the name of your dashboard, and then click *Save* again.
 . Let’s add a Sales USD visualization. Click *Edit*.
 . Click *Create new* and then select *TSVB*.
@@ -238,10 +237,10 @@ Let's have a look at how this dashboard was created, specifically the Sales USD 
 * Field: `order_sum`.
 * Scale: `auto`.
 * Group by: `Everything`
-. Click *Save and return*.
+. Click *Save*, enter Sales USD as the visualization name, and then click *Save and return*.
 . Now let's create a visualization of load averages on the system. Click *Create new*.
 . Select *TSVB*.
-. Enter the label name, System load per host IP, and then select the following:
+. Select the following:
 +
 * Aggregation: `Average`.
 * Field: `system.cpu.load_average.1m`.
@@ -250,7 +249,7 @@ Let's have a look at how this dashboard was created, specifically the Sales USD 
 * Top: `10`.
 * Order by: `Doc Count (default)`.
 * Direction: `Descending`.
-. Click *Save and return*.
+. Click *Save*, enter System load per host IP as the visualization name, and then click *Save and return*.
 +
 Both visualizations are now displayed on your custom dashboard.
 
