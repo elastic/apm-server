@@ -312,8 +312,6 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 		if err := json.Unmarshal(raw, &fields); err != nil {
 			break
 		}
-		delete(fields, "@timestamp")
-		delete(fields, "log.level")
 		delete(fields, "log.logger")
 		delete(fields, "log.origin")
 		delete(fields, "message")
