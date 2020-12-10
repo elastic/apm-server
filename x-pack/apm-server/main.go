@@ -28,6 +28,10 @@ import (
 
 var (
 	aggregationMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.aggregation")
+
+	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
+	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
+	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
 )
 
 type namedProcessor struct {
@@ -80,6 +84,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", name)
 		}
+		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
 		processors = append(processors, namedProcessor{name: name, processor: sampler})
 	}
 	return processors, nil
