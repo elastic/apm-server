@@ -408,12 +408,14 @@ func (p *Processor) Run() error {
 		// and just waiting as long as it takes here.
 		var events model.Batch
 		for {
+			var remoteDecision bool
 			var traceID string
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case traceID = <-remoteSampledTraceIDs:
 				p.logger.Debug("received remotely sampled trace ID")
+				remoteDecision = true
 			case traceID = <-localSampledTraceIDs:
 			}
 			if err := p.storage.WriteTraceSampled(traceID, true); err != nil {
@@ -425,6 +427,24 @@ func (p *Processor) Run() error {
 			transformables := events.Transformables()
 			if len(transformables) > 0 {
 				p.logger.Debugf("reporting %d events", len(transformables))
+				if remoteDecision {
+					// Remote decisions may be received multiple times,
+					// e.g. if this server restarts and resubscribes to
+					// remote sampling decisions before they have been
+					// deleted. We delete events from local storage so
+					// we don't publish duplicates; delivery is therefore
+					// at-most-once, not guaranteed.
+					for _, tx := range events.Transactions {
+						if err := p.storage.DeleteTransaction(tx); err != nil {
+							return errors.Wrap(err, "failed to delete transaction from local storage")
+						}
+					}
+					for _, span := range events.Spans {
+						if err := p.storage.DeleteSpan(span); err != nil {
+							return errors.Wrap(err, "failed to delete span from local storage")
+						}
+					}
+				}
 				if err := p.config.Reporter(ctx, publish.PendingReq{
 					Transformables: transformables,
 					Trace:          true,

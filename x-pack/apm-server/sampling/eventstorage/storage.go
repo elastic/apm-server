@@ -175,6 +175,18 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry) error {
 	return rw.txn.SetEntry(e)
 }
 
+// DeleteTransaction deletes the transaction from storage.
+func (rw *ReadWriter) DeleteTransaction(tx *model.Transaction) error {
+	key := append(append([]byte(tx.TraceID), ':'), tx.ID...)
+	return rw.txn.Delete(key)
+}
+
+// DeleteSpan deletes the span from storage.
+func (rw *ReadWriter) DeleteSpan(span *model.Span) error {
+	key := append(append([]byte(span.TraceID), ':'), span.ID...)
+	return rw.txn.Delete(key)
+}
+
 // ReadEvents reads events with the given trace ID from storage into a batch.
 //
 // ReadEvents may implicitly commit the current transaction when the number
