@@ -44,6 +44,7 @@ import (
 // not part of the payload, e.g. Kibana visualisation attributes.
 func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotInFields, fieldsNotInPayload *Set) {
 	notInFields := Union(payloadAttrsNotInFields, NewSet(
+		Group("data_stream"),
 		Group("processor"),
 		//dynamically indexed:
 		Group("labels"),

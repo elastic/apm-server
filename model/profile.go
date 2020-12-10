@@ -26,6 +26,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/google/pprof/profile"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -65,6 +66,11 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 	if uuid, err := uuid.NewV4(); err == nil {
 		profileID = fmt.Sprintf("%x", uuid)
 	}
+
+	// Profiles are stored in their own "metrics" data stream, with a data
+	// set per service. This enables managing retention of profiling data
+	// per-service, and indepedently of lower volume metrics.
+	dataset := fmt.Sprintf("apm.profiling.%s", datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
 
 	samples := make([]beat.Event, len(pp.Profile.Sample))
 	for i, sample := range pp.Profile.Sample {
@@ -116,8 +122,10 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 		event := beat.Event{
 			Timestamp: profileTimestamp,
 			Fields: common.MapStr{
-				"processor":    profileProcessorEntry,
-				profileDocType: profileFields,
+				datastreams.TypeField:    datastreams.MetricsType,
+				datastreams.DatasetField: dataset,
+				"processor":              profileProcessorEntry,
+				profileDocType:           profileFields,
 			},
 		}
 		pp.Metadata.Set(event.Fields)

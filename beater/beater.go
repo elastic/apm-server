@@ -36,8 +36,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/processors"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
@@ -117,7 +119,6 @@ type beater struct {
 // Run runs the APM Server, blocking until the beater's Stop method is called,
 // or a fatal error occurs.
 func (bt *beater) Run(b *beat.Beat) error {
-
 	done := make(chan struct{})
 
 	var reloadOnce sync.Once
@@ -127,6 +128,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		// during startup. This might change when APM Server is included in Fleet
 		reloadOnce.Do(func() {
 			defer close(done)
+			// TODO(axw) config received from Fleet should be modified to set data_streams.enabled.
 			var cfg *config.Config
 			cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
 			if err != nil {
@@ -365,11 +367,30 @@ func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publis
 	if err != nil {
 		return nil, err
 	}
-	return publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
+	publisherConfig := &publish.PublisherConfig{
 		Info:            b.Info,
 		Pipeline:        cfg.Pipeline,
 		TransformConfig: transformConfig,
-	})
+	}
+	if !cfg.DataStreams.Enabled {
+		// Remove data_stream.* fields during publishing when data streams are disabled.
+		processors, err := processors.New(processors.PluginConfig{common.MustNewConfigFrom(
+			map[string]interface{}{
+				"drop_fields": map[string]interface{}{
+					"fields": []interface{}{
+						datastreams.TypeField,
+						datastreams.DatasetField,
+						datastreams.NamespaceField,
+					},
+				},
+			},
+		)})
+		if err != nil {
+			return nil, err
+		}
+		publisherConfig.Processor = processors
+	}
+	return publish.NewPublisher(b.Publisher, tracer, publisherConfig)
 }
 
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
