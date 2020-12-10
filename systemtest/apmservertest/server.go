@@ -312,8 +312,6 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 		if err := json.Unmarshal(raw, &fields); err != nil {
 			break
 		}
-		delete(fields, "log.logger")
-		delete(fields, "log.origin")
 		delete(fields, "message")
 		s.Logs.add(LogEntry{
 			Timestamp: time.Time(entry.Timestamp),
