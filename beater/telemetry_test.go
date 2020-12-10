@@ -20,9 +20,8 @@ package beater
 import (
 	"testing"
 
-	"github.com/elastic/beats/v7/libbeat/logp"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -55,7 +54,7 @@ func TestRecordConfigs(t *testing.T) {
 			},
 		},
 	})
-	recordConfigs(info, apmCfg, rootCfg, logp.NewLogger("beater"))
+	require.NoError(t, recordConfigs(info, apmCfg, rootCfg))
 
 	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
 	assert.Equal(t, configMonitors.rumEnabled.Get(), false)

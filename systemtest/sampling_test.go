@@ -147,6 +147,21 @@ func TestTailSampling(t *testing.T) {
 	// Make sure apm-server.sampling.tail metrics are published. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv1, nil)
 	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.tail").Exists())
+
+	// Check tail-sampling config is reported in telemetry.
+	var state struct {
+		APMServer struct {
+			Sampling struct {
+				Tail struct {
+					Enabled  bool
+					Policies int
+				}
+			}
+		} `mapstructure:"apm-server"`
+	}
+	getBeatsMonitoringState(t, srv1, &state)
+	assert.True(t, state.APMServer.Sampling.Tail.Enabled)
+	assert.Equal(t, 1, state.APMServer.Sampling.Tail.Policies)
 }
 
 func TestTailSamplingUnlicensed(t *testing.T) {
