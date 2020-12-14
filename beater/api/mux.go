@@ -177,6 +177,7 @@ func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middlewa
 
 func backendMiddleware(cfg *config.Config, auth *authorization.Handler, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	backendMiddleware := append(apmMiddleware(m),
+		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthorizationMiddleware(auth, true),
 	)
 	if cfg.AugmentEnabled {
@@ -190,6 +191,7 @@ func rumMiddleware(cfg *config.Config, _ *authorization.Handler, m map[request.R
 		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
 	rumMiddleware := append(apmMiddleware(m),
+		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.ResponseHeadersMiddleware(cfg.RumConfig.ResponseHeaders),
 		middleware.SetRumFlagMiddleware(),
 		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
@@ -211,7 +213,8 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []midd
 		middleware.KillSwitchMiddleware(enabled, msg))
 }
 
-func rootMiddleware(_ *config.Config, auth *authorization.Handler) []middleware.Middleware {
+func rootMiddleware(cfg *config.Config, auth *authorization.Handler) []middleware.Middleware {
 	return append(apmMiddleware(root.MonitoringMap),
+		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthorizationMiddleware(auth, false))
 }
