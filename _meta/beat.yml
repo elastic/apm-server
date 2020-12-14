@@ -27,6 +27,10 @@ apm-server:
   # Maximum number of new connections to accept simultaneously (0 means unlimited).
   #max_connections: 0
 
+  # Custom HTTP headers to add to all HTTP responses, e.g. for security policy compliance.
+  #response_headers:
+  #  X-My-Header: Contents of the header
+
   # If true (default), APM Server captures the IP of the instrumented service
   # or the IP and User Agent of the real user (RUM requests).
   #capture_personal_data: true
