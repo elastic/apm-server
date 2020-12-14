@@ -154,8 +154,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// metadata labels and transaction labels should not be merged
 		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
 		assert.Equal(t, mLabels, out.Metadata.Labels)
-		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
-		assert.Equal(t, &tLabels, out.Labels)
+		tLabels := common.MapStr{"overwritten0": "overwritten", "overwritten1": "overwritten"}
+		assert.Equal(t, tLabels, out.Labels)
 		// service values should be set
 		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
 		// user values should be set
