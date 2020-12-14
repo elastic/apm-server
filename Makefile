@@ -109,7 +109,6 @@ update: fields go-generate add-headers copy-docs notice $(MAGE)
 	@$(MAGE) update
 
 fields_sources=\
-  _meta/fields.common.yml \
   $(shell find model -name fields.yml) \
   $(shell find x-pack/apm-server/fields -name fields.yml)
 

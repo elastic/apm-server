@@ -122,11 +122,6 @@ func TestUnpackConfig(t *testing.T) {
 						"interval":                         "1s",
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
-						"rum": map[string]interface{}{
-							"user_agent": map[string]interface{}{
-								"lru_size": 123,
-							},
-						},
 					},
 					"service_destinations": map[string]interface{}{
 						"max_groups": 456,
@@ -222,7 +217,6 @@ func TestUnpackConfig(t *testing.T) {
 						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
-						RUMUserAgentLRUSize:            123,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						Enabled:   true,
@@ -273,12 +267,11 @@ func TestUnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"jaeger.grpc.enabled":                              true,
-				"api_key.enabled":                                  true,
-				"aggregation.transactions.enabled":                 true,
-				"aggregation.transactions.rum.user_agent.lru_size": 123,
-				"aggregation.service_destinations.enabled":         false,
-				"sampling.keep_unsampled":                          false,
+				"jaeger.grpc.enabled":                      true,
+				"api_key.enabled":                          true,
+				"aggregation.transactions.enabled":         true,
+				"aggregation.service_destinations.enabled": false,
+				"sampling.keep_unsampled":                  false,
 				"sampling.tail": map[string]interface{}{
 					"enabled":           true,
 					"interval":          "2m",
@@ -358,7 +351,6 @@ func TestUnpackConfig(t *testing.T) {
 						Interval:                       time.Minute,
 						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,
-						RUMUserAgentLRUSize:            123,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						Enabled:   false,
@@ -456,24 +448,24 @@ func TestTLSSettings(t *testing.T) {
 			"ConfiguredToRequired": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication": "required",
-					"key":                   "../../testdata/tls/key.pem",
-					"certificate":           "../../testdata/tls/certificate.pem",
+					"key":         "../../testdata/tls/key.pem",
+					"certificate": "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredToOptional": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication": "optional",
-					"key":                   "../../testdata/tls/key.pem",
-					"certificate":           "../../testdata/tls/certificate.pem",
+					"key":         "../../testdata/tls/key.pem",
+					"certificate": "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 3, Certificate: testdataCertificateConfig},
 			},
 			"DefaultRequiredByCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
-					"key":                     "../../testdata/tls/key.pem",
-					"certificate":             "../../testdata/tls/certificate.pem",
+					"key":         "../../testdata/tls/key.pem",
+					"certificate": "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
@@ -481,8 +473,8 @@ func TestTLSSettings(t *testing.T) {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication":   "none",
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
-					"key":                     "../../testdata/tls/key.pem",
-					"certificate":             "../../testdata/tls/certificate.pem",
+					"key":         "../../testdata/tls/key.pem",
+					"certificate": "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 0, Certificate: testdataCertificateConfig},
 			},

@@ -2,6 +2,574 @@
   title: APM Profile
   description: Profiling-specific data for APM.
   fields:
+    - name: processor.name
+      type: keyword
+      description: Processor name.
+
+    - name: processor.event
+      type: keyword
+      description: Processor event.
+
+    - name: timestamp
+      type: group
+      fields:
+        - name: us
+          type: long
+          count: 1
+          description: >
+            Timestamp of the event in microseconds since Unix epoch.
+
+    - name: labels
+      type: object
+      object_type_params:
+        - object_type: keyword
+        - object_type: boolean
+        - object_type: scaled_float
+          scaling_factor: 1000000
+      dynamic: true
+      overwrite: true
+      description: >
+        A flat mapping of user-defined labels with string, boolean or number values.
+
+    - name: service
+      type: group
+      dynamic: false
+      description: >
+        Service fields.
+      fields:
+        - name: name
+          type: keyword
+          description: >
+            Immutable name of the service emitting this event.
+          overwrite: true
+
+        - name: version
+          type: keyword
+          description: >
+            Version of the service emitting this event.
+          overwrite: true
+
+        - name: environment
+          type: keyword
+          description: >
+            Service environment.
+
+        - name: node
+          type: group
+          fields:
+            - name: name
+              type: keyword
+              description: >
+                Unique meaningful name of the service node.
+              overwrite: true
+
+        - name: language
+          type: group
+          fields:
+
+          - name: name
+            type: keyword
+            description: >
+              Name of the programming language used.
+
+          - name: version
+            type: keyword
+            description: >
+              Version of the programming language used.
+
+        - name: runtime
+          type: group
+          fields:
+
+          - name: name
+            type: keyword
+            description: >
+              Name of the runtime used.
+
+          - name: version
+            type: keyword
+            description: >
+              Version of the runtime used.
+
+        - name: framework
+          type: group
+          fields:
+
+          - name: name
+            type: keyword
+            description: >
+              Name of the framework used.
+
+          - name: version
+            type: keyword
+            description: >
+              Version of the framework used.
+
+    - name: agent
+      type: group
+      dynamic: false
+      fields:
+
+        - name: name
+          type: keyword
+          description: >
+            Name of the agent used.
+          overwrite: true
+
+        - name: version
+          type: keyword
+          description: >
+            Version of the agent used.
+          overwrite: true
+
+        - name: ephemeral_id
+          type: keyword
+          description: >
+            The Ephemeral ID identifies a running process.
+          overwrite: true
+
+    - name: container
+      type: group
+      dynamic: false
+      title: Container
+      description: >
+        Container fields are used for meta information about the specific container
+        that is the source of information. These fields help correlate data based
+        containers from any runtime.
+      fields:
+
+        - name: id
+          type: keyword
+          description: >
+            Unique container id.
+          overwrite: true
+
+    - name: kubernetes
+      type: group
+      dynamic: false
+      title: Kubernetes
+      description: >
+        Kubernetes metadata reported by agents
+      fields:
+
+        - name: namespace
+          type: keyword
+          description: >
+            Kubernetes namespace
+          overwrite: true
+
+        - name: node
+          type: group
+          fields:
+            - name: name
+              type: keyword
+              description: >
+                Kubernetes node name
+              overwrite: true
+
+        - name: pod
+          type: group
+          fields:
+
+            - name: name
+              type: keyword
+              description: >
+                Kubernetes pod name
+              overwrite: true
+
+            - name: uid
+              type: keyword
+              description: >
+                Kubernetes Pod UID
+              overwrite: true
+
+    - name: host
+      type: group
+      dynamic: false
+      description: >
+        Optional host fields.
+      fields:
+
+        - name: architecture
+          type: keyword
+          description: >
+            The architecture of the host the event was recorded on.
+          overwrite: true
+
+        - name: hostname
+          type: keyword
+          description: >
+            The hostname of the host the event was recorded on.
+          overwrite: true
+
+        - name: name
+          type: keyword
+          description: >
+            Name of the host the event was recorded on.
+            It can contain same information as host.hostname or a name specified by the user.
+          overwrite: true
+
+        - name: ip
+          type: ip
+          description: >
+            IP of the host that records the event.
+          overwrite: true
+
+        - name: os
+          title: Operating System
+          group: 2
+          description: >
+            The OS fields contain information about the operating system.
+          type: group
+          fields:
+            - name: platform
+              type: keyword
+              description: >
+                The platform of the host the event was recorded on.
+              overwrite: true
+
+    - name: process
+      type: group
+      dynamic: false
+      description: >
+        Information pertaining to the running process where the data was collected
+      fields:
+        - name: args
+          level: extended
+          type: keyword
+          description: >
+            Process arguments.
+
+            May be filtered to protect sensitive information.
+          overwrite: true
+
+        - name: pid
+          type: long
+          description: >
+            Numeric process ID of the service process.
+          overwrite: true
+
+        - name: ppid
+          type: long
+          description: >
+            Numeric ID of the service's parent process.
+          overwrite: true
+
+        - name: title
+          type: keyword
+          description: >
+            Service process title.
+          overwrite: true
+
+    - name: observer
+      type: group
+      dynamic: false
+      fields:
+
+        - name: listening
+          type: keyword
+          description: >
+            Address the server is listening on.
+
+        - name: hostname
+          type: keyword
+          overwrite: true
+          description: >
+            Hostname of the APM Server.
+
+        - name: version
+          type: keyword
+          overwrite: true
+          description: >
+            APM Server version.
+
+        - name: version_major
+          type: byte
+          description: >
+            Major version number of the observer
+
+        - name: type
+          type: keyword
+          overwrite: true
+          description: >
+            The type will be set to `apm-server`.
+
+    - name: user
+      type: group
+      dynamic: false
+      fields:
+
+      - name: name
+        type: keyword
+        description: >
+          The username of the logged in user.
+        overwrite: true
+
+      - name: id
+        type: keyword
+        description: >
+          Identifier of the logged in user.
+        overwrite: true
+
+      - name: email
+        type: keyword
+        description: >
+          Email of the logged in user.
+        overwrite: true
+
+    - name: client
+      dynamic: false
+      type: group
+      fields:
+      - name: ip
+        type: ip
+        description: >
+          IP address of the client of a recorded event.
+          This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+        overwrite: true
+
+    - name: source
+      dynamic: false
+      type: group
+      fields:
+      - name: ip
+        type: ip
+        description: >
+          IP address of the source of a recorded event.
+          This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+        overwrite: true
+
+    - name: destination
+      title: Destination
+      group: 2
+      description: 'Destination fields describe details about the destination of a packet/event.
+
+        Destination fields are usually populated in conjunction with source fields.'
+      type: group
+      fields:
+      - name: address
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: 'Some event destination addresses are defined ambiguously. The
+          event will sometimes list an IP, a domain or a unix socket.  You should always
+          store the raw address in the `.address` field.
+
+          Then it should be duplicated to `.ip` or `.domain`, depending on which one
+          it is.'
+        overwrite: true
+
+      - name: ip
+        level: core
+        type: ip
+        description: 'IP addess of the destination.
+
+          Can be one of multiple IPv4 or IPv6 addresses.'
+        overwrite: true
+
+      - name: port
+        level: core
+        type: long
+        format: string
+        description: Port of the destination.
+        overwrite: true
+
+    - name: user_agent
+      dynamic: false
+      title: User agent
+      description: >
+        The user_agent fields normally come from a browser request. They often
+        show up in web service logs coming from the parsed user agent string.
+      type: group
+      overwrite: true
+      fields:
+
+      - name: original
+        type: keyword
+        description: >
+          Unparsed version of the user_agent.
+        example: "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1"
+        overwrite: true
+
+        multi_fields:
+        - name: text
+          type: text
+          description: >
+            Software agent acting in behalf of a user, eg. a web browser / OS combination.
+          overwrite: true
+
+      - name: name
+        type: keyword
+        overwrite: true
+        example: Safari
+        description: >
+          Name of the user agent.
+
+      - name: version
+        type: keyword
+        overwrite: true
+        description: >
+          Version of the user agent.
+        example: 12.0
+
+      - name: device
+        type: group
+        overwrite: true
+        title: Device
+        description: >
+          Information concerning the device.
+        fields:
+
+        - name: name
+          type: keyword
+          overwrite: true
+          example: iPhone
+          description: >
+            Name of the device.
+
+      - name: os
+        type: group
+        overwrite: true
+        title: Operating System
+        description: >
+          The OS fields contain information about the operating system.
+        fields:
+
+          - name: platform
+            type: keyword
+            overwrite: true
+            description: >
+              Operating system platform (such centos, ubuntu, windows).
+            example: darwin
+
+          - name: name
+            type: keyword
+            overwrite: true
+            example: "Mac OS X"
+            description: >
+              Operating system name, without the version.
+
+          - name: full
+            type: keyword
+            overwrite: true
+            example: "Mac OS Mojave"
+            description: >
+              Operating system name, including the version or code name.
+
+          - name: family
+            type: keyword
+            overwrite: true
+            example: "debian"
+            description: >
+              OS family (such as redhat, debian, freebsd, windows).
+
+          - name: version
+            type: keyword
+            overwrite: true
+            example: "10.14.1"
+            description: >
+              Operating system version as a raw string.
+
+          - name: kernel
+            type: keyword
+            overwrite: true
+            example: "4.4.0-112-generic"
+            description: >
+              Operating system kernel version as a raw string.
+
+    - name: experimental
+      type: object
+      dynamic: true
+      description: Additional experimental data sent by the agents.
+
+    - name: cloud
+      title: Cloud
+      group: 2
+      type: group
+      description: >
+        Cloud metadata reported by agents
+      fields:
+      - name: account
+        type: group
+        dynamic: false
+        fields:
+        - name: id
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud account ID
+          overwrite: true
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud account name
+          overwrite: true
+      - name: availability_zone
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: Cloud availability zone name
+        example: us-east1-a
+        overwrite: true
+      - name: instance
+        type: group
+        dynamic: false
+        fields:
+        - name: id
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud instance/machine ID
+          overwrite: true
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud instance/machine name
+          overwrite: true
+      - name: machine
+        type: group
+        dynamic: false
+        fields:
+        - name: type
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud instance/machine type
+          example: t2.medium
+          overwrite: true
+      - name: project
+        type: group
+        dynamic: false
+        fields:
+        - name: id
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud project ID
+          overwrite: true
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: Cloud project name
+          overwrite: true
+      - name: provider
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: Cloud provider name
+        example: gcp
+        overwrite: true
+      - name: region
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: Cloud region name
+        example: us-east1
+        overwrite: true
+
     - name: profile
       type: group
       dynamic: false

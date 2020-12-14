@@ -55,9 +55,10 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.True(t, s.Enabled())
 		assert.NotNil(t, s.log)
 		assert.True(t, s.templateConfig.Enabled)
+		assert.Equal(t, "best_compression", s.templateConfig.Settings.Index["codec"])
 		assert.Equal(t, libilm.ModeAuto, s.ilmConfig.Mode)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
-		assert.Equal(t, &unmanaged.Config{}, s.unmanagedIdxConfig)
+		assert.Equal(t, unmanaged.Config{}, s.unmanagedIdxConfig)
 	})
 
 	t.Run("ILMDisabled", func(t *testing.T) {
@@ -73,6 +74,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.Equal(t, libilm.ModeDisabled, s.ilmConfig.Mode)
 		assert.True(t, s.ilmConfig.Setup.Enabled)
 	})
+
 	t.Run("SetupTemplateConfigConflicting", func(t *testing.T) {
 		s, err := buildSupporter(map[string]interface{}{
 			"output.elasticsearch.index": "custom-index",
@@ -80,6 +82,6 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "`setup.template.name` and `setup.template.pattern` have to be set ")
 		assert.Nil(t, s)
-
 	})
+
 }

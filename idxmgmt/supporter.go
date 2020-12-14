@@ -54,7 +54,7 @@ type supporter struct {
 	dataStreams        bool
 	templateConfig     template.TemplateConfig
 	ilmConfig          ilm.Config
-	unmanagedIdxConfig *unmanaged.Config
+	unmanagedIdxConfig unmanaged.Config
 	migration          bool
 	ilmSupporters      []libilm.Supporter
 
@@ -91,20 +91,9 @@ type ilmIndexSelector struct {
 func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) (*supporter, error) {
 
 	var (
-		unmanagedIdxCfg unmanaged.Config
-		mode            = cfg.ILM.Mode
-		st              = indexState{}
+		mode = cfg.ILM.Mode
+		st   = indexState{}
 	)
-
-	if cfg.Output.Name() == esKey {
-		if err := cfg.Output.Config().Unpack(&unmanagedIdxCfg); err != nil {
-			return nil, fmt.Errorf("unpacking output elasticsearch index config fails: %+v", err)
-		}
-
-		if err := checkTemplateESSettings(cfg.Template, &unmanagedIdxCfg); err != nil {
-			return nil, err
-		}
-	}
 
 	var disableILM bool
 	if cfg.Output.Name() != esKey || cfg.ILM.Mode == libilm.ModeDisabled {
@@ -113,7 +102,7 @@ func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) 
 		// ILM is set to "auto": disable if we're using data streams,
 		// or if we're not using data streams but we're using customised,
 		// unmanaged indices.
-		if cfg.DataStreams || unmanagedIdxCfg.Customized() {
+		if cfg.DataStreams || cfg.unmanagedIdxCfg.Customized() {
 			disableILM = true
 		}
 	}
@@ -133,7 +122,7 @@ func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) 
 		dataStreams:        cfg.DataStreams,
 		templateConfig:     cfg.Template,
 		ilmConfig:          cfg.ILM,
-		unmanagedIdxConfig: &unmanagedIdxCfg,
+		unmanagedIdxConfig: cfg.unmanagedIdxCfg,
 		migration:          false,
 		st:                 st,
 		ilmSupporters:      ilmSupporters,
@@ -276,15 +265,4 @@ func getEventCustomIndex(evt *beat.Event) string {
 	}
 
 	return ""
-}
-
-func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanaged.Config) error {
-	if !tmplCfg.Enabled || indexCfg == nil {
-		return nil
-	}
-
-	if indexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
-		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
-	}
-	return nil
 }
