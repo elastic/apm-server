@@ -244,86 +244,89 @@
         "null",
         "array"
       ],
-      "properties": {
-        "ap": {
-          "description": "AbsPath is the absolute path of the frame's file.",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "cli": {
-          "description": "ContextLine is the line from the frame's file.",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "cn": {
-          "description": "Classname of the frame.",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "co": {
-          "description": "ColumnNumber of the frame.",
-          "type": [
-            "null",
-            "integer"
-          ]
-        },
-        "f": {
-          "description": "Filename is the relative name of the frame's file.",
-          "type": "string"
-        },
-        "fn": {
-          "description": "Function represented by the frame.",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "li": {
-          "description": "LineNumber of the frame.",
-          "type": [
-            "null",
-            "integer"
-          ]
-        },
-        "mo": {
-          "description": "Module to which the frame belongs to.",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "poc": {
-          "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
-          "type": [
-            "null",
-            "array"
-          ],
-          "items": {
+      "items": {
+        "type": "object",
+        "properties": {
+          "ap": {
+            "description": "AbsPath is the absolute path of the frame's file.",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cli": {
+            "description": "ContextLine is the line from the frame's file.",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cn": {
+            "description": "Classname of the frame.",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "co": {
+            "description": "ColumnNumber of the frame.",
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "f": {
+            "description": "Filename is the relative name of the frame's file.",
             "type": "string"
           },
-          "minItems": 0
-        },
-        "prc": {
-          "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
-          "type": [
-            "null",
-            "array"
-          ],
-          "items": {
-            "type": "string"
+          "fn": {
+            "description": "Function represented by the frame.",
+            "type": [
+              "null",
+              "string"
+            ]
           },
-          "minItems": 0
-        }
+          "li": {
+            "description": "LineNumber of the frame.",
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "mo": {
+            "description": "Module to which the frame belongs to.",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "poc": {
+            "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "minItems": 0
+          },
+          "prc": {
+            "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "f"
+        ]
       },
-      "required": [
-        "f"
-      ],
       "minItems": 0
     },
     "su": {
