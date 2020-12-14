@@ -307,8 +307,10 @@ func TestEvents(t *testing.T) {
 		"valid": {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md},
 			Output: common.MapStr{
-				"agent":   common.MapStr{"name": "go", "version": "1.0"},
-				"service": common.MapStr{"name": "myservice", "version": "1.0"},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"agent":               common.MapStr{"name": "go", "version": "1.0"},
+				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -320,9 +322,11 @@ func TestEvents(t *testing.T) {
 		"notSampled": {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
-				"transaction": common.MapStr{"sampled": false},
-				"agent":       common.MapStr{"name": "go", "version": "1.0"},
-				"service":     common.MapStr{"name": "myservice", "version": "1.0"},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"transaction":         common.MapStr{"sampled": false},
+				"agent":               common.MapStr{"name": "go", "version": "1.0"},
+				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -334,7 +338,9 @@ func TestEvents(t *testing.T) {
 		"withMeta": {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionType: &transactionType},
 			Output: common.MapStr{
-				"transaction": common.MapStr{"type": "request"},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"transaction":         common.MapStr{"type": "request"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
@@ -363,13 +369,15 @@ func TestEvents(t *testing.T) {
 			},
 
 			Output: common.MapStr{
-				"labels":     common.MapStr{"key": true, "label": 101},
-				"service":    common.MapStr{"name": "myservice", "version": "1.0"},
-				"agent":      common.MapStr{"name": "go", "version": "1.0"},
-				"user":       common.MapStr{"id": uid, "email": email},
-				"client":     common.MapStr{"ip": userIP},
-				"source":     common.MapStr{"ip": userIP},
-				"user_agent": common.MapStr{"original": userAgent},
+				"data_stream.type":    "logs",
+				"data_stream.dataset": "apm.error.myservice",
+				"labels":              common.MapStr{"key": true, "label": 101},
+				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
+				"agent":               common.MapStr{"name": "go", "version": "1.0"},
+				"user":                common.MapStr{"id": uid, "email": email},
+				"client":              common.MapStr{"ip": userIP},
+				"source":              common.MapStr{"ip": userIP},
+				"user_agent":          common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{
 						"foo": "bar",

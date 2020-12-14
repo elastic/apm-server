@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	libidxmgmt "github.com/elastic/beats/v7/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -33,6 +34,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/outputs/outil"
 	"github.com/elastic/beats/v7/libbeat/template"
 
+	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/idxmgmt/ilm"
 	"github.com/elastic/apm-server/idxmgmt/unmanaged"
 )
@@ -49,6 +51,7 @@ const esKey = "elasticsearch"
 type supporter struct {
 	log                *logp.Logger
 	info               beat.Info
+	dataStreams        bool
 	templateConfig     template.TemplateConfig
 	ilmConfig          ilm.Config
 	unmanagedIdxConfig *unmanaged.Config
@@ -63,6 +66,20 @@ type indexState struct {
 	isSet      atomic.Bool
 }
 
+// newDataStreamSelector returns an outil.Selector which routes events to
+// a data stream based on well-defined data_stream.* fields in events.
+func newDataStreamSelector() (outputs.IndexSelector, error) {
+	fmtstr, err := fmtstr.CompileEvent(datastreams.IndexFormat)
+	if err != nil {
+		return nil, err
+	}
+	expr, err := outil.FmtSelectorExpr(fmtstr, "", outil.SelectorLowerCase)
+	if err != nil {
+		return nil, err
+	}
+	return outil.MakeSelector(expr), nil
+}
+
 type unmanagedIndexSelector outil.Selector
 
 type ilmIndexSelector struct {
@@ -71,39 +88,41 @@ type ilmIndexSelector struct {
 	st           *indexState
 }
 
-func newSupporter(
-	log *logp.Logger,
-	info beat.Info,
-	templateConfig template.TemplateConfig,
-	ilmConfig ilm.Config,
-	outConfig common.ConfigNamespace,
-) (*supporter, error) {
+func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) (*supporter, error) {
 
 	var (
 		unmanagedIdxCfg unmanaged.Config
-		mode            = ilmConfig.Mode
+		mode            = cfg.ILM.Mode
 		st              = indexState{}
 	)
 
-	if outConfig.Name() == esKey {
-		if err := outConfig.Config().Unpack(&unmanagedIdxCfg); err != nil {
+	if cfg.Output.Name() == esKey {
+		if err := cfg.Output.Config().Unpack(&unmanagedIdxCfg); err != nil {
 			return nil, fmt.Errorf("unpacking output elasticsearch index config fails: %+v", err)
 		}
 
-		if err := checkTemplateESSettings(templateConfig, &unmanagedIdxCfg); err != nil {
+		if err := checkTemplateESSettings(cfg.Template, &unmanagedIdxCfg); err != nil {
 			return nil, err
 		}
 	}
 
-	if outConfig.Name() != esKey ||
-		ilmConfig.Mode == libilm.ModeDisabled ||
-		ilmConfig.Mode == libilm.ModeAuto && unmanagedIdxCfg.Customized() {
-
+	var disableILM bool
+	if cfg.Output.Name() != esKey || cfg.ILM.Mode == libilm.ModeDisabled {
+		disableILM = true
+	} else if cfg.ILM.Mode == libilm.ModeAuto {
+		// ILM is set to "auto": disable if we're using data streams,
+		// or if we're not using data streams but we're using customised,
+		// unmanaged indices.
+		if cfg.DataStreams || unmanagedIdxCfg.Customized() {
+			disableILM = true
+		}
+	}
+	if disableILM {
 		mode = libilm.ModeDisabled
 		st.isSet.CAS(false, true)
 	}
 
-	ilmSupporters, err := ilm.MakeDefaultSupporter(log, mode, ilmConfig)
+	ilmSupporters, err := ilm.MakeDefaultSupporter(log, mode, cfg.ILM)
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +130,9 @@ func newSupporter(
 	return &supporter{
 		log:                log,
 		info:               info,
-		templateConfig:     templateConfig,
-		ilmConfig:          ilmConfig,
+		dataStreams:        cfg.DataStreams,
+		templateConfig:     cfg.Template,
+		ilmConfig:          cfg.ILM,
 		unmanagedIdxConfig: &unmanagedIdxCfg,
 		migration:          false,
 		st:                 st,
@@ -145,6 +165,10 @@ func (s *supporter) Manager(
 // depending on the supporter's config an ILM instance or an unmanaged index selector instance is returned.
 // The ILM instance decides on every Select call whether or not to return ILM indices or regular ones.
 func (s *supporter) BuildSelector(_ *common.Config) (outputs.IndexSelector, error) {
+	if s.dataStreams {
+		return newDataStreamSelector()
+	}
+
 	sel, err := s.buildSelector(s.unmanagedIdxConfig.SelectorConfig())
 	if err != nil {
 		return nil, err

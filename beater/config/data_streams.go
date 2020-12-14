@@ -15,34 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package package_tests
+package config
 
-import (
-	"testing"
-
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/tests"
-)
-
-func metricsetProcSetup() *tests.ProcessorSetup {
-	return &tests.ProcessorSetup{
-		Proc: &intakeTestProcessor{
-			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
-		},
-		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
-		TemplatePaths: []string{
-			"../../../model/metricset/_meta/fields.yml",
-		},
-		SchemaPath: "../../../docs/spec/v2/metricset.json",
-	}
+// DataStreamsConfig holds data streams configuration.
+type DataStreamsConfig struct {
+	Enabled bool `config:"enabled"`
 }
 
-func TestAttributesPresenceInMetric(t *testing.T) {
-	requiredKeys := tests.NewSet(
-		"service",
-		"metricset",
-		"metricset.samples",
-	)
-	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
+func defaultDataStreamsConfig() DataStreamsConfig {
+	return DataStreamsConfig{Enabled: false}
 }

@@ -136,8 +136,6 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
-	go processor.Run()
-	defer processor.Stop(context.Background())
 
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
@@ -170,6 +168,13 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	out, err := processor.ProcessTransformables(context.Background(), in)
 	require.NoError(t, err)
 	assert.Empty(t, out)
+
+	// Start periodic tail-sampling. We start the processor after processing
+	// events to ensure all events are processed before any local sampling
+	// decisions are made, such that we have a single tail-sampling decision
+	// to check.
+	go processor.Run()
+	defer processor.Stop(context.Background())
 
 	// We have configured 50% tail-sampling, so we expect a single trace ID
 	// to be published. Sampling is non-deterministic (weighted random), so
@@ -322,11 +327,16 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, out)
 
+	// Simulate receiving remote sampling decisions multiple times,
+	// to show that we don't report duplicate events.
+	subscriberChan <- traceID2
+	subscriberChan <- traceID1
 	subscriberChan <- traceID2
 	subscriberChan <- traceID1
 
+	var events []transform.Transformable
 	select {
-	case <-reported:
+	case events = <-reported:
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for reporting")
 	}
@@ -346,6 +356,8 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
+	assert.Equal(t, trace1Events.Transformables(), events)
+
 	withBadger(t, config.StorageDir, func(db *badger.DB) {
 		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
 		reader := storage.NewReadWriter()
@@ -362,7 +374,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		var batch model.Batch
 		err = reader.ReadEvents(traceID1, &batch)
 		assert.NoError(t, err)
-		assert.Equal(t, trace1Events, batch)
+		assert.Zero(t, batch) // events are deleted from local storage
 
 		batch = model.Batch{}
 		err = reader.ReadEvents(traceID2, &batch)

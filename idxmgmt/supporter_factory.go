@@ -33,31 +33,43 @@ import (
 // functionality largely copied from libbeat
 
 type IndexManagementConfig struct {
-	Template template.TemplateConfig
-	ILM      ilm.Config
-	Output   common.ConfigNamespace
+	DataStreams bool
+	Template    template.TemplateConfig
+	ILM         ilm.Config
+	Output      common.ConfigNamespace
 }
 
-// MakeDefaultSupporter creates the index management supporter for APM that is passed to libbeat.
+// MakeDefaultSupporter creates a new idxmgmt.Supporter, using the given root config.
+//
+// The Supporter will operate in one of three modes: data streams, legacy
+// managed, and legacy unmanaged. The legacy modes exist purely to run
+// apm-server without data streams or Fleet integration.
+//
+// If (Fleet) management is enabled, then no index, template, or ILM config
+// should be set. Index (data stream) names will be well defined, based on
+// the data type, service name, and user-defined namespace.
+//
+// If management is disabled, then the Supporter will operate in one of the
+// legacy modes based on configuration.
 func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.Config) (idxmgmt.Supporter, error) {
 	cfg, err := NewIndexManagementConfig(info, configRoot)
 	if err != nil {
 		return nil, err
 	}
-
 	if log == nil {
 		log = logp.NewLogger(logs.IndexManagement)
 	} else {
 		log = log.Named(logs.IndexManagement)
 	}
-	return newSupporter(log, info, cfg.Template, cfg.ILM, cfg.Output)
+	return newSupporter(log, info, cfg)
 }
 
 func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*IndexManagementConfig, error) {
 	cfg := struct {
-		ILM      *common.Config         `config:"apm-server.ilm"`
-		Template *common.Config         `config:"setup.template"`
-		Output   common.ConfigNamespace `config:"output"`
+		DataStreams *common.Config         `config:"apm-server.data_streams"`
+		ILM         *common.Config         `config:"apm-server.ilm"`
+		Template    *common.Config         `config:"setup.template"`
+		Output      common.ConfigNamespace `config:"output"`
 	}{}
 	if configRoot != nil {
 		if err := configRoot.Unpack(&cfg); err != nil {
@@ -76,9 +88,10 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 	}
 
 	return &IndexManagementConfig{
-		Template: tmplConfig,
-		ILM:      ilmConfig,
-		Output:   cfg.Output,
+		DataStreams: cfg.DataStreams.Enabled(),
+		Template:    tmplConfig,
+		ILM:         ilmConfig,
+		Output:      cfg.Output,
 	}, nil
 }
 

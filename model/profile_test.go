@@ -97,7 +97,9 @@ func TestPprofProfileTransform(t *testing.T) {
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
 		Fields: common.MapStr{
-			"processor": common.MapStr{"event": "profile", "name": "profile"},
+			"data_stream.type":    "metrics",
+			"data_stream.dataset": "apm.profiling.myservice",
+			"processor":           common.MapStr{"event": "profile", "name": "profile"},
 			"service": common.MapStr{
 				"name":        "myService",
 				"environment": "staging",

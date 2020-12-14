@@ -15,34 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package package_tests
+package datastreams_test
 
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/tests"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/datastreams"
 )
 
-func metricsetProcSetup() *tests.ProcessorSetup {
-	return &tests.ProcessorSetup{
-		Proc: &intakeTestProcessor{
-			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
-		},
-		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
-		TemplatePaths: []string{
-			"../../../model/metricset/_meta/fields.yml",
-		},
-		SchemaPath: "../../../docs/spec/v2/metricset.json",
+func TestNormalizeServiceName(t *testing.T) {
+	testNormalizeServiceName := func(expected, input string) {
+		t.Helper()
+		assert.Equal(t, expected, datastreams.NormalizeServiceName(input))
 	}
-}
-
-func TestAttributesPresenceInMetric(t *testing.T) {
-	requiredKeys := tests.NewSet(
-		"service",
-		"metricset",
-		"metricset.samples",
-	)
-	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
+	testNormalizeServiceName("upper_case", "UPPER-CASE")
+	testNormalizeServiceName("____________", "\\/*?\"<>| ,#:")
 }

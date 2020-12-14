@@ -18,7 +18,6 @@
 package package_tests
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -35,7 +34,6 @@ func transactionProcSetup() *tests.ProcessorSetup {
 		SchemaPath:      "../../../docs/spec/v2/transaction.json",
 		TemplatePaths: []string{
 			"../../../model/transaction/_meta/fields.yml",
-			"../../../_meta/fields.common.yml",
 		},
 	}
 }
@@ -92,6 +90,7 @@ func transactionRequiredKeys() *tests.Set {
 
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
+		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
 		"processor.event", "processor.name",
 		"transaction.marks",
 		"context.tags",
@@ -135,77 +134,4 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 			{Template: "transaction."},
 		},
 	)
-}
-
-func TestPayloadDataForTransaction(t *testing.T) {
-	// add test data for testing
-	// * specific edge cases
-	// * multiple allowed dataypes
-	// * regex pattern, time formats
-	// * length restrictions, other than keyword length restrictions
-
-	transactionProcSetup().DataValidation(t,
-		[]tests.SchemaTestData{
-			{Key: "transaction.duration",
-				Valid:   []interface{}{12.4},
-				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{"123"}}}},
-			{Key: "transaction.timestamp",
-				Valid: val{json.Number("1496170422281000")},
-				Invalid: []tests.Invalid{
-					{Msg: `decode error`, Values: val{"1496170422281000"}}}},
-			{Key: "transaction.marks",
-				Valid: []interface{}{obj{}, obj{tests.Str1024: obj{tests.Str1024: 21.0, "end": -45}}},
-				Invalid: []tests.Invalid{
-					{Msg: `decode error`, Values: val{
-						"marks",
-						obj{"timing": obj{"start": "start"}},
-						obj{"timing": obj{"start": obj{}}},
-					}},
-					{Msg: `validation error`, Values: val{
-						obj{"timing": obj{"m*e": -45}},
-						obj{"timing": obj{"m\"": -45}},
-						obj{"timing": obj{"m.": -45}},
-						obj{"tim*ing": obj{"start": -45}},
-						obj{"tim\"ing": obj{"start": -45}},
-						obj{"tim.ing": obj{"start": -45}}}}}},
-			{Key: "transaction.context.custom",
-				Valid: val{obj{"whatever": obj{"comes": obj{"end": -45}}},
-					obj{"whatever": 123}},
-				Invalid: []tests.Invalid{
-					{Msg: `validation error`, Values: val{obj{"what.ever": 123}, obj{"what*ever": 123}, obj{"what\"ever": 123}}},
-					{Msg: `decode error`, Values: val{"context"}}}},
-			{Key: "transaction.context.request.body",
-				Valid:   []interface{}{obj{}, tests.Str1025},
-				Invalid: []tests.Invalid{{Msg: `validation error`, Values: val{102}}}},
-			{Key: "transaction.context.request.headers", Valid: val{
-				obj{"User-Agent": "go-1.1"},
-				obj{"foo-bar": "a,b"},
-				obj{"foo": []interface{}{"a", "b"}}},
-				Invalid: []tests.Invalid{
-					{Msg: `decode error`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
-			{Key: "transaction.context.request.env",
-				Valid:   []interface{}{obj{}},
-				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{102, "a"}}}},
-			{Key: "transaction.context.request.cookies",
-				Valid:   []interface{}{obj{}},
-				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{123, ""}}}},
-			{Key: "transaction.context.response.headers", Valid: val{
-				obj{"User-Agent": "go-1.1"},
-				obj{"foo-bar": "a,b"},
-				obj{"foo": []interface{}{"a", "b"}}},
-				Invalid: []tests.Invalid{{Msg: `decode error`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
-			{Key: "transaction.context.tags",
-				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
-				Invalid: []tests.Invalid{
-					{Msg: `decode error`, Values: val{"tags"}},
-					{Msg: `validation error`, Values: val{
-						obj{"invalid": tests.Str1025},
-						obj{tests.Str1024: obj{}},
-						obj{"invali*d": "hello"},
-						obj{"invali\"d": "hello"},
-						obj{"invali.d": "hello"}}}}},
-			{Key: "transaction.context.user.id",
-				Valid:   val{123, tests.Str1024Special},
-				Invalid: []tests.Invalid{{Msg: `validation error`, Values: val{obj{}, tests.Str1025}}}},
-		})
 }

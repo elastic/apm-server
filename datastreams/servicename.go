@@ -15,34 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package package_tests
+package datastreams
 
-import (
-	"testing"
+import "strings"
 
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/tests"
-)
-
-func metricsetProcSetup() *tests.ProcessorSetup {
-	return &tests.ProcessorSetup{
-		Proc: &intakeTestProcessor{
-			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
-		},
-		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
-		TemplatePaths: []string{
-			"../../../model/metricset/_meta/fields.yml",
-		},
-		SchemaPath: "../../../docs/spec/v2/metricset.json",
-	}
+// NormalizeServiceName translates serviceName into a string suitable
+// for inclusion in a data stream name.
+//
+// Concretely, this function will lowercase the string and replace any
+// reserved characters with "_".
+func NormalizeServiceName(s string) string {
+	s = strings.ToLower(s)
+	s = strings.Map(replaceReservedRune, s)
+	return s
 }
 
-func TestAttributesPresenceInMetric(t *testing.T) {
-	requiredKeys := tests.NewSet(
-		"service",
-		"metricset",
-		"metricset.samples",
-	)
-	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
+func replaceReservedRune(r rune) rune {
+	switch r {
+	case '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#', ':':
+		// These characters are not permitted in data stream names
+		// by Elasticsearch.
+		return '_'
+	case '-':
+		// Hyphens are used to separate the data stream type, dataset,
+		// and namespace.
+		return '_'
+	}
+	return r
 }

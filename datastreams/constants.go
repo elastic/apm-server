@@ -15,34 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package package_tests
+package datastreams
 
-import (
-	"testing"
-
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/tests"
+// Constants for data stream types.
+const (
+	LogsType    = "logs"
+	MetricsType = "metrics"
+	TracesType  = "traces"
 )
 
-func metricsetProcSetup() *tests.ProcessorSetup {
-	return &tests.ProcessorSetup{
-		Proc: &intakeTestProcessor{
-			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
-		},
-		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
-		TemplatePaths: []string{
-			"../../../model/metricset/_meta/fields.yml",
-		},
-		SchemaPath: "../../../docs/spec/v2/metricset.json",
-	}
-}
+// Cosntants for data stream event metadata fields.
+const (
+	TypeField      = "data_stream.type"
+	DatasetField   = "data_stream.dataset"
+	NamespaceField = "data_stream.namespace"
+)
 
-func TestAttributesPresenceInMetric(t *testing.T) {
-	requiredKeys := tests.NewSet(
-		"service",
-		"metricset",
-		"metricset.samples",
-	)
-	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
-}
+// IndexFormat holds the variable "index" format to use for the libbeat Elasticsearch output.
+// Each event the server publishes is expected to contain data_stream.* fields, which will be
+// added to the documents as well as be used for routing documents to the correct data stream.
+const IndexFormat = "%{[data_stream.type]}-%{[data_stream.dataset]}-%{[data_stream.namespace]}"

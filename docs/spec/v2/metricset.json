@@ -8,6 +8,10 @@
       "additionalProperties": false,
       "patternProperties": {
         "^[^*\"]*$": {
+          "type": [
+            "null",
+            "object"
+          ],
           "properties": {
             "value": {
               "description": "Value holds the value of a single metric sample.",
