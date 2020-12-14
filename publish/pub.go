@@ -88,7 +88,6 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 
 	processingCfg := beat.ProcessingConfig{
 		Fields: common.MapStr{
-			datastreams.NamespaceField: "default",
 			"observer": common.MapStr{
 				"type":          cfg.Info.Beat,
 				"hostname":      cfg.Info.Hostname,
@@ -99,6 +98,9 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 			},
 		},
 		Processor: cfg.Processor,
+	}
+	if cfg.TransformConfig.DataStreams {
+		processingCfg.Fields[datastreams.NamespaceField] = "default"
 	}
 	if cfg.Pipeline != "" {
 		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}

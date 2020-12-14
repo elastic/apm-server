@@ -411,7 +411,8 @@ func TestEvents(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			outputEvents := tc.Transformable.Transform(context.Background(), &transform.Config{
-				RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+				DataStreams: true,
+				RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
 			})
 			require.Len(t, outputEvents, 1)
 			outputEvent := outputEvents[0]
