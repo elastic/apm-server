@@ -6,13 +6,12 @@ import subprocess
 import socket
 import pytest
 from requests.packages.urllib3.exceptions import SubjectAltNameWarning
-requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
-
 from apmserver import ServerBaseTest
 from apmserver import TimeoutError, integration_test
 
 INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
 
+requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
 @integration_test
 class TestSecureServerBaseTest(ServerBaseTest):
