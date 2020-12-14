@@ -132,6 +132,11 @@ func CleanupElasticsearch(t testing.TB) {
 		t.Fatal(err)
 	}
 
+	// Delete index templates after deleting data streams.
+	if err := doReq(esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}); err != nil {
+		t.Fatal(err)
+	}
+
 	// Delete the ILM policy last or we'll get an error due to it being in use.
 	for {
 		err := doReq(esapi.ILMDeleteLifecycleRequest{Policy: "apm-rollover-30-days"})
