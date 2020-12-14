@@ -72,6 +72,7 @@ type Config struct {
 	ShutdownTimeout     time.Duration           `config:"shutdown_timeout"`
 	TLS                 *tlscommon.ServerConfig `config:"ssl"`
 	MaxConnections      int                     `config:"max_connections"`
+	ResponseHeaders     map[string][]string     `config:"response_headers"`
 	Expvar              *ExpvarConfig           `config:"expvar"`
 	AugmentEnabled      bool                    `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig  `config:"instrumentation"`
