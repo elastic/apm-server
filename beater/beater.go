@@ -83,20 +83,14 @@ func NewCreator(args CreatorParams) beat.Creator {
 			return nil, err
 		}
 
-		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all,
-		// and apm-server is not running supervised by Elastic Agent
-		shouldSetupPipelines := bt.config.Register.Ingest.Pipeline.IsEnabled() ||
-			(b.InSetupCmd && bt.config.Register.Ingest.Pipeline.Enabled == nil)
-		runningUnderElasticAgent := b.Manager != nil && b.Manager.Enabled()
-
-		if esOutputCfg != nil && shouldSetupPipelines && !runningUnderElasticAgent {
-			bt.logger.Info("Registering pipeline callback")
-			err := bt.registerPipelineCallback(b)
-			if err != nil {
-				return nil, err
+		if !bt.config.DataStreams.Enabled {
+			if b.Manager != nil && b.Manager.Enabled() {
+				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
-		} else {
-			bt.logger.Info("No pipeline callback registered")
+		}
+
+		if err := bt.registerPipelineCallback(b); err != nil {
+			return nil, err
 		}
 
 		return bt, nil
@@ -248,13 +242,40 @@ func checkConfig(logger *logp.Logger) error {
 
 // elasticsearchOutputConfig returns nil if the output is not elasticsearch
 func elasticsearchOutputConfig(b *beat.Beat) *common.Config {
-	if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
+	if hasElasticsearchOutput(b) {
 		return b.Config.Output.Config()
 	}
 	return nil
 }
 
+func hasElasticsearchOutput(b *beat.Beat) bool {
+	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
+}
+
+// registerPipelineCallback registers an Elasticsearch connection callback
+// that ensures the configured pipeline is installed, if configured to do
+// so. If data streams are enabled, then pipeline registration is always
+// disabled and `setup --pipelines` will return an error.
 func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
+	if !hasElasticsearchOutput(b) {
+		bt.logger.Info("Output is not Elasticsearch: pipeline registration disabled")
+		return nil
+	}
+
+	if bt.config.DataStreams.Enabled {
+		bt.logger.Info("Data streams enabled: pipeline registration disabled")
+		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
+			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
+		}
+		return nil
+	}
+
+	if !bt.config.Register.Ingest.Pipeline.IsEnabled() {
+		bt.logger.Info("Pipeline registration disabled")
+		return nil
+	}
+
+	bt.logger.Info("Registering pipeline callback")
 	overwrite := bt.config.Register.Ingest.Pipeline.ShouldOverwrite()
 	path := bt.config.Register.Ingest.Pipeline.Path
 

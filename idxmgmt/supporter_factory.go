@@ -37,7 +37,10 @@ type IndexManagementConfig struct {
 	ILM         ilm.Config
 	Output      common.ConfigNamespace
 
-	unmanagedIdxCfg unmanaged.Config
+	unmanagedIdxCfg                 unmanaged.Config
+	registerIngestPipelineSpecified bool
+	setupTemplateSpecified          bool
+	ilmSpecified                    bool
 }
 
 // MakeDefaultSupporter creates a new idxmgmt.Supporter, using the given root config.
@@ -46,9 +49,10 @@ type IndexManagementConfig struct {
 // managed, and legacy unmanaged. The legacy modes exist purely to run
 // apm-server without data streams or Fleet integration.
 //
-// If (Fleet) management is enabled, then no index, template, or ILM config
-// should be set. Index (data stream) names will be well defined, based on
-// the data type, service name, and user-defined namespace.
+// If (Fleet) management is enabled, then any index, template, and ILM config
+// defined will be ignored and warnings logged. Index (data stream) names will
+// be well defined, based on the data type, service name, and user-defined
+// namespace.
 //
 // If management is disabled, then the Supporter will operate in one of the
 // legacy modes based on configuration.
@@ -58,6 +62,10 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 		return nil, err
 	}
 	log = namedLogger(log)
+	cfg.logWarnings(log)
+	if cfg.DataStreams {
+		return dataStreamsSupporter{}, nil
+	}
 	return newSupporter(log, info, cfg)
 }
 
@@ -104,11 +112,15 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 	}
 
 	return &IndexManagementConfig{
-		Output:   cfg.Output,
-		Template: templateConfig,
-		ILM:      ilmConfig,
+		DataStreams: cfg.DataStreams.Enabled(),
+		Output:      cfg.Output,
+		Template:    templateConfig,
+		ILM:         ilmConfig,
 
-		unmanagedIdxCfg: unmanagedIdxCfg,
+		unmanagedIdxCfg:                 unmanagedIdxCfg,
+		registerIngestPipelineSpecified: cfg.RegisterIngestPipeline != nil,
+		setupTemplateSpecified:          cfg.Template != nil,
+		ilmSpecified:                    cfg.ILM != nil,
 	}, nil
 }
 
@@ -120,6 +132,25 @@ func checkTemplateESSettings(tmplCfg template.TemplateConfig, indexCfg *unmanage
 		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
 	}
 	return nil
+}
+
+func (cfg *IndexManagementConfig) logWarnings(log *logp.Logger) {
+	if !cfg.DataStreams {
+		return
+	}
+	const format = "`%s` specified, but will be ignored as data streams are enabled"
+	if cfg.setupTemplateSpecified {
+		log.Warnf(format, "setup.template")
+	}
+	if cfg.ilmSpecified {
+		log.Warnf(format, "apm-server.ilm")
+	}
+	if cfg.registerIngestPipelineSpecified {
+		log.Warnf(format, "apm-server.register.ingest.pipeline")
+	}
+	if cfg.unmanagedIdxCfg.Customized() {
+		log.Warnf(format, "output.elasticsearch.{index,indices}")
+	}
 }
 
 // unpackTemplateConfig merges APM-specific template settings with (possibly nil)
