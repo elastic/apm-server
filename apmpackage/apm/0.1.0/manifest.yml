@@ -10,6 +10,11 @@ categories:
 release: experimental # experimental / beta / ga
 conditions:
   kibana.version: '^7.11.0'
+icons:
+  - src: /img/logo_apm.svg
+    title: APM Logo
+    size: 32x32
+    type: image/svg+xml
 policy_templates:
 - name: apmserver
   title: Elastic APM Integration
