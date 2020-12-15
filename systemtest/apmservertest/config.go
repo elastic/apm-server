@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"sort"
@@ -48,6 +49,9 @@ type Config struct {
 	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM         *RUMConfig         `json:"apm-server.rum,omitempty"`
 	DataStreams *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
+
+	// ResponseHeaders holds headers to add to all APM Server HTTP responses.
+	ResponseHeaders http.Header `json:"apm-server.response_headers,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -143,6 +147,9 @@ type TailSamplingPolicy struct {
 // RUMConfig holds APM Server RUM configuration.
 type RUMConfig struct {
 	Enabled bool `json:"enabled"`
+
+	// ResponseHeaders holds headers to add to all APM Server RUM HTTP responses.
+	ResponseHeaders http.Header `json:"response_headers,omitempty"`
 }
 
 // DataStreamsConfig holds APM Server data streams configuration.
