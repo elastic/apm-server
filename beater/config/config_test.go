@@ -49,6 +49,15 @@ func TestUnpackConfig(t *testing.T) {
 	kibanaHeadersConfig.Kibana.Enabled = true
 	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
 
+	responseHeadersConfig := DefaultConfig()
+	responseHeadersConfig.ResponseHeaders = map[string][]string{
+		"k1": []string{"v1"},
+		"k2": []string{"v2", "v3"},
+	}
+	responseHeadersConfig.RumConfig.ResponseHeaders = map[string][]string{
+		"k4": []string{"v4"},
+	}
+
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
 		outCfg *Config
@@ -391,6 +400,20 @@ func TestUnpackConfig(t *testing.T) {
 				},
 			},
 			outCfg: kibanaHeadersConfig,
+		},
+		"response headers": {
+			inpCfg: map[string]interface{}{
+				"response_headers": map[string]interface{}{
+					"k1": "v1",
+					"k2": []string{"v2", "v3"},
+				},
+				"rum": map[string]interface{}{
+					"response_headers": map[string]interface{}{
+						"k4": []string{"v4"},
+					},
+				},
+			},
+			outCfg: responseHeadersConfig,
 		},
 	}
 
