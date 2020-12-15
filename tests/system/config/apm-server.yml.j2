@@ -109,34 +109,6 @@ apm-server:
   register.ingest.pipeline.overwrite: {{ register_pipeline_overwrite }}
   {% endif %}
 
-  {% if instrumentation_enabled %}
-  instrumentation.enabled: {{ instrumentation_enabled }}
-  {% endif %}
-  {% if instrumentation_host %}
-  instrumentation.hosts: [{{ instrumentation_host }}]
-  {% endif %}
-  {% if instrumentation_api_key %}
-  instrumentation.api_key: {{ instrumentation_api_key }}
-  {% endif %}
-  {% if instrumentation_secret_token %}
-  instrumentation.secret_token: {{ instrumentation_secret_token }}
-  {% endif %}
-  {% if profiling_cpu_enabled %}
-  instrumentation.profiling.cpu.enabled: {{ profiling_cpu_enabled }}
-  {% endif %}
-  {% if profiling_cpu_interval %}
-  instrumentation.profiling.cpu.interval: {{ profiling_cpu_interval }}
-  {% endif %}
-  {% if profiling_cpu_duration %}
-  instrumentation.profiling.cpu.duration: {{ profiling_cpu_duration }}
-  {% endif %}
-  {% if profiling_heap_enabled %}
-  instrumentation.profiling.heap.enabled: {{ profiling_heap_enabled }}
-  {% endif %}
-  {% if profiling_heap_interval %}
-  instrumentation.profiling.heap.interval: {{ profiling_heap_interval }}
-  {% endif %}
-
   {% if aggregation_enabled %}
   aggregation.transactions.enabled: {{ aggregation_enabled }}
   {% endif %}
@@ -206,37 +178,6 @@ apm-server:
     {% if kibana_host is not none %}host: {{ kibana_host }}{% endif %}
   {% endif %}
 {% if acm_cache_expiration is not none %}  agent.config.cache.expiration: {{ acm_cache_expiration }}{% endif %}
-
-
-################### Libbeat instrumentation ###############################
-{% if libbeat_instrumentation_enabled %}
-instrumentation.enabled: {{ libbeat_instrumentation_enabled }}
-{% endif %}
-{% if libbeat_instrumentation_host %}
-instrumentation.hosts: [{{ libbeat_instrumentation_host }}]
-{% endif %}
-{% if libbeat_instrumentation_api_key %}
-instrumentation.api_key: {{ libbeat_instrumentation_api_key }}
-{% endif %}
-{% if libbeat_instrumentation_secret_token %}
-instrumentation.secret_token: {{ libbeat_instrumentation_secret_token }}
-{% endif %}
-{% if libbeat_profiling_cpu_enabled %}
-instrumentation.profiling.cpu.enabled: {{ libbeat_profiling_cpu_enabled }}
-{% endif %}
-{% if libbeat_profiling_cpu_interval %}
-instrumentation.profiling.cpu.interval: {{ libbeat_profiling_cpu_interval }}
-{% endif %}
-{% if libbeat_profiling_cpu_duration %}
-instrumentation.profiling.cpu.duration: {{ libbeat_profiling_cpu_duration }}
-{% endif %}
-{% if libbeat_profiling_heap_enabled %}
-instrumentation.profiling.heap.enabled: {{ libbeat_profiling_heap_enabled }}
-{% endif %}
-{% if libbeat_profiling_heap_interval %}
-instrumentation.profiling.heap.interval: {{ libbeat_profiling_heap_interval }}
-{% endif %}
-
 
 ############################# Setup ##########################################
 

@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -34,6 +33,7 @@ import (
 const (
 	transactionProcessorName = "transaction"
 	transactionDocType       = "transaction"
+	TracesDataset            = "apm"
 )
 
 var (
@@ -120,9 +120,8 @@ func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat
 
 	if cfg.DataStreams {
 		// Transactions are stored in a "traces" data stream along with spans.
-		dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
 		fields[datastreams.TypeField] = datastreams.TracesType
-		fields[datastreams.DatasetField] = dataset
+		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set generic metadata (order is relevant)
