@@ -48,6 +48,7 @@ var libbeatConfigOverrides = []cfgfile.ConditionalOverride{{
 			"metrics": map[string]interface{}{
 				"enabled": false,
 			},
+			"ecs": true,
 		},
 	}),
 }}

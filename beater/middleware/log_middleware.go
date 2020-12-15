@@ -34,73 +34,76 @@ import (
 
 // LogMiddleware returns a middleware taking care of logging processing a request in the middleware and the request handler
 func LogMiddleware() Middleware {
-	logger := logp.NewLogger(logs.Request)
 	return func(h request.Handler) (request.Handler, error) {
-
 		return func(c *request.Context) {
-			var reqID, transactionID, traceID string
 			start := time.Now()
-			tx := apm.TransactionFromContext(c.Request.Context())
-			if tx != nil {
-				// This request is being traced, grab its IDs to add to logs.
-				traceContext := tx.TraceContext()
-				transactionID = traceContext.Span.String()
-				traceID = traceContext.Trace.String()
-				reqID = transactionID
-			} else {
-				uuid, err := uuid.NewV4()
-				if err != nil {
-					id := request.IDResponseErrorsInternal
-					logger.Errorw(request.MapResultIDToStatus[id].Keyword, "error", err)
-					c.Result.SetWithError(id, err)
-					c.Write()
-					return
-				}
-				reqID = uuid.String()
+			c.Logger = loggerWithRequestContext(c)
+			var err error
+			if c.Logger, err = loggerWithTraceContext(c); err != nil {
+				id := request.IDResponseErrorsInternal
+				c.Logger.Error(request.MapResultIDToStatus[id].Keyword, logp.Error(err))
+				c.Result.SetWithError(id, err)
+				c.Write()
+				return
 			}
-
-			reqLogger := logger.With(
-				"request_id", reqID,
-				"method", c.Request.Method,
-				"URL", c.Request.URL,
-				"content_length", c.Request.ContentLength,
-				"remote_address", utility.RemoteAddr(c.Request),
-				"user-agent", c.Request.Header.Get(headers.UserAgent))
-
-			if traceID != "" {
-				reqLogger = reqLogger.With(
-					"trace.id", traceID,
-					"transaction.id", transactionID,
-				)
-			}
-
-			c.Logger = reqLogger
 			h(c)
-			reqLogger = reqLogger.With("event.duration", time.Since(start))
-
+			c.Logger = c.Logger.With("event.duration", time.Since(start))
 			if c.MultipleWriteAttempts() {
-				reqLogger.Warn("multiple write attempts")
+				c.Logger.Warn("multiple write attempts")
 			}
-
 			keyword := c.Result.Keyword
 			if keyword == "" {
 				keyword = "handled request"
 			}
-
-			keysAndValues := []interface{}{"response_code", c.Result.StatusCode}
-			if c.Result.Err != nil {
-				keysAndValues = append(keysAndValues, "error", c.Result.Err.Error())
-			}
-			if c.Result.Stacktrace != "" {
-				keysAndValues = append(keysAndValues, "stacktrace", c.Result.Stacktrace)
-			}
-
+			c.Logger = loggerWithResult(c)
 			if c.Result.Failure() {
-				reqLogger.Errorw(keyword, keysAndValues...)
-			} else {
-				reqLogger.Infow(keyword, keysAndValues...)
+				c.Logger.Error(keyword)
+				return
 			}
-
+			c.Logger.Info(keyword)
 		}, nil
 	}
+}
+
+func loggerWithRequestContext(c *request.Context) *logp.Logger {
+	logger := logp.NewLogger(logs.Request).With(
+		"url.original", c.Request.URL.String(),
+		"http.request.method", c.Request.Method,
+		"user_agent.original", c.Request.Header.Get(headers.UserAgent),
+		"source.address", utility.RemoteAddr(c.Request))
+	if c.Request.ContentLength != -1 {
+		logger = logger.With("http.request.body.bytes", c.Request.ContentLength)
+	}
+	return logger
+}
+
+func loggerWithTraceContext(c *request.Context) (*logp.Logger, error) {
+	tx := apm.TransactionFromContext(c.Request.Context())
+	if tx == nil {
+		uuid, err := uuid.NewV4()
+		if err != nil {
+			return c.Logger, err
+		}
+		return c.Logger.With("http.request.id", uuid.String()), nil
+	}
+	// This request is being traced, grab its IDs to add to logs.
+	traceContext := tx.TraceContext()
+	transactionID := traceContext.Span.String()
+	return c.Logger.With(
+		"trace.id", traceContext.Trace.String(),
+		"transaction.id", transactionID,
+		"http.request.id", transactionID,
+	), nil
+}
+
+func loggerWithResult(c *request.Context) *logp.Logger {
+	logger := c.Logger.With(
+		"http.response.status_code", c.Result.StatusCode)
+	if c.Result.Err != nil {
+		logger = logger.With("error.message", c.Result.Err.Error())
+	}
+	if c.Result.Stacktrace != "" {
+		logger = logger.With("error.stack_trace", c.Result.Stacktrace)
+	}
+	return logger
 }

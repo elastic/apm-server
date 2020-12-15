@@ -1063,8 +1063,8 @@ output.elasticsearch:
 
 # Set to true, to log messages with minimal required Elastic Common Schema (ECS)
 # information. Recommended to use in combination with `logging.json=true`
-# Defaults to false.
-#logging.ecs: false
+# Defaults to true.
+#logging.ecs: true
 
 #=============================== HTTP Endpoint ===============================
 

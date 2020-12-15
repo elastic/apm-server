@@ -249,22 +249,9 @@ output.elasticsearch:
 
 ############################# Logging #########################################
 
-{% if logging_json or logging_level %}
+{% if logging_json or logging_level or logging_ecs_disabled %}
 logging:
-{% else %}
-#logging:
 {% endif %}
-  # Send all logging output to syslog. On Windows default is false, otherwise
-  # default is true.
-  #to_syslog: true
-
-  # Write all logging output to files. Beats automatically rotate files if configurable
-  # limit is reached.
-  #to_files: false
-
-  # Enable debug output for selected components.
-  #selectors: []
-
 {% if logging_json %}
   # Set to true to log messages in json format.
   json: {{ logging_json }}
@@ -275,19 +262,9 @@ logging:
   level: {{ logging_level }}
 {% endif %}
 
-  #files:
-    # The directory where the log files will written to.
-    #path: /var/log/apm-server
-
-    # The name of the files where the logs are written to.
-    #name: apm-server
-
-    # Configure log file size limit. If limit is reached, log file will be
-    # automatically rotated
-    #rotateeverybytes: 10485760 # = 10MB
-
-    # Number of rotated log files to keep. Oldest files will be deleted first.
-    #keepfiles: 7
+{% if logging_ecs_disabled %}
+  ecs: false
+{% endif %}
 
 queue.mem.flush.min_events: {{ queue_flush }}
 
