@@ -34,12 +34,12 @@ func generateFields(version string) map[string][]field {
 	ecsFlatFields := loadECSFields()
 
 	inputFieldsFiles := map[string][]field{
-		"logs":             format("model/error/_meta/fields.yml"),
+		"error_logs":       format("model/error/_meta/fields.yml"),
 		"internal_metrics": format("model/metricset/_meta/fields.yml", "x-pack/apm-server/fields/_meta/fields.yml"),
-		"profiles":         format("model/profile/_meta/fields.yml"),
+		"profile_metrics":  format("model/profile/_meta/fields.yml"),
 		"traces":           format("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
 	}
-	inputFieldsFiles["metrics"] = filterInternalMetrics(inputFieldsFiles["internal_metrics"])
+	inputFieldsFiles["app_metrics"] = filterInternalMetrics(inputFieldsFiles["internal_metrics"])
 
 	for streamType, inputFields := range inputFieldsFiles {
 		var ecsFields []field

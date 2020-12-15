@@ -1,4 +1,3 @@
 title: APM profiles
 type: metrics
 dataset: apm.profiling
-ingest_pipeline: apm
