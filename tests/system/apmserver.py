@@ -268,7 +268,7 @@ class ElasticTest(ServerBaseTest):
 
     def wait_until_pipeline_logged(self):
         registration_enabled = self.config().get("register_pipeline_enabled")
-        msg = "Registered Ingest Pipelines successfully" if registration_enabled != "false" else "No pipeline callback registered"
+        msg = "Registered Ingest Pipelines successfully" if registration_enabled != "false" else "Pipeline registration disabled"
         wait_until(lambda: self.log_contains(msg), name="pipelines registration")
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
@@ -337,8 +337,8 @@ class ElasticTest(ServerBaseTest):
     def logged_requests(self, url="/intake/v2/events"):
         for line in self.get_log_lines():
             jline = json.loads(line)
-            u = urlparse(jline.get("URL", ""))
-            if jline.get("logger") == "request" and u.path == url:
+            u = urlparse(jline.get("url.original", ""))
+            if jline.get("log.logger") == "request" and u.path == url:
                 yield jline
 
     def approve_docs(self, base_path, received):

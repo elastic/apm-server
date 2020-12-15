@@ -19,7 +19,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -34,6 +33,7 @@ import (
 const (
 	transactionProcessorName = "transaction"
 	transactionDocType       = "transaction"
+	TracesDataset            = "apm"
 )
 
 var (
@@ -63,8 +63,8 @@ type Transaction struct {
 	Page           *Page
 	HTTP           *Http
 	URL            *URL
-	Labels         *Labels
-	Custom         *Custom
+	Labels         common.MapStr
+	Custom         common.MapStr
 	UserExperience *UserExperience
 
 	Experimental interface{}
@@ -91,7 +91,7 @@ func (e *Transaction) fields() common.MapStr {
 	fields.maybeSetString("result", e.Result)
 	fields.maybeSetMapStr("marks", e.Marks.fields())
 	fields.maybeSetMapStr("page", e.Page.Fields())
-	fields.maybeSetMapStr("custom", e.Custom.Fields())
+	fields.maybeSetMapStr("custom", customFields(e.Custom))
 	fields.maybeSetMapStr("message", e.Message.Fields())
 	fields.maybeSetMapStr("experience", e.UserExperience.Fields())
 	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
@@ -120,21 +120,18 @@ func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat
 
 	if cfg.DataStreams {
 		// Transactions are stored in a "traces" data stream along with spans.
-		dataset := fmt.Sprintf("apm.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
 		fields[datastreams.TypeField] = datastreams.TracesType
-		fields[datastreams.DatasetField] = dataset
+		fields[datastreams.DatasetField] = TracesDataset
 	}
 
 	// first set generic metadata (order is relevant)
-	e.Metadata.Set(fields)
+	e.Metadata.Set(fields, e.Labels)
 	utility.Set(fields, "source", fields["client"])
 
 	// then merge event specific information
 	utility.AddID(fields, "parent", e.ParentID)
 	utility.AddID(fields, "trace", e.TraceID)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
 	urlFields := e.URL.Fields()
 	if urlFields != nil {
@@ -160,7 +157,7 @@ func (m TransactionMarks) fields() common.MapStr {
 	}
 	out := make(mapStr, len(m))
 	for k, v := range m {
-		out.maybeSetMapStr(k, v.fields())
+		out.maybeSetMapStr(sanitizeLabelKey(k), v.fields())
 	}
 	return common.MapStr(out)
 }
@@ -173,7 +170,7 @@ func (m TransactionMark) fields() common.MapStr {
 	}
 	out := make(common.MapStr, len(m))
 	for k, v := range m {
-		out[k] = common.Float(v)
+		out[sanitizeLabelKey(k)] = common.Float(v)
 	}
 	return out
 }

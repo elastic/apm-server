@@ -72,6 +72,7 @@ type Config struct {
 	ShutdownTimeout     time.Duration           `config:"shutdown_timeout"`
 	TLS                 *tlscommon.ServerConfig `config:"ssl"`
 	MaxConnections      int                     `config:"max_connections"`
+	ResponseHeaders     map[string][]string     `config:"response_headers"`
 	Expvar              *ExpvarConfig           `config:"expvar"`
 	AugmentEnabled      bool                    `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig  `config:"instrumentation"`
@@ -118,10 +119,6 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, errors.New(msgInvalidConfigAgentCfg)
 	}
 
-	if outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines")) {
-		c.Pipeline = ""
-	}
-
 	if err := c.RumConfig.setup(logger, outputESCfg); err != nil {
 		return nil, err
 	}
@@ -155,6 +152,10 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 			"apm-server.aggregation.transactions.enabled are both false, " +
 			"which will lead to incorrect metrics being reported in the APM UI",
 		)
+	}
+
+	if c.DataStreams.Enabled || (outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines"))) {
+		c.Pipeline = ""
 	}
 	return c, nil
 }

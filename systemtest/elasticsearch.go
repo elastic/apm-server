@@ -90,11 +90,19 @@ func newElasticsearchConfig() elasticsearch.Config {
 // and ingest node pipelines whose names start with "apm",
 // and deletes the default ILM policy "apm-rollover-30-days".
 func CleanupElasticsearch(t testing.TB) {
-	const prefix = "apm*"
+	const (
+		legacyPrefix     = "apm*"
+		apmTracesPrefix  = "traces-apm.*"
+		apmMetricsPrefix = "metrics-apm.*"
+		apmLogsPrefix    = "logs-apm.*"
+	)
 	requests := []estest.Request{
-		esapi.IndicesDeleteRequest{Index: []string{prefix}},
-		esapi.IngestDeletePipelineRequest{PipelineID: prefix},
-		esapi.IndicesDeleteTemplateRequest{Name: prefix},
+		esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
+		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
+		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
 	}
 
 	doReq := func(req estest.Request) error {

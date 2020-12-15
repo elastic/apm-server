@@ -28,7 +28,6 @@ ifndef::serverless[]
 and sends it directly to your monitoring cluster.
 endif::[]
 
-
 //Commenting out this link temporarily until the general monitoring docs can be
 //updated.
 //To learn about monitoring in general, see

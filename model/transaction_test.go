@@ -171,18 +171,18 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	txWithContext := Transaction{
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
-		Labels:    &Labels{"a": "b"},
+		Labels:    common.MapStr{"a": "b"},
 		Page:      &Page{URL: &URL{Original: &url}, Referer: &referer},
 		HTTP:      &Http{Request: &request, Response: &response},
 		URL:       &URL{Original: &url},
-		Custom:    &Custom{"foo": "bar"},
+		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
 	}
 	events := txWithContext.Transform(context.Background(), &transform.Config{DataStreams: true})
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"data_stream.type":    "traces",
-		"data_stream.dataset": "apm." + serviceName,
+		"data_stream.dataset": "apm",
 		"user":                common.MapStr{"id": "123", "name": "jane"},
 		"client":              common.MapStr{"ip": ip},
 		"source":              common.MapStr{"ip": ip},
@@ -212,7 +212,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"sampled":  true,
 			"page":     common.MapStr{"url": url, "referer": referer},
 			"custom": common.MapStr{
-				"foo": "bar",
+				"foo_bar": "baz",
 			},
 			"message": common.MapStr{"queue": common.MapStr{"name": "routeUser"}},
 		},
@@ -280,5 +280,35 @@ func TestTransactionTransformPage(t *testing.T) {
 	for idx, test := range tests {
 		output := test.Transaction.Transform(context.Background(), &transform.Config{})
 		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+	}
+}
+
+func TestTransactionTransformMarks(t *testing.T) {
+	tests := []struct {
+		Transaction Transaction
+		Output      common.MapStr
+		Msg         string
+	}{
+		{
+			Transaction: Transaction{
+				Marks: TransactionMarks{
+					"a.b": TransactionMark{
+						"c.d": 123,
+					},
+				},
+			},
+			Output: common.MapStr{
+				"a_b": common.MapStr{
+					"c_d": common.Float(123),
+				},
+			},
+			Msg: "Unsanitized transaction mark names",
+		},
+	}
+
+	for idx, test := range tests {
+		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		marks, _ := output[0].Fields.GetValue("transaction.marks")
+		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

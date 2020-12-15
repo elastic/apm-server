@@ -1,0 +1,76 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go",
+                "version": "0.0.0"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "host": {
+                "architecture": "i386",
+                "hostname": "beowulf",
+                "ip": "127.0.0.1",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "process": {
+                "pid": 1,
+                "title": "systemtest.test"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
+                }
+            },
+            "timestamp": {
+                "us": "dynamic"
+            },
+            "trace": {
+                "id": "dynamic"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 1000000
+                },
+                "id": "dynamic",
+                "name": "name",
+                "sampled": true,
+                "span_count": {
+                    "dropped": 0,
+                    "started": 0
+                },
+                "type": "type"
+            }
+        }
+    ]
+}

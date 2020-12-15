@@ -63,7 +63,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.myservice",
+					"data_stream.dataset": "apm",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service": common.MapStr{
 						"name": "myservice",
@@ -75,7 +75,7 @@ func TestTransform(t *testing.T) {
 		{
 			Metricset: &Metricset{
 				Metadata:  metadata,
-				Labels:    common.MapStr{"a.b": "a.b.value"},
+				Labels:    common.MapStr{"a_b": "a.b.value"},
 				Timestamp: timestamp,
 				Samples: []Sample{
 					{
@@ -91,10 +91,10 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.myservice",
+					"data_stream.dataset": "apm",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
-					"labels":              common.MapStr{"a.b": "a.b.value"},
+					"labels":              common.MapStr{"a_b": "a.b.value"},
 
 					"a":    common.MapStr{"counter": float64(612)},
 					"some": common.MapStr{"gauge": float64(9.16)},
@@ -116,7 +116,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal.myservice",
+					"data_stream.dataset": "apm.internal",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"transaction":         common.MapStr{"type": trType, "name": trName},
@@ -154,7 +154,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal.myservice",
+					"data_stream.dataset": "apm.internal",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"event":               common.MapStr{"outcome": eventOutcome},
@@ -196,7 +196,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal.myservice",
+					"data_stream.dataset": "apm.internal",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"span": common.MapStr{"type": spType, "subtype": spSubtype,

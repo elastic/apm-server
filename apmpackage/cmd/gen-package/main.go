@@ -42,6 +42,9 @@ func main() {
 	}
 	clear(packageVersion)
 	inputFields := generateFields(packageVersion)
+	for dataStream := range inputFields {
+		generatePipelines(packageVersion, dataStream)
+	}
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
 }
@@ -57,6 +60,7 @@ func clear(version string) {
 		if f.IsDir() {
 			os.Remove(ecsFilePath(version, f.Name()))
 			os.Remove(fieldsFilePath(version, f.Name()))
+			os.RemoveAll(pipelinesPath(version, f.Name()))
 		}
 	}
 	ioutil.WriteFile(docsFilePath(version), nil, 0644)

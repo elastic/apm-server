@@ -34,7 +34,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -151,7 +151,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -269,7 +269,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -391,7 +391,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -510,7 +510,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",
@@ -711,7 +711,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",

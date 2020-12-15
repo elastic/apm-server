@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
@@ -29,7 +28,9 @@ import (
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/apmtest"
 
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/logp/configure"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
@@ -38,17 +39,14 @@ import (
 )
 
 func TestLogMiddleware(t *testing.T) {
-	err := logp.DevelopmentSetup(logp.ToObserverOutput())
-	require.NoError(t, err)
 
 	testCases := []struct {
 		name, message string
 		level         zapcore.Level
 		handler       request.Handler
 		code          int
-		error         error
-		stacktrace    bool
 		traced        bool
+		ecsKeys       []string
 	}{
 		{
 			name:    "Accepted",
@@ -56,6 +54,7 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.InfoLevel,
 			handler: beatertest.Handler202,
 			code:    http.StatusAccepted,
+			ecsKeys: []string{"url.original"},
 		},
 		{
 			name:    "Traced",
@@ -63,6 +62,7 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.InfoLevel,
 			handler: beatertest.Handler202,
 			code:    http.StatusAccepted,
+			ecsKeys: []string{"url.original", "trace.id", "transaction.id"},
 			traced:  true,
 		},
 		{
@@ -71,16 +71,15 @@ func TestLogMiddleware(t *testing.T) {
 			level:   zapcore.ErrorLevel,
 			handler: beatertest.Handler403,
 			code:    http.StatusForbidden,
-			error:   errors.New("forbidden request"),
+			ecsKeys: []string{"url.original", "error.message"},
 		},
 		{
-			name:       "Panic",
-			message:    "internal error",
-			level:      zapcore.ErrorLevel,
-			handler:    Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
-			code:       http.StatusInternalServerError,
-			error:      errors.New("panic on Handle"),
-			stacktrace: true,
+			name:    "Panic",
+			message: "internal error",
+			level:   zapcore.ErrorLevel,
+			handler: Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
+			code:    http.StatusInternalServerError,
+			ecsKeys: []string{"url.original", "error.message", "error.stack_trace"},
 		},
 		{
 			name:    "Error without keyword",
@@ -90,12 +89,19 @@ func TestLogMiddleware(t *testing.T) {
 				c.Result.StatusCode = http.StatusForbidden
 				c.Write()
 			},
-			code: http.StatusForbidden,
+			code:    http.StatusForbidden,
+			ecsKeys: []string{"url.original"},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// log setup
+			configure.Logging("APM Server test",
+				common.MustNewConfigFrom(`{"ecs":true}`))
+			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+
+			// prepare and record request
 			c, rec := beatertest.DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.UserAgent, tc.name)
 			if tc.traced {
@@ -105,39 +111,27 @@ func TestLogMiddleware(t *testing.T) {
 			}
 			Apply(LogMiddleware(), tc.handler)(c)
 
+			// check log lines
 			assert.Equal(t, tc.code, rec.Code)
-			for i, entry := range logp.ObserverLogs().TakeAll() {
-				// expect only one log entry per request
-				assert.Equal(t, i, 0)
-				assert.Equal(t, logs.Request, entry.LoggerName)
-				assert.Equal(t, tc.level, entry.Level)
-				assert.Equal(t, tc.message, entry.Message)
+			entries := logp.ObserverLogs().TakeAll()
+			require.Equal(t, 1, len(entries))
+			entry := entries[0]
+			assert.Equal(t, logs.Request, entry.LoggerName)
+			assert.Equal(t, tc.level, entry.Level)
+			assert.Equal(t, tc.message, entry.Message)
 
-				ec := entry.ContextMap()
-				t.Logf("context map: %v", ec)
-
-				assert.NotEmpty(t, ec["request_id"])
-				assert.NotEmpty(t, ec["method"])
-				assert.Equal(t, c.Request.URL.String(), ec["URL"])
-				assert.NotEmpty(t, ec["remote_address"])
-				assert.Contains(t, ec, "event.duration")
-				assert.Equal(t, c.Request.Header.Get(headers.UserAgent), ec["user-agent"])
-				// zap encoded type
-				assert.Equal(t, tc.code, int(ec["response_code"].(int64)))
-				if tc.error != nil {
-					assert.Equal(t, tc.error.Error(), ec["error"])
-				}
-				if tc.stacktrace {
-					assert.NotZero(t, ec["stacktrace"])
-				}
-				if tc.traced {
-					assert.NotEmpty(t, ec, "trace.id")
-					assert.NotEmpty(t, ec, "transaction.id")
-					assert.Equal(t, ec["request_id"], ec["transaction.id"])
-				} else {
-					assert.NotContains(t, ec, "trace.id")
-					assert.NotContains(t, ec, "transaction.id")
-				}
+			encoder := zapcore.NewMapObjectEncoder()
+			ec := common.MapStr{}
+			for _, f := range entry.Context {
+				f.AddTo(encoder)
+				ec.DeepUpdate(encoder.Fields)
+			}
+			keys := []string{"http.request.id", "http.request.method", "http.request.body.bytes",
+				"source.address", "user_agent.original", "http.response.status_code", "event.duration"}
+			keys = append(keys, tc.ecsKeys...)
+			for _, key := range keys {
+				ok, _ := ec.HasKey(key)
+				assert.True(t, ok, key)
 			}
 		})
 	}

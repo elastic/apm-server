@@ -83,20 +83,14 @@ func NewCreator(args CreatorParams) beat.Creator {
 			return nil, err
 		}
 
-		// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all,
-		// and apm-server is not running supervised by Elastic Agent
-		shouldSetupPipelines := bt.config.Register.Ingest.Pipeline.IsEnabled() ||
-			(b.InSetupCmd && bt.config.Register.Ingest.Pipeline.Enabled == nil)
-		runningUnderElasticAgent := b.Manager != nil && b.Manager.Enabled()
-
-		if esOutputCfg != nil && shouldSetupPipelines && !runningUnderElasticAgent {
-			bt.logger.Info("Registering pipeline callback")
-			err := bt.registerPipelineCallback(b)
-			if err != nil {
-				return nil, err
+		if !bt.config.DataStreams.Enabled {
+			if b.Manager != nil && b.Manager.Enabled() {
+				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
-		} else {
-			bt.logger.Info("No pipeline callback registered")
+		}
+
+		if err := bt.registerPipelineCallback(b); err != nil {
+			return nil, err
 		}
 
 		return bt, nil
@@ -107,6 +101,7 @@ type beater struct {
 	rawConfig     *common.Config
 	config        *config.Config
 	logger        *logp.Logger
+	namespace     string
 	wrapRunServer func(RunServerFunc) RunServerFunc
 
 	mutex      sync.Mutex // guards stopServer and stopped
@@ -126,14 +121,27 @@ func (bt *beater) Run(b *beat.Beat) error {
 		// during startup. This might change when APM Server is included in Fleet
 		reloadOnce.Do(func() {
 			defer close(done)
-			// TODO(axw) config received from Fleet should be modified to set data_streams.enabled.
-			var cfg *config.Config
-			cfg, err = config.NewConfig(ucfg.Config, elasticsearchOutputConfig(b))
+
+			integrationConfig, err := config.NewIntegrationConfig(ucfg.Config)
 			if err != nil {
-				bt.logger.Warn("Could not parse configuration from Elastic Agent ", err)
+				bt.logger.Error("Could not parse integration configuration from Elastic Agent", err)
+				return
 			}
+
+			var cfg *config.Config
+			apmServerCommonConfig := integrationConfig.APMServer
+			apmServerCommonConfig.Merge(common.MustNewConfigFrom(`{"data_streams.enabled": true}`))
+			cfg, err = config.NewConfig(apmServerCommonConfig, elasticsearchOutputConfig(b))
+			if err != nil {
+				bt.logger.Error("Could not parse apm-server configuration from Elastic Agent ", err)
+				return
+			}
+
 			bt.config = cfg
-			bt.rawConfig = ucfg.Config
+			bt.rawConfig = apmServerCommonConfig
+			if integrationConfig.DataStream != nil {
+				bt.namespace = integrationConfig.DataStream.Namespace
+			}
 			bt.logger.Info("Applying configuration from Elastic Agent... ")
 		})
 		return err
@@ -164,7 +172,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		runServer = bt.wrapRunServer(runServer)
 	}
 
-	publisher, err := newPublisher(b, bt.config, tracer)
+	publisher, err := newPublisher(b, bt.config, bt.namespace, tracer)
 	if err != nil {
 		return err
 	}
@@ -248,13 +256,40 @@ func checkConfig(logger *logp.Logger) error {
 
 // elasticsearchOutputConfig returns nil if the output is not elasticsearch
 func elasticsearchOutputConfig(b *beat.Beat) *common.Config {
-	if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
+	if hasElasticsearchOutput(b) {
 		return b.Config.Output.Config()
 	}
 	return nil
 }
 
+func hasElasticsearchOutput(b *beat.Beat) bool {
+	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
+}
+
+// registerPipelineCallback registers an Elasticsearch connection callback
+// that ensures the configured pipeline is installed, if configured to do
+// so. If data streams are enabled, then pipeline registration is always
+// disabled and `setup --pipelines` will return an error.
 func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
+	if !hasElasticsearchOutput(b) {
+		bt.logger.Info("Output is not Elasticsearch: pipeline registration disabled")
+		return nil
+	}
+
+	if bt.config.DataStreams.Enabled {
+		bt.logger.Info("Data streams enabled: pipeline registration disabled")
+		b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
+			return errors.New("index pipeline setup must be performed externally when using data streams, by installing the 'apm' integration package")
+		}
+		return nil
+	}
+
+	if !bt.config.Register.Ingest.Pipeline.IsEnabled() {
+		bt.logger.Info("Pipeline registration disabled")
+		return nil
+	}
+
+	bt.logger.Info("Registering pipeline callback")
 	overwrite := bt.config.Register.Ingest.Pipeline.ShouldOverwrite()
 	path := bt.config.Register.Ingest.Pipeline.Path
 
@@ -360,7 +395,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publish.Publisher, error) {
+func newPublisher(b *beat.Beat, cfg *config.Config, namespace string, tracer *apm.Tracer) (*publish.Publisher, error) {
 	transformConfig, err := newTransformConfig(b.Info, cfg)
 	if err != nil {
 		return nil, err
@@ -368,6 +403,7 @@ func newPublisher(b *beat.Beat, cfg *config.Config, tracer *apm.Tracer) (*publis
 	publisherConfig := &publish.PublisherConfig{
 		Info:            b.Info,
 		Pipeline:        cfg.Pipeline,
+		Namespace:       namespace,
 		TransformConfig: transformConfig,
 	}
 	return publish.NewPublisher(b.Publisher, tracer, publisherConfig)
