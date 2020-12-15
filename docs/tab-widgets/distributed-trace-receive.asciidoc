@@ -143,20 +143,23 @@ TIP: See the {apm-py-ref}/api.html#traceparent-api[`TraceParent` API] for additi
 // tag::ruby[]
 
 Start a new transaction or span as a child of the incoming transaction or span with
-{apm-ruby-ref}/api.html#api-agent-start_transaction[`start_transaction`] or
-{apm-ruby-ref}/api.html#api-agent-start_span[`start_span`].
+{apm-ruby-ref}/api.html#api-agent-with_transaction[`with_transaction`] or
+{apm-ruby-ref}/api.html#api-agent-with_span[`with_span`].
 
-Example starting a span:
+Example:
 
 [source,ruby]
 ----
-# how to decode `trace_context`?
+context = ElasticAPM::TraceContext.parse(env: env) <1>
 
-ElasticAPM.with_transaction 'Do things' do
-  ElasticAPM.start_span 'Do one of the things' # How do we add `trace_context` to this?
-   # ... do something
-  ElasticAPM.end_span
+ElasticAPM.with_transaction("Do things", trace_context: context) do <2>
+  ElasticAPM.with_span("Do nested thing", trace_context: context) do <3>
+  end
 end
 ----
+<1> Parse the incoming `TraceContext`
+<2> Create a transaction as a child of the incoming `TraceContext`
+<3> Create a span as a child of the newly created transaction. `trace_context` is optional here,
+as spans are automatically created as a child of their parent's transaction's TraceContext when none is passed.
 
 // end::ruby[]

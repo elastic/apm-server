@@ -141,22 +141,20 @@ elasticapm.get_trace_parent_header('new-transaction') <2>
 
 // tag::ruby[]
 
-// halp
+1. Start a span with {apm-ruby-ref}/api.html#api-agent-with_span[`with_span`].
 
-Start a transaction or span with
-{apm-ruby-ref}/api.html#api-agent-start_transaction[`start_transaction`] or
-{apm-ruby-ref}/api.html#api-agent-start_span[`start_span`].
+2. Get the active `TraceContext`.
 
-Get the active `trace_context`.
-
-Send the `trace_context` to the receiving service.
+3. Send the `TraceContext` to the receiving service.
 
 [source,ruby]
 ----
-ElasticAPM.start_transaction('Name') <1>
-# Get the trace_context and save to variable
-# Send the trace_context to another service
+ElasticAPM.with_span "Name" do |span| <1>
+  header = span.trace_context.traceparent.to_header <2>
+  # send the TraceContext Header to a receiving service...
+end
 ----
-<1> Start a transaction
+<1> Start a span
+<2> Get the `TraceContext`
 
 // end::ruby[]
