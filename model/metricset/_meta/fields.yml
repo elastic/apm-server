@@ -8,10 +8,12 @@
     - name: processor.name
       type: keyword
       description: Processor name.
+      overwrite: true
 
     - name: processor.event
       type: keyword
       description: Processor event.
+      overwrite: true
 
     - name: timestamp
       type: group
@@ -21,6 +23,7 @@
           count: 1
           description: >
             Timestamp of the event in microseconds since Unix epoch.
+          overwrite: true
 
     - name: labels
       type: object
@@ -56,6 +59,7 @@
           type: keyword
           description: >
             Service environment.
+          overwrite: true
 
         - name: node
           type: group
@@ -74,11 +78,13 @@
             type: keyword
             description: >
               Name of the programming language used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the programming language used.
+            overwrite: true
 
         - name: runtime
           type: group
@@ -88,11 +94,13 @@
             type: keyword
             description: >
               Name of the runtime used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the runtime used.
+            overwrite: true
 
         - name: framework
           type: group
@@ -102,11 +110,13 @@
             type: keyword
             description: >
               Name of the framework used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the framework used.
+            overwrite: true
 
     - name: transaction
       type: group
@@ -116,14 +126,17 @@
           type: keyword
           description: >
             The transaction ID.
+          overwrite: true
         - name: sampled
           type: boolean
           description: >
             Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+          overwrite: true
         - name: type
           type: keyword
           description: >
             Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+          overwrite: true
         - name: name
           type: keyword
           multi_fields:
@@ -131,18 +144,21 @@
               type: text
           description: >
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
-
+          overwrite: true
+          
         - name: duration
           type: group
           fields:
             - name: count
               type: long
+              overwrite: true
             - name: sum
               type: group
               fields:
                 - name: us
                   type: long
-
+                  overwrite: true 
+ 
         - name: self_time
           type: group
           description: >
@@ -150,11 +166,13 @@
           fields:
             - name: count
               type: long
+              overwrite: true 
             - name: sum
               type: group
               fields:
                 - name: us
                   type: long
+                  overwrite: true 
 
         - name: breakdown
           type: group
@@ -163,6 +181,7 @@
           fields:
             - name: count
               type: long
+              overwrite: true 
 
         - name: root
           type: boolean
@@ -179,12 +198,14 @@
           count: 1
           description: >
             Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+          overwrite: true 
 
         - name: subtype
           type: keyword
           count: 1
           description: >
             A further sub-division of the type (e.g. postgresql, elasticsearch)
+          overwrite: true 
 
         - name: self_time
           type: group
@@ -193,11 +214,13 @@
           fields:
           - name: count
             type: long
+            overwrite: true 
           - name: sum
             type: group
             fields:
               - name: us
                 type: long
+                overwrite: true 
 
     - name: agent
       type: group
@@ -361,6 +384,7 @@
 
         - name: listening
           type: keyword
+          overwrite: true
           description: >
             Address the server is listening on.
 
@@ -369,6 +393,7 @@
           overwrite: true
           description: >
             Hostname of the APM Server.
+          overwrite: true
 
         - name: version
           type: keyword
@@ -378,6 +403,7 @@
 
         - name: version_major
           type: byte
+          overwrite: true
           description: >
             Major version number of the observer
 
@@ -386,6 +412,7 @@
           overwrite: true
           description: >
             The type will be set to `apm-server`.
+          overwrite: true
 
     - name: user
       type: group
@@ -571,6 +598,7 @@
     - name: experimental
       type: object
       dynamic: true
+      overwrite: true
       description: Additional experimental data sent by the agents.
 
     - name: cloud
