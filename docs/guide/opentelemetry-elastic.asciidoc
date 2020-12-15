@@ -34,9 +34,12 @@ Elastic's integration is designed to drop into your current OpenTelemetry setup.
 We've done this by extending the "contrib" OpenTelemetry collector and adding an Elastic exporter.
 
 Before sending the data to the {stack}, the exporter translates the OpenTelemetry trace data collected from your services
-and the metrics data collected from your infrastructure and applications to Elastic's protocol.
-By extending the OpenTelemetry collector,
-no changes are needed in your instrumented services to begin using the {stack}.
+and the metrics data collected from your applications and infrastructure to Elastic's protocol.
+By extending the OpenTelemetry collector, no changes are needed in your instrumented services to begin using the {stack}.
+
+TIP: To collect infrastructure metrics, we still recommend using
+{metricbeat-ref}/metricbeat-overview.html[{metricbeat}] to get a mature collector with more integrations
+and integrated visualizations.
 
 image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
 
@@ -86,13 +89,6 @@ Docker images are available on {ot-dockerhub}[dockerhub]:
 [source,bash]
 ----
 docker pull otel/opentelemetry-collector-contrib-dev
-----
-
-You can also build the collector-contrib repository by cloning it and running:
-
-[source,bash]
-----
-make otelcontribcol
 ----
 
 [[open-telemetry-elastic-traces-metrics]]
