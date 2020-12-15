@@ -38,6 +38,8 @@ const (
 	metricsetEventKey       = "event"
 	metricsetTransactionKey = "transaction"
 	metricsetSpanKey        = "span"
+	AppMetricsDataset       = "apm"
+	InternalMetricsDataset  = "apm.internal"
 )
 
 var (
@@ -186,16 +188,15 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 
 	if cfg.DataStreams {
 		// Metrics are stored in "metrics" data streams.
-		dataset := "apm."
 		if isInternal {
 			// Metrics that include well-defined transaction/span fields
 			// (i.e. breakdown metrics, transaction and span metrics) will
 			// be stored separately from application and runtime metrics.
-			dataset = "apm.internal."
+			fields[datastreams.DatasetField] = InternalMetricsDataset
+		} else {
+			fields[datastreams.DatasetField] = AppMetricsDataset
 		}
-		dataset += datastreams.NormalizeServiceName(me.Metadata.Service.Name)
 		fields[datastreams.TypeField] = datastreams.MetricsType
-		fields[datastreams.DatasetField] = dataset
 	}
 
 	return []beat.Event{{

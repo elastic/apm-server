@@ -4,9 +4,9 @@ title: Elastic APM
 version: 0.1.0
 license: basic
 description: Ingest APM data
-type: solution  # integration / solution
+type: integration
 categories:
-  - monitoring # TODO do we need a new category?
+  - monitoring
 release: experimental # experimental / beta / ga
 conditions:
   kibana.version: '^7.11.0'
