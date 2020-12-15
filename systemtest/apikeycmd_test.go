@@ -36,6 +36,10 @@ import (
 
 func apiKeyCommand(subcommand string, args ...string) *apmservertest.ServerCmd {
 	cfg := apmservertest.DefaultConfig()
+	return apiKeyCommandConfig(cfg, subcommand, args...)
+}
+
+func apiKeyCommandConfig(cfg apmservertest.Config, subcommand string, args ...string) *apmservertest.ServerCmd {
 	cfgargs, err := cfg.Args()
 	if err != nil {
 		panic(err)
@@ -83,6 +87,22 @@ func TestAPIKeyCreateExpiration(t *testing.T) {
 
 	attrs := decodeJSONMap(t, bytes.NewReader(out))
 	assert.Contains(t, attrs, "expiration")
+}
+
+func TestAPIKeyCreateInvalidUser(t *testing.T) {
+	// heartbeat_user lacks cluster privileges, and cannot create keys
+	// beats_user has cluster privileges, but not APM application privileges
+	for _, username := range []string{"heartbeat_user", "beats_user"} {
+		cfg := apmservertest.DefaultConfig()
+		cfg.Output.Elasticsearch.Username = username
+		cfg.Output.Elasticsearch.Password = "changeme"
+
+		cmd := apiKeyCommandConfig(cfg, "create", "--name", t.Name(), "--json")
+		out, err := cmd.CombinedOutput()
+		require.Error(t, err)
+		attrs := decodeJSONMap(t, bytes.NewReader(out))
+		assert.Regexp(t, username+` is missing the following requested privilege\(s\): .*`, attrs["error"])
+	}
 }
 
 func TestAPIKeyInvalidateName(t *testing.T) {
