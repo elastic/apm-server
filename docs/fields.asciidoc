@@ -43,6 +43,8 @@ Processor name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`processor.event`*::
@@ -51,6 +53,8 @@ type: keyword
 Processor event.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -62,6 +66,8 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -190,6 +196,8 @@ The canonical headers of the monitored HTTP request.
 
 type: object
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 Object is not enabled.
 
 --
@@ -237,6 +245,8 @@ The canonical headers of the monitored HTTP response.
 
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 Object is not enabled.
 
@@ -293,6 +303,8 @@ Service environment.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -317,6 +329,8 @@ Name of the programming language used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.language.version`*::
@@ -326,6 +340,8 @@ Version of the programming language used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -338,6 +354,8 @@ Name of the runtime used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.runtime.version`*::
@@ -347,6 +365,8 @@ Version of the runtime used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -359,6 +379,8 @@ Name of the framework used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.framework.version`*::
@@ -368,6 +390,8 @@ Version of the framework used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -380,6 +404,8 @@ The transaction ID.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`transaction.sampled`*::
@@ -389,6 +415,8 @@ Transactions that are 'sampled' will include all available information. Transact
 
 
 type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -400,6 +428,8 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`transaction.name`*::
@@ -409,6 +439,8 @@ Generic designation of a transaction in the scope of a single service (eg. 'GET 
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -424,6 +456,8 @@ type: text
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -447,6 +481,8 @@ Portion of the transaction's duration where no direct child was running
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -454,6 +490,8 @@ type: long
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -469,6 +507,8 @@ Counter for collected breakdowns for the transaction
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -480,6 +520,8 @@ The ID of the trace to which the event belongs to.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -490,6 +532,8 @@ The ID of the parent event.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -736,6 +780,8 @@ Address the server is listening on.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.hostname`*::
@@ -769,6 +815,8 @@ Major version number of the observer
 
 
 type: byte
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1068,6 +1116,8 @@ example: 4.4.0-112-generic
 Additional experimental data sent by the agents.
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1345,6 +1395,8 @@ Processor name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`processor.event`*::
@@ -1353,6 +1405,8 @@ type: keyword
 Processor event.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1364,6 +1418,8 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1418,6 +1474,8 @@ Service environment.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -1442,6 +1500,8 @@ Name of the programming language used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.language.version`*::
@@ -1451,6 +1511,8 @@ Version of the programming language used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1463,6 +1525,8 @@ Name of the runtime used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.runtime.version`*::
@@ -1472,6 +1536,8 @@ Version of the runtime used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1484,6 +1550,8 @@ Name of the framework used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.framework.version`*::
@@ -1493,6 +1561,8 @@ Version of the framework used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1739,6 +1809,8 @@ Address the server is listening on.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.hostname`*::
@@ -1772,6 +1844,8 @@ Major version number of the observer
 
 
 type: byte
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2071,6 +2145,8 @@ example: 4.4.0-112-generic
 Additional experimental data sent by the agents.
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2429,6 +2505,8 @@ Processor name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`processor.event`*::
@@ -2437,6 +2515,8 @@ type: keyword
 Processor event.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2448,6 +2528,8 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2502,6 +2584,8 @@ Service environment.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -2526,6 +2610,8 @@ Name of the programming language used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.language.version`*::
@@ -2535,6 +2621,8 @@ Version of the programming language used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2547,6 +2635,8 @@ Name of the runtime used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.runtime.version`*::
@@ -2556,6 +2646,8 @@ Version of the runtime used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2568,6 +2660,8 @@ Name of the framework used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.framework.version`*::
@@ -2577,6 +2671,8 @@ Version of the framework used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2589,6 +2685,8 @@ The transaction ID.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`transaction.sampled`*::
@@ -2598,6 +2696,8 @@ Transactions that are 'sampled' will include all available information. Transact
 
 
 type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2609,6 +2709,8 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`transaction.name`*::
@@ -2618,6 +2720,8 @@ Generic designation of a transaction in the scope of a single service (eg. 'GET 
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2634,6 +2738,8 @@ type: text
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -2641,6 +2747,8 @@ type: long
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2656,6 +2764,8 @@ Portion of the transaction's duration where no direct child was running
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -2663,6 +2773,8 @@ type: long
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2677,6 +2789,8 @@ Counter for collected breakdowns for the transaction
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2833,6 +2947,8 @@ The ID of the trace to which the event belongs to.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -2843,6 +2959,8 @@ The ID of the parent event.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3089,6 +3207,8 @@ Address the server is listening on.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.hostname`*::
@@ -3122,6 +3242,8 @@ Major version number of the observer
 
 
 type: byte
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3421,6 +3543,8 @@ example: 4.4.0-112-generic
 Additional experimental data sent by the agents.
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3629,6 +3753,8 @@ Processor name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`processor.event`*::
@@ -3637,6 +3763,8 @@ type: keyword
 Processor event.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3648,6 +3776,8 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3776,6 +3906,8 @@ The canonical headers of the monitored HTTP request.
 
 type: object
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 Object is not enabled.
 
 --
@@ -3823,6 +3955,8 @@ The canonical headers of the monitored HTTP response.
 
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 Object is not enabled.
 
@@ -3879,6 +4013,8 @@ Service environment.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -3903,6 +4039,8 @@ Name of the programming language used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.language.version`*::
@@ -3912,6 +4050,8 @@ Version of the programming language used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3924,6 +4064,8 @@ Name of the runtime used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.runtime.version`*::
@@ -3933,6 +4075,8 @@ Version of the runtime used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3945,6 +4089,8 @@ Name of the framework used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.framework.version`*::
@@ -3954,6 +4100,8 @@ Version of the framework used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4099,6 +4247,8 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`span.subtype`*::
@@ -4108,6 +4258,8 @@ A further sub-division of the type (e.g. postgresql, elasticsearch)
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4123,6 +4275,8 @@ Portion of the span's duration where no direct child was running
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -4130,6 +4284,8 @@ type: long
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4142,6 +4298,8 @@ The ID of the trace to which the event belongs to.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -4152,6 +4310,8 @@ The ID of the parent event.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4398,6 +4558,8 @@ Address the server is listening on.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.hostname`*::
@@ -4431,6 +4593,8 @@ Major version number of the observer
 
 
 type: byte
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4730,6 +4894,8 @@ example: 4.4.0-112-generic
 Additional experimental data sent by the agents.
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4891,6 +5057,8 @@ Processor name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`processor.event`*::
@@ -4899,6 +5067,8 @@ type: keyword
 Processor event.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4910,6 +5080,8 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4964,6 +5136,8 @@ Service environment.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -4988,6 +5162,8 @@ Name of the programming language used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.language.version`*::
@@ -4997,6 +5173,8 @@ Version of the programming language used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5009,6 +5187,8 @@ Name of the runtime used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.runtime.version`*::
@@ -5018,6 +5198,8 @@ Version of the runtime used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5030,6 +5212,8 @@ Name of the framework used.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.framework.version`*::
@@ -5039,6 +5223,8 @@ Version of the framework used.
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5051,6 +5237,8 @@ The transaction ID.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`transaction.sampled`*::
@@ -5060,6 +5248,8 @@ Transactions that are 'sampled' will include all available information. Transact
 
 
 type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5071,6 +5261,8 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`transaction.name`*::
@@ -5080,6 +5272,8 @@ Generic designation of a transaction in the scope of a single service (eg. 'GET 
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5096,6 +5290,8 @@ type: text
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -5103,6 +5299,8 @@ type: long
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5118,6 +5316,8 @@ Portion of the transaction's duration where no direct child was running
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -5125,6 +5325,8 @@ type: long
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5139,6 +5341,8 @@ Counter for collected breakdowns for the transaction
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5161,6 +5365,8 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`span.subtype`*::
@@ -5170,6 +5376,8 @@ A further sub-division of the type (e.g. postgresql, elasticsearch)
 
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5185,6 +5393,8 @@ Portion of the span's duration where no direct child was running
 --
 type: long
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 
@@ -5192,6 +5402,8 @@ type: long
 +
 --
 type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5438,6 +5650,8 @@ Address the server is listening on.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.hostname`*::
@@ -5471,6 +5685,8 @@ Major version number of the observer
 
 
 type: byte
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5770,6 +5986,8 @@ example: 4.4.0-112-generic
 Additional experimental data sent by the agents.
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
