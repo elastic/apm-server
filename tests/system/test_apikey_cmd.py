@@ -186,38 +186,3 @@ class APIKeyCommandTest(APIKeyCommandBaseTest):
         apikey = self.create("--agent-config")
         result = self.subcommand_output("verify", "--credentials={}".format(apikey["credentials"]))
         assert result == {'event:write': False, 'config_agent:read': True, 'sourcemap:write': False}, result
-
-
-@integration_test
-class APIKeyCommandBadUserTest(APIKeyCommandBaseTest):
-
-    def config(self):
-        return {
-            "elasticsearch_host": self.get_elasticsearch_url(user="heartbeat_user", password="changeme"),
-            "file_enabled": "false",
-            "kibana_enabled": "false",
-        }
-
-    def test_create_bad_user(self):
-        """heartbeat_user doesn't have required cluster privileges, so it can't create keys"""
-        result = self.subcommand_output("create", "--name", self.apikey_name, exit_code=1)
-        assert result.get("error") is not None
-
-
-@integration_test
-class APIKeyCommandBadUser2Test(APIKeyCommandBaseTest):
-
-    def config(self):
-        return {
-            "elasticsearch_host": self.get_elasticsearch_url(user="beats_user", password="changeme"),
-            "file_enabled": "false",
-            "kibana_enabled": "false",
-        }
-
-    def test_create_bad_user(self):
-        """beats_user does have required cluster privileges, but not APM application privileges,
-        so it can't create keys
-        """
-        result = self.subcommand_output("create", "--name", self.apikey_name, exit_code=1)
-        assert result.get("error") is not None, result
-        assert "beats_user is missing the following requested privilege(s):" in result.get("error"), result

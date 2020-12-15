@@ -249,8 +249,7 @@ When true, logs messages in JSON format. The default is false.
 [float]
 ==== `logging.ecs`
 
-When true, logs messages with minimal required Elastic Common Schema (ECS)
-information.
+When true, logs messages in Elastic Common Schema (ECS) compliant format.
 
 ifndef::serverless[]
 [float]

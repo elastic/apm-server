@@ -68,6 +68,23 @@ func TestKeepUnsampled(t *testing.T) {
 	}
 }
 
+func TestKeepUnsampledWarning(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Sampling = &apmservertest.SamplingConfig{KeepUnsampled: false}
+	require.NoError(t, srv.Start())
+	require.NoError(t, srv.Close())
+
+	var messages []string
+	for _, log := range srv.Logs.All() {
+		messages = append(messages, log.Message)
+	}
+	assert.Contains(t, messages, ""+
+		"apm-server.sampling.keep_unsampled and apm-server.aggregation.transactions.enabled are both false, "+
+		"which will lead to incorrect metrics being reported in the APM UI",
+	)
+}
+
 func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
