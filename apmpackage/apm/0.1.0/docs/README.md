@@ -7,7 +7,7 @@ The APM integration installs Elasticsearch templates and Ingest Node pipelines f
 When you add an APM integration to a policy, that policy will contain an `apm` input.
 If a policy contains an `apm` input, any Elastic Agent(s) set up with that policy will run locally an APM Server binary.
 You must configure your APM Agents to communicate with that APM Server.
-If you run Elastic Agent in Docker, make sure to configure the APM Server `host` accordingly if it needs to be accessed from outside.
+Make sure to configure the APM Server `host` if it needs to be accessed from outside (eg. when running in Docker).
 
 If you have RUM enabled, you must run APM Server centrally. Otherwise, you can run it at the edge machines.
 To do so, download and enroll an Elastic Agent in the same machines where your instrumented services run.
