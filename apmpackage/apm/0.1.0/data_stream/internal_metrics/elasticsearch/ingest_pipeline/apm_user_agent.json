@@ -1,0 +1,13 @@
+{
+  "description": "Add user agent information for APM events",
+  "processors": [
+    {
+      "user_agent": {
+        "field": "user_agent.original",
+        "ignore_failure": true,
+        "ignore_missing": true,
+        "target_field": "user_agent"
+      }
+    }
+  ]
+}

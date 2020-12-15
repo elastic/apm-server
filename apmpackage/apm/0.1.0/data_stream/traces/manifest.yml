@@ -1,2 +1,4 @@
 title: APM traces
 type: traces
+dataset: apm
+ingest_pipeline: apm
