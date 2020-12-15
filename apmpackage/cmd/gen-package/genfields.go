@@ -21,6 +21,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"sort"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -32,10 +34,12 @@ func generateFields(version string) map[string][]field {
 	ecsFlatFields := loadECSFields()
 
 	inputFieldsFiles := map[string][]field{
-		"logs":    concatFields("model/error/_meta/fields.yml"),
-		"metrics": concatFields("model/metricset/_meta/fields.yml", "model/profile/_meta/fields.yml", "x-pack/apm-server/fields/_meta/fields.yml"),
-		"traces":  concatFields("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
+		"error_logs":       format("model/error/_meta/fields.yml"),
+		"internal_metrics": format("model/metricset/_meta/fields.yml", "x-pack/apm-server/fields/_meta/fields.yml"),
+		"profile_metrics":  format("model/profile/_meta/fields.yml"),
+		"traces":           format("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
 	}
+	inputFieldsFiles["app_metrics"] = filterInternalMetrics(inputFieldsFiles["internal_metrics"])
 
 	for streamType, inputFields := range inputFieldsFiles {
 		var ecsFields []field
@@ -67,6 +71,21 @@ func generateFields(version string) map[string][]field {
 		}
 	}
 	return inputFieldsFiles
+}
+
+func filterInternalMetrics(fields []field) []field {
+	var ret []field
+	var isInternal = func(s string) bool {
+		return strings.HasPrefix(s, "transaction") ||
+			strings.HasPrefix(s, "span") ||
+			strings.HasPrefix(s, "event")
+	}
+	for _, f := range fields {
+		if !isInternal(f.Name) {
+			ret = append(ret, f)
+		}
+	}
+	return ret
 }
 
 func populateECSInfo(ecsFlatFields map[string]interface{}, inputFields []field) []field {
@@ -127,6 +146,10 @@ func loadECSFields() map[string]interface{} {
 	return ret
 }
 
+func format(fileNames ...string) []field {
+	return order(dedup(flatten("", concatFields(fileNames...))))
+}
+
 func concatFields(fileNames ...string) []field {
 	var ret []field
 	for _, fname := range fileNames {
@@ -160,6 +183,40 @@ func overrideFieldValues(fs []field) []field {
 		}
 		f.Fields = overrideFieldValues(f.Fields)
 		ret = append(ret, f)
+	}
+	return ret
+}
+
+func dedup(fs []field) []field {
+	var m = make(map[string]field)
+	for _, f := range fs {
+		m[f.Name] = f
+	}
+	var ret []field
+	for _, v := range m {
+		ret = append(ret, v)
+	}
+	return ret
+}
+
+func order(fs []field) []field {
+	sort.Slice(fs, func(i, j int) bool {
+		return fs[i].Name < fs[j].Name
+	})
+	return fs
+}
+
+func flatten(name string, fs []field) []field {
+	var ret []field
+	for _, f := range fs {
+		if name != "" {
+			f.Name = name + "." + f.Name
+		}
+		if f.Type == "group" {
+			ret = append(ret, flatten(f.Name, f.Fields)...)
+		} else {
+			ret = append(ret, f)
+		}
 	}
 	return ret
 }

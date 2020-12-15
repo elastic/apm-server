@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"sort"
 	"strings"
 	"text/template"
 )
@@ -30,8 +29,8 @@ import (
 func generateDocs(inputFields map[string][]field, version string) {
 	data := docsData{
 		Traces:             prepareFields(inputFields, version, "traces"),
-		Metrics:            prepareFields(inputFields, version, "metrics"),
-		Logs:               prepareFields(inputFields, version, "logs"),
+		Metrics:            prepareFields(inputFields, version, "app_metrics"),
+		Logs:               prepareFields(inputFields, version, "error_logs"),
 		TransactionExample: loadExample("transactions.json"),
 		SpanExample:        loadExample("spans.json"),
 		MetricsExample:     loadExample("metricsets.json"),
@@ -66,39 +65,17 @@ type docsData struct {
 	ErrorExample       string
 }
 
-func prepareFields(inputFields map[string][]field, version, streamType string) []field {
+func prepareFields(inputFields map[string][]field, version, stream string) []field {
 	extend := func(fs []field) []field {
 		var baseFields []field
-		for _, f := range loadFieldsFile(baseFieldsFilePath(version, streamType)) {
+		for _, f := range loadFieldsFile(baseFieldsFilePath(version, stream)) {
 			f.IsECS = true
 			baseFields = append(baseFields, f)
 		}
 		fs = append(baseFields, fs...)
 		return fs
 	}
-	return extend(order(flatten("", inputFields[streamType])))
-}
-
-func order(fs []field) []field {
-	sort.Slice(fs, func(i, j int) bool {
-		return fs[i].Name < fs[j].Name
-	})
-	return fs
-}
-
-func flatten(name string, fs []field) []field {
-	var ret []field
-	for _, f := range fs {
-		if name != "" {
-			f.Name = name + "." + f.Name
-		}
-		if f.Type == "group" {
-			ret = append(ret, flatten(f.Name, f.Fields)...)
-		} else {
-			ret = append(ret, f)
-		}
-	}
-	return ret
+	return extend(inputFields[stream])
 }
 
 func loadExample(file string) string {
