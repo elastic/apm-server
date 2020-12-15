@@ -336,8 +336,8 @@ class ElasticTest(ServerBaseTest):
     def logged_requests(self, url="/intake/v2/events"):
         for line in self.get_log_lines():
             jline = json.loads(line)
-            u = urlparse(jline.get("URL", ""))
-            if jline.get("logger") == "request" and u.path == url:
+            u = urlparse(jline.get("url.original", ""))
+            if jline.get("log.logger") == "request" and u.path == url:
                 yield jline
 
     def approve_docs(self, base_path, received):
