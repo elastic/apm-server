@@ -10,7 +10,7 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
-    ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
+    ITS_PIPELINE = 'apm-integration-tests-selector-mbp/7.x'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
