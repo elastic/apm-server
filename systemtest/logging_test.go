@@ -69,8 +69,8 @@ func TestAPMServerRequestLoggingValid(t *testing.T) {
 
 	srv.Close()
 	for _, entry := range srv.Logs.All() {
-		if entry.Logger == "request" && entry.Fields["URL"] == "/intake/v2/events" {
-			statusCode, _ := entry.Fields["response_code"].(float64)
+		if entry.Logger == "request" && entry.Fields["url.original"] == "/intake/v2/events" {
+			statusCode, _ := entry.Fields["http.response.status_code"].(float64)
 			logEntries = append(logEntries, entry)
 			requestEntries = append(requestEntries, requestEntry{
 				level:      entry.Level,
@@ -95,8 +95,8 @@ func TestAPMServerRequestLoggingValid(t *testing.T) {
 	}}, requestEntries)
 
 	assert.NotContains(t, logEntries[0].Fields, "error")
-	assert.Regexp(t, "validation error: 'transaction' required", logEntries[1].Fields["error"])
-	assert.Equal(t, "event exceeded the permitted size.", logEntries[2].Fields["error"])
+	assert.Regexp(t, "validation error: 'transaction' required", logEntries[1].Fields["error.message"])
+	assert.Equal(t, "event exceeded the permitted size.", logEntries[2].Fields["error.message"])
 }
 
 // validMetadataJSON returns valid JSON-encoded metadata,
