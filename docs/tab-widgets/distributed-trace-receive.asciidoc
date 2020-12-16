@@ -149,6 +149,7 @@ Example:
 
 [source,ruby]
 ----
+# env being a Rack env
 context = ElasticAPM::TraceContext.parse(env: env) <1>
 
 ElasticAPM.with_transaction("Do things", trace_context: context) do <2>
