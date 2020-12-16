@@ -3,7 +3,7 @@ module github.com/elastic/apm-server
 go 1.13
 
 require (
-	github.com/akavel/rsrc v0.9.0 // indirect
+	github.com/akavel/rsrc v0.10.1 // indirect
 	github.com/apache/thrift v0.0.0-20161221203622-b2a4d4ae21c7
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cespare/xxhash/v2 v2.1.1
@@ -11,11 +11,11 @@ require (
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20201107160812-7545ac6de48a // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20200811150831-9bc458b4bbeb // indirect
+	github.com/dop251/goja v0.0.0-20201212162034-be0895b77e07 // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20201201133918-0226646606a0 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201112141016-0fda3061815d
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201215181550-5db4039630a6
 	github.com/elastic/ecs v1.6.0
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
@@ -41,9 +41,8 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/klauspost/compress v1.9.3-0.20191122130757-c099ac9f21dd // indirect
-	github.com/kr/pretty v0.2.0 // indirect
 	github.com/magefile/mage v1.10.0
-	github.com/mitchellh/hashstructure v1.0.0 // indirect
+	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/open-telemetry/opentelemetry-collector v0.2.1-0.20191218182225-c300f1341702
 	github.com/opentracing/opentracing-go v1.1.1-0.20190913142402-a7454ce5950e // indirect
@@ -69,17 +68,17 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+	golang.org/x/net v0.0.0-20201209123823-ac852fbbde11
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20201112073958-5cba982894dd // indirect
+	golang.org/x/sys v0.0.0-20201214210602-f9fddec55a1e // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20201111224557-41a3a589386c
+	golang.org/x/tools v0.0.0-20201215171152-6307297f4651
 	google.golang.org/grpc v1.29.1
-	gopkg.in/yaml.v2 v2.3.0
-	howett.net/plist v0.0.0-20201026045517-117a925f2150 // indirect
+	gopkg.in/yaml.v2 v2.4.0
+	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 )
 
 replace (
@@ -94,7 +93,10 @@ replace (
 	github.com/fsnotify/fsnotify => github.com/adriansr/fsnotify v0.0.0-20180417234312-c9bbe1f46f1d
 	github.com/tonistiigi/fifo => github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20200602230032-c00d67ef29d0 // release 1.14
-	k8s.io/client-go => k8s.io/client-go v0.18.3
+	k8s.io/api => k8s.io/api v0.19.4
+	k8s.io/api/auditregistration/v1alpha1 => k8s.io/api/auditregistration/v1alpha1 v0.19.4
+	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
+	k8s.io/client-go => k8s.io/client-go v0.19.4
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/elastic/badger/v2 v2.2007.2-beats
