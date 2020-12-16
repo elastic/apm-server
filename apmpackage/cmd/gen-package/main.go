@@ -30,6 +30,7 @@ import (
 
 var versionMapping = map[string]string{
 	"7.11": "0.1.0",
+	"7.12": "0.1.0",
 	"8.0":  "0.1.0",
 }
 
