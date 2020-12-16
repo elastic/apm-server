@@ -5,9 +5,19 @@
 <titleabbrev>Features</titleabbrev>
 ++++
 
+* <<distributed-tracing>>
+* <<rum>>
+* <<trace-sampling>>
+* <<opentracing>>
+* <<open-telemetry-elastic>>
+* <<observability-integrations>>
+* <<apm-cross-cluster-search>>
+
 include::./distributed-tracing.asciidoc[]
 
 include::./rum.asciidoc[]
+
+include::./trace-sampling.asciidoc[]
 
 include::./opentracing.asciidoc[]
 
