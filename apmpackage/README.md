@@ -69,6 +69,9 @@ Most of the work here is done in `beats/x-pack/elastic-agent`
 
 1. Build / Package
 
+    *Always*
+    - `mage clean`
+
     *First time*
     - `DEV=true PLATFORMS=darwin mage package` (replace platform as needed)
     - Untar `build/distributions` contents
@@ -77,7 +80,11 @@ Most of the work here is done in `beats/x-pack/elastic-agent`
     - `DEV=true mage build`
     - Copy `build/elastic-agent` to `build/distributions/elastic-agent-<version>-<platform>/data/elastic-agent-<hash>/`
 
-2. Override policy / apm-server
+    *Snapshots*
+    - If you need the Elastic Agent to grab the snapshot apm-server artifact, prepend `SNAPSHOT=true` to the `mage` command
+    - Note: as of 14/12/20 `SNAPSHOT=true mage package` is broken for some of us, but `SNAPSHOT=true mage build` works fine
+
+2. Optional: Override policy / apm-server
     - Use the right `elastic-agent.yml` policy
 
       It might be one you just generated with the UI, or one you have at hand with an apm input.
