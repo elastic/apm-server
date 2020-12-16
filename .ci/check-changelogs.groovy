@@ -20,9 +20,6 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
     quietPeriod(10)
   }
-  triggers {
-    cron 'H H(3-4) * * 1-5'
-  }
   stages {
     /**
      Checkout the code and stash it, to use it on other stages.
@@ -52,7 +49,7 @@ pipeline {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
-          sh(label: 'Run check changelogs', script: './script/jenkins/check-changelogs.sh')
+          sh(label: 'Run check changelogs', script: './.ci/scripts/check-changelogs.sh')
         }
       }
     }
