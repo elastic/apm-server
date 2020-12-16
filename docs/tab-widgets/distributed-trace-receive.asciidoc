@@ -19,7 +19,6 @@ traceContext, _ := apmhttp.ParseTraceparentHeader(r.Header.Get("Traceparent")) <
 traceContext.State, _ = apmhttp.ParseTracestateHeader(r.Header["Tracestate"]...) <2>
 
 opts := apm.TransactionOptions{
-	Start: time.Now(),
 	TraceContext: traceContext, <3>
 }
 transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opts) <4>
