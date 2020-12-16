@@ -1,0 +1,165 @@
+// tag::go[]
+
+// Need help with this example
+
+1. Parse the incoming TraceContext with
+https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTraceparentHeader[`ParseTraceparentHeader`] or
+https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTracestateHeader[`ParseTracestateHeader`].
+
+2. Start a new transaction or span as a child of the incoming transaction with
+{apm-go-ref}/api.html#tracer-api-start-transaction-options[`StartTransactionOptions`] or
+{apm-go-ref}/api.html#transaction-start-span-options[`StartSpanOptions`].
+
+Example:
+
+[source,go]
+----
+// Receive incoming TraceContext
+traceContext, _ := apmhttp.ParseTraceparentHeader(r.Header.Get("Traceparent")) <1>
+traceContext.State, _ = apmhttp.ParseTracestateHeader(r.Header["Tracestate"]...) <2>
+
+opts := apm.TransactionOptions{
+	TraceContext: traceContext, <3>
+}
+transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opts) <4>
+----
+<1> Parse the TraceParent header
+<2> Parse the tracestate header
+<3> Set the parent trace context
+<4> Start a new transaction as a child of the received TraceContext
+
+// end::go[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::java[]
+
+1. Create a transaction as a child of the incoming transaction with
+{apm-java-ref}/public-api.html#api-transaction-inject-trace-headers[`startTransactionWithRemoteParent()`].
+
+2. Start and name the transaction with {apm-java-ref}/public-api.html#api-transaction-activate[`activate()`]
+and {apm-java-ref}/public-api.html#api-set-name[`setName()`].
+
+Example:
+
+[source,java]
+----
+// Hook into a callback provided by the framework that is called on incoming requests
+public Response onIncomingRequest(Request request) throws Exception {
+    // creates a transaction representing the server-side handling of the request
+    Transaction transaction = ElasticApm.startTransactionWithRemoteParent(request::getHeader, request::getHeaders); <1>
+    try (final Scope scope = transaction.activate()) { <2>
+        String name = "a useful name like ClassName#methodName where the request is handled";
+        transaction.setName(name); <3>
+        transaction.setType(Transaction.TYPE_REQUEST); <4>
+        return request.handle();
+    } catch (Exception e) {
+        transaction.captureException(e);
+        throw e;
+    } finally {
+        transaction.end(); <5>
+    }
+}
+----
+<1> Create a transaction as the child of a remote parent
+<2> Activate the transaction
+<3> Name the transaction
+<4> Add a transaction type
+<5> Eventually, end the transaction
+
+// end::java[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::net[]
+
+Deserialize the incoming distributed tracing context, and pass it to any of the
+{apm-dotnet-ref}/public-api.html#api-start-transaction[`StartTransaction`] or
+{apm-dotnet-ref}/public-api.html#convenient-capture-transaction[`CaptureTransaction`] APIs --
+all of which have an optional `DistributedTracingData` parameter.
+This will create a new transaction or span as a child of the incoming trace context.
+
+Example starting a new transaction:
+
+[source,csharp]
+----
+var transaction2 = Agent.Tracer.StartTransaction("Transaction2", "TestTransaction",
+     DistributedTracingData.TryDeserializeFromString(serializedDistributedTracingData));
+----
+
+// end::net[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::node[]
+
+1. Decode and store the `traceparent` in the receiving service.
+
+2. Pass in the `traceparent` as the `childOf` option to manually start a new transaction
+as a child of the received `traceparent` with
+{apm-node-ref}/agent-api.html#apm-start-transaction[`apm.startTransaction()`].
+
+Example receiving a `traceparent` over raw UDP:
+
+[source,js]
+----
+const traceparent = readTraceparentFromUDPPacket() <1>
+agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
+----
+<1> Read the `traceparent` from the incoming request.
+<2> Use the `traceparent` to initialize a new transaction that is a child of the original `traceparent`.
+
+// end::node[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::python[]
+
+1. Create a TraceParent object from a string or HTTP header.
+
+2. Start a new transaction as a child of the `TraceParent` by passing in a `TraceParent` object.
+
+Example using HTTP headers:
+
+[source,python]
+----
+parent = elasticapm.trace_parent_from_headers(headers_dict) <1>
+client.begin_transaction('processors', trace_parent=parent) <2>
+----
+<1> Create a TraceParent object from HTTP headers formed as a dictionary
+<2> Begin a new transaction as a child of the received `TraceParent`
+
+TIP: See the {apm-py-ref}/api.html#traceparent-api[`TraceParent` API] for additional examples.
+// end::python[]
+
+// ***************************************************
+// ***************************************************
+
+// tag::ruby[]
+
+Start a new transaction or span as a child of the incoming transaction or span with
+{apm-ruby-ref}/api.html#api-agent-with_transaction[`with_transaction`] or
+{apm-ruby-ref}/api.html#api-agent-with_span[`with_span`].
+
+Example:
+
+[source,ruby]
+----
+# env being a Rack env
+context = ElasticAPM::TraceContext.parse(env: env) <1>
+
+ElasticAPM.with_transaction("Do things", trace_context: context) do <2>
+  ElasticAPM.with_span("Do nested thing", trace_context: context) do <3>
+  end
+end
+----
+<1> Parse the incoming `TraceContext`
+<2> Create a transaction as a child of the incoming `TraceContext`
+<3> Create a span as a child of the newly created transaction. `trace_context` is optional here,
+as spans are automatically created as a child of their parent's transaction's TraceContext when none is passed.
+
+// end::ruby[]
