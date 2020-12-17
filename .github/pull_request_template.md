@@ -3,56 +3,48 @@
 If this is your first contribution, please review and sign our contributor agreement -
 https://www.elastic.co/contributor-agreement.
 
-Before creating the PR, ensure that:
-
-1. Your branch is rebased on top of the latest master.
-   Squash your initial commits into meaningful commits.
-   After creating a PR, do not rebase of force push any longer.
-2. Nothing is broken, by running the test suite (at least unit tests).
-   See https://github.com/elastic/apm-server/blob/master/TESTING.md for details.
-3. Your code follows the style guidelines of this project:
-   run `make check-full` for static code checks and linting.
-
-A few suggestions about filling out this PR:
-
-1. Use a descriptive title for the PR.
-2. If this pull request is work in progress, create a draft PR.
-3. Please label this PR with at least one of the following labels:
-   - bug fix
-   - breaking change
-   - enhancement
-4. Reference the related issue, and make use of magic keywords where it makes sense
-   https://help.github.com/articles/closing-issues-using-keywords/.
-5. Do not remove any checklist items, strike through the ones that don't apply
-   (by using tildes, e.g. ~scratch this ~).
-6. Explain how this PR can be tested by the reviewer: commands, dependencies, steps, etc.
-7. Submit the pull request:
-   Push your changes to your forked copy of the repository and submit a pull request
-   (https://help.github.com/articles/using-pull-requests).
-8. Please be patient. We might not be able to immediately review your code,
-   but we'll do our best to dedicate to it the attention it deserves.
-   Your effort is much appreciated!
+Guidelines:
+ - Prefer small PRs, and split changes into multiple logical commits where they must
+   be delivered in a single PR.
+ - If the PR is incomplete and not yet ready for review, open it as a Draft.
+ - Once the PR is marked ready for review it is expected to pass all tests and linting,
+   and you should not force-push any changes.
 
 See also https://github.com/elastic/apm-server/blob/master/CONTRIBUTING.md for more tips on contributing.
 -->
 
 ## Motivation/summary
 
+<!--
+Describe your change in the title and description, and provide a motivation for the
+change and rationale for the approach taken.
+-->
+
 ## Checklist
 
-- [ ] I have signed the [Contributor License Agreement](https://www.elastic.co/contributor-agreement/).
-- [ ] I have updated [CHANGELOG.asciidoc](https://github.com/elastic/apm-server/blob/master/CHANGELOG.asciidoc)
+<!--
+Delete irrelevant items. The changelog should only be updated for user-facing changes.
+Once the PR is ready for review there should be no unticked boxes.
+-->
 
-I have considered changes for:
-- [ ] documentation
-- [ ] logging (add log lines, choose appropriate log selector, etc.)
-- [ ] metrics and monitoring (create issue for Kibana team to add metrics to visualizations, e.g. [Kibana#44001](https://github.com/elastic/kibana/issues/44001))
-- [ ] automated tests (add tests for the code changes, all [**unit** tests](https://github.com/elastic/apm-server/blob/master/TESTING.md) pass locally)
-- [ ] telemetry
-- [ ] Elasticsearch Service (https://cloud.elastic.co)
-- [ ] Elastic Cloud Enterprise (https://www.elastic.co/products/ece)
-- [ ] Elastic Cloud on Kubernetes (https://www.elastic.co/elastic-cloud-kubernetes)
+- [ ] Update [CHANGELOG.asciidoc](https://github.com/elastic/apm-server/blob/master/CHANGELOG.asciidoc)
+- [ ] Documentation has been updated
+
+For functional changes, consider:
+- Is it observable through the addition of either **logging** or **metrics**?
+- Is its use being published in **telemetry** to enable product improvement?
+- Have system tests been added to avoid regression?
 
 ## How to test these changes
 
+<!--
+Explain how this PR can be tested by the reviewer: commands, dependencies, steps, etc.
+If it is self-explanatory, delete this section.
+-->
+
 ## Related issues
+
+<!--
+Reference the related issue(s), and make use of magic keywords where it makes sense
+https://help.github.com/articles/closing-issues-using-keywords/.
+-->
