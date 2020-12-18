@@ -413,6 +413,7 @@ pipeline {
               anyOf {
                 branch 'master'
                 branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                branch pattern: '\\d+\\.x', comparator: 'REGEXP'
                 tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return isPR() && env.BEATS_UPDATED != "false" }
                 expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
