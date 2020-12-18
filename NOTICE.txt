@@ -639,7 +639,7 @@ Contents of "LICENSE":
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats/v7
 Version: v7.0.0
-Revision: 536b32753394
+Revision: 4d1c891ebf75
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -998,7 +998,7 @@ Contents of "NOTICE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Version: v0.12.0
+Version: v0.13.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -3924,7 +3924,7 @@ Contents of "LICENSE.txt":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 5f87f3452ae9
+Revision: 9d1352758620
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3958,7 +3958,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: ac852fbbde11
+Revision: 986b41b23924
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
