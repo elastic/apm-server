@@ -180,39 +180,6 @@
               type: long
               overwrite: true
 
-    - name: span
-      type: group
-      dynamic: false
-      fields:
-        - name: type
-          type: keyword
-          count: 1
-          description: >
-            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-          overwrite: true 
-
-        - name: subtype
-          type: keyword
-          count: 1
-          description: >
-            A further sub-division of the type (e.g. postgresql, elasticsearch)
-          overwrite: true 
-
-        - name: self_time
-          type: group
-          description: >
-            Portion of the span's duration where no direct child was running
-          fields:
-          - name: count
-            type: long
-            overwrite: true 
-          - name: sum
-            type: group
-            fields:
-              - name: us
-                type: long
-                overwrite: true 
-
     - name: trace
       type: group
       dynamic: false
@@ -325,7 +292,7 @@
           overwrite: true
 
         - name: hostname
-          type: keyword
+          type: wildcard
           description: >
             The hostname of the host the event was recorded on.
           overwrite: true
@@ -383,7 +350,7 @@
           overwrite: true
 
         - name: title
-          type: keyword
+          type: wildcard
           description: >
             Service process title.
           overwrite: true
@@ -429,7 +396,7 @@
       fields:
 
       - name: name
-        type: keyword
+        type: wildcard
         description: >
           The username of the logged in user.
         overwrite: true
@@ -441,7 +408,7 @@
         overwrite: true
 
       - name: email
-        type: keyword
+        type: wildcard
         description: >
           Email of the logged in user.
         overwrite: true
@@ -512,7 +479,7 @@
       fields:
 
       - name: original
-        type: keyword
+        type: wildcard
         description: >
           Unparsed version of the user_agent.
         example: "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1"
@@ -570,14 +537,14 @@
             example: darwin
 
           - name: name
-            type: keyword
+            type: wildcard
             overwrite: true
             example: "Mac OS X"
             description: >
               Operating system name, without the version.
 
           - name: full
-            type: keyword
+            type: wildcard
             overwrite: true
             example: "Mac OS Mojave"
             description: >
@@ -729,9 +696,38 @@
       type: group
       dynamic: false
       fields:
+        - name: type
+          type: keyword
+          count: 1
+          description: >
+            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+          overwrite: true 
+
+        - name: subtype
+          type: keyword
+          count: 1
+          description: >
+            A further sub-division of the type (e.g. postgresql, elasticsearch)
+          overwrite: true 
+
+        - name: self_time
+          type: group
+          description: >
+            Portion of the span's duration where no direct child was running
+          fields:
+          - name: count
+            type: long
+            overwrite: true 
+          - name: sum
+            type: group
+            fields:
+              - name: us
+                type: long
+                overwrite: true 
 
         - name: id
           type: keyword
+          overwrite: true
           description: >
             The ID of the span stored as hex encoded string.
 
