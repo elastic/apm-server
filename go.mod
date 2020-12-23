@@ -17,8 +17,8 @@ require (
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201216100921-5a813648879f
 	github.com/elastic/ecs v1.6.0
-	github.com/elastic/go-elasticsearch/v7 v7.9.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd
+	github.com/elastic/go-elasticsearch/v7 v7.10.0
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201216152027-57cb70149147
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
 	github.com/elastic/go-sysinfo v1.4.0 // indirect
