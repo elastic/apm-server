@@ -496,10 +496,6 @@ func testStartTime() time.Time {
 	return time.Unix(1576500418, 768068)
 }
 
-func testEndTime() time.Time {
-	return time.Unix(1576500497, 768068)
-}
-
 func testDuration() time.Duration {
 	return 79 * time.Second
 }
