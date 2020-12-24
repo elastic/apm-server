@@ -24,14 +24,11 @@ import (
 	"testing"
 	"time"
 
-	commonpb "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1"
-	resourcepb "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1"
-	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	jaegermodel "github.com/jaegertracing/jaeger/model"
-	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
-	jaegertranslator "github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer/pdata"
+	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
@@ -42,19 +39,15 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
-func TestConsumer_ConsumeTraceData_Empty(t *testing.T) {
+func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 	reporter := func(ctx context.Context, p publish.PendingReq) error {
 		assert.Empty(t, p.Transformables)
 		return nil
 	}
 
 	consumer := Consumer{Reporter: reporter}
-	assert.NoError(t, consumer.ConsumeTraceData(context.Background(), consumerdata.TraceData{}))
-	assert.NoError(t, consumer.ConsumeTraceData(context.Background(), consumerdata.TraceData{
-		Node:     &commonpb.Node{},
-		Resource: &resourcepb.Resource{},
-		Spans:    []*tracepb.Span{},
-	}))
+	traces := pdata.NewTraces()
+	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {
@@ -71,8 +64,6 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 		name    string
 		process *jaegermodel.Process
 	}{{
-		name: "jaeger_minimal",
-	}, {
 		name: "jaeger-version",
 		process: jaegermodel.NewProcess("", []jaegermodel.KeyValue{
 			jaegerKeyValue("jaeger.version", "PHP-3.4.12"),
@@ -102,10 +93,8 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 				return nil
 			}
 			jaegerBatch.Process = tc.process
-			td, err := jaegertranslator.ProtoBatchToOCProto(jaegerBatch)
-			require.NoError(t, err)
-			td.SourceFormat = "jaeger"
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), td))
+			traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
+			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 		})
 	}
 }
@@ -120,7 +109,10 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 	}
 
 	jaegerBatch := jaegermodel.Batch{
-		Process: jaegermodel.NewProcess("", []jaegermodel.KeyValue{jaegerKeyValue("hostname", "host-abc")}),
+		Process: jaegermodel.NewProcess("", jaegerKeyValues(
+			"jaeger.version", "unknown",
+			"hostname", "host-abc",
+		)),
 		Spans: []*jaegermodel.Span{{
 			StartTime: testStartTime(),
 			Duration:  testDuration(),
@@ -130,9 +122,14 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 				jaegerKeyValue("sampler.param", 0.8),
 			},
 		}, {
-			StartTime:  testStartTime(),
-			Duration:   testDuration(),
-			References: []jaegermodel.SpanRef{{RefType: jaegermodel.SpanRefType_CHILD_OF, SpanID: 1}},
+			StartTime: testStartTime(),
+			Duration:  testDuration(),
+			TraceID:   jaegermodel.NewTraceID(1, 1),
+			References: []jaegermodel.SpanRef{{
+				RefType: jaegermodel.SpanRefType_CHILD_OF,
+				TraceID: jaegermodel.NewTraceID(1, 1),
+				SpanID:  1,
+			}},
 			Tags: []jaegermodel.KeyValue{
 				jaegerKeyValue("span.kind", "client"),
 				jaegerKeyValue("sampler.type", "probabilistic"),
@@ -148,10 +145,8 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 			},
 		}},
 	}
-	td, err := jaegertranslator.ProtoBatchToOCProto(jaegerBatch)
-	require.NoError(t, err)
-	td.SourceFormat = "jaeger"
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), td))
+	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
+	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
 	require.Len(t, transformables, 3)
 	tx1 := transformables[0].(*model.Transaction)
@@ -170,6 +165,7 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 	}
 
 	jaegerBatch := jaegermodel.Batch{
+		Process: jaegermodel.NewProcess("", jaegerKeyValues("jaeger.version", "unknown")),
 		Spans: []*jaegermodel.Span{{
 			TraceID: jaegermodel.NewTraceID(0, 0x000046467830),
 			SpanID:  jaegermodel.NewSpanID(456),
@@ -178,10 +174,8 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 			SpanID:  jaegermodel.NewSpanID(789),
 		}},
 	}
-	td, err := jaegertranslator.ProtoBatchToOCProto(jaegerBatch)
-	require.NoError(t, err)
-	td.SourceFormat = "jaeger"
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), td))
+	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
+	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
 	require.Len(t, transformables, 2)
 	assert.Equal(t, "46467830", transformables[0].(*model.Transaction).TraceID)
@@ -201,16 +195,11 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				TraceID:       jaegermodel.NewTraceID(0, 0x46467830),
 				SpanID:        0x41414646,
 				OperationName: "HTTP GET",
-				References: []jaegermodel.SpanRef{{
-					RefType: jaegermodel.SpanRefType_CHILD_OF,
-					SpanID:  0x61626364,
-				}},
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("error", true),
 					jaegerKeyValue("bool.a", true),
 					jaegerKeyValue("double.a", 14.65),
 					jaegerKeyValue("int.a", int64(148)),
-					jaegerKeyValue("span.kind", "http request"),
 					jaegerKeyValue("http.method", "get"),
 					jaegerKeyValue("http.url", "http://foo.bar.com?a=12"),
 					jaegerKeyValue("http.status_code", "400"),
@@ -249,7 +238,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				}},
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("span.kind", "server"),
-					jaegerKeyValue("status.code", int64(200)),
+					jaegerKeyValue("http.status_code", int64(200)),
 					jaegerKeyValue("http.url", "localhost:8080"),
 				},
 			}},
@@ -292,19 +281,20 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("span.kind", "server"),
 					jaegerKeyValue("error", true),
-					jaegerKeyValue("status.code", int64(500)),
+					jaegerKeyValue("status.code", int64(2)),
 				},
 			}},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			batch := jaegermodel.Batch{
-				Process: jaegermodel.NewProcess("", []jaegermodel.KeyValue{jaegerKeyValue("hostname", "host-abc")}),
-				Spans:   tc.spans,
+				Process: jaegermodel.NewProcess("", []jaegermodel.KeyValue{
+					jaegerKeyValue("hostname", "host-abc"),
+					jaegerKeyValue("jaeger.version", "unknown"),
+				}),
+				Spans: tc.spans,
 			}
-			td, err := jaegertranslator.ProtoBatchToOCProto(batch)
-			require.NoError(t, err)
-			td.SourceFormat = "jaeger"
+			traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
 
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
@@ -312,7 +302,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				approveEvents(t, "transaction_"+tc.name, events)
 				return nil
 			}
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), td))
+			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 		})
 	}
 }
@@ -403,8 +393,11 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			batch := jaegermodel.Batch{
-				Process: jaegermodel.NewProcess("", []jaegermodel.KeyValue{jaegerKeyValue("hostname", "host-abc")}),
-				Spans:   tc.spans,
+				Process: jaegermodel.NewProcess("", []jaegermodel.KeyValue{
+					jaegerKeyValue("hostname", "host-abc"),
+					jaegerKeyValue("jaeger.version", "unknown"),
+				}),
+				Spans: tc.spans,
 			}
 			for _, span := range batch.Spans {
 				span.StartTime = testStartTime()
@@ -417,9 +410,7 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 					SpanID:  0x58585858,
 				}}
 			}
-			td, err := jaegertranslator.ProtoBatchToOCProto(batch)
-			require.NoError(t, err)
-			td.SourceFormat = "jaeger"
+			traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
 
 			reporter := func(ctx context.Context, req publish.PendingReq) error {
 				require.True(t, len(req.Transformables) >= 1)
@@ -427,7 +418,7 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 				approveEvents(t, "span_"+tc.name, events)
 				return nil
 			}
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraceData(context.Background(), td))
+			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 		})
 	}
 }
@@ -484,7 +475,7 @@ func testJaegerLogs() []jaegermodel.Log {
 			"level", "info",
 		),
 	}, {
-		// errors not convertable to elastic errors
+		// errors not convertible to elastic errors
 		Timestamp: testStartTime().Add(67 * time.Nanosecond),
 		Fields: jaegerKeyValues(
 			"level", "error",
@@ -509,12 +500,9 @@ func transformAll(ctx context.Context, p publish.PendingReq) []beat.Event {
 }
 
 func approveEvents(t testing.TB, name string, events []beat.Event) {
+	t.Helper()
 	docs := beatertest.EncodeEventDocs(events...)
-	approvaltest.ApproveEventDocs(t, file(name), docs)
-}
-
-func file(f string) string {
-	return filepath.Join("test_approved", f)
+	approvaltest.ApproveEventDocs(t, filepath.Join("test_approved", name), docs)
 }
 
 func jaegerKeyValues(kv ...interface{}) []jaegermodel.KeyValue {

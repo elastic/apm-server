@@ -1,5 +1,5 @@
 Elastic APM Server
-Copyright 2017-2020 Elasticsearch BV
+Copyright 2017-2021 Elasticsearch BV
 
 This product includes software developed by The Apache Software 
 Foundation (http://www.apache.org/).
@@ -108,12 +108,12 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/apache/thrift
-Revision: b2a4d4ae21c7
+Version: v0.13.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
     Apache Thrift
-    Copyright 2006-2010 The Apache Software Foundation.
+    Copyright (C) 2006 - 2019, The Apache Software Foundation
 
     This product includes software developed at
     The Apache Software Foundation (http://www.apache.org/).
@@ -147,7 +147,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/aws/aws-sdk-go-v2
-Version: v0.9.0
+Version: v0.18.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE.txt":
 
@@ -157,7 +157,7 @@ Contents of "NOTICE.txt":
 
 --------------------------------------------------------------------
 Dependency: github.com/census-instrumentation/opencensus-proto
-Version: v0.2.1
+Version: v0.3.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -292,7 +292,7 @@ Contents of "NOTICE":
 
 --------------------------------------------------------------------
 Dependency: github.com/containerd/containerd
-Version: v1.3.3
+Version: v1.3.4
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -315,7 +315,7 @@ Contents of "NOTICE":
 
 --------------------------------------------------------------------
 Dependency: github.com/DataDog/zstd
-Version: v1.4.1
+Version: v1.4.4
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -383,11 +383,9 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/dgryski/go-farm
-Revision: 6a90982ecee2
+Revision: a6ae2369ad13
 License type (autodetected): MIT
 Contents of "LICENSE":
-
-    As this is a highly derivative work, I have placed it under the same license as the original implementation:
 
     Copyright (c) 2014-2017 Damian Gryski
     Copyright (c) 2016-2017 Nicola Asuni - Tecnick.com
@@ -554,7 +552,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/eapache/go-resiliency
-Version: v1.1.0
+Version: v1.2.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -1194,7 +1192,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/golang/protobuf
-Version: v1.4.2
+Version: v1.4.3
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -1228,7 +1226,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/golang/snappy
-Version: v0.0.1
+Version: v0.0.2
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -1262,7 +1260,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/google/go-cmp
-Version: v0.5.2
+Version: v0.5.4
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -1301,7 +1299,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/google/pprof
-Revision: 1a94d8640e99
+Revision: 1066cbb265c7
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -1311,7 +1309,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/gorilla/websocket
-Version: v1.4.1
+Version: v1.4.2
 License type (autodetected): BSD-2-Clause
 Contents of "LICENSE":
 
@@ -1340,7 +1338,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/grpc-ecosystem/grpc-gateway
-Version: v1.13.0
+Version: v1.16.0
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE.txt":
 
@@ -2495,7 +2493,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/hashicorp/golang-lru
-Version: v0.5.3
+Version: v0.5.4
 License type (autodetected): MPL-2.0
 Contents of "LICENSE":
 
@@ -2904,7 +2902,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/jaegertracing/jaeger
-Version: v1.16.0
+Version: v1.21.0
 License type (autodetected): Apache-2.0
 Contents of "NOTICE":
 
@@ -2952,7 +2950,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/jmespath/go-jmespath
-Revision: c2b33e8439af
+Version: v0.4.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3018,8 +3016,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/klauspost/compress
-Version: v1.9.3
-Revision: c099ac9f21dd
+Version: v1.9.5
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3054,7 +3051,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/konsorten/go-windows-terminal-sequences
-Version: v1.0.2
+Version: v1.0.3
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -3184,13 +3181,9 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/miekg/dns
-Version: v1.1.15
+Version: v1.1.31
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
-
-    Extensions of the original work are copyright (c) 2011 Miek Gieben
-
-    As this is fork of the official Go code the same license applies:
 
     Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -3219,6 +3212,9 @@ Contents of "LICENSE":
     THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+    As this is fork of the official Go code the same license applies.
+    Extensions of the original work are copyright (c) 2011 Miek Gieben
 
 --------------------------------------------------------------------
 Dependency: github.com/mitchellh/hashstructure
@@ -3259,15 +3255,8 @@ Version: v1.0.1
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
-Dependency: github.com/open-telemetry/opentelemetry-collector
-Version: v0.2.1
-Revision: c300f1341702
-License type (autodetected): Apache-2.0
-
---------------------------------------------------------------------
 Dependency: github.com/opencontainers/go-digest
 Version: v1.0.0
-Revision: ac19fd6e7483
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3278,8 +3267,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/opentracing/opentracing-go
-Version: v1.1.1
-Revision: a7454ce5950e
+Version: v1.2.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3310,7 +3298,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/pierrec/lz4
-Version: v2.2.6
+Version: v2.4.1
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -3480,7 +3468,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/sirupsen/logrus
-Version: v1.4.2
+Version: v1.6.0
 License type (autodetected): MIT
 Contents of "LICENSE":
 
@@ -3508,7 +3496,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: github.com/spf13/cobra
-Version: v0.0.5
+Version: v1.1.1
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
@@ -3545,32 +3533,6 @@ Contents of "LICENSE":
     THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
---------------------------------------------------------------------
-Dependency: github.com/uber/tchannel-go
-Version: v1.16.0
-License type (autodetected): MIT
-Contents of "LICENSE.md":
-
-    Copyright (c) 2015 Uber Technologies, Inc.
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/ugorji/go/codec
@@ -3846,6 +3808,11 @@ Version: v1.1.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
+Dependency: go.opentelemetry.io/collector
+Version: v0.17.0
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
 Dependency: go.uber.org/atomic
 Version: v1.7.0
 License type (autodetected): MIT
@@ -3993,7 +3960,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/oauth2
-Revision: bf48bf16ab8d
+Revision: 5d25da1a8d43
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4027,7 +3994,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sync
-Revision: 6e8e738ad208
+Revision: 30421366ff76
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4163,7 +4130,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/time
-Revision: 555d28b269f0
+Revision: 3af7569d3a1e
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4197,17 +4164,17 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/genproto
-Revision: cb27e3aa2013
+Revision: 0bd0a958aa1d
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/grpc
-Version: v1.29.1
+Version: v1.34.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/protobuf
-Version: v1.24.0
+Version: v1.25.0
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 
@@ -4442,7 +4409,7 @@ License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
 Dependency: k8s.io/klog/v2
-Version: v2.2.0
+Version: v2.3.0
 License type (autodetected): Apache-2.0
 
 --------------------------------------------------------------------
