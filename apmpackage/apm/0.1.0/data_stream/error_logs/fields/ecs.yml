@@ -94,7 +94,7 @@
   description: |
     The architecture of the host the event was recorded on.
 - name: host.hostname
-  type: keyword
+  type: wildcard
   description: |
     The hostname of the host the event was recorded on.
 - name: host.ip
@@ -114,7 +114,7 @@
   description: |
     The http method of the request leading to this event.
 - name: http.request.referrer
-  type: keyword
+  type: wildcard
   description: Referrer for this HTTP request.
   ignore_above: 1024
 - name: http.response.status_code
@@ -155,7 +155,7 @@
   description: |
     Numeric ID of the service's parent process.
 - name: process.title
-  type: keyword
+  type: wildcard
   description: |
     Service process title.
 - name: service.name
@@ -183,7 +183,7 @@
   description: |
     The transaction ID.
 - name: url.domain
-  type: keyword
+  type: wildcard
   description: |
     The hostname of the request, e.g. "example.com".
 - name: url.fragment
@@ -191,11 +191,11 @@
   description: |
     A fragment specifying a location in a web page , e.g. "top".
 - name: url.full
-  type: keyword
+  type: wildcard
   description: |
     The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 - name: url.path
-  type: keyword
+  type: wildcard
   description: |
     The path of the request, e.g. "/search".
 - name: url.port
@@ -211,7 +211,7 @@
   description: |
     The protocol of the request, e.g. "https:".
 - name: user.email
-  type: keyword
+  type: wildcard
   description: |
     Email of the logged in user.
 - name: user.id
@@ -219,7 +219,7 @@
   description: |
     Identifier of the logged in user.
 - name: user.name
-  type: keyword
+  type: wildcard
   description: |
     The username of the logged in user.
 - name: user_agent.device.name
@@ -231,7 +231,7 @@
   description: |
     Name of the user agent.
 - name: user_agent.original
-  type: keyword
+  type: wildcard
   description: |
     Unparsed version of the user_agent.
   multi_fields:
@@ -242,7 +242,7 @@
   description: |
     OS family (such as redhat, debian, freebsd, windows).
 - name: user_agent.os.full
-  type: keyword
+  type: wildcard
   description: |
     Operating system name, including the version or code name.
 - name: user_agent.os.kernel
@@ -250,7 +250,7 @@
   description: |
     Operating system kernel version as a raw string.
 - name: user_agent.os.name
-  type: keyword
+  type: wildcard
   description: |
     Operating system name, without the version.
 - name: user_agent.os.platform
