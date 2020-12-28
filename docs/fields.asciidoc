@@ -96,7 +96,7 @@ type: keyword
 The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -108,7 +108,7 @@ type: keyword
 The hostname of the request, e.g. "example.com".
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -132,7 +132,7 @@ type: long
 The path of the request, e.g. "/search".
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -207,7 +207,7 @@ Object is not enabled.
 --
 Referrer for this HTTP request.
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -667,7 +667,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -765,7 +765,7 @@ type: long
 Service process title.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -839,7 +839,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -863,7 +863,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -950,7 +950,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: keyword
+type: wildcard
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -1046,7 +1046,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS X
 
@@ -1060,7 +1060,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS Mojave
 
@@ -1696,7 +1696,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1794,7 +1794,7 @@ type: long
 Service process title.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1868,7 +1868,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1892,7 +1892,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1979,7 +1979,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: keyword
+type: wildcard
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -2075,7 +2075,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS X
 
@@ -2089,7 +2089,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS Mojave
 
@@ -2795,150 +2795,6 @@ type: long
 --
 
 
-*`span.id`*::
-+
---
-The ID of the span stored as hex encoded string.
-
-
-type: keyword
-
---
-
-*`span.name`*::
-+
---
-Generic designation of a span in the scope of a transaction.
-
-
-type: keyword
-
---
-
-*`span.action`*::
-+
---
-The specific kind of event within the sub-type represented by the span (e.g. query, connect)
-
-
-type: keyword
-
---
-
-
-*`span.start.us`*::
-+
---
-Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
-
-
-type: long
-
---
-
-
-*`span.duration.us`*::
-+
---
-Duration of the span, in microseconds.
-
-
-type: long
-
---
-
-*`span.sync`*::
-+
---
-Indicates whether the span was executed synchronously or asynchronously.
-
-
-type: boolean
-
---
-
-
-*`span.db.link`*::
-+
---
-Database link.
-
-
-type: keyword
-
---
-
-*`span.db.rows_affected`*::
-+
---
-Number of rows affected by the database statement.
-
-
-type: long
-
---
-
-
-[float]
-=== service
-
-Destination service context
-
-
-*`span.destination.service.type`*::
-+
---
-Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.
-
-
-type: keyword
-
---
-
-*`span.destination.service.name`*::
-+
---
-Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')
-
-
-type: keyword
-
---
-
-*`span.destination.service.resource`*::
-+
---
-Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')
-
-
-type: keyword
-
---
-
-
-
-*`span.message.queue.name`*::
-+
---
-Name of the message queue or topic where the message is published or received.
-
-
-type: keyword
-
---
-
-
-*`span.message.age.ms`*::
-+
---
-Age of a message in milliseconds.
-
-
-type: long
-
---
-
-
 *`trace.id`*::
 +
 --
@@ -3094,7 +2950,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3192,7 +3048,7 @@ type: long
 Service process title.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3266,7 +3122,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3290,7 +3146,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3377,7 +3233,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: keyword
+type: wildcard
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -3473,7 +3329,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS X
 
@@ -3487,7 +3343,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS Mojave
 
@@ -3710,6 +3566,202 @@ type: keyword
 
 --
 
+
+*`span.type`*::
++
+--
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`span.subtype`*::
++
+--
+A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+[float]
+=== self_time
+
+Portion of the span's duration where no direct child was running
+
+
+
+*`span.self_time.count`*::
++
+--
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`span.self_time.sum.us`*::
++
+--
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`span.id`*::
++
+--
+The ID of the span stored as hex encoded string.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`span.name`*::
++
+--
+Generic designation of a span in the scope of a transaction.
+
+
+type: keyword
+
+--
+
+*`span.action`*::
++
+--
+The specific kind of event within the sub-type represented by the span (e.g. query, connect)
+
+
+type: keyword
+
+--
+
+
+*`span.start.us`*::
++
+--
+Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
+
+
+type: long
+
+--
+
+
+*`span.duration.us`*::
++
+--
+Duration of the span, in microseconds.
+
+
+type: long
+
+--
+
+*`span.sync`*::
++
+--
+Indicates whether the span was executed synchronously or asynchronously.
+
+
+type: boolean
+
+--
+
+
+*`span.db.link`*::
++
+--
+Database link.
+
+
+type: keyword
+
+--
+
+*`span.db.rows_affected`*::
++
+--
+Number of rows affected by the database statement.
+
+
+type: long
+
+--
+
+
+[float]
+=== service
+
+Destination service context
+
+
+*`span.destination.service.type`*::
++
+--
+Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.
+
+
+type: keyword
+
+--
+
+*`span.destination.service.name`*::
++
+--
+Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')
+
+
+type: keyword
+
+--
+
+*`span.destination.service.resource`*::
++
+--
+Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')
+
+
+type: keyword
+
+--
+
+
+
+*`span.message.queue.name`*::
++
+--
+Name of the message queue or topic where the message is published or received.
+
+
+type: keyword
+
+--
+
+
+*`span.message.age.ms`*::
++
+--
+Age of a message in milliseconds.
+
+
+type: long
+
+--
+
 [[exported-fields-apm-span-metrics-xpack]]
 == APM Span Metrics fields
 
@@ -3806,7 +3858,7 @@ type: keyword
 The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3818,7 +3870,7 @@ type: keyword
 The hostname of the request, e.g. "example.com".
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3842,7 +3894,7 @@ type: long
 The path of the request, e.g. "/search".
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3917,7 +3969,7 @@ Object is not enabled.
 --
 Referrer for this HTTP request.
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4445,7 +4497,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4543,7 +4595,7 @@ type: long
 Service process title.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4617,7 +4669,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4641,7 +4693,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4728,7 +4780,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: keyword
+type: wildcard
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -4824,7 +4876,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS X
 
@@ -4838,7 +4890,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS Mojave
 
@@ -5537,7 +5589,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5635,7 +5687,7 @@ type: long
 Service process title.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5709,7 +5761,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5733,7 +5785,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: keyword
+type: wildcard
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5820,7 +5872,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: keyword
+type: wildcard
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -5916,7 +5968,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS X
 
@@ -5930,7 +5982,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: keyword
+type: wildcard
 
 example: Mac OS Mojave
 

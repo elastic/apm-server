@@ -2,6 +2,7 @@
 === OpenTelemetry integration
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
+:ot-contrib:    https://github.com/open-telemetry/opentelemetry-collector-contrib
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
 :ot-pipelines:  https://opentelemetry.io/docs/collector/configuration/
 :ot-extension:  {ot-repo}/blob/master/extension/README.md
@@ -81,8 +82,8 @@ documentation and {ot-scaling}[Collector Performance] research.
 [[open-telemetry-elastic-download]]
 ==== Download the collector
 
-The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
-and the latest release can be downloaded from {ot-repo}/releases[GitHub releases page].
+The Elastic exporter lives in the {ot-contrib}[`opentelemetry-collector-contrib` repository],
+and the latest release can be downloaded from {ot-contrib}/releases[GitHub releases page].
 
 Docker images are available on {ot-dockerhub}[dockerhub]:
 
@@ -178,7 +179,7 @@ This example configuration file accepts input from an OpenTelemetry Agent, proce
 <1> The `hostmetrics` receiver must be defined to generate metrics about the host system scraped from various sources.
 <2> At a minimum, you must define the URL of the APM Server instance you are sending data to. See the <<open-telemetry-elastic-config-ref,configuration reference>>
 for additional configuration options, like specifying an API key, secret token, or TLS settings.
-<3> To translate metrics, the Elastic exporter must be defined in `service.pipelines.metrics.exporters`. 
+<3> To translate metrics, the Elastic exporter must be defined in `service.pipelines.metrics.exporters`.
 <4> To translate trace data, the Elastic exporter must be defined in `service.pipelines.traces.exporters`.
 
 NOTE: For more information about getting started with an OpenTelemetry Collector,
