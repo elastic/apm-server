@@ -9,6 +9,8 @@ https://github.com/elastic/apm-server/compare/7.10\...7.11[View commits]
 [[release-notes-7.11.0]]
 === APM Server version 7.11.0
 
+https://github.com/elastic/apm-server/compare/v7.10.2\...v7.11.0[View commits]
+
 [float]
 ==== Bug fixes
 * JSON schema metricset: nest type and subtype under span {pull}4329[4329]
