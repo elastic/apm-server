@@ -11,6 +11,10 @@
             "event": {
                 "outcome": "success"
             },
+            "host": {
+                "hostname": "host-abc",
+                "name": "host-abc"
+            },
             "labels": {
                 "a_b": "foo"
             },
@@ -22,7 +26,10 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "node": {
+                    "name": "host-abc"
+                }
             },
             "transaction": {
                 "duration": {

@@ -50,6 +50,51 @@
             "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc",
+                "name": "host-abc"
+            },
+            "labels": {
+                "sampler_param": 2,
+                "sampler_type": "ratelimiting"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown",
+                "node": {
+                    "name": "host-abc"
+                }
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "duration": {
+                    "us": 79000000
+                },
+                "id": "",
+                "result": "Success",
+                "sampled": true,
+                "type": "custom"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.type": "traces",
+            "event": {
                 "outcome": "unknown"
             },
             "host": {
@@ -57,7 +102,7 @@
                 "name": "host-abc"
             },
             "parent": {
-                "id": "01"
+                "id": "1"
             },
             "processor": {
                 "event": "span",
