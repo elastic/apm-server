@@ -249,21 +249,14 @@ output.elasticsearch:
 
 ############################# Logging #########################################
 
-{% if logging_json or logging_level or logging_ecs_disabled %}
-logging:
-{% endif %}
 {% if logging_json %}
-  # Set to true to log messages in json format.
-  json: {{ logging_json }}
+# Defaults to true.
+logging.json: {{ logging_json }}
 {% endif %}
 
-{% if logging_level %}
-  # Set log level
-  level: {{ logging_level }}
-{% endif %}
-
-{% if logging_ecs_disabled %}
-  ecs: false
+{% if logging_ecs %}
+# Defaults to true.
+logging.ecs: {{ logging_json }}
 {% endif %}
 
 queue.mem.flush.min_events: {{ queue_flush }}
