@@ -15,6 +15,9 @@
                 "hostname": "host-abc",
                 "name": "host-abc"
             },
+            "labels": {
+                "component": "whatever"
+            },
             "parent": {
                 "id": "58585858"
             },
@@ -37,6 +40,7 @@
                 },
                 "id": "41414646",
                 "name": "",
+                "subtype": "whatever",
                 "type": "custom"
             },
             "timestamp": {
