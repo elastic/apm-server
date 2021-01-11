@@ -1,5 +1,5 @@
 Elastic APM Server
-Copyright 2017-2020 Elasticsearch BV
+Copyright 2017-2021 Elasticsearch BV
 
 This product includes software developed by The Apache Software 
 Foundation (http://www.apache.org/).
