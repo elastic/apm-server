@@ -97,7 +97,9 @@ type HasPrivilegesResponse struct {
 }
 
 type InvalidateAPIKeyRequest struct {
-	APIKeyQuery
+	// normally the Elasticsearch API will require either Ids or Name, but not both
+	IDs  []string `json:"ids,omitempty"`
+	Name *string  `json:"name,omitempty"`
 }
 
 type InvalidateAPIKeyResponse struct {

@@ -36,13 +36,13 @@
          overwrite: true
 
        - name: full
-         type: keyword
+         type: wildcard
          description: >
            The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
          overwrite: true
 
        - name: domain
-         type: keyword
+         type: wildcard
          description: >
            The hostname of the request, e.g. "example.com".
          overwrite: true
@@ -54,7 +54,7 @@
          overwrite: true
 
        - name: path
-         type: keyword
+         type: wildcard
          description: >
            The path of the request, e.g. "/search".
          overwrite: true
@@ -100,7 +100,7 @@
             overwrite: true
 
           - name: referrer
-            type: keyword
+            type: wildcard
             ignore_above: 1024
             description: Referrer for this HTTP request.
             overwrite: true
@@ -429,7 +429,7 @@
           overwrite: true
 
         - name: hostname
-          type: keyword
+          type: wildcard
           description: >
             The hostname of the host the event was recorded on.
           overwrite: true
@@ -487,7 +487,7 @@
           overwrite: true
 
         - name: title
-          type: keyword
+          type: wildcard
           description: >
             Service process title.
           overwrite: true
@@ -533,7 +533,7 @@
       fields:
 
       - name: name
-        type: keyword
+        type: wildcard
         description: >
           The username of the logged in user.
         overwrite: true
@@ -545,7 +545,7 @@
         overwrite: true
 
       - name: email
-        type: keyword
+        type: wildcard
         description: >
           Email of the logged in user.
         overwrite: true
@@ -616,7 +616,7 @@
       fields:
 
       - name: original
-        type: keyword
+        type: wildcard
         description: >
           Unparsed version of the user_agent.
         example: "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1"
@@ -674,14 +674,14 @@
             example: darwin
 
           - name: name
-            type: keyword
+            type: wildcard
             overwrite: true
             example: "Mac OS X"
             description: >
               Operating system name, without the version.
 
           - name: full
-            type: keyword
+            type: wildcard
             overwrite: true
             example: "Mac OS Mojave"
             description: >

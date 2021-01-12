@@ -1,0 +1,114 @@
+// The Java agent defaults to visible.
+// Change with `aria-selected="false"` and `hidden=""`
+++++
+<div class="tabs" data-tab-group="apm-agent-distributed-trace">
+  <div role="tablist" aria-label="dt">
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="go-tab-dt-r"
+            id="go-dt-r">
+      Go
+    </button>
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="java-tab-dt-r"
+            id="java-dt-r"
+            tabindex="-1">
+      Java
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="net-tab-dt-r"
+            id="net-dt-r"
+            tabindex="-1">
+      .NET
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="node-tab-dt-r"
+            id="node-dt-r"
+            tabindex="-1">
+      Node.js
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="python-tab-dt-r"
+            id="python-dt-r"
+            tabindex="-1">
+      Python
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="ruby-tab-dt-r"
+            id="ruby-dt-r"
+            tabindex="-1">
+      Ruby
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="go-tab-dt-r"
+       aria-labelledby="go-dt-r"
+       hidden="">
+++++
+
+include::distributed-trace-receive.asciidoc[tag=go]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="java-tab-dt-r"
+       aria-labelledby="java-dt-r">
+++++
+
+include::distributed-trace-receive.asciidoc[tag=java]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="net-tab-dt-r"
+       aria-labelledby="net-dt-r"
+       hidden="">
+++++
+
+include::distributed-trace-receive.asciidoc[tag=net]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="node-tab-dt-r"
+       aria-labelledby="node-dt-r"
+       hidden="">
+++++
+
+include::distributed-trace-receive.asciidoc[tag=node]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="python-tab-dt-r"
+       aria-labelledby="python-dt-r"
+       hidden="">
+++++
+
+include::distributed-trace-receive.asciidoc[tag=python]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="ruby-tab-dt-r"
+       aria-labelledby="ruby-dt-r"
+       hidden="">
+++++
+
+include::distributed-trace-receive.asciidoc[tag=ruby]
+
+++++
+  </div>
+</div>
+++++
