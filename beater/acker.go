@@ -29,8 +29,6 @@ import (
 // events published. waitPublishedAcker provides an interruptible Wait method
 // that blocks until all events published at the time the client is closed are
 // acknowledged.
-//
-// TODO(axw) move this to libbeat/common/acker.
 type waitPublishedAcker struct {
 	active int64 // atomic
 
@@ -62,9 +60,16 @@ func (w *waitPublishedAcker) ACKEvents(n int) {
 	}
 }
 
-// Close closes w, unblocking Wait when all previously published events have
+// Close is a no-op, and exists to satisfy the beat.ACKer interface.
+//
+// This will be called when each publisher is stopped, but we want the
+// acker to be reused by subsequent publishers. Thus, we only want to
+// unblock Wait once the beater is stopping.
+func (w *waitPublishedAcker) Close() {}
+
+// unblockWait unblocks Wait when all previously published events have
 // been acknowledged.
-func (w *waitPublishedAcker) Close() {
+func (w *waitPublishedAcker) unblockWait() {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if !w.closed {
