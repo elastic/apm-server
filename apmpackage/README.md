@@ -37,7 +37,7 @@
     `package-storage/packages` in the `package-storage` repo, `snapshot` branch.
     Do *NOT* override any existing packages. Instead, bump the qualifier version (eg: `0.1.0-dev.1` to `0.1.0-dev.2`)
     both in the folder name and the content (`manifest.yml` and `default.json` pipelines)
-    - You can `cd script && python copy-pachage.py` for this.
+    - You can `cd script && python copy-package.py` for this.
 
 #### Create a new package version
 
