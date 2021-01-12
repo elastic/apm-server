@@ -893,6 +893,11 @@ Contents of "LICENSE.txt":
       to the Commercial Software.
 
 --------------------------------------------------------------------
+Dependency: github.com/elastic/gmux
+Version: v0.1.0
+License type (autodetected): Apache-2.0
+
+--------------------------------------------------------------------
 Dependency: github.com/elastic/go-concert
 Version: v0.0.4
 License type (autodetected): Apache-2.0
@@ -3994,7 +3999,7 @@ Contents of "LICENSE":
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sync
-Revision: 30421366ff76
+Revision: b3e1573b7520
 License type (autodetected): BSD-3-Clause
 Contents of "LICENSE":
 

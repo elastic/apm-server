@@ -20,13 +20,17 @@ package systemtest_test
 import (
 	"context"
 	"encoding/json"
+	"net/url"
 	"os"
 	"testing"
 
+	jaegermodel "github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -35,7 +39,6 @@ import (
 
 func TestJaegerGRPC(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Jaeger = &apmservertest.JaegerConfig{
 		GRPCEnabled: true,
@@ -43,8 +46,17 @@ func TestJaegerGRPC(t *testing.T) {
 	}
 	err := srv.Start()
 	require.NoError(t, err)
+	testJaegerGRPC(t, srv, srv.JaegerGRPCAddr)
+}
 
-	conn, err := grpc.Dial(srv.JaegerGRPCAddr, grpc.WithInsecure())
+func TestJaegerGRPCMuxed(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
+	testJaegerGRPC(t, srv, serverAddr(srv))
+}
+
+func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string) {
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -64,14 +76,10 @@ func TestJaegerGRPC(t *testing.T) {
 func TestJaegerGRPCSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Jaeger = &apmservertest.JaegerConfig{
-		GRPCEnabled: true,
-		GRPCHost:    "localhost:0",
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 
-	conn, err := grpc.Dial(srv.JaegerGRPCAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure())
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -83,6 +91,40 @@ func TestJaegerGRPCSampling(t *testing.T) {
 	assert.Regexp(t, "no sampling rate available", err.Error())
 }
 
+func TestJaegerGRPCAuth(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.SecretToken = "secret"
+	require.NoError(t, srv.Start())
+
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure())
+	require.NoError(t, err)
+	defer conn.Close()
+
+	client := api_v2.NewCollectorServiceClient(conn)
+	request, err := decodeJaegerPostSpansRequest("../testdata/jaeger/batch_0.json")
+	require.NoError(t, err)
+
+	// Attempt to send spans without the auth tag -- this should fail.
+	_, err = client.PostSpans(context.Background(), request)
+	require.Error(t, err)
+	status := status.Convert(err)
+	assert.Equal(t, codes.Unauthenticated, status.Code())
+
+	// Now with the auth tag -- this should succeed.
+	request.Batch.Process.Tags = append(request.Batch.Process.Tags, jaegermodel.KeyValue{
+		Key:   "elastic-apm-auth",
+		VType: jaegermodel.ValueType_STRING,
+		VStr:  "Bearer secret",
+	})
+	_, err = client.PostSpans(context.Background(), request)
+	require.NoError(t, err)
+
+	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	}})
+}
+
 func decodeJaegerPostSpansRequest(filename string) (*api_v2.PostSpansRequest, error) {
 	var request api_v2.PostSpansRequest
 	f, err := os.Open(filename)
@@ -91,4 +133,9 @@ func decodeJaegerPostSpansRequest(filename string) (*api_v2.PostSpansRequest, er
 	}
 	defer f.Close()
 	return &request, json.NewDecoder(f).Decode(&request)
+}
+
+func serverAddr(srv *apmservertest.Server) string {
+	url, _ := url.Parse(srv.URL)
+	return url.Host
 }
