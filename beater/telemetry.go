@@ -90,7 +90,7 @@ func recordRootConfig(info beat.Info, rootCfg *common.Config) error {
 }
 
 // recordAPMServerConfig records dynamic APM Server config properties for telemetry.
-// This should be called once each time a server is started.
+// This should be called once each time runServer is called.
 func recordAPMServerConfig(cfg *config.Config) {
 	configMonitors.rumEnabled.Set(cfg.RumConfig.IsEnabled())
 	configMonitors.apiKeysEnabled.Set(cfg.APIKeyConfig.IsEnabled())
