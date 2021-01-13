@@ -131,7 +131,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	return srv, nil
 }
 
-// RegisterGRPC registers Jaeger gRPC services with srv.
+// RegisterGRPCServices registers Jaeger gRPC services with srv.
 func RegisterGRPCServices(
 	srv *grpc.Server,
 	authBuilder *authorization.Builder,
