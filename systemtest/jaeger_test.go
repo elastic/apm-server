@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -46,17 +47,24 @@ func TestJaegerGRPC(t *testing.T) {
 	}
 	err := srv.Start()
 	require.NoError(t, err)
-	testJaegerGRPC(t, srv, srv.JaegerGRPCAddr)
+	testJaegerGRPC(t, srv, srv.JaegerGRPCAddr, grpc.WithInsecure())
 }
 
 func TestJaegerGRPCMuxed(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServer(t)
-	testJaegerGRPC(t, srv, serverAddr(srv))
+	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithInsecure())
 }
 
-func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+func TestJaegerGRPCMuxedTLS(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	require.NoError(t, srv.StartTLS())
+	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithTransportCredentials(credentials.NewTLS(srv.TLS)))
+}
+
+func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string, dialOptions ...grpc.DialOption) {
+	conn, err := grpc.Dial(addr, dialOptions...)
 	require.NoError(t, err)
 	defer conn.Close()
 
