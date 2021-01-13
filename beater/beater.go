@@ -36,6 +36,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/elasticsearch"
@@ -73,6 +74,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			stopped:       false,
 			logger:        logger,
 			wrapRunServer: args.WrapRunServer,
+			waitPublished: newWaitPublishedAcker(),
 		}
 
 		esOutputCfg := elasticsearchOutputConfig(b)
@@ -103,6 +105,7 @@ type beater struct {
 	logger        *logp.Logger
 	namespace     string
 	wrapRunServer func(RunServerFunc) RunServerFunc
+	waitPublished *waitPublishedAcker
 
 	mutex      sync.Mutex // guards stopServer and stopped
 	stopServer func()
@@ -173,7 +176,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		runServer = bt.wrapRunServer(runServer)
 	}
 
-	publisher, err := newPublisher(b, bt.config, bt.namespace, tracer)
+	publisher, err := bt.newPublisher(b, tracer)
 	if err != nil {
 		return err
 	}
@@ -187,6 +190,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 			defer cancelShutdownContext()
 		}
 		publisher.Stop(shutdownContext)
+		bt.waitPublished.Wait(shutdownContext)
 	}()
 
 	reporter := publisher.Send
@@ -396,18 +400,19 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	}
 }
 
-func newPublisher(b *beat.Beat, cfg *config.Config, namespace string, tracer *apm.Tracer) (*publish.Publisher, error) {
-	transformConfig, err := newTransformConfig(b.Info, cfg)
+func (bt *beater) newPublisher(b *beat.Beat, tracer *apm.Tracer) (*publish.Publisher, error) {
+	transformConfig, err := newTransformConfig(b.Info, bt.config)
 	if err != nil {
 		return nil, err
 	}
 	publisherConfig := &publish.PublisherConfig{
 		Info:            b.Info,
-		Pipeline:        cfg.Pipeline,
-		Namespace:       namespace,
+		Pipeline:        bt.config.Pipeline,
+		Namespace:       bt.namespace,
 		TransformConfig: transformConfig,
 	}
-	return publish.NewPublisher(b.Publisher, tracer, publisherConfig)
+	pipeline := pipetool.WithACKer(b.Publisher, bt.waitPublished)
+	return publish.NewPublisher(pipeline, tracer, publisherConfig)
 }
 
 func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Config, error) {
