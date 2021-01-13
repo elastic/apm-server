@@ -6,9 +6,10 @@ If you run into trouble, there are three places you can look for help.
 [float]
 === Troubleshooting documentation
 
-The APM Server and each APM agent has a troubleshooting guide:
+The APM Server, APM app, and each APM agent has a troubleshooting guide:
 
 * {apm-server-ref-v}/troubleshooting.html[APM Server troubleshooting]
+* {kibana-ref}/troubleshooting.html[APM app troubleshooting]
 * {apm-dotnet-ref-v}/troubleshooting.html[.NET agent troubleshooting]
 * {apm-go-ref-v}/troubleshooting.html[Go agent troubleshooting]
 * {apm-java-ref-v}/trouble-shooting.html[Java agent troubleshooting]

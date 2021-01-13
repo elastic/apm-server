@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package publish
+package beater
 
 import (
 	"context"
@@ -29,6 +29,8 @@ import (
 // events published. waitPublishedAcker provides an interruptible Wait method
 // that blocks until all events published at the time the client is closed are
 // acknowledged.
+//
+// TODO(axw) move this to libbeat/common/acker.
 type waitPublishedAcker struct {
 	active int64 // atomic
 
@@ -37,6 +39,7 @@ type waitPublishedAcker struct {
 	done   chan struct{}
 }
 
+// newWaitPublishedAcker returns a new waitPublishedAcker.
 func newWaitPublishedAcker() *waitPublishedAcker {
 	return &waitPublishedAcker{done: make(chan struct{})}
 }
