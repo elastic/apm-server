@@ -10,7 +10,7 @@
 #### Update / fix a package
 
 1. Actual work
-    - Make changes in `apmpackage/apm/<version>`, `apmpackage/docs/README.template.md` and/or code as needed
+    - Make changes in `apmpackage/apm/<version>` and/or code as needed
     - Run `make update`. That will update fields, pipeline and doc files based on apm-server fields and pipeline defs.
 
 2. Run the registry
