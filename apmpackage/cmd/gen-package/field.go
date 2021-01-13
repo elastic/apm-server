@@ -18,25 +18,27 @@
 package main
 
 type field struct {
-	Name        string                 `yaml:"name,omitempty"`
-	Key         string                 `yaml:"key,omitempty"`
-	Title       string                 `yaml:"title,omitempty"`
-	Group       *int                   `yaml:"group,omitempty"`
-	Level       string                 `yaml:"level,omitempty"`
-	Required    *bool                  `yaml:"required,omitempty"`
-	Type        string                 `yaml:"type,omitempty"`
-	Format      string                 `yaml:"format,omitempty"`
-	Description string                 `yaml:"description,omitempty"`
-	Release     string                 `yaml:"release,omitempty"`
-	Alias       string                 `yaml:"alias,omitempty"`
-	Path        string                 `yaml:"path,omitempty"`
-	Footnote    string                 `yaml:"footnote,omitempty"`
-	IgnoreAbove *int                   `yaml:"ignore_above,omitempty"`
-	MultiFields []multiFieldDefinition `yaml:"multi_fields,omitempty"`
-	Fields      []field                `yaml:"fields,omitempty"`
-	IsECS       bool                   `yaml:"-"`
-	HasECS      bool                   `yaml:"-"`
-	HasNonECS   bool                   `yaml:"-"`
+	Name             string                 `yaml:"name,omitempty"`
+	Key              string                 `yaml:"key,omitempty"`
+	Title            string                 `yaml:"title,omitempty"`
+	Group            *int                   `yaml:"group,omitempty"`
+	Level            string                 `yaml:"level,omitempty"`
+	Required         *bool                  `yaml:"required,omitempty"`
+	Type             string                 `yaml:"type,omitempty"`
+	Format           string                 `yaml:"format,omitempty"`
+	Description      string                 `yaml:"description,omitempty"`
+	Dynamic          bool                   `yaml:"dynamic,omitempty"`
+	ObjectTypeParams interface{}            `yaml:"object_type_params,omitempty"`
+	Release          string                 `yaml:"release,omitempty"`
+	Alias            string                 `yaml:"alias,omitempty"`
+	Path             string                 `yaml:"path,omitempty"`
+	Footnote         string                 `yaml:"footnote,omitempty"`
+	IgnoreAbove      *int                   `yaml:"ignore_above,omitempty"`
+	MultiFields      []multiFieldDefinition `yaml:"multi_fields,omitempty"`
+	Fields           []field                `yaml:"fields,omitempty"`
+	IsECS            bool                   `yaml:"-"`
+	HasECS           bool                   `yaml:"-"`
+	HasNonECS        bool                   `yaml:"-"`
 }
 
 func (f field) isNonECSLeaf() bool {
