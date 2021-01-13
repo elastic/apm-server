@@ -19,7 +19,9 @@ package main
 
 import "path/filepath"
 
-var docsTemplateFilePath = "apmpackage/docs/README.template.md"
+func docsTemplateFilePath(version string) string {
+	return filepath.Join("apmpackage/apm/", version, "/_dev/docs/README.template.md")
+}
 
 func docsFilePath(version string) string {
 	return filepath.Join("apmpackage/apm/", version, "/docs/README.md")
