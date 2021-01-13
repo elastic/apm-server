@@ -153,9 +153,10 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 
 	// send configs to telemetry
-	if err := recordConfigs(b.Info, bt.config, bt.rawConfig); err != nil {
+	if err := recordRootConfig(b.Info, bt.rawConfig); err != nil {
 		bt.logger.Errorf("Error recording telemetry data", err)
 	}
+	recordAPMServerConfig(bt.config)
 
 	tracer, tracerServer, err := bt.initTracing(b)
 	if err != nil {
