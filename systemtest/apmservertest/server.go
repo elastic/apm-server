@@ -19,6 +19,8 @@ package apmservertest
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +31,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -68,7 +71,7 @@ type Server struct {
 	Stderr io.ReadCloser
 
 	// URL holds the base URL for Elastic APM agents, in the form
-	// http://ipaddr:port with no trailing slash.
+	// http[s]://ipaddr:port with no trailing slash.
 	URL string
 
 	// JaegerGRPCAddr holds the address for the Jaeger gRPC server, if enabled.
@@ -76,6 +79,10 @@ type Server struct {
 
 	// JaegerHTTPURL holds the base URL for Jaeger HTTP, if enabled.
 	JaegerHTTPURL string
+
+	// TLS is the optional TLS configuration, populated with a new config
+	// after TLS is started.
+	TLS *tls.Config
 
 	// EventMetadataFilter holds an optional EventMetadataFilter, which
 	// can modify event metadata before it is sent to the server.
@@ -117,12 +124,20 @@ func NewUnstartedServer(tb testing.TB, args ...string) *Server {
 //
 // Start will have set s.URL upon a successful return.
 func (s *Server) Start() error {
+	return s.start(false)
+}
+
+func (s *Server) StartTLS() error {
+	return s.start(true)
+}
+
+func (s *Server) start(tls bool) error {
 	if s.URL != "" {
 		panic("Server already started")
 	}
 	s.Logs.init()
 
-	cfgargs, err := configArgs(s.Config, map[string]interface{}{
+	extra := map[string]interface{}{
 		// These are config attributes that we always specify,
 		// as the testing framework relies on them being set.
 		"logging.ecs":               true,
@@ -131,7 +146,16 @@ func (s *Server) Start() error {
 		"logging.to_stderr":         true,
 		"apm-server.expvar.enabled": true,
 		"apm-server.host":           "127.0.0.1:0",
-	})
+	}
+	if tls {
+		certPath, keyPath, err := s.initTLS()
+		if err != nil {
+			panic(err)
+		}
+		extra["apm-server.ssl.certificate"] = certPath
+		extra["apm-server.ssl.key"] = keyPath
+	}
+	cfgargs, err := configArgs(s.Config, extra)
 	if err != nil {
 		return err
 	}
@@ -185,10 +209,42 @@ func (s *Server) Start() error {
 
 	logs := s.Logs.Iterator()
 	defer logs.Close()
-	if err := s.waitUntilListening(logs); err != nil {
+	if err := s.waitUntilListening(tls, logs); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *Server) initTLS() (certPath, keyPath string, _ error) {
+	repoRoot, err := getRepoRoot()
+	if err != nil {
+		panic(err)
+	}
+	certPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "cert.pem")
+	keyPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "key.pem")
+
+	certBytes, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		return "", "", err
+	}
+	keyBytes, err := ioutil.ReadFile(keyPath)
+	if err != nil {
+		return "", "", err
+	}
+	cert, err := tls.X509KeyPair(certBytes, keyBytes)
+	if err != nil {
+		return "", "", err
+	}
+
+	certpool := x509.NewCertPool()
+	if !certpool.AppendCertsFromPEM(certBytes) {
+		panic("failed to add CA certificate to cert pool")
+	}
+	s.TLS = &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      certpool,
+	}
+	return certPath, keyPath, nil
 }
 
 func (s *Server) printCmdline(w io.Writer, args []string) {
@@ -208,7 +264,7 @@ func (s *Server) printCmdline(w io.Writer, args []string) {
 	}
 }
 
-func (s *Server) waitUntilListening(logs *LogEntryIterator) error {
+func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 	var (
 		elasticHTTPListeningAddr string
 		jaegerGRPCListeningAddr  string
@@ -259,11 +315,15 @@ func (s *Server) waitUntilListening(logs *LogEntryIterator) error {
 	}
 
 	if len(prefixes) == 0 {
-		s.URL = makeHTTPURLString(elasticHTTPListeningAddr)
+		urlScheme := "http"
+		if tls {
+			urlScheme = "https"
+		}
+		s.URL = makeURLString(urlScheme, elasticHTTPListeningAddr)
 		if s.Config.Jaeger != nil {
 			s.JaegerGRPCAddr = jaegerGRPCListeningAddr
 			if s.Config.Jaeger.HTTPEnabled {
-				s.JaegerHTTPURL = makeHTTPURLString(jaegerHTTPListeningAddr)
+				s.JaegerHTTPURL = makeURLString(urlScheme, jaegerHTTPListeningAddr)
 			}
 		}
 		return nil
@@ -387,6 +447,7 @@ func (s *Server) Tracer() *apm.Tracer {
 	}
 	httpTransport.SetServerURL(serverURL)
 	httpTransport.SetSecretToken(s.Config.SecretToken)
+	httpTransport.Client.Transport.(*http.Transport).TLSClientConfig = s.TLS
 
 	var transport transport.Transport = httpTransport
 	if s.EventMetadataFilter != nil {
@@ -418,7 +479,7 @@ func (s *Server) GetExpvar() *Expvar {
 	return expvar
 }
 
-func makeHTTPURLString(host string) string {
-	u := url.URL{Scheme: "http", Host: host}
+func makeURLString(scheme, host string) string {
+	u := url.URL{Scheme: scheme, Host: host}
 	return u.String()
 }
