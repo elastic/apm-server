@@ -36,10 +36,10 @@ func generateDocs(inputFields map[string][]field, version string) {
 		MetricsExample:     loadExample("metricsets.json"),
 		ErrorExample:       loadExample("errors.json"),
 	}
-	t := template.New(docsTemplateFilePath)
+	t := template.New(docsTemplateFilePath(version))
 	tmpl, err := t.Funcs(map[string]interface{}{
 		"Trim": strings.TrimSpace,
-	}).ParseFiles(docsTemplateFilePath)
+	}).ParseFiles(docsTemplateFilePath(version))
 	if err != nil {
 		panic(err)
 	}
