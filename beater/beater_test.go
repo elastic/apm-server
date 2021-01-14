@@ -30,12 +30,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 type testBeater struct {
@@ -53,8 +57,13 @@ func setupBeater(
 	beatConfig *beat.BeatConfig,
 ) (*testBeater, error) {
 
-	onboardingDocs := make(chan onboardingDoc, 1)
+	core, observedLogs := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
 	createBeater := NewCreator(CreatorParams{
+		Logger: logger,
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
 			return func(ctx context.Context, args ServerParams) error {
 				// Wrap the reporter so we can intercept the
@@ -63,13 +72,6 @@ func setupBeater(
 				args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
 					for _, tf := range req.Transformables {
 						switch tf := tf.(type) {
-						case onboardingDoc:
-							select {
-							case <-ctx.Done():
-								return ctx.Err()
-							case onboardingDocs <- tf:
-							}
-
 						case *model.Transaction:
 							// Add a label to test that everything
 							// goes through the wrapped reporter.
@@ -102,13 +104,21 @@ func setupBeater(
 	}()
 
 	tb := &testBeater{beater: beatBeater.(*beater)}
-	select {
-	case err := <-errCh:
-		return nil, err
-	case o := <-onboardingDocs:
-		tb.initClient(tb.config, o.listenAddr)
-	case <-time.After(time.Second * 10):
-		return nil, errors.New("timeout waiting for server to start listening")
+
+	// Wait for the server to log its listening address.
+	deadline := time.After(time.Second * 10)
+	for {
+		if listenAddr, ok := getListenAddr(observedLogs); ok {
+			tb.initClient(tb.config, listenAddr)
+			break
+		}
+		select {
+		case err := <-errCh:
+			return nil, err
+		case <-deadline:
+			return nil, errors.New("timeout waiting for server to start listening")
+		case <-time.After(10 * time.Millisecond):
+		}
 	}
 
 	res, err := tb.client.Get(tb.baseURL)
@@ -116,6 +126,18 @@ func setupBeater(
 	defer res.Body.Close()
 	require.Equal(t, http.StatusOK, res.StatusCode)
 	return tb, nil
+}
+
+func getListenAddr(observedLogs *observer.ObservedLogs) (string, bool) {
+	logs := observedLogs.TakeAll()
+	for _, entry := range logs {
+		const prefix = "Listening on: "
+		if strings.HasPrefix(entry.Message, prefix) {
+			listenAddr := entry.Message[len(prefix):]
+			return listenAddr, true
+		}
+	}
+	return "", false
 }
 
 func (tb *testBeater) initClient(cfg *config.Config, listenAddr string) {
