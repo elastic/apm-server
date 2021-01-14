@@ -29,9 +29,9 @@ import (
 
 	"github.com/apache/thrift/lib/go/thrift"
 	jaegerthrift "github.com/jaegertracing/jaeger/thrift-gen/jaeger"
-	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer/pdata"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
@@ -89,7 +89,7 @@ func testHTTPMux(t *testing.T, test httpMuxTest) {
 	beatertest.ClearRegistry(httpMonitoringMap)
 
 	var consumed bool
-	mux, err := newHTTPMux(traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
+	mux, err := newHTTPMux(tracesConsumerFunc(func(ctx context.Context, _ pdata.Traces) error {
 		consumed = true
 		return test.consumerError
 	}))
@@ -147,7 +147,7 @@ func TestHTTPMux_InvalidBody(t *testing.T) {
 }
 
 func TestHTTPMux_ConsumerError(t *testing.T) {
-	var consumer traceConsumerFunc = func(ctx context.Context, td consumerdata.TraceData) error {
+	var consumer tracesConsumerFunc = func(ctx context.Context, _ pdata.Traces) error {
 		return errors.New("bauch tut weh")
 	}
 	c, recorder := newRequestContext("POST", "/api/traces", encodeThriftSpans(&jaegerthrift.Span{}))

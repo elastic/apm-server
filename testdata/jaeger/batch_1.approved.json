@@ -65,7 +65,6 @@
                 "name": "host01"
             },
             "labels": {
-                "error": true,
                 "param_driverID": "T762465C"
             },
             "parent": {
@@ -311,7 +310,6 @@
                 "name": "host01"
             },
             "labels": {
-                "error": true,
                 "param_driverID": "T781861C"
             },
             "parent": {
@@ -557,7 +555,6 @@
                 "name": "host01"
             },
             "labels": {
-                "error": true,
                 "param_driverID": "T752547C"
             },
             "parent": {
