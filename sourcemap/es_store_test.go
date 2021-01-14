@@ -82,8 +82,9 @@ func Test_esFetcher_fetch(t *testing.T) {
 		client   elasticsearch.Client
 		filePath string
 	}{
-		"no sourcemap found":    {client: test.ESClientWithSourcemapNotFound(t)},
-		"valid sourcemap found": {client: test.ESClientWithValidSourcemap(t), filePath: "bundle.js"},
+		"no sourcemap found":                {client: test.ESClientWithSourcemapNotFound(t)},
+		"sourcemap indicated but not found": {client: test.ESClientWithSourcemapIndicatedNotFound(t)},
+		"valid sourcemap found":             {client: test.ESClientWithValidSourcemap(t), filePath: "bundle.js"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			sourcemapStr, err := testESStore(tc.client).fetch(context.Background(), "abc", "1.0", "/tmp")
