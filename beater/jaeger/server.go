@@ -47,6 +47,10 @@ import (
 const ElasticAuthTag = "elastic-apm-auth"
 
 // Server manages Jaeger gRPC and HTTP servers, providing methods for starting and stopping them.
+//
+// NOTE(axw) the standalone Jaeger gRPC and HTTP servers provided by this package are deprecated,
+// and will be removed in a future release. Jaeger gRPC is now served on the primary APM Server
+// port, muxed with Elastic APM HTTP traffic.
 type Server struct {
 	logger *logp.Logger
 	grpc   struct {
