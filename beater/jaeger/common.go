@@ -21,18 +21,14 @@ import (
 	"context"
 
 	"github.com/jaegertracing/jaeger/model"
-	"github.com/open-telemetry/opentelemetry-collector/consumer"
-	trjaeger "github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/collector/consumer"
+	trjaeger "go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/request"
-)
-
-const (
-	collectorType = "jaeger"
 )
 
 var (
@@ -61,18 +57,13 @@ func (m monitoringMap) add(id request.ResultID, n int64) {
 func consumeBatch(
 	ctx context.Context,
 	batch model.Batch,
-	consumer consumer.TraceConsumer,
+	consumer consumer.TracesConsumer,
 	requestMetrics monitoringMap,
 ) error {
 	spanCount := int64(len(batch.Spans))
 	requestMetrics.add(request.IDEventReceivedCount, spanCount)
-	traceData, err := trjaeger.ProtoBatchToOCProto(batch)
-	if err != nil {
-		requestMetrics.add(request.IDEventDroppedCount, spanCount)
-		return err
-	}
-	traceData.SourceFormat = collectorType
-	return consumer.ConsumeTraceData(ctx, traceData)
+	traces := trjaeger.ProtoBatchToInternalTraces(batch)
+	return consumer.ConsumeTraces(ctx, traces)
 }
 
 type authFunc func(context.Context, model.Batch) error
