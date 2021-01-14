@@ -1,3 +1,4 @@
 title: APM logs and errors
 type: logs
 dataset: apm.error
+ilm_policy: logs-apm.error_logs-default_policy
