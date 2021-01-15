@@ -1250,6 +1250,19 @@ example: us-east1
 
 --
 
+
+*`cloud.service.name`*::
++
+--
+Cloud service name, intended to distinguish services running on different platforms within a provider.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 [float]
 === error
 
@@ -2274,6 +2287,19 @@ Cloud region name
 type: keyword
 
 example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.service.name`*::
++
+--
+Cloud service name, intended to distinguish services running on different platforms within a provider.
+
+
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3528,6 +3554,19 @@ Cloud region name
 type: keyword
 
 example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.service.name`*::
++
+--
+Cloud service name, intended to distinguish services running on different platforms within a provider.
+
+
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5081,6 +5120,19 @@ example: us-east1
 --
 
 
+*`cloud.service.name`*::
++
+--
+Cloud service name, intended to distinguish services running on different platforms within a provider.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
 *`event.outcome`*::
 +
 --
@@ -6167,6 +6219,19 @@ Cloud region name
 type: keyword
 
 example: us-east1
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`cloud.service.name`*::
++
+--
+Cloud service name, intended to distinguish services running on different platforms within a provider.
+
+
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
