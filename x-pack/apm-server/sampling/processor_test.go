@@ -487,7 +487,7 @@ func TestStorageGC(t *testing.T) {
 
 	// Process spans until more than one value log file has been created,
 	// but the first one does not exist (has been garbage collected).
-	for len(vlogFilenames()) < 2 {
+	for len(vlogFilenames()) < 3 {
 		writeBatch(50000)
 	}
 
