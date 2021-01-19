@@ -22,70 +22,80 @@ import (
 	"net"
 	"net/http"
 
-	"go.elastic.co/apm"
-
 	"github.com/elastic/beats/v7/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
-	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/publish"
 )
 
-func init() {
-	apm.DefaultTracer.Close()
-}
-
 type tracerServer struct {
-	cfg      *config.Config
-	logger   *logp.Logger
 	server   *http.Server
-	listener net.Listener
+	logger   *logp.Logger
+	requests <-chan tracerServerRequest
 }
 
-func newTracerServer(cfg *config.Config, listener net.Listener) *tracerServer {
-	if listener == nil {
-		return nil
+func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer, error) {
+	requests := make(chan tracerServerRequest)
+	report := func(ctx context.Context, req publish.PendingReq) error {
+		result := make(chan error, 1)
+		request := tracerServerRequest{ctx: ctx, req: req, res: result}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case requests <- request:
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case err := <-result:
+			return err
+		}
 	}
-
-	cfgCopy := *cfg // Copy cfg so we can disable auth
-	cfg = &cfgCopy
-	cfg.SecretToken = ""
-	cfg.APIKeyConfig = nil
-
+	cfg := config.DefaultConfig()
+	mux, err := api.NewMux(cfg, report)
+	if err != nil {
+		return nil, err
+	}
 	server := &http.Server{
+		Handler:        mux,
 		IdleTimeout:    cfg.IdleTimeout,
 		ReadTimeout:    cfg.ReadTimeout,
 		WriteTimeout:   cfg.WriteTimeout,
 		MaxHeaderBytes: cfg.MaxHeaderSize,
 	}
-
+	go func() {
+		if err := server.Serve(listener); err != http.ErrServerClosed {
+			logger.Error(err.Error())
+		}
+	}()
 	return &tracerServer{
-		cfg:      cfg,
-		logger:   logp.NewLogger(logs.Beater),
 		server:   server,
-		listener: listener,
-	}
+		logger:   logger,
+		requests: requests,
+	}, nil
 }
 
-func (s *tracerServer) serve(report publish.Reporter) error {
-	mux, err := api.NewMux(s.cfg, report)
-	if err != nil {
-		return err
-	}
-	s.server.Handler = mux
-	if err := s.server.Serve(s.listener); err != http.ErrServerClosed {
-		return err
-	}
-	return nil
+// Close closes the tracerServer's listener.
+func (s *tracerServer) Close() error {
+	return s.server.Shutdown(context.Background())
 }
 
-func (s *tracerServer) stop() {
-	err := s.server.Shutdown(context.Background())
-	if err != nil {
-		s.logger.Error(err.Error())
-		if err := s.server.Close(); err != nil {
-			s.logger.Error(err.Error())
+// serve serves event publication requests for the tracer server. This may be
+// called multiple times in series, but not concurrently.
+func (s *tracerServer) serve(ctx context.Context, report publish.Reporter) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case req := <-s.requests:
+			req.res <- report(req.ctx, req.req)
 		}
 	}
+}
+
+type tracerServerRequest struct {
+	ctx context.Context
+	req publish.PendingReq
+	res chan<- error
 }
