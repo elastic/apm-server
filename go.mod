@@ -94,5 +94,3 @@ replace (
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20200602230032-c00d67ef29d0 // release 1.14
 	k8s.io/client-go => k8s.io/client-go v0.18.3
 )
-
-replace github.com/dgraph-io/badger/v2 => github.com/elastic/badger/v2 v2.2007.2-beats
