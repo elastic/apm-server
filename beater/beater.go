@@ -54,6 +54,11 @@ var (
 
 // CreatorParams holds parameters for creating beat.Beaters.
 type CreatorParams struct {
+	// Logger is a logger to use in Beaters created by the beat.Creator.
+	//
+	// If Logger is nil, logp.NewLogger will be used to create a new one.
+	Logger *logp.Logger
+
 	// WrapRunServer is used to wrap the RunServerFunc used to run the APM Server.
 	//
 	// WrapRunServer is optional. If provided, it must return a function that calls
@@ -65,7 +70,12 @@ type CreatorParams struct {
 // using the provided CreatorParams.
 func NewCreator(args CreatorParams) beat.Creator {
 	return func(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
-		logger := logp.NewLogger(logs.Beater)
+		logger := args.Logger
+		if logger != nil {
+			logger = logger.Named(logs.Beater)
+		} else {
+			logger = logp.NewLogger(logs.Beater)
+		}
 		if err := checkConfig(logger); err != nil {
 			return nil, err
 		}

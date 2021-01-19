@@ -103,7 +103,7 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 		return "", err
 	}
 	hits := esSourcemapResponse.Hits.Total.Value
-	if hits == 0 {
+	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
 		return emptyResult, nil
 	}
 
