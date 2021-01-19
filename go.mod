@@ -99,5 +99,3 @@ replace (
 	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
 	k8s.io/client-go => k8s.io/client-go v0.19.4
 )
-
-replace github.com/dgraph-io/badger/v2 => github.com/elastic/badger/v2 v2.2007.2-beats
