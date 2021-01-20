@@ -131,7 +131,7 @@ go-generate:
 
 notice: NOTICE.txt
 NOTICE.txt: $(PYTHON) go.mod
-	@$(PYTHON) script/generate_notice.py . ./x-pack/apm-server
+	@$(PYTHON) script/generate_notice.py -b "Elastic APM Server" -s "github.com/elastic/beats*" . ./x-pack/apm-server
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
