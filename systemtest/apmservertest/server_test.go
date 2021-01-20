@@ -18,6 +18,7 @@
 package apmservertest_test
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,27 @@ func TestUnstartedAPMServer(t *testing.T) {
 	err := srv.Close()
 	require.Error(t, err)
 	assert.EqualError(t, err, "apm-server not started")
+}
+
+func TestAPMServerStartTLS(t *testing.T) {
+	srv := apmservertest.NewUnstartedServer(t)
+	require.NotNil(t, srv)
+	err := srv.StartTLS()
+	assert.NoError(t, err)
+
+	serverURL, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	assert.Equal(t, "https", serverURL.Scheme)
+
+	// Make sure the Tracer is configured with the
+	// appropriate CA certificate.
+	tracer := srv.Tracer()
+	tracer.StartTransaction("name", "type").End()
+	tracer.Flush(nil)
+	assert.Zero(t, tracer.Stats().Errors)
+
+	err = srv.Close()
+	assert.NoError(t, err)
 }
 
 func TestExpvar(t *testing.T) {

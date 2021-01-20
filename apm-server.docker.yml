@@ -388,6 +388,12 @@ apm-server:
 
   # When enabling Jaeger integration, APM Server acts as Jaeger collector. It supports jaeger.thrift over HTTP
   # and gRPC. This is an experimental feature, use with care.
+  #
+  # WARNING: This configuration is deprecated, and will be removed in the 8.0 release.
+  #
+  # Jaeger gRPC is now served on the same port as Elastic APM agents, defined by the
+  # "apm-server.host" configuration; it is implicitly enabled, and an agent tag called
+  # "elastic-apm-auth" is required when auth is enabled.
   #jaeger:
     #grpc:
       # Set to true to enable the Jaeger gRPC collector service.
