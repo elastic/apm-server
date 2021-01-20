@@ -14,3 +14,8 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 
 [float]
 ==== Added
+* Jaeger gRPC is now served over the same port as the Elastic APM agent protocol {pull}4618[4618]
+
+[float]
+==== Deprecated
+* `apm-server.jaeger` config is deprecated and will be removed in 8.0. Jaeger is now served on 8200 {pull}4618[4618]

@@ -157,12 +157,10 @@ func buildServer() (string, error) {
 		return apmServerBinary, nil
 	}
 
-	// Build apm-server binary in the repo root.
-	output, err := exec.Command("go", "list", "-m", "-f={{.Dir}}/..").Output()
+	repoRoot, err := getRepoRoot()
 	if err != nil {
 		return "", err
 	}
-	repoRoot := filepath.Clean(strings.TrimSpace(string(output)))
 	abspath := filepath.Join(repoRoot, "apm-server")
 	if runtime.GOOS == "windows" {
 		abspath += ".exe"
@@ -181,7 +179,26 @@ func buildServer() (string, error) {
 	return apmServerBinary, nil
 }
 
+func getRepoRoot() (string, error) {
+	repoRootMu.Lock()
+	defer repoRootMu.Unlock()
+	if repoRoot != "" {
+		return repoRoot, nil
+	}
+
+	// Build apm-server binary in the repo root.
+	output, err := exec.Command("go", "list", "-m", "-f={{.Dir}}/..").Output()
+	if err != nil {
+		return "", err
+	}
+	repoRoot = filepath.Clean(strings.TrimSpace(string(output)))
+	return repoRoot, nil
+}
+
 var (
 	apmServerBinaryMu sync.Mutex
 	apmServerBinary   string
+
+	repoRootMu sync.Mutex
+	repoRoot   string
 )
