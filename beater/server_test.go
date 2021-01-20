@@ -24,14 +24,17 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -383,6 +386,23 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestServerJaegerGRPC(t *testing.T) {
+	server, err := setupServer(t, nil, nil, nil)
+	require.NoError(t, err)
+	defer server.Stop()
+
+	baseURL, err := url.Parse(server.baseURL)
+	require.NoError(t, err)
+	conn, err := grpc.Dial(baseURL.Host, grpc.WithInsecure())
+	require.NoError(t, err)
+	defer conn.Close()
+
+	client := api_v2.NewCollectorServiceClient(conn)
+	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
 }
 
 type chanClient struct {
