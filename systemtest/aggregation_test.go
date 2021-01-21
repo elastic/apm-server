@@ -18,7 +18,10 @@
 package systemtest_test
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -30,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 func TestTransactionAggregation(t *testing.T) {
@@ -56,14 +60,18 @@ func TestTransactionAggregation(t *testing.T) {
 
 	// Send some transactions to the server to be aggregated.
 	tracer := srv.Tracer()
-	tx := tracer.StartTransaction("name", "backend")
-	req, _ := http.NewRequest("GET", "/", nil)
-	tx.Context.SetHTTPRequest(req)
-	tx.Duration = time.Second
-	tx.End()
+	for i, name := range []string{"abc", "def"} {
+		for j := 0; j < (i+1)*5; j++ {
+			tx := tracer.StartTransaction(name, "backend")
+			req, _ := http.NewRequest("GET", "/", nil)
+			tx.Context.SetHTTPRequest(req)
+			tx.Duration = time.Second
+			tx.End()
+		}
+	}
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "apm-*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
@@ -71,6 +79,39 @@ func TestTransactionAggregation(t *testing.T) {
 	// Make sure apm-server.aggregation.txmetrics metrics are published. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.aggregation.txmetrics").Exists())
+
+	// Make sure the _doc_count field is added such that aggregations return
+	// the appropriate per-bucket doc_count values.
+	result = estest.SearchResult{}
+	_, err = systemtest.Elasticsearch.Do(context.Background(), &esapi.SearchRequest{
+		Index: []string{"apm-*"},
+		Body: strings.NewReader(`{
+  "size": 0,
+  "query": {"exists":{"field":"transaction.duration.histogram"}},
+  "aggs": {
+    "transaction_names": {
+      "terms": {"field": "transaction.name"}
+    }
+  }
+}
+`),
+	}, &result)
+	require.NoError(t, err)
+	require.Contains(t, result.Aggregations, "transaction_names")
+
+	type aggregationBucket struct {
+		Key      string `json:"key"`
+		DocCount int    `json:"doc_count"`
+	}
+	var aggregationResult struct {
+		Buckets []aggregationBucket `json:"buckets"`
+	}
+	err = json.Unmarshal(result.Aggregations["transaction_names"], &aggregationResult)
+	require.NoError(t, err)
+	assert.Equal(t, []aggregationBucket{
+		{Key: "def", DocCount: 10},
+		{Key: "abc", DocCount: 5},
+	}, aggregationResult.Buckets)
 }
 
 func TestTransactionAggregationShutdown(t *testing.T) {

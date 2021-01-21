@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 [float]
 ==== Added
 * Jaeger gRPC is now served over the same port as the Elastic APM agent protocol {pull}4618[4618]
+* Add a `_doc_count` field to transaction histogram docs {pull}4647[4647]
 
 [float]
 ==== Deprecated

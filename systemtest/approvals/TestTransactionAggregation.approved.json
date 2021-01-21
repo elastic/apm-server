@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "dynamic",
+            "_doc_count": 5,
             "agent": {
                 "name": "go"
             },
@@ -35,20 +36,74 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:name:865d6816622184cd"
+                "instance": "systemtest:abc:29d4be3fbd7f200f"
             },
             "transaction": {
                 "duration": {
                     "histogram": {
                         "counts": [
-                            1
+                            5
                         ],
                         "values": [
                             1003519
                         ]
                     }
                 },
-                "name": "name",
+                "name": "abc",
+                "root": true,
+                "type": "backend"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "_doc_count": 10,
+            "agent": {
+                "name": "go"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf"
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                }
+            },
+            "timeseries": {
+                "instance": "systemtest:def:41b636ee77bc8c1c"
+            },
+            "transaction": {
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            10
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    }
+                },
+                "name": "def",
                 "root": true,
                 "type": "backend"
             }

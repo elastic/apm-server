@@ -81,7 +81,8 @@ func (r *SearchRequest) Do(ctx context.Context, out *SearchResult, opts ...Reque
 }
 
 type SearchResult struct {
-	Hits SearchHits `json:"hits"`
+	Hits         SearchHits                 `json:"hits"`
+	Aggregations map[string]json.RawMessage `json:"aggregations"`
 }
 
 type SearchHits struct {
