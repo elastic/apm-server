@@ -120,6 +120,7 @@ def write_csv_file(csv_filename, modules):
             rows = [row for row in reader]
         with open(csv_filename, "w") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames)
+            writer.writeheader()
             for row in rows:
                 writer.writerow(row)
             for dep in additional_third_party_deps:
