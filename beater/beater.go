@@ -134,7 +134,6 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return err
 	}
 	<-done
-	bt.waitPublished.unblockWait()
 	bt.waitPublished.Wait(ctx)
 	return nil
 }
@@ -169,13 +168,13 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 		Logger:        bt.logger,
 		Tracer:        tracer,
 		TracerServer:  tracerServer,
+		Acker:         bt.waitPublished,
 	}
 
-	pipeline := pipetool.WithACKer(b.Publisher, bt.waitPublished)
 	if b.Manager != nil && b.Manager.Enabled() {
 		// Management enabled, register reloadable inputs.
 		creator := &serverCreator{context: ctx, args: sharedArgs}
-		inputs := cfgfile.NewRunnerList(management.DebugK, creator, pipeline)
+		inputs := cfgfile.NewRunnerList(management.DebugK, creator, b.Publisher)
 		bt.stopServer = func() {
 			defer close(done)
 			defer closeTracer()
@@ -189,7 +188,7 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 		// Management disabled, use statically defined config.
 		s, err := newServerRunner(ctx, serverRunnerParams{
 			sharedServerRunnerParams: sharedArgs,
-			Pipeline:                 pipeline,
+			Pipeline:                 b.Publisher,
 			Namespace:                "default",
 			RawConfig:                bt.rawConfig,
 		})
@@ -252,6 +251,7 @@ type serverRunner struct {
 	wg       sync.WaitGroup
 
 	pipeline      beat.PipelineConnector
+	acker         *waitPublishedAcker
 	namespace     string
 	config        *config.Config
 	beat          *beat.Beat
@@ -275,6 +275,7 @@ type sharedServerRunnerParams struct {
 	Logger        *logp.Logger
 	Tracer        *apm.Tracer
 	TracerServer  *tracerServer
+	Acker         *waitPublishedAcker
 }
 
 func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunner, error) {
@@ -289,6 +290,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		cancelRunServerContext: cancel,
 
 		config:        cfg,
+		acker:         args.Acker,
 		pipeline:      args.Pipeline,
 		namespace:     args.Namespace,
 		beat:          args.Beat,
@@ -340,7 +342,15 @@ func (s *serverRunner) run() error {
 		Namespace:       s.namespace,
 		TransformConfig: transformConfig,
 	}
-	publisher, err := publish.NewPublisher(s.pipeline, s.tracer, publisherConfig)
+
+	// When the publisher stops cleanly it will close its pipeline client,
+	// calling the acker's Close method. We need to call Open for each new
+	// publisher to ensure we wait for all clients and enqueued events to
+	// be closed at shutdown time.
+	s.acker.Open()
+	pipeline := pipetool.WithACKer(s.pipeline, s.acker)
+
+	publisher, err := publish.NewPublisher(pipeline, s.tracer, publisherConfig)
 	if err != nil {
 		return err
 	}
