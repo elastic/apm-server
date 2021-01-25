@@ -16,6 +16,9 @@ import sys
 import tempfile
 
 DEFAULT_BUILD_TAGS = "darwin,linux,windows"
+
+# Get the beats repo root directory, making sure it's downloaded first.
+subprocess.run(["go", "mod", "download", "github.com/elastic/beats/..."], check=True)
 BEATS_DIR = subprocess.check_output(["go", "list", "-m", "-f", "{{.Dir}}", "github.com/elastic/beats/..."]).decode("utf-8").strip()
 
 # notice_overrides holds additional overrides entries for go-licence-detector.
@@ -117,6 +120,7 @@ def write_csv_file(csv_filename, modules):
             rows = [row for row in reader]
         with open(csv_filename, "w") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames)
+            writer.writeheader()
             for row in rows:
                 writer.writerow(row)
             for dep in additional_third_party_deps:
