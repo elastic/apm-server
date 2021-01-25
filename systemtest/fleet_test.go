@@ -28,13 +28,14 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/elastic/apm-server/systemtest"
-	"github.com/elastic/apm-server/systemtest/apmservertest"
-	"github.com/elastic/apm-server/systemtest/fleettest"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/transport"
+
+	"github.com/elastic/apm-server/systemtest"
+	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/fleettest"
 )
 
 func TestFleetIntegration(t *testing.T) {
