@@ -11,11 +11,11 @@ require (
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20210118165401-37ca9002d782 // indirect
+	github.com/dop251/goja v0.0.0-20210123113257-eb3de9ec1a00 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20201222133159-1629e8d0b836 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210120073609-b1e32c1925af
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210125020505-a826203f31f9
 	github.com/elastic/ecs v1.6.0
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201228182638-992d3d06e514
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201216152027-57cb70149147
@@ -60,7 +60,7 @@ require (
 	github.com/uber/tchannel-go v1.16.0 // indirect
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56
-	go.elastic.co/apm v1.9.0
+	go.elastic.co/apm v1.10.0
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0
 	go.elastic.co/apm/module/apmhttp v1.7.2
@@ -73,7 +73,7 @@ require (
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4 // indirect
+	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.1.0
