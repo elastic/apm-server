@@ -34,12 +34,13 @@ type Cloud struct {
 	ProjectName      string
 	Provider         string
 	Region           string
+	ServiceName      string
 }
 
 func (c *Cloud) fields() common.MapStr {
 	var fields mapStr
 
-	var account, instance, machine, project mapStr
+	var account, instance, machine, project, service mapStr
 	account.maybeSetString("id", c.AccountID)
 	account.maybeSetString("name", c.AccountName)
 	instance.maybeSetString("id", c.InstanceID)
@@ -47,12 +48,14 @@ func (c *Cloud) fields() common.MapStr {
 	machine.maybeSetString("type", c.MachineType)
 	project.maybeSetString("id", c.ProjectID)
 	project.maybeSetString("name", c.ProjectName)
+	service.maybeSetString("name", c.ServiceName)
 
 	fields.maybeSetMapStr("account", common.MapStr(account))
 	fields.maybeSetString("availability_zone", c.AvailabilityZone)
 	fields.maybeSetMapStr("instance", common.MapStr(instance))
 	fields.maybeSetMapStr("machine", common.MapStr(machine))
 	fields.maybeSetMapStr("project", common.MapStr(project))
+	fields.maybeSetMapStr("service", common.MapStr(service))
 	fields.maybeSetString("provider", c.Provider)
 	fields.maybeSetString("region", c.Region)
 	return common.MapStr(fields)
