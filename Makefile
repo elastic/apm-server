@@ -73,7 +73,7 @@ check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
 .PHONY: check
-check: $(MAGE) check-headers
+check: $(MAGE) check-fmt check-headers
 	@$(MAGE) check
 
 .PHONY: gen-package
@@ -226,14 +226,20 @@ ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -d -exclude build -license Elastic x-pack
 endif
 
-# TODO(axw) once we move to modules, start using "mage fmt" instead.
-.PHONY: gofmt autopep8
+
+.PHONY: check-gofmt check-autopep8 gofmt autopep8
+check-fmt: check-gofmt check-autopep8
 fmt: gofmt autopep8
+check-gofmt:
+	@sh script/check_goimports.sh
 gofmt: $(GOIMPORTS) add-headers
 	@echo "fmt - goimports: Formatting Go code"
-	@$(GOIMPORTS) -local github.com/elastic -l -w $(shell find . -type f -name '*.go' 2>/dev/null)
-autopep8: $(MAGE)
-	@$(MAGE) pythonAutopep8
+	@GOIMPORTSFLAGS=-w sh script/goimports.sh
+check-autopep8: $(PYTHON_BIN)
+	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --diff --exit-code
+autopep8: $(PYTHON_BIN)
+	@echo "fmt - autopep8: Formatting Python code"
+	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --in-place
 
 ##############################################################################
 # Rules for creating and installing build tools.
