@@ -230,11 +230,11 @@ endif
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8
 fmt: gofmt autopep8
-check-gofmt:
-	@sh script/check_goimports.sh
+check-gofmt: $(GOIMPORTS)
+	@PATH=$(GOOSBUILD):$(PATH) sh script/check_goimports.sh
 gofmt: $(GOIMPORTS) add-headers
 	@echo "fmt - goimports: Formatting Go code"
-	@GOIMPORTSFLAGS=-w sh script/goimports.sh
+	@PATH=$(GOOSBUILD):$(PATH) GOIMPORTSFLAGS=-w sh script/goimports.sh
 check-autopep8: $(PYTHON_BIN)
 	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --diff --exit-code
 autopep8: $(PYTHON_BIN)
