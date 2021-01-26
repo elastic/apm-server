@@ -28,7 +28,7 @@ import (
 	"github.com/jaegertracing/jaeger/model"
 	converter "github.com/jaegertracing/jaeger/model/converter/thrift/jaeger"
 	"github.com/jaegertracing/jaeger/thrift-gen/jaeger"
-	"github.com/open-telemetry/opentelemetry-collector/consumer"
+	"go.opentelemetry.io/collector/consumer"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
@@ -46,7 +46,7 @@ var (
 )
 
 // newHTTPMux returns a new http.ServeMux which accepts Thrift-encoded spans.
-func newHTTPMux(consumer consumer.TraceConsumer) (*http.ServeMux, error) {
+func newHTTPMux(consumer consumer.TracesConsumer) (*http.ServeMux, error) {
 	handler, err := middleware.Wrap(
 		newHTTPHandler(consumer),
 		middleware.LogMiddleware(),
@@ -65,10 +65,10 @@ func newHTTPMux(consumer consumer.TraceConsumer) (*http.ServeMux, error) {
 }
 
 type httpHandler struct {
-	consumer consumer.TraceConsumer
+	consumer consumer.TracesConsumer
 }
 
-func newHTTPHandler(consumer consumer.TraceConsumer) request.Handler {
+func newHTTPHandler(consumer consumer.TracesConsumer) request.Handler {
 	h := &httpHandler{consumer}
 	return h.handle
 }

@@ -28,7 +28,6 @@
                 "bool_a": true,
                 "component": "foo",
                 "double_a": 14.65,
-                "error": true,
                 "int_a": 148,
                 "string_a_b": "some note"
             },

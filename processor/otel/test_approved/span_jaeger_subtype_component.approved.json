@@ -1,0 +1,54 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.type": "traces",
+            "event": {
+                "outcome": "unknown"
+            },
+            "host": {
+                "hostname": "host-abc",
+                "name": "host-abc"
+            },
+            "labels": {
+                "component": "whatever"
+            },
+            "parent": {
+                "id": "58585858"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown",
+                "node": {
+                    "name": "host-abc"
+                }
+            },
+            "span": {
+                "duration": {
+                    "us": 79000000
+                },
+                "id": "41414646",
+                "name": "",
+                "subtype": "whatever",
+                "type": "custom"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "46467830"
+            }
+        }
+    ]
+}

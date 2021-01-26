@@ -16,7 +16,7 @@
                 "name": "host-abc"
             },
             "parent": {
-                "id": "61626364"
+                "id": "58585858"
             },
             "processor": {
                 "event": "span",
@@ -33,13 +33,17 @@
             },
             "span": {
                 "duration": {
-                    "us": 0
+                    "us": 79000000
                 },
+                "id": "41414646",
                 "name": "",
                 "type": "custom"
             },
             "timestamp": {
                 "us": 1576500418000768
+            },
+            "trace": {
+                "id": "46467830"
             }
         }
     ]

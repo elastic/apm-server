@@ -19,18 +19,14 @@ package otel
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
-	commonpb "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1"
-	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
-	tracetranslator "github.com/open-telemetry/opentelemetry-collector/translator/trace"
+	"go.opentelemetry.io/collector/consumer/pdata"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -38,16 +34,14 @@ import (
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
 	AgentNameJaeger = "Jaeger"
 
-	sourceFormatJaeger = "jaeger"
-	keywordLength      = 1024
-	dot                = "."
-	underscore         = "_"
+	keywordLength = 1024
+	dot           = "."
+	underscore    = "_"
 
 	outcomeSuccess = "success"
 	outcomeFailure = "failure"
@@ -59,234 +53,179 @@ type Consumer struct {
 	Reporter publish.Reporter
 }
 
-// ConsumeTraceData consumes OpenTelemetry trace data,
+// ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
-func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
-	batch := c.convert(td)
+func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
+	batch := c.convert(traces)
 	return c.Reporter(ctx, publish.PendingReq{
 		Transformables: batch.Transformables(),
 		Trace:          true,
 	})
 }
 
-func (c *Consumer) convert(td consumerdata.TraceData) *model.Batch {
-	md := model.Metadata{}
-	parseMetadata(td, &md)
-	hostname := md.System.DetectedHostname
-
-	logger := logp.NewLogger(logs.Otel)
+func (c *Consumer) convert(td pdata.Traces) *model.Batch {
 	batch := model.Batch{}
-	for _, otelSpan := range td.Spans {
-		if otelSpan == nil {
-			continue
-		}
-
-		root := len(otelSpan.ParentSpanId) == 0
-
-		var parentID, spanID, traceID string
-		if td.SourceFormat == sourceFormatJaeger {
-			if !root {
-				parentID = formatJaegerSpanID(otelSpan.ParentSpanId)
-			}
-
-			traceID = formatJaegerTraceID(otelSpan.TraceId)
-			spanID = formatJaegerSpanID(otelSpan.SpanId)
-		} else {
-			if !root {
-				parentID = fmt.Sprintf("%x", otelSpan.ParentSpanId)
-			}
-
-			traceID = fmt.Sprintf("%x", otelSpan.TraceId)
-			spanID = fmt.Sprintf("%x", otelSpan.SpanId)
-		}
-
-		startTime := parseTimestamp(otelSpan.StartTime)
-		var duration float64
-		if otelSpan.EndTime != nil && !startTime.IsZero() {
-			duration = parseTimestamp(otelSpan.EndTime).Sub(startTime).Seconds() * 1000
-		}
-		name := otelSpan.GetName().GetValue()
-		if root || otelSpan.Kind == tracepb.Span_SERVER {
-			transaction := model.Transaction{
-				Metadata:  md,
-				ID:        spanID,
-				ParentID:  parentID,
-				TraceID:   traceID,
-				Timestamp: startTime,
-				Duration:  duration,
-				Name:      name,
-			}
-			parseTransaction(otelSpan, td.SourceFormat, hostname, &transaction)
-			batch.Transactions = append(batch.Transactions, &transaction)
-			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
-				addTransactionCtxToErr(transaction, err)
-				batch.Errors = append(batch.Errors, err)
-			}
-
-		} else {
-			span := model.Span{
-				Metadata:  md,
-				ID:        spanID,
-				ParentID:  parentID,
-				TraceID:   traceID,
-				Timestamp: startTime,
-				Duration:  duration,
-				Name:      name,
-				Outcome:   outcomeUnknown,
-			}
-			parseSpan(otelSpan, td.SourceFormat, &span)
-			batch.Spans = append(batch.Spans, &span)
-			for _, err := range parseErrors(logger, td.SourceFormat, otelSpan) {
-				addSpanCtxToErr(span, hostname, err)
-				batch.Errors = append(batch.Errors, err)
-			}
-		}
+	resourceSpans := td.ResourceSpans()
+	for i := 0; i < resourceSpans.Len(); i++ {
+		c.convertResourceSpans(resourceSpans.At(i), &batch)
 	}
 	return &batch
 }
 
-func parseMetadata(td consumerdata.TraceData, md *model.Metadata) {
-	md.Service.Name = truncate(td.Node.GetServiceInfo().GetName())
-	if md.Service.Name == "" {
-		md.Service.Name = "unknown"
-	}
-
-	if ident := td.Node.GetIdentifier(); ident != nil {
-		md.Process.Pid = int(ident.Pid)
-		if hostname := truncate(ident.HostName); hostname != "" {
-			md.System.DetectedHostname = hostname
-		}
-	}
-	if languageName, ok := languageName[td.Node.GetLibraryInfo().GetLanguage()]; ok {
-		md.Service.Language.Name = languageName
-	}
-
-	switch td.SourceFormat {
-	case sourceFormatJaeger:
-		// version is of format `Jaeger-<agentlanguage>-<version>`, e.g. `Jaeger-Go-2.20.0`
-		nVersionParts := 3
-		versionParts := strings.SplitN(td.Node.GetLibraryInfo().GetExporterVersion(), "-", nVersionParts)
-		if md.Service.Language.Name == "" && len(versionParts) == nVersionParts {
-			md.Service.Language.Name = versionParts[1]
-		}
-		if v := versionParts[len(versionParts)-1]; v != "" {
-			md.Service.Agent.Version = v
-		} else {
-			md.Service.Agent.Version = "unknown"
-		}
-		agentName := AgentNameJaeger
-		if md.Service.Language.Name != "" {
-			agentName = truncate(agentName + "/" + md.Service.Language.Name)
-		}
-		md.Service.Agent.Name = agentName
-
-		if attributes := td.Node.GetAttributes(); attributes != nil {
-			if clientUUID, ok := attributes["client-uuid"]; ok {
-				md.Service.Agent.EphemeralID = truncate(clientUUID)
-				delete(td.Node.Attributes, "client-uuid")
-			}
-			if ip, ok := attributes["ip"]; ok {
-				md.System.IP = utility.ParseIP(ip)
-				delete(td.Node.Attributes, "ip")
-			}
-		}
-	default:
-		md.Service.Agent.Name = strings.Title(td.SourceFormat)
-		md.Service.Agent.Version = "unknown"
-	}
-
-	if md.Service.Language.Name == "" {
-		md.Service.Language.Name = "unknown"
-	}
-
-	md.Labels = make(common.MapStr)
-	for key, val := range td.Node.GetAttributes() {
-		md.Labels[key] = truncate(val)
-	}
-	if t := td.Resource.GetType(); t != "" {
-		md.Labels["resource"] = truncate(t)
-	}
-	for key, val := range td.Resource.GetLabels() {
-		md.Labels[key] = truncate(val)
+func (c *Consumer) convertResourceSpans(resourceSpans pdata.ResourceSpans, out *model.Batch) {
+	var metadata model.Metadata
+	translateResourceMetadata(resourceSpans.Resource(), &metadata)
+	instrumentationLibrarySpans := resourceSpans.InstrumentationLibrarySpans()
+	for i := 0; i < instrumentationLibrarySpans.Len(); i++ {
+		c.convertInstrumentationLibrarySpans(instrumentationLibrarySpans.At(i), metadata, out)
 	}
 }
 
-func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, event *model.Transaction) {
+func (c *Consumer) convertInstrumentationLibrarySpans(in pdata.InstrumentationLibrarySpans, metadata model.Metadata, out *model.Batch) {
+	otelSpans := in.Spans()
+	for i := 0; i < otelSpans.Len(); i++ {
+		c.convertSpan(otelSpans.At(i), metadata, out)
+	}
+}
+
+func (c *Consumer) convertSpan(otelSpan pdata.Span, metadata model.Metadata, out *model.Batch) {
+	logger := logp.NewLogger(logs.Otel)
+
+	root := !otelSpan.ParentSpanID().IsValid()
+
+	var parentID, spanID, traceID string
+	if strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger") {
+		if !root {
+			parentID = formatJaegerSpanID(otelSpan.ParentSpanID())
+		}
+		traceID = formatJaegerTraceID(otelSpan.TraceID())
+		spanID = formatJaegerSpanID(otelSpan.SpanID())
+	} else {
+		if !root {
+			parentID = otelSpan.ParentSpanID().HexString()
+		}
+		traceID = otelSpan.TraceID().HexString()
+		spanID = otelSpan.SpanID().HexString()
+	}
+
+	startTime := pdata.UnixNanoToTime(otelSpan.StartTime())
+	endTime := pdata.UnixNanoToTime(otelSpan.EndTime())
+	var durationMillis float64
+	if endTime.After(startTime) {
+		durationMillis = endTime.Sub(startTime).Seconds() * 1000
+	}
+
+	var transaction *model.Transaction
+	var span *model.Span
+
+	name := otelSpan.Name()
+	if root || otelSpan.Kind() == pdata.SpanKindSERVER {
+		transaction = &model.Transaction{
+			Metadata:  metadata,
+			ID:        spanID,
+			ParentID:  parentID,
+			TraceID:   traceID,
+			Timestamp: startTime,
+			Duration:  durationMillis,
+			Name:      name,
+		}
+		translateTransaction(otelSpan, metadata, transaction)
+		out.Transactions = append(out.Transactions, transaction)
+	} else {
+		span = &model.Span{
+			Metadata:  metadata,
+			ID:        spanID,
+			ParentID:  parentID,
+			TraceID:   traceID,
+			Timestamp: startTime,
+			Duration:  durationMillis,
+			Name:      name,
+			Outcome:   outcomeUnknown,
+		}
+		translateSpan(otelSpan, metadata, span)
+		out.Spans = append(out.Spans, span)
+	}
+
+	events := otelSpan.Events()
+	for i := 0; i < events.Len(); i++ {
+		convertSpanEvent(logger, events.At(i), metadata, transaction, span, out)
+	}
+}
+
+func translateTransaction(span pdata.Span, metadata model.Metadata, event *model.Transaction) {
+	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 	var http model.Http
 	var httpStatusCode int
 	var message model.Message
 	var component string
 	var outcome, result string
-	var hasFailed bool
 	var isHTTP, isMessaging bool
-	var samplerType, samplerParam *tracepb.AttributeValue
-	for kDots, v := range span.Attributes.GetAttributeMap() {
-		if sourceFormat == sourceFormatJaeger {
+	var samplerType, samplerParam pdata.AttributeValue
+	span.Attributes().ForEach(func(kDots string, v pdata.AttributeValue) {
+		if isJaeger {
 			switch kDots {
 			case "sampler.type":
 				samplerType = v
-				continue
+				return
 			case "sampler.param":
 				samplerParam = v
-				continue
+				return
 			}
 		}
 
 		k := replaceDots(kDots)
-		switch v := v.Value.(type) {
-		case *tracepb.AttributeValue_BoolValue:
-			labels[k] = v.BoolValue
-			if k == "error" {
-				hasFailed = v.BoolValue
-			}
-		case *tracepb.AttributeValue_DoubleValue:
-			labels[k] = v.DoubleValue
-		case *tracepb.AttributeValue_IntValue:
+		switch v.Type() {
+		case pdata.AttributeValueBOOL:
+			labels[k] = v.BoolVal()
+		case pdata.AttributeValueDOUBLE:
+			labels[k] = v.DoubleVal()
+		case pdata.AttributeValueINT:
 			switch kDots {
 			case "http.status_code":
-				httpStatusCode = int(v.IntValue)
+				httpStatusCode = int(v.IntVal())
 				isHTTP = true
 			default:
-				labels[k] = v.IntValue
+				labels[k] = v.IntVal()
 			}
-		case *tracepb.AttributeValue_StringValue:
+		case pdata.AttributeValueSTRING:
+			stringval := truncate(v.StringVal())
 			switch kDots {
 			case "span.kind": // filter out
 			case "http.method":
-				http.Request = &model.Req{Method: truncate(v.StringValue.Value)}
+				http.Request = &model.Req{Method: stringval}
 				isHTTP = true
 			case "http.url", "http.path":
-				event.URL = model.ParseURL(v.StringValue.Value, hostname)
+				event.URL = model.ParseURL(stringval, metadata.System.DetectedHostname)
 				isHTTP = true
 			case "http.status_code":
-				if intv, err := strconv.Atoi(v.StringValue.Value); err == nil {
+				if intv, err := strconv.Atoi(stringval); err == nil {
 					httpStatusCode = intv
 				}
 				isHTTP = true
 			case "http.protocol":
-				if strings.HasPrefix(v.StringValue.Value, "HTTP/") {
-					version := truncate(strings.TrimPrefix(v.StringValue.Value, "HTTP/"))
+				if strings.HasPrefix(stringval, "HTTP/") {
+					version := strings.TrimPrefix(stringval, "HTTP/")
 					http.Version = &version
 				} else {
-					labels[k] = v.StringValue.Value
+					labels[k] = stringval
 				}
 				isHTTP = true
 			case "message_bus.destination":
-				message.QueueName = &v.StringValue.Value
+				message.QueueName = &stringval
 				isMessaging = true
 			case "type":
-				event.Type = truncate(v.StringValue.Value)
+				event.Type = stringval
 			case "service.version":
-				event.Metadata.Service.Version = truncate(v.StringValue.Value)
+				event.Metadata.Service.Version = stringval
 			case "component":
-				component = truncate(v.StringValue.Value)
+				component = stringval
 				fallthrough
 			default:
-				labels[k] = truncate(v.StringValue.Value)
+				labels[k] = stringval
 			}
 		}
-	}
+	})
 
 	if event.Type == "" {
 		if isHTTP {
@@ -301,9 +240,6 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	}
 
 	if isHTTP {
-		if httpStatusCode == 0 {
-			httpStatusCode = int(span.GetStatus().GetCode())
-		}
 		if httpStatusCode > 0 {
 			http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &httpStatusCode}}
 			result = statusCodeResult(httpStatusCode)
@@ -315,7 +251,7 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	}
 
 	if result == "" {
-		if hasFailed {
+		if span.Status().Code() == pdata.StatusCodeError {
 			result = "Error"
 			outcome = outcomeFailure
 		} else {
@@ -326,16 +262,16 @@ func parseTransaction(span *tracepb.Span, sourceFormat string, hostname string, 
 	event.Result = result
 	event.Outcome = outcome
 
-	if samplerType != nil && samplerParam != nil {
-		// The client has reported its sampling rate, so
-		// we can use it to extrapolate span metrics.
+	if samplerType != (pdata.AttributeValue{}) {
+		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
 		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
 	}
 
 	event.Labels = labels
 }
 
-func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
+func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) {
+	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
 	var http model.HTTP
@@ -345,102 +281,94 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 	var destinationService model.DestinationService
 	var isDBSpan, isHTTPSpan, isMessagingSpan bool
 	var component string
-	var samplerType, samplerParam *tracepb.AttributeValue
-	for kDots, v := range span.Attributes.GetAttributeMap() {
-		if sourceFormat == sourceFormatJaeger {
+	var samplerType, samplerParam pdata.AttributeValue
+	span.Attributes().ForEach(func(kDots string, v pdata.AttributeValue) {
+		if isJaeger {
 			switch kDots {
 			case "sampler.type":
 				samplerType = v
-				continue
+				return
 			case "sampler.param":
 				samplerParam = v
-				continue
+				return
 			}
 		}
 
 		k := replaceDots(kDots)
-		switch v := v.Value.(type) {
-		case *tracepb.AttributeValue_BoolValue:
-			labels[k] = v.BoolValue
-		case *tracepb.AttributeValue_DoubleValue:
-			labels[k] = v.DoubleValue
-		case *tracepb.AttributeValue_IntValue:
+		switch v.Type() {
+		case pdata.AttributeValueBOOL:
+			labels[k] = v.BoolVal()
+		case pdata.AttributeValueDOUBLE:
+			labels[k] = v.DoubleVal()
+		case pdata.AttributeValueINT:
 			switch kDots {
 			case "http.status_code":
-				code := int(v.IntValue)
+				code := int(v.IntVal())
 				http.StatusCode = &code
 				isHTTPSpan = true
 			case "peer.port":
-				port := int(v.IntValue)
+				port := int(v.IntVal())
 				destination.Port = &port
 			default:
-				labels[k] = v.IntValue
+				labels[k] = v.IntVal()
 			}
-		case *tracepb.AttributeValue_StringValue:
+		case pdata.AttributeValueSTRING:
+			stringval := truncate(v.StringVal())
 			switch kDots {
 			case "span.kind": // filter out
 			case "http.url":
-				url := truncate(v.StringValue.Value)
-				http.URL = &url
+				http.URL = &stringval
 				isHTTPSpan = true
 			case "http.method":
-				method := truncate(v.StringValue.Value)
-				http.Method = &method
+				http.Method = &stringval
 				isHTTPSpan = true
 			case "sql.query":
-				db.Statement = &v.StringValue.Value
+				db.Statement = &stringval
 				if db.Type == nil {
 					dbType := "sql"
 					db.Type = &dbType
 				}
 				isDBSpan = true
 			case "db.statement":
-				db.Statement = &v.StringValue.Value
+				db.Statement = &stringval
 				isDBSpan = true
 			case "db.instance":
-				val := truncate(v.StringValue.Value)
-				db.Instance = &val
+				db.Instance = &stringval
 				isDBSpan = true
 			case "db.type":
-				val := truncate(v.StringValue.Value)
-				db.Type = &val
+				db.Type = &stringval
 				isDBSpan = true
 			case "db.user":
-				val := truncate(v.StringValue.Value)
-				db.UserName = &val
+				db.UserName = &stringval
 				isDBSpan = true
 			case "peer.address":
-				val := truncate(v.StringValue.Value)
-				destinationService.Resource = &val
-				if !strings.ContainsRune(val, ':') || net.ParseIP(val) != nil {
+				destinationService.Resource = &stringval
+				if !strings.ContainsRune(stringval, ':') || net.ParseIP(stringval) != nil {
 					// peer.address is not necessarily a hostname
 					// or IP address; it could be something like
 					// a JDBC connection string or ip:port. Ignore
 					// values containing colons, except for IPv6.
-					destination.Address = &val
+					destination.Address = &stringval
 				}
 			case "peer.hostname", "peer.ipv4", "peer.ipv6":
-				val := truncate(v.StringValue.Value)
-				destination.Address = &val
+				destination.Address = &stringval
 			case "peer.service":
-				val := truncate(v.StringValue.Value)
-				destinationService.Name = &val
+				destinationService.Name = &stringval
 				if destinationService.Resource == nil {
 					// Prefer using peer.address for resource.
-					destinationService.Resource = &val
+					destinationService.Resource = &stringval
 				}
 			case "message_bus.destination":
-				val := truncate(v.StringValue.Value)
-				message.QueueName = &val
+				message.QueueName = &stringval
 				isMessagingSpan = true
 			case "component":
-				component = truncate(v.StringValue.Value)
+				component = stringval
 				fallthrough
 			default:
-				labels[k] = truncate(v.StringValue.Value)
+				labels[k] = stringval
 			}
 		}
-	}
+	})
 
 	if http.URL != nil {
 		if fullURL, err := url.Parse(*http.URL); err == nil {
@@ -488,11 +416,6 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 
 	switch {
 	case isHTTPSpan:
-		if http.StatusCode == nil {
-			if code := int(span.GetStatus().GetCode()); code != 0 {
-				http.StatusCode = &code
-			}
-		}
 		if http.StatusCode != nil {
 			event.Outcome = clientStatusCodeOutcome(*http.StatusCode)
 		}
@@ -524,100 +447,109 @@ func parseSpan(span *tracepb.Span, sourceFormat string, event *model.Span) {
 		event.DestinationService = &destinationService
 	}
 
-	if samplerType != nil && samplerParam != nil {
-		// The client has reported its sampling rate, so
-		// we can use it to extrapolate transaction metrics.
+	if samplerType != (pdata.AttributeValue{}) {
+		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
 		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
 	}
 
 	event.Labels = labels
 }
 
-func parseSamplerAttributes(samplerType, samplerParam *tracepb.AttributeValue, representativeCount *float64, labels common.MapStr) {
-	switch samplerType.GetStringValue().GetValue() {
+func parseSamplerAttributes(samplerType, samplerParam pdata.AttributeValue, representativeCount *float64, labels common.MapStr) {
+	switch samplerType := samplerType.StringVal(); samplerType {
 	case "probabilistic":
-		probability := samplerParam.GetDoubleValue()
+		probability := samplerParam.DoubleVal()
 		if probability > 0 && probability <= 1 {
 			*representativeCount = 1 / probability
 		}
 	default:
-		labels["sampler_type"] = samplerType.GetStringValue().GetValue()
-		switch v := samplerParam.Value.(type) {
-		case *tracepb.AttributeValue_BoolValue:
-			labels["sampler_param"] = v.BoolValue
-		case *tracepb.AttributeValue_DoubleValue:
-			labels["sampler_param"] = v.DoubleValue
+		labels["sampler_type"] = samplerType
+		switch samplerParam.Type() {
+		case pdata.AttributeValueBOOL:
+			labels["sampler_param"] = samplerParam.BoolVal()
+		case pdata.AttributeValueDOUBLE:
+			labels["sampler_param"] = samplerParam.DoubleVal()
 		}
 	}
 }
 
-func parseErrors(logger *logp.Logger, source string, otelSpan *tracepb.Span) []*model.Error {
-	var errors []*model.Error
-	for _, log := range otelSpan.GetTimeEvents().GetTimeEvent() {
-		var isError, hasMinimalInfo bool
-		var err model.Error
-		var logMessage, exMessage, exType string
-		for k, v := range log.GetAnnotation().GetAttributes().GetAttributeMap() {
-			if source == sourceFormatJaeger {
-				switch v := v.Value.(type) {
-				case *tracepb.AttributeValue_StringValue:
-					vStr := v.StringValue.Value
-					switch k {
-					case "error", "error.object":
-						exMessage = vStr
-						hasMinimalInfo = true
-						isError = true
-					case "event":
-						if vStr == "error" { // according to opentracing spec
-							isError = true
-						} else if logMessage == "" {
-							// jaeger seems to send the message in the 'event' field
-							// in case 'event' and 'message' are sent, 'message' is used
-							logMessage = vStr
-							hasMinimalInfo = true
-						}
-					case "message":
-						logMessage = vStr
-						hasMinimalInfo = true
-					case "error.kind":
-						exType = vStr
-						hasMinimalInfo = true
-						isError = true
-					case "level":
-						isError = vStr == "error"
-					}
-				}
+func convertSpanEvent(
+	logger *logp.Logger,
+	event pdata.SpanEvent,
+	metadata model.Metadata,
+	transaction *model.Transaction, span *model.Span, // only one is non-nil
+	out *model.Batch,
+) {
+	var isError bool
+	var exMessage, exType string
+	logMessage := event.Name()
+	hasMinimalInfo := logMessage != ""
+	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	event.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
+		if !isJaeger {
+			return
+		}
+		if v.Type() != pdata.AttributeValueSTRING {
+			return
+		}
+		stringval := truncate(v.StringVal())
+		switch k {
+		case "error", "error.object":
+			exMessage = stringval
+			hasMinimalInfo = true
+			isError = true
+		case "event":
+			if stringval == "error" { // according to opentracing spec
+				isError = true
+			} else if logMessage == "" {
+				// Jaeger seems to send the message in the 'event' field.
+				//
+				// In case 'message' is sent, the event's name will be set
+				// and we will use that. Otherwise we use 'event'.
+				logMessage = stringval
+				hasMinimalInfo = true
 			}
+		case "error.kind":
+			exType = stringval
+			hasMinimalInfo = true
+			isError = true
+		case "level":
+			isError = stringval == "error"
 		}
-		if !isError {
-			continue
-		}
-		if !hasMinimalInfo {
-			if logger.IsDebug() {
-				logger.Debugf("Cannot convert %s event into elastic apm error: %v", source, log)
-			}
-			continue
-		}
-
-		if logMessage != "" {
-			err.Log = &model.Log{Message: logMessage}
-		}
-		if exMessage != "" || exType != "" {
-			err.Exception = &model.Exception{}
-			if exMessage != "" {
-				err.Exception.Message = &exMessage
-			}
-			if exType != "" {
-				err.Exception.Type = &exType
-			}
-		}
-		err.Timestamp = parseTimestamp(log.GetTime())
-		errors = append(errors, &err)
+	})
+	if !isError {
+		return
 	}
-	return errors
+	if !hasMinimalInfo {
+		logger.Debugf("Cannot convert span event (name=%q) into elastic apm error: %v", event.Name())
+		return
+	}
+
+	e := &model.Error{
+		Timestamp: pdata.UnixNanoToTime(event.Timestamp()),
+	}
+	if logMessage != "" {
+		e.Log = &model.Log{Message: logMessage}
+	}
+	if exMessage != "" || exType != "" {
+		e.Exception = &model.Exception{}
+		if exMessage != "" {
+			e.Exception.Message = &exMessage
+		}
+		if exType != "" {
+			e.Exception.Type = &exType
+		}
+	}
+	if transaction != nil {
+		addTransactionCtxToErr(transaction, e)
+	}
+	if span != nil {
+		addSpanCtxToErr(span, metadata.System.DetectedHostname, e)
+	}
+	out.Errors = append(out.Errors, e)
 }
 
-func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
+func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.Metadata = transaction.Metadata
 	err.TransactionID = transaction.ID
 	err.TraceID = transaction.TraceID
@@ -627,7 +559,7 @@ func addTransactionCtxToErr(transaction model.Transaction, err *model.Error) {
 	err.TransactionType = &transaction.Type
 }
 
-func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
+func addSpanCtxToErr(span *model.Span, hostname string, err *model.Error) {
 	err.Metadata = span.Metadata
 	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID
@@ -648,26 +580,6 @@ func addSpanCtxToErr(span model.Span, hostname string, err *model.Error) {
 
 func replaceDots(s string) string {
 	return strings.ReplaceAll(s, dot, underscore)
-}
-
-func parseTimestamp(timestampT *timestamp.Timestamp) time.Time {
-	if timestampT == nil {
-		return time.Time{}
-	}
-	return time.Unix(timestampT.Seconds, int64(timestampT.Nanos)).UTC()
-}
-
-var languageName = map[commonpb.LibraryInfo_Language]string{
-	1:  "C++",
-	2:  "CSharp",
-	3:  "Erlang",
-	4:  "Go",
-	5:  "Java",
-	6:  "Node",
-	7:  "PHP",
-	8:  "Python",
-	9:  "Ruby",
-	10: "JavaScript",
 }
 
 // copied from elastic go-apm agent
@@ -718,26 +630,26 @@ func truncate(s string) string {
 }
 
 // formatJaegerTraceID returns the traceID as string in Jaeger format (hexadecimal without leading zeros)
-func formatJaegerTraceID(traceID []byte) string {
-	jaegerTraceIDHigh, jaegerTraceIDLow, err := tracetranslator.BytesToUInt64TraceID(traceID)
-	if err != nil {
-		return fmt.Sprintf("%x", traceID)
+func formatJaegerTraceID(traceID pdata.TraceID) string {
+	if !traceID.IsValid() {
+		return ""
 	}
-
+	bytes := traceID.Bytes()
+	jaegerTraceIDHigh := binary.BigEndian.Uint64(bytes[:8])
+	jaegerTraceIDLow := binary.BigEndian.Uint64(bytes[8:])
 	if jaegerTraceIDHigh == 0 {
 		return fmt.Sprintf("%x", jaegerTraceIDLow)
 	}
-
 	return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
 }
 
 // formatJaegerSpanID returns the spanID as string in Jaeger format (hexadecimal without leading zeros)
-func formatJaegerSpanID(spanID []byte) string {
-	jaegerSpanID, err := tracetranslator.BytesToUInt64SpanID(spanID)
-	if err != nil {
-		return fmt.Sprintf("%x", spanID)
+func formatJaegerSpanID(spanID pdata.SpanID) string {
+	if !spanID.IsValid() {
+		return ""
 	}
-
+	bytes := spanID.Bytes()
+	jaegerSpanID := binary.BigEndian.Uint64(bytes[:])
 	return fmt.Sprintf("%x", jaegerSpanID)
 }
 

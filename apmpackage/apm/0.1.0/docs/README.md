@@ -7,6 +7,7 @@ The APM integration installs Elasticsearch templates and Ingest Node pipelines f
 When you add an APM integration to a policy, that policy will contain an `apm` input.
 If a policy contains an `apm` input, any Elastic Agent(s) set up with that policy will run locally an APM Server binary.
 You must configure your APM Agents to communicate with that APM Server.
+Make sure to configure the APM Server `host` if it needs to be accessed from outside (eg. when running in Docker).
 
 If you have RUM enabled, you must run APM Server centrally. Otherwise, you can run it at the edge machines.
 To do so, download and enroll an Elastic Agent in the same machines where your instrumented services run.
@@ -47,7 +48,7 @@ and you will be recommended to use the environment as namespace.
 This version doesn't automatically use the service name, so the recommendation instead is to use
 both the service name and the environment as the namespace.
 
-### Compatibility and limitations
+## Compatibility and limitations
 
 The APM integration requires Kibana 7.11 and Elasticsearch with basic license.
 This version is experimental and has some limitations, listed bellow:
@@ -60,12 +61,14 @@ You must update the policy with any changes you need and restart the APM Server 
 
 IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
 
-### Configuration parameters
+## Configuration parameters
 
-- `RUM`: Enables support for RUM monitoring. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
+- `Host`: APM Server host and port to listen on.
+- `Secret token`: Authorization token for sending data to APM Server. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
+- `Enable RUM`: Enables support for RUM monitoring. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
 
 
-### Traces
+## Traces
 
 Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
 Traces are written to `traces-apm.*` indices.
@@ -93,6 +96,7 @@ Traces are written to `traces-apm.*` indices.
 |cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -100,13 +104,13 @@ Traces are written to `traces-apm.*` indices.
 |event.outcome|`event.outcome` simply denotes whether the event represents a success or a failure from the perspective of the entity that produced the event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|host.hostname|The hostname of the host the event was recorded on.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.name|Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.os.platform|The platform of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |http.request.headers|The canonical headers of the monitored HTTP request.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |http.request.method|The http method of the request leading to this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.request.referrer|Referrer for this HTTP request.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|http.request.referrer|Referrer for this HTTP request.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |http.response.finished|Used by the Node agent to indicate when in the response life cycle an error has occurred.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |http.response.headers|The canonical headers of the monitored HTTP response.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |http.response.status_code|The status code of the HTTP response.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -125,7 +129,7 @@ Traces are written to `traces-apm.*` indices.
 |process.args|Process arguments. May be filtered to protect sensitive information.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |process.pid|Numeric process ID of the service process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |process.ppid|Numeric ID of the service's parent process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|process.title|Service process title.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -180,23 +184,23 @@ Traces are written to `traces-apm.*` indices.
 |transaction.self_time.sum.us||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.span_count.dropped|The total amount of dropped spans for this transaction.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.type|Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|url.domain|The hostname of the request, e.g. "example.com".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|url.domain|The hostname of the request, e.g. "example.com".|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.fragment|A fragment specifying a location in a web page , e.g. "top".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.full|The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.path|The path of the request, e.g. "/search".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|url.full|The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|url.path|The path of the request, e.g. "/search".|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.port|The port of the request, e.g. 443.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.query|The query string of the request, e.g. "q=elasticsearch".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.scheme|The protocol of the request, e.g. "https:".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.email|Email of the logged in user.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.name|The username of the logged in user.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.device.name|Name of the device.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.name|Name of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.original|Unparsed version of the user_agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.original|Unparsed version of the user_agent.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.family|OS family (such as redhat, debian, freebsd, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.os.full|Operating system name, including the version or code name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.os.full|Operating system name, including the version or code name.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.kernel|Operating system kernel version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.os.name|Operating system name, without the version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.os.name|Operating system name, without the version.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.platform|Operating system platform (such centos, ubuntu, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.version|Operating system version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.version|Version of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -419,7 +423,7 @@ Traces are written to `traces-apm.*` indices.
 ```
 
 
-### Metrics
+## Metrics
 
 Metrics include application-based metrics and some basic system metrics.
 Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-apm.profiling.*` indices.
@@ -446,13 +450,14 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.port|Port of the destination.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|host.hostname|The hostname of the host the event was recorded on.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.name|Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.os.platform|The platform of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -470,7 +475,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |process.args|Process arguments. May be filtered to protect sensitive information.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |process.pid|Numeric process ID of the service process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |process.ppid|Numeric ID of the service's parent process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|process.title|Service process title.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -493,22 +498,22 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |system.process.memory.rss.bytes|The Resident Set Size. The amount of memory the process occupied in main memory (RAM).|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.memory.size|The total virtual memory the process has.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |timestamp.us|Timestamp of the event in microseconds since Unix epoch.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.email|Email of the logged in user.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.name|The username of the logged in user.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.device.name|Name of the device.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.name|Name of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.original|Unparsed version of the user_agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.original|Unparsed version of the user_agent.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.family|OS family (such as redhat, debian, freebsd, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.os.full|Operating system name, including the version or code name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.os.full|Operating system name, including the version or code name.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.kernel|Operating system kernel version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.os.name|Operating system name, without the version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.os.name|Operating system name, without the version.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.platform|Operating system platform (such centos, ubuntu, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.version|Operating system version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.version|Version of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 
 
-#### Example
+### Example
 
 ```json
 {
@@ -571,7 +576,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 }
 ```
 
-### Logs
+## Logs
 
 Logs are application error events.
 Logs are written to `logs-apm.error.*` indices.
@@ -598,6 +603,7 @@ Logs are written to `logs-apm.error.*` indices.
 |cloud.project.name|Cloud project name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.provider|Cloud provider name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.region|Cloud region name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|cloud.service.name|Cloud service name, intended to distinguish services running on different platforms within a provider.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |container.id|Unique container id.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.address|Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field. Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |destination.ip|IP addess of the destination. Can be one of multiple IPv4 or IPv6 addresses.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -616,13 +622,13 @@ Logs are written to `logs-apm.error.*` indices.
 |error.log.param_message|A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |experimental|Additional experimental data sent by the agents.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |host.architecture|The architecture of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|host.hostname|The hostname of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|host.hostname|The hostname of the host the event was recorded on.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.ip|IP of the host that records the event.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.name|Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |host.os.platform|The platform of the host the event was recorded on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |http.request.headers|The canonical headers of the monitored HTTP request.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |http.request.method|The http method of the request leading to this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|http.request.referrer|Referrer for this HTTP request.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|http.request.referrer|Referrer for this HTTP request.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |http.response.finished|Used by the Node agent to indicate when in the response life cycle an error has occurred.|boolean|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |http.response.headers|The canonical headers of the monitored HTTP response.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |http.response.status_code|The status code of the HTTP response.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -641,7 +647,7 @@ Logs are written to `logs-apm.error.*` indices.
 |process.args|Process arguments. May be filtered to protect sensitive information.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |process.pid|Numeric process ID of the service process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |process.ppid|Numeric ID of the service's parent process.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|process.title|Service process title.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|process.title|Service process title.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |processor.event|Processor event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |processor.name|Processor name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.environment|Service environment.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -666,29 +672,29 @@ Logs are written to `logs-apm.error.*` indices.
 |transaction.self_time.count||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.self_time.sum.us||long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |transaction.type|Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|url.domain|The hostname of the request, e.g. "example.com".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|url.domain|The hostname of the request, e.g. "example.com".|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.fragment|A fragment specifying a location in a web page , e.g. "top".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.full|The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|url.path|The path of the request, e.g. "/search".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|url.full|The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|url.path|The path of the request, e.g. "/search".|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.port|The port of the request, e.g. 443.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.query|The query string of the request, e.g. "q=elasticsearch".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.scheme|The protocol of the request, e.g. "https:".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.email|Email of the logged in user.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.name|The username of the logged in user.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.device.name|Name of the device.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.name|Name of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.original|Unparsed version of the user_agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.original|Unparsed version of the user_agent.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.family|OS family (such as redhat, debian, freebsd, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.os.full|Operating system name, including the version or code name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.os.full|Operating system name, including the version or code name.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.kernel|Operating system kernel version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
-|user_agent.os.name|Operating system name, without the version.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user_agent.os.name|Operating system name, without the version.|wildcard|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.platform|Operating system platform (such centos, ubuntu, windows).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.os.version|Operating system version as a raw string.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user_agent.version|Version of the user agent.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 
 
-#### Example
+### Example
 
 ```json
 {

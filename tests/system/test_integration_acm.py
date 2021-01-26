@@ -12,7 +12,6 @@ class AgentConfigurationTest(ElasticTest):
         cfg = super(AgentConfigurationTest, self).config()
         cfg.update({
             "kibana_host": self.get_kibana_url(),
-            "logging_json": "true",
             "kibana_enabled": "true",
             "acm_cache_expiration": "1s"
         })
@@ -184,7 +183,6 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
 @integration_test
 class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
     config_overrides = {
-        "logging_json": "true",
         "secret_token": "supersecret",
         "kibana_enabled": "true",
         "kibana_host": "unreachablehost"
@@ -223,7 +221,6 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
 @integration_test
 class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
     config_overrides = {
-        "logging_json": "true",
         "kibana_enabled": "false",
     }
 

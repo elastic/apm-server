@@ -24,26 +24,28 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/instrumentation"
+	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	pubs "github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/processing"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue"
 	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
-	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
@@ -385,6 +387,98 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 	}
 }
 
+func TestServerJaegerGRPC(t *testing.T) {
+	server, err := setupServer(t, nil, nil, nil)
+	require.NoError(t, err)
+	defer server.Stop()
+
+	baseURL, err := url.Parse(server.baseURL)
+	require.NoError(t, err)
+	conn, err := grpc.Dial(baseURL.Host, grpc.WithInsecure())
+	require.NoError(t, err)
+	defer conn.Close()
+
+	client := api_v2.NewCollectorServiceClient(conn)
+	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+}
+
+func TestServerConfigReload(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	// The beater has no way of unregistering itself from reload.Register,
+	// so we create a fresh registry and replace it after the test.
+	oldRegister := reload.Register
+	defer func() {
+		reload.Register = oldRegister
+	}()
+	reload.Register = reload.NewRegistry()
+
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		// Set an invalid host to illustrate that the static config
+		// is not used for defining the listening address.
+		"host": "testing.invalid:123",
+
+		// Data streams must be enabled when the server is managed.
+		"data_streams.enabled": true,
+	})
+	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat.Manager = &mockManager{enabled: true}
+	beater, err := newTestBeater(t, apmBeat, cfg, nil)
+	require.NoError(t, err)
+	beater.start()
+
+	// Now that the beater is running, send config changes. The reloader
+	// is not registered until after the beater starts running, so we
+	// must loop until it is set.
+	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
+		"apm-server": map[string]interface{}{
+			"host": "localhost:0",
+		},
+	})
+	var reloadable reload.ReloadableList
+	for {
+		// The Reloader is not registered until after the beat has started running.
+		reloadable = reload.Register.GetReloadableList("inputs")
+		if reloadable != nil {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
+	require.NoError(t, err)
+
+	healthcheck := func(addr string) string {
+		resp, err := http.Get("http://" + addr)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
+		return string(body)
+	}
+
+	addr1, err := beater.waitListenAddr(1 * time.Second)
+	require.NoError(t, err)
+	assert.NotEmpty(t, healthcheck(addr1)) // non-empty as there's no auth required
+
+	// Reload config, causing the HTTP server to be restarted.
+	require.NoError(t, inputConfig.SetString("apm-server.secret_token", -1, "secret"))
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
+	require.NoError(t, err)
+
+	addr2, err := beater.waitListenAddr(1 * time.Second)
+	require.NoError(t, err)
+	assert.Empty(t, healthcheck(addr2)) // empty as auth is required but not specified
+
+	// First HTTP server should have been stopped.
+	_, err = http.Get("http://" + addr1)
+	assert.Error(t, err)
+}
+
 type chanClient struct {
 	done    chan struct{}
 	Channel chan beat.Event
@@ -470,64 +564,6 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 	return p
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
-	if testing.Short() {
-		t.Skip("skipping server test")
-	}
-
-	baseConfig := common.MustNewConfigFrom(map[string]interface{}{
-		"host": "localhost:0",
-
-		// Enable instrumentation so the profile endpoint is
-		// available, but set the profiling interval to something
-		// long enough that it won't kick in.
-		"instrumentation": map[string]interface{}{
-			"enabled": true,
-			"profiling": map[string]interface{}{
-				"cpu": map[string]interface{}{
-					"enabled":  true,
-					"interval": "360s",
-				},
-			},
-		},
-	})
-	if cfg != nil {
-		err := cfg.Unpack(baseConfig)
-		require.NoError(t, err)
-	}
-
-	beatId, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
-	require.NoError(t, err)
-	info := beat.Info{
-		Beat:        "test-apm-server",
-		IndexPrefix: "test-apm-server",
-		Version:     version.GetDefaultVersion(),
-		ID:          beatId,
-	}
-
-	var pub beat.Pipeline
-	if events != nil {
-		// capture events
-		pubClient := newChanClientWith(events)
-		pub = dummyPipeline(cfg, info, pubClient)
-	} else {
-		// don't capture events
-		pub = dummyPipeline(cfg, info)
-	}
-
-	instrumentation, err := instrumentation.New(baseConfig, info.Beat, info.Version)
-	require.NoError(t, err)
-
-	// create a beat
-	apmBeat := &beat.Beat{
-		Publisher:       pub,
-		Info:            info,
-		Config:          beatConfig,
-		Instrumentation: instrumentation,
-	}
-	return setupBeater(t, apmBeat, baseConfig, beatConfig)
-}
-
 var testData = func() []byte {
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
@@ -550,4 +586,13 @@ func body(t *testing.T, response *http.Response) string {
 	require.NoError(t, err)
 	require.NoError(t, response.Body.Close())
 	return string(body)
+}
+
+type mockManager struct {
+	management.Manager
+	enabled bool
+}
+
+func (m *mockManager) Enabled() bool {
+	return m.enabled
 }

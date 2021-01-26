@@ -92,9 +92,9 @@ func newElasticsearchConfig() elasticsearch.Config {
 func CleanupElasticsearch(t testing.TB) {
 	const (
 		legacyPrefix     = "apm*"
-		apmTracesPrefix  = "traces-apm.*"
-		apmMetricsPrefix = "metrics-apm.*"
-		apmLogsPrefix    = "logs-apm.*"
+		apmTracesPrefix  = "traces-apm*"
+		apmMetricsPrefix = "metrics-apm*"
+		apmLogsPrefix    = "logs-apm*"
 	)
 	requests := []estest.Request{
 		esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}},
@@ -119,6 +119,11 @@ func CleanupElasticsearch(t testing.TB) {
 		g.Go(func() error { return doReq(req) })
 	}
 	if err := g.Wait(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Delete index templates after deleting data streams.
+	if err := doReq(esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}); err != nil {
 		t.Fatal(err)
 	}
 

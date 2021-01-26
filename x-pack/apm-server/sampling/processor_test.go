@@ -445,6 +445,7 @@ func TestStorageMonitoring(t *testing.T) {
 }
 
 func TestStorageGC(t *testing.T) {
+	t.Skip("skipping test until refactored https://github.com/elastic/apm-server/issues/4651")
 	if testing.Short() {
 		t.Skip("skipping slow test")
 	}
@@ -487,7 +488,7 @@ func TestStorageGC(t *testing.T) {
 
 	// Process spans until more than one value log file has been created,
 	// but the first one does not exist (has been garbage collected).
-	for len(vlogFilenames()) < 2 {
+	for len(vlogFilenames()) < 3 {
 		writeBatch(50000)
 	}
 
