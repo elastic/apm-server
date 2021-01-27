@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "dynamic",
+            "_doc_count": 1,
             "agent": {
                 "name": "go"
             },
