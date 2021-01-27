@@ -551,7 +551,7 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	}
 
 	if cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled() && cfg.RumConfig.SourceMapping.ESConfig != nil {
-		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping)
+		store, err := newSourcemapStore(beatInfo, cfg.RumConfig.SourceMapping, cfg.DataStreams.Enabled)
 		if err != nil {
 			return nil, err
 		}
@@ -561,11 +561,15 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 	return transformConfig, nil
 }
 
-func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcemap.Store, error) {
+func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping, dataStreamsEnabled bool) (*sourcemap.Store, error) {
 	esClient, err := elasticsearch.NewClient(cfg.ESConfig)
 	if err != nil {
 		return nil, err
 	}
+
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
+	if dataStreamsEnabled {
+		index = "logs-apm.sourcemap*"
+	}
 	return sourcemap.NewStore(esClient, index, cfg.Cache.Expiration)
 }

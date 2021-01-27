@@ -38,6 +38,7 @@ func generateFields(version string) map[string][]field {
 		"internal_metrics": format("model/metricset/_meta/fields.yml", "x-pack/apm-server/fields/_meta/fields.yml"),
 		"profile_metrics":  format("model/profile/_meta/fields.yml"),
 		"traces":           format("model/transaction/_meta/fields.yml", "model/span/_meta/fields.yml"),
+		"sourcemaps":       format("model/sourcemap/_meta/fields.yml"),
 	}
 	inputFieldsFiles["app_metrics"] = filterInternalMetrics(inputFieldsFiles["internal_metrics"])
 

@@ -21,6 +21,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/elastic/apm-server/datastreams"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -34,6 +36,7 @@ import (
 const (
 	sourcemapProcessorName = "sourcemap"
 	sourcemapDocType       = "sourcemap"
+	SourcemapDataset       = "apm.sourcemap"
 )
 
 var (
@@ -72,5 +75,13 @@ func (pa *Sourcemap) Transform(ctx context.Context, cfg *transform.Config) []bea
 		},
 		Timestamp: time.Now(),
 	}
+
+	if cfg.DataStreams {
+		// We need to consider sourcemaps like a data stream so when running under agent the template gets created
+		// This a short term hack until we move sourcemap processing to ingest node
+		ev.Fields[datastreams.TypeField] = datastreams.LogsType
+		ev.Fields[datastreams.DatasetField] = SourcemapDataset
+	}
+
 	return []beat.Event{ev}
 }

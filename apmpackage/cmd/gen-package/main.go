@@ -30,6 +30,7 @@ import (
 
 var versionMapping = map[string]string{
 	"7.11": "0.1.0",
+	"7.12": "0.1.0",
 	"8.0":  "0.1.0",
 }
 
@@ -43,6 +44,9 @@ func main() {
 	clear(packageVersion)
 	inputFields := generateFields(packageVersion)
 	for dataStream := range inputFields {
+		if dataStream == "sourcemaps" {
+			continue
+		}
 		generatePipelines(packageVersion, dataStream)
 	}
 	generateDocs(inputFields, packageVersion)
