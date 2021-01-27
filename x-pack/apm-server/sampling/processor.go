@@ -66,7 +66,10 @@ func NewProcessor(config Config) (*Processor, error) {
 
 	logger := logp.NewLogger(logs.Sampling)
 	badgerOpts := badger.DefaultOptions(config.StorageDir)
-	badgerOpts.ValueLogFileSize = badgerValueLogFileSize
+	badgerOpts.ValueLogFileSize = config.ValueLogFileSize
+	if badgerOpts.ValueLogFileSize == 0 {
+		badgerOpts.ValueLogFileSize = badgerValueLogFileSize
+	}
 	badgerOpts.Logger = eventstorage.LogpAdaptor{Logger: logger}
 	db, err := badger.Open(badgerOpts)
 	if err != nil {

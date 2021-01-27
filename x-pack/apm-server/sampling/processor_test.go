@@ -445,7 +445,6 @@ func TestStorageMonitoring(t *testing.T) {
 }
 
 func TestStorageGC(t *testing.T) {
-	t.Skip("skipping test until refactored https://github.com/elastic/apm-server/issues/4651")
 	if testing.Short() {
 		t.Skip("skipping slow test")
 	}
@@ -453,8 +452,10 @@ func TestStorageGC(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
+	config.ValueLogFileSize = 1024 * 1024
 
 	writeBatch := func(n int) {
+		config.StorageGCInterval = time.Minute // effectively disable
 		processor, err := sampling.NewProcessor(config)
 		require.NoError(t, err)
 		go processor.Run()
@@ -488,7 +489,7 @@ func TestStorageGC(t *testing.T) {
 
 	// Process spans until more than one value log file has been created,
 	// but the first one does not exist (has been garbage collected).
-	for len(vlogFilenames()) < 3 {
+	for len(vlogFilenames()) < 2 {
 		writeBatch(50000)
 	}
 
