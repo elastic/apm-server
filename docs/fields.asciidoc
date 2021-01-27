@@ -96,7 +96,7 @@ type: keyword
 The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -108,7 +108,7 @@ type: wildcard
 The hostname of the request, e.g. "example.com".
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -132,7 +132,7 @@ type: long
 The path of the request, e.g. "/search".
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -207,7 +207,7 @@ Object is not enabled.
 --
 Referrer for this HTTP request.
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -667,7 +667,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -765,7 +765,7 @@ type: long
 Service process title.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -839,7 +839,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -863,7 +863,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -950,7 +950,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: wildcard
+type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -1046,7 +1046,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
 
@@ -1060,7 +1060,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
 
@@ -1696,7 +1696,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1794,7 +1794,7 @@ type: long
 Service process title.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1868,7 +1868,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1892,7 +1892,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1979,7 +1979,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: wildcard
+type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -2075,7 +2075,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
 
@@ -2089,7 +2089,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
 
@@ -2950,7 +2950,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3048,7 +3048,7 @@ type: long
 Service process title.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3122,7 +3122,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3146,7 +3146,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3233,7 +3233,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: wildcard
+type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -3329,7 +3329,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
 
@@ -3343,7 +3343,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
 
@@ -3858,7 +3858,7 @@ type: keyword
 The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3870,7 +3870,7 @@ type: wildcard
 The hostname of the request, e.g. "example.com".
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3894,7 +3894,7 @@ type: long
 The path of the request, e.g. "/search".
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -3969,7 +3969,7 @@ Object is not enabled.
 --
 Referrer for this HTTP request.
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4497,7 +4497,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4595,7 +4595,7 @@ type: long
 Service process title.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4669,7 +4669,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4693,7 +4693,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4780,7 +4780,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: wildcard
+type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -4876,7 +4876,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
 
@@ -4890,7 +4890,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
 
@@ -5589,7 +5589,7 @@ type: keyword
 The hostname of the host the event was recorded on.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5687,7 +5687,7 @@ type: long
 Service process title.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5761,7 +5761,7 @@ type: keyword
 The username of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5785,7 +5785,7 @@ type: keyword
 Email of the logged in user.
 
 
-type: wildcard
+type: keyword
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5872,7 +5872,7 @@ The user_agent fields normally come from a browser request. They often show up i
 Unparsed version of the user_agent.
 
 
-type: wildcard
+type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
 
@@ -5968,7 +5968,7 @@ example: darwin
 Operating system name, without the version.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
 
@@ -5982,7 +5982,7 @@ example: Mac OS X
 Operating system name, including the version or code name.
 
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
 
