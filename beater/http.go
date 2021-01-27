@@ -23,9 +23,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/gmux"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
@@ -33,6 +30,9 @@ import (
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/gmux"
 )
 
 type httpServer struct {
