@@ -96,7 +96,7 @@
   description: |
     The architecture of the host the event was recorded on.
 - name: host.hostname
-  type: wildcard
+  type: keyword
   description: |
     The hostname of the host the event was recorded on.
 - name: host.ip
@@ -141,7 +141,7 @@
   description: |
     Numeric ID of the service's parent process.
 - name: process.title
-  type: wildcard
+  type: keyword
   description: |
     Service process title.
 - name: service.name
@@ -165,7 +165,7 @@
   description: |
     The transaction ID.
 - name: user.email
-  type: wildcard
+  type: keyword
   description: |
     Email of the logged in user.
 - name: user.id
@@ -173,7 +173,7 @@
   description: |
     Identifier of the logged in user.
 - name: user.name
-  type: wildcard
+  type: keyword
   description: |
     The username of the logged in user.
 - name: user_agent.device.name
@@ -185,7 +185,7 @@
   description: |
     Name of the user agent.
 - name: user_agent.original
-  type: wildcard
+  type: keyword
   description: |
     Unparsed version of the user_agent.
   multi_fields:
@@ -196,7 +196,7 @@
   description: |
     OS family (such as redhat, debian, freebsd, windows).
 - name: user_agent.os.full
-  type: wildcard
+  type: keyword
   description: |
     Operating system name, including the version or code name.
 - name: user_agent.os.kernel
@@ -204,7 +204,7 @@
   description: |
     Operating system kernel version as a raw string.
 - name: user_agent.os.name
-  type: wildcard
+  type: keyword
   description: |
     Operating system name, without the version.
 - name: user_agent.os.platform
