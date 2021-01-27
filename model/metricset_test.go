@@ -171,6 +171,7 @@ func TestTransform(t *testing.T) {
 							},
 						},
 					},
+					"_doc_count": int64(6), // 1+2+3
 				},
 			},
 			Msg: "Payload with transaction duration.",
