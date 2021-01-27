@@ -76,6 +76,10 @@ type StorageConfig struct {
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration
+
+	// ValueLogFileSize holds the size for Badger value log files.
+	// If unspecified, then the default value of 128MB will be used.
+	ValueLogFileSize int64
 }
 
 // Policy holds a tail-sampling policy: criteria for matching root transactions,
