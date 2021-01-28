@@ -75,6 +75,9 @@ type Metricset struct {
 	Labels common.MapStr
 
 	// Samples holds the metrics in the set.
+	//
+	// If Samples holds a single histogram metric, then the sum of its Counts
+	// will be used to set a _doc_count field in the transformed beat.Event.
 	Samples []Sample
 
 	// TimeseriesInstanceID holds an optional identifier for the timeseries
@@ -162,6 +165,15 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 			logp.NewLogger(logs.Transform).Warnf("failed to transform sample %#v", sample)
 			continue
 		}
+	}
+	if len(me.Samples) == 1 && len(me.Samples[0].Counts) > 0 {
+		// We have a single histogram metric; add a _doc_count field which holds the sum of counts.
+		// See https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-doc-count-field.html
+		var total int64
+		for _, count := range me.Samples[0].Counts {
+			total += count
+		}
+		fields.Put("_doc_count", total)
 	}
 
 	me.Metadata.Set(fields, me.Labels)
