@@ -29,4 +29,5 @@ import (
 	_ "github.com/t-yuki/gocover-cobertura"
 
 	_ "github.com/elastic/go-licenser"
+	_ "go.elastic.co/go-licence-detector"
 )
