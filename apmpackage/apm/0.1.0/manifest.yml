@@ -41,6 +41,11 @@ policy_templates:
         required: true
         show_user: true
         default: false
+      - name: kibana_api_key
+        type: string
+        title: API Key for Central Configuration
+        required: false
+        show_user: true
     template_path: template.yml.hbs
 owner:
   github: elastic/apm-server

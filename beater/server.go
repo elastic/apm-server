@@ -133,7 +133,7 @@ func newGRPCServer(
 	var kibanaClient kibana.Client
 	var agentcfgFetcher *agentcfg.Fetcher
 	if cfg.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(&cfg.Kibana.ClientConfig)
+		kibanaClient = kibana.NewConnectingClient(&cfg.Kibana)
 		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
 	}
 	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, reporter, kibanaClient, agentcfgFetcher)

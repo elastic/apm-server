@@ -27,7 +27,7 @@ import (
 )
 
 func TestDataStreamsPipeline(t *testing.T) {
-	cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"data_streams.enabled": true}), nil)
+	cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"data_streams.enabled": true}), nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "", cfg.Pipeline) // enabling data streams disables use of the pipeline
 }

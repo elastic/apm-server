@@ -21,6 +21,7 @@ import (
 	"errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/kibana"
 )
 
 func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error) {
@@ -48,6 +49,7 @@ type IntegrationConfig struct {
 	Meta       *Meta          `config:"meta"`
 	DataStream *DataStream    `config:"data_stream"`
 	APMServer  *common.Config `config:"apm-server"`
+	Fleet      Fleet          `config:fleet`
 }
 
 type DataStream struct {
@@ -61,4 +63,8 @@ type Meta struct {
 type Package struct {
 	Name    string `config:"name"`
 	Version string `config:"version"`
+}
+
+type Fleet struct {
+	Kibana kibana.ClientConfig `config:kibana`
 }

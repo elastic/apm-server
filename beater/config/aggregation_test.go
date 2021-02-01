@@ -61,7 +61,7 @@ func TestAggregationConfigInvalid(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
 				test.key: test.value,
-			}), nil)
+			}), nil, nil)
 			require.Error(t, err)
 			assert.EqualError(t, err, test.expect)
 		})
@@ -69,7 +69,7 @@ func TestAggregationConfigInvalid(t *testing.T) {
 }
 
 func TestAggregationConfigDefault(t *testing.T) {
-	cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{}), nil)
+	cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{}), nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, defaultAggregationConfig(), cfg.Aggregation)
 }

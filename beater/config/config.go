@@ -40,18 +40,20 @@ const (
 )
 
 type KibanaConfig struct {
-	Enabled             bool `config:"enabled"`
+	Enabled             bool   `config:"enabled"`
+	APIKey              string `config:"api_key"`
 	kibana.ClientConfig `config:",inline"`
 }
 
 func (k *KibanaConfig) Unpack(cfg *common.Config) error {
-	if err := cfg.Unpack(&k.ClientConfig); err != nil {
+	var err error
+	if err = cfg.Unpack(&k.ClientConfig); err != nil {
 		return err
 	}
 	k.Enabled = cfg.Enabled()
 	k.Host = strings.TrimRight(k.Host, "/")
-
-	return nil
+	k.APIKey, err = cfg.String("api_key", -1)
+	return err
 }
 
 func defaultKibanaConfig() KibanaConfig {
@@ -108,7 +110,7 @@ type Cache struct {
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
-func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
+func NewConfig(ucfg *common.Config, kibanaCfg *kibana.ClientConfig, outputESCfg *common.Config) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
@@ -152,6 +154,10 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 			"apm-server.aggregation.transactions.enabled are both false, " +
 			"which will lead to incorrect metrics being reported in the APM UI",
 		)
+	}
+
+	if c.DataStreams.Enabled && kibanaCfg != nil {
+		c.Kibana.ClientConfig = *kibanaCfg
 	}
 
 	if c.DataStreams.Enabled || (outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines"))) {
