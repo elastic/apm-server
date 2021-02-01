@@ -4281,7 +4281,7 @@ Version: v0.17.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector@v0.17.0/LICENSE:
+Contents of probable licence file LICENSE:
 
 
                                  Apache License

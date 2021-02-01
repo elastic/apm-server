@@ -45,6 +45,7 @@ test-golang-mage: prepare-test ## Run the tests for the specific app
 	cp -f ../../go.* golang-mage
 	mkdir -p golang-mage/approvaltest && cp -f ../../approvaltest/go.* golang-mage/approvaltest
 	mkdir -p golang-mage/systemtest && cp -f ../../systemtest/go.* golang-mage/systemtest
+	mkdir -p golang-mage/internal/otel_collector && cp -f ../../internal/otel_collector/go.* golang-mage/internal/otel_collector
 	@DOCKERFILE=golang-mage bats-core/bin/bats --tap tests | tee target/results.tap
 	@$(MAKE) -s convert-tests-results
 
