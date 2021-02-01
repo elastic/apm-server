@@ -124,6 +124,7 @@ func TestFleetIntegration(t *testing.T) {
 	transport.SetServerURL(&url.URL{Scheme: "http", Host: agent.Addrs[0]})
 	tracer, err := apm.NewTracerOptions(apm.TracerOptions{Transport: transport})
 	require.NoError(t, err)
+	defer tracer.Close()
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
 
