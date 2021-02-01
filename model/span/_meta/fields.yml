@@ -292,7 +292,7 @@
           overwrite: true
 
         - name: hostname
-          type: wildcard
+          type: keyword
           description: >
             The hostname of the host the event was recorded on.
           overwrite: true
@@ -350,7 +350,7 @@
           overwrite: true
 
         - name: title
-          type: wildcard
+          type: keyword
           description: >
             Service process title.
           overwrite: true
@@ -396,7 +396,7 @@
       fields:
 
       - name: name
-        type: wildcard
+        type: keyword
         description: >
           The username of the logged in user.
         overwrite: true
@@ -408,7 +408,7 @@
         overwrite: true
 
       - name: email
-        type: wildcard
+        type: keyword
         description: >
           Email of the logged in user.
         overwrite: true
@@ -479,7 +479,7 @@
       fields:
 
       - name: original
-        type: wildcard
+        type: keyword
         description: >
           Unparsed version of the user_agent.
         example: "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1"
@@ -537,14 +537,14 @@
             example: darwin
 
           - name: name
-            type: wildcard
+            type: keyword
             overwrite: true
             example: "Mac OS X"
             description: >
               Operating system name, without the version.
 
           - name: full
-            type: wildcard
+            type: keyword
             overwrite: true
             example: "Mac OS Mojave"
             description: >
