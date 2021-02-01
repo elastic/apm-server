@@ -43,8 +43,6 @@ Processor name.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`processor.event`*::
@@ -53,8 +51,6 @@ type: keyword
 Processor event.
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -66,8 +62,6 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -196,8 +190,6 @@ The canonical headers of the monitored HTTP request.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 Object is not enabled.
 
 --
@@ -234,8 +226,6 @@ Used by the Node agent to indicate when in the response life cycle an error has 
 
 type: boolean
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`http.response.headers`*::
@@ -245,8 +235,6 @@ The canonical headers of the monitored HTTP response.
 
 
 type: object
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 Object is not enabled.
 
@@ -303,8 +291,6 @@ Service environment.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -329,8 +315,6 @@ Name of the programming language used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.language.version`*::
@@ -340,8 +324,6 @@ Version of the programming language used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -354,8 +336,6 @@ Name of the runtime used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.runtime.version`*::
@@ -365,8 +345,6 @@ Version of the runtime used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -379,8 +357,6 @@ Name of the framework used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.framework.version`*::
@@ -390,8 +366,6 @@ Version of the framework used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -416,8 +390,6 @@ Transactions that are 'sampled' will include all available information. Transact
 
 type: boolean
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`transaction.type`*::
@@ -428,8 +400,6 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`transaction.name`*::
@@ -439,8 +409,6 @@ Generic designation of a transaction in the scope of a single service (eg. 'GET 
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -456,8 +424,6 @@ type: text
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -481,8 +447,6 @@ Portion of the transaction's duration where no direct child was running
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -490,8 +454,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -506,8 +468,6 @@ Counter for collected breakdowns for the transaction
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -532,8 +492,6 @@ The ID of the parent event.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -780,8 +738,6 @@ Address the server is listening on.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`observer.hostname`*::
@@ -815,8 +771,6 @@ Major version number of the observer
 
 
 type: byte
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -965,8 +919,6 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 
 type: text
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1117,8 +1069,6 @@ Additional experimental data sent by the agents.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 [float]
@@ -1258,8 +1208,6 @@ Cloud service name, intended to distinguish services running on different platfo
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1408,8 +1356,6 @@ Processor name.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`processor.event`*::
@@ -1418,8 +1364,6 @@ type: keyword
 Processor event.
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1431,8 +1375,6 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1487,8 +1429,6 @@ Service environment.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -1513,8 +1453,6 @@ Name of the programming language used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.language.version`*::
@@ -1524,8 +1462,6 @@ Version of the programming language used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1538,8 +1474,6 @@ Name of the runtime used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.runtime.version`*::
@@ -1549,8 +1483,6 @@ Version of the runtime used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1563,8 +1495,6 @@ Name of the framework used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.framework.version`*::
@@ -1574,8 +1504,6 @@ Version of the framework used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -1822,8 +1750,6 @@ Address the server is listening on.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`observer.hostname`*::
@@ -1857,8 +1783,6 @@ Major version number of the observer
 
 
 type: byte
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2007,8 +1931,6 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 
 type: text
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2159,8 +2081,6 @@ Additional experimental data sent by the agents.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 [float]
@@ -2300,8 +2220,6 @@ Cloud service name, intended to distinguish services running on different platfo
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2531,8 +2449,6 @@ Processor name.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`processor.event`*::
@@ -2541,8 +2457,6 @@ type: keyword
 Processor event.
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2554,8 +2468,6 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2610,8 +2522,6 @@ Service environment.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -2636,8 +2546,6 @@ Name of the programming language used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.language.version`*::
@@ -2647,8 +2555,6 @@ Version of the programming language used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2661,8 +2567,6 @@ Name of the runtime used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.runtime.version`*::
@@ -2672,8 +2576,6 @@ Version of the runtime used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2686,8 +2588,6 @@ Name of the framework used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.framework.version`*::
@@ -2697,8 +2597,6 @@ Version of the framework used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2723,8 +2621,6 @@ Transactions that are 'sampled' will include all available information. Transact
 
 type: boolean
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`transaction.type`*::
@@ -2735,8 +2631,6 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`transaction.name`*::
@@ -2746,8 +2640,6 @@ Generic designation of a transaction in the scope of a single service (eg. 'GET 
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2764,8 +2656,6 @@ type: text
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -2773,8 +2663,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2790,8 +2678,6 @@ Portion of the transaction's duration where no direct child was running
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -2799,8 +2685,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2815,8 +2699,6 @@ Counter for collected breakdowns for the transaction
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -2841,8 +2723,6 @@ The ID of the parent event.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3089,8 +2969,6 @@ Address the server is listening on.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`observer.hostname`*::
@@ -3124,8 +3002,6 @@ Major version number of the observer
 
 
 type: byte
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3274,8 +3150,6 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 
 type: text
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3426,8 +3300,6 @@ Additional experimental data sent by the agents.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 [float]
@@ -3568,8 +3440,6 @@ Cloud service name, intended to distinguish services running on different platfo
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -3614,8 +3484,6 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`span.subtype`*::
@@ -3625,8 +3493,6 @@ A further sub-division of the type (e.g. postgresql, elasticsearch)
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3642,8 +3508,6 @@ Portion of the span's duration where no direct child was running
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -3651,8 +3515,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3844,8 +3706,6 @@ Processor name.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`processor.event`*::
@@ -3854,8 +3714,6 @@ type: keyword
 Processor event.
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3867,8 +3725,6 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -3997,8 +3853,6 @@ The canonical headers of the monitored HTTP request.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 Object is not enabled.
 
 --
@@ -4035,8 +3889,6 @@ Used by the Node agent to indicate when in the response life cycle an error has 
 
 type: boolean
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`http.response.headers`*::
@@ -4046,8 +3898,6 @@ The canonical headers of the monitored HTTP response.
 
 
 type: object
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 Object is not enabled.
 
@@ -4104,8 +3954,6 @@ Service environment.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -4130,8 +3978,6 @@ Name of the programming language used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.language.version`*::
@@ -4141,8 +3987,6 @@ Version of the programming language used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4155,8 +3999,6 @@ Name of the runtime used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.runtime.version`*::
@@ -4166,8 +4008,6 @@ Version of the runtime used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4180,8 +4020,6 @@ Name of the framework used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.framework.version`*::
@@ -4191,8 +4029,6 @@ Version of the framework used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4338,8 +4174,6 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`span.subtype`*::
@@ -4349,8 +4183,6 @@ A further sub-division of the type (e.g. postgresql, elasticsearch)
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4366,8 +4198,6 @@ Portion of the span's duration where no direct child was running
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -4375,8 +4205,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4401,8 +4229,6 @@ The ID of the parent event.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4649,8 +4475,6 @@ Address the server is listening on.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`observer.hostname`*::
@@ -4684,8 +4508,6 @@ Major version number of the observer
 
 
 type: byte
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4834,8 +4656,6 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 
 type: text
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -4986,8 +4806,6 @@ Additional experimental data sent by the agents.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 [float]
@@ -5128,8 +4946,6 @@ Cloud service name, intended to distinguish services running on different platfo
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -5161,8 +4977,6 @@ Processor name.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`processor.event`*::
@@ -5171,8 +4985,6 @@ type: keyword
 Processor event.
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5184,8 +4996,6 @@ Timestamp of the event in microseconds since Unix epoch.
 
 
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5240,8 +5050,6 @@ Service environment.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -5266,8 +5074,6 @@ Name of the programming language used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.language.version`*::
@@ -5277,8 +5083,6 @@ Version of the programming language used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5291,8 +5095,6 @@ Name of the runtime used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.runtime.version`*::
@@ -5302,8 +5104,6 @@ Version of the runtime used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5316,8 +5116,6 @@ Name of the framework used.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`service.framework.version`*::
@@ -5327,8 +5125,6 @@ Version of the framework used.
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5353,8 +5149,6 @@ Transactions that are 'sampled' will include all available information. Transact
 
 type: boolean
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`transaction.type`*::
@@ -5365,8 +5159,6 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`transaction.name`*::
@@ -5376,8 +5168,6 @@ Generic designation of a transaction in the scope of a single service (eg. 'GET 
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5394,8 +5184,6 @@ type: text
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -5403,8 +5191,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5420,8 +5206,6 @@ Portion of the transaction's duration where no direct child was running
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -5429,8 +5213,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5445,8 +5227,6 @@ Counter for collected breakdowns for the transaction
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5469,8 +5249,6 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`span.subtype`*::
@@ -5480,8 +5258,6 @@ A further sub-division of the type (e.g. postgresql, elasticsearch)
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5497,8 +5273,6 @@ Portion of the span's duration where no direct child was running
 --
 type: long
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 
@@ -5506,8 +5280,6 @@ type: long
 +
 --
 type: long
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5754,8 +5526,6 @@ Address the server is listening on.
 
 type: keyword
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 *`observer.hostname`*::
@@ -5789,8 +5559,6 @@ Major version number of the observer
 
 
 type: byte
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -5939,8 +5707,6 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 
 type: text
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6091,8 +5857,6 @@ Additional experimental data sent by the agents.
 
 type: object
 
-{yes-icon} {ecs-ref}[ECS] field.
-
 --
 
 [float]
@@ -6232,8 +5996,6 @@ Cloud service name, intended to distinguish services running on different platfo
 
 
 type: keyword
-
-{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6488,6 +6250,8 @@ example: 2016-05-23T08:05:34.853Z
 
 required: True
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`labels`*::
@@ -6500,6 +6264,8 @@ Example: `docker` and `k8s` labels.
 type: object
 
 example: {"application": "foo-bar", "env": "production"}
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6514,6 +6280,8 @@ type: text
 
 example: Hello World
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tags`*::
@@ -6524,6 +6292,8 @@ List of keywords used to tag each event.
 type: keyword
 
 example: ["production", "env2"]
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6540,9 +6310,11 @@ Examples include Beats. Agents may also run on observers. ECS agent.* fields sha
 Extended build information for the agent.
 This field is intended to contain any build information that a data source may provide, no specific formatting is required.
 
-type: wildcard
+type: keyword
 
 example: metricbeat version 7.6.0 (amd64), libbeat 7.6.0 [6a23e8f8f30f5001ba344e4e54d8d9cb82cb107c built 2020-02-05 23:10:10 +0000 UTC]
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6556,6 +6328,8 @@ type: keyword
 
 example: 8a4f500f
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`agent.id`*::
@@ -6567,6 +6341,8 @@ Example: For Beats this would be beat.id.
 type: keyword
 
 example: 8a4f500d
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6581,6 +6357,8 @@ type: keyword
 
 example: foo
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`agent.type`*::
@@ -6593,6 +6371,8 @@ type: keyword
 
 example: filebeat
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`agent.version`*::
@@ -6603,6 +6383,8 @@ Version of the agent.
 type: keyword
 
 example: 6.0.0-rc2
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6628,7 +6410,7 @@ example: 15169
 --
 Organization name.
 
-type: wildcard
+type: keyword
 
 example: Google LLC
 
@@ -6657,6 +6439,8 @@ Then it should be duplicated to `.ip` or `.domain`, depending on which one it is
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.as.number`*::
@@ -6668,6 +6452,8 @@ type: long
 
 example: 15169
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.as.organization.name`*::
@@ -6675,9 +6461,11 @@ example: 15169
 --
 Organization name.
 
-type: wildcard
+type: keyword
 
 example: Google LLC
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6699,6 +6487,8 @@ example: 184
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.domain`*::
@@ -6706,7 +6496,9 @@ format: bytes
 --
 Client domain.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6719,6 +6511,8 @@ type: keyword
 
 example: Montreal
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.geo.continent_name`*::
@@ -6729,6 +6523,8 @@ Name of the continent.
 type: keyword
 
 example: North America
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6741,6 +6537,8 @@ type: keyword
 
 example: CA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.geo.country_name`*::
@@ -6751,6 +6549,8 @@ Country name.
 type: keyword
 
 example: Canada
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6763,6 +6563,8 @@ type: geo_point
 
 example: { "lon": -73.614830, "lat": 45.505918 }
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.geo.name`*::
@@ -6772,9 +6574,11 @@ User-defined description of a location, at the level of granularity they care ab
 Could be the name of their data centers, the floor number, if this describes a local physical entity, city names.
 Not typically used in automated geolocation.
 
-type: wildcard
+type: keyword
 
 example: boston-dc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6787,6 +6591,8 @@ type: keyword
 
 example: CA-QC
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.geo.region_name`*::
@@ -6798,6 +6604,8 @@ type: keyword
 
 example: Quebec
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.ip`*::
@@ -6806,6 +6614,8 @@ example: Quebec
 IP address of the client (IPv4 or IPv6).
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6816,6 +6626,8 @@ MAC address of the client.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.nat.ip`*::
@@ -6825,6 +6637,8 @@ Translated IP of source based NAT sessions (e.g. internal client to internet).
 Typically connections traversing load balancers, firewalls, or routers.
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6838,6 +6652,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.packets`*::
@@ -6848,6 +6664,8 @@ Packets sent from the client to the server.
 type: long
 
 example: 12
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6860,6 +6678,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.registered_domain`*::
@@ -6869,9 +6689,11 @@ The highest registered client domain, stripped of the subdomain.
 For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
-type: wildcard
+type: keyword
 
 example: example.com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6897,6 +6719,8 @@ type: keyword
 
 example: co.uk
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.user.domain`*::
@@ -6907,6 +6731,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.user.email`*::
@@ -6914,7 +6740,9 @@ type: keyword
 --
 User email address.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6923,9 +6751,11 @@ type: wildcard
 --
 User's full name, if available.
 
-type: wildcard
+type: keyword
 
 example: Albert Einstein
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6944,6 +6774,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.user.group.id`*::
@@ -6953,6 +6785,8 @@ Unique identifier for the group on the system/platform.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.user.group.name`*::
@@ -6961,6 +6795,8 @@ type: keyword
 Name of the group.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -6972,6 +6808,8 @@ Useful if `user.id` or `user.name` contain confidential information and cannot b
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.user.id`*::
@@ -6981,6 +6819,8 @@ Unique identifier of the user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`client.user.name`*::
@@ -6988,9 +6828,11 @@ type: keyword
 --
 Short name or login of the user.
 
-type: wildcard
+type: keyword
 
 example: albert
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7010,6 +6852,8 @@ type: keyword
 
 example: ["kibana_admin", "reporting_user"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 [float]
@@ -7028,6 +6872,8 @@ type: keyword
 
 example: 666777888999
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.account.name`*::
@@ -7040,6 +6886,8 @@ type: keyword
 
 example: elastic-dev
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.availability_zone`*::
@@ -7050,6 +6898,8 @@ Availability zone in which this host is running.
 type: keyword
 
 example: us-east-1c
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7062,6 +6912,8 @@ type: keyword
 
 example: i-1234567890abcdef0
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.instance.name`*::
@@ -7070,6 +6922,8 @@ example: i-1234567890abcdef0
 Instance name of the host machine.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7081,6 +6935,8 @@ Machine type of the host machine.
 type: keyword
 
 example: t2.medium
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7094,6 +6950,8 @@ type: keyword
 
 example: my-project
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.project.name`*::
@@ -7106,6 +6964,8 @@ type: keyword
 
 example: my project
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.provider`*::
@@ -7117,6 +6977,8 @@ type: keyword
 
 example: aws
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`cloud.region`*::
@@ -7127,6 +6989,8 @@ Region in which this host is running.
 type: keyword
 
 example: us-east-1
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7208,6 +7072,8 @@ Unique container id.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`container.image.name`*::
@@ -7216,6 +7082,8 @@ type: keyword
 Name of the image the container was built on.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7226,6 +7094,8 @@ Container image tags.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`container.labels`*::
@@ -7235,6 +7105,8 @@ Image labels.
 
 type: object
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`container.name`*::
@@ -7243,6 +7115,8 @@ type: object
 Container name.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7254,6 +7128,8 @@ Runtime managing this container.
 type: keyword
 
 example: docker
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7272,6 +7148,8 @@ Then it should be duplicated to `.ip` or `.domain`, depending on which one it is
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.as.number`*::
@@ -7283,6 +7161,8 @@ type: long
 
 example: 15169
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.as.organization.name`*::
@@ -7290,9 +7170,11 @@ example: 15169
 --
 Organization name.
 
-type: wildcard
+type: keyword
 
 example: Google LLC
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7314,6 +7196,8 @@ example: 184
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.domain`*::
@@ -7321,7 +7205,9 @@ format: bytes
 --
 Destination domain.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7334,6 +7220,8 @@ type: keyword
 
 example: Montreal
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.geo.continent_name`*::
@@ -7344,6 +7232,8 @@ Name of the continent.
 type: keyword
 
 example: North America
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7356,6 +7246,8 @@ type: keyword
 
 example: CA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.geo.country_name`*::
@@ -7366,6 +7258,8 @@ Country name.
 type: keyword
 
 example: Canada
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7378,6 +7272,8 @@ type: geo_point
 
 example: { "lon": -73.614830, "lat": 45.505918 }
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.geo.name`*::
@@ -7387,9 +7283,11 @@ User-defined description of a location, at the level of granularity they care ab
 Could be the name of their data centers, the floor number, if this describes a local physical entity, city names.
 Not typically used in automated geolocation.
 
-type: wildcard
+type: keyword
 
 example: boston-dc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7402,6 +7300,8 @@ type: keyword
 
 example: CA-QC
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.geo.region_name`*::
@@ -7413,6 +7313,8 @@ type: keyword
 
 example: Quebec
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.ip`*::
@@ -7421,6 +7323,8 @@ example: Quebec
 IP address of the destination (IPv4 or IPv6).
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7431,6 +7335,8 @@ MAC address of the destination.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.nat.ip`*::
@@ -7440,6 +7346,8 @@ Translated ip of destination based NAT sessions (e.g. internet to private DMZ)
 Typically used with load balancers, firewalls, or routers.
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7453,6 +7361,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.packets`*::
@@ -7463,6 +7373,8 @@ Packets sent from the destination to the source.
 type: long
 
 example: 12
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7475,6 +7387,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.registered_domain`*::
@@ -7484,9 +7398,11 @@ The highest registered destination domain, stripped of the subdomain.
 For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
-type: wildcard
+type: keyword
 
 example: example.com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7512,6 +7428,8 @@ type: keyword
 
 example: co.uk
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.user.domain`*::
@@ -7522,6 +7440,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.user.email`*::
@@ -7529,7 +7449,9 @@ type: keyword
 --
 User email address.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7538,9 +7460,11 @@ type: wildcard
 --
 User's full name, if available.
 
-type: wildcard
+type: keyword
 
 example: Albert Einstein
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7559,6 +7483,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.user.group.id`*::
@@ -7568,6 +7494,8 @@ Unique identifier for the group on the system/platform.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.user.group.name`*::
@@ -7576,6 +7504,8 @@ type: keyword
 Name of the group.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7587,6 +7517,8 @@ Useful if `user.id` or `user.name` contain confidential information and cannot b
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.user.id`*::
@@ -7596,6 +7528,8 @@ Unique identifier of the user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`destination.user.name`*::
@@ -7603,9 +7537,11 @@ type: keyword
 --
 Short name or login of the user.
 
-type: wildcard
+type: keyword
 
 example: albert
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7624,6 +7560,8 @@ Array of user roles at the time of the event.
 type: keyword
 
 example: ["kibana_admin", "reporting_user"]
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7647,6 +7585,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.code_signature.status`*::
@@ -7659,6 +7599,8 @@ type: keyword
 
 example: ERROR_UNTRUSTED_ROOT
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.code_signature.subject_name`*::
@@ -7669,6 +7611,8 @@ Subject name of the code signer
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7682,6 +7626,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.code_signature.valid`*::
@@ -7694,6 +7640,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.hash.md5`*::
@@ -7702,6 +7650,8 @@ example: true
 MD5 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7712,6 +7662,8 @@ SHA1 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.hash.sha256`*::
@@ -7721,6 +7673,8 @@ SHA256 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.hash.sha512`*::
@@ -7729,6 +7683,8 @@ type: keyword
 SHA512 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7742,6 +7698,8 @@ type: keyword
 
 example: kernel32.dll
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.path`*::
@@ -7752,6 +7710,8 @@ Full file path of the library.
 type: keyword
 
 example: C:\Windows\System32\kernel32.dll
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7764,6 +7724,8 @@ type: keyword
 
 example: x64
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.pe.company`*::
@@ -7774,6 +7736,8 @@ Internal company name of the file, provided at compile-time.
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7786,6 +7750,8 @@ type: keyword
 
 example: Paint
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.pe.file_version`*::
@@ -7796,6 +7762,8 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7809,6 +7777,8 @@ type: keyword
 
 example: 0c6803c4e922103c4dca5963aad36ddf
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dll.pe.original_file_name`*::
@@ -7816,9 +7786,11 @@ example: 0c6803c4e922103c4dca5963aad36ddf
 --
 Internal name of the file, provided at compile-time.
 
-type: wildcard
+type: keyword
 
 example: MSPAINT.EXE
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7830,6 +7802,8 @@ Internal product name of the file, provided at compile-time.
 type: keyword
 
 example: Microsoft® Windows® Operating System
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7849,6 +7823,8 @@ Not all DNS data sources give all details about DNS answers. At minimum, answer 
 
 type: object
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.answers.class`*::
@@ -7860,6 +7836,8 @@ type: keyword
 
 example: IN
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.answers.data`*::
@@ -7868,9 +7846,11 @@ example: IN
 The data describing the resource.
 The meaning of this data depends on the type and class of the resource record.
 
-type: wildcard
+type: keyword
 
 example: 10.10.10.10
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7884,6 +7864,8 @@ type: keyword
 
 example: www.example.com
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.answers.ttl`*::
@@ -7895,6 +7877,8 @@ type: long
 
 example: 180
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.answers.type`*::
@@ -7905,6 +7889,8 @@ The type of data contained in this resource record.
 type: keyword
 
 example: CNAME
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7918,6 +7904,8 @@ type: keyword
 
 example: ["RD", "RA"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.id`*::
@@ -7928,6 +7916,8 @@ The DNS packet identifier assigned by the program that generated the query. The 
 type: keyword
 
 example: 62111
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7940,6 +7930,8 @@ type: keyword
 
 example: QUERY
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.question.class`*::
@@ -7951,6 +7943,8 @@ type: keyword
 
 example: IN
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.question.name`*::
@@ -7959,9 +7953,11 @@ example: IN
 The name being queried.
 If the name field contains non-printable characters (below 32 or above 126), those characters should be represented as escaped base 10 integers (\DDD). Back slashes and quotes should be escaped. Tabs, carriage returns, and line feeds should be converted to \t, \r, and \n respectively.
 
-type: wildcard
+type: keyword
 
 example: www.example.com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -7976,6 +7972,8 @@ type: keyword
 
 example: example.com
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.question.subdomain`*::
@@ -7987,6 +7985,8 @@ If the domain has multiple levels of subdomain, such as "sub2.sub1.example.com",
 type: keyword
 
 example: www
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8000,6 +8000,8 @@ type: keyword
 
 example: co.uk
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.question.type`*::
@@ -8010,6 +8012,8 @@ The type of record being queried.
 type: keyword
 
 example: AAAA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8023,6 +8027,8 @@ type: ip
 
 example: ["10.10.10.10", "10.10.10.11"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`dns.response_code`*::
@@ -8033,6 +8039,8 @@ The DNS response code.
 type: keyword
 
 example: NOERROR
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8046,6 +8054,8 @@ If your source of DNS events gives you answers as well, you should create one ev
 type: keyword
 
 example: answer
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8067,6 +8077,8 @@ example: 1.0.0
 
 required: True
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 [float]
@@ -8083,6 +8095,8 @@ Error code describing the error.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`error.id`*::
@@ -8091,6 +8105,8 @@ type: keyword
 Unique identifier for the error.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8101,6 +8117,8 @@ Error message.
 
 type: text
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`error.stack_trace`*::
@@ -8108,7 +8126,11 @@ type: text
 --
 The stack trace of this error in plain text.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+Field is not indexed.
 
 --
 
@@ -8124,9 +8146,11 @@ type: text
 --
 The type of the error, for example the class name of the exception.
 
-type: wildcard
+type: keyword
 
 example: java.lang.NullPointerException
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8147,6 +8171,8 @@ type: keyword
 
 example: user-password-change
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.category`*::
@@ -8160,6 +8186,8 @@ type: keyword
 
 example: authentication
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.code`*::
@@ -8171,6 +8199,8 @@ Some event sources use event codes to identify messages unambiguously, regardles
 type: keyword
 
 example: 4648
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8186,6 +8216,8 @@ type: date
 
 example: 2016-05-23T08:05:34.857Z
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.dataset`*::
@@ -8199,6 +8231,8 @@ type: keyword
 
 example: apache.access
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.duration`*::
@@ -8211,6 +8245,8 @@ type: long
 
 format: duration
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.end`*::
@@ -8219,6 +8255,8 @@ format: duration
 event.end contains the date when the event ended or when the activity was last observed.
 
 type: date
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8231,6 +8269,8 @@ type: keyword
 
 example: 123456789012345678901234567890ABCD
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.id`*::
@@ -8241,6 +8281,8 @@ Unique ID to describe the event.
 type: keyword
 
 example: 8a4f500d
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8255,6 +8297,8 @@ type: date
 
 example: 2016-05-23T08:05:35.101Z
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.kind`*::
@@ -8268,6 +8312,8 @@ type: keyword
 
 example: alert
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.module`*::
@@ -8280,6 +8326,8 @@ type: keyword
 
 example: apache
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.original`*::
@@ -8291,6 +8339,8 @@ This field is not indexed and doc_values are disabled. It cannot be searched, bu
 type: keyword
 
 example: Sep 19 08:26:10 host CEF:0&#124;Security&#124; threatmanager&#124;1.0&#124;100&#124; worm successfully stopped&#124;10&#124;src=10.0.0.1 dst=2.1.2.2spt=1232
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 Field is not indexed.
 
@@ -8309,6 +8359,8 @@ type: keyword
 
 example: success
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.provider`*::
@@ -8320,6 +8372,8 @@ Event transports such as Syslog or the Windows Event Log typically mention the s
 type: keyword
 
 example: kernel
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8333,6 +8387,8 @@ type: keyword
 
 example: Terminated an unexpected process
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.reference`*::
@@ -8345,6 +8401,8 @@ type: keyword
 
 example: https://system.example.com/event/#0001234
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.risk_score`*::
@@ -8353,6 +8411,8 @@ example: https://system.example.com/event/#0001234
 Risk score or priority of the event (e.g. security solutions). Use your system's original value here.
 
 type: float
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8363,6 +8423,8 @@ Normalized risk score or priority of the event, on a scale of 0 to 100.
 This is mainly useful if you use more than one system that assigns risk scores, and you want to see a normalized value across all systems.
 
 type: float
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8375,6 +8437,8 @@ The sequence number is a value published by some event sources, to make the exac
 type: long
 
 format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8391,6 +8455,8 @@ example: 7
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.start`*::
@@ -8399,6 +8465,8 @@ format: string
 event.start contains the date when the event started or when the activity was first observed.
 
 type: date
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8409,6 +8477,8 @@ This field should be populated when the event's timestamp does not include timez
 Acceptable timezone formats are: a canonical ID (e.g. "Europe/Amsterdam"), abbreviated (e.g. "EST") or an HH:mm differential (e.g. "-05:00").
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8421,6 +8491,8 @@ This field is an array. This will allow proper categorization of some events tha
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`event.url`*::
@@ -8432,6 +8504,8 @@ This URL links to another system where in-depth investigation of the specific oc
 type: keyword
 
 example: https://mysystem.example.com/alert/5271dedb-f5b0-4218-87f0-4ac4870a38fe
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8450,6 +8524,8 @@ Note that not all filesystems keep track of access time.
 
 type: date
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.attributes`*::
@@ -8462,6 +8538,8 @@ type: keyword
 
 example: ["readonly", "system"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.code_signature.exists`*::
@@ -8472,6 +8550,8 @@ Boolean to capture if a signature is present.
 type: boolean
 
 example: true
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8485,6 +8565,8 @@ type: keyword
 
 example: ERROR_UNTRUSTED_ROOT
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.code_signature.subject_name`*::
@@ -8495,6 +8577,8 @@ Subject name of the code signer
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8508,6 +8592,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.code_signature.valid`*::
@@ -8520,6 +8606,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.created`*::
@@ -8530,6 +8618,8 @@ Note that not all filesystems store the creation time.
 
 type: date
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.ctime`*::
@@ -8539,6 +8629,8 @@ Last time the file attributes or metadata changed.
 Note that changes to the file content will update `mtime`. This implies `ctime` will be adjusted at the same time, since `mtime` is an attribute of the file.
 
 type: date
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8551,6 +8643,8 @@ type: keyword
 
 example: sda
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.directory`*::
@@ -8558,9 +8652,11 @@ example: sda
 --
 Directory where the file is located. It should include the drive letter, when appropriate.
 
-type: wildcard
+type: keyword
 
 example: /home/alice
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8574,6 +8670,8 @@ type: keyword
 
 example: C
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.extension`*::
@@ -8586,6 +8684,8 @@ type: keyword
 
 example: png
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.gid`*::
@@ -8596,6 +8696,8 @@ Primary group ID (GID) of the file.
 type: keyword
 
 example: 1001
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8608,6 +8710,8 @@ type: keyword
 
 example: alice
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.hash.md5`*::
@@ -8616,6 +8720,8 @@ example: alice
 MD5 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8626,6 +8732,8 @@ SHA1 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.hash.sha256`*::
@@ -8635,6 +8743,8 @@ SHA256 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.hash.sha512`*::
@@ -8643,6 +8753,8 @@ type: keyword
 SHA512 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8655,6 +8767,8 @@ type: keyword
 
 example: 256383
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.mime_type`*::
@@ -8663,6 +8777,8 @@ example: 256383
 MIME type should identify the format of the file or stream of bytes using https://www.iana.org/assignments/media-types/media-types.xhtml[IANA official types], where possible. When more than one type is applicable, the most specific type should be used.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8675,6 +8791,8 @@ type: keyword
 
 example: 0640
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.mtime`*::
@@ -8683,6 +8801,8 @@ example: 0640
 Last time the file content was modified.
 
 type: date
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8695,6 +8815,8 @@ type: keyword
 
 example: example.png
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.owner`*::
@@ -8706,6 +8828,8 @@ type: keyword
 
 example: alice
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.path`*::
@@ -8713,9 +8837,11 @@ example: alice
 --
 Full path to the file, including the file name. It should include the drive letter, when appropriate.
 
-type: wildcard
+type: keyword
 
 example: /home/alice/example.png
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8735,6 +8861,8 @@ type: keyword
 
 example: x64
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.pe.company`*::
@@ -8745,6 +8873,8 @@ Internal company name of the file, provided at compile-time.
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8757,6 +8887,8 @@ type: keyword
 
 example: Paint
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.pe.file_version`*::
@@ -8767,6 +8899,8 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8780,6 +8914,8 @@ type: keyword
 
 example: 0c6803c4e922103c4dca5963aad36ddf
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.pe.original_file_name`*::
@@ -8787,9 +8923,11 @@ example: 0c6803c4e922103c4dca5963aad36ddf
 --
 Internal name of the file, provided at compile-time.
 
-type: wildcard
+type: keyword
 
 example: MSPAINT.EXE
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8801,6 +8939,8 @@ Internal product name of the file, provided at compile-time.
 type: keyword
 
 example: Microsoft® Windows® Operating System
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8814,6 +8954,8 @@ type: long
 
 example: 16384
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.target_path`*::
@@ -8821,7 +8963,9 @@ example: 16384
 --
 Target path for symlinks.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8841,6 +8985,8 @@ type: keyword
 
 example: file
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.uid`*::
@@ -8851,6 +8997,8 @@ The user ID (UID) or security identifier (SID) of the file owner.
 type: keyword
 
 example: 1001
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8863,6 +9011,8 @@ type: keyword
 
 example: *.elastic.co
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.issuer.common_name`*::
@@ -8873,6 +9023,8 @@ List of common name (CN) of issuing certificate authority.
 type: keyword
 
 example: Example SHA2 High Assurance Server CA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8885,6 +9037,8 @@ type: keyword
 
 example: US
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.issuer.distinguished_name`*::
@@ -8892,9 +9046,11 @@ example: US
 --
 Distinguished name (DN) of issuing certificate authority.
 
-type: wildcard
+type: keyword
 
 example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8907,6 +9063,8 @@ type: keyword
 
 example: Mountain View
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.issuer.organization`*::
@@ -8917,6 +9075,8 @@ List of organizations (O) of issuing certificate authority.
 type: keyword
 
 example: Example Inc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8929,6 +9089,8 @@ type: keyword
 
 example: www.example.com
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.issuer.state_or_province`*::
@@ -8939,6 +9101,8 @@ List of state or province names (ST, S, or P)
 type: keyword
 
 example: California
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8951,6 +9115,8 @@ type: date
 
 example: 2020-07-16 03:15:39+00:00
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.not_before`*::
@@ -8961,6 +9127,8 @@ Time at which the certificate is first considered valid.
 type: date
 
 example: 2019-08-16 01:40:25+00:00
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -8973,6 +9141,8 @@ type: keyword
 
 example: RSA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.public_key_curve`*::
@@ -8984,6 +9154,8 @@ type: keyword
 
 example: nistp521
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.public_key_exponent`*::
@@ -8994,6 +9166,8 @@ Exponent used to derive the public key. This is algorithm specific.
 type: long
 
 example: 65537
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 Field is not indexed.
 
@@ -9008,6 +9182,8 @@ type: long
 
 example: 2048
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.serial_number`*::
@@ -9018,6 +9194,8 @@ Unique serial number issued by the certificate authority. For consistency, if th
 type: keyword
 
 example: 55FBB9C7DEBF09809D12CCAA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9030,6 +9208,8 @@ type: keyword
 
 example: SHA256-RSA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.subject.common_name`*::
@@ -9040,6 +9220,8 @@ List of common names (CN) of subject.
 type: keyword
 
 example: shared.global.example.net
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9052,6 +9234,8 @@ type: keyword
 
 example: US
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.subject.distinguished_name`*::
@@ -9059,9 +9243,11 @@ example: US
 --
 Distinguished name (DN) of the certificate subject entity.
 
-type: wildcard
+type: keyword
 
 example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9074,6 +9260,8 @@ type: keyword
 
 example: San Francisco
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.subject.organization`*::
@@ -9085,6 +9273,8 @@ type: keyword
 
 example: Example, Inc.
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.subject.organizational_unit`*::
@@ -9093,6 +9283,8 @@ example: Example, Inc.
 List of organizational units (OU) of subject.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9105,6 +9297,8 @@ type: keyword
 
 example: California
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`file.x509.version_number`*::
@@ -9115,6 +9309,8 @@ Version of x509 format.
 type: keyword
 
 example: 3
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9187,7 +9383,7 @@ User-defined description of a location, at the level of granularity they care ab
 Could be the name of their data centers, the floor number, if this describes a local physical entity, city names.
 Not typically used in automated geolocation.
 
-type: wildcard
+type: keyword
 
 example: boston-dc
 
@@ -9229,6 +9425,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`group.id`*::
@@ -9238,6 +9436,8 @@ Unique identifier for the group on the system/platform.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`group.name`*::
@@ -9246,6 +9446,8 @@ type: keyword
 Name of the group.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9308,6 +9510,8 @@ type: keyword
 
 example: x86_64
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.domain`*::
@@ -9320,6 +9524,8 @@ type: keyword
 
 example: CONTOSO
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.geo.city_name`*::
@@ -9330,6 +9536,8 @@ City name.
 type: keyword
 
 example: Montreal
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9342,6 +9550,8 @@ type: keyword
 
 example: North America
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.geo.country_iso_code`*::
@@ -9352,6 +9562,8 @@ Country ISO code.
 type: keyword
 
 example: CA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9364,6 +9576,8 @@ type: keyword
 
 example: Canada
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.geo.location`*::
@@ -9375,6 +9589,8 @@ type: geo_point
 
 example: { "lon": -73.614830, "lat": 45.505918 }
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.geo.name`*::
@@ -9384,9 +9600,11 @@ User-defined description of a location, at the level of granularity they care ab
 Could be the name of their data centers, the floor number, if this describes a local physical entity, city names.
 Not typically used in automated geolocation.
 
-type: wildcard
+type: keyword
 
 example: boston-dc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9399,6 +9617,8 @@ type: keyword
 
 example: CA-QC
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.geo.region_name`*::
@@ -9410,6 +9630,8 @@ type: keyword
 
 example: Quebec
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.hostname`*::
@@ -9418,7 +9640,9 @@ example: Quebec
 Hostname of the host.
 It normally contains what the `hostname` command returns on the host machine.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9431,6 +9655,8 @@ Example: The current usage of `beat.name`.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.ip`*::
@@ -9439,6 +9665,8 @@ type: keyword
 Host ip addresses.
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9449,6 +9677,8 @@ Host mac addresses.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.name`*::
@@ -9458,6 +9688,8 @@ Name of the host.
 It can contain what `hostname` returns on Unix systems, the fully qualified domain name, or a name specified by the user. The sender decides which value to use.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9470,6 +9702,8 @@ type: keyword
 
 example: debian
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.os.full`*::
@@ -9477,9 +9711,11 @@ example: debian
 --
 Operating system name, including the version or code name.
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9499,6 +9735,8 @@ type: keyword
 
 example: 4.4.0-112-generic
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.os.name`*::
@@ -9506,9 +9744,11 @@ example: 4.4.0-112-generic
 --
 Operating system name, without the version.
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9528,6 +9768,8 @@ type: keyword
 
 example: darwin
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.os.version`*::
@@ -9539,6 +9781,8 @@ type: keyword
 
 example: 10.14.1
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.type`*::
@@ -9548,6 +9792,8 @@ Type of host.
 For Cloud providers this can be the machine type like `t2.medium`. If vm, this could be the container, for example, or other information meaningful in your environment.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9560,6 +9806,8 @@ type: long
 
 example: 1325
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.user.domain`*::
@@ -9570,6 +9818,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.user.email`*::
@@ -9577,7 +9827,9 @@ type: keyword
 --
 User email address.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9586,9 +9838,11 @@ type: wildcard
 --
 User's full name, if available.
 
-type: wildcard
+type: keyword
 
 example: Albert Einstein
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9607,6 +9861,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.user.group.id`*::
@@ -9616,6 +9872,8 @@ Unique identifier for the group on the system/platform.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.user.group.name`*::
@@ -9624,6 +9882,8 @@ type: keyword
 Name of the group.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9635,6 +9895,8 @@ Useful if `user.id` or `user.name` contain confidential information and cannot b
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.user.id`*::
@@ -9644,6 +9906,8 @@ Unique identifier of the user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`host.user.name`*::
@@ -9651,9 +9915,11 @@ type: keyword
 --
 Short name or login of the user.
 
-type: wildcard
+type: keyword
 
 example: albert
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9672,6 +9938,8 @@ Array of user roles at the time of the event.
 type: keyword
 
 example: ["kibana_admin", "reporting_user"]
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9692,6 +9960,8 @@ example: 887
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`http.request.body.content`*::
@@ -9699,9 +9969,11 @@ format: bytes
 --
 The full HTTP request body.
 
-type: wildcard
+type: keyword
 
 example: Hello world
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9723,6 +9995,8 @@ example: 1437
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`http.request.method`*::
@@ -9736,6 +10010,8 @@ As of ECS 1.6.0, the guidance is deprecated because the original case of the met
 type: keyword
 
 example: GET, POST, PUT, PoST
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9756,9 +10032,11 @@ example: image/gif
 --
 Referrer for this HTTP request.
 
-type: wildcard
+type: keyword
 
 example: https://blog.example.com/
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9773,6 +10051,8 @@ example: 887
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`http.response.body.content`*::
@@ -9780,9 +10060,11 @@ format: bytes
 --
 The full HTTP response body.
 
-type: wildcard
+type: keyword
 
 example: Hello world
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9803,6 +10085,8 @@ type: long
 example: 1437
 
 format: bytes
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9829,6 +10113,8 @@ example: 404
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`http.version`*::
@@ -9839,6 +10125,8 @@ HTTP version.
 type: keyword
 
 example: 1.1
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9895,9 +10183,11 @@ The details specific to your event source are typically not logged under `log.*`
 Full path to the log file this event came from, including the file name. It should include the drive letter, when appropriate.
 If the event wasn't read from a log file, do not populate this field.
 
-type: wildcard
+type: keyword
 
 example: /var/log/fun-times.log
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9912,6 +10202,8 @@ type: keyword
 
 example: error
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`log.logger`*::
@@ -9919,9 +10211,11 @@ example: error
 --
 The name of the logger inside an application. This is usually the name of the class which initialized the logger, or can be a custom name.
 
-type: wildcard
+type: keyword
 
 example: org.elasticsearch.bootstrap.Bootstrap
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9933,6 +10227,8 @@ The line number of the file containing the source code which originated the log 
 type: integer
 
 example: 42
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9946,6 +10242,8 @@ type: keyword
 
 example: Bootstrap.java
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`log.origin.function`*::
@@ -9956,6 +10254,8 @@ The name of the function or method which originated the log event.
 type: keyword
 
 example: init
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9970,6 +10270,8 @@ type: keyword
 
 example: Sep 19 08:26:10 localhost My log
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 Field is not indexed.
 
 --
@@ -9980,6 +10282,8 @@ Field is not indexed.
 The Syslog metadata of the event, if the event was transmitted via Syslog. Please see RFCs 5424 or 3164.
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -9995,6 +10299,8 @@ example: 23
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`log.syslog.facility.name`*::
@@ -10005,6 +10311,8 @@ The Syslog text-based facility of the log event, if available.
 type: keyword
 
 example: local7
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10020,6 +10328,8 @@ example: 135
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`log.syslog.severity.code`*::
@@ -10032,6 +10342,8 @@ type: long
 
 example: 3
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`log.syslog.severity.name`*::
@@ -10043,6 +10355,8 @@ If the event source publishing via Syslog provides a different severity value (e
 type: keyword
 
 example: Error
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10063,6 +10377,8 @@ type: keyword
 
 example: aim
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.bytes`*::
@@ -10077,6 +10393,8 @@ example: 368
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.community_id`*::
@@ -10088,6 +10406,8 @@ Learn more at https://github.com/corelight/community-id-spec.
 type: keyword
 
 example: 1:hO+sN4H+MG5MY/8hIrXPqc4ZQz0=
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10112,6 +10432,8 @@ type: keyword
 
 example: inbound
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.forwarded_ip`*::
@@ -10122,6 +10444,8 @@ Host IP address when the source IP address is the proxy.
 type: ip
 
 example: 192.1.1.2
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10134,6 +10458,8 @@ type: keyword
 
 example: 6
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.inner`*::
@@ -10142,6 +10468,8 @@ example: 6
 Network.inner fields are added in addition to network.vlan fields to describe the innermost VLAN when q-in-q VLAN tagging is present. Allowed fields include vlan.id and vlan.name. Inner vlan fields are typically used when sending traffic with multiple 802.1q encapsulations to a network sensor (e.g. Zeek, Wireshark.)
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10154,6 +10482,8 @@ type: keyword
 
 example: 10
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.inner.vlan.name`*::
@@ -10165,6 +10495,8 @@ type: keyword
 
 example: outside
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.name`*::
@@ -10175,6 +10507,8 @@ Name given by operators to sections of their network.
 type: keyword
 
 example: Guest Wifi
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10188,6 +10522,8 @@ type: long
 
 example: 24
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.protocol`*::
@@ -10199,6 +10535,8 @@ The field value must be normalized to lowercase for querying. See the documentat
 type: keyword
 
 example: http
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10212,6 +10550,8 @@ type: keyword
 
 example: tcp
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.type`*::
@@ -10224,6 +10564,8 @@ type: keyword
 
 example: ipv4
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.vlan.id`*::
@@ -10235,6 +10577,8 @@ type: keyword
 
 example: 10
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`network.vlan.name`*::
@@ -10245,6 +10589,8 @@ Optional VLAN name as reported by the observer.
 type: keyword
 
 example: outside
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10262,6 +10608,8 @@ Observer.egress holds information like interface number and name, vlan, and zone
 
 type: object
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.egress.interface.alias`*::
@@ -10272,6 +10620,8 @@ Interface alias as reported by the system, typically used in firewall implementa
 type: keyword
 
 example: outside
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10284,6 +10634,8 @@ type: keyword
 
 example: 10
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.egress.interface.name`*::
@@ -10294,6 +10646,8 @@ Interface name as reported by the system.
 type: keyword
 
 example: eth0
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10306,6 +10660,8 @@ type: keyword
 
 example: 10
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.egress.vlan.name`*::
@@ -10316,6 +10672,8 @@ Optional VLAN name as reported by the observer.
 type: keyword
 
 example: outside
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10328,6 +10686,8 @@ type: keyword
 
 example: Public_Internet
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.geo.city_name`*::
@@ -10338,6 +10698,8 @@ City name.
 type: keyword
 
 example: Montreal
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10350,6 +10712,8 @@ type: keyword
 
 example: North America
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.geo.country_iso_code`*::
@@ -10360,6 +10724,8 @@ Country ISO code.
 type: keyword
 
 example: CA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10372,6 +10738,8 @@ type: keyword
 
 example: Canada
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.geo.location`*::
@@ -10383,6 +10751,8 @@ type: geo_point
 
 example: { "lon": -73.614830, "lat": 45.505918 }
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.geo.name`*::
@@ -10392,9 +10762,11 @@ User-defined description of a location, at the level of granularity they care ab
 Could be the name of their data centers, the floor number, if this describes a local physical entity, city names.
 Not typically used in automated geolocation.
 
-type: wildcard
+type: keyword
 
 example: boston-dc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10407,6 +10779,8 @@ type: keyword
 
 example: CA-QC
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.geo.region_name`*::
@@ -10418,6 +10792,8 @@ type: keyword
 
 example: Quebec
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.hostname`*::
@@ -10427,6 +10803,8 @@ Hostname of the observer.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.ingress`*::
@@ -10435,6 +10813,8 @@ type: keyword
 Observer.ingress holds information like interface number and name, vlan, and zone information to  classify ingress traffic.  Single armed monitoring such as a network sensor on a span port should  only use observer.ingress to categorize traffic.
 
 type: object
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10447,6 +10827,8 @@ type: keyword
 
 example: outside
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.ingress.interface.id`*::
@@ -10457,6 +10839,8 @@ Interface ID as reported by an observer (typically SNMP interface ID).
 type: keyword
 
 example: 10
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10469,6 +10853,8 @@ type: keyword
 
 example: eth0
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.ingress.vlan.id`*::
@@ -10479,6 +10865,8 @@ VLAN ID as reported by the observer.
 type: keyword
 
 example: 10
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10491,6 +10879,8 @@ type: keyword
 
 example: outside
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.ingress.zone`*::
@@ -10502,6 +10892,8 @@ type: keyword
 
 example: DMZ
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.ip`*::
@@ -10511,6 +10903,8 @@ IP addresses of the observer.
 
 type: ip
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.mac`*::
@@ -10519,6 +10913,8 @@ type: ip
 MAC addresses of the observer
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10533,6 +10929,8 @@ type: keyword
 
 example: 1_proxySG
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.os.family`*::
@@ -10544,6 +10942,8 @@ type: keyword
 
 example: debian
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.os.full`*::
@@ -10551,9 +10951,11 @@ example: debian
 --
 Operating system name, including the version or code name.
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10573,6 +10975,8 @@ type: keyword
 
 example: 4.4.0-112-generic
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.os.name`*::
@@ -10580,9 +10984,11 @@ example: 4.4.0-112-generic
 --
 Operating system name, without the version.
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10602,6 +11008,8 @@ type: keyword
 
 example: darwin
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.os.version`*::
@@ -10612,6 +11020,8 @@ Operating system version as a raw string.
 type: keyword
 
 example: 10.14.1
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10624,6 +11034,8 @@ type: keyword
 
 example: s200
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.serial_number`*::
@@ -10632,6 +11044,8 @@ example: s200
 Observer serial number.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10645,6 +11059,8 @@ type: keyword
 
 example: firewall
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.vendor`*::
@@ -10656,6 +11072,8 @@ type: keyword
 
 example: Symantec
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`observer.version`*::
@@ -10664,6 +11082,8 @@ example: Symantec
 Observer version.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10681,6 +11101,8 @@ Unique identifier for the organization.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`organization.name`*::
@@ -10688,7 +11110,9 @@ type: keyword
 --
 Organization name.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10721,7 +11145,7 @@ example: debian
 --
 Operating system name, including the version or code name.
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
 
@@ -10750,7 +11174,7 @@ example: 4.4.0-112-generic
 --
 Operating system name, without the version.
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
 
@@ -10800,6 +11224,8 @@ type: keyword
 
 example: x86_64
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.build_version`*::
@@ -10812,6 +11238,8 @@ type: keyword
 
 example: 36f4f7e89dd61b0988b12ee000b98966867710cd
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.checksum`*::
@@ -10822,6 +11250,8 @@ Checksum of the installed package for verification.
 type: keyword
 
 example: 68b329da9893e34099c7d8ad5cb9c940
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10834,6 +11264,8 @@ type: keyword
 
 example: Open source programming language to build simple/reliable/efficient software.
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.install_scope`*::
@@ -10845,6 +11277,8 @@ type: keyword
 
 example: global
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.installed`*::
@@ -10853,6 +11287,8 @@ example: global
 Time when package was installed.
 
 type: date
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10866,6 +11302,8 @@ type: keyword
 
 example: Apache License 2.0
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.name`*::
@@ -10876,6 +11314,8 @@ Package name
 type: keyword
 
 example: go
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10888,6 +11328,8 @@ type: keyword
 
 example: /usr/local/Cellar/go/1.12.9/
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.reference`*::
@@ -10898,6 +11340,8 @@ Home page or reference URL of the software in this package, if available.
 type: keyword
 
 example: https://golang.org
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -10912,6 +11356,8 @@ example: 62231
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.type`*::
@@ -10924,6 +11370,8 @@ type: keyword
 
 example: rpm
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`package.version`*::
@@ -10934,6 +11382,8 @@ Package version
 type: keyword
 
 example: 1.12.9
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11004,7 +11454,7 @@ example: 0c6803c4e922103c4dca5963aad36ddf
 --
 Internal name of the file, provided at compile-time.
 
-type: wildcard
+type: keyword
 
 example: MSPAINT.EXE
 
@@ -11038,6 +11488,8 @@ type: keyword
 
 example: ["/usr/bin/ssh", "-l", "user", "10.0.0.16"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.args_count`*::
@@ -11050,6 +11502,8 @@ type: long
 
 example: 4
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.code_signature.exists`*::
@@ -11060,6 +11514,8 @@ Boolean to capture if a signature is present.
 type: boolean
 
 example: true
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11073,6 +11529,8 @@ type: keyword
 
 example: ERROR_UNTRUSTED_ROOT
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.code_signature.subject_name`*::
@@ -11083,6 +11541,8 @@ Subject name of the code signer
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11096,6 +11556,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.code_signature.valid`*::
@@ -11108,6 +11570,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.command_line`*::
@@ -11116,9 +11580,11 @@ example: true
 Full command line that started the process, including the absolute path to the executable, and all arguments.
 Some arguments may be filtered to protect sensitive information.
 
-type: wildcard
+type: keyword
 
 example: /usr/bin/ssh -l user 10.0.0.16
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11140,6 +11606,8 @@ type: keyword
 
 example: c2c455d9f99375d
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.executable`*::
@@ -11147,9 +11615,11 @@ example: c2c455d9f99375d
 --
 Absolute path to the process executable.
 
-type: wildcard
+type: keyword
 
 example: /usr/bin/ssh
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11170,6 +11640,8 @@ type: long
 
 example: 137
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.hash.md5`*::
@@ -11178,6 +11650,8 @@ example: 137
 MD5 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11188,6 +11662,8 @@ SHA1 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.hash.sha256`*::
@@ -11196,6 +11672,8 @@ type: keyword
 SHA256 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11206,6 +11684,8 @@ SHA512 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.name`*::
@@ -11214,9 +11694,11 @@ type: keyword
 Process name.
 Sometimes called program name or similar.
 
-type: wildcard
+type: keyword
 
 example: ssh
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11237,6 +11719,8 @@ type: keyword
 
 example: ["/usr/bin/ssh", "-l", "user", "10.0.0.16"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.args_count`*::
@@ -11249,6 +11733,8 @@ type: long
 
 example: 4
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.code_signature.exists`*::
@@ -11259,6 +11745,8 @@ Boolean to capture if a signature is present.
 type: boolean
 
 example: true
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11272,6 +11760,8 @@ type: keyword
 
 example: ERROR_UNTRUSTED_ROOT
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.code_signature.subject_name`*::
@@ -11282,6 +11772,8 @@ Subject name of the code signer
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11295,6 +11787,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.code_signature.valid`*::
@@ -11307,6 +11801,8 @@ type: boolean
 
 example: true
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.command_line`*::
@@ -11315,9 +11811,11 @@ example: true
 Full command line that started the process, including the absolute path to the executable, and all arguments.
 Some arguments may be filtered to protect sensitive information.
 
-type: wildcard
+type: keyword
 
 example: /usr/bin/ssh -l user 10.0.0.16
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11339,6 +11837,8 @@ type: keyword
 
 example: c2c455d9f99375d
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.executable`*::
@@ -11346,9 +11846,11 @@ example: c2c455d9f99375d
 --
 Absolute path to the process executable.
 
-type: wildcard
+type: keyword
 
 example: /usr/bin/ssh
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11369,6 +11871,8 @@ type: long
 
 example: 137
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.hash.md5`*::
@@ -11377,6 +11881,8 @@ example: 137
 MD5 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11387,6 +11893,8 @@ SHA1 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.hash.sha256`*::
@@ -11395,6 +11903,8 @@ type: keyword
 SHA256 hash.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11405,6 +11915,8 @@ SHA512 hash.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.name`*::
@@ -11413,9 +11925,11 @@ type: keyword
 Process name.
 Sometimes called program name or similar.
 
-type: wildcard
+type: keyword
 
 example: ssh
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11435,6 +11949,8 @@ type: keyword
 
 example: x64
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.pe.company`*::
@@ -11445,6 +11961,8 @@ Internal company name of the file, provided at compile-time.
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11457,6 +11975,8 @@ type: keyword
 
 example: Paint
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.pe.file_version`*::
@@ -11467,6 +11987,8 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11480,6 +12002,8 @@ type: keyword
 
 example: 0c6803c4e922103c4dca5963aad36ddf
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.pe.original_file_name`*::
@@ -11487,9 +12011,11 @@ example: 0c6803c4e922103c4dca5963aad36ddf
 --
 Internal name of the file, provided at compile-time.
 
-type: wildcard
+type: keyword
 
 example: MSPAINT.EXE
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11502,6 +12028,8 @@ type: keyword
 
 example: Microsoft® Windows® Operating System
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.pgid`*::
@@ -11512,6 +12040,8 @@ Identifier of the group of processes the process belongs to.
 type: long
 
 format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11526,6 +12056,8 @@ example: 4242
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.ppid`*::
@@ -11539,6 +12071,8 @@ example: 4241
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.start`*::
@@ -11549,6 +12083,8 @@ The time the process started.
 type: date
 
 example: 2016-05-23T08:05:34.853Z
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11563,6 +12099,8 @@ example: 4242
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.thread.name`*::
@@ -11570,9 +12108,11 @@ format: string
 --
 Thread name.
 
-type: wildcard
+type: keyword
 
 example: thread-0
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11582,7 +12122,9 @@ example: thread-0
 Process title.
 The proctitle, some times the same as process name. Can also be different: for example a browser setting its title to the web page currently opened.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11602,6 +12144,8 @@ type: long
 
 example: 1325
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.parent.working_directory`*::
@@ -11609,9 +12153,11 @@ example: 1325
 --
 The working directory of the process.
 
-type: wildcard
+type: keyword
 
 example: /home/alice
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11631,6 +12177,8 @@ type: keyword
 
 example: x64
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.pe.company`*::
@@ -11641,6 +12189,8 @@ Internal company name of the file, provided at compile-time.
 type: keyword
 
 example: Microsoft Corporation
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11653,6 +12203,8 @@ type: keyword
 
 example: Paint
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.pe.file_version`*::
@@ -11663,6 +12215,8 @@ Internal version of the file, provided at compile-time.
 type: keyword
 
 example: 6.3.9600.17415
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11676,6 +12230,8 @@ type: keyword
 
 example: 0c6803c4e922103c4dca5963aad36ddf
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.pe.original_file_name`*::
@@ -11683,9 +12239,11 @@ example: 0c6803c4e922103c4dca5963aad36ddf
 --
 Internal name of the file, provided at compile-time.
 
-type: wildcard
+type: keyword
 
 example: MSPAINT.EXE
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11698,6 +12256,8 @@ type: keyword
 
 example: Microsoft® Windows® Operating System
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.pgid`*::
@@ -11708,6 +12268,8 @@ Identifier of the group of processes the process belongs to.
 type: long
 
 format: string
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11722,6 +12284,8 @@ example: 4242
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.ppid`*::
@@ -11735,6 +12299,8 @@ example: 4241
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.start`*::
@@ -11745,6 +12311,8 @@ The time the process started.
 type: date
 
 example: 2016-05-23T08:05:34.853Z
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11759,6 +12327,8 @@ example: 4242
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.thread.name`*::
@@ -11766,9 +12336,11 @@ format: string
 --
 Thread name.
 
-type: wildcard
+type: keyword
 
 example: thread-0
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11778,7 +12350,9 @@ example: thread-0
 Process title.
 The proctitle, some times the same as process name. Can also be different: for example a browser setting its title to the web page currently opened.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11798,6 +12372,8 @@ type: long
 
 example: 1325
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`process.working_directory`*::
@@ -11805,9 +12381,11 @@ example: 1325
 --
 The working directory of the process.
 
-type: wildcard
+type: keyword
 
 example: /home/alice
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11834,6 +12412,8 @@ type: keyword
 
 example: ZQBuAC0AVQBTAAAAZQBuAAAAAAA=
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`registry.data.strings`*::
@@ -11842,9 +12422,11 @@ example: ZQBuAC0AVQBTAAAAZQBuAAAAAAA=
 Content when writing string types.
 Populated as an array when writing string data to the registry. For single string registry types (REG_SZ, REG_EXPAND_SZ), this should be an array with one string. For sequences of string with REG_MULTI_SZ, this array will be variable length. For numeric data, such as REG_DWORD and REG_QWORD, this should be populated with the decimal representation (e.g `"1"`).
 
-type: wildcard
+type: keyword
 
 example: ["C:\rta\red_ttp\bin\myapp.exe"]
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11857,6 +12439,8 @@ type: keyword
 
 example: REG_SZ
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`registry.hive`*::
@@ -11868,6 +12452,8 @@ type: keyword
 
 example: HKLM
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`registry.key`*::
@@ -11875,9 +12461,11 @@ example: HKLM
 --
 Hive-relative path of keys.
 
-type: wildcard
+type: keyword
 
 example: SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\winword.exe
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11886,9 +12474,11 @@ example: SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Optio
 --
 Full path, including hive, key and value
 
-type: wildcard
+type: keyword
 
 example: HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\winword.exe\Debugger
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11900,6 +12490,8 @@ Name of the value written.
 type: keyword
 
 example: Debugger
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11918,6 +12510,8 @@ All the hashes seen on your event. Populating this field, then using it to searc
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`related.hosts`*::
@@ -11926,6 +12520,8 @@ type: keyword
 All hostnames or other host identifiers seen on your event. Example identifiers include FQDNs, domain names, workstation names, or aliases.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11936,6 +12532,8 @@ All of the IPs seen on your event.
 
 type: ip
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`related.user`*::
@@ -11944,6 +12542,8 @@ type: ip
 All the user names seen on your event.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11963,6 +12563,8 @@ type: keyword
 
 example: ["Star-Lord"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`rule.category`*::
@@ -11973,6 +12575,8 @@ A categorization value keyword used by the entity using the rule for detection o
 type: keyword
 
 example: Attempted Information Leak
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -11985,6 +12589,8 @@ type: keyword
 
 example: Block requests to public DNS over HTTPS / TLS protocols
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`rule.id`*::
@@ -11995,6 +12601,8 @@ A rule ID that is unique within the scope of an agent, observer, or other entity
 type: keyword
 
 example: 101
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12007,6 +12615,8 @@ type: keyword
 
 example: Apache 2.0
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`rule.name`*::
@@ -12017,6 +12627,8 @@ The name of the rule or signature generating the event.
 type: keyword
 
 example: BLOCK_DNS_over_TLS
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12030,6 +12642,8 @@ type: keyword
 
 example: https://en.wikipedia.org/wiki/DNS_over_TLS
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`rule.ruleset`*::
@@ -12040,6 +12654,8 @@ Name of the ruleset, policy, group, or parent category in which the rule used to
 type: keyword
 
 example: Standard_Protocol_Filters
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12052,6 +12668,8 @@ type: keyword
 
 example: 1100110011
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`rule.version`*::
@@ -12062,6 +12680,8 @@ The version / revision of the rule being used for analysis.
 type: keyword
 
 example: 1.1
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12081,6 +12701,8 @@ Then it should be duplicated to `.ip` or `.domain`, depending on which one it is
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.as.number`*::
@@ -12092,6 +12714,8 @@ type: long
 
 example: 15169
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.as.organization.name`*::
@@ -12099,9 +12723,11 @@ example: 15169
 --
 Organization name.
 
-type: wildcard
+type: keyword
 
 example: Google LLC
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12123,6 +12749,8 @@ example: 184
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.domain`*::
@@ -12130,7 +12758,9 @@ format: bytes
 --
 Server domain.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12143,6 +12773,8 @@ type: keyword
 
 example: Montreal
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.geo.continent_name`*::
@@ -12153,6 +12785,8 @@ Name of the continent.
 type: keyword
 
 example: North America
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12165,6 +12799,8 @@ type: keyword
 
 example: CA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.geo.country_name`*::
@@ -12175,6 +12811,8 @@ Country name.
 type: keyword
 
 example: Canada
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12187,6 +12825,8 @@ type: geo_point
 
 example: { "lon": -73.614830, "lat": 45.505918 }
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.geo.name`*::
@@ -12196,9 +12836,11 @@ User-defined description of a location, at the level of granularity they care ab
 Could be the name of their data centers, the floor number, if this describes a local physical entity, city names.
 Not typically used in automated geolocation.
 
-type: wildcard
+type: keyword
 
 example: boston-dc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12211,6 +12853,8 @@ type: keyword
 
 example: CA-QC
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.geo.region_name`*::
@@ -12222,6 +12866,8 @@ type: keyword
 
 example: Quebec
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.ip`*::
@@ -12230,6 +12876,8 @@ example: Quebec
 IP address of the server (IPv4 or IPv6).
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12240,6 +12888,8 @@ MAC address of the server.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.nat.ip`*::
@@ -12249,6 +12899,8 @@ Translated ip of destination based NAT sessions (e.g. internet to private DMZ)
 Typically used with load balancers, firewalls, or routers.
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12262,6 +12914,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.packets`*::
@@ -12272,6 +12926,8 @@ Packets sent from the server to the client.
 type: long
 
 example: 12
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12284,6 +12940,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.registered_domain`*::
@@ -12293,9 +12951,11 @@ The highest registered server domain, stripped of the subdomain.
 For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
-type: wildcard
+type: keyword
 
 example: example.com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12321,6 +12981,8 @@ type: keyword
 
 example: co.uk
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.user.domain`*::
@@ -12331,6 +12993,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.user.email`*::
@@ -12338,7 +13002,9 @@ type: keyword
 --
 User email address.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12347,9 +13013,11 @@ type: wildcard
 --
 User's full name, if available.
 
-type: wildcard
+type: keyword
 
 example: Albert Einstein
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12368,6 +13036,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.user.group.id`*::
@@ -12377,6 +13047,8 @@ Unique identifier for the group on the system/platform.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.user.group.name`*::
@@ -12385,6 +13057,8 @@ type: keyword
 Name of the group.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12396,6 +13070,8 @@ Useful if `user.id` or `user.name` contain confidential information and cannot b
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.user.id`*::
@@ -12405,6 +13081,8 @@ Unique identifier of the user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`server.user.name`*::
@@ -12412,9 +13090,11 @@ type: keyword
 --
 Short name or login of the user.
 
-type: wildcard
+type: keyword
 
 example: albert
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12433,6 +13113,8 @@ Array of user roles at the time of the event.
 type: keyword
 
 example: ["kibana_admin", "reporting_user"]
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12453,6 +13135,8 @@ type: keyword
 
 example: 8a4f500f
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.id`*::
@@ -12465,6 +13149,8 @@ Note that if you need to see the events from one specific host of the service, y
 type: keyword
 
 example: d37e5ebfe0ae6c4972dbe9f0174a1637bb8247f6
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12479,6 +13165,8 @@ type: keyword
 
 example: elasticsearch-metrics
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.node.name`*::
@@ -12492,6 +13180,8 @@ type: keyword
 
 example: instance-0000000016
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.state`*::
@@ -12500,6 +13190,8 @@ example: instance-0000000016
 Current state of the service.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12514,6 +13206,8 @@ type: keyword
 
 example: elasticsearch
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`service.version`*::
@@ -12525,6 +13219,8 @@ This allows to look at a data set only for a specific version of a service.
 type: keyword
 
 example: 3.2.4
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12543,6 +13239,8 @@ Then it should be duplicated to `.ip` or `.domain`, depending on which one it is
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.as.number`*::
@@ -12554,6 +13252,8 @@ type: long
 
 example: 15169
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.as.organization.name`*::
@@ -12561,9 +13261,11 @@ example: 15169
 --
 Organization name.
 
-type: wildcard
+type: keyword
 
 example: Google LLC
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12585,6 +13287,8 @@ example: 184
 
 format: bytes
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.domain`*::
@@ -12592,7 +13296,9 @@ format: bytes
 --
 Source domain.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12605,6 +13311,8 @@ type: keyword
 
 example: Montreal
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.geo.continent_name`*::
@@ -12615,6 +13323,8 @@ Name of the continent.
 type: keyword
 
 example: North America
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12627,6 +13337,8 @@ type: keyword
 
 example: CA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.geo.country_name`*::
@@ -12637,6 +13349,8 @@ Country name.
 type: keyword
 
 example: Canada
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12649,6 +13363,8 @@ type: geo_point
 
 example: { "lon": -73.614830, "lat": 45.505918 }
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.geo.name`*::
@@ -12658,9 +13374,11 @@ User-defined description of a location, at the level of granularity they care ab
 Could be the name of their data centers, the floor number, if this describes a local physical entity, city names.
 Not typically used in automated geolocation.
 
-type: wildcard
+type: keyword
 
 example: boston-dc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12673,6 +13391,8 @@ type: keyword
 
 example: CA-QC
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.geo.region_name`*::
@@ -12684,6 +13404,8 @@ type: keyword
 
 example: Quebec
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.ip`*::
@@ -12692,6 +13414,8 @@ example: Quebec
 IP address of the source (IPv4 or IPv6).
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12702,6 +13426,8 @@ MAC address of the source.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.nat.ip`*::
@@ -12711,6 +13437,8 @@ Translated ip of source based NAT sessions (e.g. internal client to internet)
 Typically connections traversing load balancers, firewalls, or routers.
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12724,6 +13452,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.packets`*::
@@ -12734,6 +13464,8 @@ Packets sent from the source to the destination.
 type: long
 
 example: 12
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12746,6 +13478,8 @@ type: long
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.registered_domain`*::
@@ -12755,9 +13489,11 @@ The highest registered source domain, stripped of the subdomain.
 For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
-type: wildcard
+type: keyword
 
 example: example.com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12783,6 +13519,8 @@ type: keyword
 
 example: co.uk
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.user.domain`*::
@@ -12793,6 +13531,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.user.email`*::
@@ -12800,7 +13540,9 @@ type: keyword
 --
 User email address.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12809,9 +13551,11 @@ type: wildcard
 --
 User's full name, if available.
 
-type: wildcard
+type: keyword
 
 example: Albert Einstein
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12830,6 +13574,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.user.group.id`*::
@@ -12839,6 +13585,8 @@ Unique identifier for the group on the system/platform.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.user.group.name`*::
@@ -12847,6 +13595,8 @@ type: keyword
 Name of the group.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12858,6 +13608,8 @@ Useful if `user.id` or `user.name` contain confidential information and cannot b
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.user.id`*::
@@ -12867,6 +13619,8 @@ Unique identifier of the user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`source.user.name`*::
@@ -12874,9 +13628,11 @@ type: keyword
 --
 Short name or login of the user.
 
-type: wildcard
+type: keyword
 
 example: albert
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12896,6 +13652,8 @@ type: keyword
 
 example: ["kibana_admin", "reporting_user"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 [float]
@@ -12914,6 +13672,8 @@ type: keyword
 
 example: MITRE ATT&CK
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`threat.tactic.id`*::
@@ -12924,6 +13684,8 @@ The id of tactic used by this threat. You can use a MITRE ATT&CK® tactic, for e
 type: keyword
 
 example: TA0002
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12936,6 +13698,8 @@ type: keyword
 
 example: Execution
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`threat.tactic.reference`*::
@@ -12946,6 +13710,8 @@ The reference url of tactic used by this threat. You can use a MITRE ATT&CK® ta
 type: keyword
 
 example: https://attack.mitre.org/tactics/TA0002/
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12958,6 +13724,8 @@ type: keyword
 
 example: T1059
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`threat.technique.name`*::
@@ -12968,6 +13736,8 @@ The name of technique used by this threat. You can use a MITRE ATT&CK® techniqu
 type: keyword
 
 example: Command and Scripting Interpreter
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -12986,6 +13756,8 @@ The reference url of technique used by this threat. You can use a MITRE ATT&CK®
 type: keyword
 
 example: https://attack.mitre.org/techniques/T1059/
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13044,6 +13816,8 @@ type: keyword
 
 example: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.certificate`*::
@@ -13054,6 +13828,8 @@ PEM-encoded stand-alone certificate offered by the client. This is usually mutua
 type: keyword
 
 example: MII...
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13066,6 +13842,8 @@ type: keyword
 
 example: ["MII...", "MII..."]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.hash.md5`*::
@@ -13076,6 +13854,8 @@ Certificate fingerprint using the MD5 digest of DER-encoded version of certifica
 type: keyword
 
 example: 0F76C7F2C55BFD7D8E8B8F4BFBF0C9EC
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13088,6 +13868,8 @@ type: keyword
 
 example: 9E393D93138888D288266C2D915214D1D1CCEB2A
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.hash.sha256`*::
@@ -13099,6 +13881,8 @@ type: keyword
 
 example: 0687F666A054EF17A08E2F2162EAB4CBC0D265E1D7875BE74BF3C712CA92DAF0
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.issuer`*::
@@ -13106,9 +13890,11 @@ example: 0687F666A054EF17A08E2F2162EAB4CBC0D265E1D7875BE74BF3C712CA92DAF0
 --
 Distinguished name of subject of the issuer of the x.509 certificate presented by the client.
 
-type: wildcard
+type: keyword
 
 example: CN=Example Root CA, OU=Infrastructure Team, DC=example, DC=com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13121,6 +13907,8 @@ type: keyword
 
 example: d4e5b18d6b55c71272893221c96ba240
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.not_after`*::
@@ -13131,6 +13919,8 @@ Date/Time indicating when client certificate is no longer considered valid.
 type: date
 
 example: 2021-01-01T00:00:00.000Z
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13143,6 +13933,8 @@ type: date
 
 example: 1970-01-01T00:00:00.000Z
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.server_name`*::
@@ -13154,6 +13946,8 @@ type: keyword
 
 example: www.elastic.co
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.subject`*::
@@ -13161,9 +13955,11 @@ example: www.elastic.co
 --
 Distinguished name of subject of the x.509 certificate presented by the client.
 
-type: wildcard
+type: keyword
 
 example: CN=myclient, OU=Documentation Team, DC=example, DC=com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13176,6 +13972,8 @@ type: keyword
 
 example: ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "..."]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.alternative_names`*::
@@ -13186,6 +13984,8 @@ List of subject alternative names (SAN). Name types vary by certificate authorit
 type: keyword
 
 example: *.elastic.co
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13198,6 +13998,8 @@ type: keyword
 
 example: Example SHA2 High Assurance Server CA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.issuer.country`*::
@@ -13209,6 +14011,8 @@ type: keyword
 
 example: US
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.issuer.distinguished_name`*::
@@ -13216,9 +14020,11 @@ example: US
 --
 Distinguished name (DN) of issuing certificate authority.
 
-type: wildcard
+type: keyword
 
 example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13231,6 +14037,8 @@ type: keyword
 
 example: Mountain View
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.issuer.organization`*::
@@ -13241,6 +14049,8 @@ List of organizations (O) of issuing certificate authority.
 type: keyword
 
 example: Example Inc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13253,6 +14063,8 @@ type: keyword
 
 example: www.example.com
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.issuer.state_or_province`*::
@@ -13263,6 +14075,8 @@ List of state or province names (ST, S, or P)
 type: keyword
 
 example: California
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13275,6 +14089,8 @@ type: date
 
 example: 2020-07-16 03:15:39+00:00
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.not_before`*::
@@ -13285,6 +14101,8 @@ Time at which the certificate is first considered valid.
 type: date
 
 example: 2019-08-16 01:40:25+00:00
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13297,6 +14115,8 @@ type: keyword
 
 example: RSA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.public_key_curve`*::
@@ -13308,6 +14128,8 @@ type: keyword
 
 example: nistp521
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.public_key_exponent`*::
@@ -13318,6 +14140,8 @@ Exponent used to derive the public key. This is algorithm specific.
 type: long
 
 example: 65537
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 Field is not indexed.
 
@@ -13332,6 +14156,8 @@ type: long
 
 example: 2048
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.serial_number`*::
@@ -13342,6 +14168,8 @@ Unique serial number issued by the certificate authority. For consistency, if th
 type: keyword
 
 example: 55FBB9C7DEBF09809D12CCAA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13354,6 +14182,8 @@ type: keyword
 
 example: SHA256-RSA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.subject.common_name`*::
@@ -13364,6 +14194,8 @@ List of common names (CN) of subject.
 type: keyword
 
 example: shared.global.example.net
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13376,6 +14208,8 @@ type: keyword
 
 example: US
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.subject.distinguished_name`*::
@@ -13383,9 +14217,11 @@ example: US
 --
 Distinguished name (DN) of the certificate subject entity.
 
-type: wildcard
+type: keyword
 
 example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13398,6 +14234,8 @@ type: keyword
 
 example: San Francisco
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.subject.organization`*::
@@ -13409,6 +14247,8 @@ type: keyword
 
 example: Example, Inc.
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.subject.organizational_unit`*::
@@ -13417,6 +14257,8 @@ example: Example, Inc.
 List of organizational units (OU) of subject.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13429,6 +14271,8 @@ type: keyword
 
 example: California
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.client.x509.version_number`*::
@@ -13439,6 +14283,8 @@ Version of x509 format.
 type: keyword
 
 example: 3
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13451,6 +14297,8 @@ type: keyword
 
 example: secp256r1
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.established`*::
@@ -13459,6 +14307,8 @@ example: secp256r1
 Boolean flag indicating if the TLS negotiation was successful and transitioned to an encrypted tunnel.
 
 type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13471,6 +14321,8 @@ type: keyword
 
 example: http/1.1
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.resumed`*::
@@ -13479,6 +14331,8 @@ example: http/1.1
 Boolean flag indicating if this TLS connection was resumed from an existing TLS negotiation.
 
 type: boolean
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13491,6 +14345,8 @@ type: keyword
 
 example: MII...
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.certificate_chain`*::
@@ -13501,6 +14357,8 @@ Array of PEM-encoded certificates that make up the certificate chain offered by 
 type: keyword
 
 example: ["MII...", "MII..."]
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13513,6 +14371,8 @@ type: keyword
 
 example: 0F76C7F2C55BFD7D8E8B8F4BFBF0C9EC
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.hash.sha1`*::
@@ -13523,6 +14383,8 @@ Certificate fingerprint using the SHA1 digest of DER-encoded version of certific
 type: keyword
 
 example: 9E393D93138888D288266C2D915214D1D1CCEB2A
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13535,6 +14397,8 @@ type: keyword
 
 example: 0687F666A054EF17A08E2F2162EAB4CBC0D265E1D7875BE74BF3C712CA92DAF0
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.issuer`*::
@@ -13542,9 +14406,11 @@ example: 0687F666A054EF17A08E2F2162EAB4CBC0D265E1D7875BE74BF3C712CA92DAF0
 --
 Subject of the issuer of the x.509 certificate presented by the server.
 
-type: wildcard
+type: keyword
 
 example: CN=Example Root CA, OU=Infrastructure Team, DC=example, DC=com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13557,6 +14423,8 @@ type: keyword
 
 example: 394441ab65754e2207b1e1b457b3641d
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.not_after`*::
@@ -13567,6 +14435,8 @@ Timestamp indicating when server certificate is no longer considered valid.
 type: date
 
 example: 2021-01-01T00:00:00.000Z
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13579,6 +14449,8 @@ type: date
 
 example: 1970-01-01T00:00:00.000Z
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.subject`*::
@@ -13586,9 +14458,11 @@ example: 1970-01-01T00:00:00.000Z
 --
 Subject of the x.509 certificate presented by the server.
 
-type: wildcard
+type: keyword
 
 example: CN=www.example.com, OU=Infrastructure Team, DC=example, DC=com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13601,6 +14475,8 @@ type: keyword
 
 example: *.elastic.co
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.issuer.common_name`*::
@@ -13611,6 +14487,8 @@ List of common name (CN) of issuing certificate authority.
 type: keyword
 
 example: Example SHA2 High Assurance Server CA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13623,6 +14501,8 @@ type: keyword
 
 example: US
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.issuer.distinguished_name`*::
@@ -13630,9 +14510,11 @@ example: US
 --
 Distinguished name (DN) of issuing certificate authority.
 
-type: wildcard
+type: keyword
 
 example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13645,6 +14527,8 @@ type: keyword
 
 example: Mountain View
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.issuer.organization`*::
@@ -13655,6 +14539,8 @@ List of organizations (O) of issuing certificate authority.
 type: keyword
 
 example: Example Inc
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13667,6 +14553,8 @@ type: keyword
 
 example: www.example.com
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.issuer.state_or_province`*::
@@ -13677,6 +14565,8 @@ List of state or province names (ST, S, or P)
 type: keyword
 
 example: California
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13689,6 +14579,8 @@ type: date
 
 example: 2020-07-16 03:15:39+00:00
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.not_before`*::
@@ -13699,6 +14591,8 @@ Time at which the certificate is first considered valid.
 type: date
 
 example: 2019-08-16 01:40:25+00:00
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13711,6 +14605,8 @@ type: keyword
 
 example: RSA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.public_key_curve`*::
@@ -13722,6 +14618,8 @@ type: keyword
 
 example: nistp521
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.public_key_exponent`*::
@@ -13732,6 +14630,8 @@ Exponent used to derive the public key. This is algorithm specific.
 type: long
 
 example: 65537
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 Field is not indexed.
 
@@ -13746,6 +14646,8 @@ type: long
 
 example: 2048
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.serial_number`*::
@@ -13756,6 +14658,8 @@ Unique serial number issued by the certificate authority. For consistency, if th
 type: keyword
 
 example: 55FBB9C7DEBF09809D12CCAA
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13768,6 +14672,8 @@ type: keyword
 
 example: SHA256-RSA
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.subject.common_name`*::
@@ -13778,6 +14684,8 @@ List of common names (CN) of subject.
 type: keyword
 
 example: shared.global.example.net
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13790,6 +14698,8 @@ type: keyword
 
 example: US
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.subject.distinguished_name`*::
@@ -13797,9 +14707,11 @@ example: US
 --
 Distinguished name (DN) of the certificate subject entity.
 
-type: wildcard
+type: keyword
 
 example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13812,6 +14724,8 @@ type: keyword
 
 example: San Francisco
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.subject.organization`*::
@@ -13823,6 +14737,8 @@ type: keyword
 
 example: Example, Inc.
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.subject.organizational_unit`*::
@@ -13831,6 +14747,8 @@ example: Example, Inc.
 List of organizational units (OU) of subject.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13843,6 +14761,8 @@ type: keyword
 
 example: California
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.server.x509.version_number`*::
@@ -13853,6 +14773,8 @@ Version of x509 format.
 type: keyword
 
 example: 3
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13865,6 +14787,8 @@ type: keyword
 
 example: 1.2
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`tls.version_protocol`*::
@@ -13875,6 +14799,8 @@ Normalized lowercase protocol name parsed from original string.
 type: keyword
 
 example: tls
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13888,6 +14814,8 @@ type: keyword
 
 example: 3ff9a8981b7ccd5a
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`trace.id`*::
@@ -13900,6 +14828,8 @@ type: keyword
 
 example: 4bf92f3577b34da6a3ce929d0e0e4736
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`transaction.id`*::
@@ -13911,6 +14841,8 @@ A transaction is the highest level of work measured within a service, such as a 
 type: keyword
 
 example: 00f067aa0ba902b7
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13926,9 +14858,11 @@ URL fields provide support for complete or partial URLs, and supports the breaki
 Domain of the url, such as "www.elastic.co".
 In some cases a URL may refer to an IP and/or port directly, without a domain name. In this case, the IP address would go to the `domain` field.
 
-type: wildcard
+type: keyword
 
 example: www.elastic.co
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13944,6 +14878,8 @@ type: keyword
 
 example: png
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.fragment`*::
@@ -13954,6 +14890,8 @@ The `#` is not part of the fragment.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.full`*::
@@ -13961,9 +14899,11 @@ type: keyword
 --
 If full URLs are important to your use case, they should be stored in `url.full`, whether this field is reconstructed or present in the event source.
 
-type: wildcard
+type: keyword
 
 example: https://www.elastic.co:443/search?q=elasticsearch#top
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -13981,9 +14921,11 @@ Unmodified original url as seen in the event source.
 Note that in network monitoring, the observed URL may be a full URL, whereas in access logs, the URL is often just represented as a path.
 This field is meant to represent the URL as it was observed, complete or not.
 
-type: wildcard
+type: keyword
 
 example: https://www.elastic.co:443/search?q=elasticsearch#top or /search?q=elasticsearch
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14001,6 +14943,8 @@ Password of the request.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.path`*::
@@ -14008,7 +14952,9 @@ type: keyword
 --
 Path of the request, such as "/search".
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14023,6 +14969,8 @@ example: 443
 
 format: string
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.query`*::
@@ -14033,6 +14981,8 @@ The `?` is excluded from the query string. If a URL contains no `?`, there is no
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.registered_domain`*::
@@ -14042,9 +14992,11 @@ The highest registered url domain, stripped of the subdomain.
 For example, the registered domain for "foo.example.com" is "example.com".
 This value can be determined precisely with a list like the public suffix list (http://publicsuffix.org). Trying to approximate this by simply taking the last two labels will not work well for TLDs such as "co.uk".
 
-type: wildcard
+type: keyword
 
 example: example.com
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14057,6 +15009,8 @@ Note: The `:` is not part of the scheme.
 type: keyword
 
 example: https
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14082,6 +15036,8 @@ type: keyword
 
 example: co.uk
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`url.username`*::
@@ -14090,6 +15046,8 @@ example: co.uk
 Username of the request.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14100,119 +15058,6 @@ The user fields describe information about the user that is relevant to the even
 Fields can have one entry or multiple entries. If a user has more than one id, provide an array that includes all of them.
 
 
-*`user.changes.domain`*::
-+
---
-Name of the directory the user is a member of.
-For example, an LDAP or Active Directory domain name.
-
-type: keyword
-
---
-
-*`user.changes.email`*::
-+
---
-User email address.
-
-type: wildcard
-
---
-
-*`user.changes.full_name`*::
-+
---
-User's full name, if available.
-
-type: wildcard
-
-example: Albert Einstein
-
---
-
-*`user.changes.full_name.text`*::
-+
---
-type: text
-
---
-
-*`user.changes.group.domain`*::
-+
---
-Name of the directory the group is a member of.
-For example, an LDAP or Active Directory domain name.
-
-type: keyword
-
---
-
-*`user.changes.group.id`*::
-+
---
-Unique identifier for the group on the system/platform.
-
-type: keyword
-
---
-
-*`user.changes.group.name`*::
-+
---
-Name of the group.
-
-type: keyword
-
---
-
-*`user.changes.hash`*::
-+
---
-Unique user hash to correlate information for a user in anonymized form.
-Useful if `user.id` or `user.name` contain confidential information and cannot be used.
-
-type: keyword
-
---
-
-*`user.changes.id`*::
-+
---
-Unique identifier of the user.
-
-type: keyword
-
---
-
-*`user.changes.name`*::
-+
---
-Short name or login of the user.
-
-type: wildcard
-
-example: albert
-
---
-
-*`user.changes.name.text`*::
-+
---
-type: text
-
---
-
-*`user.changes.roles`*::
-+
---
-Array of user roles at the time of the event.
-
-type: keyword
-
-example: ["kibana_admin", "reporting_user"]
-
---
-
 *`user.domain`*::
 +
 --
@@ -14221,118 +15066,7 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
---
-
-*`user.effective.domain`*::
-+
---
-Name of the directory the user is a member of.
-For example, an LDAP or Active Directory domain name.
-
-type: keyword
-
---
-
-*`user.effective.email`*::
-+
---
-User email address.
-
-type: wildcard
-
---
-
-*`user.effective.full_name`*::
-+
---
-User's full name, if available.
-
-type: wildcard
-
-example: Albert Einstein
-
---
-
-*`user.effective.full_name.text`*::
-+
---
-type: text
-
---
-
-*`user.effective.group.domain`*::
-+
---
-Name of the directory the group is a member of.
-For example, an LDAP or Active Directory domain name.
-
-type: keyword
-
---
-
-*`user.effective.group.id`*::
-+
---
-Unique identifier for the group on the system/platform.
-
-type: keyword
-
---
-
-*`user.effective.group.name`*::
-+
---
-Name of the group.
-
-type: keyword
-
---
-
-*`user.effective.hash`*::
-+
---
-Unique user hash to correlate information for a user in anonymized form.
-Useful if `user.id` or `user.name` contain confidential information and cannot be used.
-
-type: keyword
-
---
-
-*`user.effective.id`*::
-+
---
-Unique identifier of the user.
-
-type: keyword
-
---
-
-*`user.effective.name`*::
-+
---
-Short name or login of the user.
-
-type: wildcard
-
-example: albert
-
---
-
-*`user.effective.name.text`*::
-+
---
-type: text
-
---
-
-*`user.effective.roles`*::
-+
---
-Array of user roles at the time of the event.
-
-type: keyword
-
-example: ["kibana_admin", "reporting_user"]
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14341,7 +15075,9 @@ example: ["kibana_admin", "reporting_user"]
 --
 User email address.
 
-type: wildcard
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14350,9 +15086,11 @@ type: wildcard
 --
 User's full name, if available.
 
-type: wildcard
+type: keyword
 
 example: Albert Einstein
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14371,6 +15109,8 @@ For example, an LDAP or Active Directory domain name.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user.group.id`*::
@@ -14380,6 +15120,8 @@ Unique identifier for the group on the system/platform.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user.group.name`*::
@@ -14388,6 +15130,8 @@ type: keyword
 Name of the group.
 
 type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14399,6 +15143,8 @@ Useful if `user.id` or `user.name` contain confidential information and cannot b
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user.id`*::
@@ -14408,6 +15154,8 @@ Unique identifier of the user.
 
 type: keyword
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user.name`*::
@@ -14415,9 +15163,11 @@ type: keyword
 --
 Short name or login of the user.
 
-type: wildcard
+type: keyword
 
 example: albert
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14437,118 +15187,7 @@ type: keyword
 
 example: ["kibana_admin", "reporting_user"]
 
---
-
-*`user.target.domain`*::
-+
---
-Name of the directory the user is a member of.
-For example, an LDAP or Active Directory domain name.
-
-type: keyword
-
---
-
-*`user.target.email`*::
-+
---
-User email address.
-
-type: wildcard
-
---
-
-*`user.target.full_name`*::
-+
---
-User's full name, if available.
-
-type: wildcard
-
-example: Albert Einstein
-
---
-
-*`user.target.full_name.text`*::
-+
---
-type: text
-
---
-
-*`user.target.group.domain`*::
-+
---
-Name of the directory the group is a member of.
-For example, an LDAP or Active Directory domain name.
-
-type: keyword
-
---
-
-*`user.target.group.id`*::
-+
---
-Unique identifier for the group on the system/platform.
-
-type: keyword
-
---
-
-*`user.target.group.name`*::
-+
---
-Name of the group.
-
-type: keyword
-
---
-
-*`user.target.hash`*::
-+
---
-Unique user hash to correlate information for a user in anonymized form.
-Useful if `user.id` or `user.name` contain confidential information and cannot be used.
-
-type: keyword
-
---
-
-*`user.target.id`*::
-+
---
-Unique identifier of the user.
-
-type: keyword
-
---
-
-*`user.target.name`*::
-+
---
-Short name or login of the user.
-
-type: wildcard
-
-example: albert
-
---
-
-*`user.target.name.text`*::
-+
---
-type: text
-
---
-
-*`user.target.roles`*::
-+
---
-Array of user roles at the time of the event.
-
-type: keyword
-
-example: ["kibana_admin", "reporting_user"]
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14568,6 +15207,8 @@ type: keyword
 
 example: iPhone
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.name`*::
@@ -14579,6 +15220,8 @@ type: keyword
 
 example: Safari
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.original`*::
@@ -14586,9 +15229,11 @@ example: Safari
 --
 Unparsed user_agent string.
 
-type: wildcard
+type: keyword
 
 example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14608,6 +15253,8 @@ type: keyword
 
 example: debian
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.os.full`*::
@@ -14615,9 +15262,11 @@ example: debian
 --
 Operating system name, including the version or code name.
 
-type: wildcard
+type: keyword
 
 example: Mac OS Mojave
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14637,6 +15286,8 @@ type: keyword
 
 example: 4.4.0-112-generic
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.os.name`*::
@@ -14644,9 +15295,11 @@ example: 4.4.0-112-generic
 --
 Operating system name, without the version.
 
-type: wildcard
+type: keyword
 
 example: Mac OS X
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14666,6 +15319,8 @@ type: keyword
 
 example: darwin
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.os.version`*::
@@ -14677,6 +15332,8 @@ type: keyword
 
 example: 10.14.1
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`user_agent.version`*::
@@ -14687,6 +15344,8 @@ Version of the user agent.
 type: keyword
 
 example: 12.0
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14737,6 +15396,8 @@ type: keyword
 
 example: ["Firewall"]
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.classification`*::
@@ -14748,6 +15409,8 @@ type: keyword
 
 example: CVSS
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.description`*::
@@ -14758,6 +15421,8 @@ The description of the vulnerability that provides additional context of the vul
 type: keyword
 
 example: In macOS before 2.12.6, there is a vulnerability in the RPC...
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14777,6 +15442,8 @@ type: keyword
 
 example: CVE
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.id`*::
@@ -14787,6 +15454,8 @@ The identification (ID) is the number portion of a vulnerability entry. It inclu
 type: keyword
 
 example: CVE-2019-00001
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14799,6 +15468,8 @@ type: keyword
 
 example: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-6111
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.report_id`*::
@@ -14810,6 +15481,8 @@ type: keyword
 
 example: 20191018.0001
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.scanner.vendor`*::
@@ -14820,6 +15493,8 @@ The name of the vulnerability scanner vendor.
 type: keyword
 
 example: Tenable
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14833,6 +15508,8 @@ type: float
 
 example: 5.5
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.score.environmental`*::
@@ -14845,6 +15522,8 @@ type: float
 
 example: 5.5
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.score.temporal`*::
@@ -14854,6 +15533,8 @@ Scores can range from 0.0 to 10.0, with 10.0 being the most severe.
 Temporal scores cover an assessment for code maturity, remediation level, and confidence. For example (https://www.first.org/cvss/specification-document)
 
 type: float
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14867,6 +15548,8 @@ type: keyword
 
 example: 2.0
 
+{yes-icon} {ecs-ref}[ECS] field.
+
 --
 
 *`vulnerability.severity`*::
@@ -14877,6 +15560,8 @@ The severity of the vulnerability can help with metrics and internal prioritizat
 type: keyword
 
 example: Critical
+
+{yes-icon} {ecs-ref}[ECS] field.
 
 --
 
@@ -14926,7 +15611,7 @@ example: US
 --
 Distinguished name (DN) of issuing certificate authority.
 
-type: wildcard
+type: keyword
 
 example: C=US, O=Example Inc, OU=www.example.com, CN=Example SHA2 High Assurance Server CA
 
@@ -15093,7 +15778,7 @@ example: US
 --
 Distinguished name (DN) of the certificate subject entity.
 
-type: wildcard
+type: keyword
 
 example: C=US, ST=California, L=San Francisco, O=Example, Inc., CN=shared.global.example.net
 
