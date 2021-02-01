@@ -1,0 +1,27 @@
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: "localhost:14250"
+  opencensus:
+    endpoint: "localhost:55678"
+
+exporters:
+  opencensus:
+    endpoint: "localhost:56565"
+    insecure: true
+  logging:
+    loglevel: info
+
+processors:
+  queued_retry:
+
+service:
+  pipelines:
+    traces:
+      receivers: [jaeger]
+      processors: [queued_retry]
+      exporters: [opencensus,logging]
+    metrics:
+      receivers: [opencensus]
+      exporters: [opencensus,logging]
