@@ -1,0 +1,35 @@
+receivers:
+  hostmetrics:
+    scrapers:
+      cpu:
+  hostmetrics/customname:
+    collection_interval: 30s
+    scrapers:
+      cpu:
+      disk:
+      load:
+      filesystem:
+      memory:
+      network:
+        include:
+          interfaces: ["test1"]
+          match_type: "strict"
+      processes:
+      swap:
+      process:
+        include:
+          names: ["test2", "test3"]
+          match_type: "regexp"
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

@@ -27,6 +27,7 @@ import (
 	_ "github.com/jstemmer/go-junit-report"
 	_ "github.com/reviewdog/reviewdog"
 	_ "github.com/t-yuki/gocover-cobertura"
+	_ "go.elastic.co/go-licence-detector"
 
 	_ "github.com/elastic/go-licenser"
 )

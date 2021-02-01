@@ -1,0 +1,22 @@
+receivers:
+  examplereceiver:
+
+processors:
+  exampleprocessor:
+
+exporters:
+  logging:
+  logging/2:
+    loglevel: debug
+    sampling_initial: 10
+    sampling_thereafter: 50
+
+service:
+  pipelines:
+    traces:
+      receivers: [examplereceiver]
+      processors: [exampleprocessor]
+      exporters: [logging]
+    metrics:
+      receivers: [examplereceiver]
+      exporters: [logging,logging/2]
