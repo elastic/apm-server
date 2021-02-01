@@ -65,7 +65,7 @@ func newHTTPServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, 
 		if err != nil {
 			return nil, err
 		}
-		server.TLSConfig = tlsServerConfig.BuildModuleConfig("")
+		server.TLSConfig = tlsServerConfig.BuildServerConfig("")
 	}
 	return &httpServer{server, cfg, logger, reporter}, nil
 }

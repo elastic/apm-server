@@ -203,7 +203,7 @@ func TestUnpackConfig(t *testing.T) {
 								ClientAuth:  4,
 								CAs:         []string{"../../testdata/tls/ca.crt.pem"}})
 							require.NoError(t, err)
-							return tlsServerConfig.BuildModuleConfig("localhost:12345")
+							return tlsServerConfig.BuildServerConfig("localhost:12345")
 						}(),
 					},
 					HTTP: JaegerHTTPConfig{
@@ -345,7 +345,7 @@ func TestUnpackConfig(t *testing.T) {
 								Certificate: testdataCertificateConfig,
 								ClientAuth:  0})
 							require.NoError(t, err)
-							return tlsServerConfig.BuildModuleConfig("localhost:14250")
+							return tlsServerConfig.BuildServerConfig("localhost:14250")
 						}(),
 					},
 					HTTP: JaegerHTTPConfig{
@@ -425,6 +425,13 @@ func TestUnpackConfig(t *testing.T) {
 			cfg, err := NewConfig(inpCfg, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
+			if test.outCfg.JaegerConfig.GRPC.TLS != nil {
+				// tlscommon sets VerifyConnection to a closure, so we
+				// cannot compare the TLS configs as-is. We don't need
+				// to test libbeat behaviour, so just unset the field.
+				test.outCfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
+				cfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
+			}
 			assert.Equal(t, test.outCfg, cfg)
 		})
 	}
