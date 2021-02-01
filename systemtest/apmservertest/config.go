@@ -405,7 +405,7 @@ func DefaultConfig() Config {
 				Scheme: "http",
 				Host: net.JoinHostPort(
 					getenvDefault("KIBANA_HOST", defaultKibanaHost),
-					DefaultKibanaPort(),
+					KibanaPort(),
 				),
 			}).String(),
 			Username: getenvDefault("KIBANA_USER", defaultKibanaUser),
@@ -436,9 +436,9 @@ func DefaultConfig() Config {
 	}
 }
 
-// DefaultKibanaPort returns the Kibana port, configured using
+// KibanaPort returns the Kibana port, configured using
 // KIBANA_PORT, or otherwise returning the default of 5601.
-func DefaultKibanaPort() string {
+func KibanaPort() string {
 	return getenvDefault("KIBANA_PORT", defaultKibanaPort)
 }
 

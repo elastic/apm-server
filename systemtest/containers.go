@@ -272,7 +272,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 	kibanaURL := &url.URL{
 		Scheme: "http",
-		Host:   net.JoinHostPort(kibanaIPAddress, apmservertest.DefaultKibanaPort()),
+		Host:   net.JoinHostPort(kibanaIPAddress, apmservertest.KibanaPort()),
 	}
 
 	// Use the same stack version as used for Kibana.
@@ -287,7 +287,6 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 	agentVCSRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
 	agentDataHashDir := path.Join("/usr/share/elastic-agent/data", "elastic-agent-"+agentVCSRef[:6])
-	agentDownloadsDir := path.Join(agentDataHashDir, "downloads")
 	agentInstallDir := path.Join(agentDataHashDir, "install")
 
 	// Build elastic-agent to replace the binary inside the container.
@@ -329,12 +328,10 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		},
 	}
 	return &ElasticAgentContainer{
-		request:            req,
-		downloadsDir:       agentDownloadsDir,
-		installDir:         agentInstallDir,
-		StackVersion:       agentImageVersion,
-		BindMountDownloads: make(map[string]string),
-		BindMountInstall:   make(map[string]string),
+		request:          req,
+		installDir:       agentInstallDir,
+		StackVersion:     agentImageVersion,
+		BindMountInstall: make(map[string]string),
 	}, nil
 }
 
@@ -342,14 +339,6 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 type ElasticAgentContainer struct {
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
-
-	// downloadsDir holds the location of the "downloads" directory inside
-	// the Elastic Agent container.
-	//
-	// This will be set when the ElasticAgentContainer object is created,
-	// and can be used to anticipate the location into which artifacts
-	// can be bind-mounted.
-	downloadsDir string
 
 	// installDir holds the location of the "install" directory inside
 	// the Elastic Agent container.
@@ -373,11 +362,6 @@ type ElasticAgentContainer struct {
 	// This will be populated by Start.
 	Addrs []string
 
-	// BindMountDownloads holds a map of files to bind mount into the
-	// container, mapping from the host location to target paths relative
-	// to the downloads directory in the container.
-	BindMountDownloads map[string]string
-
 	// BindMountInstall holds a map of files to bind mount into the
 	// container, mapping from the host location to target paths relative
 	// to the install directory in the container.
@@ -397,9 +381,6 @@ func (c *ElasticAgentContainer) Start() error {
 	// Update request from user-definable fields.
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
-	for source, target := range c.BindMountDownloads {
-		c.request.BindMounts[source] = path.Join(c.downloadsDir, target)
-	}
 	for source, target := range c.BindMountInstall {
 		c.request.BindMounts[source] = path.Join(c.installDir, target)
 	}

@@ -18,11 +18,8 @@
 package systemtest_test
 
 import (
-	"crypto/sha512"
 	"fmt"
-	"io/ioutil"
 	"net/url"
-	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -109,20 +106,6 @@ func TestFleetIntegration(t *testing.T) {
 	apmServerConfigFile, err := filepath.Abs("../apm-server.yml")
 	require.NoError(t, err)
 	agent.BindMountInstall[apmServerConfigFile] = path.Join(apmServerArtifactName, "apm-server.yml")
-
-	// We also place a file (any file) in the download location to skip fetching
-	// the artifact from the internet.
-	//
-	// TODO(axw) we can skip this once apm-server is bundled with Elastic Agent.
-	tempdir, err := ioutil.TempDir("", "apmservertest")
-	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
-	apmServerArchive := filepath.Join(tempdir, apmServerArtifactName+".tar.gz")
-	apmServerArchiveSHA512 := filepath.Join(tempdir, apmServerArtifactName+".tar.gz.sha512")
-	require.NoError(t, ioutil.WriteFile(apmServerArchive, nil, 0644))
-	require.NoError(t, ioutil.WriteFile(apmServerArchiveSHA512, []byte(fmt.Sprintf("%x  %s", sha512.New().Sum(nil), filepath.Base(apmServerArchive))), 0644))
-	agent.BindMountDownloads[apmServerArchive] = filepath.Base(apmServerArchive)
-	agent.BindMountDownloads[apmServerArchiveSHA512] = filepath.Base(apmServerArchiveSHA512)
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service
 	// healthcheck requests to port 8200.
