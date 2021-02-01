@@ -18,6 +18,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 * Jaeger gRPC is now served over the same port as the Elastic APM agent protocol {pull}4618[4618]
 * Support for reloading config in Fleet mode, gracefully stopping the HTTP server and starting a new one {pull}4623[4623]
 * Add a `_doc_count` field to transaction histogram docs {pull}4647[4647]
+* Upgrade Go to 1.14.12 {pull}TODO[TODO]
 
 [float]
 ==== Deprecated
