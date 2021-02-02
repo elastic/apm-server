@@ -28,9 +28,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -289,20 +287,6 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	agentDataHashDir := path.Join("/usr/share/elastic-agent/data", "elastic-agent-"+agentVCSRef[:6])
 	agentInstallDir := path.Join(agentDataHashDir, "install")
 
-	// Build elastic-agent to replace the binary inside the container.
-	//
-	// This enables us to inject a locally built, unsigned, apm-server artifact.
-	//
-	// TODO(axw) once apm-server is bundled we can stop building a custom
-	// elastic-agent. We can then inject a custom apm-server into the *install*
-	// directory. We do that now, but we still need to inject a custom artifact
-	// into the *downloads* directory as well, to prevent fetching from the
-	// internet.
-	agentBinary, err := buildElasticAgent(agentVCSRef)
-	if err != nil {
-		return nil, err
-	}
-
 	req := testcontainers.ContainerRequest{
 		Image:      agentImage,
 		AutoRemove: true,
@@ -317,9 +301,6 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 			// current user rather than root. Disable Beats's strict permission checks to avoid resulting
 			// complaints, as they're irrelevant to these system tests.
 			"BEAT_STRICT_PERMS": "false",
-		},
-		BindMounts: map[string]string{
-			agentBinary: path.Join(agentDataHashDir, "elastic-agent"),
 		},
 	}
 	return &ElasticAgentContainer{
@@ -386,6 +367,7 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
+	c.request.BindMounts = map[string]string{}
 	for source, target := range c.BindMountInstall {
 		c.request.BindMounts[source] = path.Join(c.installDir, target)
 	}
@@ -438,51 +420,3 @@ func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string
 	_, err = io.Copy(ioutil.Discard, rc)
 	return err
 }
-
-// buildElasticAgent builds elastic-agent from the commit defined in go.mod,
-// in development mode to enable injecting unsigned artifacts.
-//
-// The "commit" argumented passed in comes from the Docker image, and is set
-// in the binary so that it has a consistent idea of the directory structure.
-func buildElasticAgent(commit string) (string, error) {
-	elasticAgentBinaryMu.Lock()
-	defer elasticAgentBinaryMu.Unlock()
-	if elasticAgentBinary != "" {
-		return elasticAgentBinary, nil
-	}
-
-	// Build apm-server binary from the repo root, store it in the build dir.
-	output, err := exec.Command("go", "list", "-m", "-f={{.Dir}}/..").Output()
-	if err != nil {
-		return "", err
-	}
-	repoRoot := filepath.Clean(strings.TrimSpace(string(output)))
-	abspath := filepath.Join(repoRoot, "build", "elastic-agent-nopgp")
-
-	log.Println("Building elastic-agent...")
-	ldflags := "" +
-		" -X github.com/elastic/beats/v7/x-pack/elastic-agent/pkg/release.snapshot=true" +
-		" -X github.com/elastic/beats/v7/x-pack/elastic-agent/pkg/release.allowEmptyPgp=true" +
-		" -X github.com/elastic/beats/v7/x-pack/elastic-agent/pkg/release.allowUpgrade=true" +
-		" -X github.com/elastic/beats/v7/libbeat/version.commit=" + commit
-	cmd := exec.Command("go", "build", "-o", abspath,
-		"-ldflags", ldflags,
-		"github.com/elastic/beats/v7/x-pack/elastic-agent",
-	)
-	cmd.Dir = repoRoot
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "GOOS=linux")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	log.Println("Built", abspath)
-	elasticAgentBinary = abspath
-	return elasticAgentBinary, nil
-}
-
-var (
-	elasticAgentBinaryMu sync.Mutex
-	elasticAgentBinary   string
-)
