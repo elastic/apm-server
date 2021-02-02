@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 
 [float]
 ==== Breaking Changes
+* Leading 0s are no longer removed from trace/span ids if they are created by Jaeger {pull}4671[4671]
 
 [float]
 ==== Bug fixes
