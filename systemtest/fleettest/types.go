@@ -84,3 +84,16 @@ type Package struct {
 	Path        string `json:"path"`
 	Status      string `json:"status"`
 }
+
+type EnrollmentAPIKey struct {
+	ID        string    `json:"id"`
+	Active    bool      `json:"active"`
+	APIKeyID  string    `json:"api_key_id"`
+	Name      string    `json:"name"`
+	PolicyID  string    `json:"policy_id"`
+	CreatedAt time.Time `json:"created_at"`
+
+	// APIKey is only returned when querying a specific enrollment API key,
+	// and not when listing keys.
+	APIKey string `json:"api_key,omitempty"`
+}

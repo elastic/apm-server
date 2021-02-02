@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -39,11 +40,7 @@ func NewClient(kibanaURL string) *Client {
 
 // Setup invokes the Fleet Setup API, returning an error if it fails.
 func (c *Client) Setup() error {
-	req, err := http.NewRequest("POST", c.fleetURL+"/setup", nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("kbn-xsrf", "1")
+	req := c.newFleetRequest("POST", "/setup", nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
@@ -86,12 +83,7 @@ func (c *Client) BulkUnenrollAgents(force bool, agentIDs ...string) error {
 	if err := json.NewEncoder(&body).Encode(bulkUnenroll{agentIDs, force}); err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", c.fleetURL+"/agents/bulk_unenroll", &body)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("kbn-xsrf", "1")
+	req := c.newFleetRequest("POST", "/agents/bulk_unenroll", &body)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
@@ -140,12 +132,7 @@ func (c *Client) DeleteAgentPolicy(id string) error {
 	if err := json.NewEncoder(&body).Encode(deleteAgentPolicy{id}); err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", c.fleetURL+"/agent_policies/delete", &body)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("kbn-xsrf", "1")
+	req := c.newFleetRequest("POST", "/agent_policies/delete", &body)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
@@ -159,7 +146,7 @@ func (c *Client) DeleteAgentPolicy(id string) error {
 }
 
 // CreateAgentPolicy returns the default Agent Policy.
-func (c *Client) CreateAgentPolicy(name, namespace, description string) (*AgentPolicy, error) {
+func (c *Client) CreateAgentPolicy(name, namespace, description string) (*AgentPolicy, *EnrollmentAPIKey, error) {
 	var body bytes.Buffer
 	type newAgentPolicy struct {
 		Name        string `json:"name,omitempty"`
@@ -167,15 +154,66 @@ func (c *Client) CreateAgentPolicy(name, namespace, description string) (*AgentP
 		Description string `json:"description,omitempty"`
 	}
 	if err := json.NewEncoder(&body).Encode(newAgentPolicy{name, namespace, description}); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	req, err := http.NewRequest("POST", c.fleetURL+"/agent_policies", &body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("kbn-xsrf", "1")
 	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, nil, fmt.Errorf("request failed (%s): %s", resp.Status, body)
+	}
+	var result struct {
+		Item AgentPolicy `json:"item"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, nil, err
+	}
+	enrollmentAPIKey, err := c.getAgentPolicyEnrollmentAPIKey(result.Item.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &result.Item, enrollmentAPIKey, nil
+}
+
+func (c *Client) getAgentPolicyEnrollmentAPIKey(policyID string) (*EnrollmentAPIKey, error) {
+	keys, err := c.enrollmentAPIKeys("fleet-enrollment-api-keys.policy_id:" + policyID)
+	if err != nil {
+		return nil, err
+	}
+	if n := len(keys); n != 1 {
+		return nil, fmt.Errorf("expected 1 enrollment API key, got %d", n)
+	}
+	resp, err := http.Get(c.fleetURL + "/enrollment-api-keys/" + keys[0].ID)
+	if err != nil {
+		return nil, err
+	}
+	var result struct {
+		Item EnrollmentAPIKey `json:"item"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result.Item, nil
+}
+
+func (c *Client) enrollmentAPIKeys(kuery string) ([]EnrollmentAPIKey, error) {
+	u, err := url.Parse(c.fleetURL + "/enrollment-api-keys")
+	if err != nil {
+		return nil, err
+	}
+	query := u.Query()
+	query.Add("kuery", kuery)
+	u.RawQuery = query.Encode()
+	resp, err := http.Get(u.String())
 	if err != nil {
 		return nil, err
 	}
@@ -185,12 +223,12 @@ func (c *Client) CreateAgentPolicy(name, namespace, description string) (*AgentP
 		return nil, fmt.Errorf("request failed (%s): %s", resp.Status, body)
 	}
 	var result struct {
-		Item AgentPolicy `json:"item"`
+		Items []EnrollmentAPIKey `json:"list"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	return &result.Item, nil
+	return result.Items, nil
 }
 
 // ListPackages lists all packages available for installation.
@@ -235,12 +273,7 @@ func (c *Client) CreatePackagePolicy(p PackagePolicy) error {
 	if err := json.NewEncoder(&body).Encode(&p); err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", c.fleetURL+"/package_policies", &body)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("kbn-xsrf", "1")
+	req := c.newFleetRequest("POST", "/package_policies", &body)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
@@ -263,12 +296,7 @@ func (c *Client) DeletePackagePolicy(ids ...string) error {
 	if err := json.NewEncoder(&body).Encode(params); err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", c.fleetURL+"/package_policies/delete", &body)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("kbn-xsrf", "1")
+	req := c.newFleetRequest("POST", "/package_policies/delete", &body)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
@@ -279,4 +307,14 @@ func (c *Client) DeletePackagePolicy(ids ...string) error {
 		return fmt.Errorf("request failed (%s): %s", resp.Status, body)
 	}
 	return nil
+}
+
+func (c *Client) newFleetRequest(method string, path string, body io.Reader) *http.Request {
+	req, err := http.NewRequest(method, c.fleetURL+path, body)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("kbn-xsrf", "1")
+	return req
 }

@@ -308,12 +308,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		AutoRemove: true,
 		Networks:   networks,
 		Env: map[string]string{
-			"FLEET_ENROLL":          "1",
-			"FLEET_ENROLL_INSECURE": "1",
-			"FLEET_SETUP":           "1",
-			"KIBANA_HOST":           kibanaURL.String(),
-			"KIBANA_USERNAME":       adminKibanaUser,
-			"KIBANA_PASSWORD":       adminKibanaPass,
+			"KIBANA_HOST": kibanaURL.String(),
 
 			// TODO(axw) remove once https://github.com/elastic/elastic-agent-client/issues/20 is fixed
 			"GODEBUG": "x509ignoreCN=0",
@@ -366,6 +361,11 @@ type ElasticAgentContainer struct {
 	// container, mapping from the host location to target paths relative
 	// to the install directory in the container.
 	BindMountInstall map[string]string
+
+	// FleetEnrollmentToken holds an optional Fleet enrollment token to
+	// use for enrolling the agent with Fleet. The agent will only enroll
+	// if this is specified.
+	FleetEnrollmentToken string
 }
 
 // Start starts the container.
@@ -379,6 +379,11 @@ func (c *ElasticAgentContainer) Start() error {
 	defer cancel()
 
 	// Update request from user-definable fields.
+	if c.FleetEnrollmentToken != "" {
+		c.request.Env["FLEET_ENROLL"] = "1"
+		c.request.Env["FLEET_ENROLL_INSECURE"] = "1"
+		c.request.Env["FLEET_ENROLLMENT_TOKEN"] = c.FleetEnrollmentToken
+	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
 	for source, target := range c.BindMountInstall {

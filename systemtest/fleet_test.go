@@ -43,7 +43,7 @@ func TestFleetIntegration(t *testing.T) {
 	cleanupFleet(t, fleet)
 	defer cleanupFleet(t, fleet)
 
-	agentPolicy, err := fleet.CreateAgentPolicy("apm_systemtest", "default", "Agent policy for APM Server system tests")
+	agentPolicy, enrollmentAPIKey, err := fleet.CreateAgentPolicy("apm_systemtest", "default", "Agent policy for APM Server system tests")
 	require.NoError(t, err)
 
 	// Find the "apm" package to install.
@@ -88,6 +88,7 @@ func TestFleetIntegration(t *testing.T) {
 
 	agent, err := systemtest.NewUnstartedElasticAgentContainer()
 	require.NoError(t, err)
+	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
 
 	// Build apm-server, and bind-mount it into the elastic-agent container's "install"
 	// directory. This bypasses downloading the artifact.
