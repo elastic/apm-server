@@ -19,7 +19,6 @@ package otel
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"net"
 	"net/url"
@@ -93,20 +92,13 @@ func (c *Consumer) convertSpan(otelSpan pdata.Span, metadata model.Metadata, out
 
 	root := !otelSpan.ParentSpanID().IsValid()
 
-	var parentID, spanID, traceID string
-	if strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger") {
-		if !root {
-			parentID = formatJaegerSpanID(otelSpan.ParentSpanID())
-		}
-		traceID = formatJaegerTraceID(otelSpan.TraceID())
-		spanID = formatJaegerSpanID(otelSpan.SpanID())
-	} else {
-		if !root {
-			parentID = otelSpan.ParentSpanID().HexString()
-		}
-		traceID = otelSpan.TraceID().HexString()
-		spanID = otelSpan.SpanID().HexString()
+	var parentID string
+	if !root {
+		parentID = otelSpan.ParentSpanID().HexString()
 	}
+
+	traceID := otelSpan.TraceID().HexString()
+	spanID := otelSpan.SpanID().HexString()
 
 	startTime := pdata.UnixNanoToTime(otelSpan.StartTime())
 	endTime := pdata.UnixNanoToTime(otelSpan.EndTime())
@@ -627,30 +619,6 @@ func truncate(s string) string {
 		j++
 	}
 	return s
-}
-
-// formatJaegerTraceID returns the traceID as string in Jaeger format (hexadecimal without leading zeros)
-func formatJaegerTraceID(traceID pdata.TraceID) string {
-	if !traceID.IsValid() {
-		return ""
-	}
-	bytes := traceID.Bytes()
-	jaegerTraceIDHigh := binary.BigEndian.Uint64(bytes[:8])
-	jaegerTraceIDLow := binary.BigEndian.Uint64(bytes[8:])
-	if jaegerTraceIDHigh == 0 {
-		return fmt.Sprintf("%x", jaegerTraceIDLow)
-	}
-	return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
-}
-
-// formatJaegerSpanID returns the spanID as string in Jaeger format (hexadecimal without leading zeros)
-func formatJaegerSpanID(spanID pdata.SpanID) string {
-	if !spanID.IsValid() {
-		return ""
-	}
-	bytes := spanID.Bytes()
-	jaegerSpanID := binary.BigEndian.Uint64(bytes[:])
-	return fmt.Sprintf("%x", jaegerSpanID)
 }
 
 func schemeDefaultPort(scheme string) int {

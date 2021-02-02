@@ -161,7 +161,7 @@ func TestServerIntegration(t *testing.T) {
 							if err != nil {
 								panic(err)
 							}
-							return serverConfig.BuildModuleConfig("")
+							return serverConfig.BuildServerConfig("")
 						}(),
 					},
 				},
@@ -190,7 +190,7 @@ func TestServerIntegration(t *testing.T) {
 							if err != nil {
 								panic(err)
 							}
-							return serverConfig.BuildModuleConfig("")
+							return serverConfig.BuildServerConfig("")
 						}(),
 					},
 				},
@@ -215,7 +215,7 @@ func TestServerIntegration(t *testing.T) {
 							if err != nil {
 								panic(err)
 							}
-							return serverConfig.BuildModuleConfig("")
+							return serverConfig.BuildServerConfig("")
 						}(),
 					},
 				},

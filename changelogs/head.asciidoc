@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 
 [float]
 ==== Breaking Changes
+* Leading 0s are no longer removed from trace/span ids if they are created by Jaeger {pull}4671[4671]
 
 [float]
 ==== Bug fixes
@@ -18,6 +19,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 * Jaeger gRPC is now served over the same port as the Elastic APM agent protocol {pull}4618[4618]
 * Support for reloading config in Fleet mode, gracefully stopping the HTTP server and starting a new one {pull}4623[4623]
 * Add a `_doc_count` field to transaction histogram docs {pull}4647[4647]
+* Upgrade Go to 1.15.7 {pull}4663[4663]
 
 [float]
 ==== Deprecated
