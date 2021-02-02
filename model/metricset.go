@@ -38,7 +38,7 @@ const (
 	metricsetEventKey       = "event"
 	metricsetTransactionKey = "transaction"
 	metricsetSpanKey        = "span"
-	AppMetricsDataset       = "apm.user"
+	AppMetricsDataset       = "apm.app"
 	InternalMetricsDataset  = "apm.internal"
 )
 

@@ -1,5 +1,5 @@
 title: APM application metrics
 type: metrics
-dataset: apm.user
+dataset: apm.app
 dataset_is_prefix: true
-ilm_policy: metrics-apm.user_metrics-default_policy
+ilm_policy: metrics-apm.app_metrics-default_policy
