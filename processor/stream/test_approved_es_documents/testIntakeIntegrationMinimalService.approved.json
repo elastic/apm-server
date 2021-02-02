@@ -6,7 +6,7 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.app",
             "data_stream.type": "metrics",
             "go": {
                 "memstats": {
