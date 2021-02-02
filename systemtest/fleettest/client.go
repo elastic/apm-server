@@ -40,15 +40,17 @@ func NewClient(kibanaURL string) *Client {
 
 // Setup invokes the Fleet Setup API, returning an error if it fails.
 func (c *Client) Setup() error {
-	req := c.newFleetRequest("POST", "/setup", nil)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("request failed (%s): %s", resp.Status, body)
+	for _, path := range []string{"/setup", "/agents/setup"} {
+		req := c.newFleetRequest("POST", path, nil)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			body, _ := ioutil.ReadAll(resp.Body)
+			return fmt.Errorf("request failed (%s): %s", resp.Status, body)
+		}
 	}
 	return nil
 }
