@@ -178,8 +178,8 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
 	require.Len(t, transformables, 2)
-	assert.Equal(t, "46467830", transformables[0].(*model.Transaction).TraceID)
-	assert.Equal(t, "464678300000000046467830", transformables[1].(*model.Transaction).TraceID)
+	assert.Equal(t, "00000000000000000000000046467830", transformables[0].(*model.Transaction).TraceID)
+	assert.Equal(t, "00000000464678300000000046467830", transformables[1].(*model.Transaction).TraceID)
 }
 
 func TestConsumer_JaegerTransaction(t *testing.T) {
