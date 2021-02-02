@@ -86,8 +86,9 @@ type context struct {
 	// here will override the more generic information retrieved from metadata,
 	// missing service fields will be retrieved from the metadata information.
 	Service contextService `json:"service"`
-	// Tags are a flat mapping of user-defined tags. Allowed value types are
-	// string, boolean and number values. Tags are indexed and searchable.
+	// Tags are a flat mapping of user-defined tags. On the agent side, tags
+	// are called labels. Allowed value types are string, boolean and number
+	// values. Tags are indexed and searchable.
 	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// User holds information about the correlated user for this event. If
 	// user data are provided here, all user related information from metadata
@@ -528,8 +529,9 @@ type metricset struct {
 	Samples map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=patternNoAsteriskQuote"`
 	// Span holds selected information about the correlated transaction.
 	Span metricsetSpanRef `json:"span"`
-	// Tags are a flat mapping of user-defined tags. Allowed value types are
-	// string, boolean and number values. Tags are indexed and searchable.
+	// Tags are a flat mapping of user-defined tags. On the agent side, tags
+	// are called labels. Allowed value types are string, boolean and number
+	// values. Tags are indexed and searchable.
 	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Transaction holds selected information about the correlated transaction.
 	Transaction metricsetTransactionRef `json:"transaction"`
@@ -622,8 +624,9 @@ type spanContext struct {
 	// here will override the more generic information retrieved from metadata,
 	// missing service fields will be retrieved from the metadata information.
 	Service contextService `json:"service"`
-	// Tags are a flat mapping of user-defined tags. Allowed value types are
-	// string, boolean and number values. Tags are indexed and searchable.
+	// Tags are a flat mapping of user-defined tags. On the agent side, tags
+	// are called labels. Allowed value types are string, boolean and number
+	// values. Tags are indexed and searchable.
 	Tags common.MapStr `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
