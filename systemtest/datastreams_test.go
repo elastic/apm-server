@@ -46,7 +46,7 @@ func TestDataStreamsEnabled(t *testing.T) {
 
 				// Create a data stream index template.
 				resp, err := systemtest.Elasticsearch.Indices.PutIndexTemplate("apm-data-streams", strings.NewReader(fmt.Sprintf(`{
-				  "index_patterns": ["traces-*", "logs-*", "metrics-*"],
+				  "index_patterns": ["traces-apm*", "logs-apm*", "metrics-apm*"],
 				  "data_stream": {},
 				  "priority": 200,
 				  "template": {"settings": {"number_of_shards": 1, "refresh_interval": "250ms"}}
