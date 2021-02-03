@@ -19,6 +19,7 @@ package systemtest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -199,18 +200,15 @@ func (c *ElasticsearchContainer) Start() error {
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
-		Started:          true,
 	})
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if c.container == nil {
-			// Something has gone wrong.
-			container.Terminate(ctx)
-		}
-	}()
+	c.container = container
 
+	if err := c.container.Start(ctx); err != nil {
+		return err
+	}
 	ip, err := container.Host(ctx)
 	if err != nil {
 		return err
@@ -236,6 +234,9 @@ func (c *ElasticsearchContainer) Start() error {
 
 // Close terminates and removes the container.
 func (c *ElasticsearchContainer) Close() error {
+	if c.container == nil {
+		return nil
+	}
 	return c.container.Terminate(context.Background())
 }
 
@@ -374,18 +375,15 @@ func (c *ElasticAgentContainer) Start() error {
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
-		Started:          true,
 	})
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if c.container == nil {
-			// Something has gone wrong.
-			container.Terminate(ctx)
-		}
-	}()
+	c.container = container
 
+	if err := container.Start(ctx); err != nil {
+		return err
+	}
 	ports, err := container.Ports(ctx)
 	if err != nil {
 		return err
@@ -408,7 +406,20 @@ func (c *ElasticAgentContainer) Start() error {
 
 // Close terminates and removes the container.
 func (c *ElasticAgentContainer) Close() error {
+	if c.container == nil {
+		return nil
+	}
 	return c.container.Terminate(context.Background())
+}
+
+// Logs returns an io.ReadCloser that can be used for reading the
+// container's combined stdout/stderr log. If the container has not
+// been created by Start(), Logs will return an error.
+func (c *ElasticAgentContainer) Logs(ctx context.Context) (io.ReadCloser, error) {
+	if c.container == nil {
+		return nil, errors.New("container not created")
+	}
+	return c.container.Logs(ctx)
 }
 
 func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string) error {

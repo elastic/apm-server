@@ -18,7 +18,9 @@
 package systemtest_test
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"path"
 	"path/filepath"
@@ -89,6 +91,20 @@ func TestFleetIntegration(t *testing.T) {
 	agent, err := systemtest.NewUnstartedElasticAgentContainer()
 	require.NoError(t, err)
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
+	defer agent.Close()
+
+	defer func() {
+		// Log the elastic-agent container output if the test fails.
+		if !t.Failed() {
+			return
+		}
+		if logs, err := agent.Logs(context.Background()); err == nil {
+			defer logs.Close()
+			if out, err := ioutil.ReadAll(logs); err == nil {
+				t.Logf("elastic-agent logs: %s", out)
+			}
+		}
+	}()
 
 	// Build apm-server, and bind-mount it into the elastic-agent container's "install"
 	// directory. This bypasses downloading the artifact.
@@ -115,8 +131,6 @@ func TestFleetIntegration(t *testing.T) {
 	waitFor.Port = "8200/tcp"
 	agent.WaitingFor = waitFor
 	err = agent.Start()
-	require.NoError(t, err)
-	defer agent.Close()
 
 	// Elastic Agent has started apm-server. Connect to apm-server and send some data,
 	// and make sure it gets indexed into a data stream.
