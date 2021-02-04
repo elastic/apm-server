@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 
 [float]
 ==== Bug fixes
+* Tail-based sampling policies are now always matched in the order given {pull}4685[4685]
 
 [float]
 ==== Intake API Changes
