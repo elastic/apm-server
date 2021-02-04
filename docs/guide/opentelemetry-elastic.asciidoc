@@ -9,7 +9,7 @@
 :ot-scaling:    {ot-repo}/blob/master/docs/performance.md
 
 :ot-collector:  https://opentelemetry.io/docs/collector/getting-started/
-:ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib-dev
+:ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib
 
 // Make tab-widgets work
 include::../tab-widgets/code.asciidoc[]
@@ -89,7 +89,7 @@ Docker images are available on {ot-dockerhub}[dockerhub]:
 
 [source,bash]
 ----
-docker pull otel/opentelemetry-collector-contrib-dev
+docker pull otel/opentelemetry-collector-contrib
 ----
 
 [[open-telemetry-elastic-traces-metrics]]
@@ -106,8 +106,8 @@ Here is an example of how to set up the OpenTelemetry Java agent.
 [source,bash]
 ----
 export OTEL_RESOURCE_ATTRIBUTES=service.name=frontend,service.version=1.0-SNAPSHOT,deployment.environment=staging
-java -javaagent:/path/to/opentelemetry-javaagent-all-0.10.1.jar \
-     -Dotel.otlp.endpoint=my-otel-collector.mycompany.com:55680 \
+java -javaagent:/path/to/opentelemetry-javaagent-all-0.15.0.jar \
+     -Dotel.otlp.endpoint=http://my-otel-collector.mycompany.com:4317 \
      -jar target/frontend-1.0-SNAPSHOT.jar
 ----
 
@@ -116,7 +116,7 @@ Here is an example of how to capture business metrics from an application.
 [source,java]
 ----
 // initialize metric
-Meter meter = OpenTelemetry.getGlobalMeter("my-frontend");
+Meter meter = GlobalMetricsProvider.getMeter("my-frontend");
 DoubleCounter orderValueCounter = meter.doubleCounterBuilder("order_value").build();
 
 public void createOrder(HttpServletRequest request) {
@@ -144,7 +144,7 @@ This example configuration file accepts input from an OpenTelemetry Agent, proce
     otlp:
       protocols:
         grpc:
-          endpoint: 'localhost:55680'
+          endpoint: 'localhost:4317'
     hostmetrics: <1>
       collection_interval: 1m
       scrapers:
@@ -153,7 +153,6 @@ This example configuration file accepts input from an OpenTelemetry Agent, proce
 
   processors:
     batch: null
-    queued_retry: null
 
   exporters:
     elastic:
