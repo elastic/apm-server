@@ -131,6 +131,7 @@ func TestFleetIntegration(t *testing.T) {
 	waitFor.Port = "8200/tcp"
 	agent.WaitingFor = waitFor
 	err = agent.Start()
+	require.NoError(t, err)
 
 	// Elastic Agent has started apm-server. Connect to apm-server and send some data,
 	// and make sure it gets indexed into a data stream.
