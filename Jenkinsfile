@@ -336,9 +336,9 @@ pipeline {
               withMageEnv(){
                 dir("${BASE_DIR}"){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
-                  sendBenchmarks(file: 'bench.out', index: "benchmark-server")
                 }
               }
+              sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
             }
           }
         }
