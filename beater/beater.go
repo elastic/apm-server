@@ -214,7 +214,8 @@ type serverCreator struct {
 }
 
 func (s *serverCreator) CheckConfig(cfg *common.Config) error {
-	return nil
+	_, err := config.NewIntegrationConfig(cfg)
+	return err
 }
 
 func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Config) (cfgfile.Runner, error) {
