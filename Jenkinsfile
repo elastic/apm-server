@@ -334,9 +334,9 @@ pipeline {
               golang(){
                 dir("${BASE_DIR}"){
                   sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
-                  sendBenchmarks(file: 'bench.out', index: "benchmark-server")
                 }
               }
+              sendBenchmarks(file: "${BASE_DIR}/bench.out", index: "benchmark-server")
             }
           }
         }
