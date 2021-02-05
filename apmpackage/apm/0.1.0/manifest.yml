@@ -36,6 +36,12 @@ policy_templates:
         title: Secret token
         required: false
         show_user: true
+      - name: api_key_enabled
+        type: bool
+        title: Enable API Key Auth from APM Agents
+        required: false
+        show_user: true
+        default: false
       - name: enable_rum
         type: bool
         title: Enable RUM
@@ -54,6 +60,82 @@ policy_templates:
         required: false
         description: Enter as <Id>:<API Key>
         show_user: true
+      - name: api_key_limit
+        type: int
+        title: Maximum number of allowed API Keys
+        required: false
+        show_user: false
+        default: 100
+      - name: capture_personal_data
+        type: bool
+        title: Capture Personal Data (e.g. IP, User Agent)
+        required: false
+        show_user: false
+        default: true
+      - name: rum_allow_origins
+        type: string
+        title: RUM - Allow Origins
+        multi: true
+        required: false
+        show_user: false
+        default: ['*']
+      - name: rum_allow_headers
+        type: string
+        title: RUM - Access-Control-Allow-Headers
+        multi: true
+        required: false
+        show_user: false
+      - name: rum_library_pattern
+        type: string
+        title: RUM - pattern identifying library frames
+        required: false
+        show_user: false
+      - name: rum_exclude_from_grouping
+        type: string
+        title: RUM - pattern excluding frames from grouping
+        required: false
+        show_user: false
+      - name: rum_response_headers
+        type: yaml
+        title: RUM - Custom Response Headers
+        required: false
+        show_user: false
+      - name: rum_event_rate_limit
+        type: int
+        title: RUM - Maximum events per IP per second
+        required: false
+        show_user: false
+        default: 300
+      - name: rum_event_rate_lru_size
+        type: int
+        title: RUM - Cache size (unique IPs)
+        required: false
+        show_user: false
+        default: 1000
+      - name: queue_mem_events
+        type: int
+        title: In-Memory buffer capacity (number of events)
+        required: false
+        show_user: false
+        default: 4096   
+      - name: queue_mem_flush_min_events
+        type: int
+        title: In-Memory buffer flush batch size (number of events)
+        required: false
+        show_user: false
+        default: 2048   
+      - name: queue_mem_flush_timeout
+        type: string
+        title: In-Memory buffer flush timeout
+        required: false
+        show_user: false
+        default: '1s'   
+      - name: max_event_bytes
+        type: int
+        title: Maximum size per event (bytes)
+        required: false
+        show_user: false
+        default: 307200   
     template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
