@@ -35,7 +35,7 @@ func escapeReplacer(s ...string) *strings.Replacer {
 	return strings.NewReplacer(pairs...)
 }
 
-var markdownReplacer = escapeReplacer("\\", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
+var markdownReplacer = escapeReplacer("\\", "`", "*", "_")
 
 func generateDocs(inputFields map[string][]field, version string) {
 	data := docsData{

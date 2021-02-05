@@ -420,58 +420,6 @@ type: text
 --
 
 
-*`transaction.duration.count`*::
-+
---
-type: long
-
---
-
-
-*`transaction.duration.sum.us`*::
-+
---
-type: long
-
---
-
-[float]
-=== self_time
-
-Portion of the transaction's duration where no direct child was running
-
-
-
-*`transaction.self_time.count`*::
-+
---
-type: long
-
---
-
-
-*`transaction.self_time.sum.us`*::
-+
---
-type: long
-
---
-
-[float]
-=== breakdown
-
-Counter for collected breakdowns for the transaction
-
-
-
-*`transaction.breakdown.count`*::
-+
---
-type: long
-
---
-
-
 *`trace.id`*::
 +
 --
@@ -1286,6 +1234,8 @@ type: keyword
 *`error.exception.type`*::
 +
 --
+The type of the original error, e.g. the Java exception class name.
+
 type: keyword
 
 --
@@ -2651,58 +2601,6 @@ type: text
 --
 
 
-*`transaction.duration.count`*::
-+
---
-type: long
-
---
-
-
-*`transaction.duration.sum.us`*::
-+
---
-type: long
-
---
-
-[float]
-=== self_time
-
-Portion of the transaction's duration where no direct child was running
-
-
-
-*`transaction.self_time.count`*::
-+
---
-type: long
-
---
-
-
-*`transaction.self_time.sum.us`*::
-+
---
-type: long
-
---
-
-[float]
-=== breakdown
-
-Counter for collected breakdowns for the transaction
-
-
-
-*`transaction.breakdown.count`*::
-+
---
-type: long
-
---
-
-
 *`trace.id`*::
 +
 --
@@ -3457,18 +3355,11 @@ example: success
 
 --
 
-*`view spans`*::
-+
---
-format: url
-
---
-
 
 *`child.id`*::
 +
 --
-The ID(s)s of the child event(s).
+The ID(s) of the child event(s).
 
 
 type: keyword
@@ -3493,28 +3384,6 @@ A further sub-division of the type (e.g. postgresql, elasticsearch)
 
 
 type: keyword
-
---
-
-[float]
-=== self_time
-
-Portion of the span's duration where no direct child was running
-
-
-
-*`span.self_time.count`*::
-+
---
-type: long
-
---
-
-
-*`span.self_time.sum.us`*::
-+
---
-type: long
 
 --
 
@@ -3673,6 +3542,8 @@ APM span metrics are used for showing rate of requests and latency between instr
 *`metricset.period`*::
 +
 --
+Current data collection period for this event in milliseconds.
+
 type: long
 
 --
@@ -3682,6 +3553,8 @@ type: long
 *`span.destination.service.response_time.count`*::
 +
 --
+Number of aggregated outgoing requests.
+
 type: long
 
 --
@@ -3689,6 +3562,8 @@ type: long
 *`span.destination.service.response_time.sum.us`*::
 +
 --
+Aggregated duration of outgoing requests, in microseconds.
+
 type: long
 
 --
@@ -4067,6 +3942,9 @@ type: object
 *`transaction.marks.*.*`*::
 +
 --
+A user-defined mapping of groups of marks in milliseconds.
+
+
 type: object
 
 --
@@ -4161,49 +4039,6 @@ type: keyword
 Age of a message in milliseconds.
 
 
-type: long
-
---
-
-
-*`span.type`*::
-+
---
-Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-
-
-type: keyword
-
---
-
-*`span.subtype`*::
-+
---
-A further sub-division of the type (e.g. postgresql, elasticsearch)
-
-
-type: keyword
-
---
-
-[float]
-=== self_time
-
-Portion of the span's duration where no direct child was running
-
-
-
-*`span.self_time.count`*::
-+
---
-type: long
-
---
-
-
-*`span.self_time.sum.us`*::
-+
---
 type: long
 
 --
@@ -5182,6 +5017,8 @@ type: text
 *`transaction.duration.count`*::
 +
 --
+Number of aggregated transactions.
+
 type: long
 
 --
@@ -5190,6 +5027,8 @@ type: long
 *`transaction.duration.sum.us`*::
 +
 --
+Aggregated transaction duration, in microseconds.
+
 type: long
 
 --
@@ -5204,6 +5043,8 @@ Portion of the transaction's duration where no direct child was running
 *`transaction.self_time.count`*::
 +
 --
+Number of aggregated transactions.
+
 type: long
 
 --
@@ -5212,20 +5053,20 @@ type: long
 *`transaction.self_time.sum.us`*::
 +
 --
+Aggregated transaction durations, excluding the durations where a direct child was running, in microseconds.
+
+
 type: long
 
 --
-
-[float]
-=== breakdown
-
-Counter for collected breakdowns for the transaction
-
 
 
 *`transaction.breakdown.count`*::
 +
 --
+Counter for collected breakdowns for the transaction
+
+
 type: long
 
 --
@@ -5271,6 +5112,8 @@ Portion of the span's duration where no direct child was running
 *`span.self_time.count`*::
 +
 --
+Number of aggregated spans.
+
 type: long
 
 --
@@ -5279,6 +5122,9 @@ type: long
 *`span.self_time.sum.us`*::
 +
 --
+Aggregated span durations, excluding the durations where a direct child was running, in microseconds.
+
+
 type: long
 
 --

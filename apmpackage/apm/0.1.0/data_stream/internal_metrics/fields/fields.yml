@@ -26,6 +26,7 @@
     Kubernetes Pod UID
 - name: metricset.period
   type: long
+  description: Current data collection period for this event in milliseconds.
 - name: observer.listening
   type: keyword
   description: |
@@ -70,12 +71,17 @@
     Version of the runtime used.
 - name: span.destination.service.response_time.count
   type: long
+  description: Number of aggregated outgoing requests.
 - name: span.destination.service.response_time.sum.us
   type: long
+  description: Aggregated duration of outgoing requests, in microseconds.
 - name: span.self_time.count
   type: long
+  description: Number of aggregated spans.
 - name: span.self_time.sum.us
   type: long
+  description: |
+    Aggregated span durations, excluding the durations where a direct child was running, in microseconds.
 - name: span.subtype
   type: keyword
   description: |
@@ -128,14 +134,18 @@
     Timestamp of the event in microseconds since Unix epoch.
 - name: transaction.breakdown.count
   type: long
+  description: |
+    Counter for collected breakdowns for the transaction
 - name: transaction.duration.count
   type: long
+  description: Number of aggregated transactions.
 - name: transaction.duration.histogram
   type: histogram
   description: |
     Pre-aggregated histogram of transaction durations.
 - name: transaction.duration.sum.us
   type: long
+  description: Aggregated transaction duration, in microseconds.
 - name: transaction.name
   type: keyword
   description: |
@@ -153,8 +163,11 @@
     Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
 - name: transaction.self_time.count
   type: long
+  description: Number of aggregated transactions.
 - name: transaction.self_time.sum.us
   type: long
+  description: |
+    Aggregated transaction durations, excluding the durations where a direct child was running, in microseconds.
 - name: transaction.type
   type: keyword
   description: |
