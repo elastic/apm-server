@@ -26,14 +26,19 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"runtime"
 	"testing"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -402,6 +407,40 @@ func TestServerJaegerGRPC(t *testing.T) {
 	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
+}
+
+func TestServerOTLPGRPC(t *testing.T) {
+	ucfg, err := common.NewConfigFrom(m{"secret_token": "abc123"})
+	assert.NoError(t, err)
+	server, err := setupServer(t, ucfg, nil, nil)
+	require.NoError(t, err)
+	defer server.Stop()
+
+	baseURL, err := url.Parse(server.baseURL)
+	require.NoError(t, err)
+	invokeExport := func(ctx context.Context, conn *grpc.ClientConn) error {
+		// We can't use go.opentelemetry.io/otel, as it has its own generated protobuf packages
+		// which which conflict with opentelemetry-collector's. Instead, use the types registered
+		// by the opentelemetry-collector packages.
+		requestType := proto.MessageType("opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest")
+		responseType := proto.MessageType("opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse")
+		request := reflect.New(requestType.Elem()).Interface()
+		response := reflect.New(responseType.Elem()).Interface()
+		return conn.Invoke(ctx, "/opentelemetry.proto.collector.trace.v1.TraceService/Export", request, response)
+	}
+
+	conn, err := grpc.Dial(baseURL.Host, grpc.WithInsecure())
+	require.NoError(t, err)
+	defer conn.Close()
+
+	ctx := context.Background()
+	err = invokeExport(ctx, conn)
+	assert.Error(t, err)
+	assert.Equal(t, codes.Unauthenticated, status.Code(err))
+
+	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("Authorization", "Bearer abc123"))
+	err = invokeExport(ctx, conn)
+	assert.NoError(t, err)
 }
 
 func TestServerConfigReload(t *testing.T) {
