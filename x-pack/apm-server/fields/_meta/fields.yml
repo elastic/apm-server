@@ -26,6 +26,7 @@
   fields:
     - name: metricset.period
       type: long
+      description: Current data collection period for this event in milliseconds.
     - name: span
       type: group
       dynamic: false
@@ -36,5 +37,7 @@
         fields:
           - name: response_time.count
             type: long
+            description: Number of aggregated outgoing requests.
           - name: response_time.sum.us
             type: long
+            description: Aggregated duration of outgoing requests, in microseconds.
