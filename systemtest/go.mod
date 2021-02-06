@@ -20,10 +20,13 @@ require (
 	github.com/tidwall/gjson v1.6.0
 	go.elastic.co/apm v1.8.1-0.20200913025752-7af7e1529586
 	go.elastic.co/fastjson v1.1.0
+	go.opentelemetry.io/otel v0.16.0
+	go.opentelemetry.io/otel/exporters/otlp v0.16.0
+	go.opentelemetry.io/otel/sdk v0.16.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200909081042-eff7692f9009
-	google.golang.org/grpc v1.30.0
+	google.golang.org/grpc v1.34.0
 	gotest.tools v2.2.0+incompatible // indirect
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
 )
