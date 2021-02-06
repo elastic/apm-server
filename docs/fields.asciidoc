@@ -5053,7 +5053,7 @@ type: long
 *`transaction.self_time.sum.us`*::
 +
 --
-Aggregated transaction durations, excluding the durations where a direct child was running, in microseconds.
+Aggregated transaction duration, excluding the time periods where a direct child was running, in microseconds.
 
 
 type: long
@@ -5122,7 +5122,7 @@ type: long
 *`span.self_time.sum.us`*::
 +
 --
-Aggregated span durations, excluding the durations where a direct child was running, in microseconds.
+Aggregated span duration, excluding the time periods where a direct child was running, in microseconds.
 
 
 type: long
