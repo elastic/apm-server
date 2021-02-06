@@ -177,7 +177,7 @@
                   type: long
                   overwrite: true 
                   description: >
-                    Aggregated transaction durations, excluding the durations where a
+                    Aggregated transaction duration, excluding the times where a
                     direct child was running, in microseconds.
 
         - name: breakdown
@@ -229,7 +229,7 @@
                 type: long
                 overwrite: true 
                 description: >
-                  Aggregated span durations, excluding the durations where a
+                  Aggregated span duration, excluding the times where a
                   direct child was running, in microseconds.
 
     - name: agent
