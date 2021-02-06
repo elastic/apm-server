@@ -18,6 +18,8 @@
 package config
 
 import (
+	"errors"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -27,8 +29,13 @@ func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error)
 			Namespace: "default",
 		},
 	}
-	err := rootConfig.Unpack(config)
-	return config, err
+	if err := rootConfig.Unpack(config); err != nil {
+		return nil, err
+	}
+	if config.APMServer == nil {
+		return nil, errors.New("'apm-server' not found in integration config")
+	}
+	return config, nil
 }
 
 // IntegrationConfig that comes from Elastic Agent

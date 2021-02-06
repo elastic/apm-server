@@ -473,11 +473,6 @@ func TestServerConfigReload(t *testing.T) {
 	// Now that the beater is running, send config changes. The reloader
 	// is not registered until after the beater starts running, so we
 	// must loop until it is set.
-	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
-			"host": "localhost:0",
-		},
-	})
 	var reloadable reload.ReloadableList
 	for {
 		// The Reloader is not registered until after the beat has started running.
@@ -487,6 +482,16 @@ func TestServerConfigReload(t *testing.T) {
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
+
+	// The config must contain an "apm-server" section, and will be rejected otherwise.
+	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: common.NewConfig()}})
+	assert.EqualError(t, err, "1 error: Error creating runner from config: 'apm-server' not found in integration config")
+
+	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
+		"apm-server": map[string]interface{}{
+			"host": "localhost:0",
+		},
+	})
 	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
 	require.NoError(t, err)
 
