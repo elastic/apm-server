@@ -3,6 +3,15 @@
 
 https://github.com/elastic/apm-server/compare/7.8\...7.9[View commits]
 
+[IMPORTANT]
+====
+*Known Issue:* APM Server introduced support for cloud metadata in v7.9 ({pull}3729[3729]).
+Unfortunately, the JSON Schema was too strict, and does not account for `null` values.
+As a result, sending `null` values for cloud metadata causes the payload to be rejected.
+This issue was resolved in v7.10.0 ({pull}4142[4142]).
+To avoid problems, we recommend updating to version ≥7.10.0.
+====
+
 * <<release-notes-7.9.3>>
 * <<release-notes-7.9.2>>
 * <<release-notes-7.9.1>>
@@ -16,7 +25,7 @@ https://github.com/elastic/apm-server/compare/v7.9.2\...v7.9.3[View commits]
 
 [float]
 ==== Bug fixes
-* Ensure custom index names are lowercased {pull}4295[4295],{pull}4322[4322]
+* Ensure custom index names are lowercased {pull}4295[4295], {pull}4322[4322]
 
 [float]
 [[release-notes-7.9.2]]
