@@ -68,7 +68,7 @@ policy_templates:
         default: 100
       - name: capture_personal_data
         type: bool
-        title: Capture Personal Data (e.g. IP, User Agent)
+        title: Capture personal data (e.g. IP, User Agent)
         required: false
         show_user: false
         default: true
@@ -85,19 +85,9 @@ policy_templates:
         multi: true
         required: false
         show_user: false
-      - name: rum_library_pattern
-        type: string
-        title: RUM - pattern identifying library frames
-        required: false
-        show_user: false
-      - name: rum_exclude_from_grouping
-        type: string
-        title: RUM - pattern excluding frames from grouping
-        required: false
-        show_user: false
       - name: rum_response_headers
         type: yaml
-        title: RUM - Custom Response Headers
+        title: RUM - Custom response headers
         required: false
         show_user: false
       - name: rum_event_rate_limit
@@ -114,19 +104,19 @@ policy_templates:
         default: 1000
       - name: queue_mem_events
         type: int
-        title: In-Memory buffer capacity (number of events)
+        title: Event buffer capacity (number of events)
         required: false
         show_user: false
         default: 4096   
       - name: queue_mem_flush_min_events
         type: int
-        title: In-Memory buffer flush batch size (number of events)
+        title: Event buffer flush batch size (number of events)
         required: false
         show_user: false
         default: 2048   
       - name: queue_mem_flush_timeout
         type: string
-        title: In-Memory buffer flush timeout
+        title: Event buffer flush timeout
         required: false
         show_user: false
         default: '1s'   
