@@ -26,6 +26,17 @@ import (
 	"text/template"
 )
 
+func escapeReplacer(s ...string) *strings.Replacer {
+	pairs := make([]string, len(s)*2)
+	for i, s := range s {
+		pairs[2*i] = s
+		pairs[2*i+1] = "\\" + s
+	}
+	return strings.NewReplacer(pairs...)
+}
+
+var markdownReplacer = escapeReplacer("\\", "`", "*", "_")
+
 func generateDocs(inputFields map[string][]field, version string) {
 	data := docsData{
 		Traces:             prepareFields(inputFields, version, "traces"),
@@ -38,7 +49,8 @@ func generateDocs(inputFields map[string][]field, version string) {
 	}
 	t := template.New(docsTemplateFilePath(version))
 	tmpl, err := t.Funcs(map[string]interface{}{
-		"Trim": strings.TrimSpace,
+		"Trim":           strings.TrimSpace,
+		"EscapeMarkdown": markdownReplacer.Replace,
 	}).ParseFiles(docsTemplateFilePath(version))
 	if err != nil {
 		panic(err)

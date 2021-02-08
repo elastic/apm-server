@@ -78,7 +78,7 @@ Traces are written to `traces-apm.*` indices.
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 {{range .Traces -}}
-| {{- Trim .Name -}} | {{- Trim .Description -}} | {{- Trim .Type -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
+| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
 {{end}}
 
 #### Examples
@@ -102,7 +102,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 {{range .Metrics -}}
-| {{- Trim .Name -}} | {{- Trim .Description -}} | {{- Trim .Type -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
+| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
 {{end}}
 
 ### Example
@@ -121,7 +121,7 @@ Logs are written to `logs-apm.error.*` indices.
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 {{range .Logs -}}
-| {{- Trim .Name -}} | {{- Trim .Description -}} | {{- Trim .Type -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
+| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
 {{end}}
 
 ### Example
