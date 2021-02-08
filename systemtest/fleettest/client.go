@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 )
@@ -47,9 +46,8 @@ func (c *Client) Setup() error {
 			return err
 		}
 		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			body, _ := ioutil.ReadAll(resp.Body)
-			return fmt.Errorf("request failed (%s): %s", resp.Status, body)
+		if err := consumeResponse(resp, nil); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -62,14 +60,10 @@ func (c *Client) Agents() ([]Agent, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
 	var result struct {
 		List []Agent `json:"list"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := consumeResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result.List, nil
@@ -91,11 +85,7 @@ func (c *Client) BulkUnenrollAgents(force bool, agentIDs ...string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
-	return nil
+	return consumeResponse(resp, nil)
 }
 
 // AgentPolicies returns the Agent Policies matching the given KQL query.
@@ -112,14 +102,10 @@ func (c *Client) AgentPolicies(kuery string) ([]AgentPolicy, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
 	var result struct {
 		Items []AgentPolicy `json:"items"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := consumeResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result.Items, nil
@@ -140,11 +126,7 @@ func (c *Client) DeleteAgentPolicy(id string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
-	return nil
+	return consumeResponse(resp, nil)
 }
 
 // CreateAgentPolicy returns the default Agent Policy.
@@ -169,14 +151,10 @@ func (c *Client) CreateAgentPolicy(name, namespace, description string) (*AgentP
 		return nil, nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, nil, fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
 	var result struct {
 		Item AgentPolicy `json:"item"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := consumeResponse(resp, &result); err != nil {
 		return nil, nil, err
 	}
 	enrollmentAPIKey, err := c.getAgentPolicyEnrollmentAPIKey(result.Item.ID)
@@ -201,7 +179,7 @@ func (c *Client) getAgentPolicyEnrollmentAPIKey(policyID string) (*EnrollmentAPI
 	var result struct {
 		Item EnrollmentAPIKey `json:"item"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := consumeResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return &result.Item, nil
@@ -220,14 +198,10 @@ func (c *Client) enrollmentAPIKeys(kuery string) ([]EnrollmentAPIKey, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
 	var result struct {
 		Items []EnrollmentAPIKey `json:"list"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := consumeResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result.Items, nil
@@ -243,7 +217,7 @@ func (c *Client) ListPackages() ([]Package, error) {
 	var result struct {
 		Response []Package `json:"response"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := consumeResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result.Response, nil
@@ -256,14 +230,10 @@ func (c *Client) PackagePolicy(id string) (*PackagePolicy, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
 	var result struct {
 		Item PackagePolicy `json:"item"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := consumeResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return &result.Item, nil
@@ -281,11 +251,7 @@ func (c *Client) CreatePackagePolicy(p PackagePolicy) error {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
-	return nil
+	return consumeResponse(resp, nil)
 }
 
 // DeletePackagePolicy deletes one or more package policies.
@@ -304,11 +270,7 @@ func (c *Client) DeletePackagePolicy(ids ...string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("request failed (%s): %s", resp.Status, body)
-	}
-	return nil
+	return consumeResponse(resp, nil)
 }
 
 func (c *Client) newFleetRequest(method string, path string, body io.Reader) *http.Request {
@@ -319,4 +281,20 @@ func (c *Client) newFleetRequest(method string, path string, body io.Reader) *ht
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("kbn-xsrf", "1")
 	return req
+}
+
+func consumeResponse(resp *http.Response, out interface{}) error {
+	if resp.StatusCode != http.StatusOK {
+		var e Error
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return err
+		}
+		return &e
+	}
+	if out != nil {
+		if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+			return err
+		}
+	}
+	return nil
 }
