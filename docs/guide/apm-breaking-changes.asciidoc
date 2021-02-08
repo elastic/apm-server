@@ -39,9 +39,9 @@ No breaking changes.
 [[breaking-7.10.0]]
 === 7.10.0 APM Breaking changes
 
-// tag::notable-breaking-changes[]
+// tag::notable-v710-breaking-changes[]
 No breaking changes.
-// end::notable-breaking-changes[]
+// end::notable-v710-breaking-changes[]
 
 [[breaking-7.9.0]]
 === 7.9.0 APM Breaking changes
