@@ -19,14 +19,17 @@ package systemtest_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"path"
 	"path/filepath"
 	"runtime"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.elastic.co/apm"
@@ -170,6 +173,13 @@ func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
 			}
 			require.NoError(t, fleet.BulkUnenrollAgents(true, agentIDs...))
 		}
-		require.NoError(t, fleet.DeleteAgentPolicy(p.ID))
+		// BUG(axw) the Fleet API is returning 404 when deleting agent policies
+		// in some circumstances: https://github.com/elastic/kibana/issues/90544
+		err := fleet.DeleteAgentPolicy(p.ID)
+		require.Error(t, err)
+		var fleetError *fleettest.Error
+		if errors.As(err, &fleetError) {
+			assert.Equal(t, http.StatusNotFound, fleetError.StatusCode)
+		}
 	}
 }
