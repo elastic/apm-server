@@ -422,7 +422,7 @@ func TestUnpackConfig(t *testing.T) {
 			inpCfg, err := common.NewConfigFrom(test.inpCfg)
 			assert.NoError(t, err)
 
-			cfg, err := NewConfig(inpCfg, nil, nil)
+			cfg, err := NewConfig(inpCfg, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
 			if test.outCfg.JaegerConfig.GRPC.TLS != nil {
@@ -513,7 +513,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := NewConfig(ucfgCfg, nil, nil)
+				cfg, err := NewConfig(ucfgCfg, nil)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
 			})
@@ -545,19 +545,19 @@ func TestTLSSettings(t *testing.T) {
 
 func TestAgentConfig(t *testing.T) {
 	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil, nil)
+		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("InvalidUnit", func(t *testing.T) {
-		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil, nil)
+		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil, nil)
+		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
 		require.NoError(t, err)
 		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
 	})
@@ -568,7 +568,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	// no es config given
-	cfg, err := NewConfig(ucfg, nil, nil)
+	cfg, err := NewConfig(ucfg, nil)
 	require.NoError(t, err)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.APIKeyConfig.ESConfig)
@@ -576,7 +576,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 
 	// with es config
 	outputESCfg := common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
-	cfg, err = NewConfig(ucfg, nil, outputESCfg)
+	cfg, err = NewConfig(ucfg, outputESCfg)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))

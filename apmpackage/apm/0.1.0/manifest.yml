@@ -46,6 +46,13 @@ policy_templates:
         type: string
         title: API Key for Central Configuration
         required: false
+        description: Enter as <Id>:<API Key>
+        show_user: true
+      - name: sourcemap_api_key
+        type: string
+        title: API Key for Sourcemaps
+        required: false
+        description: Enter as <Id>:<API Key>
         show_user: true
     template_path: template.yml.hbs
 owner:

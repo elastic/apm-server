@@ -19,6 +19,7 @@ package kibana
 
 import (
 	"context"
+	"github.com/elastic/apm-server/beater/config"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -102,8 +103,11 @@ type rt struct {
 }
 
 var (
-	mockCfg = &kibana.ClientConfig{
-		Host: "non-existing",
+	mockCfg = &config.KibanaConfig{
+		Enabled: true,
+		ClientConfig: kibana.ClientConfig{
+			Host: "non-existing",
+		},
 	}
 	mockBody    = ioutil.NopCloser(convert.ToReader(`{"response": "ok"}`))
 	mockStatus  = http.StatusOK

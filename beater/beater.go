@@ -92,7 +92,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 		}
 
 		var err error
-		bt.config, err = config.NewConfig(bt.rawConfig, nil, elasticsearchOutputConfig(b))
+		bt.config, err = config.NewConfig(bt.rawConfig, elasticsearchOutputConfig(b))
 		if err != nil {
 			return nil, err
 		}
@@ -223,7 +223,7 @@ func (s *serverCreator) CheckConfig(cfg *common.Config) error {
 
 func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Config) (cfgfile.Runner, error) {
 	integrationConfig, err := config.NewIntegrationConfig(rawConfig)
-	if integrationConfig == nil || err != nil {
+	if err != nil {
 		return nil, err
 	}
 	var namespace string
@@ -285,10 +285,15 @@ type sharedServerRunnerParams struct {
 }
 
 func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunner, error) {
-	cfg, err := config.NewConfig(args.RawConfig, args.KibanaConfig, elasticsearchOutputConfig(args.Beat))
+	cfg, err := config.NewConfig(args.RawConfig, elasticsearchOutputConfig(args.Beat))
 	if err != nil {
 		return nil, err
 	}
+
+	if cfg.DataStreams.Enabled && args.KibanaConfig != nil {
+		cfg.Kibana.ClientConfig = *args.KibanaConfig
+	}
+
 	runServerContext, cancel := context.WithCancel(ctx)
 	return &serverRunner{
 		backgroundContext:      ctx,

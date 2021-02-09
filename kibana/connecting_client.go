@@ -19,6 +19,7 @@ package kibana
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"io"
 	"net/http"
@@ -152,7 +153,7 @@ func (c *ConnectingClient) connect() error {
 		return err
 	}
 	if c.cfg.APIKey != "" {
-		client.Headers["Authorization"] = []string{"ApiKey " + c.cfg.APIKey}
+		client.Headers["Authorization"] = []string{"ApiKey " + base64.StdEncoding.EncodeToString([]byte(c.cfg.APIKey))}
 		client.Username = ""
 		client.Password = ""
 	}

@@ -46,14 +46,13 @@ type KibanaConfig struct {
 }
 
 func (k *KibanaConfig) Unpack(cfg *common.Config) error {
-	var err error
-	if err = cfg.Unpack(&k.ClientConfig); err != nil {
+	type kibanaConfig KibanaConfig
+	if err := cfg.Unpack((*kibanaConfig)(k)); err != nil {
 		return err
 	}
 	k.Enabled = cfg.Enabled()
 	k.Host = strings.TrimRight(k.Host, "/")
-	k.APIKey, err = cfg.String("api_key", -1)
-	return err
+	return nil
 }
 
 func defaultKibanaConfig() KibanaConfig {
@@ -110,7 +109,7 @@ type Cache struct {
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
-func NewConfig(ucfg *common.Config, kibanaCfg *kibana.ClientConfig, outputESCfg *common.Config) (*Config, error) {
+func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
@@ -121,7 +120,7 @@ func NewConfig(ucfg *common.Config, kibanaCfg *kibana.ClientConfig, outputESCfg 
 		return nil, errors.New(msgInvalidConfigAgentCfg)
 	}
 
-	if err := c.RumConfig.setup(logger, outputESCfg); err != nil {
+	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
 		return nil, err
 	}
 
@@ -154,10 +153,6 @@ func NewConfig(ucfg *common.Config, kibanaCfg *kibana.ClientConfig, outputESCfg 
 			"apm-server.aggregation.transactions.enabled are both false, " +
 			"which will lead to incorrect metrics being reported in the APM UI",
 		)
-	}
-
-	if c.DataStreams.Enabled && kibanaCfg != nil {
-		c.Kibana.ClientConfig = *kibanaCfg
 	}
 
 	if c.DataStreams.Enabled || (outputESCfg != nil && (outputESCfg.HasField("pipeline") || outputESCfg.HasField("pipelines"))) {

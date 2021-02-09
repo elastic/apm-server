@@ -31,14 +31,14 @@ import (
 func TestNonzeroHosts(t *testing.T) {
 	t.Run("ZeroHost", func(t *testing.T) {
 		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{
-			"instrumentation.enabled": true, "instrumentation.hosts": []string{""}}), nil, nil)
+			"instrumentation.enabled": true, "instrumentation.hosts": []string{""}}), nil)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), ucfg.ErrZeroValue.Error())
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"instrumentation.enabled": true}), nil, nil)
+		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"instrumentation.enabled": true}), nil)
 		require.NoError(t, err)
 		assert.True(t, *cfg.SelfInstrumentation.Enabled)
 		assert.Empty(t, cfg.SelfInstrumentation.Hosts)
