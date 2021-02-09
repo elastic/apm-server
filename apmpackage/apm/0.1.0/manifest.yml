@@ -19,6 +19,7 @@ policy_templates:
 - name: apmserver
   title: Elastic APM Integration
   description: Elastic APM Integration
+  multiple: false
   inputs:
   - type: apm
     title: Collect application traces

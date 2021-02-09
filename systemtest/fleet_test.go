@@ -51,43 +51,14 @@ func TestFleetIntegration(t *testing.T) {
 	agentPolicy, enrollmentAPIKey, err := fleet.CreateAgentPolicy("apm_systemtest", "default", "Agent policy for APM Server system tests")
 	require.NoError(t, err)
 
-	// Find the "apm" package to install.
-	var apmPackage *fleettest.Package
-	packages, err := fleet.ListPackages()
-	require.NoError(t, err)
-	for _, pkg := range packages {
-		if pkg.Name == "apm" {
-			apmPackage = &pkg
-			break
-		}
-	}
-	require.NotNil(t, apmPackage)
-
 	// Add the "apm" integration to the agent policy.
-	packagePolicy := fleettest.PackagePolicy{
-		Name:          "apm",
-		Namespace:     "default",
-		Enabled:       true,
-		AgentPolicyID: agentPolicy.ID,
-	}
+	apmPackage := getAPMIntegrationPackage(t, fleet)
+	packagePolicy := fleettest.NewPackagePolicy(apmPackage, "apm", "default", agentPolicy.ID)
 	packagePolicy.Package.Name = apmPackage.Name
 	packagePolicy.Package.Version = apmPackage.Version
 	packagePolicy.Package.Title = apmPackage.Title
-	packagePolicy.Inputs = []fleettest.PackagePolicyInput{{
-		Type:    "apm",
-		Enabled: true,
-		Streams: []interface{}{},
-		Vars: map[string]interface{}{
-			"enable_rum": map[string]interface{}{
-				"type":  "bool",
-				"value": false,
-			},
-			"host": map[string]interface{}{
-				"type":  "string",
-				"value": ":8200",
-			},
-		},
-	}}
+	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage)
+
 	err = fleet.CreatePackagePolicy(packagePolicy)
 	require.NoError(t, err)
 
@@ -151,6 +122,71 @@ func TestFleetIntegration(t *testing.T) {
 	systemtest.Elasticsearch.ExpectDocs(t, "traces-*", nil)
 }
 
+func TestFleetPackageNonMultiple(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	fleet := fleettest.NewClient(systemtest.KibanaURL.String())
+	require.NoError(t, fleet.Setup())
+	cleanupFleet(t, fleet)
+	defer cleanupFleet(t, fleet)
+
+	agentPolicy, _, err := fleet.CreateAgentPolicy("apm_systemtest", "default", "Agent policy for APM Server system tests")
+	require.NoError(t, err)
+
+	apmPackage := getAPMIntegrationPackage(t, fleet)
+	packagePolicy := fleettest.NewPackagePolicy(apmPackage, "apm", "default", agentPolicy.ID)
+	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage)
+
+	err = fleet.CreatePackagePolicy(packagePolicy)
+	require.NoError(t, err)
+
+	// Attempting to add the "apm" integration to the agent policy twice should fail.
+	packagePolicy.Name = "apm-2"
+	err = fleet.CreatePackagePolicy(packagePolicy)
+	require.Error(t, err)
+	assert.EqualError(t, err, "Unable to create package policy. Package 'apm' already exists on this agent policy.")
+}
+
+func initAPMIntegrationPackagePolicyInputs(t *testing.T, packagePolicy *fleettest.PackagePolicy, apmPackage *fleettest.Package) {
+	assert.Len(t, apmPackage.PolicyTemplates, 1)
+	assert.Len(t, apmPackage.PolicyTemplates[0].Inputs, 1)
+	for _, input := range apmPackage.PolicyTemplates[0].Inputs {
+		vars := make(map[string]interface{})
+		for _, inputVar := range input.Vars {
+			varMap := map[string]interface{}{"type": inputVar.Type}
+			switch inputVar.Name {
+			case "host":
+				varMap["value"] = ":8200"
+			}
+			vars[inputVar.Name] = varMap
+		}
+		packagePolicy.Inputs = append(packagePolicy.Inputs, fleettest.PackagePolicyInput{
+			Type:    input.Type,
+			Enabled: true,
+			Streams: []interface{}{},
+			Vars:    vars,
+		})
+	}
+}
+
+func getAPMIntegrationPackage(t *testing.T, fleet *fleettest.Client) *fleettest.Package {
+	var apmPackage *fleettest.Package
+	packages, err := fleet.ListPackages()
+	require.NoError(t, err)
+	for _, pkg := range packages {
+		if pkg.Name != "apm" {
+			continue
+		}
+		// ListPackages does not return all package details,
+		// so we call Package to get them.
+		apmPackage, err = fleet.Package(pkg.Name, pkg.Version)
+		require.NoError(t, err)
+		return apmPackage
+	}
+	t.Fatal("could not find package 'apm'")
+	panic("unreachable")
+}
+
 func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
 	apmAgentPolicies, err := fleet.AgentPolicies("ingest-agent-policies.name:apm_systemtest")
 	require.NoError(t, err)
@@ -175,8 +211,7 @@ func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
 		}
 		// BUG(axw) the Fleet API is returning 404 when deleting agent policies
 		// in some circumstances: https://github.com/elastic/kibana/issues/90544
-		err := fleet.DeleteAgentPolicy(p.ID)
-		require.Error(t, err)
+		fleet.DeleteAgentPolicy(p.ID)
 		var fleetError *fleettest.Error
 		if errors.As(err, &fleetError) {
 			assert.Equal(t, http.StatusNotFound, fleetError.StatusCode)
