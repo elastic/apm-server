@@ -1,0 +1,4 @@
+- name: observer.id
+  type: keyword
+  description: |
+    The ID of the APM Server that indexed the sampled trace ID.
