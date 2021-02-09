@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 
 [float]
 ==== Bug fixes
+* Dynamic templates for labels are no longer repeated {pull}4695[4695]
 * Tail-based sampling policies are now always matched in the order given {pull}4685[4685]
 
 [float]
@@ -21,6 +22,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 * Support for reloading config in Fleet mode, gracefully stopping the HTTP server and starting a new one {pull}4623[4623]
 * Add a `_doc_count` field to transaction histogram docs {pull}4647[4647]
 * Upgrade Go to 1.15.7 {pull}4663[4663]
+* OpenTelemetry Protocol (OTLP) over gRPC is now supported on the standard endpoint (8200) {pull}4677[4677]
 
 [float]
 ==== Deprecated

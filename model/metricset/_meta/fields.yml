@@ -152,12 +152,14 @@
             - name: count
               type: long
               overwrite: true
+              description: Number of aggregated transactions.
             - name: sum
               type: group
               fields:
                 - name: us
                   type: long
                   overwrite: true 
+                  description: Aggregated transaction duration, in microseconds.
  
         - name: self_time
           type: group
@@ -167,21 +169,25 @@
             - name: count
               type: long
               overwrite: true 
+              description: Number of aggregated transactions.
             - name: sum
               type: group
               fields:
                 - name: us
                   type: long
                   overwrite: true 
+                  description: >
+                    Aggregated transaction duration, excluding the time periods where a
+                    direct child was running, in microseconds.
 
         - name: breakdown
           type: group
-          description: >
-            Counter for collected breakdowns for the transaction
           fields:
             - name: count
               type: long
               overwrite: true 
+              description: >
+                Counter for collected breakdowns for the transaction
 
         - name: root
           type: boolean
@@ -215,12 +221,16 @@
           - name: count
             type: long
             overwrite: true 
+            description: Number of aggregated spans.
           - name: sum
             type: group
             fields:
               - name: us
                 type: long
                 overwrite: true 
+                description: >
+                  Aggregated span duration, excluding the time periods where a
+                  direct child was running, in microseconds.
 
     - name: agent
       type: group
