@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 
 [float]
 ==== Bug fixes
+* Dynamic templates for labels are no longer repeated {pull}4695[4695]
 
 [float]
 ==== Intake API Changes
