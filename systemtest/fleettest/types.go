@@ -74,15 +74,33 @@ type PackagePolicyInput struct {
 }
 
 type Package struct {
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	Release     string `json:"release"`
-	Type        string `json:"type"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Download    string `json:"download"`
-	Path        string `json:"path"`
-	Status      string `json:"status"`
+	Name            string                  `json:"name"`
+	Version         string                  `json:"version"`
+	Release         string                  `json:"release"`
+	Type            string                  `json:"type"`
+	Title           string                  `json:"title"`
+	Description     string                  `json:"description"`
+	Download        string                  `json:"download"`
+	Path            string                  `json:"path"`
+	Status          string                  `json:"status"`
+	PolicyTemplates []PackagePolicyTemplate `json:"policy_templates"`
+}
+
+type PackagePolicyTemplate struct {
+	Inputs []PackagePolicyTemplateInput `json:"inputs"`
+}
+
+type PackagePolicyTemplateInput struct {
+	Type         string                          `json:"type"`
+	Title        string                          `json:"title"`
+	TemplatePath string                          `json:"template_path"`
+	Description  string                          `json:"description"`
+	Vars         []PackagePolicyTemplateInputVar `json:"vars"`
+}
+
+type PackagePolicyTemplateInputVar struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type EnrollmentAPIKey struct {
