@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/jaeger"
+	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/publish"
 )
@@ -117,19 +118,17 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 func newGRPCServer(
 	logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, tlsConfig *tls.Config,
 ) (*grpc.Server, error) {
-	// NOTE(axw) even if TLS is enabled we should not use grpc.Creds,
-	// as TLS is handled by the net/http server.
-	grpcOptions := []grpc.ServerOption{grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
-		apmgrpc.WithRecovery(),
-		apmgrpc.WithTracer(tracer))),
-	}
-	srv := grpc.NewServer(grpcOptions...)
-
 	// TODO(axw) share auth builder with beater/api.
 	authBuilder, err := authorization.NewBuilder(cfg)
 	if err != nil {
 		return nil, err
 	}
+
+	// NOTE(axw) even if TLS is enabled we should not use grpc.Creds, as TLS is handled by the net/http server.
+	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
+	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
+	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(apmInterceptor, authInterceptor))
+
 	var kibanaClient kibana.Client
 	var agentcfgFetcher *agentcfg.Fetcher
 	if cfg.Kibana.Enabled {
@@ -137,6 +136,9 @@ func newGRPCServer(
 		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
 	}
 	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, reporter, kibanaClient, agentcfgFetcher)
+	if err := otlp.RegisterGRPCServices(srv, reporter, logger); err != nil {
+		return nil, err
+	}
 	return srv, nil
 }
 

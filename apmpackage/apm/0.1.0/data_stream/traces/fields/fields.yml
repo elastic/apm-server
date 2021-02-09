@@ -1,7 +1,7 @@
 - name: child.id
   type: keyword
   description: |
-    The ID(s)s of the child event(s).
+    The ID(s) of the child event(s).
 - name: cloud.service.name
   level: extended
   type: keyword
@@ -126,10 +126,6 @@
   type: keyword
   description: |
     Generic designation of a span in the scope of a transaction.
-- name: span.self_time.count
-  type: long
-- name: span.self_time.sum.us
-  type: long
 - name: span.start.us
   type: long
   description: |
@@ -150,12 +146,6 @@
   type: long
   description: |
     Timestamp of the event in microseconds since Unix epoch.
-- name: transaction.breakdown.count
-  type: long
-- name: transaction.duration.count
-  type: long
-- name: transaction.duration.sum.us
-  type: long
 - name: transaction.duration.us
   type: long
   description: |
@@ -185,6 +175,8 @@
   dynamic: true
 - name: transaction.marks.*.*
   type: object
+  description: |
+    A user-defined mapping of groups of marks in milliseconds.
   dynamic: true
 - name: transaction.message.age.ms
   type: long
@@ -209,10 +201,6 @@
   type: boolean
   description: |
     Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
-- name: transaction.self_time.count
-  type: long
-- name: transaction.self_time.sum.us
-  type: long
 - name: transaction.span_count.dropped
   type: long
   description: The total amount of dropped spans for this transaction.
@@ -220,6 +208,3 @@
   type: keyword
   description: |
     Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
-- name: view spans
-  type: keyword
-  format: url

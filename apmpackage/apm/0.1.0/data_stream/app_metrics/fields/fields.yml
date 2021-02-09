@@ -26,6 +26,7 @@
     Kubernetes Pod UID
 - name: metricset.period
   type: long
+  description: Current data collection period for this event in milliseconds.
 - name: observer.listening
   type: keyword
   description: |
