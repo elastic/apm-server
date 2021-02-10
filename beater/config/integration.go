@@ -49,7 +49,7 @@ type IntegrationConfig struct {
 	Meta       *Meta          `config:"meta"`
 	DataStream *DataStream    `config:"data_stream"`
 	APMServer  *common.Config `config:"apm-server"`
-	Fleet      Fleet          `config:fleet`
+	Fleet      Fleet          `config:"fleet"`
 }
 
 type DataStream struct {
@@ -66,5 +66,5 @@ type Package struct {
 }
 
 type Fleet struct {
-	Kibana kibana.ClientConfig `config:kibana`
+	Kibana kibana.ClientConfig `config:"kibana"`
 }
