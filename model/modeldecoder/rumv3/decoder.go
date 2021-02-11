@@ -433,7 +433,7 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 
 func mapToPageModel(from contextPage, out *model.Page) {
 	if from.URL.IsSet() {
-		out.URL = model.ParseURL(from.URL.Val, "")
+		out.URL = model.ParseURL(from.URL.Val, "", "")
 	}
 	if from.Referer.IsSet() {
 		referer := from.Referer.Val
