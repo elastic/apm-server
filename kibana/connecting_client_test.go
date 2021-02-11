@@ -46,9 +46,9 @@ func TestNewConnectingClientWithAPIKey(t *testing.T) {
 		Enabled: true,
 		APIKey:  "foo-id:bar-apikey",
 		ClientConfig: kibana.ClientConfig{
-			Host:     "localhost:5601",
-			Username: "elastic",
-			Password: "secret",
+			Host:          "localhost:5601",
+			Username:      "elastic",
+			Password:      "secret",
 			IgnoreVersion: true,
 		},
 	}
