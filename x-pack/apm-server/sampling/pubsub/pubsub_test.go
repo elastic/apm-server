@@ -28,9 +28,14 @@ import (
 
 func TestPublishSampledTraceIDs(t *testing.T) {
 	const (
-		indexName = "trace-ids"
-		beatID    = "beat_id"
+		beatID = "beat_id"
 	)
+
+	dataStream := pubsub.DataStreamConfig{
+		Type:      "traces",
+		Dataset:   "sampled",
+		Namespace: "testing",
+	}
 
 	requests := make(chan *http.Request, 1)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +59,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 	pub, err := pubsub.New(pubsub.Config{
 		Client:         client,
-		Index:          indexName,
+		DataStream:     dataStream,
 		BeatID:         beatID,
 		FlushInterval:  time.Millisecond,
 		SearchInterval: time.Minute,
@@ -83,7 +88,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 		case <-deadlineTimer.C:
 			t.Fatal("timed out waiting for events to be received by server")
 		case req := <-requests:
-			require.Equal(t, fmt.Sprintf("/%s/_bulk", indexName), req.URL.Path)
+			require.Equal(t, fmt.Sprintf("/%s/_bulk", dataStream.String()), req.URL.Path)
 
 			d := json.NewDecoder(req.Body)
 			for {
@@ -93,11 +98,15 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 					break
 				}
 				assert.NoError(t, err)
-				assert.Equal(t, map[string]interface{}{"index": map[string]interface{}{}}, action)
+				assert.Equal(t, map[string]interface{}{"create": map[string]interface{}{}}, action)
 
 				doc := make(map[string]interface{})
 				assert.NoError(t, d.Decode(&doc))
+				assert.Contains(t, doc, "@timestamp")
 				assert.Equal(t, map[string]interface{}{"id": beatID}, doc["observer"])
+				assert.Equal(t, dataStream.Type, doc["data_stream.type"])
+				assert.Equal(t, dataStream.Dataset, doc["data_stream.dataset"])
+				assert.Equal(t, dataStream.Namespace, doc["data_stream.namespace"])
 
 				trace := doc["trace"].(map[string]interface{})
 				traceID := trace["id"].(string)
@@ -105,8 +114,13 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 				delete(trace, "id")
 				assert.Empty(t, trace) // no other fields in "trace"
 
+				delete(doc, "@timestamp")
+				delete(doc, "data_stream.type")
+				delete(doc, "data_stream.dataset")
+				delete(doc, "data_stream.namespace")
 				delete(doc, "observer")
 				delete(doc, "trace")
+
 				assert.Empty(t, doc) // no other fields in doc
 			}
 		}
@@ -119,9 +133,14 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 func TestSubscribeSampledTraceIDs(t *testing.T) {
 	const (
-		indexName = "trace-ids"
-		beatID    = "beat_id"
+		beatID = "beat_id"
 	)
+
+	dataStream := pubsub.DataStreamConfig{
+		Type:      "traces",
+		Dataset:   "sampled",
+		Namespace: "default",
+	}
 
 	var requests []*http.Request
 	responses := make(chan string)
@@ -148,7 +167,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	sub, err := pubsub.New(pubsub.Config{
 		Client:         client,
-		Index:          indexName,
+		DataStream:     dataStream,
 		BeatID:         beatID,
 		FlushInterval:  time.Minute,
 		SearchInterval: time.Millisecond,
@@ -221,7 +240,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	var bodies []string
 	for _, r := range requests {
-		assert.Equal(t, fmt.Sprintf("/%s/_search", indexName), r.URL.Path)
+		assert.Equal(t, fmt.Sprintf("/%s/_search", dataStream.String()), r.URL.Path)
 
 		var buf bytes.Buffer
 		io.Copy(&buf, r.Body)
