@@ -721,11 +721,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210127035151-756705629924
+Version: v7.11.1-0.20210210172220-9b2fecb327a2
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210127035151-756705629924/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.11.1-0.20210210172220-9b2fecb327a2/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -3651,11 +3651,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm
-Version: v1.10.0
+Version: v1.11.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.10.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm@v1.11.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4623,11 +4623,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.0.0-20200625203802-6e8e738ad208
+Version: v0.0.0-20201207232520-09787c993a3a
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.0.0-20200625203802-6e8e738ad208/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.0.0-20201207232520-09787c993a3a/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -8923,11 +8923,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-structform@v
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-sysinfo
-Version: v1.5.0
+Version: v1.6.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.5.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.6.0/LICENSE.txt:
 
 
                                  Apache License
@@ -10527,11 +10527,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/google/go-cmp
-Version: v0.5.2
+Version: v0.5.4
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/google/go-cmp@v0.5.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/google/go-cmp@v0.5.4/LICENSE:
 
 Copyright (c) 2017 The Go Authors. All rights reserved.
 
@@ -13228,11 +13228,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/procfs
-Version: v0.3.0
+Version: v0.6.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/procfs@v0.3.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/prometheus/procfs@v0.6.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -14573,11 +14573,11 @@ Contents of probable licence file $GOMODCACHE/github.com/xdg/stringprep@v1.0.0/L
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/ecszap
-Version: v0.3.0
+Version: v1.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v0.3.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v1.0.0/LICENSE:
 
 
                                  Apache License
