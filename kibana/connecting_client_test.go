@@ -49,6 +49,7 @@ func TestNewConnectingClientWithAPIKey(t *testing.T) {
 			Host:     "localhost:5601",
 			Username: "elastic",
 			Password: "secret",
+			IgnoreVersion: true,
 		},
 	}
 	conn := &ConnectingClient{cfg: cfg}
