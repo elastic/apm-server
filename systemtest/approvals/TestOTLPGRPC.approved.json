@@ -26,6 +26,9 @@
                 "name": "transaction"
             },
             "service": {
+                "framework": {
+                    "name": "systemtest"
+                },
                 "language": {
                     "name": "unknown"
                 },

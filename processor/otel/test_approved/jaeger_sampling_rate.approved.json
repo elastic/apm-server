@@ -9,7 +9,7 @@
             "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host-abc",
@@ -36,7 +36,6 @@
                     "us": 79000000
                 },
                 "id": "",
-                "result": "Success",
                 "sampled": true,
                 "type": "custom"
             }
@@ -50,7 +49,7 @@
             "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host-abc",
@@ -81,7 +80,6 @@
                     "us": 79000000
                 },
                 "id": "",
-                "result": "Success",
                 "sampled": true,
                 "type": "custom"
             }
@@ -122,7 +120,7 @@
                     "us": 79000000
                 },
                 "name": "",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576500418000768
