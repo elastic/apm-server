@@ -55,7 +55,6 @@
             },
             "id": "5025e08c7fef6542",
             "name": "test_span",
-            "result": "Success",
             "sampled": true,
             "type": "custom"
         }

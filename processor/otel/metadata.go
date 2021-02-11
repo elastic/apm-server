@@ -20,6 +20,7 @@ package otel
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -29,12 +30,20 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
+const (
+	AgentNameJaeger = "Jaeger"
+)
+
+var (
+	serviceNameInvalidRegexp = regexp.MustCompile("[^a-zA-Z0-9 _-]")
+)
+
 func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 	var exporterVersion string
 	resource.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
 		switch k {
 		case conventions.AttributeServiceName:
-			out.Service.Name = truncate(v.StringVal())
+			out.Service.Name = cleanServiceName(v.StringVal())
 		case conventions.AttributeServiceVersion:
 			out.Service.Version = truncate(v.StringVal())
 		case conventions.AttributeServiceInstance:
@@ -83,7 +92,7 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 		if v := versionParts[len(versionParts)-1]; v != "" {
 			out.Service.Agent.Version = v
 		}
-		out.Service.Agent.Name = "Jaeger"
+		out.Service.Agent.Name = AgentNameJaeger
 
 		// Translate known Jaeger labels.
 		if clientUUID, ok := out.Labels["client-uuid"].(string); ok {
@@ -113,6 +122,10 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 	} else {
 		out.Service.Language.Name = "unknown"
 	}
+}
+
+func cleanServiceName(name string) string {
+	return serviceNameInvalidRegexp.ReplaceAllString(truncate(name), "_")
 }
 
 func ifaceAttributeValue(v pdata.AttributeValue) interface{} {
