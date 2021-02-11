@@ -9,7 +9,7 @@
             "data_stream.dataset": "apm",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "processor": {
                 "event": "transaction",
@@ -32,7 +32,6 @@
                     "us": 0
                 },
                 "id": "0000000041414646",
-                "result": "Success",
                 "sampled": true,
                 "type": "custom"
             }
