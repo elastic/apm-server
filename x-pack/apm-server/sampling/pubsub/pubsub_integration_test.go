@@ -35,11 +35,16 @@ const (
 func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 	const (
 		localBeatID = "local_beat_id"
-		indexName   = "apm-testing-sampled-traces"
 	)
 
+	dataStream := pubsub.DataStreamConfig{
+		Type:      "apm",
+		Dataset:   "sampled_traces",
+		Namespace: "testing",
+	}
+
 	client := newElasticsearchClient(t)
-	recreateIndex(t, client, indexName)
+	recreateDataStream(t, client, dataStream)
 
 	var input []string
 	for i := 0; i < 50; i++ {
@@ -48,7 +53,7 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 
 	es, err := pubsub.New(pubsub.Config{
 		Client:         client,
-		Index:          indexName,
+		DataStream:     dataStream,
 		BeatID:         localBeatID,
 		FlushInterval:  100 * time.Millisecond,
 		SearchInterval: time.Minute,
@@ -76,7 +81,7 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 	for {
 		size := len(input) + 1
 		resp, err := esapi.SearchRequest{
-			Index: []string{indexName},
+			Index: []string{dataStream.String()},
 			Size:  &size,
 		}.Do(context.Background(), client)
 		require.NoError(t, err)
@@ -105,15 +110,20 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 	const (
 		localBeatID  = "local_observer_id"
 		remoteBeatID = "remote_observer_id"
-		indexName    = "apm-testing-sampled-traces"
 	)
 
+	dataStream := pubsub.DataStreamConfig{
+		Type:      "apm",
+		Dataset:   "sampled_traces",
+		Namespace: "testing",
+	}
+
 	client := newElasticsearchClient(t)
-	recreateIndex(t, client, indexName)
+	recreateDataStream(t, client, dataStream)
 
 	es, err := pubsub.New(pubsub.Config{
 		Client:         client,
-		Index:          indexName,
+		DataStream:     dataStream,
 		BeatID:         localBeatID,
 		FlushInterval:  time.Minute,
 		SearchInterval: 100 * time.Millisecond,
@@ -154,7 +164,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 			assert.NoError(t, enc.Encode(&doc))
 		}
 		resp, err := esapi.BulkRequest{
-			Index: indexName,
+			Index: dataStream.String(),
 			Body:  &body,
 		}.Do(context.Background(), client)
 		require.NoError(t, err)
@@ -188,7 +198,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 	}
 }
 
-func recreateIndex(tb testing.TB, client elasticsearch.Client, indexName string) {
+func recreateDataStream(tb testing.TB, client elasticsearch.Client, dataStream pubsub.DataStreamConfig) {
 	body := strings.NewReader(`{
   "mappings": {
     "properties": {
@@ -207,14 +217,19 @@ func recreateIndex(tb testing.TB, client elasticsearch.Client, indexName string)
   }
 }`)
 
+	// NOTE(aww) we cheat and create an index, rather than a
+	// data stream. System tests will test with data streams,
+	// and will pick up any resulting discrepancies.
+
+	name := dataStream.String()
 	resp, err := esapi.IndicesDeleteRequest{
-		Index: []string{indexName},
+		Index: []string{dataStream.String()},
 	}.Do(context.Background(), client)
 	require.NoError(tb, err)
 	resp.Body.Close()
 
 	resp, err = esapi.IndicesCreateRequest{
-		Index: indexName,
+		Index: name,
 		Body:  body,
 	}.Do(context.Background(), client)
 	require.NoError(tb, err)

@@ -47,7 +47,7 @@ func New(config Config) (*Pubsub, error) {
 		config.Logger = logp.NewLogger(logs.Sampling)
 	}
 	indexer, err := config.Client.NewBulkIndexer(elasticsearch.BulkIndexerConfig{
-		Index:         config.Index,
+		Index:         config.DataStream.String(),
 		FlushInterval: config.FlushInterval,
 		OnError: func(ctx context.Context, err error) {
 			config.Logger.With(logp.Error(err)).Debug("publishing sampled trace IDs failed")
@@ -61,17 +61,12 @@ func New(config Config) (*Pubsub, error) {
 
 // PublishSampledTraceIDs bulk indexes traceIDs into Elasticsearch.
 func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceID ...string) error {
+	now := time.Now()
 	for _, id := range traceID {
-		var doc traceIDDocument
-		doc.Observer.ID = p.config.BeatID
-		doc.Trace.ID = id
-
 		var json fastjson.Writer
-		if err := doc.MarshalFastJSON(&json); err != nil {
-			return err
-		}
+		p.marshalTraceIDDocument(&json, id, now, p.config.DataStream)
 		if err := p.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
-			Action:    "index",
+			Action:    "create",
 			Body:      bytes.NewReader(json.Bytes()),
 			OnFailure: p.onBulkIndexerItemFailure,
 		}); err != nil {
@@ -82,7 +77,7 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceID ...string) 
 }
 
 func (p *Pubsub) onBulkIndexerItemFailure(ctx context.Context, item elasticsearch.BulkIndexerItem, resp elasticsearch.BulkIndexerResponseItem, err error) {
-	p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace ID failed")
+	p.config.Logger.With(logp.Error(err)).Debug("publishing sampled trace ID failed", resp.Error)
 }
 
 // SubscribeSampledTraceIDs subscribes to new sampled trace IDs, sending them to the
@@ -146,7 +141,7 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, lastSeqN
 	}
 
 	req := esapi.SearchRequest{
-		Index: []string{p.config.Index},
+		Index: []string{p.config.DataStream.String()},
 		Body:  esutil.NewJSONReader(searchBody),
 	}
 	resp, err := req.Do(ctx, p.config.Client)
@@ -201,6 +196,23 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, lastSeqN
 	return n, nil
 }
 
+func (p *Pubsub) marshalTraceIDDocument(w *fastjson.Writer, traceID string, timestamp time.Time, dataStream DataStreamConfig) {
+	w.RawString(`{"@timestamp":"`)
+	w.Time(timestamp.UTC(), time.RFC3339Nano)
+	w.RawString(`","data_stream.type":`)
+	w.String(dataStream.Type)
+	w.RawString(`,"data_stream.dataset":`)
+	w.String(dataStream.Dataset)
+	w.RawString(`,"data_stream.namespace":`)
+	w.String(dataStream.Namespace)
+	w.RawString(`,"observer":{"id":`)
+	w.String(p.config.BeatID)
+	w.RawString(`},`)
+	w.RawString(`"trace":{"id":`)
+	w.String(traceID)
+	w.RawString(`}}`)
+}
+
 type traceIDDocument struct {
 	// Observer identifies the entity (typically an APM Server) that observed
 	// and indexed the/ trace ID document. This can be used to filter out local
@@ -217,8 +229,11 @@ type traceIDDocument struct {
 	} `json:"trace"`
 }
 
+/*
 func (d *traceIDDocument) MarshalFastJSON(w *fastjson.Writer) error {
-	w.RawString(`{"observer":{"id":`)
+	w.RawString(`{"@timestamp":"`)
+	w.Time(d.Timestamp, time.RFC3339Nano)
+	w.RawString(`","observer":{"id":`)
 	w.String(d.Observer.ID)
 	w.RawString(`},`)
 	w.RawString(`"trace":{"id":`)
@@ -226,3 +241,4 @@ func (d *traceIDDocument) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawString(`}}`)
 	return nil
 }
+*/
