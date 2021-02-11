@@ -6,6 +6,8 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 [float]
 ==== Breaking Changes
 * Leading 0s are no longer removed from trace/span ids if they are created by Jaeger {pull}4671[4671]
+* Jaeger spans will now have a type of "app" where they previously were "custom" {pull}4711[4711]
+* Jaeger spans may now have a (more accurate) outcome of "unknown" where they previously were "success" {pull}4711[4711]
 
 [float]
 ==== Bug fixes

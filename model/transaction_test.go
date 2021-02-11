@@ -240,7 +240,7 @@ func TestTransactionTransformPage(t *testing.T) {
 				Type:     "tx",
 				Duration: 65.98,
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},
@@ -259,9 +259,9 @@ func TestTransactionTransformPage(t *testing.T) {
 				Type:      "tx",
 				Timestamp: time.Now(),
 				Duration:  65.98,
-				URL:       ParseURL("https://localhost:8200/", ""),
+				URL:       ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},
