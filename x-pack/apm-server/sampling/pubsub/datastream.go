@@ -58,6 +58,9 @@ func SetupDataStream(
 	return nil
 }
 
+// NOTE(axw) these replicate the index template and ILM policy created by Fleet,
+// and should be kept in sync with apmpackage/apm/.../data_stream/sampled_traces.
+
 const ilmPolicy = `{
   "policy": {
     "phases": {

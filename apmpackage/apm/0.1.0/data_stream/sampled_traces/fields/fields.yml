@@ -1,3 +1,5 @@
+# When changing fields or ILM policy, make sure to update
+# x-pack/apm-server/sampling/pubsub/datastream.go.
 - name: observer.id
   type: keyword
   description: |
