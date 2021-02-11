@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,18 +51,11 @@ func TestNewConnectingClientWithAPIKey(t *testing.T) {
 			Password: "secret",
 		},
 	}
-	conn := NewConnectingClient(cfg)
+	conn := &ConnectingClient{cfg: cfg}
 	require.NotNil(t, conn)
-
-	client := conn.(*ConnectingClient).client
-	for i := 0; i < 20; i++ {
-		if client != nil {
-			break
-		}
-		time.Sleep(time.Millisecond * 100)
-		client = conn.(*ConnectingClient).client
-	}
-
+	err := conn.connect()
+	require.NoError(t, err)
+	client := conn.client
 	require.NotNil(t, client)
 	assert.Equal(t, "", client.Username)
 	assert.Equal(t, "", client.Password)
