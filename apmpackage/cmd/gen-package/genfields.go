@@ -19,6 +19,7 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
 	"net/http"
 	"path/filepath"
 	"sort"
@@ -42,6 +43,7 @@ func generateFields(version string) map[string][]field {
 	inputFieldsFiles["app_metrics"] = filterInternalMetrics(inputFieldsFiles["internal_metrics"])
 
 	for streamType, inputFields := range inputFieldsFiles {
+		log.Printf("%s", streamType)
 		var ecsFields []field
 		var nonECSFields []field
 		for _, fields := range populateECSInfo(ecsFlatFields, inputFields) {

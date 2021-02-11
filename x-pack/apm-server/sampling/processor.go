@@ -329,10 +329,10 @@ func (p *Processor) Run() error {
 	}
 
 	pubsub, err := pubsub.New(pubsub.Config{
-		BeatID: p.config.BeatID,
-		Client: p.config.Elasticsearch,
-		Index:  p.config.SampledTracesIndex,
-		Logger: p.logger,
+		BeatID:     p.config.BeatID,
+		Client:     p.config.Elasticsearch,
+		DataStream: pubsub.DataStreamConfig(p.config.SampledTracesDataStream),
+		Logger:     p.logger,
 
 		// Issue pubsub subscriber search requests at twice the frequency
 		// of publishing, so each server observes each other's sampled

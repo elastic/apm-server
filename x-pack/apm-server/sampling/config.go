@@ -11,6 +11,7 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
 // Config holds configuration for Processor.
@@ -60,9 +61,21 @@ type RemoteSamplingConfig struct {
 	// and subscribing to remote sampling decisions.
 	Elasticsearch elasticsearch.Client
 
-	// SampledTracesIndex holds the name of the Elasticsearch index for
-	// storing and searching sampled trace IDs.
-	SampledTracesIndex string
+	// SampledTracesDataStream holds the identifiers for the Elasticsearch
+	// data stream for storing and searching sampled trace IDs.
+	SampledTracesDataStream DataStreamConfig
+}
+
+// DataStreamConfig holds configuration to identify a data stream.
+type DataStreamConfig struct {
+	// Type holds the data stream's type.
+	Type string
+
+	// Dataset holds the data stream's dataset.
+	Dataset string
+
+	// Namespace holds the data stream's namespace.
+	Namespace string
 }
 
 // StorageConfig holds Processor configuration related to event storage.
@@ -175,10 +188,14 @@ func (config RemoteSamplingConfig) validate() error {
 	if config.Elasticsearch == nil {
 		return errors.New("Elasticsearch unspecified")
 	}
-	if config.SampledTracesIndex == "" {
-		return errors.New("SampledTracesIndex unspecified")
+	if err := config.SampledTracesDataStream.validate(); err != nil {
+		return errors.New("SampledTracesDataStream unspecified or invalid")
 	}
 	return nil
+}
+
+func (config DataStreamConfig) validate() error {
+	return pubsub.DataStreamConfig(config).Validate()
 }
 
 func (config StorageConfig) validate() error {

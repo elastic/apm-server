@@ -52,6 +52,12 @@ type ServerParams struct {
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
 
+	// Managed indicates that the server is managed by Fleet.
+	Managed bool
+
+	// Namespace holds the data stream namespace for the server.
+	Namespace string
+
 	// Logger is the logger for the beater component.
 	Logger *logp.Logger
 
