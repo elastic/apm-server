@@ -26,6 +26,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/beater/config"
+
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/kibana"
 
@@ -37,6 +39,28 @@ func TestNewConnectingClientFrom(t *testing.T) {
 	require.NotNil(t, c)
 	assert.Nil(t, c.(*ConnectingClient).client)
 	assert.Equal(t, mockCfg, c.(*ConnectingClient).cfg)
+}
+
+func TestNewConnectingClientWithAPIKey(t *testing.T) {
+	cfg := &config.KibanaConfig{
+		Enabled: true,
+		APIKey:  "foo-id:bar-apikey",
+		ClientConfig: kibana.ClientConfig{
+			Host:          "localhost:5601",
+			Username:      "elastic",
+			Password:      "secret",
+			IgnoreVersion: true,
+		},
+	}
+	conn := &ConnectingClient{cfg: cfg}
+	require.NotNil(t, conn)
+	err := conn.connect()
+	require.NoError(t, err)
+	client := conn.client
+	require.NotNil(t, client)
+	assert.Equal(t, "", client.Username)
+	assert.Equal(t, "", client.Password)
+	assert.Equal(t, "ApiKey Zm9vLWlkOmJhci1hcGlrZXk=", client.Headers.Get("Authorization"))
 }
 
 func TestConnectingClient_Send(t *testing.T) {
@@ -102,8 +126,11 @@ type rt struct {
 }
 
 var (
-	mockCfg = &kibana.ClientConfig{
-		Host: "non-existing",
+	mockCfg = &config.KibanaConfig{
+		Enabled: true,
+		ClientConfig: kibana.ClientConfig{
+			Host: "non-existing",
+		},
 	}
 	mockBody    = ioutil.NopCloser(convert.ToReader(`{"response": "ok"}`))
 	mockStatus  = http.StatusOK

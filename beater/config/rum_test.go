@@ -20,6 +20,12 @@ package config
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,6 +41,22 @@ func TestIsRumEnabled(t *testing.T) {
 		assert.Equal(t, td.enabled, td.c.RumConfig.IsEnabled())
 
 	}
+}
+
+func TestRumSetup(t *testing.T) {
+	rum := defaultRum()
+	rum.SourceMapping.esConfigured = true
+	rum.Enabled = &rum.SourceMapping.esConfigured
+	rum.SourceMapping.ESConfig = &elasticsearch.Config{APIKey: "id:apikey"}
+	esCfg := common.MustNewConfigFrom(map[string]interface{}{
+		"hosts": []interface{}{"cloud:9200"},
+	})
+
+	err := rum.setup(logp.NewLogger("test"), true, esCfg)
+
+	require.NoError(t, err)
+	assert.Equal(t, elasticsearch.Hosts{"cloud:9200"}, rum.SourceMapping.ESConfig.Hosts)
+	assert.Equal(t, "id:apikey", rum.SourceMapping.ESConfig.APIKey)
 }
 
 func TestDefaultRum(t *testing.T) {
