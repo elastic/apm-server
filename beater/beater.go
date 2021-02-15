@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/beats/v7/libbeat/kibana"
+
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
@@ -184,6 +186,7 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 			inputs.Stop()
 		}
 		reload.Register.MustRegisterList("inputs", inputs)
+
 	} else {
 		// Management disabled, use statically defined config.
 		s, err := newServerRunner(ctx, serverRunnerParams{
@@ -233,6 +236,7 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 		sharedServerRunnerParams: s.args,
 		Namespace:                namespace,
 		Pipeline:                 p,
+		KibanaConfig:             &integrationConfig.Fleet.Kibana,
 		RawConfig:                apmServerCommonConfig,
 	})
 }
@@ -265,9 +269,10 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace string
-	Pipeline  beat.PipelineConnector
-	RawConfig *common.Config
+	Namespace    string
+	Pipeline     beat.PipelineConnector
+	KibanaConfig *kibana.ClientConfig
+	RawConfig    *common.Config
 }
 
 type sharedServerRunnerParams struct {
@@ -284,6 +289,11 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	if err != nil {
 		return nil, err
 	}
+
+	if cfg.DataStreams.Enabled && args.KibanaConfig != nil {
+		cfg.Kibana.ClientConfig = *args.KibanaConfig
+	}
+
 	runServerContext, cancel := context.WithCancel(ctx)
 	return &serverRunner{
 		backgroundContext:      ctx,
