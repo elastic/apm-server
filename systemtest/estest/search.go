@@ -71,6 +71,11 @@ func (r *SearchRequest) WithQuery(q interface{}) *SearchRequest {
 	return r
 }
 
+func (r *SearchRequest) WithSort(fieldDirection ...string) *SearchRequest {
+	r.Sort = fieldDirection
+	return r
+}
+
 func (r *SearchRequest) WithSize(size int) *SearchRequest {
 	r.Size = &size
 	return r

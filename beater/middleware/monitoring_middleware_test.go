@@ -40,8 +40,10 @@ func TestMonitoringHandler(t *testing.T) {
 		expected map[request.ResultID]int,
 		m map[request.ResultID]*monitoring.Int,
 	) {
+		beatertest.ClearRegistry(m)
 		c, _ := beatertest.DefaultContextWithResponseRecorder()
-		equal, result := beatertest.CompareMonitoringInt(Apply(MonitoringMiddleware(m), h), c, expected, m)
+		Apply(MonitoringMiddleware(m), h)(c)
+		equal, result := beatertest.CompareMonitoringInt(expected, m)
 		assert.True(t, equal, result)
 	}
 

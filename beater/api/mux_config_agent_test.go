@@ -19,15 +19,12 @@ package api
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/config/agent"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -72,27 +69,16 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 }
 
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
-	h := testHandler(t, backendAgentConfigHandler)
-	rec := &beatertest.WriterPanicOnce{}
-	c := request.NewContext()
-	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-	h(c)
-	require.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+	testPanicMiddleware(t, "/config/v1/agents", approvalPathConfigAgent(t.Name()))
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
-	h := testHandler(t, backendAgentConfigHandler)
-	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
-
-	expected := map[request.ResultID]int{
+	testMonitoringMiddleware(t, "/config/v1/agents", agent.MonitoringMap, map[request.ResultID]int{
 		request.IDRequestCount:            1,
 		request.IDResponseCount:           1,
 		request.IDResponseErrorsCount:     1,
-		request.IDResponseErrorsForbidden: 1}
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, agent.MonitoringMap)
-	assert.True(t, equal, result)
-
+		request.IDResponseErrorsForbidden: 1,
+	})
 }
 
 func configEnabledConfigAgent() *config.Config {

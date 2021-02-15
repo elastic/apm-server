@@ -91,7 +91,7 @@ func newElasticsearchConfig() elasticsearch.Config {
 // and deletes the default ILM policy "apm-rollover-30-days".
 func CleanupElasticsearch(t testing.TB) {
 	const (
-		legacyPrefix     = "apm*"
+		legacyPrefix     = "apm-*"
 		apmTracesPrefix  = "traces-apm*"
 		apmMetricsPrefix = "metrics-apm*"
 		apmLogsPrefix    = "logs-apm*"
@@ -106,6 +106,7 @@ func CleanupElasticsearch(t testing.TB) {
 	}
 
 	doParallel := func(requests ...estest.Request) {
+		t.Helper()
 		var g errgroup.Group
 		for _, req := range requests {
 			req := req // copy for closure
@@ -115,18 +116,20 @@ func CleanupElasticsearch(t testing.TB) {
 			t.Fatal(err)
 		}
 	}
+
+	// Delete indices, data streams, and ingest pipelines.
+	doReq(esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}})
 	doParallel(
-		esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}},
+		esapi.IndicesDeleteDataStreamRequest{Name: legacyPrefix},
 		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
 		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
 		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
 		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
-		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
 	)
 
 	// Delete index templates after deleting data streams.
 	doParallel(
-		esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}, // for index template created by tests
+		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
 		esapi.IndicesDeleteIndexTemplateRequest{Name: apmTracesPrefix},
 		esapi.IndicesDeleteIndexTemplateRequest{Name: apmMetricsPrefix},
 		esapi.IndicesDeleteIndexTemplateRequest{Name: apmLogsPrefix},

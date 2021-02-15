@@ -19,12 +19,15 @@ package kibana
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/elastic/apm-server/beater/config"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
@@ -58,12 +61,12 @@ type Client interface {
 type ConnectingClient struct {
 	m      sync.RWMutex
 	client *kibana.Client
-	cfg    *kibana.ClientConfig
+	cfg    *config.KibanaConfig
 }
 
 // NewConnectingClient returns instance of ConnectingClient and starts a background routine trying to connect
 // to configured Kibana instance, using JitterBackoff for establishing connection.
-func NewConnectingClient(cfg *kibana.ClientConfig) Client {
+func NewConnectingClient(cfg *config.KibanaConfig) Client {
 	c := &ConnectingClient{cfg: cfg}
 	go func() {
 		log := logp.NewLogger(logs.Kibana)
@@ -124,7 +127,7 @@ func (c *ConnectingClient) SupportsVersion(ctx context.Context, v *common.Versio
 	if !retry || upToDate {
 		return upToDate, nil
 	}
-	client, err := kibana.NewClientWithConfig(c.cfg)
+	client, err := kibana.NewClientWithConfig(c.clientConfig())
 	if err != nil {
 		log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
 		return upToDate, err
@@ -145,11 +148,23 @@ func (c *ConnectingClient) connect() error {
 	if c.client != nil {
 		return nil
 	}
-	client, err := kibana.NewClientWithConfig(c.cfg)
+	client, err := kibana.NewClientWithConfig(c.clientConfig())
 	if err != nil {
 		return err
 	}
+	if c.cfg.APIKey != "" {
+		client.Headers["Authorization"] = []string{"ApiKey " + base64.StdEncoding.EncodeToString([]byte(c.cfg.APIKey))}
+		client.Username = ""
+		client.Password = ""
+	}
 	client.HTTP = apmhttp.WrapClient(client.HTTP)
 	c.client = client
+	return nil
+}
+
+func (c *ConnectingClient) clientConfig() *kibana.ClientConfig {
+	if c != nil && c.cfg != nil {
+		return &c.cfg.ClientConfig
+	}
 	return nil
 }
