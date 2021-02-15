@@ -19,7 +19,6 @@ package api
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +26,6 @@ import (
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/root"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -54,29 +52,16 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 }
 
 func TestRootHandler_PanicMiddleware(t *testing.T) {
-	h := testHandler(t, rootHandler)
-	rec := &beatertest.WriterPanicOnce{}
-	c := request.NewContext()
-	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-	h(c)
-
-	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvaltest.ApproveJSON(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
+	testPanicMiddleware(t, "/", approvalPathRoot(t.Name()))
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
-	h := testHandler(t, rootHandler)
-	c, _ := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
-
-	// send GET request resulting in 403 Forbidden error as RUM is disabled by default
-	expected := map[request.ResultID]int{
+	testMonitoringMiddleware(t, "/", root.MonitoringMap, map[request.ResultID]int{
 		request.IDRequestCount:       1,
 		request.IDResponseCount:      1,
 		request.IDResponseValidCount: 1,
-		request.IDResponseValidOK:    1}
-
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, root.MonitoringMap)
-	assert.True(t, equal, result)
+		request.IDResponseValidOK:    1,
+	})
 }
 
 func approvalPathRoot(f string) string { return "root/test_approved/integration/" + f }
