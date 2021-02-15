@@ -151,7 +151,7 @@ type middlewareFunc func(*config.Config, *authorization.Handler, map[request.Res
 func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, middlewareFunc middlewareFunc) (request.Handler, error) {
 	var client kibana.Client
 	if cfg.Kibana.Enabled {
-		client = kibana.NewConnectingClient(&cfg.Kibana.ClientConfig)
+		client = kibana.NewConnectingClient(&cfg.Kibana)
 	}
 	h := agent.Handler(client, cfg.AgentConfig)
 	msg := "Agent remote configuration is disabled. " +

@@ -66,7 +66,8 @@ IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode,
 - `Host`: APM Server host and port to listen on.
 - `Secret token`: Authorization token for sending data to APM Server. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
 - `Enable RUM`: Enables support for RUM monitoring. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
-
+- `API Key for Central Configuration`: Gives privileges for APM Agent central configuration. See the [documentation](https://www.elastic.co/guide/en/kibana/master/agent-configuration.html)
+- `API Key for Sourcemaps`: Gives priveleges to read sourcemaps. See the [documentation](https://www.elastic.co/guide/en/apm/agent/rum-js/current/sourcemap.html).
 
 ## Traces
 
