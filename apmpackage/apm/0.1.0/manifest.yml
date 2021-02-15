@@ -38,7 +38,7 @@ policy_templates:
         show_user: true
       - name: api_key_enabled
         type: bool
-        title: Enable API Key Auth from APM Agents
+        title: Enable API Key Auth between APM Server and Agents
         required: false
         show_user: true
         default: false
@@ -62,7 +62,7 @@ policy_templates:
         show_user: true
       - name: api_key_limit
         type: int
-        title: Maximum number of allowed API Keys
+        title: Maximum number of allowed API Keys between APM Server and Agents
         required: false
         show_user: false
         default: 100
