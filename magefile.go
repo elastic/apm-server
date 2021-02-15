@@ -27,10 +27,17 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
@@ -176,6 +183,168 @@ func Package() {
 		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	}
 	mg.SerialDeps(mage.Package, TestPackages)
+}
+
+// QuickPackage builds an apm-server binary for Linux to inject into Elastic Agent for developing purposes
+func QuickPackage() error {
+	start := time.Now()
+	defer func() { fmt.Println("package ran for", time.Since(start)) }()
+
+	version, err := mage.BeatQualifiedVersion()
+	if err != nil {
+		return err
+	}
+
+	buildDir := fmt.Sprintf("build/distributions/apm-server-%s-linux-x86_64", version)
+	sh.Run("mkdir", "-p", buildDir)
+	for _, file := range []string{"LICENSE.txt", "NOTICE.txt", "README.md", "apm-server.yml"} {
+		err := sh.Run("cp", "-f", file, buildDir)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = sh.RunWith(map[string]string{"GOOS": "linux"}, "go",
+		"build", "-o", filepath.Join(buildDir, "apm-server"), "./x-pack/apm-server")
+	if err != nil {
+		return err
+	}
+
+	err = sh.Run("tar", "cvf", buildDir+".tar", buildDir)
+	if err != nil {
+		return err
+	}
+
+	err = sh.Run("gzip", buildDir+".tar")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RunAgent builds an image out of the last Elastic Agent image with matching version, injects apm-server on it,
+// connects to the apm-integration-testing network, and runs it
+// It expects Elasticsearch and Kibana running in apm-integration-testing
+func RunAgent() error {
+	version, err := mage.BeatQualifiedVersion()
+	if err != nil {
+		return err
+	}
+	baseDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	apmServer := "apm-server-" + version + "-linux-x86_64"
+	apmServerDir := filepath.Join(baseDir, "build/distributions/", apmServer)
+
+	docker, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return err
+	}
+
+	containers, err := docker.ContainerList(context.Background(), types.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	// kills and removes a container with the same name
+Loop:
+	for _, container := range containers {
+		for _, name := range container.Names {
+			if name == "/elastic-agent-local" {
+				if container.State == "running" {
+					docker.ContainerKill(context.Background(), container.ID, "SIGKILL")
+				}
+				docker.ContainerRemove(context.Background(), container.ID, types.ContainerRemoveOptions{
+					Force: true,
+				})
+				fmt.Println("removed elastic-agent-local container: " + container.ID[:12])
+				break Loop
+			}
+		}
+	}
+
+	// find the most recent Elastic Agent image
+	images, err := docker.ImageList(context.Background(), types.ImageListOptions{})
+	if err != nil {
+		return err
+	}
+	var imageID string
+	var created int64
+	for _, im := range images {
+		for _, tag := range im.RepoTags {
+			if strings.Contains(tag, "docker.elastic.co/beats/elastic-agent:"+version) {
+				if im.Created > created {
+					imageID = im.ID[7:19]
+					created = im.Created
+				}
+			}
+		}
+	}
+	if imageID == "" {
+		return errors.New("No Elastic Agent image found for version: " + version)
+	}
+	fmt.Println("Found Elastic Agent image: " + imageID)
+
+	// find the elastic agent directory
+	agentImageDetails, _, err := docker.ImageInspectWithRaw(context.Background(), imageID)
+	if err != nil {
+		return err
+	}
+	agentVCSRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
+	agentDataHashDir := path.Join("/usr/share/elastic-agent/data", "elastic-agent-"+agentVCSRef[:6])
+	agentInstallDir := path.Join(agentDataHashDir, "install", apmServer)
+
+	// setup and create the container
+	cfg := agentImageDetails.Config
+	cfg.Image = "docker.elastic.co/beats/elastic-agent:" + version
+	cfg.Env = append(cfg.Env,
+		"FLEET_ENROLL=1", "FLEET_ENROLL_INSECURE=1", "FLEET_SETUP=1",
+		"KIBANA_PASSWORD=changeme", "KIBANA_USERNAME=admin", "KIBANA_HOST=http://admin:changeme@kibana:5601")
+	cfg.ExposedPorts = map[nat.Port]struct{}{"8200": {}}
+	container, err := docker.ContainerCreate(context.Background(),
+		cfg,
+		&container.HostConfig{
+			PortBindings: map[nat.Port][]nat.PortBinding{
+				"8200": {{HostPort: "8200"}},
+			},
+			Mounts: []mount.Mount{
+				{Type: mount.TypeBind, Source: apmServerDir, Target: agentInstallDir},
+			},
+		},
+		&network.NetworkingConfig{},
+		"elastic-agent-local",
+	)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Container created: " + container.ID[:12])
+
+	// connect to apm-integration-testing network
+	networks, err := docker.NetworkList(context.Background(), types.NetworkListOptions{})
+	if err != nil {
+		return err
+	}
+	var networkID string
+	for _, n := range networks {
+		if n.Name == "apm-integration-testing" {
+			networkID = n.ID
+			break
+		}
+	}
+	if networkID == "" {
+		return errors.New("You must be running apm-integration-testing")
+	}
+	err = docker.NetworkConnect(context.Background(), networkID, container.ID, &network.EndpointSettings{})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Connected to apm-integration-testing network")
+
+	return docker.ContainerStart(context.Background(), container.ID, types.ContainerStartOptions{})
 }
 
 // TestPackages tests the generated packages (i.e. file modes, owners, groups).
