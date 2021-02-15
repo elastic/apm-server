@@ -57,17 +57,20 @@ type URL struct {
 	Fragment *string
 }
 
-func ParseURL(original, hostname string) *URL {
+func ParseURL(original, defaultHostname, defaultScheme string) *URL {
 	original = truncate(original)
 	url, err := url.Parse(original)
 	if err != nil {
 		return &URL{Original: &original}
 	}
 	if url.Scheme == "" {
-		url.Scheme = "http"
+		url.Scheme = defaultScheme
+		if url.Scheme == "" {
+			url.Scheme = "http"
+		}
 	}
 	if url.Host == "" {
-		url.Host = hostname
+		url.Host = defaultHostname
 	}
 	full := truncate(url.String())
 	out := &URL{

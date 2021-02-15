@@ -23,8 +23,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "transaction",
@@ -71,8 +71,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -122,8 +122,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -168,8 +168,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "metric",
@@ -203,8 +203,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "error",
@@ -243,8 +243,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "error",
@@ -283,8 +283,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "error",
