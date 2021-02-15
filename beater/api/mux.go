@@ -20,9 +20,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/elastic/beats/v7/libbeat/monitoring"
-
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
@@ -64,13 +64,8 @@ const (
 	IntakeRUMV3Path = "/intake/v3/rum/events"
 )
 
-type route struct {
-	path      string
-	handlerFn func(*config.Config, *authorization.Builder, publish.Reporter) (request.Handler, error)
-}
-
 // NewMux registers apm handlers to paths building up the APM Server API.
-func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMux, error) {
+func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Reporter) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
@@ -80,26 +75,36 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		return nil, err
 	}
 
+	builder := routeBuilder{
+		info:        beatInfo,
+		cfg:         beaterConfig,
+		authBuilder: auth,
+		reporter:    report,
+	}
+
+	type route struct {
+		path      string
+		handlerFn func() (request.Handler, error)
+	}
 	routeMap := []route{
-		{RootPath, rootHandler},
-		{AssetSourcemapPath, sourcemapHandler},
-		{AgentConfigPath, backendAgentConfigHandler},
-		{AgentConfigRUMPath, rumAgentConfigHandler},
-		{IntakeRUMPath, rumIntakeHandler},
-		{IntakeRUMV3Path, rumV3IntakeHandler},
-		{IntakePath, backendIntakeHandler},
+		{RootPath, builder.rootHandler},
+		{AssetSourcemapPath, builder.sourcemapHandler},
+		{AgentConfigPath, builder.backendAgentConfigHandler},
+		{AgentConfigRUMPath, builder.rumAgentConfigHandler},
+		{IntakeRUMPath, builder.rumIntakeHandler},
+		{IntakeRUMV3Path, builder.rumV3IntakeHandler},
+		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
-		{ProfilePath, profileHandler},
+		{ProfilePath, builder.profileHandler},
 	}
 
 	for _, route := range routeMap {
-		h, err := route.handlerFn(beaterConfig, auth, report)
+		h, err := route.handlerFn()
 		if err != nil {
 			return nil, err
 		}
 		logger.Infof("Path %s added to request handler", route.path)
 		mux.Handle(route.path, pool.HTTPHandler(h))
-
 	}
 	if beaterConfig.Expvar.IsEnabled() {
 		path := beaterConfig.Expvar.URL
@@ -109,41 +114,53 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	return mux, nil
 }
 
-func profileHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := profile.Handler(reporter)
-	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
-	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, profile.MonitoringMap)...)
+type routeBuilder struct {
+	info        beat.Info
+	cfg         *config.Config
+	authBuilder *authorization.Builder
+	reporter    publish.Reporter
 }
 
-func backendIntakeHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := intake.Handler(stream.BackendProcessor(cfg), reporter)
-	authHandler := builder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
-	return middleware.Wrap(h, backendMiddleware(cfg, authHandler, intake.MonitoringMap)...)
+func (r *routeBuilder) profileHandler() (request.Handler, error) {
+	h := profile.Handler(r.reporter)
+	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
+	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, profile.MonitoringMap)...)
 }
 
-func rumIntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := intake.Handler(stream.RUMV2Processor(cfg), reporter)
-	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
+func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
+	h := intake.Handler(stream.BackendProcessor(r.cfg), r.reporter)
+	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
+	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, intake.MonitoringMap)...)
 }
 
-func rumV3IntakeHandler(cfg *config.Config, _ *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := intake.Handler(stream.RUMV3Processor(cfg), reporter)
-	return middleware.Wrap(h, rumMiddleware(cfg, nil, intake.MonitoringMap)...)
+func (r *routeBuilder) rumIntakeHandler() (request.Handler, error) {
+	h := intake.Handler(stream.RUMV2Processor(r.cfg), r.reporter)
+	return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
 }
 
-func sourcemapHandler(cfg *config.Config, builder *authorization.Builder, reporter publish.Reporter) (request.Handler, error) {
-	h := sourcemap.Handler(reporter)
-	authHandler := builder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
-	return middleware.Wrap(h, sourcemapMiddleware(cfg, authHandler)...)
+func (r *routeBuilder) rumV3IntakeHandler() (request.Handler, error) {
+	h := intake.Handler(stream.RUMV3Processor(r.cfg), r.reporter)
+	return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
 }
 
-func backendAgentConfigHandler(cfg *config.Config, builder *authorization.Builder, _ publish.Reporter) (request.Handler, error) {
-	authHandler := builder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
-	return agentConfigHandler(cfg, authHandler, backendMiddleware)
+func (r *routeBuilder) sourcemapHandler() (request.Handler, error) {
+	h := sourcemap.Handler(r.reporter)
+	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeSourcemapWrite.Action)
+	return middleware.Wrap(h, sourcemapMiddleware(r.cfg, authHandler)...)
 }
 
-func rumAgentConfigHandler(cfg *config.Config, _ *authorization.Builder, _ publish.Reporter) (request.Handler, error) {
-	return agentConfigHandler(cfg, nil, rumMiddleware)
+func (r *routeBuilder) rootHandler() (request.Handler, error) {
+	h := root.Handler(root.HandlerConfig{Version: r.info.Version})
+	return middleware.Wrap(h, rootMiddleware(r.cfg, r.authBuilder.ForAnyOfPrivileges(authorization.ActionAny))...)
+}
+
+func (r *routeBuilder) backendAgentConfigHandler() (request.Handler, error) {
+	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
+	return agentConfigHandler(r.cfg, authHandler, backendMiddleware)
+}
+
+func (r *routeBuilder) rumAgentConfigHandler() (request.Handler, error) {
+	return agentConfigHandler(r.cfg, nil, rumMiddleware)
 }
 
 type middlewareFunc func(*config.Config, *authorization.Handler, map[request.ResultID]*monitoring.Int) []middleware.Middleware
@@ -160,11 +177,6 @@ func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, 
 		"If you are not using remote configuration, you can safely ignore this error."
 	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg)
 	return middleware.Wrap(h, append(middlewareFunc(cfg, authHandler, agent.MonitoringMap), ks)...)
-}
-
-func rootHandler(cfg *config.Config, builder *authorization.Builder, _ publish.Reporter) (request.Handler, error) {
-	return middleware.Wrap(root.Handler(),
-		rootMiddleware(cfg, builder.ForAnyOfPrivileges(authorization.ActionAny))...)
 }
 
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {

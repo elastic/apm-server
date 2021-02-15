@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/gmux"
@@ -43,8 +44,8 @@ type httpServer struct {
 	grpcListener net.Listener
 }
 
-func newHTTPServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*httpServer, error) {
-	mux, err := api.NewMux(cfg, reporter)
+func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*httpServer, error) {
+	mux, err := api.NewMux(info, cfg, reporter)
 	if err != nil {
 		return nil, err
 	}
