@@ -11,11 +11,11 @@ require (
 	github.com/client9/misspell v0.3.5-0.20180309020325-c0b55c823952 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20210209213638-ed7b3dc62eb9 // indirect
+	github.com/dop251/goja v0.0.0-20210215114437-465e240c17c9 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20201222133159-1629e8d0b836 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.11.1-0.20210210172220-9b2fecb327a2
+	github.com/elastic/beats/v7 v7.11.1-0.20210216125820-774cc052e266
 	github.com/elastic/ecs v1.6.0
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201228182638-992d3d06e514
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201216152027-57cb70149147
