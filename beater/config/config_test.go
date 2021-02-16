@@ -283,6 +283,7 @@ func TestUnpackConfig(t *testing.T) {
 				"sampling.keep_unsampled":                  false,
 				"sampling.tail": map[string]interface{}{
 					"enabled":           true,
+					"policies":          []map[string]interface{}{{"sample_rate": 0.5}},
 					"interval":          "2m",
 					"ingest_rate_decay": 1.0,
 				},
@@ -371,6 +372,7 @@ func TestUnpackConfig(t *testing.T) {
 					KeepUnsampled: false,
 					Tail: &TailSamplingConfig{
 						Enabled:               true,
+						Policies:              []TailSamplingPolicy{{SampleRate: 0.5}},
 						ESConfig:              elasticsearch.DefaultConfig(),
 						Interval:              2 * time.Minute,
 						IngestRateDecayFactor: 1.0,
@@ -564,7 +566,7 @@ func TestAgentConfig(t *testing.T) {
 }
 
 func TestNewConfig_ESConfig(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true,"sampling.tail.enabled":true}`)
+	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true,"sampling.tail.policies":[{"sample_rate": 0.5}]}`)
 	require.NoError(t, err)
 
 	// no es config given

@@ -41,7 +41,12 @@ type SamplingConfig struct {
 type TailSamplingConfig struct {
 	Enabled bool `config:"enabled"`
 
-	Policies              []TailSamplingPolicy  `config:"policies"`
+	// Policies holds tail-sampling policies.
+	//
+	// Policies must include at least one policy that matches all traces, to ensure
+	// that dropping non-matching traces is intentional.
+	Policies []TailSamplingPolicy `config:"policies"`
+
 	ESConfig              *elasticsearch.Config `config:"elasticsearch"`
 	Interval              time.Duration         `config:"interval" validate:"min=1s"`
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
@@ -76,8 +81,30 @@ func (c *TailSamplingConfig) Unpack(in *common.Config) error {
 	if err := in.Unpack(&cfg); err != nil {
 		return errors.Wrap(err, "error unpacking tail sampling config")
 	}
+	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
+	return errors.Wrap(c.Validate(), "invalid tail sampling config")
+}
+
+func (c *TailSamplingConfig) Validate() error {
+	if !c.Enabled {
+		return nil
+	}
+	if len(c.Policies) == 0 {
+		return errors.New("no policies specified")
+	}
+	var anyDefaultPolicy bool
+	for _, policy := range c.Policies {
+		if policy == (TailSamplingPolicy{SampleRate: policy.SampleRate}) {
+			// We have at least one default policy.
+			anyDefaultPolicy = true
+			break
+		}
+	}
+	if !anyDefaultPolicy {
+		return errors.New("no default (empty criteria) policy specified")
+	}
 	return nil
 }
 

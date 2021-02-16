@@ -24,10 +24,12 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 * Support for reloading config in Fleet mode, gracefully stopping the HTTP server and starting a new one {pull}4623[4623]
 * Add a `_doc_count` field to transaction histogram docs {pull}4647[4647]
 * Upgrade Go to 1.15.7 {pull}4663[4663]
-* OpenTelemetry Protocol (OTLP) over gRPC is now supported on the standard endpoint (8200) {pull}4677[4677]
+* OpenTelemetry Protocol (OTLP) over gRPC is now supported on the standard endpoint (8200) {pull}4677[4677] {pull}4722[4722]
 * Add initial support for APM central config and sourcemaps when running under Fleet {pull}4670[4670]
 * Data stream and ILM policy for tail-based sampling {pull}4707[4707]
 * Add service name to index dataset {pull}4674[4674]
+* When tail-sampling is enabled, a default policy must be defined {pull}4729[4729]
+* Support additional config options when running under Fleet {pull}4690[4690]
 
 [float]
 ==== Deprecated
