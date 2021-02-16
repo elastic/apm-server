@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -207,7 +208,7 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 			// be stored separately from application and runtime metrics.
 			dataset = InternalMetricsDataset
 		}
-		dataset += "." + datastreams.NormalizeServiceName(me.Metadata.Service.Name)
+		dataset += fmt.Sprintf(".%s", datastreams.NormalizeServiceName(me.Metadata.Service.Name))
 		fields[datastreams.DatasetField] = dataset
 		fields[datastreams.TypeField] = datastreams.MetricsType
 	}
