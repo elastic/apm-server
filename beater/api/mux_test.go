@@ -22,13 +22,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/authorization"
+	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
@@ -44,7 +46,7 @@ func requestToMuxerWithHeader(cfg *config.Config, pattern string, method string,
 }
 
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
-	mux, err := NewMux(cfg, beatertest.NilReporter)
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, beatertest.NilReporter)
 	if err != nil {
 		return nil, err
 	}
@@ -54,11 +56,30 @@ func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseReco
 	return w, nil
 }
 
-func testHandler(t *testing.T, fn func(*config.Config, *authorization.Builder, publish.Reporter) (request.Handler, error)) request.Handler {
-	cfg := config.DefaultConfig()
-	builder, err := authorization.NewBuilder(cfg)
+func testPanicMiddleware(t *testing.T, urlPath string, approvalPath string) {
+	h := newTestMux(t, config.DefaultConfig())
+	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
+
+	var rec beatertest.WriterPanicOnce
+	h.ServeHTTP(&rec, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
+	approvaltest.ApproveJSON(t, approvalPath, rec.Body.Bytes())
+}
+
+func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[request.ResultID]*monitoring.Int, expected map[request.ResultID]int) {
+	beatertest.ClearRegistry(monitoringMap)
+
+	h := newTestMux(t, config.DefaultConfig())
+	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
+	h.ServeHTTP(httptest.NewRecorder(), req)
+
+	equal, result := beatertest.CompareMonitoringInt(expected, monitoringMap)
+	assert.True(t, equal, result)
+}
+
+func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, beatertest.NilReporter)
 	require.NoError(t, err)
-	h, err := fn(cfg, builder, beatertest.NilReporter)
-	require.NoError(t, err)
-	return h
+	return mux
 }

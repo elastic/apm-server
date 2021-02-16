@@ -19,7 +19,6 @@ package api
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +26,6 @@ import (
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/intake"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -57,27 +55,17 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 }
 
 func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
-	h := testHandler(t, backendIntakeHandler)
-	rec := &beatertest.WriterPanicOnce{}
-	c := request.NewContext()
-	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-	h(c)
-	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvaltest.ApproveJSON(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+	testPanicMiddleware(t, "/intake/v2/events", approvalPathIntakeBackend(t.Name()))
 }
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
-	h := testHandler(t, backendIntakeHandler)
-	c, _ := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
 	// send GET request resulting in 405 MethodNotAllowed error
-	expected := map[request.ResultID]int{
+	testMonitoringMiddleware(t, "/intake/v2/events", intake.MonitoringMap, map[request.ResultID]int{
 		request.IDRequestCount:                   1,
 		request.IDResponseCount:                  1,
 		request.IDResponseErrorsCount:            1,
-		request.IDResponseErrorsMethodNotAllowed: 1}
-
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringMap)
-	assert.True(t, equal, result)
+		request.IDResponseErrorsMethodNotAllowed: 1,
+	})
 }
 
 func approvalPathIntakeBackend(f string) string {

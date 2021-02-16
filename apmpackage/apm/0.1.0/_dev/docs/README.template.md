@@ -53,20 +53,13 @@ both the service name and the environment as the namespace.
 The APM integration requires Kibana 7.11 and Elasticsearch with basic license.
 This version is experimental and has some limitations, listed bellow:
 
-- It is not yet possible to change APM Server settings dynamically.
 You must update the policy with any changes you need and restart the APM Server process.
 - Sourcemap enrichment is not yet supported.
 - There is no default ILM policy for traces (spans and transactions).
 - You can't use an Elastic Agent enrolled before 7.11 with an APM integration.
+- Only a handful of configuration options are supported yet. 
 
 IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
-
-## Configuration parameters
-
-- `Host`: APM Server host and port to listen on.
-- `Secret token`: Authorization token for sending data to APM Server. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
-- `Enable RUM`: Enables support for RUM monitoring. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
-
 
 ## Traces
 

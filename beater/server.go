@@ -72,7 +72,7 @@ type ServerParams struct {
 
 // runServer runs the APM Server until a fatal error occurs, or ctx is cancelled.
 func runServer(ctx context.Context, args ServerParams) error {
-	srv, err := newServer(args.Logger, args.Config, args.Tracer, args.Reporter)
+	srv, err := newServer(args.Logger, args.Info, args.Config, args.Tracer, args.Reporter)
 	if err != nil {
 		return err
 	}
@@ -98,8 +98,8 @@ type server struct {
 	reporter     publish.Reporter
 }
 
-func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
-	httpServer, err := newHTTPServer(logger, cfg, tracer, reporter)
+func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter)
 	if err != nil {
 		return server{}, err
 	}
@@ -138,7 +138,7 @@ func newGRPCServer(
 	var kibanaClient kibana.Client
 	var agentcfgFetcher *agentcfg.Fetcher
 	if cfg.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(&cfg.Kibana.ClientConfig)
+		kibanaClient = kibana.NewConnectingClient(&cfg.Kibana)
 		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
 	}
 	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, reporter, kibanaClient, agentcfgFetcher)
