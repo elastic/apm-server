@@ -292,6 +292,9 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	}, {
 		PolicyCriteria: sampling.PolicyCriteria{ServiceName: "service_name"},
 		SampleRate:     0.1,
+	}, {
+		PolicyCriteria: sampling.PolicyCriteria{},
+		SampleRate:     0,
 	}}
 	config.FlushInterval = 10 * time.Millisecond
 	published := make(chan string)

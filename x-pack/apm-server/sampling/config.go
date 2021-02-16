@@ -46,6 +46,9 @@ type LocalSamplingConfig struct {
 	// Policies holds local tail-sampling policies. Policies are matched in the
 	// order provided. Policies should therefore be ordered from most to least
 	// specific.
+	//
+	// Policies must include at least one policy that matches all traces, to ensure
+	// that dropping non-matching traces is intentional.
 	Policies []Policy
 
 	// IngestRateDecayFactor holds the ingest rate decay factor, used for calculating
@@ -173,10 +176,17 @@ func (config LocalSamplingConfig) validate() error {
 	if len(config.Policies) == 0 {
 		return errors.New("Policies unspecified")
 	}
+	var anyDefaultPolicy bool
 	for i, policy := range config.Policies {
 		if err := policy.validate(); err != nil {
 			return errors.Wrapf(err, "Policy %d invalid", i)
 		}
+		if policy.PolicyCriteria == (PolicyCriteria{}) {
+			anyDefaultPolicy = true
+		}
+	}
+	if !anyDefaultPolicy {
+		return errors.New("Policies does not contain a default (empty criteria) policy")
 	}
 	if config.IngestRateDecayFactor <= 0 || config.IngestRateDecayFactor > 1 {
 		return errors.New("IngestRateDecayFactor unspecified or out of range (0,1]")
