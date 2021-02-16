@@ -23,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver/metrics"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
 	"google.golang.org/grpc"
 
@@ -38,8 +39,10 @@ var (
 		request.IDRequestCount, request.IDResponseCount, request.IDResponseErrorsCount, request.IDResponseValidCount,
 	}
 
-	gRPCConsumerRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.consumer")
-	gRPCConsumerMonitoringMap = request.MonitoringMapForRegistry(gRPCConsumerRegistry, monitoringKeys)
+	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
+	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
+	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
+	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
 )
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
@@ -48,10 +51,23 @@ func RegisterGRPCServices(grpcServer *grpc.Server, reporter publish.Reporter, lo
 		consumer: &otel.Consumer{Reporter: reporter},
 		logger:   logger,
 	}
-	// TODO(axw) add support for metrics to processer/otel.Consumer, and register a metrics receiver here.
+
+	// TODO(axw) rather than registering and unregistering monitoring callbacks
+	// each time a new consumer is created, we should register one callback and
+	// have it aggregate metrics from the dynamic consumers.
+	//
+	// For now, we take the easy way out: we only have one OTLP gRPC service
+	// running at any time, so just unregister/register a new one.
+	gRPCMetricsRegistry.Remove("consumer")
+	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", consumer.collectMetricsMonitoring, monitoring.Report)
+
 	traceReceiver := trace.New("otlp", consumer)
+	metricsReceiver := metrics.New("otlp", consumer)
 	if err := otlpreceiver.RegisterTraceReceiver(context.Background(), traceReceiver, grpcServer, nil); err != nil {
 		return errors.Wrap(err, "failed to register OTLP trace receiver")
+	}
+	if err := otlpreceiver.RegisterMetricsReceiver(context.Background(), metricsReceiver, grpcServer, nil); err != nil {
+		return errors.Wrap(err, "failed to register OTLP metrics receiver")
 	}
 	return nil
 }
@@ -63,13 +79,36 @@ type monitoredConsumer struct {
 
 // ConsumeTraces consumes OpenTelemtry trace data.
 func (c *monitoredConsumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
-	gRPCConsumerMonitoringMap[request.IDRequestCount].Inc()
-	defer gRPCConsumerMonitoringMap[request.IDResponseCount].Inc()
+	gRPCTracesMonitoringMap[request.IDRequestCount].Inc()
+	defer gRPCTracesMonitoringMap[request.IDResponseCount].Inc()
 	if err := c.consumer.ConsumeTraces(ctx, traces); err != nil {
-		gRPCConsumerMonitoringMap[request.IDResponseErrorsCount].Inc()
+		gRPCTracesMonitoringMap[request.IDResponseErrorsCount].Inc()
 		c.logger.With(logp.Error(err)).Error("ConsumeTraces returned an error")
 		return err
 	}
-	gRPCConsumerMonitoringMap[request.IDResponseValidCount].Inc()
+	gRPCTracesMonitoringMap[request.IDResponseValidCount].Inc()
 	return nil
+}
+
+// ConsumeMetrics consumes OpenTelemtry metrics data.
+func (c *monitoredConsumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
+	gRPCMetricsMonitoringMap[request.IDRequestCount].Inc()
+	defer gRPCMetricsMonitoringMap[request.IDResponseCount].Inc()
+	if err := c.consumer.ConsumeMetrics(ctx, metrics); err != nil {
+		gRPCMetricsMonitoringMap[request.IDResponseErrorsCount].Inc()
+		c.logger.With(logp.Error(err)).Error("ConsumeMetrics returned an error")
+		return err
+	}
+	gRPCMetricsMonitoringMap[request.IDResponseValidCount].Inc()
+	return nil
+}
+
+func (c *monitoredConsumer) collectMetricsMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	V.OnRegistryFinished()
+
+	stats := c.consumer.Stats()
+	monitoring.ReportNamespace(V, "consumer", func() {
+		monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
+	})
 }
