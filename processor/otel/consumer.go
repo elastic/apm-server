@@ -41,6 +41,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
@@ -65,7 +66,29 @@ const (
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
 type Consumer struct {
+	stats consumerStats
+
 	Reporter publish.Reporter
+}
+
+// ConsumerStats holds a snapshot of statistics about data consumption.
+type ConsumerStats struct {
+	// UnsupportedMetricsDropped records the number of unsupported metrics
+	// that have been dropped by the consumer.
+	UnsupportedMetricsDropped int64
+}
+
+// consumerStats holds the current statistics, which must be accessed and
+// modified using atomic operations.
+type consumerStats struct {
+	unsupportedMetricsDropped int64
+}
+
+// Stats returns a snapshot of the current statistics about data consumption.
+func (c *Consumer) Stats() ConsumerStats {
+	return ConsumerStats{
+		UnsupportedMetricsDropped: atomic.LoadInt64(&c.stats.unsupportedMetricsDropped),
+	}
 }
 
 // ConsumeTraces consumes OpenTelemetry trace data,
