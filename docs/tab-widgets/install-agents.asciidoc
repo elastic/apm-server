@@ -17,11 +17,11 @@ APM services are created programmatically based on the executable file name, or 
 ----
 # Initialize using environment variables:
 
-# Set the service name. Allowed characters: # a-z, A-Z, 0-9, -, _, and space.
+# Set the service name. Allowed characters: a-z, A-Z, 0-9, -, _, and space.
 # If ELASTIC_APM_SERVICE_NAME is not specified, the executable name will be used.
 export ELASTIC_APM_SERVICE_NAME=
 
-# Set custom APM Server URL (default: http://localhost:8200)
+# Set custom APM Server URL. Default: http://localhost:8200.
 export ELASTIC_APM_SERVER_URL=
 
 # Use if APM Server requires a token
@@ -196,6 +196,57 @@ var apm = require('elastic-apm-node').start({
 // ***************************************************
 // ***************************************************
 
+// tag::php[]
+
+*Install the agent*
+
+Install the PHP agent using one of the https://github.com/elastic/apm-agent-php/releases[published packages].
+
+To use the RPM Package (RHEL/CentOS and Fedora):
+
+[source,php]
+----
+rpm -ivh <package-file>.rpm
+----
+
+To use the DEB package (Debian and Ubuntu):
+
+[source,php]
+----
+dpkg -i <package-file>.deb
+----
+
+To use the APK package (Alpine):
+
+[source,php]
+----
+apk add --allow-untrusted <package-file>.apk
+----
+
+If you can’t find your distribution,
+you can install the agent by {apm-php-ref}/setup.html[building it from the source].
+
+*Configure the agent*
+
+Configure your agent inside of the `php.ini` file:
+
+[source,ini]
+----
+elastic_apm.server_url=http://localhost:8200
+elastic_apm.secret_token=SECRET_TOKEN
+elastic_apm.service_name="My-service"
+----
+
+*Learn more in the agent reference*
+
+* {apm-php-ref}/supported-technologies.html[Supported technologies]
+* {apm-php-ref}/configuration.html[Configuration]
+
+// end::php[]
+
+// ***************************************************
+// ***************************************************
+
 // tag::python[]
 Django::
 +
@@ -263,7 +314,7 @@ from elasticapm.contrib.flask import ElasticAPM
 app = Flask(__name__)
 apm = ElasticAPM(app)
 
-# or configure to use ELASTIC_APM in your application's settings
+# or configure to use ELASTIC_APM in your application settings
 from elasticapm.contrib.flask import ElasticAPM
 app.config['ELASTIC_APM'] = {
   # Set required service name. Allowed characters:
@@ -285,8 +336,10 @@ apm = ElasticAPM(app)
 * {apm-py-ref-v}/supported-technologies.html[Supported technologies]
 * {apm-py-ref-v}/configuration.html[Advanced configuration]
 
-
 // end::python[]
+
+// ***************************************************
+// ***************************************************
 
 // tag::ruby[]
 *Install the APM agent*

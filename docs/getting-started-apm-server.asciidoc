@@ -352,11 +352,12 @@ If you haven't already, you can now install APM Agents in your services!
 * {apm-java-ref-v}/intro.html[Java agent]
 * {apm-dotnet-ref-v}/intro.html[.NET agent]
 * {apm-node-ref-v}/intro.html[Node.js agent]
+* {apm-php-ref}/intro.html[PHP agent]
 * {apm-py-ref-v}/getting-started.html[Python agent]
 * {apm-ruby-ref-v}/introduction.html[Ruby agent]
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
-Once you have at least one Agent sending data to APM Server,
+Once you have at least one APM agent sending data to APM Server,
 you can start visualizing your data in the {kibana-ref}/xpack-apm.html[APM app].
 
 If you're migrating from Jaeger, see <<jaeger>>.

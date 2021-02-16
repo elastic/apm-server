@@ -53,6 +53,7 @@ To configure the number of spans recorded per transaction, see the relevant Agen
 * Java: {apm-java-ref-v}/config-core.html#config-transaction-max-spans[`transaction_max_spans`]
 * .NET: {apm-dotnet-ref-v}/config-core.html#config-transaction-max-spans[`TransactionMaxSpans`]
 * Node.js: {apm-node-ref-v}/configuration.html#transaction-max-spans[`transactionMaxSpans`]
+* PHP: {apm-php-ref}/configuration-reference.html#config-transaction-max-spans[`transaction_max_spans`]
 * Python: {apm-py-ref-v}/configuration.html#config-transaction-max-spans[`transaction_max_spans`]
 * Ruby: {apm-ruby-ref-v}/configuration.html#config-transaction-max-spans[`transaction_max_spans`]
 
@@ -206,7 +207,7 @@ Defining too many unique fields in an index is a condition that can lead to a
 ===== Agent API reference
 
 * Go: {apm-go-ref-v}/api.html#context-set-label[`SetLabel`]
-* Java: {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`addLabel`]
+* Java: {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`setLabel`]
 * .NET: {apm-dotnet-ref-v}/public-api.html#api-transaction-tags[`Labels`]
 * Node.js: {apm-node-ref-v}/agent-api.html#apm-set-label[`setLabel`] | {apm-node-ref-v}/agent-api.html#apm-add-labels[`addLabels`]
 * Python: {apm-py-ref-v}/api.html#api-label[`elasticapm.label()`]
