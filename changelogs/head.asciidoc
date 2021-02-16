@@ -28,6 +28,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 * Add initial support for APM central config and sourcemaps when running under Fleet {pull}4670[4670]
 * Data stream and ILM policy for tail-based sampling {pull}4707[4707]
 * When tail-sampling is enabled, a default policy must be defined {pull}4729[4729]
+* Support additional config options when running under Fleet {pull}4690[4690]
 
 [float]
 ==== Deprecated
