@@ -128,7 +128,8 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 		}
 		if cfg.DataStreams {
 			event.Fields[datastreams.TypeField] = datastreams.MetricsType
-			event.Fields[datastreams.DatasetField] = ProfilesDataset
+			dataset := fmt.Sprintf("%s.%s", ProfilesDataset, datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
+			event.Fields[datastreams.DatasetField] = dataset
 		}
 		var profileLabels common.MapStr
 		if len(sample.Label) > 0 {

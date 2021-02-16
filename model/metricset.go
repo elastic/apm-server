@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -199,15 +200,16 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 	fields["processor"] = metricsetProcessorEntry
 
 	if cfg.DataStreams {
+		dataset := AppMetricsDataset
 		// Metrics are stored in "metrics" data streams.
 		if isInternal {
 			// Metrics that include well-defined transaction/span fields
 			// (i.e. breakdown metrics, transaction and span metrics) will
 			// be stored separately from application and runtime metrics.
-			fields[datastreams.DatasetField] = InternalMetricsDataset
-		} else {
-			fields[datastreams.DatasetField] = AppMetricsDataset
+			dataset = InternalMetricsDataset
 		}
+		dataset += fmt.Sprintf(".%s", datastreams.NormalizeServiceName(me.Metadata.Service.Name))
+		fields[datastreams.DatasetField] = dataset
 		fields[datastreams.TypeField] = datastreams.MetricsType
 	}
 
