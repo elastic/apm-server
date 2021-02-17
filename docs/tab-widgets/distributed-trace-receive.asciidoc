@@ -117,6 +117,14 @@ agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
 // ***************************************************
 // ***************************************************
 
+// tag::php[]
+
+PHP `traceparent` receive content goes here.
+// end::php[]
+
+// ***************************************************
+// ***************************************************
+
 // tag::python[]
 
 1. Create a TraceParent object from a string or HTTP header.

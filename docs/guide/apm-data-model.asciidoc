@@ -210,6 +210,7 @@ Defining too many unique fields in an index is a condition that can lead to a
 * Java: {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`setLabel`]
 * .NET: {apm-dotnet-ref-v}/public-api.html#api-transaction-tags[`Labels`]
 * Node.js: {apm-node-ref-v}/agent-api.html#apm-set-label[`setLabel`] | {apm-node-ref-v}/agent-api.html#apm-add-labels[`addLabels`]
+* PHP: _coming soon_
 * Python: {apm-py-ref-v}/api.html#api-label[`elasticapm.label()`]
 * Ruby:  {apm-ruby-ref-v}/api.html#api-agent-set-label[`set_label`]
 * Rum: {apm-rum-ref-v}/agent-api.html#apm-add-labels[`addLabels`]
@@ -242,6 +243,7 @@ IMPORTANT: Setting a circular object, a large object, or a non JSON serializable
 * Java: {apm-java-ref-v}/public-api.html#api-transaction-add-custom-context[`addCustomContext`]
 * .NET: _coming soon_
 * Node.js: {apm-node-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
+* PHP: _coming soon_
 * Python: {apm-py-ref-v}/api.html#api-set-custom-context[`set_custom_context`]
 * Ruby: {apm-ruby-ref-v}/api.html#api-agent-set-custom-context[`set_custom_context`]
 * Rum: {apm-rum-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
@@ -266,6 +268,7 @@ Indexed means the data is searchable and aggregatable in Elasticsearch.
 * Java: {apm-java-ref-v}/public-api.html#api-transaction-set-user[`setUser`]
 * .NET _coming soon_
 * Node.js: {apm-node-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]
+* PHP: _coming soon_
 * Python: {apm-py-ref-v}/api.html#api-set-user-context[`set_user_context`]
 * Ruby: {apm-ruby-ref-v}/api.html#api-agent-set-user[`set_user`]
 * Rum: {apm-rum-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]
