@@ -481,13 +481,13 @@ Each Agent has a configuration for setting the value of the secret token:
 
 To enable secure communication in your agents, you need to update the configured server URL to use `HTTPS` instead of `HTTP`.
 
-* *Go agent*: {apm-go-ref}/configuration.html#config-server-url[`ELASTIC_APM_SERVER_URL`]
-* *Java agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
-* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-urls[`ServerUrls`]
-* *Node.js agent*: {apm-node-ref}/configuration.html#server-url[`serverUrl`]
+* *Go Agent*: {apm-go-ref}/configuration.html#config-server-url[`ELASTIC_APM_SERVER_URL`]
+* *Java Agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
+* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-server-url[`ServerUrl`]
+* *Node.js Agent*: {apm-node-ref}/configuration.html#server-url[`serverUrl`]
 * *PHP agent*: {apm-php-ref}/configuration-reference.html#config-server-url[`server_url`]
-* *Python agent*: {apm-py-ref}/configuration.html#config-server-url[`server_url`]
-* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
+* *Python Agent*: {apm-py-ref}/[`server_url`]
+* *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
 
 Some agents also allow you to specify a custom certificate authority for connecting to APM Server.
 
