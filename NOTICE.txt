@@ -532,11 +532,11 @@ License Version 2.0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/ecs
-Version: v1.6.0
+Version: v1.8.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/ecs@v1.6.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/ecs@v1.8.0/LICENSE.txt:
 
 
                                  Apache License
