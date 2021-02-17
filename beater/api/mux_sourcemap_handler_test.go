@@ -70,6 +70,15 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
+	t.Run("DataStreams", func(t *testing.T) {
+		cfg := cfgEnabledRUM()
+		cfg.DataStreams.Enabled = true
+		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, rec.Code)
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+	})
+
 	t.Run("On", func(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), AssetSourcemapPath)
 		require.NoError(t, err)
