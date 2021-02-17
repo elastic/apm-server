@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/beats/v7/libbeat/kibana"
+
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
 	"golang.org/x/sync/errgroup"
@@ -184,6 +186,7 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 			inputs.Stop()
 		}
 		reload.Register.MustRegisterList("inputs", inputs)
+
 	} else {
 		// Management disabled, use statically defined config.
 		s, err := newServerRunner(ctx, serverRunnerParams{
@@ -196,14 +199,17 @@ func (bt *beater) start(ctx context.Context, cancelContext context.CancelFunc, b
 			return nil, err
 		}
 		bt.stopServer = func() {
-			defer close(done)
-			defer closeTracer()
 			if bt.config.ShutdownTimeout > 0 {
 				time.AfterFunc(bt.config.ShutdownTimeout, cancelContext)
 			}
 			s.Stop()
 		}
 		s.Start()
+		go func() {
+			defer close(done)
+			defer closeTracer()
+			s.Wait()
+		}()
 	}
 	return done, nil
 }
@@ -233,6 +239,7 @@ func (s *serverCreator) Create(p beat.PipelineConnector, rawConfig *common.Confi
 		sharedServerRunnerParams: s.args,
 		Namespace:                namespace,
 		Pipeline:                 p,
+		KibanaConfig:             &integrationConfig.Fleet.Kibana,
 		RawConfig:                apmServerCommonConfig,
 	})
 }
@@ -265,9 +272,10 @@ type serverRunner struct {
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	Namespace string
-	Pipeline  beat.PipelineConnector
-	RawConfig *common.Config
+	Namespace    string
+	Pipeline     beat.PipelineConnector
+	KibanaConfig *kibana.ClientConfig
+	RawConfig    *common.Config
 }
 
 type sharedServerRunnerParams struct {
@@ -284,6 +292,11 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 	if err != nil {
 		return nil, err
 	}
+
+	if cfg.DataStreams.Enabled && args.KibanaConfig != nil {
+		cfg.Kibana.ClientConfig = *args.KibanaConfig
+	}
+
 	runServerContext, cancel := context.WithCancel(ctx)
 	return &serverRunner{
 		backgroundContext:      ctx,
@@ -306,11 +319,18 @@ func (s *serverRunner) String() string {
 	return "APMServer"
 }
 
+// Stop stops the server.
 func (s *serverRunner) Stop() {
 	s.stopOnce.Do(s.cancelRunServerContext)
+	s.Wait()
+}
+
+// Wait waits for the server to stop.
+func (s *serverRunner) Wait() {
 	s.wg.Wait()
 }
 
+// Start starts the server.
 func (s *serverRunner) Start() {
 	s.wg.Add(1)
 	go func() {

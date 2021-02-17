@@ -69,6 +69,38 @@ func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 }
 
+func TestOutcome(t *testing.T) {
+	test := func(t *testing.T, expectedOutcome, expectedResult string, statusCode pdata.StatusCode) {
+		t.Helper()
+
+		traces, spans := newTracesSpans()
+		otelSpan1 := pdata.NewSpan()
+		otelSpan1.SetTraceID(pdata.NewTraceID([16]byte{1}))
+		otelSpan1.SetSpanID(pdata.NewSpanID([8]byte{2}))
+		otelSpan1.Status().SetCode(statusCode)
+		otelSpan2 := pdata.NewSpan()
+		otelSpan2.SetTraceID(pdata.NewTraceID([16]byte{1}))
+		otelSpan2.SetSpanID(pdata.NewSpanID([8]byte{2}))
+		otelSpan2.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
+		otelSpan2.Status().SetCode(statusCode)
+
+		spans.Spans().Append(otelSpan1)
+		spans.Spans().Append(otelSpan2)
+		events := transformTraces(t, traces)
+		require.Len(t, events, 2)
+
+		tx := events[0].(*model.Transaction)
+		span := events[1].(*model.Span)
+		assert.Equal(t, expectedOutcome, tx.Outcome)
+		assert.Equal(t, expectedResult, tx.Result)
+		assert.Equal(t, expectedOutcome, span.Outcome)
+	}
+
+	test(t, "unknown", "", pdata.StatusCodeUnset)
+	test(t, "success", "Success", pdata.StatusCodeOk)
+	test(t, "failure", "Error", pdata.StatusCodeError)
+}
+
 func TestHTTPTransactionURL(t *testing.T) {
 	test := func(t *testing.T, expected *model.URL, attrs map[string]pdata.AttributeValue) {
 		t.Helper()
