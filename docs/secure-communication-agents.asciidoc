@@ -482,7 +482,7 @@ To enable secure communication in your Agents, you need to update the configured
 
 * *Go Agent*: {apm-go-ref}/configuration.html#config-server-url[`ELASTIC_APM_SERVER_URL`]
 * *Java Agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
-* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-server-urls[`ServerUrls`]
+* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-server-url[`ServerUrl`]
 * *Node.js Agent*: {apm-node-ref}/configuration.html#server-url[`serverUrl`]
 * *Python Agent*: {apm-py-ref}/[`server_url`]
 * *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
