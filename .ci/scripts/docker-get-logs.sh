@@ -3,7 +3,7 @@ set -euo pipefail
 
 STEP=${1:-""}
 
-DOCKER_INFO_DIR="docker-info/${STEP}"
+DOCKER_INFO_DIR="build/docker-info/${STEP}"
 mkdir -p ${DOCKER_INFO_DIR}
 cp docker-compose*.yml ${DOCKER_INFO_DIR}
 cd ${DOCKER_INFO_DIR}

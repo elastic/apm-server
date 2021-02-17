@@ -251,13 +251,15 @@ pipeline {
           }
           post {
             always {
-              coverageReport("${BASE_DIR}/build/coverage")
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml"
-              )
-              catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
+              dir("${BASE_DIR}/build"){
+                coverageReport("coverage")
+                junit(allowEmptyResults: true,
+                  keepLongStdio: true,
+                  testResults: "junit-*.xml"
+                )
+                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
+                  tar(file: "coverage-files.tgz", archive: true, dir: "coverage")
+                }
               }
               codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
@@ -293,17 +295,18 @@ pipeline {
           }
           post {
             always {
-              dir("${BASE_DIR}"){
+              dir("${BASE_DIR}/build"){
                 archiveArtifacts(allowEmptyArchive: true,
                   artifacts: "docker-info/**",
-                  defaultExcludes: false)
-                  junit(allowEmptyResults: true,
-                    keepLongStdio: true,
-                    testResults: "**/build/TEST-*.xml"
-                  )
-              }
-              catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
+                  defaultExcludes: false
+                )
+                junit(allowEmptyResults: true,
+                  keepLongStdio: true,
+                  testResults: "**/TEST-*.xml"
+                )
+                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
+                  tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests")
+                }
               }
             }
           }
