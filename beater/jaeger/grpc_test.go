@@ -24,13 +24,12 @@ import (
 	"testing"
 	"time"
 
-	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
-	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
-	"github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/translator/trace/jaeger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -115,20 +114,29 @@ type testGRPCCollector struct {
 func (tc *testGRPCCollector) setup(t *testing.T) {
 	beatertest.ClearRegistry(gRPCCollectorMonitoringMap)
 	if tc.request == nil {
-		td := consumerdata.TraceData{Spans: []*v1.Span{
-			{TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-				SpanId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}},
-			{TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-				SpanId: []byte{0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}}}
-		batch, err := jaeger.OCProtoToJaegerProto(td)
+		traces := pdata.NewTraces()
+		resourceSpans := pdata.NewResourceSpans()
+		spans := pdata.NewInstrumentationLibrarySpans()
+		span0 := pdata.NewSpan()
+		span0.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+		span0.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
+		span1 := pdata.NewSpan()
+		span1.SetTraceID(pdata.NewTraceID([16]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+		span1.SetSpanID(pdata.NewSpanID([8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}))
+		spans.Spans().Append(span0)
+		spans.Spans().Append(span1)
+		resourceSpans.InstrumentationLibrarySpans().Append(spans)
+		traces.ResourceSpans().Append(resourceSpans)
+
+		batches, err := jaeger.InternalTracesToJaegerProto(traces)
 		require.NoError(t, err)
-		require.NotNil(t, batch)
-		tc.request = &api_v2.PostSpansRequest{Batch: *batch}
+		require.Len(t, batches, 1)
+		tc.request = &api_v2.PostSpansRequest{Batch: *batches[0]}
 	}
 
 	tc.collector = &grpcCollector{logp.NewLogger("gRPC"), authFunc(func(context.Context, model.Batch) error {
 		return tc.authError
-	}), traceConsumerFunc(func(ctx context.Context, td consumerdata.TraceData) error {
+	}), tracesConsumerFunc(func(ctx context.Context, td pdata.Traces) error {
 		return tc.consumerErr
 	})}
 }
@@ -143,14 +151,14 @@ func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual 
 	}
 }
 
-type traceConsumerFunc func(ctx context.Context, td consumerdata.TraceData) error
+type tracesConsumerFunc func(ctx context.Context, td pdata.Traces) error
 
-func (f traceConsumerFunc) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
+func (f tracesConsumerFunc) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	return f(ctx, td)
 }
 
-func nopConsumer() traceConsumerFunc {
-	return func(context.Context, consumerdata.TraceData) error { return nil }
+func nopConsumer() tracesConsumerFunc {
+	return func(context.Context, pdata.Traces) error { return nil }
 }
 
 func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
