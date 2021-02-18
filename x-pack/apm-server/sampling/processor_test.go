@@ -452,8 +452,10 @@ func TestStorageGC(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
+	config.ValueLogFileSize = 1024 * 1024
 
 	writeBatch := func(n int) {
+		config.StorageGCInterval = time.Minute // effectively disable
 		processor, err := sampling.NewProcessor(config)
 		require.NoError(t, err)
 		go processor.Run()
