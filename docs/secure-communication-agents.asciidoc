@@ -288,7 +288,7 @@ See the relevant agent documentation for additional information:
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-api-key[`ApiKey`]
 * *Java agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
 * *Node.js agent*: {apm-node-ref}/configuration.html#api-key[`apiKey`]
-* *PHP agent*: {apm-php-ref}/configuration-reference.html#config-api-key[`api_key`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-api-key[`api_key`]
 * *Python agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
 
@@ -471,7 +471,7 @@ Each Agent has a configuration for setting the value of the secret token:
 * *Java agent*: {apm-java-ref}/config-reporter.html#config-secret-token[`secret_token`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
 * *Node.js agent*: {apm-node-ref}/configuration.html#secret-token[`Secret Token`]
-* *PHP agent*: {apm-php-ref}/configuration-reference.html#config-secret-token[`secret_token`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-secret-token[`secret_token`]
 * *Python agent*: {apm-py-ref}/configuration.html#config-secret-token[`secret_token`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-secret-token[`secret_token`]
 
@@ -485,7 +485,7 @@ To enable secure communication in your agents, you need to update the configured
 * *Java agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-url[`ServerUrl`]
 * *Node.js agent*: {apm-node-ref}/configuration.html#server-url[`serverUrl`]
-* *PHP agent*: {apm-php-ref}/configuration-reference.html#config-server-url[`server_url`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-server-url[`server_url`]
 * *Python agent*: {apm-py-ref}/[`server_url`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
 
@@ -505,7 +505,7 @@ This ensures encryption, but does not verify that you are sending data to the co
 * *Go agent*: {apm-go-ref}/configuration.html#config-verify-server-cert[`ELASTIC_APM_VERIFY_SERVER_CERT`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
 * *Java agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
-* *PHP agent*: {apm-php-ref}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
 * *Python agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *NodeJS agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]

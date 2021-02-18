@@ -352,7 +352,7 @@ If you haven't already, you can now install APM Agents in your services!
 * {apm-java-ref-v}/intro.html[Java agent]
 * {apm-dotnet-ref-v}/intro.html[.NET agent]
 * {apm-node-ref-v}/intro.html[Node.js agent]
-* {apm-php-ref}/intro.html[PHP agent]
+* {apm-php-ref-v}/intro.html[PHP agent]
 * {apm-py-ref-v}/getting-started.html[Python agent]
 * {apm-ruby-ref-v}/introduction.html[Ruby agent]
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]

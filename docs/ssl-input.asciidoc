@@ -53,7 +53,7 @@ however it is possible through agents configuration:
 * *Go agent*: {apm-go-ref}/configuration.html#config-verify-server-cert[`ELASTIC_APM_VERIFY_SERVER_CERT`]
 * *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
 * *Java agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
-* *PHP agent*: {apm-php-ref}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
 * *Python agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *Ruby agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
 * *NodeJS agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]

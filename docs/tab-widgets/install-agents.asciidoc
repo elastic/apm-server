@@ -224,7 +224,7 @@ apk add --allow-untrusted <package-file>.apk
 ----
 
 If you can’t find your distribution,
-you can install the agent by {apm-php-ref}/setup.html[building it from the source].
+you can install the agent by {apm-php-ref-v}/setup.html[building it from the source].
 
 *Configure the agent*
 
@@ -239,8 +239,8 @@ elastic_apm.service_name="My-service"
 
 *Learn more in the agent reference*
 
-* {apm-php-ref}/supported-technologies.html[Supported technologies]
-* {apm-php-ref}/configuration.html[Configuration]
+* {apm-php-ref-v}/supported-technologies.html[Supported technologies]
+* {apm-php-ref-v}/configuration.html[Configuration]
 
 // end::php[]
 
