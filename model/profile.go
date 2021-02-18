@@ -58,7 +58,14 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 	valueFieldNames := make([]string, len(pp.Profile.SampleType))
 	for i, sampleType := range pp.Profile.SampleType {
 		sampleUnit := normalizeUnit(sampleType.Unit)
-		valueFieldNames[i] = sampleType.Type + "." + sampleUnit
+		// Go profiles report samples.count, Node.js profiles report sample.count.
+		// We use samples.count for both so we can aggregate on one field.
+		if sampleType.Type == "sample" || sampleType.Type == "samples" {
+			valueFieldNames[i] = "samples.count"
+		} else {
+			valueFieldNames[i] = sampleType.Type + "." + sampleUnit
+		}
+
 	}
 
 	// Generate a unique profile ID shared by all samples in the profile.
@@ -148,6 +155,9 @@ func normalizeUnit(unit string) string {
 	switch unit {
 	case "nanoseconds":
 		unit = "ns"
+
+	case "microseconds":
+		unit = "us"
 	}
 	return unit
 }

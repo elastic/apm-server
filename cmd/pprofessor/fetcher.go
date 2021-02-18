@@ -166,6 +166,11 @@ func (f *fetcher) fetchProfile(
 							"field": "profile.cpu.ns",
 						},
 					},
+					"wall_us": map[string]interface{}{
+						"sum": map[string]interface{}{
+							"field": "profile.wall.us",
+						},
+					},
 					"alloc_objects": map[string]interface{}{
 						"sum": map[string]interface{}{
 							"field": "profile.alloc_objects.count",
@@ -257,6 +262,7 @@ func (f *fetcher) fetchProfile(
 				if i == 0 {
 					node.samplesCount += int64(stack.SamplesCount.Value)
 					node.cpuNanos += int64(stack.CPUNanos.Value)
+					node.wallMicros += int64(stack.WallMicros.Value)
 					node.allocObjects += int64(stack.AllocObjects.Value)
 					node.allocSpaceBytes += int64(stack.AllocSpace.Value)
 					node.inuseObjects += int64(stack.InuseObjects.Value)
@@ -285,6 +291,7 @@ func (f *fetcher) fetchProfile(
 		SampleType: []*profile.ValueType{
 			{Type: "samples", Unit: "count"},
 			{Type: "cpu", Unit: "nanoseconds"},
+			{Type: "wall", Unit: "microseconds"},
 			{Type: "alloc_objects", Unit: "count"},
 			{Type: "alloc_space", Unit: "bytes"},
 			{Type: "inuse_objects", Unit: "count"},
@@ -340,6 +347,7 @@ func (f *fetcher) fetchProfile(
 				Value: []int64{
 					node.samplesCount,
 					node.cpuNanos,
+					node.wallMicros,
 					node.allocObjects,
 					node.allocSpaceBytes,
 					node.inuseObjects,
@@ -377,6 +385,7 @@ type aggregationsResult struct {
 			}
 			DocCount     int             `json:"doc_count"`
 			CPUNanos     numericAggValue `json:"cpu_ns"`
+			WallMicros   numericAggValue `json:"wall_us"`
 			AllocObjects numericAggValue `json:"alloc_objects"`
 			AllocSpace   numericAggValue `json:"alloc_space"`
 			InuseObjects numericAggValue `json:"inuse_objects"`
@@ -416,6 +425,7 @@ type profileNode struct {
 
 	samplesCount    int64
 	cpuNanos        int64
+	wallMicros      int64
 	allocObjects    int64
 	allocSpaceBytes int64
 	inuseObjects    int64
