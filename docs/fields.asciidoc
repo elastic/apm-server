@@ -2206,6 +2206,17 @@ type: long
 --
 
 
+*`profile.wall.us`*::
++
+--
+Amount of wall time profiled, in microseconds.
+
+
+type: long
+
+--
+
+
 *`profile.samples.count`*::
 +
 --
