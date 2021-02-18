@@ -15,7 +15,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20201222133159-1629e8d0b836 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.11.1-0.20210217135134-54d7d477d3d7
+	github.com/elastic/beats/v7 v7.11.2-0.20210218082825-3996720809e7
 	github.com/elastic/ecs v1.6.0
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201228182638-992d3d06e514
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201216152027-57cb70149147
@@ -73,7 +73,7 @@ require (
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/sys v0.0.0-20210217105451-b926d437f341 // indirect
+	golang.org/x/sys v0.0.0-20210218085108-9555bcde0c6a // indirect
 	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.1.0
