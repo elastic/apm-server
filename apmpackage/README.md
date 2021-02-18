@@ -35,10 +35,9 @@
 5. Upload to the snapshot registry
     - When everything works and `apmpackage/apm/` changes have been merged to `master`, copy the new package to
     `package-storage/packages` in the `package-storage` repo, `snapshot` branch.
-    Do *NOT* override any existing packages. Instead, bump the qualifier version. Eg: rename `apm/0.1.0-dev.1` to `apm/0.1.0-dev.2`
-    - Bump the qualifier in the contents too: `find . -type f  -print0 | xargs -0 sed -i ""  "s/0.1.0-dev.1/0.1.0-dev.2/g"`
-    This step can be done in a separate commit to facilitate review.
-
+    Do *NOT* override any existing packages. Instead, bump the qualifier version (eg: `0.1.0-dev.1` to `0.1.0-dev.2`)
+    both in the folder name and the content (`manifest.yml` and `default.json` pipelines)
+    - You can `cd script && python copy-package.py` for this.
 
 #### Create a new package version
 
