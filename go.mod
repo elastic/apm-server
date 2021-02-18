@@ -15,6 +15,7 @@ require (
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210127154636-fe8f75895aa1
 	github.com/elastic/ecs v1.6.0
+	github.com/elastic/gmux v0.1.0
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -43,7 +44,6 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/reviewdog/reviewdog v0.9.17
 	github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735
-	github.com/santhosh-tekuri/jsonschema v1.2.4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1

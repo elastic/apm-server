@@ -27,19 +27,20 @@ import (
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
-	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/v7/libbeat/logp"
-
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/gmux"
 )
 
 type httpServer struct {
 	*http.Server
-	cfg      *config.Config
-	logger   *logp.Logger
-	reporter publish.Reporter
+	cfg          *config.Config
+	logger       *logp.Logger
+	reporter     publish.Reporter
+	grpcListener net.Listener
 }
 
 func newHTTPServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*httpServer, error) {
@@ -67,7 +68,17 @@ func newHTTPServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, 
 		}
 		server.TLSConfig = tlsServerConfig.BuildServerConfig("")
 	}
-	return &httpServer{server, cfg, logger, reporter}, nil
+
+	// Configure the server with gmux. The returned net.Listener will receive
+	// gRPC connections, while all other requests will be handled by s.Handler.
+	//
+	// grpcListener is closed when the HTTP server is shutdown.
+	grpcListener, err := gmux.ConfigureServer(server, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &httpServer{server, cfg, logger, reporter, grpcListener}, nil
 }
 
 func (h *httpServer) start() error {
@@ -108,7 +119,7 @@ func (h *httpServer) start() error {
 		notifyListening(context.Background(), addr, h.reporter)
 	}
 
-	if h.TLSConfig != nil {
+	if h.cfg.TLS.IsEnabled() {
 		h.logger.Info("SSL enabled.")
 		return h.ServeTLS(lis, "", "")
 	}
