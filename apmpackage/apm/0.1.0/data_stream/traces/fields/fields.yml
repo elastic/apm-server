@@ -2,9 +2,16 @@
   type: keyword
   description: |
     The ID(s)s of the child event(s).
+- name: cloud.service.name
+  level: extended
+  type: keyword
+  description: |
+    Cloud service name, intended to distinguish services running on different platforms within a provider.
+  ignore_above: 1024
 - name: experimental
   type: object
   description: Additional experimental data sent by the agents.
+  dynamic: true
 - name: http.request.headers
   type: object
   description: |
@@ -175,8 +182,10 @@
   type: object
   description: |
     A user-defined mapping of groups of marks in milliseconds.
+  dynamic: true
 - name: transaction.marks.*.*
   type: object
+  dynamic: true
 - name: transaction.message.age.ms
   type: long
   description: |

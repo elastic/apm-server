@@ -110,7 +110,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	//     currently an option in libbeat/monitoring.
 
 	p.groups.mu.RLock()
-	numDynamicGroups := len(p.groups.dynamicGroups)
+	numDynamicGroups := p.groups.numDynamicServiceGroups
 	p.groups.mu.RUnlock()
 	monitoring.ReportInt(V, "dynamic_service_groups", int64(numDynamicGroups))
 
