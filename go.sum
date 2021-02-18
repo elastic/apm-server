@@ -318,10 +318,10 @@ github.com/elastic/elastic-agent-client/v7 v7.0.0-20200709172729-d43b7ad5833a/go
 github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270/go.mod h1:Msl1pdboCbArMF/nSCDUXgQuWTeoMmE/z8607X+k7ng=
 github.com/elastic/go-concert v0.0.4 h1:pzgYCmJ/xMJsW8PSk33inAWZ065hrwSeP79TpwAbsLE=
 github.com/elastic/go-concert v0.0.4/go.mod h1:9MtFarjXroUgmm0m6HY3NSe1XiKhdktiNRRj9hWvIaM=
-github.com/elastic/go-elasticsearch/v7 v7.9.0 h1:UEau+a1MiiE/F+UrDj60kqIHFWdzU1M2y/YtBU2NC2M=
-github.com/elastic/go-elasticsearch/v7 v7.9.0/go.mod h1:OJ4wdbtDNk5g503kvlHLyErCgQwwzmDtaFC4XyOxXA4=
-github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd h1:kVw29H2M+wai0NQ/W8FzngD80DnHTUfz/8kbfZl10hU=
-github.com/elastic/go-elasticsearch/v8 v8.0.0-20200819071622-59b6a186f8dd/go.mod h1:xe9a/L2aeOgFKKgrO3ibQTnMdpAeL0GC+5/HpGScSa4=
+github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02 h1:tlf2h6we83EcBIJI2pzOljdbdV5J9Gfwh+8Kx/z4BCc=
+github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02/go.mod h1:OJ4wdbtDNk5g503kvlHLyErCgQwwzmDtaFC4XyOxXA4=
+github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208 h1:e7eoyubUAsH05vn5eMkgMPQO6E+B+CT7yxWbLSQe2xU=
+github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208/go.mod h1:xe9a/L2aeOgFKKgrO3ibQTnMdpAeL0GC+5/HpGScSa4=
 github.com/elastic/go-hdrhistogram v0.1.0 h1:7UVeQ9MsO5c9h8RJeH2S2lXCGi9hQB/94W6Pjjqprc4=
 github.com/elastic/go-hdrhistogram v0.1.0/go.mod h1:NEl0wZTQXzwq7X2WBZGl5G3efcKbvv+r9mTZpXrIs78=
 github.com/elastic/go-libaudit/v2 v2.1.0/go.mod h1:MM/l/4xV7ilcl+cIblL8Zn448J7RZaDwgNLE4gNKYPg=
