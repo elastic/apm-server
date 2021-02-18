@@ -37,7 +37,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "culprit": "my.module.function_name",
@@ -393,7 +393,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
@@ -511,7 +511,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "exception": [
@@ -625,7 +625,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "exception": [
@@ -745,7 +745,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
