@@ -30,6 +30,7 @@ https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
 * When tail-sampling is enabled, a default policy must be defined {pull}4729[4729]
 * Support additional config options when running under Fleet {pull}4690[4690]
 * Upgrade Go to 1.15.8 {pull}4733[4733]
+* Add support for Node.js wall time profiles {pull}4728[4728]
 
 [float]
 ==== Deprecated
