@@ -15,6 +15,7 @@ require (
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20201216165816-4d1c891ebf75
 	github.com/elastic/ecs v1.6.0
+	github.com/elastic/gmux v0.1.0
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
 	github.com/elastic/go-hdrhistogram v0.1.0
@@ -61,7 +62,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
 	golang.org/x/net v0.0.0-20201209123823-ac852fbbde11
-	golang.org/x/sync v0.0.0-20200930132711-30421366ff76
+	golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520
 	golang.org/x/sys v0.0.0-20201214210602-f9fddec55a1e // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 	golang.org/x/tools v0.0.0-20201215171152-6307297f4651
