@@ -516,13 +516,13 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, 
 		require.NoError(t, err)
 	}
 
-	beatId, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
+	beatID, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
 	require.NoError(t, err)
 	info := beat.Info{
 		Beat:        "test-apm-server",
 		IndexPrefix: "test-apm-server",
 		Version:     version.GetDefaultVersion(),
-		ID:          beatId,
+		ID:          beatID,
 	}
 
 	var pub beat.Pipeline
