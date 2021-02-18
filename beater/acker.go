@@ -27,61 +27,73 @@ import (
 
 // waitPublishedAcker is a beat.ACKer which keeps track of the number of
 // events published. waitPublishedAcker provides an interruptible Wait method
-// that blocks until all events published at the time the client is closed are
-// acknowledged.
-//
-// TODO(axw) move this to libbeat/common/acker.
+// that blocks until all clients are closed, and all published events at the
+// time the clients are closed are acknowledged.
 type waitPublishedAcker struct {
 	active int64 // atomic
 
-	mu     sync.RWMutex
-	closed bool
-	done   chan struct{}
+	mu    sync.Mutex
+	empty *sync.Cond
 }
 
 // newWaitPublishedAcker returns a new waitPublishedAcker.
 func newWaitPublishedAcker() *waitPublishedAcker {
-	return &waitPublishedAcker{done: make(chan struct{})}
+	acker := &waitPublishedAcker{}
+	acker.empty = sync.NewCond(&acker.mu)
+	return acker
 }
 
 // AddEvent is called when an event has been published or dropped by the client,
 // and increments a counter for published events.
 func (w *waitPublishedAcker) AddEvent(event beat.Event, published bool) {
-	if !published {
-		return
+	if published {
+		w.incref(1)
 	}
-	atomic.AddInt64(&w.active, 1)
 }
 
 // ACKEvents is called when published events have been acknowledged.
 func (w *waitPublishedAcker) ACKEvents(n int) {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	if atomic.AddInt64(&w.active, int64(-n)) == 0 && w.closed {
-		close(w.done)
-	}
+	w.decref(int64(n))
 }
 
-// Close closes w, unblocking Wait when all previously published events have
-// been acknowledged.
+// Open must be called exactly once before any new pipeline client is opened,
+// incrementing the acker's reference count.
+func (w *waitPublishedAcker) Open() {
+	w.incref(1)
+}
+
+// Close is called when a pipeline client is closed, and decrements the
+// acker's reference count.
+//
+// This must be called at most once for each call to Open.
 func (w *waitPublishedAcker) Close() {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	if !w.closed {
-		w.closed = true
-		if atomic.LoadInt64(&w.active) == 0 {
-			close(w.done)
-		}
+	w.decref(1)
+}
+
+func (w *waitPublishedAcker) incref(n int64) {
+	atomic.AddInt64(&w.active, 1)
+}
+
+func (w *waitPublishedAcker) decref(n int64) {
+	if atomic.AddInt64(&w.active, int64(-n)) == 0 {
+		w.empty.Broadcast()
 	}
 }
 
 // Wait waits for w to be closed and all previously published events to be
 // acknowledged.
 func (w *waitPublishedAcker) Wait(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-w.done:
-		return nil
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	go func() {
+		<-ctx.Done()
+		w.empty.Broadcast()
+	}()
+
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for atomic.LoadInt64(&w.active) != 0 && ctx.Err() == nil {
+		w.empty.Wait()
 	}
+	return ctx.Err()
 }
