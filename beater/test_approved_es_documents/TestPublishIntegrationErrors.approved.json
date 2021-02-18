@@ -296,7 +296,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
+                "version": "7.12.0",
                 "version_major": 7
             },
             "process": {
@@ -426,7 +426,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
+                "version": "7.12.0",
                 "version_major": 7
             },
             "process": {
@@ -537,7 +537,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
+                "version": "7.12.0",
                 "version_major": 7
             },
             "process": {
@@ -648,7 +648,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
+                "version": "7.12.0",
                 "version_major": 7
             },
             "parent": {
@@ -764,7 +764,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
+                "version": "7.12.0",
                 "version_major": 7
             },
             "parent": {
