@@ -1,6 +1,7 @@
 - name: experimental
   type: object
   description: Additional experimental data sent by the agents.
+  dynamic: true
 - name: kubernetes.namespace
   type: keyword
   description: |

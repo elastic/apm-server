@@ -35,6 +35,7 @@
 - name: experimental
   type: object
   description: Additional experimental data sent by the agents.
+  dynamic: true
 - name: http.request.headers
   type: object
   description: |
