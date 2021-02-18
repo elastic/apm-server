@@ -373,6 +373,8 @@ type metadataCloud struct {
 	Provider nullable.String `json:"provider" validate:"required,maxLength=1024"`
 	// Region where the monitored service is running, e.g. us-east-1
 	Region nullable.String `json:"region" validate:"maxLength=1024"`
+	// Service that is monitored on cloud
+	Service metadataCloudService `json:"service"`
 }
 
 type metadataCloudAccount struct {
@@ -398,6 +400,13 @@ type metadataCloudProject struct {
 	// ID of the cloud project.
 	ID nullable.String `json:"id" validate:"maxLength=1024"`
 	// Name of the cloud project.
+	Name nullable.String `json:"name" validate:"maxLength=1024"`
+}
+
+type metadataCloudService struct {
+	// Name of the cloud service, intended to distinguish services running on
+	// different platforms within a provider, eg AWS EC2 vs Lambda,
+	// GCP GCE vs App Engine, Azure VM vs App Server.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
 }
 

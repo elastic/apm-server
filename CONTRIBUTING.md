@@ -97,3 +97,9 @@ and merged with "Create a merge commit".
 Straightforward backports may be merged without review.
 
 [Backport](https://github.com/sqren/backport) is recommended for automating the backport process.
+
+### Examples
+
+This is a collection of example PRs for additions occuring somewhat frequently.
+
+* [Adding a new field to the Intake API and index it in Elasticsearch](https://github.com/elastic/apm-server/pull/4626#issue-555484976)

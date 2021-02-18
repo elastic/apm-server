@@ -121,6 +121,23 @@
             "string"
           ],
           "maxLength": 1024
+        },
+        "service": {
+          "description": "Service that is monitored on cloud",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "name": {
+              "description": "Name of the cloud service, intended to distinguish services running on different platforms within a provider, eg AWS EC2 vs Lambda, GCP GCE vs App Engine, Azure VM vs App Server.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            }
+          }
         }
       },
       "required": [
