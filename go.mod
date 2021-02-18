@@ -56,6 +56,7 @@ require (
 	go.elastic.co/apm/module/apmhttp v1.7.2
 	go.elastic.co/ecszap v0.3.0 // indirect
 	go.elastic.co/fastjson v1.1.0
+	go.elastic.co/go-licence-detector v0.5.0
 	go.opentelemetry.io/collector v0.17.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
@@ -89,3 +90,5 @@ replace (
 	k8s.io/apimachinery => k8s.io/apimachinery v0.19.4
 	k8s.io/client-go => k8s.io/client-go v0.19.4
 )
+
+replace go.opentelemetry.io/collector => ./internal/otel_collector
