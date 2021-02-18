@@ -1,0 +1,52 @@
+{
+    "events": [
+        {
+            "@timestamp": "1970-01-01T00:02:03.000Z",
+            "agent": {
+                "name": "otlp",
+                "version": "unknown"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 123000000
+            },
+            "trace": {
+                "id": "d2acbef8b37655e48548fd9d61ad6114"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 1000000
+                },
+                "id": "b3ee9be3b687a611",
+                "name": "operation_name",
+                "result": "Success",
+                "sampled": true,
+                "type": "custom"
+            }
+        }
+    ]
+}

@@ -421,6 +421,9 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	if from.Cloud.Region.IsSet() {
 		out.Cloud.Region = from.Cloud.Region.Val
 	}
+	if from.Cloud.Service.Name.IsSet() {
+		out.Cloud.ServiceName = from.Cloud.Service.Name.Val
+	}
 
 	// Labels
 	if len(from.Labels) > 0 {
