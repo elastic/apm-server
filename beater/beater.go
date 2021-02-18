@@ -171,9 +171,15 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	recordAPMServerConfig(bt.config)
 
-	tracer, tracerServer, err := bt.initTracing(b)
+	tracer, tracerServer, err := initTracing(b, bt.config, bt.logger)
 	if err != nil {
 		return err
+	}
+	if tracer != nil {
+		defer tracer.Close()
+		if tracerServer != nil {
+			defer tracerServer.Close()
+		}
 	}
 
 	runServer := runServer
@@ -323,19 +329,26 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 	return err
 }
 
-func (bt *beater) initTracing(b *beat.Beat) (*apm.Tracer, *tracerServer, error) {
+func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, *tracerServer, error) {
 	var err error
 	tracer := b.Instrumentation.Tracer()
 	listener := b.Instrumentation.Listener()
 
-	if !tracer.Active() && bt.config != nil {
-		tracer, listener, err = initLegacyTracer(b.Info, bt.config)
+	if !tracer.Active() && cfg != nil {
+		tracer, listener, err = initLegacyTracer(b.Info, cfg)
 		if err != nil {
 			return nil, nil, err
 		}
 	}
 
-	tracerServer := newTracerServer(bt.config, listener)
+	var tracerServer *tracerServer
+	if listener != nil {
+		var err error
+		tracerServer, err = newTracerServer(listener, logger)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 	return tracer, tracerServer, nil
 }
 
@@ -392,16 +405,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	return func(ctx context.Context, args ServerParams) error {
 		g, ctx := errgroup.WithContext(ctx)
 		g.Go(func() error {
-			defer tracerServer.stop()
-			<-ctx.Done()
-			// Close the tracer now to prevent the server
-			// from waiting for more events during graceful
-			// shutdown.
-			tracer.Close()
-			return nil
-		})
-		g.Go(func() error {
-			return tracerServer.serve(args.Reporter)
+			return tracerServer.serve(ctx, args.Reporter)
 		})
 		g.Go(func() error {
 			return runServer(ctx, args)
