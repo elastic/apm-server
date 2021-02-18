@@ -119,7 +119,34 @@ agent.startTransaction('my-service-b-transaction', { childOf: traceparent }) <2>
 
 // tag::php[]
 
-PHP `traceparent` receive content goes here.
+1. On the client side (i.e., the side sending the request) get the current distributed tracing context:
+
+[source,php]
+----
+$distData = ElasticApm::getCurrentTransaction()->getDistributedTracingData();
+----
+
+2. Serialize the current distributed tracing context to format supported by the request's transport and send it to the server side (i.e., the side receiving the request)
+
+3. Receive the distributed tracing context on the server side and unserialize it back to a new `DistributedTracingData` object
+
+4. Begin a new transaction using public API (for example {apm-php-ref}/public-api.html#api-elasticapm-class-begin-current-transaction[`ElasticApm::beginCurrentTransaction`])
+and passing the new `DistributedTracingData` object as a parameter. For example:
+
+[source,php]
+----
+$receiverTransaction = ElasticApm::beginCurrentTransaction(
+    'GET /data-api',
+    'data-layer',
+    /* timestamp */ null,
+    $distData
+);
+----
+
+This will create a new transaction or span as a child of the incoming trace context.
+
+5. Don't forget to eventually end the transaction on the server side
+
 // end::php[]
 
 // ***************************************************

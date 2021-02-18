@@ -102,6 +102,10 @@
   type: long
   description: |
     Source code line number for the top stack frame.
+- name: profile.wall.us
+  type: long
+  description: |
+    Amount of wall time profiled, in microseconds.
 - name: service.environment
   type: keyword
   description: |
