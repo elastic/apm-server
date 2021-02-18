@@ -471,24 +471,24 @@ func TestTLSSettings(t *testing.T) {
 			"ConfiguredToRequired": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication": "required",
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                   "../../testdata/tls/key.pem",
+					"certificate":           "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredToOptional": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication": "optional",
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                   "../../testdata/tls/key.pem",
+					"certificate":           "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 3, Certificate: testdataCertificateConfig},
 			},
 			"DefaultRequiredByCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                     "../../testdata/tls/key.pem",
+					"certificate":             "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
@@ -496,8 +496,8 @@ func TestTLSSettings(t *testing.T) {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication":   "none",
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                     "../../testdata/tls/key.pem",
+					"certificate":             "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 0, Certificate: testdataCertificateConfig},
 			},

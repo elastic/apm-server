@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/gmux"
 )
 
 type httpServer struct {
