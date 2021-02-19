@@ -3,22 +3,22 @@
   "processors": [
     {
       "pipeline": {
-        "name": "metrics-apm-0.1.0-apm_user_agent"
+        "name": "metrics-apm.app-0.1.0-apm_user_agent"
       }
     },
     {
       "pipeline": {
-        "name": "metrics-apm-0.1.0-apm_user_geo"
+        "name": "metrics-apm.app-0.1.0-apm_user_geo"
       }
     },
     {
       "pipeline": {
-        "name": "metrics-apm-0.1.0-apm_ingest_timestamp"
+        "name": "metrics-apm.app-0.1.0-apm_ingest_timestamp"
       }
     },
     {
       "pipeline": {
-        "name": "metrics-apm-0.1.0-apm_remove_span_metadata"
+        "name": "metrics-apm.app-0.1.0-apm_remove_span_metadata"
       }
     }
   ]

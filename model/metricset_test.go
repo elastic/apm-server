@@ -63,7 +63,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm",
+					"data_stream.dataset": "apm.app",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service": common.MapStr{
 						"name": "myservice",
@@ -91,7 +91,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm",
+					"data_stream.dataset": "apm.app",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"labels":              common.MapStr{"a_b": "a.b.value"},
