@@ -114,6 +114,25 @@ sendMetadata(`traceparent: ${traceparent}\n`); <3>
 // ***************************************************
 // ***************************************************
 
+// tag::php[]
+
+1. On the client side (i.e., the side sending the request) get the current distributed tracing context.
+
+2. Serialize the current distributed tracing context to a format supported by the request's transport and send it to the server side (i.e., the side receiving the request).
+
+Example:
+
+[source,php]
+----
+$distData = ElasticApm::getCurrentTransaction()->getDistributedTracingData(); <1>
+----
+<1> Get the current distributed tracing context
+
+// end::php[]
+
+// ***************************************************
+// ***************************************************
+
 // tag::python[]
 
 1. Start a transaction with {apm-py-ref}/api.html#client-api-begin-transaction[`begin_transaction()`].

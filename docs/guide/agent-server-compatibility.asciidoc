@@ -5,39 +5,43 @@ The chart below outlines the compatibility between different versions of the APM
 
 [options="header"]
 |====
-|Agent |Agent Version |APM Server Version
+|Agent |Agent version |APM Server version
 // Go
-.1+|**Go Agent**
+.1+|**Go agent**
 |`1.x` |≥ `6.5`
 
 // Java
-.1+|**Java Agent**
+.1+|**Java agent**
 |`1.x`|≥ `6.5`
 
 // .NET
-.1+|**.NET Agent**
+.1+|**.NET agent**
 |`1.x` |≥ `6.5`
 
 // Node
-.3+|**Node.js Agent**
+.3+|**Node.js agent**
 |`1.x` |`6.2`-`6.x`
 |`2.x` |≥ `6.5`
 |`3.x` |≥ `6.6`
 
+// PHP
+.1+|**PHP agent**
+|`1.x` |≥ `7.0`
+
 // Python
-.3+|**Python Agent**
+.3+|**Python agent**
 |`2.x`, `3.x` |`6.2`-`6.x`
 |`4.x` |≥ `6.5`
 |`5.x` |≥ `6.6`
 
 // Ruby
-.3+|**Ruby Agent**
+.3+|**Ruby agent**
 |`1.x` |`6.4`-`6.x`
 |`2.x` |≥ `6.5`
 |`3.x` |≥ `6.5`
 
 // RUM
-.4+|**JavaScript RUM Agent**
+.4+|**JavaScript RUM agent**
 |`0.x` |`6.3`-`6.4`
 |`1.x` |`6.4`
 |`2.x`, `3.x`, `4.x` |≥ `6.5`
