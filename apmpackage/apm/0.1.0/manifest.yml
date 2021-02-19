@@ -10,6 +10,11 @@ categories:
 release: experimental # experimental / beta / ga
 conditions:
   kibana.version: '^7.11.0'
+icons:
+  - src: /img/logo_apm.svg
+    title: APM Logo
+    size: 32x32
+    type: image/svg+xml
 policy_templates:
 - name: apmserver
   title: Elastic APM Integration
@@ -111,7 +116,6 @@ policy_templates:
         required: false
         show_user: false
         default: 307200   
->>>>>>> a25b11076... [apmpackage] Add config options supported in ESS (#4690)
     template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
