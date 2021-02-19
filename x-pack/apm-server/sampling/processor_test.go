@@ -597,8 +597,12 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			},
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			Elasticsearch:      pubsubtest.Client(nil, nil),
-			SampledTracesIndex: "apm-sampled-traces",
+			Elasticsearch: pubsubtest.Client(nil, nil),
+			SampledTracesDataStream: sampling.DataStreamConfig{
+				Type:      "traces",
+				Dataset:   "sampled",
+				Namespace: "testing",
+			},
 		},
 		StorageConfig: sampling.StorageConfig{
 			StorageDir:        tempdir,
