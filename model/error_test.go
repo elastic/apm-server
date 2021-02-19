@@ -555,7 +555,7 @@ func TestErrorTransformPage(t *testing.T) {
 			Error: Error{
 				ID: &id,
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},
@@ -572,9 +572,9 @@ func TestErrorTransformPage(t *testing.T) {
 			Error: Error{
 				ID:        &id,
 				Timestamp: time.Now(),
-				URL:       ParseURL("https://localhost:8200/", ""),
+				URL:       ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},
