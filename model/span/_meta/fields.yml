@@ -143,43 +143,6 @@
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
           overwrite: true
 
-        - name: duration
-          type: group
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-                  overwrite: true
-
-        - name: self_time
-          type: group
-          description: >
-            Portion of the transaction's duration where no direct child was running
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-                  overwrite: true
-
-        - name: breakdown
-          type: group
-          description: >
-            Counter for collected breakdowns for the transaction
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-
     - name: trace
       type: group
       dynamic: false
@@ -691,10 +654,6 @@
          example: success
          overwrite: true
 
-    - name: view spans
-      format: url
-      label_template: "View Spans"
-
     - name: child
       type: group
       dynamic: false
@@ -702,7 +661,7 @@
         - name: id
           type: keyword
           description: >
-            The ID(s)s of the child event(s).
+            The ID(s) of the child event(s).
 
     - name: span
       type: group
@@ -721,21 +680,6 @@
           description: >
             A further sub-division of the type (e.g. postgresql, elasticsearch)
           overwrite: true 
-
-        - name: self_time
-          type: group
-          description: >
-            Portion of the span's duration where no direct child was running
-          fields:
-          - name: count
-            type: long
-            overwrite: true 
-          - name: sum
-            type: group
-            fields:
-              - name: us
-                type: long
-                overwrite: true 
 
         - name: id
           type: keyword
