@@ -41,7 +41,7 @@
                 "id": "0000000041414646",
                 "name": "",
                 "subtype": "whatever",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576500418000768
