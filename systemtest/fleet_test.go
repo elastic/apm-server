@@ -18,9 +18,15 @@
 package systemtest_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/transport"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -28,12 +34,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/wait"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
+	"time"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -48,6 +49,14 @@ func TestFleetIntegration(t *testing.T) {
 	cleanupFleet(t, fleet)
 	defer cleanupFleet(t, fleet)
 
+	// Generate an api key
+	cmd := apiKeyCommand("create", "--name", t.Name(), "--json")
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err)
+	attrs := decodeJSONMap(t, bytes.NewReader(out))
+	fmt.Println(attrs)
+	apiKey := attrs["id"].(string) + ":" + attrs["api_key"].(string)
+
 	agentPolicy, enrollmentAPIKey, err := fleet.CreateAgentPolicy("apm_systemtest", "default", "Agent policy for APM Server system tests")
 	require.NoError(t, err)
 
@@ -57,7 +66,7 @@ func TestFleetIntegration(t *testing.T) {
 	packagePolicy.Package.Name = apmPackage.Name
 	packagePolicy.Package.Version = apmPackage.Version
 	packagePolicy.Package.Title = apmPackage.Title
-	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage)
+	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage, apiKey)
 
 	err = fleet.CreatePackagePolicy(packagePolicy)
 	require.NoError(t, err)
@@ -120,6 +129,15 @@ func TestFleetIntegration(t *testing.T) {
 	tracer.Flush(nil)
 
 	systemtest.Elasticsearch.ExpectDocs(t, "traces-*", nil)
+
+	// Test that can query the central config endpoint
+	addr := agent.Addrs[0]
+	req, err := http.NewRequest(http.MethodGet, "http://" + addr + "/config/v1/agents?service.name=systemtest_test", nil)
+	require.NoError(t, err)
+	c := http.Client{Timeout: time.Second}
+	resp, err := c.Do(req)
+	require.NoError(t, err)
+	assert.Equal(t, 200, resp.Status)
 }
 
 func TestFleetPackageNonMultiple(t *testing.T) {
@@ -135,7 +153,7 @@ func TestFleetPackageNonMultiple(t *testing.T) {
 
 	apmPackage := getAPMIntegrationPackage(t, fleet)
 	packagePolicy := fleettest.NewPackagePolicy(apmPackage, "apm", "default", agentPolicy.ID)
-	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage)
+	initAPMIntegrationPackagePolicyInputs(t, packagePolicy, apmPackage, "")
 
 	err = fleet.CreatePackagePolicy(packagePolicy)
 	require.NoError(t, err)
@@ -147,7 +165,7 @@ func TestFleetPackageNonMultiple(t *testing.T) {
 	assert.EqualError(t, err, "Unable to create package policy. Package 'apm' already exists on this agent policy.")
 }
 
-func initAPMIntegrationPackagePolicyInputs(t *testing.T, packagePolicy *fleettest.PackagePolicy, apmPackage *fleettest.Package) {
+func initAPMIntegrationPackagePolicyInputs(t *testing.T, packagePolicy *fleettest.PackagePolicy, apmPackage *fleettest.Package, kibanaAPIKey string) {
 	assert.Len(t, apmPackage.PolicyTemplates, 1)
 	assert.Len(t, apmPackage.PolicyTemplates[0].Inputs, 1)
 	for _, input := range apmPackage.PolicyTemplates[0].Inputs {
@@ -157,6 +175,8 @@ func initAPMIntegrationPackagePolicyInputs(t *testing.T, packagePolicy *fleettes
 			switch inputVar.Name {
 			case "host":
 				varMap["value"] = ":8200"
+			case "kibana_api_key":
+				varMap["value"] = kibanaAPIKey
 			}
 			vars[inputVar.Name] = varMap
 		}
