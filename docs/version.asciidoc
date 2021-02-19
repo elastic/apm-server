@@ -13,7 +13,7 @@ include::{asciidoc-dir}/../../shared/versions/stack/{source_branch}.asciidoc[]
 :apm-go-ref-v:         https://www.elastic.co/guide/en/apm/agent/go/{apm-go-branch}
 :apm-java-ref-v:       https://www.elastic.co/guide/en/apm/agent/java/{apm-java-branch}
 :apm-node-ref-v:       https://www.elastic.co/guide/en/apm/agent/nodejs/{apm-node-branch}
-:apm-php-ref-v:        https://www.elastic.co/guide/en/apm/agent/dotnet/{apm-php-branch}
+:apm-php-ref-v:        https://www.elastic.co/guide/en/apm/agent/php/{apm-php-branch}
 :apm-py-ref-v:         https://www.elastic.co/guide/en/apm/agent/python/{apm-py-branch}
 :apm-ruby-ref-v:       https://www.elastic.co/guide/en/apm/agent/ruby/{apm-ruby-branch}
 :apm-rum-ref-v:        https://www.elastic.co/guide/en/apm/agent/rum-js/{apm-rum-branch}
