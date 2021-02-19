@@ -5,6 +5,7 @@
 package pubsub
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -20,8 +21,8 @@ type Config struct {
 	// trace ID observations.
 	Client elasticsearch.Client
 
-	// Index holds the index name.
-	Index string
+	// DataStream holds the data stream.
+	DataStream DataStreamConfig
 
 	// BeatID holds the APM Server's unique ID, used for filtering out
 	// local observations in the subscriber.
@@ -48,13 +49,25 @@ type Config struct {
 	Logger *logp.Logger
 }
 
+// DataStreamConfig holds data stream configuration for Pubsub.
+type DataStreamConfig struct {
+	// Type holds the data stream's type.
+	Type string
+
+	// Dataset holds the data stream's dataset.
+	Dataset string
+
+	// Namespace holds the data stream's namespace.
+	Namespace string
+}
+
 // Validate validates the configuration.
 func (config Config) Validate() error {
 	if config.Client == nil {
 		return errors.New("Client unspecified")
 	}
-	if config.Index == "" {
-		return errors.New("Index unspecified")
+	if err := config.DataStream.Validate(); err != nil {
+		return errors.Wrap(err, "DataStream unspecified or invalid")
 	}
 	if config.BeatID == "" {
 		return errors.New("BeatID unspecified")
@@ -66,4 +79,23 @@ func (config Config) Validate() error {
 		return errors.New("FlushInterval unspecified or negative")
 	}
 	return nil
+}
+
+// Validate validates the configuration.
+func (config DataStreamConfig) Validate() error {
+	if config.Type == "" {
+		return errors.New("Type unspecified")
+	}
+	if config.Dataset == "" {
+		return errors.New("Dataset unspecified")
+	}
+	if config.Namespace == "" {
+		return errors.New("Namespace unspecified")
+	}
+	return nil
+}
+
+// String returns the data stream as a combined string.
+func (config DataStreamConfig) String() string {
+	return fmt.Sprintf("%s-%s-%s", config.Type, config.Dataset, config.Namespace)
 }

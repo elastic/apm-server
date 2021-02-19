@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -83,9 +84,13 @@ func getBeatsMonitoringStats(t testing.TB, srv *apmservertest.Server, out interf
 }
 
 func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, out interface{}) *beatsMonitoringDoc {
-	result := systemtest.Elasticsearch.ExpectDocs(t, ".monitoring-beats-*",
+	var result estest.SearchResult
+	req := systemtest.Elasticsearch.Search(".monitoring-beats-*").WithQuery(
 		estest.TermQuery{Field: type_ + ".beat.uuid", Value: srv.BeatUUID},
-	)
+	).WithSort("timestamp:desc")
+	if _, err := req.Do(context.Background(), &result, estest.WithCondition(result.Hits.MinHitsCondition(1))); err != nil {
+		t.Error(err)
+	}
 
 	var doc beatsMonitoringDoc
 	doc.RawSource = []byte(result.Hits.Hits[0].RawSource)

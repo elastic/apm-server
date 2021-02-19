@@ -57,8 +57,12 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	}
 	config.Elasticsearch = elasticsearchClient
 
-	assertInvalidConfigError("invalid remote sampling config: SampledTracesIndex unspecified")
-	config.SampledTracesIndex = "sampled-traces"
+	assertInvalidConfigError("invalid remote sampling config: SampledTracesDataStream unspecified or invalid")
+	config.SampledTracesDataStream = sampling.DataStreamConfig{
+		Type:      "traces",
+		Dataset:   "sampled",
+		Namespace: "testing",
+	}
 
 	assertInvalidConfigError("invalid storage config: StorageDir unspecified")
 	config.StorageDir = "tbs"
