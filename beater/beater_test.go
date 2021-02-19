@@ -42,7 +42,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/version"
 )
 
 type testBeater struct {
@@ -68,7 +67,7 @@ func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, even
 	info := beat.Info{
 		Beat:        "test-apm-server",
 		IndexPrefix: "test-apm-server",
-		Version:     version.GetDefaultVersion(),
+		Version:     "1.2.3", // hard-coded to avoid changing approvals
 		ID:          uuid.Must(uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")),
 	}
 

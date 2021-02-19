@@ -27,7 +27,6 @@ import (
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/intake"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/middleware"
@@ -94,39 +93,32 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 func TestRUMHandler_CORSMiddleware(t *testing.T) {
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"foo"}
-	h, err := rumIntakeHandler(cfg, nil, beatertest.NilReporter)
-	require.NoError(t, err)
-	c, w := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
-	c.Request.Header.Set(headers.Origin, "bar")
-	h(c)
+	h := newTestMux(t, cfg)
 
-	assert.Equal(t, http.StatusForbidden, w.Code)
+	for _, path := range []string{"/intake/v2/rum/events", "/intake/v3/rum/events"} {
+		req := httptest.NewRequest(http.MethodPost, path, nil)
+		req.Header.Set(headers.Origin, "bar")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	}
 }
 
 func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
-	h, err := rumIntakeHandler(config.DefaultConfig(), nil, beatertest.NilReporter)
-	require.NoError(t, err)
-	rec := &beatertest.WriterPanicOnce{}
-	c := request.NewContext()
-	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-	h(c)
-	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+	testPanicMiddleware(t, "/intake/v2/rum/events", approvalPathIntakeRUM(t.Name()))
+	testPanicMiddleware(t, "/intake/v3/rum/events", approvalPathIntakeRUM(t.Name()))
 }
 
 func TestRumHandler_MonitoringMiddleware(t *testing.T) {
-	h, err := rumIntakeHandler(config.DefaultConfig(), nil, beatertest.NilReporter)
-	require.NoError(t, err)
-	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
 	// send GET request resulting in 403 Forbidden error
-	expected := map[request.ResultID]int{
-		request.IDRequestCount:            1,
-		request.IDResponseCount:           1,
-		request.IDResponseErrorsCount:     1,
-		request.IDResponseErrorsForbidden: 1}
-
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringMap)
-	assert.True(t, equal, result)
+	for _, path := range []string{"/intake/v2/rum/events", "/intake/v3/rum/events"} {
+		testMonitoringMiddleware(t, path, intake.MonitoringMap, map[request.ResultID]int{
+			request.IDRequestCount:            1,
+			request.IDResponseCount:           1,
+			request.IDResponseErrorsCount:     1,
+			request.IDResponseErrorsForbidden: 1,
+		})
+	}
 }
 
 func cfgEnabledRUM() *config.Config {

@@ -89,17 +89,19 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConf
 		return nil, errors.Wrap(err, "invalid config")
 	}
 
+	observerFields := common.MapStr{
+		"type":         cfg.Info.Beat,
+		"hostname":     cfg.Info.Hostname,
+		"version":      cfg.Info.Version,
+		"id":           cfg.Info.ID.String(),
+		"ephemeral_id": cfg.Info.EphemeralID.String(),
+	}
+	if version, err := common.NewVersion(cfg.Info.Version); err == nil {
+		observerFields["version_major"] = version.Major
+	}
+
 	processingCfg := beat.ProcessingConfig{
-		Fields: common.MapStr{
-			"observer": common.MapStr{
-				"type":          cfg.Info.Beat,
-				"hostname":      cfg.Info.Hostname,
-				"version":       cfg.Info.Version,
-				"version_major": 7,
-				"id":            cfg.Info.ID.String(),
-				"ephemeral_id":  cfg.Info.EphemeralID.String(),
-			},
-		},
+		Fields:    common.MapStr{"observer": observerFields},
 		Processor: cfg.Processor,
 	}
 	if cfg.TransformConfig.DataStreams {
