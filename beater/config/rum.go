@@ -76,7 +76,7 @@ func (s *SourceMapping) IsEnabled() bool {
 	return s == nil || s.Enabled == nil || *s.Enabled
 }
 
-func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
+func (c *RumConfig) setup(log *logp.Logger, dataStreamsEnabled bool, outputESCfg *common.Config) error {
 	if !c.IsEnabled() {
 		return nil
 	}
@@ -88,8 +88,14 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
+	var apiKey string
 	if c.SourceMapping == nil || c.SourceMapping.esConfigured {
-		return nil
+		if dataStreamsEnabled {
+			// when running under Fleet, the only setting configured is the api key
+			apiKey = c.SourceMapping.ESConfig.APIKey
+		} else {
+			return nil
+		}
 	}
 
 	// fall back to elasticsearch output configuration for sourcemap storage if possible
@@ -100,6 +106,9 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 	log.Info("Falling back to elasticsearch output for sourcemap storage")
 	if err := outputESCfg.Unpack(c.SourceMapping.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into Sourcemap config")
+	}
+	if c.SourceMapping.ESConfig.APIKey == "" {
+		c.SourceMapping.ESConfig.APIKey = apiKey
 	}
 	return nil
 }
