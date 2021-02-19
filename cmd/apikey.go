@@ -49,9 +49,9 @@ func genApikeyCmd(settings instance.Settings) *cobra.Command {
 	apikeyCmd := cobra.Command{
 		Use:   "apikey",
 		Short: short,
-		Long: short + `. 
-Most operations require the "manage_api_key" cluster privilege. Ensure to configure "apm-server.api_key.*" or 
-"output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application; 
+		Long: short + `.
+Most operations require the "manage_api_key" cluster privilege. Ensure to configure "apm-server.api_key.*" or
+"output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application;
 you can freely query them. If you modify or delete apm privileges, APM Server might reject all requests.
 Check the Elastic Security API documentation for details.`,
 	}
