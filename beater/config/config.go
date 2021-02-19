@@ -40,17 +40,18 @@ const (
 )
 
 type KibanaConfig struct {
-	Enabled             bool `config:"enabled"`
+	Enabled             bool   `config:"enabled"`
+	APIKey              string `config:"api_key"`
 	kibana.ClientConfig `config:",inline"`
 }
 
 func (k *KibanaConfig) Unpack(cfg *common.Config) error {
-	if err := cfg.Unpack(&k.ClientConfig); err != nil {
+	type kibanaConfig KibanaConfig
+	if err := cfg.Unpack((*kibanaConfig)(k)); err != nil {
 		return err
 	}
 	k.Enabled = cfg.Enabled()
 	k.Host = strings.TrimRight(k.Host, "/")
-
 	return nil
 }
 
@@ -119,7 +120,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, errors.New(msgInvalidConfigAgentCfg)
 	}
 
-	if err := c.RumConfig.setup(logger, outputESCfg); err != nil {
+	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
 		return nil, err
 	}
 
