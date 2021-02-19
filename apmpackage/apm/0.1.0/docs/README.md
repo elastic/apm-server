@@ -205,7 +205,7 @@ Traces are written to `traces-apm.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "event": {
     "ingested": "2020-08-11T09:55:04.391451Z",
@@ -301,7 +301,7 @@ Traces are written to `traces-apm.*` indices.
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "event": {
     "outcome": "unknown"
@@ -508,7 +508,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "event": {
     "ingested": "2020-04-22T14:55:05.425020Z"
@@ -687,7 +687,7 @@ Logs are written to `logs-apm.error.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "error": {
     "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

@@ -9,12 +9,12 @@ require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20210215114437-465e240c17c9 // indirect
+	github.com/dop251/goja v0.0.0-20210216182323-60bc6ebb9fc1 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20201222133159-1629e8d0b836 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210215225204-ba423212a660
-	github.com/elastic/ecs v1.6.0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210217153456-1b31c268017d
+	github.com/elastic/ecs v1.8.0
 	github.com/elastic/gmux v0.1.0
 	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
@@ -65,6 +65,7 @@ require (
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
+	golang.org/x/sys v0.0.0-20210217105451-b926d437f341 // indirect
 	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 	golang.org/x/tools v0.1.0
