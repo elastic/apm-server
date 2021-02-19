@@ -22,11 +22,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/wait"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -35,6 +30,12 @@ import (
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/transport"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -132,7 +133,7 @@ func TestFleetIntegration(t *testing.T) {
 
 	// Test that can query the central config endpoint
 	addr := agent.Addrs[0]
-	req, err := http.NewRequest(http.MethodGet, "http://" + addr + "/config/v1/agents?service.name=systemtest_test", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://"+addr+"/config/v1/agents?service.name=systemtest_test", nil)
 	require.NoError(t, err)
 	c := http.Client{Timeout: time.Second}
 	resp, err := c.Do(req)
