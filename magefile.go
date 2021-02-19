@@ -182,6 +182,15 @@ func Package() {
 	mg.SerialDeps(mage.Package, TestPackages)
 }
 
+func Version() error {
+	v, err := mage.BeatQualifiedVersion()
+	if err != nil {
+		return err
+	}
+	fmt.Print(v)
+	return nil
+}
+
 // TestPackages tests the generated packages (i.e. file modes, owners, groups).
 func TestPackages() error {
 	return mage.TestPackages()
