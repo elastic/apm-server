@@ -47,7 +47,7 @@
             "us": 1578451731616515
         },
         "trace": {
-            "id": "5025e08c7fef6542"
+            "id": "00000000000000005025e08c7fef6542"
         },
         "transaction": {
             "duration": {
@@ -55,7 +55,6 @@
             },
             "id": "5025e08c7fef6542",
             "name": "test_span",
-            "result": "Success",
             "sampled": true,
             "type": "custom"
         }

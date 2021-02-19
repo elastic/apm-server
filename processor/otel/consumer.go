@@ -15,11 +15,27 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// Portions copied from OpenTelemetry Collector (contrib), from the
+// elastic exporter.
+//
+// Copyright 2020, OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package otel
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"net"
 	"net/url"
@@ -27,6 +43,7 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/translator/conventions"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -37,8 +54,6 @@ import (
 )
 
 const (
-	AgentNameJaeger = "Jaeger"
-
 	keywordLength = 1024
 	dot           = "."
 	underscore    = "_"
@@ -84,29 +99,27 @@ func (c *Consumer) convertResourceSpans(resourceSpans pdata.ResourceSpans, out *
 func (c *Consumer) convertInstrumentationLibrarySpans(in pdata.InstrumentationLibrarySpans, metadata model.Metadata, out *model.Batch) {
 	otelSpans := in.Spans()
 	for i := 0; i < otelSpans.Len(); i++ {
-		c.convertSpan(otelSpans.At(i), metadata, out)
+		c.convertSpan(otelSpans.At(i), in.InstrumentationLibrary(), metadata, out)
 	}
 }
 
-func (c *Consumer) convertSpan(otelSpan pdata.Span, metadata model.Metadata, out *model.Batch) {
+func (c *Consumer) convertSpan(
+	otelSpan pdata.Span,
+	otelLibrary pdata.InstrumentationLibrary,
+	metadata model.Metadata,
+	out *model.Batch,
+) {
 	logger := logp.NewLogger(logs.Otel)
 
 	root := !otelSpan.ParentSpanID().IsValid()
 
-	var parentID, spanID, traceID string
-	if strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger") {
-		if !root {
-			parentID = formatJaegerSpanID(otelSpan.ParentSpanID())
-		}
-		traceID = formatJaegerTraceID(otelSpan.TraceID())
-		spanID = formatJaegerSpanID(otelSpan.SpanID())
-	} else {
-		if !root {
-			parentID = otelSpan.ParentSpanID().HexString()
-		}
-		traceID = otelSpan.TraceID().HexString()
-		spanID = otelSpan.SpanID().HexString()
+	var parentID string
+	if !root {
+		parentID = otelSpan.ParentSpanID().HexString()
 	}
+
+	traceID := otelSpan.TraceID().HexString()
+	spanID := otelSpan.SpanID().HexString()
 
 	startTime := pdata.UnixNanoToTime(otelSpan.StartTime())
 	endTime := pdata.UnixNanoToTime(otelSpan.EndTime())
@@ -128,8 +141,9 @@ func (c *Consumer) convertSpan(otelSpan pdata.Span, metadata model.Metadata, out
 			Timestamp: startTime,
 			Duration:  durationMillis,
 			Name:      name,
+			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
-		translateTransaction(otelSpan, metadata, transaction)
+		translateTransaction(otelSpan, otelLibrary, metadata, &transactionBuilder{Transaction: transaction})
 		out.Transactions = append(out.Transactions, transaction)
 	} else {
 		span = &model.Span{
@@ -140,7 +154,7 @@ func (c *Consumer) convertSpan(otelSpan pdata.Span, metadata model.Metadata, out
 			Timestamp: startTime,
 			Duration:  durationMillis,
 			Name:      name,
-			Outcome:   outcomeUnknown,
+			Outcome:   spanStatusOutcome(otelSpan.Status()),
 		}
 		translateSpan(otelSpan, metadata, span)
 		out.Spans = append(out.Spans, span)
@@ -152,16 +166,27 @@ func (c *Consumer) convertSpan(otelSpan pdata.Span, metadata model.Metadata, out
 	}
 }
 
-func translateTransaction(span pdata.Span, metadata model.Metadata, event *model.Transaction) {
+func translateTransaction(
+	span pdata.Span,
+	library pdata.InstrumentationLibrary,
+	metadata model.Metadata,
+	tx *transactionBuilder,
+) {
 	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
-	var http model.Http
-	var httpStatusCode int
+
+	var (
+		netHostName string
+		netHostPort int
+		netPeerIP   string
+		netPeerPort int
+	)
+
 	var message model.Message
 	var component string
-	var outcome, result string
-	var isHTTP, isMessaging bool
+	var isMessaging bool
 	var samplerType, samplerParam pdata.AttributeValue
+	var httpHostName string
 	span.Attributes().ForEach(func(kDots string, v pdata.AttributeValue) {
 		if isJaeger {
 			switch kDots {
@@ -182,43 +207,84 @@ func translateTransaction(span pdata.Span, metadata model.Metadata, event *model
 			labels[k] = v.DoubleVal()
 		case pdata.AttributeValueINT:
 			switch kDots {
-			case "http.status_code":
-				httpStatusCode = int(v.IntVal())
-				isHTTP = true
+			case conventions.AttributeHTTPStatusCode:
+				tx.setHTTPStatusCode(int(v.IntVal()))
+			case conventions.AttributeNetPeerPort:
+				netPeerPort = int(v.IntVal())
+			case conventions.AttributeNetHostPort:
+				netHostPort = int(v.IntVal())
 			default:
 				labels[k] = v.IntVal()
 			}
 		case pdata.AttributeValueSTRING:
 			stringval := truncate(v.StringVal())
 			switch kDots {
-			case "span.kind": // filter out
-			case "http.method":
-				http.Request = &model.Req{Method: stringval}
-				isHTTP = true
-			case "http.url", "http.path":
-				event.URL = model.ParseURL(stringval, metadata.System.DetectedHostname)
-				isHTTP = true
-			case "http.status_code":
+			// http.*
+			case conventions.AttributeHTTPMethod:
+				tx.setHTTPMethod(stringval)
+			case conventions.AttributeHTTPURL, conventions.AttributeHTTPTarget, "http.path":
+				tx.setHTTPURL(stringval)
+			case conventions.AttributeHTTPHost:
+				tx.setHTTPHost(stringval)
+			case conventions.AttributeHTTPScheme:
+				tx.setHTTPScheme(stringval)
+			case conventions.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
-					httpStatusCode = intv
+					tx.setHTTPStatusCode(intv)
 				}
-				isHTTP = true
 			case "http.protocol":
-				if strings.HasPrefix(stringval, "HTTP/") {
-					version := strings.TrimPrefix(stringval, "HTTP/")
-					http.Version = &version
-				} else {
+				if !strings.HasPrefix(stringval, "HTTP/") {
+					// Unexpected, store in labels for debugging.
 					labels[k] = stringval
+					break
 				}
-				isHTTP = true
+				stringval = strings.TrimPrefix(stringval, "HTTP/")
+				fallthrough
+			case conventions.AttributeHTTPFlavor:
+				tx.setHTTPVersion(stringval)
+			case conventions.AttributeHTTPServerName:
+				httpHostName = stringval
+			case conventions.AttributeHTTPClientIP:
+				tx.Metadata.Client.IP = net.ParseIP(stringval)
+			case conventions.AttributeHTTPUserAgent:
+				tx.Metadata.UserAgent.Original = stringval
+			case "http.remote_addr":
+				// NOTE(axw) this is non-standard, sent by opentelemetry-go's othttp.
+				// It's semanticall equivalent to net.peer.ip+port. Standard attributes
+				// take precedence.
+				ip, port, err := net.SplitHostPort(stringval)
+				if err != nil {
+					ip = stringval
+				}
+				if net.ParseIP(ip) != nil {
+					if netPeerIP == "" {
+						netPeerIP = ip
+					}
+					if netPeerPort == 0 {
+						netPeerPort, _ = strconv.Atoi(port)
+					}
+				}
+
+			// net.*
+			case conventions.AttributeNetPeerIP:
+				netPeerIP = stringval
+			case conventions.AttributeNetHostName:
+				netHostName = stringval
+
+			// messaging
+			//
+			// TODO(axw) translate OpenTelemtry messaging conventions.
 			case "message_bus.destination":
 				message.QueueName = &stringval
 				isMessaging = true
+
+			// miscellaneous
+			case "span.kind": // filter out
 			case "type":
-				event.Type = stringval
-			case "service.version":
-				event.Metadata.Service.Version = stringval
-			case "component":
+				tx.Type = stringval
+			case conventions.AttributeServiceVersion:
+				tx.Metadata.Service.Version = stringval
+			case conventions.AttributeComponent:
 				component = stringval
 				fallthrough
 			default:
@@ -227,57 +293,81 @@ func translateTransaction(span pdata.Span, metadata model.Metadata, event *model
 		}
 	})
 
-	if event.Type == "" {
-		if isHTTP {
-			event.Type = "request"
+	if tx.Type == "" {
+		if tx.HTTP != nil {
+			tx.Type = "request"
 		} else if isMessaging {
-			event.Type = "messaging"
+			tx.Type = "messaging"
 		} else if component != "" {
-			event.Type = component
+			tx.Type = component
 		} else {
-			event.Type = "custom"
+			tx.Type = "custom"
 		}
 	}
 
-	if isHTTP {
-		if httpStatusCode > 0 {
-			http.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: &httpStatusCode}}
-			result = statusCodeResult(httpStatusCode)
-			outcome = serverStatusCodeOutcome(httpStatusCode)
+	if tx.HTTP != nil {
+		// Build the model.URL from tx.http{URL,Host,Scheme}.
+		httpHost := tx.httpHost
+		if httpHost == "" {
+			httpHost = httpHostName
+			if httpHost == "" {
+				httpHost = netHostName
+				if httpHost == "" {
+					httpHost = metadata.System.DetectedHostname
+				}
+			}
+			if httpHost != "" && netHostPort > 0 {
+				httpHost = net.JoinHostPort(httpHost, strconv.Itoa(netHostPort))
+			}
 		}
-		event.HTTP = &http
-	} else if isMessaging {
-		event.Message = &message
+		tx.URL = model.ParseURL(tx.httpURL, httpHost, tx.httpScheme)
+
+		// Set the remote address from net.peer.*
+		if tx.HTTP.Request != nil && netPeerIP != "" {
+			remoteAddr := netPeerIP
+			if netPeerPort > 0 {
+				remoteAddr = net.JoinHostPort(remoteAddr, strconv.Itoa(netPeerPort))
+			}
+			tx.setHTTPRemoteAddr(remoteAddr)
+		}
 	}
 
-	if result == "" {
-		if span.Status().Code() == pdata.StatusCodeError {
-			result = "Error"
-			outcome = outcomeFailure
-		} else {
-			result = "Success"
-			outcome = outcomeSuccess
-		}
+	if isMessaging {
+		tx.Message = &message
 	}
-	event.Result = result
-	event.Outcome = outcome
 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
-		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
+		parseSamplerAttributes(samplerType, samplerParam, &tx.RepresentativeCount, labels)
 	}
 
-	event.Labels = labels
+	if tx.Result == "" {
+		tx.Result = spanStatusResult(span.Status())
+	}
+	tx.setFramework(library.Name(), library.Version())
+	tx.Labels = labels
 }
 
 func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) {
 	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
 	labels := make(common.MapStr)
 
+	var (
+		netPeerName string
+		netPeerIP   string
+		netPeerPort int
+	)
+
+	var (
+		httpURL    string
+		httpHost   string
+		httpTarget string
+		httpScheme string = "http"
+	)
+
 	var http model.HTTP
 	var message model.Message
 	var db model.DB
-	var destination model.Destination
 	var destinationService model.DestinationService
 	var isDBSpan, isHTTPSpan, isMessagingSpan bool
 	var component string
@@ -306,41 +396,56 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				code := int(v.IntVal())
 				http.StatusCode = &code
 				isHTTPSpan = true
-			case "peer.port":
-				port := int(v.IntVal())
-				destination.Port = &port
+			case conventions.AttributeNetPeerPort, "peer.port":
+				netPeerPort = int(v.IntVal())
 			default:
 				labels[k] = v.IntVal()
 			}
 		case pdata.AttributeValueSTRING:
 			stringval := truncate(v.StringVal())
 			switch kDots {
-			case "span.kind": // filter out
-			case "http.url":
-				http.URL = &stringval
+			// http.*
+			case conventions.AttributeHTTPHost:
+				httpHost = stringval
 				isHTTPSpan = true
-			case "http.method":
+			case conventions.AttributeHTTPScheme:
+				httpScheme = stringval
+				isHTTPSpan = true
+			case conventions.AttributeHTTPTarget:
+				httpTarget = stringval
+				isHTTPSpan = true
+			case conventions.AttributeHTTPURL:
+				httpURL = stringval
+				isHTTPSpan = true
+			case conventions.AttributeHTTPMethod:
 				http.Method = &stringval
 				isHTTPSpan = true
+
+			// db.*
 			case "sql.query":
-				db.Statement = &stringval
 				if db.Type == nil {
 					dbType := "sql"
 					db.Type = &dbType
 				}
-				isDBSpan = true
-			case "db.statement":
+				fallthrough
+			case conventions.AttributeDBStatement:
 				db.Statement = &stringval
 				isDBSpan = true
-			case "db.instance":
+			case conventions.AttributeDBName, "db.instance":
 				db.Instance = &stringval
 				isDBSpan = true
-			case "db.type":
+			case conventions.AttributeDBSystem, "db.type":
 				db.Type = &stringval
 				isDBSpan = true
-			case "db.user":
+			case conventions.AttributeDBUser:
 				db.UserName = &stringval
 				isDBSpan = true
+
+			// net.*
+			case conventions.AttributeNetPeerName, "peer.hostname":
+				netPeerName = stringval
+			case conventions.AttributeNetPeerIP, "peer.ipv4", "peer.ipv6":
+				netPeerIP = stringval
 			case "peer.address":
 				destinationService.Resource = &stringval
 				if !strings.ContainsRune(stringval, ':') || net.ParseIP(stringval) != nil {
@@ -348,20 +453,25 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 					// or IP address; it could be something like
 					// a JDBC connection string or ip:port. Ignore
 					// values containing colons, except for IPv6.
-					destination.Address = &stringval
+					netPeerName = stringval
 				}
-			case "peer.hostname", "peer.ipv4", "peer.ipv6":
-				destination.Address = &stringval
-			case "peer.service":
+
+			// messaging
+			//
+			// TODO(axw) translate OpenTelemtry messaging conventions.
+			case "message_bus.destination":
+				message.QueueName = &stringval
+				isMessagingSpan = true
+
+			// miscellaneous
+			case "span.kind": // filter out
+			case conventions.AttributePeerService:
 				destinationService.Name = &stringval
 				if destinationService.Resource == nil {
 					// Prefer using peer.address for resource.
 					destinationService.Resource = &stringval
 				}
-			case "message_bus.destination":
-				message.QueueName = &stringval
-				isMessagingSpan = true
-			case "component":
+			case conventions.AttributeComponent:
 				component = stringval
 				fallthrough
 			default:
@@ -370,8 +480,34 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		}
 	})
 
-	if http.URL != nil {
-		if fullURL, err := url.Parse(*http.URL); err == nil {
+	destPort := netPeerPort
+	destAddr := netPeerName
+	if destAddr == "" {
+		destAddr = netPeerIP
+	}
+
+	if isHTTPSpan {
+		var fullURL *url.URL
+		if httpURL != "" {
+			fullURL, _ = url.Parse(httpURL)
+		} else if httpTarget != "" {
+			// Build http.url from http.scheme, http.target, etc.
+			if u, err := url.Parse(httpTarget); err == nil {
+				fullURL = u
+				fullURL.Scheme = httpScheme
+				if httpHost == "" {
+					// Set host from net.peer.*
+					httpHost = destAddr
+					if netPeerPort > 0 {
+						httpHost = net.JoinHostPort(httpHost, strconv.Itoa(destPort))
+					}
+				}
+				fullURL.Host = httpHost
+				httpURL = fullURL.String()
+			}
+		}
+		if fullURL != nil {
+			http.URL = &httpURL
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
 			hostname := truncate(url.Hostname())
 			var port int
@@ -384,13 +520,12 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 
 			// Set destination.{address,port} from the HTTP URL,
 			// replacing peer.* based values to ensure consistency.
-			destination = model.Destination{Address: &hostname}
+			destAddr = hostname
 			if port > 0 {
-				destination.Port = &port
+				destPort = port
 			}
 
-			// Set destination.service.* from the HTTP URL,
-			// unless peer.service was specified.
+			// Set destination.service.* from the HTTP URL, unless peer.service was specified.
 			if destinationService.Name == nil {
 				resource := url.Host
 				if port > 0 && port == schemeDefaultPort(url.Scheme) {
@@ -410,14 +545,12 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		}
 	}
 
-	if destination != (model.Destination{}) {
-		event.Destination = &destination
-	}
-
 	switch {
 	case isHTTPSpan:
 		if http.StatusCode != nil {
-			event.Outcome = clientStatusCodeOutcome(*http.StatusCode)
+			if event.Outcome == outcomeUnknown {
+				event.Outcome = clientHTTPStatusCodeOutcome(*http.StatusCode)
+			}
 		}
 		event.Type = "external"
 		subtype := "http"
@@ -427,18 +560,30 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		event.Type = "db"
 		if db.Type != nil && *db.Type != "" {
 			event.Subtype = db.Type
+			if destinationService.Name == nil {
+				// For database requests, we currently just identify
+				// the destination service by db.system.
+				destinationService.Name = event.Subtype
+				destinationService.Resource = event.Subtype
+			}
 		}
 		event.DB = &db
 	case isMessagingSpan:
 		event.Type = "messaging"
 		event.Message = &message
 	default:
-		event.Type = "custom"
+		event.Type = "app"
 		if component != "" {
 			event.Subtype = &component
 		}
 	}
 
+	if destAddr != "" {
+		event.Destination = &model.Destination{Address: &destAddr}
+		if destPort > 0 {
+			event.Destination.Port = &destPort
+		}
+	}
 	if destinationService != (model.DestinationService{}) {
 		if destinationService.Type == nil {
 			// Copy span type to destination.service.type.
@@ -487,6 +632,7 @@ func convertSpanEvent(
 	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
 	event.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
 		if !isJaeger {
+			// TODO(axw) translate OpenTelemetry exception span events.
 			return
 		}
 		if v.Type() != pdata.AttributeValueSTRING {
@@ -573,7 +719,7 @@ func addSpanCtxToErr(span *model.Span, hostname string, err *model.Error) {
 			err.HTTP.Request = &model.Req{Method: *span.HTTP.Method}
 		}
 		if span.HTTP.URL != nil {
-			err.URL = model.ParseURL(*span.HTTP.URL, hostname)
+			err.URL = model.ParseURL(*span.HTTP.URL, hostname, "")
 		}
 	}
 }
@@ -582,35 +728,34 @@ func replaceDots(s string) string {
 	return strings.ReplaceAll(s, dot, underscore)
 }
 
-// copied from elastic go-apm agent
-
-var standardStatusCodeResults = [...]string{
-	"HTTP 1xx",
-	"HTTP 2xx",
-	"HTTP 3xx",
-	"HTTP 4xx",
-	"HTTP 5xx",
-}
-
-// statusCodeResult returns the transaction result value to use for the given status code.
-func statusCodeResult(statusCode int) string {
-	switch i := statusCode / 100; i {
-	case 1, 2, 3, 4, 5:
-		return standardStatusCodeResults[i-1]
-	}
-	return fmt.Sprintf("HTTP %d", statusCode)
-}
-
-// serverStatusCodeOutcome returns the transaction outcome value to use for the given status code.
-func serverStatusCodeOutcome(statusCode int) string {
-	if statusCode >= 500 {
+// spanStatusOutcome returns the outcome for transactions and spans based on
+// the given OTLP span status.
+func spanStatusOutcome(status pdata.SpanStatus) string {
+	switch status.Code() {
+	case pdata.StatusCodeOk:
+		return outcomeSuccess
+	case pdata.StatusCodeError:
 		return outcomeFailure
 	}
-	return outcomeSuccess
+	return outcomeUnknown
 }
 
-// clientStatusCodeOutcome returns the span outcome value to use for the given status code.
-func clientStatusCodeOutcome(statusCode int) string {
+// spanStatusResult returns the result for transactions based on the given
+// OTLP span status. If the span status is unknown, an empty result string
+// is returned.
+func spanStatusResult(status pdata.SpanStatus) string {
+	switch status.Code() {
+	case pdata.StatusCodeOk:
+		return "Success"
+	case pdata.StatusCodeError:
+		return "Error"
+	}
+	return ""
+}
+
+// clientHTTPStatusCodeOutcome returns the span outcome value to use for the
+// given HTTP status code.
+func clientHTTPStatusCodeOutcome(statusCode int) string {
 	if statusCode >= 400 {
 		return outcomeFailure
 	}
@@ -627,30 +772,6 @@ func truncate(s string) string {
 		j++
 	}
 	return s
-}
-
-// formatJaegerTraceID returns the traceID as string in Jaeger format (hexadecimal without leading zeros)
-func formatJaegerTraceID(traceID pdata.TraceID) string {
-	if !traceID.IsValid() {
-		return ""
-	}
-	bytes := traceID.Bytes()
-	jaegerTraceIDHigh := binary.BigEndian.Uint64(bytes[:8])
-	jaegerTraceIDLow := binary.BigEndian.Uint64(bytes[8:])
-	if jaegerTraceIDHigh == 0 {
-		return fmt.Sprintf("%x", jaegerTraceIDLow)
-	}
-	return fmt.Sprintf("%x%016x", jaegerTraceIDHigh, jaegerTraceIDLow)
-}
-
-// formatJaegerSpanID returns the spanID as string in Jaeger format (hexadecimal without leading zeros)
-func formatJaegerSpanID(spanID pdata.SpanID) string {
-	if !spanID.IsValid() {
-		return ""
-	}
-	bytes := spanID.Bytes()
-	jaegerSpanID := binary.BigEndian.Uint64(bytes[:])
-	return fmt.Sprintf("%x", jaegerSpanID)
 }
 
 func schemeDefaultPort(scheme string) int {

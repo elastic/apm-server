@@ -7,6 +7,7 @@ The APM integration installs Elasticsearch templates and Ingest Node pipelines f
 When you add an APM integration to a policy, that policy will contain an `apm` input.
 If a policy contains an `apm` input, any Elastic Agent(s) set up with that policy will run locally an APM Server binary.
 You must configure your APM Agents to communicate with that APM Server.
+Make sure to configure the APM Server `host` if it needs to be accessed from outside (eg. when running in Docker).
 
 If you have RUM enabled, you must run APM Server centrally. Otherwise, you can run it at the edge machines.
 To do so, download and enroll an Elastic Agent in the same machines where your instrumented services run.
@@ -47,7 +48,7 @@ and you will be recommended to use the environment as namespace.
 This version doesn't automatically use the service name, so the recommendation instead is to use
 both the service name and the environment as the namespace.
 
-### Compatibility and limitations
+## Compatibility and limitations
 
 The APM integration requires Kibana 7.11 and Elasticsearch with basic license.
 This version is experimental and has some limitations, listed bellow:
@@ -60,7 +61,14 @@ You must update the policy with any changes you need and restart the APM Server 
 
 IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
 
-### Traces
+## Configuration parameters
+
+- `Host`: APM Server host and port to listen on.
+- `Secret token`: Authorization token for sending data to APM Server. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
+- `Enable RUM`: Enables support for RUM monitoring. See the [documentation](https://www.elastic.co/guide/en/apm/server/current/configuration-rum.html) for details.
+
+
+## Traces
 
 Traces are comprised of [spans and transactions](https://www.elastic.co/guide/en/apm/get-started/current/apm-data-model.html).
 Traces are written to `traces-apm.*` indices.
@@ -70,7 +78,7 @@ Traces are written to `traces-apm.*` indices.
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 {{range .Traces -}}
-| {{- Trim .Name -}} | {{- Trim .Description -}} | {{- Trim .Type -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
+| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
 {{end}}
 
 #### Examples
@@ -84,7 +92,7 @@ Traces are written to `traces-apm.*` indices.
 ```
 
 
-### Metrics
+## Metrics
 
 Metrics include application-based metrics and some basic system metrics.
 Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-apm.profiling.*` indices.
@@ -94,16 +102,16 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 {{range .Metrics -}}
-| {{- Trim .Name -}} | {{- Trim .Description -}} | {{- Trim .Type -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
+| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
 {{end}}
 
-#### Example
+### Example
 
 ```json
 {{.MetricsExample}}
 ```
 
-### Logs
+## Logs
 
 Logs are application error events.
 Logs are written to `logs-apm.error.*` indices.
@@ -113,10 +121,10 @@ Logs are written to `logs-apm.error.*` indices.
 | Field | Description | Type | ECS |
 |---|---|---|:---:|
 {{range .Logs -}}
-| {{- Trim .Name -}} | {{- Trim .Description -}} | {{- Trim .Type -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
+| {{- Trim .Name | EscapeMarkdown -}} | {{- Trim .Description | EscapeMarkdown -}} | {{- Trim .Type | EscapeMarkdown -}} | {{if .IsECS}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png) {{else}} ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png) {{end}} |
 {{end}}
 
-#### Example
+### Example
 
 ```json
 {{.ErrorExample}}

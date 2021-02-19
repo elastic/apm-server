@@ -366,11 +366,13 @@ func (s *serverRunner) run() error {
 	}
 
 	if err := runServer(s.runServerContext, ServerParams{
-		Info:     s.beat.Info,
-		Config:   s.config,
-		Logger:   s.logger,
-		Tracer:   s.tracer,
-		Reporter: reporter,
+		Info:      s.beat.Info,
+		Config:    s.config,
+		Managed:   s.beat.Manager != nil && s.beat.Manager.Enabled(),
+		Namespace: s.namespace,
+		Logger:    s.logger,
+		Tracer:    s.tracer,
+		Reporter:  reporter,
 	}); err != nil {
 		return err
 	}
