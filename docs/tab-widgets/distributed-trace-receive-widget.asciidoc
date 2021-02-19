@@ -32,6 +32,13 @@
     </button>
     <button role="tab"
             aria-selected="false"
+            aria-controls="php-tab-dt-r"
+            id="php-dt-r"
+            tabindex="-1">
+      PHP
+    </button>
+    <button role="tab"
+            aria-selected="false"
             aria-controls="python-tab-dt-r"
             id="python-dt-r"
             tabindex="-1">
@@ -85,6 +92,17 @@ include::distributed-trace-receive.asciidoc[tag=net]
 ++++
 
 include::distributed-trace-receive.asciidoc[tag=node]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="php-tab-dt-r"
+       aria-labelledby="php-dt-r"
+       hidden="">
+++++
+
+include::distributed-trace-receive.asciidoc[tag=php]
 
 ++++
   </div>

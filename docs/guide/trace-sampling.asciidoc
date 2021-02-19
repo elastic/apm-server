@@ -103,5 +103,6 @@ See the relevant agent's documentation for more details:
 * Java: {apm-java-ref-v}/config-core.html#config-transaction-sample-rate[`transaction_sample_rate`]
 * .NET: {apm-dotnet-ref-v}/config-core.html#config-transaction-sample-rate[`TransactionSampleRate`]
 * Node.js: {apm-node-ref-v}/configuration.html#transaction-sample-rate[`transactionSampleRate`]
+* PHP: {apm-php-ref-v}/configuration-reference.html#config-transaction-sample-rate[`transaction_sample_rate`]
 * Python: {apm-py-ref-v}/configuration.html#config-transaction-sample-rate[`transaction_sample_rate`]
 * Ruby: {apm-ruby-ref-v}/configuration.html#config-transaction-sample-rate[`transaction_sample_rate`]
