@@ -1,0 +1,5 @@
+# newer versions go on top
+- version: "0.1.0"
+  changes:
+    - description: initial release
+      type: enhancement # can be one of: enhancement, bugfix, breaking-change

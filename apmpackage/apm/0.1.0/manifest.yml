@@ -43,6 +43,19 @@ policy_templates:
         required: false
         show_user: true
         default: false
+      - name: api_key_limit
+        type: int
+        title: Maximum number of API Keys
+        description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.
+        required: false
+        show_user: false
+        default: 100
+      - name: kibana_api_key
+        type: string
+        title: API Key for Central Configuration
+        required: false
+        description: API Key for APM central configuration feature. Enter as <Id>:<API Key>
+        show_user: true
       - name: enable_rum
         type: bool
         title: Enable RUM
@@ -50,36 +63,16 @@ policy_templates:
         required: true
         show_user: true
         default: false
-      - name: kibana_api_key
-        type: string
-        title: API Key for Central Configuration
-        required: false
-        description: Enter as <Id>:<API Key>
-        show_user: true
       - name: sourcemap_api_key
         type: string
-        title: API Key for Sourcemaps
+        title: RUM - API Key for Sourcemaps
         required: false
-        description: Enter as <Id>:<API Key>
+        description: API Key for sourcemap feature. Enter as <Id>:<API Key>
         show_user: true
-      - name: api_key_limit
-        type: int
-        title: Maximum number of API Keys
-        description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.  
-        required: false
-        show_user: false
-        default: 100
-      - name: capture_personal_data
-        type: bool
-        title: Capture personal data
-        description: Capture personal data such as IP or User Agent.
-        required: false
-        show_user: false
-        default: true
       - name: rum_allow_origins
         type: string
         title: RUM - Origin Headers
-        description: Allowed Origin headers to be sent by User Agents. 
+        description: Allowed Origin headers to be sent by User Agents.
         multi: true
         required: false
         show_user: false
@@ -100,14 +93,14 @@ policy_templates:
       - name: rum_event_rate_limit
         type: int
         title: RUM - Rate limit events per IP
-        description: Maximum number of events allowed per IP per second. 
+        description: Maximum number of events allowed per IP per second.
         required: false
         show_user: false
         default: 300
       - name: rum_event_rate_lru_size
         type: int
-        title: RUM - Rate limit cache size 
-        description: Number of unique IPs to be cached for the rate limiter. 
+        title: RUM - Rate limit cache size
+        description: Number of unique IPs to be cached for the rate limiter.
         required: false
         show_user: false
         default: 1000
@@ -116,7 +109,14 @@ policy_templates:
         title: Maximum size per event (bytes)
         required: false
         show_user: false
-        default: 307200   
+        default: 307200
+      - name: capture_personal_data
+        type: bool
+        title: Capture personal data
+        description: Capture personal data such as IP or User Agent.
+        required: false
+        show_user: false
+        default: true
     template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
