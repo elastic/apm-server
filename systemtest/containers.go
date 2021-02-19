@@ -19,12 +19,16 @@ package systemtest
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"time"
 
@@ -34,6 +38,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 
+	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/go-elasticsearch/v7"
 )
@@ -195,18 +200,15 @@ func (c *ElasticsearchContainer) Start() error {
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
-		Started:          true,
 	})
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if c.container == nil {
-			// Something has gone wrong.
-			container.Terminate(ctx)
-		}
-	}()
+	c.container = container
 
+	if err := c.container.Start(ctx); err != nil {
+		return err
+	}
 	ip, err := container.Host(ctx)
 	if err != nil {
 		return err
@@ -232,5 +234,200 @@ func (c *ElasticsearchContainer) Start() error {
 
 // Close terminates and removes the container.
 func (c *ElasticsearchContainer) Close() error {
+	if c.container == nil {
+		return nil
+	}
 	return c.container.Terminate(context.Background())
+}
+
+// NewUnstartedElasticAgentContainer returns a new ElasticAgentContainer.
+func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
+	// Create a testcontainer.ContainerRequest to run Elastic Agent.
+	// We pull some configuration from the Kibana docker-compose service,
+	// such as the Docker network to use.
+
+	docker, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return nil, err
+	}
+	defer docker.Close()
+
+	kibanaContainer, err := stackContainerInfo(context.Background(), docker, "kibana")
+	if err != nil {
+		return nil, err
+	}
+	kibanaContainerDetails, err := docker.ContainerInspect(context.Background(), kibanaContainer.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var kibanaIPAddress string
+	var networks []string
+	for network, settings := range kibanaContainerDetails.NetworkSettings.Networks {
+		networks = append(networks, network)
+		if kibanaIPAddress == "" && settings.IPAddress != "" {
+			kibanaIPAddress = settings.IPAddress
+		}
+	}
+	kibanaURL := &url.URL{
+		Scheme: "http",
+		Host:   net.JoinHostPort(kibanaIPAddress, apmservertest.KibanaPort()),
+	}
+
+	// Use the same stack version as used for Kibana.
+	agentImageVersion := kibanaContainer.Image[strings.LastIndex(kibanaContainer.Image, ":")+1:]
+	agentImage := "docker.elastic.co/beats/elastic-agent:" + agentImageVersion
+	if err := pullDockerImage(context.Background(), docker, agentImage); err != nil {
+		return nil, err
+	}
+	agentImageDetails, _, err := docker.ImageInspectWithRaw(context.Background(), agentImage)
+	if err != nil {
+		return nil, err
+	}
+	agentVCSRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
+	agentDataHashDir := path.Join("/usr/share/elastic-agent/data", "elastic-agent-"+agentVCSRef[:6])
+	agentInstallDir := path.Join(agentDataHashDir, "install")
+
+	req := testcontainers.ContainerRequest{
+		Image:      agentImage,
+		AutoRemove: true,
+		Networks:   networks,
+		Env: map[string]string{
+			"KIBANA_HOST": kibanaURL.String(),
+
+			// TODO(axw) remove once https://github.com/elastic/elastic-agent-client/issues/20 is fixed
+			"GODEBUG": "x509ignoreCN=0",
+
+			// NOTE(axw) because we bind-mount the apm-server artifacts in, they end up owned by the
+			// current user rather than root. Disable Beats's strict permission checks to avoid resulting
+			// complaints, as they're irrelevant to these system tests.
+			"BEAT_STRICT_PERMS": "false",
+		},
+	}
+	return &ElasticAgentContainer{
+		request:          req,
+		installDir:       agentInstallDir,
+		StackVersion:     agentImageVersion,
+		BindMountInstall: make(map[string]string),
+	}, nil
+}
+
+// ElasticAgentContainer represents an ephemeral Elastic Agent container.
+type ElasticAgentContainer struct {
+	container testcontainers.Container
+	request   testcontainers.ContainerRequest
+
+	// installDir holds the location of the "install" directory inside
+	// the Elastic Agent container.
+	//
+	// This will be set when the ElasticAgentContainer object is created,
+	// and can be used to anticipate the location into which artifacts
+	// can be bind-mounted.
+	installDir string
+
+	// StackVersion holds the stack version of the container image,
+	// e.g. 8.0.0-SNAPSHOT.
+	StackVersion string
+
+	// ExposedPorts holds an optional list of ports to expose to the host.
+	ExposedPorts []string
+
+	// WaitingFor holds an optional wait strategy.
+	WaitingFor wait.Strategy
+
+	// Addrs holds the "host:port" address for each exposed port.
+	// This will be populated by Start.
+	Addrs []string
+
+	// BindMountInstall holds a map of files to bind mount into the
+	// container, mapping from the host location to target paths relative
+	// to the install directory in the container.
+	BindMountInstall map[string]string
+
+	// FleetEnrollmentToken holds an optional Fleet enrollment token to
+	// use for enrolling the agent with Fleet. The agent will only enroll
+	// if this is specified.
+	FleetEnrollmentToken string
+}
+
+// Start starts the container.
+//
+// The Addr and Client fields will be updated on successful return.
+//
+// The container will be removed when Close() is called, or otherwise by a
+// reaper process if the test process is aborted.
+func (c *ElasticAgentContainer) Start() error {
+	ctx, cancel := context.WithTimeout(context.Background(), startContainersTimeout)
+	defer cancel()
+
+	// Update request from user-definable fields.
+	if c.FleetEnrollmentToken != "" {
+		c.request.Env["FLEET_ENROLL"] = "1"
+		c.request.Env["FLEET_ENROLL_INSECURE"] = "1"
+		c.request.Env["FLEET_ENROLLMENT_TOKEN"] = c.FleetEnrollmentToken
+	}
+	c.request.ExposedPorts = c.ExposedPorts
+	c.request.WaitingFor = c.WaitingFor
+	c.request.BindMounts = map[string]string{}
+	for source, target := range c.BindMountInstall {
+		c.request.BindMounts[source] = path.Join(c.installDir, target)
+	}
+
+	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: c.request,
+	})
+	if err != nil {
+		return err
+	}
+	c.container = container
+
+	if err := container.Start(ctx); err != nil {
+		return err
+	}
+	ports, err := container.Ports(ctx)
+	if err != nil {
+		return err
+	}
+	if len(ports) > 0 {
+		ip, err := container.Host(ctx)
+		if err != nil {
+			return err
+		}
+		for _, portbindings := range ports {
+			for _, pb := range portbindings {
+				c.Addrs = append(c.Addrs, net.JoinHostPort(ip, pb.HostPort))
+			}
+		}
+	}
+
+	c.container = container
+	return nil
+}
+
+// Close terminates and removes the container.
+func (c *ElasticAgentContainer) Close() error {
+	if c.container == nil {
+		return nil
+	}
+	return c.container.Terminate(context.Background())
+}
+
+// Logs returns an io.ReadCloser that can be used for reading the
+// container's combined stdout/stderr log. If the container has not
+// been created by Start(), Logs will return an error.
+func (c *ElasticAgentContainer) Logs(ctx context.Context) (io.ReadCloser, error) {
+	if c.container == nil {
+		return nil, errors.New("container not created")
+	}
+	return c.container.Logs(ctx)
+}
+
+func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string) error {
+	rc, err := docker.ImagePull(context.Background(), imageRef, types.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+	_, err = io.Copy(ioutil.Discard, rc)
+	return err
 }
