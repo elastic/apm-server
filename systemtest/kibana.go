@@ -15,32 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package datastreams
+package systemtest
 
-import "strings"
+import (
+	"log"
+	"net/url"
 
-// NormalizeServiceName translates serviceName into a string suitable
-// for inclusion in a data stream name.
-//
-// Concretely, this function will lowercase the string and replace any
-// reserved characters with "_".
-//
-func NormalizeServiceName(s string) string {
-	s = strings.ToLower(s)
-	s = strings.Map(replaceReservedRune, s)
-	return s
-}
+	"github.com/elastic/apm-server/systemtest/apmservertest"
+)
 
-func replaceReservedRune(r rune) rune {
-	switch r {
-	case '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#', ':':
-		// These characters are not permitted in data stream names
-		// by Elasticsearch.
-		return '_'
-	case '-':
-		// Hyphens are used to separate the data stream type, dataset,
-		// and namespace.
-		return '_'
+const (
+	adminKibanaUser = adminElasticsearchUser
+	adminKibanaPass = adminElasticsearchPass
+)
+
+// KibanaURL is the base URL for Kibana, including userinfo for
+// authenticating as the admin user.
+var KibanaURL *url.URL
+
+func init() {
+	kibanaConfig := apmservertest.DefaultConfig().Kibana
+	u, err := url.Parse(kibanaConfig.Host)
+	if err != nil {
+		log.Fatal(err)
 	}
-	return r
+	u.User = url.UserPassword(adminKibanaUser, adminKibanaPass)
+	KibanaURL = u
 }

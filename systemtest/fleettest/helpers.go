@@ -15,32 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package datastreams
+package fleettest
 
-import "strings"
-
-// NormalizeServiceName translates serviceName into a string suitable
-// for inclusion in a data stream name.
-//
-// Concretely, this function will lowercase the string and replace any
-// reserved characters with "_".
-//
-func NormalizeServiceName(s string) string {
-	s = strings.ToLower(s)
-	s = strings.Map(replaceReservedRune, s)
-	return s
-}
-
-func replaceReservedRune(r rune) rune {
-	switch r {
-	case '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#', ':':
-		// These characters are not permitted in data stream names
-		// by Elasticsearch.
-		return '_'
-	case '-':
-		// Hyphens are used to separate the data stream type, dataset,
-		// and namespace.
-		return '_'
+// NewPackagePolicy returns a new PackagePolicy for the package,
+// with the given name, namespace, and agent policy ID.
+func NewPackagePolicy(pkg *Package, name, namespace, agentPolicyID string) *PackagePolicy {
+	out := &PackagePolicy{
+		Name:          name,
+		Namespace:     namespace,
+		AgentPolicyID: agentPolicyID,
+		Enabled:       true,
 	}
-	return r
+	out.Package.Name = pkg.Name
+	out.Package.Version = pkg.Version
+	out.Package.Title = pkg.Title
+	return out
 }

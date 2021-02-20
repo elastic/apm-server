@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
 
@@ -198,7 +199,8 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 	if cfg.DataStreams {
 		// Spans are stored in a "traces" data stream along with transactions.
 		fields[datastreams.TypeField] = datastreams.TracesType
-		fields[datastreams.DatasetField] = TracesDataset
+		dataset := fmt.Sprintf("%s.%s", TracesDataset, datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+		fields[datastreams.DatasetField] = dataset
 	}
 
 	// first set the generic metadata

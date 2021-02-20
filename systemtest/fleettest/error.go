@@ -15,32 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package datastreams
+package fleettest
 
-import "strings"
-
-// NormalizeServiceName translates serviceName into a string suitable
-// for inclusion in a data stream name.
-//
-// Concretely, this function will lowercase the string and replace any
-// reserved characters with "_".
-//
-func NormalizeServiceName(s string) string {
-	s = strings.ToLower(s)
-	s = strings.Map(replaceReservedRune, s)
-	return s
+// Error is an error type returned by Client methods on failed
+// requests to the Kibana Fleet API.
+type Error struct {
+	StatusCode int    `json:"statusCode"`
+	ErrorCode  string `json:"error"`
+	Message    string `json:"message"`
 }
 
-func replaceReservedRune(r rune) rune {
-	switch r {
-	case '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#', ':':
-		// These characters are not permitted in data stream names
-		// by Elasticsearch.
-		return '_'
-	case '-':
-		// Hyphens are used to separate the data stream type, dataset,
-		// and namespace.
-		return '_'
-	}
-	return r
+// Error returns the error message.
+func (e *Error) Error() string {
+	return e.Message
 }

@@ -1,0 +1,9 @@
+package_paths:
+  - /packages/production
+  - /packages/staging
+  - /packages/snapshot
+  - /packages/local
+
+cache_time.search: 10s
+cache_time.categories: 10s
+cache_time.catch_all: 10s
