@@ -221,7 +221,10 @@ func sourcemapMiddleware(cfg *config.Config, auth *authorization.Handler) []midd
 	msg := "Sourcemap upload endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable sourcemap uploads. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
-	enabled := cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()
+	if cfg.DataStreams.Enabled {
+		msg = "When APM Server is managed by Fleet, Sourcemaps must be uploaded directly to Elasticsearch."
+	}
+	enabled := cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled() && !cfg.DataStreams.Enabled
 	return append(backendMiddleware(cfg, auth, sourcemap.MonitoringMap),
 		middleware.KillSwitchMiddleware(enabled, msg))
 }
