@@ -619,6 +619,15 @@
               count: 1
               description: >
                 Amount of CPU time profiled, in nanoseconds.
+        
+        - name: wall
+          type: group
+          fields:
+            - name: us
+              type: long
+              count: 1
+              description: >
+                Amount of wall time profiled, in microseconds.
 
         - name: samples
           type: group
