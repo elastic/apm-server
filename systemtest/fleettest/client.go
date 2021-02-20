@@ -223,6 +223,22 @@ func (c *Client) ListPackages() ([]Package, error) {
 	return result.Response, nil
 }
 
+// Package returns information about the package with the given name and version.
+func (c *Client) Package(name, version string) (*Package, error) {
+	resp, err := http.Get(c.fleetURL + "/epm/packages/" + name + "-" + version)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var result struct {
+		Response Package `json:"response"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result.Response, nil
+}
+
 // PackagePolicy returns information about the package policy with the given ID.
 func (c *Client) PackagePolicy(id string) (*PackagePolicy, error) {
 	resp, err := http.Get(c.fleetURL + "/package_policies/" + id)
@@ -240,9 +256,9 @@ func (c *Client) PackagePolicy(id string) (*PackagePolicy, error) {
 }
 
 // CreatePackagePolicy adds an integration to a policy.
-func (c *Client) CreatePackagePolicy(p PackagePolicy) error {
+func (c *Client) CreatePackagePolicy(p *PackagePolicy) error {
 	var body bytes.Buffer
-	if err := json.NewEncoder(&body).Encode(&p); err != nil {
+	if err := json.NewEncoder(&body).Encode(p); err != nil {
 		return err
 	}
 	req := c.newFleetRequest("POST", "/package_policies", &body)
