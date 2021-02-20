@@ -103,7 +103,7 @@ include::../tab-widgets/distributed-trace-send-widget.asciidoc[]
 --
 
 [float]
-==== Add the `traceparent` header to incoming requests
+==== Parse the `traceparent` header on incoming requests
 
 Receiving services must parse the incoming `traceparent` header,
 and start a new transaction or span as a child of the received context.
