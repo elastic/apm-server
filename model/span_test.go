@@ -59,7 +59,7 @@ func TestSpanTransform(t *testing.T) {
 			Span: Span{Timestamp: timestamp, Metadata: metadata},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm",
+				"data_stream.dataset": "apm.myservice",
 				"processor":           common.MapStr{"event": "span", "name": "transaction"},
 				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
@@ -77,7 +77,7 @@ func TestSpanTransform(t *testing.T) {
 			Span: Span{Timestamp: timestamp, Metadata: metadata, Outcome: "success"},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm",
+				"data_stream.dataset": "apm.myservice",
 				"processor":           common.MapStr{"event": "span", "name": "transaction"},
 				"service":             common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"span": common.MapStr{
@@ -126,7 +126,7 @@ func TestSpanTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",
-				"data_stream.dataset": "apm",
+				"data_stream.dataset": "apm.myservice",
 				"span": common.MapStr{
 					"id":       hexID,
 					"duration": common.MapStr{"us": 1200},
