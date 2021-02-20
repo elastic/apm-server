@@ -100,7 +100,7 @@ func TestPprofProfileTransform(t *testing.T) {
 		Timestamp: timestamp,
 		Fields: common.MapStr{
 			"data_stream.type":    "metrics",
-			"data_stream.dataset": "apm.profiling",
+			"data_stream.dataset": "apm.profiling.myservice",
 			"processor":           common.MapStr{"event": "profile", "name": "profile"},
 			"service": common.MapStr{
 				"name":        "myService",
