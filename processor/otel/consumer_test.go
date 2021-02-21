@@ -828,6 +828,37 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 	}
 }
 
+func TestJaegerServiceVersion(t *testing.T) {
+	var transformables []transform.Transformable
+	reporter := func(ctx context.Context, req publish.PendingReq) error {
+		transformables = append(transformables, req.Transformables...)
+		return nil
+	}
+
+	jaegerBatch := jaegermodel.Batch{
+		Process: jaegermodel.NewProcess("", jaegerKeyValues(
+			"jaeger.version", "unknown",
+			"service.version", "process_tag_value",
+		)),
+		Spans: []*jaegermodel.Span{{
+			TraceID: jaegermodel.NewTraceID(0, 0x000046467830),
+			SpanID:  jaegermodel.NewSpanID(456),
+		}, {
+			TraceID: jaegermodel.NewTraceID(0, 0x000046467830),
+			SpanID:  jaegermodel.NewSpanID(456),
+			Tags: []jaegermodel.KeyValue{
+				jaegerKeyValue("service.version", "span_tag_value"),
+			},
+		}},
+	}
+	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
+	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+
+	require.Len(t, transformables, 2)
+	assert.Equal(t, "process_tag_value", transformables[0].(*model.Transaction).Metadata.Service.Version)
+	assert.Equal(t, "span_tag_value", transformables[1].(*model.Transaction).Metadata.Service.Version)
+}
+
 func testJaegerLogs() []jaegermodel.Log {
 	return []jaegermodel.Log{{
 		// errors that can be converted to elastic errors
