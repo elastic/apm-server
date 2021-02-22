@@ -138,7 +138,7 @@ def generateSteps() {
   def agents = readYaml(file: '.ci/.jenkins-schema.yml')
   def parallelTasks = [:]
   agents['agents'].each { agent ->
-    if (agent.SPEC_FILEPATH.trim()) {
+    if (agent.SPEC_FILEPAT?.trim()) {
       if (env.SELECTED_AGENT == 'all' || "apm-agent-${env.SELECTED_AGENT}" == agent.REPO) {
         parallelTasks["${agent.REPO}"] = generateStepForAgent(repo: "${agent.REPO}", filePath: "${agent.SPEC_FILEPATH}")
       }
