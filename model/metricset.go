@@ -85,6 +85,9 @@ type Metricset struct {
 	// instance, such as a hash of the labels used for aggregating the
 	// metrics.
 	TimeseriesInstanceID string
+
+	// Name holds an optional name for the metricset.
+	Name string
 }
 
 // Sample represents a single named metric.
@@ -195,6 +198,10 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 
 	if me.TimeseriesInstanceID != "" {
 		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}
+	}
+
+	if me.Name != "" {
+		fields["metricset.name"] = me.Name
 	}
 
 	fields["processor"] = metricsetProcessorEntry
