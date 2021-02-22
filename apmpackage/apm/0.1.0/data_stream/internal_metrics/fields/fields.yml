@@ -24,6 +24,10 @@
   type: keyword
   description: |
     Kubernetes Pod UID
+- name: metricset.name
+  type: keyword
+  description: |
+    Name of the set of metrics.
 - name: metricset.period
   type: long
   description: Current data collection period for this event in milliseconds.

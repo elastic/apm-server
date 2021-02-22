@@ -4857,6 +4857,19 @@ type: object
 
 --
 
+
+*`metricset.name`*::
++
+--
+Name of the set of metrics.
+
+
+type: keyword
+
+example: transaction
+
+--
+
 [float]
 === service
 

@@ -85,6 +85,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			if strings.HasPrefix(key, "Metadata") ||
 				// only set by aggregator
 				strings.HasPrefix(key, "Event") ||
+				key == "Name" ||
 				key == "TimeseriesInstanceID" ||
 				key == "Transaction.Result" ||
 				key == "Transaction.Root" ||
