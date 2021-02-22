@@ -126,6 +126,7 @@ func TestAggregatorRun(t *testing.T) {
 	}
 
 	assert.ElementsMatch(t, []*model.Metricset{{
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
@@ -141,6 +142,7 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
@@ -156,6 +158,7 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
@@ -171,6 +174,7 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-B", Agent: model.Agent{Name: "python"}},
 		},
@@ -231,6 +235,7 @@ func TestAggregatorOverflow(t *testing.T) {
 
 		m.Timestamp = time.Time{}
 		assert.Equal(t, &model.Metricset{
+			Name: "service_destination",
 			Metadata: model.Metadata{
 				Service: model.Service{Name: "service", Agent: model.Agent{Name: "agent"}},
 			},
