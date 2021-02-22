@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "dynamic",
+            "_doc_count": 1,
             "agent": {
                 "name": "go"
             },
@@ -16,6 +17,7 @@
                 "hostname": "beowulf",
                 "name": "beowulf"
             },
+            "metricset.name": "transaction",
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",

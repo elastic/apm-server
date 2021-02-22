@@ -19,15 +19,12 @@ package api
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -73,6 +70,15 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
+	t.Run("DataStreams", func(t *testing.T) {
+		cfg := cfgEnabledRUM()
+		cfg.DataStreams.Enabled = true
+		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, rec.Code)
+		approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+	})
+
 	t.Run("On", func(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), AssetSourcemapPath)
 		require.NoError(t, err)
@@ -82,28 +88,17 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 }
 
 func TestSourcemapHandler_PanicMiddleware(t *testing.T) {
-	h := testHandler(t, sourcemapHandler)
-	rec := &beatertest.WriterPanicOnce{}
-	c := request.NewContext()
-	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-	h(c)
-	require.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvaltest.ApproveJSON(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+	testPanicMiddleware(t, "/assets/v1/sourcemaps", approvalPathAsset(t.Name()))
 }
 
 func TestSourcemapHandler_MonitoringMiddleware(t *testing.T) {
-	h := testHandler(t, sourcemapHandler)
-	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
-
 	// send GET request resulting in 403 Forbidden error as RUM is disabled by default
-	expected := map[request.ResultID]int{
+	testMonitoringMiddleware(t, "/assets/v1/sourcemaps", sourcemap.MonitoringMap, map[request.ResultID]int{
 		request.IDRequestCount:            1,
 		request.IDResponseCount:           1,
 		request.IDResponseErrorsCount:     1,
-		request.IDResponseErrorsForbidden: 1}
-
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, sourcemap.MonitoringMap)
-	assert.True(t, equal, result)
+		request.IDResponseErrorsForbidden: 1,
+	})
 }
 
 func approvalPathAsset(f string) string { return "asset/sourcemap/test_approved/integration/" + f }

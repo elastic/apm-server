@@ -19,17 +19,24 @@ package beater
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 
 	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmgrpc"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/version"
 
+	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/jaeger"
+	"github.com/elastic/apm-server/beater/otlp"
+	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -45,6 +52,12 @@ type ServerParams struct {
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
 
+	// Managed indicates that the server is managed by Fleet.
+	Managed bool
+
+	// Namespace holds the data stream namespace for the server.
+	Namespace string
+
 	// Logger is the logger for the beater component.
 	Logger *logp.Logger
 
@@ -59,7 +72,7 @@ type ServerParams struct {
 
 // runServer runs the APM Server until a fatal error occurs, or ctx is cancelled.
 func runServer(ctx context.Context, args ServerParams) error {
-	srv, err := newServer(args.Logger, args.Config, args.Tracer, args.Reporter)
+	srv, err := newServer(args.Logger, args.Info, args.Config, args.Tracer, args.Reporter)
 	if err != nil {
 		return err
 	}
@@ -80,12 +93,17 @@ type server struct {
 	cfg    *config.Config
 
 	httpServer   *httpServer
+	grpcServer   *grpc.Server
 	jaegerServer *jaeger.Server
 	reporter     publish.Reporter
 }
 
-func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
-	httpServer, err := newHTTPServer(logger, cfg, tracer, reporter)
+func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter)
+	if err != nil {
+		return server{}, err
+	}
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, reporter, httpServer.TLSConfig)
 	if err != nil {
 		return server{}, err
 	}
@@ -97,19 +115,48 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 		logger:       logger,
 		cfg:          cfg,
 		httpServer:   httpServer,
+		grpcServer:   grpcServer,
 		jaegerServer: jaegerServer,
 		reporter:     reporter,
 	}, nil
 }
 
+func newGRPCServer(
+	logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, tlsConfig *tls.Config,
+) (*grpc.Server, error) {
+	// TODO(axw) share auth builder with beater/api.
+	authBuilder, err := authorization.NewBuilder(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// NOTE(axw) even if TLS is enabled we should not use grpc.Creds, as TLS is handled by the net/http server.
+	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
+	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
+	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(apmInterceptor, authInterceptor))
+
+	var kibanaClient kibana.Client
+	var agentcfgFetcher *agentcfg.Fetcher
+	if cfg.Kibana.Enabled {
+		kibanaClient = kibana.NewConnectingClient(&cfg.Kibana)
+		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+	}
+	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, reporter, kibanaClient, agentcfgFetcher)
+	if err := otlp.RegisterGRPCServices(srv, reporter, logger); err != nil {
+		return nil, err
+	}
+	return srv, nil
+}
+
 func (s server) run() error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
+	g.Go(s.httpServer.start)
+	g.Go(func() error {
+		return s.grpcServer.Serve(s.httpServer.grpcListener)
+	})
 	if s.jaegerServer != nil {
 		g.Go(s.jaegerServer.Serve)
-	}
-	if s.httpServer != nil {
-		g.Go(s.httpServer.start)
 	}
 	if err := g.Wait(); err != http.ErrServerClosed {
 		return err
@@ -122,7 +169,6 @@ func (s server) stop() {
 	if s.jaegerServer != nil {
 		s.jaegerServer.Stop()
 	}
-	if s.httpServer != nil {
-		s.httpServer.stop()
-	}
+	s.grpcServer.GracefulStop()
+	s.httpServer.stop()
 }

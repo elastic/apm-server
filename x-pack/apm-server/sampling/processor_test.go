@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"sort"
@@ -283,6 +284,68 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	})
 }
 
+func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
+	config := newTempdirConfig(t)
+	config.Policies = []sampling.Policy{{
+		PolicyCriteria: sampling.PolicyCriteria{TraceName: "trace_name"},
+		SampleRate:     0.5,
+	}, {
+		PolicyCriteria: sampling.PolicyCriteria{ServiceName: "service_name"},
+		SampleRate:     0.1,
+	}, {
+		PolicyCriteria: sampling.PolicyCriteria{},
+		SampleRate:     0,
+	}}
+	config.FlushInterval = 10 * time.Millisecond
+	published := make(chan string)
+	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
+
+	processor, err := sampling.NewProcessor(config)
+	require.NoError(t, err)
+
+	// Send transactions which would match either policy defined above.
+	rng := rand.New(rand.NewSource(0))
+	metadata := model.Metadata{Service: model.Service{Name: "service_name"}}
+	var events []transform.Transformable
+	for i := 0; i < 100; i++ {
+		var traceIDBytes [16]byte
+		_, err := rng.Read(traceIDBytes[:])
+		require.NoError(t, err)
+		events = append(events, &model.Transaction{
+			Metadata: metadata,
+			Name:     "trace_name",
+			TraceID:  fmt.Sprintf("%x", traceIDBytes[:]),
+			ID:       fmt.Sprintf("%x", traceIDBytes[8:]),
+			Duration: 123,
+		})
+	}
+
+	out, err := processor.ProcessTransformables(context.Background(), events)
+	require.NoError(t, err)
+	assert.Empty(t, out)
+
+	// Start periodic tail-sampling. We start the processor after processing
+	// events to ensure all events are processed before any local sampling
+	// decisions are made, such that we have a single tail-sampling decision
+	// to check.
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	// The first matching policy should win, and sample 50%.
+	for i := 0; i < len(events)/2; i++ {
+		select {
+		case <-published:
+		case <-time.After(10 * time.Second):
+			t.Fatal("timed out waiting for publication")
+		}
+	}
+	select {
+	case <-published:
+		t.Fatal("unexpected publication")
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
 func TestProcessRemoteTailSampling(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
@@ -452,8 +515,10 @@ func TestStorageGC(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
+	config.ValueLogFileSize = 1024 * 1024
 
 	writeBatch := func(n int) {
+		config.StorageGCInterval = time.Minute // effectively disable
 		processor, err := sampling.NewProcessor(config)
 		require.NoError(t, err)
 		go processor.Run()
@@ -534,8 +599,12 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			},
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			Elasticsearch:      pubsubtest.Client(nil, nil),
-			SampledTracesIndex: "apm-sampled-traces",
+			Elasticsearch: pubsubtest.Client(nil, nil),
+			SampledTracesDataStream: sampling.DataStreamConfig{
+				Type:      "traces",
+				Dataset:   "sampled",
+				Namespace: "testing",
+			},
 		},
 		StorageConfig: sampling.StorageConfig{
 			StorageDir:        tempdir,

@@ -165,7 +165,7 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm.app.backendspans",
             "data_stream.type": "metrics",
             "host": {
                 "architecture": "x64",

@@ -1,0 +1,46 @@
+[[release-notes-7.11]]
+== APM Server version 7.11
+
+https://github.com/elastic/apm-server/compare/7.10\...7.11[View commits]
+
+* <<release-notes-7.11.1>>
+* <<release-notes-7.11.0>>
+
+[float]
+[[release-notes-7.11.1]]
+=== APM Server version 7.11.1
+
+https://github.com/elastic/apm-server/compare/v7.11.0\...v7.11.1[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-7.11.0]]
+=== APM Server version 7.11.0
+
+https://github.com/elastic/apm-server/compare/v7.10.2\...v7.11.0[View commits]
+
+[float]
+==== Bug fixes
+* JSON schema metricset: nest type and subtype under span {pull}4329[4329]
+* JSON schema metricset: nest type and name under transaction {pull}4329[4329]
+* Carriage returns are now stripped from source-mapped context source lines {pull}4348[4348]
+* Remove config defaults from `apm-server export config` {pull}4458[4458]
+
+[float]
+==== Intake API Changes
+* Intake RUM v3: Changed error messages for invalid events due to internal changes of decoder logic {pull}4358[4358]
+* Auto-generate JSON schemas for Intake API v2 and v3/rum {pull}4393[4393]
+
+[float]
+==== Added
+* Monitoring for aggregation of transaction metrics {pull}4287[4287]
+* Log warnings in aggregation of transaction metrics when grouping limit is reached {pull}4313[4313]
+* Configurable tail-based sampling policies {pull}4320[4320]
+* Monitoring and telemetry for tail-based sampling {pull}4346[4346] {pull}4360[4360]
+* Experimental support for data streams {pull}4409[4409]
+* Label/custom/mark keys are now sanitized (rather than validated and rejected) by the server {pull}4465[4465]
+* Upgrade Go to 1.14.12 {pull}4478[4478]
+* Added apm-server.response_headers config {pull}4523[4523]
+* Switch logging format to be ECS compliant where possible {pull}3829[3829]
+* Switch logging format to JSON to work with ECS logging {pull}4590[4590]

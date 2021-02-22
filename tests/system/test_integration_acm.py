@@ -12,7 +12,6 @@ class AgentConfigurationTest(ElasticTest):
         cfg = super(AgentConfigurationTest, self).config()
         cfg.update({
             "kibana_host": self.get_kibana_url(),
-            "logging_json": "true",
             "kibana_enabled": "true",
             "acm_cache_expiration": "1s"
         })
@@ -42,10 +41,10 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                           )
         assert r1.status_code == 400, r1.status_code
         expect_log.append({
-            "level": "error",
+            "log.level": "error",
             "message": "invalid query",
-            "error": "service.name is required",
-            "response_code": 400,
+            "error.message": "service.name is required",
+            "http.response.status_code": 400,
         })
 
         # no configuration for service
@@ -55,9 +54,9 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                           )
         assert r2.status_code == 200, r2.status_code
         expect_log.append({
-            "level": "info",
+            "log.level": "info",
             "message": "request ok",
-            "response_code": 200,
+            "http.response.status_code": 200,
         })
         self.assertEqual({}, r2.json())
 
@@ -70,9 +69,9 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         assert r3.status_code == 200, r3.status_code
         # TODO (gr): validate Cache-Control header - https://github.com/elastic/apm-server/issues/2438
         expect_log.append({
-            "level": "info",
+            "log.level": "info",
             "message": "request ok",
-            "response_code": 200,
+            "http.response.status_code": 200,
         })
         self.assertEqual({"transaction_sample_rate": "0.05"}, r3.json())
 
@@ -85,9 +84,9 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                                 })
         assert r3_again.status_code == 304, r3_again.status_code
         expect_log.append({
-            "level": "info",
+            "log.level": "info",
             "message": "not modified",
-            "response_code": 304,
+            "http.response.status_code": 304,
         })
 
         self.create_service_config(
@@ -103,9 +102,9 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         assert r4.status_code == 200, r4.status_code
         self.assertEqual({"transaction_sample_rate": "0.15"}, r4.json())
         expect_log.append({
-            "level": "info",
+            "log.level": "info",
             "message": "request ok",
-            "response_code": 200,
+            "http.response.status_code": 200,
         })
 
         # not modified on re-request
@@ -120,9 +119,9 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                                 })
         assert r4_again.status_code == 304, r4_again.status_code
         expect_log.append({
-            "level": "info",
+            "log.level": "info",
             "message": "not modified",
-            "response_code": 304,
+            "http.response.status_code": 304,
         })
 
         self.update_service_config(
@@ -144,9 +143,9 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         assert r4_post_update.status_code == 200, r4_post_update.status_code
         self.assertEqual({"transaction_sample_rate": "0.99"}, r4_post_update.json())
         expect_log.append({
-            "level": "info",
+            "log.level": "info",
             "message": "request ok",
-            "response_code": 200,
+            "http.response.status_code": 200,
         })
 
         # configuration for service+environment (all includes non existing)
@@ -158,14 +157,15 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                           headers={"Content-Type": "application/json"})
         assert r5.status_code == 200, r5.status_code
         expect_log.append({
-            "level": "info",
+            "log.level": "info",
             "message": "request ok",
-            "response_code": 200,
+            "http.response.status_code": 200,
         })
         self.assertEqual({"transaction_sample_rate": "0.05"}, r5.json())
 
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
-        assert len(config_request_logs) == len(expect_log)
+        assert len(config_request_logs) == len(
+            expect_log), "expected\n{}\nreceived\n{}".format(expect_log, config_request_logs)
         for want, got in zip(expect_log, config_request_logs):
             assert set(want).issubset(got)
 
@@ -183,7 +183,6 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
 @integration_test
 class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
     config_overrides = {
-        "logging_json": "true",
         "secret_token": "supersecret",
         "kibana_enabled": "true",
         "kibana_host": "unreachablehost"
@@ -207,22 +206,21 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
         assert len(config_request_logs) == 2, config_request_logs
         assert set({
-            "level": "error",
+            "log.level": "error",
             "message": "unauthorized",
-            "error": "unauthorized",
-            "response_code": 401,
+            "error.message": "unauthorized",
+            "http.response.status_code": 401,
         }).issubset(config_request_logs[0])
         assert set({
-            "level": "error",
+            "log.level": "error",
             "message": "unable to retrieve connection to Kibana",
-            "response_code": 503,
+            "http.response.status_code": 503,
         }).issubset(config_request_logs[1])
 
 
 @integration_test
 class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
     config_overrides = {
-        "logging_json": "true",
         "kibana_enabled": "false",
     }
 
@@ -234,9 +232,9 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
         assert r.status_code == 403, r.status_code
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
         assert set({
-            "level": "error",
+            "log.level": "error",
             "message": "forbidden request",
-            "response_code": 403,
+            "http.response.status_code": 403,
         }).issubset(config_request_logs[0])
 
 

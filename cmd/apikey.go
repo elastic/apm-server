@@ -49,9 +49,9 @@ func genApikeyCmd(settings instance.Settings) *cobra.Command {
 	apikeyCmd := cobra.Command{
 		Use:   "apikey",
 		Short: short,
-		Long: short + `. 
-Most operations require the "manage_api_key" cluster privilege. Ensure to configure "apm-server.api_key.*" or 
-"output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application; 
+		Long: short + `.
+Most operations require the "manage_api_key" cluster privilege. Ensure to configure "apm-server.api_key.*" or
+"output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application;
 you can freely query them. If you modify or delete apm privileges, APM Server might reject all requests.
 Check the Elastic Security API documentation for details.`,
 	}
@@ -116,7 +116,7 @@ If neither of them are, an error will be returned.`,
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
 			}
-			return invalidateAPIKey(client, &id, &name, json)
+			return invalidateAPIKey(client, id, name, json)
 		}),
 	}
 	invalidate.Flags().StringVar(&id, "id", "", "id of the API Key to delete")
@@ -393,17 +393,12 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 	return nil
 }
 
-func invalidateAPIKey(client es.Client, id, name *string, asJSON bool) error {
-	if isSet(id) {
-		name = nil
-	} else if isSet(name) {
-		id = nil
-	}
-	invalidateKeysRequest := es.InvalidateAPIKeyRequest{
-		APIKeyQuery: es.APIKeyQuery{
-			ID:   id,
-			Name: name,
-		},
+func invalidateAPIKey(client es.Client, id string, name string, asJSON bool) error {
+	invalidateKeysRequest := es.InvalidateAPIKeyRequest{}
+	if id != "" {
+		invalidateKeysRequest.IDs = []string{id}
+	} else if name != "" {
+		invalidateKeysRequest.Name = &name
 	}
 	invalidation, err := es.InvalidateAPIKey(context.Background(), client, invalidateKeysRequest)
 	if err != nil {

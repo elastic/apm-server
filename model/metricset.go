@@ -19,6 +19,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -38,6 +39,8 @@ const (
 	metricsetEventKey       = "event"
 	metricsetTransactionKey = "transaction"
 	metricsetSpanKey        = "span"
+	AppMetricsDataset       = "apm.app"
+	InternalMetricsDataset  = "apm.internal"
 )
 
 var (
@@ -73,12 +76,18 @@ type Metricset struct {
 	Labels common.MapStr
 
 	// Samples holds the metrics in the set.
+	//
+	// If Samples holds a single histogram metric, then the sum of its Counts
+	// will be used to set a _doc_count field in the transformed beat.Event.
 	Samples []Sample
 
 	// TimeseriesInstanceID holds an optional identifier for the timeseries
 	// instance, such as a hash of the labels used for aggregating the
 	// metrics.
 	TimeseriesInstanceID string
+
+	// Name holds an optional name for the metricset.
+	Name string
 }
 
 // Sample represents a single named metric.
@@ -148,7 +157,7 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
-func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
+func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	metricsetTransformations.Inc()
 	if me == nil {
 		return nil
@@ -161,8 +170,17 @@ func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.
 			continue
 		}
 	}
+	if len(me.Samples) == 1 && len(me.Samples[0].Counts) > 0 {
+		// We have a single histogram metric; add a _doc_count field which holds the sum of counts.
+		// See https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-doc-count-field.html
+		var total int64
+		for _, count := range me.Samples[0].Counts {
+			total += count
+		}
+		fields.Put("_doc_count", total)
+	}
 
-	me.Metadata.Set(fields)
+	me.Metadata.Set(fields, me.Labels)
 
 	var isInternal bool
 	if eventFields := me.Event.fields(); eventFields != nil {
@@ -178,26 +196,29 @@ func (me *Metricset) Transform(ctx context.Context, _ *transform.Config) []beat.
 		utility.DeepUpdate(fields, metricsetSpanKey, spanFields)
 	}
 
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", me.Labels)
-
 	if me.TimeseriesInstanceID != "" {
 		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}
 	}
 
-	// Metrics are stored in "metrics" data streams.
-	dataset := "apm."
-	if isInternal {
-		// Metrics that include well-defined transaction/span fields
-		// (i.e. breakdown metrics, transaction and span metrics) will
-		// be stored separately from application and runtime metrics.
-		dataset += "internal."
+	if me.Name != "" {
+		fields["metricset.name"] = me.Name
 	}
-	dataset += datastreams.NormalizeServiceName(me.Metadata.Service.Name)
 
 	fields["processor"] = metricsetProcessorEntry
-	fields[datastreams.TypeField] = datastreams.MetricsType
-	fields[datastreams.DatasetField] = dataset
+
+	if cfg.DataStreams {
+		dataset := AppMetricsDataset
+		// Metrics are stored in "metrics" data streams.
+		if isInternal {
+			// Metrics that include well-defined transaction/span fields
+			// (i.e. breakdown metrics, transaction and span metrics) will
+			// be stored separately from application and runtime metrics.
+			dataset = InternalMetricsDataset
+		}
+		dataset += fmt.Sprintf(".%s", datastreams.NormalizeServiceName(me.Metadata.Service.Name))
+		fields[datastreams.DatasetField] = dataset
+		fields[datastreams.TypeField] = datastreams.MetricsType
+	}
 
 	return []beat.Event{{
 		Fields:    fields,

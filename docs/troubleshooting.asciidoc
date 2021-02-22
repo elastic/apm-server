@@ -1,13 +1,9 @@
-//////////////////////////////////////////////////////////////////////////
-//// This content is mainly copied from filebeat and adapted for apm-server
-//////////////////////////////////////////////////////////////////////////
-
 [[troubleshooting]]
 = Troubleshoot
 
 [partintro]
 --
-If you have issues installing or running APM Server, 
+If you have issues installing or running APM Server,
 read the following tips:
 
 * <<common-problems>>
@@ -21,6 +17,19 @@ Other sections in the documentation may also be helpful:
 * <<tune-apm-server, Tune APM Server>>
 * <<tune-es, Tune Elasticsearch>>
 * {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix]
+
+If your issue is potentially related to other components of the APM ecosystem,
+don't forget to check the relevant troubleshooting guides:
+
+* {kibana-ref}/troubleshooting.html[APM app troubleshooting]
+* {apm-dotnet-ref-v}/troubleshooting.html[.NET agent troubleshooting]
+* {apm-go-ref-v}/troubleshooting.html[Go agent troubleshooting]
+* {apm-java-ref-v}/trouble-shooting.html[Java agent troubleshooting]
+* {apm-node-ref-v}/troubleshooting.html[Node.js agent troubleshooting]
+* {apm-php-ref-v}/troubleshooting.html[PHP agent troubleshooting]
+* {apm-py-ref-v}/troubleshooting.html[Python agent troubleshooting]
+* {apm-ruby-ref-v}/debugging.html[Ruby agent troubleshooting]
+* {apm-rum-ref-v}/troubleshooting.html[RUM troubleshooting]
 
 --
 

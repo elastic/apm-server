@@ -8,6 +8,10 @@
       "additionalProperties": false,
       "patternProperties": {
         "^[^*\"]*$": {
+          "type": [
+            "null",
+            "object"
+          ],
           "properties": {
             "value": {
               "description": "Value holds the value of a single metric sample.",
@@ -46,22 +50,19 @@
       }
     },
     "tags": {
-      "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
+      "description": "Tags are a flat mapping of user-defined tags. On the agent side, tags are called labels. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
       "type": [
         "null",
         "object"
       ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^[^.*\"]*$": {
-          "type": [
-            "null",
-            "string",
-            "boolean",
-            "number"
-          ],
-          "maxLength": 1024
-        }
+      "additionalProperties": {
+        "type": [
+          "null",
+          "string",
+          "boolean",
+          "number"
+        ],
+        "maxLength": 1024
       }
     },
     "timestamp": {

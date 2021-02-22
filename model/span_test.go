@@ -68,7 +68,7 @@ func TestSpanTransform(t *testing.T) {
 					"type":     "",
 				},
 				"event":     common.MapStr{"outcome": ""},
-				"labels":    metadataLabels,
+				"labels":    common.MapStr{"label_a": "a", "label_b": "b", "c": 1},
 				"timestamp": common.MapStr{"us": timestampUs},
 			},
 		},
@@ -86,7 +86,7 @@ func TestSpanTransform(t *testing.T) {
 					"type":     "",
 				},
 				"timestamp": common.MapStr{"us": timestampUs},
-				"labels":    metadataLabels,
+				"labels":    common.MapStr{"label_a": "a", "label_b": "b", "c": 1},
 				"event":     common.MapStr{"outcome": "success"},
 			},
 		},
@@ -108,7 +108,7 @@ func TestSpanTransform(t *testing.T) {
 				Duration:            1.20,
 				RUM:                 true,
 				Stacktrace:          Stacktrace{{AbsPath: &path}},
-				Labels:              common.MapStr{"label.a": 12},
+				Labels:              common.MapStr{"label_a": 12},
 				HTTP:                &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
 				DB: &DB{
 					Instance:     &instance,
@@ -163,7 +163,7 @@ func TestSpanTransform(t *testing.T) {
 					},
 					"message": common.MapStr{"queue": common.MapStr{"name": "users"}},
 				},
-				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
+				"labels":      common.MapStr{"label_a": 12, "label_b": "b", "c": 1},
 				"processor":   common.MapStr{"event": "span", "name": "transaction"},
 				"service":     common.MapStr{"name": serviceName, "environment": env, "version": serviceVersion},
 				"timestamp":   common.MapStr{"us": timestampUs},
@@ -177,7 +177,8 @@ func TestSpanTransform(t *testing.T) {
 
 	for _, test := range tests {
 		output := test.Span.Transform(context.Background(), &transform.Config{
-			RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
+			DataStreams: true,
+			RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
 		})
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields, test.Msg)

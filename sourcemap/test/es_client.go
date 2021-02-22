@@ -107,6 +107,14 @@ func ESClientWithSourcemapNotFound(t *testing.T) elasticsearch.Client {
 	return client
 }
 
+// ESClientWithSourcemapIndicatedNotFound returns an elasticsearch client that will always return a result indicating
+// a sourcemap exists but it actually doesn't contain it. This is an edge case that usually shouldn't happen.
+func ESClientWithSourcemapIndicatedNotFound(t *testing.T) elasticsearch.Client {
+	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusOK, sourcemapIndicatedNotFoundFromES()))
+	require.NoError(t, err)
+	return client
+}
+
 func validSourcemapFromES() map[string]interface{} {
 	return map[string]interface{}{
 		"hits": map[string]interface{}{
@@ -121,6 +129,13 @@ func sourcemapNotFoundFromES() map[string]interface{} {
 	return map[string]interface{}{
 		"hits": map[string]interface{}{
 			"total": map[string]interface{}{"value": 0}}}
+}
+
+func sourcemapIndicatedNotFoundFromES() map[string]interface{} {
+	return map[string]interface{}{
+		"hits": map[string]interface{}{
+			"total": map[string]interface{}{"value": 1},
+			"hits":  []map[string]interface{}{}}}
 }
 
 func invalidSourcemapFromES() map[string]interface{} {

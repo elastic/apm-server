@@ -70,20 +70,14 @@ var configMonitors = &configTelemetry{
 	tailSamplingPolicies:      monitoring.NewInt(apmRegistry, "sampling.tail.policies"),
 }
 
-func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config) error {
+// recordRootConfig records static properties of the given root config for telemetry.
+// This should be called once at startup, with the root config.
+func recordRootConfig(info beat.Info, rootCfg *common.Config) error {
 	indexManagementCfg, err := idxmgmt.NewIndexManagementConfig(info, rootCfg)
 	if err != nil {
 		return err
 	}
-	configMonitors.dataStreamsEnabled.Set(apmCfg.DataStreams.Enabled)
-	configMonitors.rumEnabled.Set(apmCfg.RumConfig.IsEnabled())
-	configMonitors.apiKeysEnabled.Set(apmCfg.APIKeyConfig.IsEnabled())
-	configMonitors.kibanaEnabled.Set(apmCfg.Kibana.Enabled)
-	configMonitors.jaegerHTTPEnabled.Set(apmCfg.JaegerConfig.HTTP.Enabled)
-	configMonitors.jaegerGRPCEnabled.Set(apmCfg.JaegerConfig.GRPC.Enabled)
-	configMonitors.sslEnabled.Set(apmCfg.TLS.IsEnabled())
-	configMonitors.pipelinesEnabled.Set(apmCfg.Register.Ingest.Pipeline.IsEnabled())
-	configMonitors.pipelinesOverwrite.Set(apmCfg.Register.Ingest.Pipeline.ShouldOverwrite())
+	configMonitors.dataStreamsEnabled.Set(indexManagementCfg.DataStreams)
 	configMonitors.setupTemplateEnabled.Set(indexManagementCfg.Template.Enabled)
 	configMonitors.setupTemplateOverwrite.Set(indexManagementCfg.Template.Overwrite)
 	configMonitors.setupTemplateAppendFields.Set(len(indexManagementCfg.Template.AppendFields.GetKeys()) > 0)
@@ -92,11 +86,26 @@ func recordConfigs(info beat.Info, apmCfg *config.Config, rootCfg *common.Config
 	configMonitors.ilmSetupRequirePolicy.Set(indexManagementCfg.ILM.Setup.RequirePolicy)
 	mode := indexManagementCfg.ILM.Mode
 	configMonitors.ilmEnabled.Set(mode == ilm.ModeAuto || mode == ilm.ModeEnabled)
-
-	tailSamplingEnabled := apmCfg.Sampling.Tail != nil && apmCfg.Sampling.Tail.Enabled
-	configMonitors.tailSamplingEnabled.Set(tailSamplingEnabled)
-	if tailSamplingEnabled {
-		configMonitors.tailSamplingPolicies.Set(int64(len(apmCfg.Sampling.Tail.Policies)))
-	}
 	return nil
+}
+
+// recordAPMServerConfig records dynamic APM Server config properties for telemetry.
+// This should be called once each time runServer is called.
+func recordAPMServerConfig(cfg *config.Config) {
+	configMonitors.rumEnabled.Set(cfg.RumConfig.IsEnabled())
+	configMonitors.apiKeysEnabled.Set(cfg.APIKeyConfig.IsEnabled())
+	configMonitors.kibanaEnabled.Set(cfg.Kibana.Enabled)
+	configMonitors.jaegerHTTPEnabled.Set(cfg.JaegerConfig.HTTP.Enabled)
+	configMonitors.jaegerGRPCEnabled.Set(cfg.JaegerConfig.GRPC.Enabled)
+	configMonitors.sslEnabled.Set(cfg.TLS.IsEnabled())
+	configMonitors.pipelinesEnabled.Set(cfg.Register.Ingest.Pipeline.IsEnabled())
+	configMonitors.pipelinesOverwrite.Set(cfg.Register.Ingest.Pipeline.ShouldOverwrite())
+
+	tailSamplingEnabled := cfg.Sampling.Tail != nil && cfg.Sampling.Tail.Enabled
+	tailSamplingPolicies := 0
+	if tailSamplingEnabled {
+		tailSamplingPolicies = len(cfg.Sampling.Tail.Policies)
+	}
+	configMonitors.tailSamplingEnabled.Set(tailSamplingEnabled)
+	configMonitors.tailSamplingPolicies.Set(int64(tailSamplingPolicies))
 }

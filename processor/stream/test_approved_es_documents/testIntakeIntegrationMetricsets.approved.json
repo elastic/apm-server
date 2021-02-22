@@ -99,7 +99,7 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.dataset": "apm.app.1234_service_12a3",
             "data_stream.type": "metrics",
             "go": {
                 "memstats": {
@@ -145,7 +145,7 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.dataset": "apm.app.1234_service_12a3",
             "data_stream.type": "metrics",
             "host": {
                 "ip": "192.0.0.1"

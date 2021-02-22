@@ -15,11 +15,7 @@
           "type": [
             "null",
             "object"
-          ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {}
-          }
+          ]
         },
         "experimental": {
           "description": "Experimental information is only processed when APM Server is started in development mode and should only be used by APM agent developers implementing new, unreleased features. The format is unspecified."
@@ -511,22 +507,19 @@
           }
         },
         "tags": {
-          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
+          "description": "Tags are a flat mapping of user-defined tags. On the agent side, tags are called labels. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
           "type": [
             "null",
             "object"
           ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {
-              "type": [
-                "null",
-                "string",
-                "boolean",
-                "number"
-              ],
-              "maxLength": 1024
-            }
+          "additionalProperties": {
+            "type": [
+              "null",
+              "string",
+              "boolean",
+              "number"
+            ],
+            "maxLength": 1024
           }
         },
         "user": {
@@ -594,10 +587,7 @@
             "array"
           ],
           "items": {
-            "type": [
-              "null",
-              "object"
-            ]
+            "type": "object"
           },
           "minItems": 0
         },
@@ -638,123 +628,126 @@
             "null",
             "array"
           ],
-          "properties": {
-            "abs_path": {
-              "description": "AbsPath is the absolute path of the frame's file.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "classname": {
-              "description": "Classname of the frame.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "colno": {
-              "description": "ColumnNumber of the frame.",
-              "type": [
-                "null",
-                "integer"
-              ]
-            },
-            "context_line": {
-              "description": "ContextLine is the line from the frame's file.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "filename": {
-              "description": "Filename is the relative name of the frame's file.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "function": {
-              "description": "Function represented by the frame.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "library_frame": {
-              "description": "LibraryFrame indicates whether the frame is from a third party library.",
-              "type": [
-                "null",
-                "boolean"
-              ]
-            },
-            "lineno": {
-              "description": "LineNumber of the frame.",
-              "type": [
-                "null",
-                "integer"
-              ]
-            },
-            "module": {
-              "description": "Module to which the frame belongs to.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "post_context": {
-              "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
-              "type": [
-                "null",
-                "array"
-              ],
-              "items": {
-                "type": "string"
+          "items": {
+            "type": "object",
+            "properties": {
+              "abs_path": {
+                "description": "AbsPath is the absolute path of the frame's file.",
+                "type": [
+                  "null",
+                  "string"
+                ]
               },
-              "minItems": 0
-            },
-            "pre_context": {
-              "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
-              "type": [
-                "null",
-                "array"
-              ],
-              "items": {
-                "type": "string"
+              "classname": {
+                "description": "Classname of the frame.",
+                "type": [
+                  "null",
+                  "string"
+                ]
               },
-              "minItems": 0
+              "colno": {
+                "description": "ColumnNumber of the frame.",
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "context_line": {
+                "description": "ContextLine is the line from the frame's file.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "filename": {
+                "description": "Filename is the relative name of the frame's file.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "function": {
+                "description": "Function represented by the frame.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "library_frame": {
+                "description": "LibraryFrame indicates whether the frame is from a third party library.",
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "lineno": {
+                "description": "LineNumber of the frame.",
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "module": {
+                "description": "Module to which the frame belongs to.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "post_context": {
+                "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
+                "type": [
+                  "null",
+                  "array"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0
+              },
+              "pre_context": {
+                "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
+                "type": [
+                  "null",
+                  "array"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0
+              },
+              "vars": {
+                "description": "Vars is a flat mapping of local variables of the frame.",
+                "type": [
+                  "null",
+                  "object"
+                ]
+              }
             },
-            "vars": {
-              "description": "Vars is a flat mapping of local variables of the frame.",
-              "type": [
-                "null",
-                "object"
-              ]
-            }
+            "anyOf": [
+              {
+                "properties": {
+                  "classname": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "classname"
+                ]
+              },
+              {
+                "properties": {
+                  "filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "filename"
+                ]
+              }
+            ]
           },
-          "minItems": 0,
-          "anyOf": [
-            {
-              "properties": {
-                "classname": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "classname"
-              ]
-            },
-            {
-              "properties": {
-                "filename": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "filename"
-              ]
-            }
-          ]
+          "minItems": 0
         },
         "type": {
           "description": "Type of the exception.",
@@ -834,123 +827,126 @@
             "null",
             "array"
           ],
-          "properties": {
-            "abs_path": {
-              "description": "AbsPath is the absolute path of the frame's file.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "classname": {
-              "description": "Classname of the frame.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "colno": {
-              "description": "ColumnNumber of the frame.",
-              "type": [
-                "null",
-                "integer"
-              ]
-            },
-            "context_line": {
-              "description": "ContextLine is the line from the frame's file.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "filename": {
-              "description": "Filename is the relative name of the frame's file.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "function": {
-              "description": "Function represented by the frame.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "library_frame": {
-              "description": "LibraryFrame indicates whether the frame is from a third party library.",
-              "type": [
-                "null",
-                "boolean"
-              ]
-            },
-            "lineno": {
-              "description": "LineNumber of the frame.",
-              "type": [
-                "null",
-                "integer"
-              ]
-            },
-            "module": {
-              "description": "Module to which the frame belongs to.",
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "post_context": {
-              "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
-              "type": [
-                "null",
-                "array"
-              ],
-              "items": {
-                "type": "string"
+          "items": {
+            "type": "object",
+            "properties": {
+              "abs_path": {
+                "description": "AbsPath is the absolute path of the frame's file.",
+                "type": [
+                  "null",
+                  "string"
+                ]
               },
-              "minItems": 0
-            },
-            "pre_context": {
-              "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
-              "type": [
-                "null",
-                "array"
-              ],
-              "items": {
-                "type": "string"
+              "classname": {
+                "description": "Classname of the frame.",
+                "type": [
+                  "null",
+                  "string"
+                ]
               },
-              "minItems": 0
+              "colno": {
+                "description": "ColumnNumber of the frame.",
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "context_line": {
+                "description": "ContextLine is the line from the frame's file.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "filename": {
+                "description": "Filename is the relative name of the frame's file.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "function": {
+                "description": "Function represented by the frame.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "library_frame": {
+                "description": "LibraryFrame indicates whether the frame is from a third party library.",
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "lineno": {
+                "description": "LineNumber of the frame.",
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "module": {
+                "description": "Module to which the frame belongs to.",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "post_context": {
+                "description": "PostContext is a slice of code lines immediately before the line from the frame's file.",
+                "type": [
+                  "null",
+                  "array"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0
+              },
+              "pre_context": {
+                "description": "PreContext is a slice of code lines immediately after the line from the frame's file.",
+                "type": [
+                  "null",
+                  "array"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0
+              },
+              "vars": {
+                "description": "Vars is a flat mapping of local variables of the frame.",
+                "type": [
+                  "null",
+                  "object"
+                ]
+              }
             },
-            "vars": {
-              "description": "Vars is a flat mapping of local variables of the frame.",
-              "type": [
-                "null",
-                "object"
-              ]
-            }
+            "anyOf": [
+              {
+                "properties": {
+                  "classname": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "classname"
+                ]
+              },
+              {
+                "properties": {
+                  "filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "filename"
+                ]
+              }
+            ]
           },
-          "minItems": 0,
-          "anyOf": [
-            {
-              "properties": {
-                "classname": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "classname"
-              ]
-            },
-            {
-              "properties": {
-                "filename": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "filename"
-              ]
-            }
-          ]
+          "minItems": 0
         }
       },
       "required": [

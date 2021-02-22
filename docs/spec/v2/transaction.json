@@ -14,11 +14,7 @@
           "type": [
             "null",
             "object"
-          ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {}
-          }
+          ]
         },
         "experimental": {
           "description": "Experimental information is only processed when APM Server is started in development mode and should only be used by APM agent developers implementing new, unreleased features. The format is unspecified."
@@ -510,22 +506,19 @@
           }
         },
         "tags": {
-          "description": "Tags are a flat mapping of user-defined tags. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
+          "description": "Tags are a flat mapping of user-defined tags. On the agent side, tags are called labels. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
           "type": [
             "null",
             "object"
           ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {
-              "type": [
-                "null",
-                "string",
-                "boolean",
-                "number"
-              ],
-              "maxLength": 1024
-            }
+          "additionalProperties": {
+            "type": [
+              "null",
+              "string",
+              "boolean",
+              "number"
+            ],
+            "maxLength": 1024
           }
         },
         "user": {
@@ -642,22 +635,16 @@
         "null",
         "object"
       ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^[^.*\"]*$": {
+      "additionalProperties": {
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": {
           "type": [
             "null",
-            "object"
-          ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[^.*\"]*$": {
-              "type": [
-                "null",
-                "number"
-              ]
-            }
-          }
+            "number"
+          ]
         }
       }
     },

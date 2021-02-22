@@ -26,17 +26,14 @@ import (
 )
 
 // CompareMonitoringInt matches expected with real monitoring counters and
-// returns false and an a string showind diffs if not matching
+// returns false and an a string showind diffs if not matching.
+//
+// The caller is expected to call ClearRegistry before invoking some code
+// path that should update monitoring counters.
 func CompareMonitoringInt(
-	handler func(c *request.Context),
-	c *request.Context,
 	expected map[request.ResultID]int,
 	m map[request.ResultID]*monitoring.Int,
 ) (bool, string) {
-
-	ClearRegistry(m)
-	handler(c)
-
 	var result string
 	for _, id := range AllRequestResultIDs() {
 		monitoringIntVal := int64(0)
@@ -52,7 +49,6 @@ func CompareMonitoringInt(
 			result += fmt.Sprintf("[%s] Expected: %d, Received: %d", id, expectedVal, monitoringIntVal)
 		}
 	}
-
 	return len(result) == 0, result
 }
 

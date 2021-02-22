@@ -5,10 +5,12 @@
     - name: processor.name
       type: keyword
       description: Processor name.
+      overwrite: true
 
     - name: processor.event
       type: keyword
       description: Processor event.
+      overwrite: true
 
     - name: timestamp
       type: group
@@ -18,6 +20,7 @@
           count: 1
           description: >
             Timestamp of the event in microseconds since Unix epoch.
+          overwrite: true
 
     - name: labels
       type: object
@@ -53,6 +56,7 @@
           type: keyword
           description: >
             Service environment.
+          overwrite: true
 
         - name: node
           type: group
@@ -71,11 +75,13 @@
             type: keyword
             description: >
               Name of the programming language used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the programming language used.
+            overwrite: true
 
         - name: runtime
           type: group
@@ -85,11 +91,13 @@
             type: keyword
             description: >
               Name of the runtime used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the runtime used.
+            overwrite: true
 
         - name: framework
           type: group
@@ -99,11 +107,13 @@
             type: keyword
             description: >
               Name of the framework used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the framework used.
+            overwrite: true
 
     - name: agent
       type: group
@@ -239,7 +249,6 @@
           type: keyword
           description: >
             Process arguments.
-
             May be filtered to protect sensitive information.
           overwrite: true
 
@@ -268,6 +277,7 @@
 
         - name: listening
           type: keyword
+          overwrite: true
           description: >
             Address the server is listening on.
 
@@ -285,6 +295,7 @@
 
         - name: version_major
           type: byte
+          overwrite: true
           description: >
             Major version number of the observer
 
@@ -354,7 +365,6 @@
         description: 'Some event destination addresses are defined ambiguously. The
           event will sometimes list an IP, a domain or a unix socket.  You should always
           store the raw address in the `.address` field.
-
           Then it should be duplicated to `.ip` or `.domain`, depending on which one
           it is.'
         overwrite: true
@@ -363,7 +373,6 @@
         level: core
         type: ip
         description: 'IP addess of the destination.
-
           Can be one of multiple IPv4 or IPv6 addresses.'
         overwrite: true
 
@@ -480,6 +489,7 @@
     - name: experimental
       type: object
       dynamic: true
+      overwrite: true
       description: Additional experimental data sent by the agents.
 
     - name: cloud
@@ -569,6 +579,18 @@
         description: Cloud region name
         example: us-east1
         overwrite: true
+      - name: service
+        type: group
+        dynamic: false
+        fields:
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: >
+            Cloud service name, intended to distinguish services running on
+            different platforms within a provider.
+          overwrite: true
 
     - name: profile
       type: group
@@ -579,7 +601,6 @@
           count: 1
           description: >
             Unique ID for the profile.
-
             All samples within a profile will have the same profile ID.
 
         - name: duration
@@ -587,7 +608,6 @@
           count: 1
           description: >
             Duration of the profile, in microseconds.
-
             All samples within a profile will have the same duration.
             To aggregate durations, you should first group by the profile ID.
 
@@ -599,6 +619,15 @@
               count: 1
               description: >
                 Amount of CPU time profiled, in nanoseconds.
+        
+        - name: wall
+          type: group
+          fields:
+            - name: us
+              type: long
+              count: 1
+              description: >
+                Amount of wall time profiled, in microseconds.
 
         - name: samples
           type: group

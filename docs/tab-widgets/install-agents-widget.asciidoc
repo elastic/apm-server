@@ -32,6 +32,13 @@
     </button>
     <button role="tab"
             aria-selected="false"
+            aria-controls="php-tab-install"
+            id="php-install"
+            tabindex="-1">
+      PHP
+    </button>
+    <button role="tab"
+            aria-selected="false"
             aria-controls="python-tab-install"
             id="python-install"
             tabindex="-1">
@@ -92,6 +99,17 @@ include::install-agents.asciidoc[tag=net]
 ++++
 
 include::install-agents.asciidoc[tag=node]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="php-tab-install"
+       aria-labelledby="php-install"
+       hidden="">
+++++
+
+include::install-agents.asciidoc[tag=php]
 
 ++++
   </div>

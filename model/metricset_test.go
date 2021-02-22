@@ -63,7 +63,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.myservice",
+					"data_stream.dataset": "apm.app.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service": common.MapStr{
 						"name": "myservice",
@@ -73,9 +73,24 @@ func TestTransform(t *testing.T) {
 			Msg: "Payload with empty metric.",
 		},
 		{
+			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata, Name: "raj"},
+			Output: []common.MapStr{
+				{
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "apm.app.myservice",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
+					"metricset.name":      "raj",
+					"service": common.MapStr{
+						"name": "myservice",
+					},
+				},
+			},
+			Msg: "Payload with metricset name.",
+		},
+		{
 			Metricset: &Metricset{
 				Metadata:  metadata,
-				Labels:    common.MapStr{"a.b": "a.b.value"},
+				Labels:    common.MapStr{"a_b": "a.b.value"},
 				Timestamp: timestamp,
 				Samples: []Sample{
 					{
@@ -91,10 +106,10 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.myservice",
+					"data_stream.dataset": "apm.app.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
-					"labels":              common.MapStr{"a.b": "a.b.value"},
+					"labels":              common.MapStr{"a_b": "a.b.value"},
 
 					"a":    common.MapStr{"counter": float64(612)},
 					"some": common.MapStr{"gauge": float64(9.16)},
@@ -171,6 +186,7 @@ func TestTransform(t *testing.T) {
 							},
 						},
 					},
+					"_doc_count": int64(6), // 1+2+3
 				},
 			},
 			Msg: "Payload with transaction duration.",
@@ -214,7 +230,7 @@ func TestTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Metricset.Transform(context.Background(), &transform.Config{})
+		outputEvents := test.Metricset.Transform(context.Background(), &transform.Config{DataStreams: true})
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))

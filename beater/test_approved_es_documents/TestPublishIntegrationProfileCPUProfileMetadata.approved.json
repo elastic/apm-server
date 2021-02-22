@@ -7,7 +7,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -17,8 +17,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -151,7 +151,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -161,8 +161,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -241,7 +241,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -251,8 +251,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -403,7 +403,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -413,8 +413,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -493,7 +493,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -503,8 +503,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -565,7 +565,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -575,8 +575,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -673,7 +673,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -683,8 +683,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -775,7 +775,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -785,8 +785,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -871,7 +871,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -881,8 +881,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -985,7 +985,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -995,8 +995,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1117,7 +1117,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1127,8 +1127,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1183,7 +1183,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1193,8 +1193,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1261,7 +1261,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1271,8 +1271,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1375,7 +1375,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1385,8 +1385,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1519,7 +1519,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1529,8 +1529,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1591,7 +1591,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1601,8 +1601,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1717,7 +1717,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1727,8 +1727,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1831,7 +1831,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1841,8 +1841,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -1933,7 +1933,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -1943,8 +1943,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2035,7 +2035,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2045,8 +2045,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2167,7 +2167,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2177,8 +2177,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2233,7 +2233,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2243,8 +2243,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2329,7 +2329,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2339,8 +2339,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2401,7 +2401,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2411,8 +2411,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2479,7 +2479,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2489,8 +2489,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2617,7 +2617,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2627,8 +2627,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2707,7 +2707,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2717,8 +2717,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2773,7 +2773,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2783,8 +2783,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2827,7 +2827,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2837,8 +2837,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -2917,7 +2917,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -2927,8 +2927,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3049,7 +3049,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3059,8 +3059,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3169,7 +3169,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3179,8 +3179,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3289,7 +3289,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3299,8 +3299,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3373,7 +3373,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3383,8 +3383,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3499,7 +3499,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3509,8 +3509,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3571,7 +3571,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3581,8 +3581,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3661,7 +3661,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3671,8 +3671,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3739,7 +3739,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3749,8 +3749,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -3871,7 +3871,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -3881,8 +3881,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4051,7 +4051,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4061,8 +4061,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4141,7 +4141,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4151,8 +4151,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4249,7 +4249,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4259,8 +4259,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4423,7 +4423,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4433,8 +4433,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4489,7 +4489,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4499,8 +4499,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4627,7 +4627,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4637,8 +4637,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4753,7 +4753,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4763,8 +4763,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4825,7 +4825,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4835,8 +4835,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4921,7 +4921,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4931,8 +4931,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -4981,7 +4981,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -4991,8 +4991,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5065,7 +5065,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5075,8 +5075,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5131,7 +5131,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5141,8 +5141,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5269,7 +5269,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5279,8 +5279,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5335,7 +5335,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5345,8 +5345,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5389,7 +5389,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5399,8 +5399,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5479,7 +5479,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5489,8 +5489,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5599,7 +5599,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5609,8 +5609,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5701,7 +5701,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5711,8 +5711,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5785,7 +5785,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5795,8 +5795,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -5899,7 +5899,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -5909,8 +5909,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6013,7 +6013,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6023,8 +6023,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6103,7 +6103,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6113,8 +6113,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6235,7 +6235,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6245,8 +6245,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6331,7 +6331,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6341,8 +6341,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6433,7 +6433,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6443,8 +6443,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6529,7 +6529,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6539,8 +6539,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6613,7 +6613,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6623,8 +6623,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6679,7 +6679,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6689,8 +6689,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6799,7 +6799,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6809,8 +6809,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -6943,7 +6943,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -6953,8 +6953,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7099,7 +7099,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7109,8 +7109,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7195,7 +7195,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7205,8 +7205,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7261,7 +7261,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7271,8 +7271,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7363,7 +7363,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7373,8 +7373,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7525,7 +7525,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7535,8 +7535,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7669,7 +7669,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7679,8 +7679,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7801,7 +7801,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7811,8 +7811,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7873,7 +7873,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7883,8 +7883,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -7951,7 +7951,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -7961,8 +7961,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8065,7 +8065,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8075,8 +8075,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8113,7 +8113,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8123,8 +8123,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8173,7 +8173,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8183,8 +8183,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8251,7 +8251,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8261,8 +8261,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8335,7 +8335,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8345,8 +8345,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8419,7 +8419,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8429,8 +8429,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8515,7 +8515,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8525,8 +8525,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8635,7 +8635,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8645,8 +8645,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8713,7 +8713,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8723,8 +8723,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8797,7 +8797,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8807,8 +8807,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -8923,7 +8923,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -8933,8 +8933,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9001,7 +9001,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9011,8 +9011,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9121,7 +9121,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9131,8 +9131,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9223,7 +9223,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9233,8 +9233,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9325,7 +9325,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9335,8 +9335,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9385,7 +9385,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9395,8 +9395,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9499,7 +9499,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9509,8 +9509,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9583,7 +9583,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9593,8 +9593,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9643,7 +9643,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9653,8 +9653,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",
@@ -9787,7 +9787,7 @@
                 "version": "1.0.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -9797,8 +9797,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "8.0.0",
-                "version_major": 8
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "profile",

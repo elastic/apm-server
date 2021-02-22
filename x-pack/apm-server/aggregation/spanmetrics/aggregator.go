@@ -19,6 +19,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
+const (
+	metricsetName = "service_destination"
+)
+
 // AggregatorConfig holds configuration for creating an Aggregator.
 type AggregatorConfig struct {
 	// Report is a publish.Reporter for reporting metrics documents.
@@ -260,6 +264,7 @@ type spanMetrics struct {
 func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: timestamp,
+		Name:      metricsetName,
 		Metadata: model.Metadata{
 			Service: model.Service{
 				Name:        key.serviceName,

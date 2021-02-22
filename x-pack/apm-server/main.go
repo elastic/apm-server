@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
 var (
@@ -108,6 +109,31 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
 	}
+
+	var sampledTracesDataStream sampling.DataStreamConfig
+	if args.Managed {
+		// Data stream and ILM policy are managed by Fleet.
+		sampledTracesDataStream = sampling.DataStreamConfig{
+			Type:      "traces",
+			Dataset:   "sampled",
+			Namespace: args.Namespace,
+		}
+	} else {
+		sampledTracesDataStream = sampling.DataStreamConfig{
+			Type:      "apm",
+			Dataset:   "sampled",
+			Namespace: "traces",
+		}
+		if err := pubsub.SetupDataStream(context.Background(), es,
+			"apm-sampled-traces", // Index template
+			"apm-sampled-traces", // ILM policy
+			"apm-sampled-traces", // Index pattern
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to create data stream for tail-sampling")
+		}
+		args.Logger.Infof("Created tail-sampling data stream index template")
+	}
+
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
 		policies[i] = sampling.Policy{
@@ -124,16 +150,14 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		BeatID:   args.Info.ID.String(),
 		Reporter: args.Reporter,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
-			FlushInterval: tailSamplingConfig.Interval,
-			// TODO(axw) make MaxDynamicServices configurable?
+			FlushInterval:         tailSamplingConfig.Interval,
 			MaxDynamicServices:    1000,
 			Policies:              policies,
 			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			Elasticsearch: es,
-			// TODO(axw) make index name configurable?
-			SampledTracesIndex: "apm-sampled-traces",
+			Elasticsearch:           es,
+			SampledTracesDataStream: sampledTracesDataStream,
 		},
 		StorageConfig: sampling.StorageConfig{
 			StorageDir:        paths.Resolve(paths.Data, tailSamplingConfig.StorageDir),

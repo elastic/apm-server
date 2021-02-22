@@ -11,6 +11,7 @@ import (
 
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
 // Config holds configuration for Processor.
@@ -45,6 +46,9 @@ type LocalSamplingConfig struct {
 	// Policies holds local tail-sampling policies. Policies are matched in the
 	// order provided. Policies should therefore be ordered from most to least
 	// specific.
+	//
+	// Policies must include at least one policy that matches all traces, to ensure
+	// that dropping non-matching traces is intentional.
 	Policies []Policy
 
 	// IngestRateDecayFactor holds the ingest rate decay factor, used for calculating
@@ -60,9 +64,21 @@ type RemoteSamplingConfig struct {
 	// and subscribing to remote sampling decisions.
 	Elasticsearch elasticsearch.Client
 
-	// SampledTracesIndex holds the name of the Elasticsearch index for
-	// storing and searching sampled trace IDs.
-	SampledTracesIndex string
+	// SampledTracesDataStream holds the identifiers for the Elasticsearch
+	// data stream for storing and searching sampled trace IDs.
+	SampledTracesDataStream DataStreamConfig
+}
+
+// DataStreamConfig holds configuration to identify a data stream.
+type DataStreamConfig struct {
+	// Type holds the data stream's type.
+	Type string
+
+	// Dataset holds the data stream's dataset.
+	Dataset string
+
+	// Namespace holds the data stream's namespace.
+	Namespace string
 }
 
 // StorageConfig holds Processor configuration related to event storage.
@@ -76,6 +92,10 @@ type StorageConfig struct {
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration
+
+	// ValueLogFileSize holds the size for Badger value log files.
+	// If unspecified, then the default value of 128MB will be used.
+	ValueLogFileSize int64
 }
 
 // Policy holds a tail-sampling policy: criteria for matching root transactions,
@@ -156,10 +176,17 @@ func (config LocalSamplingConfig) validate() error {
 	if len(config.Policies) == 0 {
 		return errors.New("Policies unspecified")
 	}
+	var anyDefaultPolicy bool
 	for i, policy := range config.Policies {
 		if err := policy.validate(); err != nil {
 			return errors.Wrapf(err, "Policy %d invalid", i)
 		}
+		if policy.PolicyCriteria == (PolicyCriteria{}) {
+			anyDefaultPolicy = true
+		}
+	}
+	if !anyDefaultPolicy {
+		return errors.New("Policies does not contain a default (empty criteria) policy")
 	}
 	if config.IngestRateDecayFactor <= 0 || config.IngestRateDecayFactor > 1 {
 		return errors.New("IngestRateDecayFactor unspecified or out of range (0,1]")
@@ -171,10 +198,14 @@ func (config RemoteSamplingConfig) validate() error {
 	if config.Elasticsearch == nil {
 		return errors.New("Elasticsearch unspecified")
 	}
-	if config.SampledTracesIndex == "" {
-		return errors.New("SampledTracesIndex unspecified")
+	if err := config.SampledTracesDataStream.validate(); err != nil {
+		return errors.New("SampledTracesDataStream unspecified or invalid")
 	}
 	return nil
+}
+
+func (config DataStreamConfig) validate() error {
+	return pubsub.DataStreamConfig(config).Validate()
 }
 
 func (config StorageConfig) validate() error {

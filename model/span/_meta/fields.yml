@@ -5,10 +5,12 @@
     - name: processor.name
       type: keyword
       description: Processor name.
+      overwrite: true
 
     - name: processor.event
       type: keyword
       description: Processor event.
+      overwrite: true
 
     - name: timestamp
       type: group
@@ -18,6 +20,7 @@
           count: 1
           description: >
             Timestamp of the event in microseconds since Unix epoch.
+          overwrite: true
 
     - name: labels
       type: object
@@ -53,6 +56,7 @@
           type: keyword
           description: >
             Service environment.
+          overwrite: true
 
         - name: node
           type: group
@@ -71,11 +75,13 @@
             type: keyword
             description: >
               Name of the programming language used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the programming language used.
+            overwrite: true
 
         - name: runtime
           type: group
@@ -85,11 +91,13 @@
             type: keyword
             description: >
               Name of the runtime used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the runtime used.
+            overwrite: true
 
         - name: framework
           type: group
@@ -99,11 +107,13 @@
             type: keyword
             description: >
               Name of the framework used.
+            overwrite: true
 
           - name: version
             type: keyword
             description: >
               Version of the framework used.
+            overwrite: true
 
     - name: transaction
       type: group
@@ -113,14 +123,17 @@
           type: keyword
           description: >
             The transaction ID.
+          overwrite: true
         - name: sampled
           type: boolean
           description: >
             Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+          overwrite: true
         - name: type
           type: keyword
           description: >
             Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+          overwrite: true
         - name: name
           type: keyword
           multi_fields:
@@ -128,67 +141,7 @@
               type: text
           description: >
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
-
-        - name: duration
-          type: group
-          fields:
-            - name: count
-              type: long
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-
-        - name: self_time
-          type: group
-          description: >
-            Portion of the transaction's duration where no direct child was running
-          fields:
-            - name: count
-              type: long
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-
-        - name: breakdown
-          type: group
-          description: >
-            Counter for collected breakdowns for the transaction
-          fields:
-            - name: count
-              type: long
-
-    - name: span
-      type: group
-      dynamic: false
-      fields:
-        - name: type
-          type: keyword
-          count: 1
-          description: >
-            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-
-        - name: subtype
-          type: keyword
-          count: 1
-          description: >
-            A further sub-division of the type (e.g. postgresql, elasticsearch)
-
-        - name: self_time
-          type: group
-          description: >
-            Portion of the span's duration where no direct child was running
-          fields:
-          - name: count
-            type: long
-          - name: sum
-            type: group
-            fields:
-              - name: us
-                type: long
+          overwrite: true
 
     - name: trace
       type: group
@@ -198,6 +151,7 @@
           type: keyword
           description: >
              The ID of the trace to which the event belongs to.
+          overwrite: true
 
     - name: parent
       type: group
@@ -207,6 +161,7 @@
           type: keyword
           description: >
              The ID of the parent event.
+          overwrite: true
 
     - name: agent
       type: group
@@ -342,7 +297,6 @@
           type: keyword
           description: >
             Process arguments.
-
             May be filtered to protect sensitive information.
           overwrite: true
 
@@ -371,6 +325,7 @@
 
         - name: listening
           type: keyword
+          overwrite: true
           description: >
             Address the server is listening on.
 
@@ -388,6 +343,7 @@
 
         - name: version_major
           type: byte
+          overwrite: true
           description: >
             Major version number of the observer
 
@@ -457,7 +413,6 @@
         description: 'Some event destination addresses are defined ambiguously. The
           event will sometimes list an IP, a domain or a unix socket.  You should always
           store the raw address in the `.address` field.
-
           Then it should be duplicated to `.ip` or `.domain`, depending on which one
           it is.'
         overwrite: true
@@ -466,7 +421,6 @@
         level: core
         type: ip
         description: 'IP addess of the destination.
-
           Can be one of multiple IPv4 or IPv6 addresses.'
         overwrite: true
 
@@ -583,6 +537,7 @@
     - name: experimental
       type: object
       dynamic: true
+      overwrite: true
       description: Additional experimental data sent by the agents.
 
     - name: cloud
@@ -672,6 +627,18 @@
         description: Cloud region name
         example: us-east1
         overwrite: true
+      - name: service
+        type: group
+        dynamic: false
+        fields:
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: >
+            Cloud service name, intended to distinguish services running on
+            different platforms within a provider.
+          overwrite: true
 
     - name: event
       type: group
@@ -687,10 +654,6 @@
          example: success
          overwrite: true
 
-    - name: view spans
-      format: url
-      label_template: "View Spans"
-
     - name: child
       type: group
       dynamic: false
@@ -698,15 +661,29 @@
         - name: id
           type: keyword
           description: >
-            The ID(s)s of the child event(s).
+            The ID(s) of the child event(s).
 
     - name: span
       type: group
       dynamic: false
       fields:
+        - name: type
+          type: keyword
+          count: 1
+          description: >
+            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+          overwrite: true 
+
+        - name: subtype
+          type: keyword
+          count: 1
+          description: >
+            A further sub-division of the type (e.g. postgresql, elasticsearch)
+          overwrite: true 
 
         - name: id
           type: keyword
+          overwrite: true
           description: >
             The ID of the span stored as hex encoded string.
 

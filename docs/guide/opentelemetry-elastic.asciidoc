@@ -2,21 +2,26 @@
 === OpenTelemetry integration
 
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
+:ot-contrib:    https://github.com/open-telemetry/opentelemetry-collector-contrib
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
-:ot-pipelines:  {ot-repo}/blob/master/docs/pipelines.md
+:ot-pipelines:  https://opentelemetry.io/docs/collector/configuration/
 :ot-extension:  {ot-repo}/blob/master/extension/README.md
 :ot-scaling:    {ot-repo}/blob/master/docs/performance.md
 
-:ot-collector:  https://opentelemetry.io/docs/collector/about/
-:ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib-dev
+:ot-collector:  https://opentelemetry.io/docs/collector/getting-started/
+:ot-dockerhub:  https://hub.docker.com/r/otel/opentelemetry-collector-contrib
+
+// Make tab-widgets work
+include::../tab-widgets/code.asciidoc[]
 
 Elastic's OpenTelemetry integration allows you to reuse your existing OpenTelemetry
-instrumentation to quickly analyze distributed traces and metrics with the Elastic Stack.
+instrumentation to quickly analyze distributed traces and metrics to help you monitor
+business KPIs and technical components with the {stack}.
 
 [[what-is-opentelemetry]]
 ==== What is OpenTelemetry?
 
-> OpenTelemetry is a set of APIs, SDKs, tooling, and integrations that enable the creation and
+OpenTelemetry is a set of APIs, SDKs, tooling, and integrations that enable the creation and
 management of telemetry data. It formed through a merger of the OpenTracing and OpenCensus projects.
 
 OpenTelemetry is an open-source project that provides the components necessary to observe your applications and services.
@@ -28,32 +33,34 @@ If you're unfamiliar with the project, see the {ot-spec}[spec] for more informat
 
 Elastic's integration is designed to drop into your current OpenTelemetry setup.
 We've done this by extending the "contrib" OpenTelemetry collector and adding an Elastic exporter.
-This exporter translates the OpenTelemetry trace data collected from your services to Elastic's protocol,
-before sending the data to the Elastic Stack.
-By extending the OpenTelemetry collector,
-no changes are needed in your instrumented services in order to begin using the Elastic Stack.
 
-[role="screenshot"]
+Before sending the data to the {stack}, the exporter translates the OpenTelemetry trace data collected from your services
+and the metrics data collected from your applications and infrastructure to Elastic's protocol.
+By extending the OpenTelemetry collector, no changes are needed in your instrumented services to begin using the {stack}.
+
+TIP: To collect infrastructure metrics, we still recommend using
+{metricbeat-ref}/metricbeat-overview.html[{metricbeat}] to get a mature collector with more integrations
+and integrated visualizations.
+
 image::images/open-telemetry-elastic-arch.png[OpenTelemetry Elastic architecture diagram]
 
 [float]
 [[open-telemetry-elastic-works]]
 ==== How the OpenTelemetry Collector works
 
-The OpenTelemetry collector uses three different types of components to handle data: `receivers`, `processors`, and `exporters`.
+The OpenTelemetry collector uses the following three types of components to handle data:
 
 * `receivers`: Configure how data gets to the collector. At least one receiver must be configured.
-* `processors`: Defines optional transformations that occurs between receiving and exporting data.
-* `exporters`: Configures how data is sent to its destination--in this case, the Elastic Stack.
+* `processors`: Defines optional transformations that occur between receiving and exporting data.
+* `exporters`: Configures how data is sent to its destination--in this case, the {stack}.
 
-Once a `receiver`, `processor`, and `exporter` is defined, `pipelines` can be configured in the `services` section of your configuration. Specifically, a `traces` pipeline will define the path of trace data through your collector, and bring all three of these components together.
+Once a `receiver`, `processor`, and `exporter` is defined, `pipelines` can be configured in the `services` section of your configuration.
+The `traces` and `metrics` pipelines define the path of trace data and metrics through your collector and bring all three of these components together.
 
-TIP: More information is available in the
-{ot-pipelines}[OpenTelemetry pipeline docs]
+TIP: More information is available in the {ot-pipelines}[OpenTelemetry pipeline docs].
 
-A final note: `extensions` can also be enabled for tasks like monitoring your collectors health.
-See the {ot-extension}[OpenTelemetry extension readme]
-for a list of supported extensions.
+A final note: `extensions` can also be enabled for tasks like monitoring the health of the collector.
+See the {ot-extension}[OpenTelemetry extension readme] for a list of supported extensions.
 
 [[open-telemetry-elastic-get-started]]
 ==== Get started
@@ -69,28 +76,59 @@ OpenTelemetry Collectors can be run as an Agent, or as standalone collectors.
 They can be deployed as often as necessary and scaled up or out.
 
 Deployment planning resources are available in OpenTelemetry's {ot-collector}[Getting Started]
-documentation, and {ot-scaling}[Collector Performance] research.
+documentation and {ot-scaling}[Collector Performance] research.
 
 [float]
 [[open-telemetry-elastic-download]]
 ==== Download the collector
 
-The Elastic exporter lives in the {ot-repo}[`opentelemetry-collector-contrib repository`],
-and the latest release can be downloaded from {ot-repo}/releases[GitHub releases page].
+The Elastic exporter lives in the {ot-contrib}[`opentelemetry-collector-contrib` repository],
+and the latest release can be downloaded from {ot-contrib}/releases[GitHub releases page].
 
 Docker images are available on {ot-dockerhub}[dockerhub]:
 
 [source,bash]
 ----
-docker pull otel/opentelemetry-collector-contrib-dev
+docker pull otel/opentelemetry-collector-contrib
 ----
 
-You can also build the collector-contrib repository by cloning it and running:
+[[open-telemetry-elastic-traces-metrics]]
+==== Collect traces and metrics
+
+NOTE: This guide assumes your services and applications have already been instrumented with the OpenTelemetry API and/or SDK.
+If you are new to APM, we recommend <<install-and-run,getting started with Elastic APM agents>> instead.
+
+To export traces and metrics to the OpenTelemetry Collector, ensure that you have instrumented your services and applications
+with the OpenTelemetry API and/or SDK.
+
+Here is an example of how to set up the OpenTelemetry Java agent.
 
 [source,bash]
 ----
-make otelcontribcol
+export OTEL_RESOURCE_ATTRIBUTES=service.name=frontend,service.version=1.0-SNAPSHOT,deployment.environment=staging
+java -javaagent:/path/to/opentelemetry-javaagent-all-0.15.0.jar \
+     -Dotel.otlp.endpoint=http://my-otel-collector.mycompany.com:4317 \
+     -jar target/frontend-1.0-SNAPSHOT.jar
 ----
+
+Here is an example of how to capture business metrics from an application.
+
+[source,java]
+----
+// initialize metric
+Meter meter = GlobalMetricsProvider.getMeter("my-frontend");
+DoubleCounter orderValueCounter = meter.doubleCounterBuilder("order_value").build();
+
+public void createOrder(HttpServletRequest request) {
+
+   // create order in the database
+   ...
+   // increment business metrics for monitoring
+   orderValueCounter.add(orderPrice);
+}
+----
+
+For more information on setting up OpenTelemetry, see OpenTelemetry's {ot-collector}[Getting Started].
 
 [float]
 [[open-telemetry-elastic-configure]]
@@ -98,56 +136,121 @@ make otelcontribcol
 
 Create a `yaml` configuration file.
 
-At a minimum, you must define the URL of the APM Server instance you are sending data to.
-For example:
+This example configuration file accepts input from an OpenTelemetry Agent, processes the data, and sends it to an {ess} instance.
 
 [source,yml]
 ----
-exporters:
-  elastic:
-    apm_server_url: "https://elasticapm.example.com"
-----
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 'localhost:4317'
+    hostmetrics: <1>
+      collection_interval: 1m
+      scrapers:
+        load:
+        memory:
 
-See the <<open-telemetry-elastic-config-ref,configuration reference>> for additional configuration options,
-like specifying an API key, secret token, or TLS settings.
+  processors:
+    batch: null
 
-The Elastic exporter must also be defined in `service.pipelines.traces.exporters`.
-For example:
+  exporters:
+    elastic:
+      apm_server_url: 'https://elasticapm.example.com' <2>
+      secret_token: 'APM_SERVER_SECRET_TOKEN'
 
-[source,yml]
+  service:
+    pipelines:
+      metrics:
+        receivers:
+          - otlp
+          - hostmetrics
+        exporters:
+          - elastic <3>
+      traces:
+        receivers:
+          - otlp
+        processors:
+          - batch
+        exporters:
+          - elastic <4>
 ----
-service:
-  pipelines:
-    traces:
-      exporters: [elastic]
-----
-
-If we put everything together, here's an example configuration file that accepts input from an OpenTelemetry Agent,
-processes the data, and sends it to an {ess} instance.
-
-[source,yml]
-----
-receivers:
-  otlp:
-    endpoint: localhost:55680
-processors:
-  batch:
-    timeout: 1s
-    send_batch_size: 1024
-exporters:
-  elastic:
-    apm_server_url: "https://elasticapm.example.com"
-    secret_token: "ESS_TOKEN"
-service:
-  pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [elastic]
-----
+<1> The `hostmetrics` receiver must be defined to generate metrics about the host system scraped from various sources.
+<2> At a minimum, you must define the URL of the APM Server instance you are sending data to. See the <<open-telemetry-elastic-config-ref,configuration reference>>
+for additional configuration options, like specifying an API key, secret token, or TLS settings.
+<3> To translate metrics, the Elastic exporter must be defined in `service.pipelines.metrics.exporters`.
+<4> To translate trace data, the Elastic exporter must be defined in `service.pipelines.traces.exporters`.
 
 NOTE: For more information about getting started with an OpenTelemetry Collector,
 see the {ot-collector}[OpenTelemetry collector] docs.
+
+[float]
+[[open-telemetry-elastic-caveats]]
+==== Caveats
+
+If collecting metrics, please note that the https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
+and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`] metrics are not yet supported.
+
+[[open-telemetry-elastic-verify]]
+==== Verify OpenTelemetry metrics data
+
+Use *Discover* to validate that metrics are successfully being reported to {kib}.
+
+. Launch {kib}:
++
+--
+include::../tab-widgets/open-kibana-widget.asciidoc[]
+--
+
+. In the side navigation, under *{kib}*, select *Discover*.
+. Select `apm-*` as your index pattern.
+. Filter the data to only show documents with metrics: `processor.name :"metric"`
+. Narrow your search with a known OpenTelemetry field. For example, if you have an `order_value` field, add `order_value: *` to your search to return
+only OpenTelemetry metrics documents.
+
+[[open-telemetry-elastic-kibana]]
+==== Visualize in {kib}
+
+TSVB within {kib} is the recommended visualization for OpenTelemetry metrics. TSVB is a time series data visualizer that allows you to use the full power of the
+{es} aggregation framework. With TSVB, you can combine an infinite number of aggregations to display complex data.
+
+In this example eCommerce OpenTelemetry dashboard, there are four visualizations; sales, order count, product cache, and system load. The dashboard provides us with business
+KPI metrics, along with performance-related metrics.
+
+[role="screenshot"]
+image::images/ecommerce-dashboard.png[OpenTelemetry visualizations]
+
+Let's have a look at how this dashboard was created, specifically the Sales USD and System load visualizations.
+
+. In the side navigation, under *{kib}*, select *Dashboard*.
+. Click *Create dashboard*.
+. Click *Save*, enter the name of your dashboard, and then click *Save* again.
+. Let’s add a Sales USD visualization. Click *Edit*.
+. Click *Create new* and then select *TSVB*.
+. For the label name, enter Sales USD, and then select the following:
++
+* Aggregation: `Positive Rate`.
+* Field: `order_sum`.
+* Scale: `auto`.
+* Group by: `Everything`
+. Click *Save*, enter Sales USD as the visualization name, and then click *Save and return*.
+. Now let's create a visualization of load averages on the system. Click *Create new*.
+. Select *TSVB*.
+. Select the following:
++
+* Aggregation: `Average`.
+* Field: `system.cpu.load_average.1m`.
+* Group by: `Terms`.
+* By: `host.ip`.
+* Top: `10`.
+* Order by: `Doc Count (default)`.
+* Direction: `Descending`.
+. Click *Save*, enter System load per host IP as the visualization name, and then click *Save and return*.
++
+Both visualizations are now displayed on your custom dashboard.
+
+IMPORTANT: By default, Discover shows data for the last 15 minutes. If you have a time-based index,
+and no data displays, you might need to increase the time range.
 
 [[open-telemetry-elastic-config-ref]]
 ==== Elastic exporter configuration reference

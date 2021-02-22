@@ -1,0 +1,312 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "rum-js",
+                "version": "0.0.0"
+            },
+            "client": {
+                "ip": "127.0.0.1"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "error": {
+                "culprit": "webpack:///webpack/bootstrap 6002740481c9666b0d38 in \u003canonymous\u003e",
+                "exception": [
+                    {
+                        "message": "Uncaught Error: timeout test error",
+                        "stacktrace": [
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "context": {
+                                    "post": [
+                                        "",
+                                        " \t\t// Check if module is in cache",
+                                        " \t\tif(installedModules[moduleId])",
+                                        " \t\t\treturn installedModules[moduleId].exports;",
+                                        ""
+                                    ],
+                                    "pre": [
+                                        " \t// The module cache",
+                                        " \tvar installedModules = {};",
+                                        "",
+                                        " \t// The require function"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                                "function": "__webpack_require__",
+                                "library_frame": false,
+                                "line": {
+                                    "column": 0,
+                                    "context": " \tfunction __webpack_require__(moduleId) {",
+                                    "number": 5
+                                },
+                                "original": {
+                                    "abs_path": "http://localhost:8000/test/../test/e2e/general-usecase/bundle.js.map",
+                                    "colno": 18,
+                                    "filename": "test/e2e/general-usecase/bundle.js.map",
+                                    "function": "\u003canonymous\u003e",
+                                    "library_frame": true,
+                                    "lineno": 1
+                                },
+                                "sourcemap": {
+                                    "updated": true
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "context": {
+                                    "post": [
+                                        "",
+                                        " \t// __webpack_public_path__",
+                                        " \t__webpack_require__.p = \"\";",
+                                        "",
+                                        " \t// Load entry module and return exports"
+                                    ],
+                                    "pre": [
+                                        "",
+                                        " \t// expose the modules object (__webpack_modules__)",
+                                        " \t__webpack_require__.m = modules;",
+                                        "",
+                                        " \t// expose the module cache"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                                "function": "\u003cunknown\u003e",
+                                "library_frame": false,
+                                "line": {
+                                    "column": 0,
+                                    "context": " \t__webpack_require__.c = installedModules;",
+                                    "number": 33
+                                },
+                                "original": {
+                                    "abs_path": "http://localhost:8000/test/./e2e/general-usecase/bundle.js.map",
+                                    "colno": 181,
+                                    "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                    "function": "invokeTask",
+                                    "library_frame": false,
+                                    "lineno": 1
+                                },
+                                "sourcemap": {
+                                    "updated": true
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "context": {
+                                    "post": [
+                                        "",
+                                        " \t\t// Check if module is in cache",
+                                        " \t\tif(installedModules[moduleId])",
+                                        " \t\t\treturn installedModules[moduleId].exports;",
+                                        ""
+                                    ],
+                                    "pre": [
+                                        " \t// The module cache",
+                                        " \tvar installedModules = {};",
+                                        "",
+                                        " \t// The require function"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                                "function": "\u003cunknown\u003e",
+                                "library_frame": false,
+                                "line": {
+                                    "column": 0,
+                                    "context": " \tfunction __webpack_require__(moduleId) {",
+                                    "number": 5
+                                },
+                                "original": {
+                                    "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                    "colno": 15,
+                                    "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                    "function": "runTask",
+                                    "lineno": 1
+                                },
+                                "sourcemap": {
+                                    "updated": true
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "context": {
+                                    "post": [
+                                        "",
+                                        "",
+                                        "",
+                                        "/** WEBPACK FOOTER **",
+                                        " ** webpack/bootstrap 6002740481c9666b0d38"
+                                    ],
+                                    "pre": [
+                                        "",
+                                        " \t// __webpack_public_path__",
+                                        " \t__webpack_require__.p = \"\";",
+                                        "",
+                                        " \t// Load entry module and return exports"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                                "function": "moduleId",
+                                "library_frame": false,
+                                "line": {
+                                    "column": 0,
+                                    "context": " \treturn __webpack_require__(0);",
+                                    "number": 39
+                                },
+                                "original": {
+                                    "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                    "colno": 199,
+                                    "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                    "function": "invoke",
+                                    "lineno": 1
+                                },
+                                "sourcemap": {
+                                    "updated": true
+                                }
+                            },
+                            {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "context": {
+                                    "post": [
+                                        " \t\t\treturn installedModules[moduleId].exports;",
+                                        "",
+                                        " \t\t// Create a new module (and put it into the cache)",
+                                        " \t\tvar module = installedModules[moduleId] = {",
+                                        " \t\t\texports: {},"
+                                    ],
+                                    "pre": [
+                                        "",
+                                        " \t// The require function",
+                                        " \tfunction __webpack_require__(moduleId) {",
+                                        "",
+                                        " \t\t// Check if module is in cache"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                                "function": "\u003canonymous\u003e",
+                                "library_frame": false,
+                                "line": {
+                                    "column": 0,
+                                    "context": " \t\tif(installedModules[moduleId])",
+                                    "number": 8
+                                },
+                                "original": {
+                                    "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                    "colno": 33,
+                                    "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                    "function": "timer",
+                                    "lineno": 1
+                                },
+                                "sourcemap": {
+                                    "updated": true
+                                }
+                            }
+                        ],
+                        "type": "Error"
+                    }
+                ],
+                "grouping_key": "89e23da755c2dd759d2d529e37c92b8f",
+                "id": "aba2688e033848ce9c4e4005f1caa534",
+                "log": {
+                    "message": "Uncaught Error: log timeout test error",
+                    "stacktrace": [
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "context": {
+                                "post": [
+                                    "",
+                                    " \t\t// Check if module is in cache",
+                                    " \t\tif(installedModules[moduleId])",
+                                    " \t\t\treturn installedModules[moduleId].exports;",
+                                    ""
+                                ],
+                                "pre": [
+                                    " \t// The module cache",
+                                    " \tvar installedModules = {};",
+                                    "",
+                                    " \t// The require function"
+                                ]
+                            },
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "\u003canonymous\u003e",
+                            "library_frame": false,
+                            "line": {
+                                "column": 0,
+                                "context": " \tfunction __webpack_require__(moduleId) {",
+                                "number": 5
+                            },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "colno": 18,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "\u003canonymous\u003e",
+                                "lineno": 1
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        }
+                    ]
+                },
+                "page": {
+                    "referer": "http://localhost:8000/test/e2e/",
+                    "url": "http://localhost:8000/test/e2e/general-usecase/"
+                }
+            },
+            "event": {
+                "ingested": "dynamic"
+            },
+            "http": {
+                "request": {
+                    "referrer": "http://localhost:8000/test/e2e/"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "name": "apm-agent-js",
+                "version": "1.0.1"
+            },
+            "source": {
+                "ip": "127.0.0.1"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            },
+            "url": {
+                "domain": "localhost",
+                "full": "http://localhost:8000/test/e2e/general-usecase/",
+                "original": "http://localhost:8000/test/e2e/general-usecase/",
+                "path": "/test/e2e/general-usecase/",
+                "port": 8000,
+                "scheme": "http"
+            },
+            "user_agent": {
+                "device": {
+                    "name": "Other"
+                },
+                "name": "Go-http-client",
+                "original": "Go-http-client/1.1",
+                "version": "1.1"
+            }
+        }
+    ]
+}

@@ -110,9 +110,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		assert.Equal(t, ip, out.Metadata.Client.IP, out.Metadata.Client.IP.String())
 		// metadata labels and event labels should not be merged
 		mLabels := common.MapStr{"init0": "init", "init1": "init", "init2": "init"}
-		tLabels := model.Labels{"overwritten0": "overwritten", "overwritten1": "overwritten"}
+		tLabels := common.MapStr{"overwritten0": "overwritten", "overwritten1": "overwritten"}
 		assert.Equal(t, mLabels, out.Metadata.Labels)
-		assert.Equal(t, &tLabels, out.Labels)
+		assert.Equal(t, tLabels, out.Labels)
 		// service and user values should be set
 		modeldecodertest.AssertStructValues(t, &out.Metadata.Service, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, &out.Metadata.User, exceptions, otherVal)
