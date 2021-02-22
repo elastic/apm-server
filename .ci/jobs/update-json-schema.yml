@@ -2,7 +2,7 @@
 - job:
     name: apm-server/update-json-schema-mbp
     display-name: apm-server Update json schema
-    description: Send PRs to the subscribed APM Agents if the json schema files (JSON) are modified, triggered for the master branch for the elastic/apm-server project
+    description: Send PRs to the subscribed APM Agents if the json schema files are modified, triggered for the master branch for the elastic/apm-server project
     view: APM-CI
     project-type: multibranch
     script-path: .ci/update-json-schema.groovy
@@ -13,7 +13,7 @@
           discover-pr-forks-trust: permission
           discover-pr-origin: merge-current
           discover-tags: false
-          notification-context: 'apm-ci'
+          notification-context: 'update-json'
           repo: apm-server
           repo-owner: elastic
           credentials-id: 2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken

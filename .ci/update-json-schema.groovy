@@ -128,7 +128,8 @@ pipeline {
   }
   post {
     cleanup {
-      notifyBuildResult()
+      // PR comments should only be created for the main pipeline.
+      notifyBuildResult(prComment: false)
     }
   }
 }
