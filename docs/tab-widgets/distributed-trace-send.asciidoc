@@ -124,9 +124,9 @@ Example:
 
 [source,php]
 ----
-$distData = ElasticApm::getCurrentTransaction()->getDistributedTracingData(); <1>
+$distDataAsString = ElasticApm::getSerializedCurrentDistributedTracingData(); <1>
 ----
-<1> Get the current distributed tracing context
+<1> Get the current distributed tracing data serialized as string
 
 // end::php[]
 
