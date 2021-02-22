@@ -36,6 +36,11 @@ https://github.com/elastic/apm-server/compare/v7.11.2\...v7.12.0[View commits]
 * When tail-sampling is enabled, a default policy must be defined {pull}4729[4729]
 * Support additional config options when running under Fleet {pull}4690[4690]
 * Upgrade Go to 1.15.8 {pull}4733[4733]
+<<<<<<< HEAD:changelogs/7.12.asciidoc
+=======
+* Add support for Node.js wall time profiles {pull}4728[4728]
+* Add metricset.name field to metric docs {pull}4857[4857]
+>>>>>>> 5f72138f0... Introduce metricset.name (#4857):changelogs/head.asciidoc
 
 [float]
 ==== Deprecated

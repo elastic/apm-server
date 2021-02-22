@@ -389,7 +389,11 @@ func TestAggregationFields(t *testing.T) {
 
 	var expected []*model.Metricset
 	addExpectedCount := func(expectedCount int64) {
+<<<<<<< HEAD
 		expected = append(expected, &model.Metricset{
+=======
+		expected = append(expected, model.Metricset{
+>>>>>>> 5f72138f0... Introduce metricset.name (#4857)
 			Name:     "transaction",
 			Metadata: input.Metadata,
 			Event: model.MetricsetEventCategorization{
