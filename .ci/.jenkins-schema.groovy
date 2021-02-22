@@ -1,6 +1,7 @@
 ---
 agents:
   - REPO: "apm-agent-dotnet"
+    SPEC_FILEPATH: "test/Elastic.Apm.Tests/TestResources/json-spec"
   - REPO: "apm-agent-go"
     SPEC_FILEPATH: "internal/apmschema/jsonschema"
   - REPO: "apm-agent-java"
@@ -8,5 +9,7 @@ agents:
   - REPO: "apm-agent-nodejs"
   - REPO: "apm-agent-php"
   - REPO: "apm-agent-python"
+    SPEC_FILEPATH: "tests/upstream/json-specs"
   - REPO: "apm-agent-ruby"
+    SPEC_FILEPATH: "spec/fixtures"
   - REPO: "apm-agent-rum-js"
