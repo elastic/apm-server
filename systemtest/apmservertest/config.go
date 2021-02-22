@@ -42,14 +42,15 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	SecretToken string             `json:"apm-server.secret_token,omitempty"`
-	Jaeger      *JaegerConfig      `json:"apm-server.jaeger,omitempty"`
-	Kibana      *KibanaConfig      `json:"apm-server.kibana,omitempty"`
-	Aggregation *AggregationConfig `json:"apm-server.aggregation,omitempty"`
-	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
-	RUM         *RUMConfig         `json:"apm-server.rum,omitempty"`
-	DataStreams *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
-	APIKey      *APIKeyConfig      `json:"apm-server.api_key,omitempty"`
+	SecretToken               string             `json:"apm-server.secret_token,omitempty"`
+	Jaeger                    *JaegerConfig      `json:"apm-server.jaeger,omitempty"`
+	Kibana                    *KibanaConfig      `json:"apm-server.kibana,omitempty"`
+	Aggregation               *AggregationConfig `json:"apm-server.aggregation,omitempty"`
+	Sampling                  *SamplingConfig    `json:"apm-server.sampling,omitempty"`
+	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
+	DataStreams               *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
+	APIKey                    *APIKeyConfig      `json:"apm-server.api_key,omitempty"`
+	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
 
 	// ResponseHeaders holds headers to add to all APM Server HTTP responses.
 	ResponseHeaders http.Header `json:"apm-server.response_headers,omitempty"`

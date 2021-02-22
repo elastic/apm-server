@@ -170,7 +170,7 @@ func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, 
 	if cfg.Kibana.Enabled {
 		client = kibana.NewConnectingClient(&cfg.Kibana)
 	}
-	h := agent.Handler(client, cfg.AgentConfig)
+	h := agent.Handler(client, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
 	msg := "Agent remote configuration is disabled. " +
 		"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
 		"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +

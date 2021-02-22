@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
@@ -352,6 +353,7 @@ func (s *serverRunner) run() error {
 		// behaviour into the processing/reporting pipeline.
 		runServer = s.wrapRunServer(runServer)
 	}
+	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	transformConfig, err := newTransformConfig(s.beat.Info, s.config)
 	if err != nil {
@@ -397,6 +399,16 @@ func (s *serverRunner) run() error {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
+}
+
+func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
+	var processors []transform.Processor
+	if s.config.DefaultServiceEnvironment != "" {
+		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
+			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
+		})
+	}
+	return WrapRunServerWithProcessors(runServer, processors...)
 }
 
 // checkConfig verifies the global configuration doesn't use unsupported settings

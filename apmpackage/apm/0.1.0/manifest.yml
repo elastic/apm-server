@@ -62,6 +62,12 @@ policy_templates:
         required: false
         description: Enter as <Id>:<API Key>
         show_user: true
+      - name: default_service_environment
+        type: string
+        title: Default Service Environment
+        description: Default service environment to record in events which have no service environment defined.
+        required: false
+        show_user: false
       - name: api_key_limit
         type: int
         title: Maximum number of API Keys

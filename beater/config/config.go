@@ -64,30 +64,31 @@ func defaultKibanaConfig() KibanaConfig {
 
 // Config holds configuration information nested under the key `apm-server`
 type Config struct {
-	Host                string                  `config:"host"`
-	MaxHeaderSize       int                     `config:"max_header_size"`
-	IdleTimeout         time.Duration           `config:"idle_timeout"`
-	ReadTimeout         time.Duration           `config:"read_timeout"`
-	WriteTimeout        time.Duration           `config:"write_timeout"`
-	MaxEventSize        int                     `config:"max_event_size"`
-	ShutdownTimeout     time.Duration           `config:"shutdown_timeout"`
-	TLS                 *tlscommon.ServerConfig `config:"ssl"`
-	MaxConnections      int                     `config:"max_connections"`
-	ResponseHeaders     map[string][]string     `config:"response_headers"`
-	Expvar              *ExpvarConfig           `config:"expvar"`
-	AugmentEnabled      bool                    `config:"capture_personal_data"`
-	SelfInstrumentation *InstrumentationConfig  `config:"instrumentation"`
-	RumConfig           *RumConfig              `config:"rum"`
-	Register            *RegisterConfig         `config:"register"`
-	Mode                Mode                    `config:"mode"`
-	Kibana              KibanaConfig            `config:"kibana"`
-	AgentConfig         *AgentConfig            `config:"agent.config"`
-	SecretToken         string                  `config:"secret_token"`
-	APIKeyConfig        *APIKeyConfig           `config:"api_key"`
-	JaegerConfig        JaegerConfig            `config:"jaeger"`
-	Aggregation         AggregationConfig       `config:"aggregation"`
-	Sampling            SamplingConfig          `config:"sampling"`
-	DataStreams         DataStreamsConfig       `config:"data_streams"`
+	Host                      string                  `config:"host"`
+	MaxHeaderSize             int                     `config:"max_header_size"`
+	IdleTimeout               time.Duration           `config:"idle_timeout"`
+	ReadTimeout               time.Duration           `config:"read_timeout"`
+	WriteTimeout              time.Duration           `config:"write_timeout"`
+	MaxEventSize              int                     `config:"max_event_size"`
+	ShutdownTimeout           time.Duration           `config:"shutdown_timeout"`
+	TLS                       *tlscommon.ServerConfig `config:"ssl"`
+	MaxConnections            int                     `config:"max_connections"`
+	ResponseHeaders           map[string][]string     `config:"response_headers"`
+	Expvar                    *ExpvarConfig           `config:"expvar"`
+	AugmentEnabled            bool                    `config:"capture_personal_data"`
+	SelfInstrumentation       *InstrumentationConfig  `config:"instrumentation"`
+	RumConfig                 *RumConfig              `config:"rum"`
+	Register                  *RegisterConfig         `config:"register"`
+	Mode                      Mode                    `config:"mode"`
+	Kibana                    KibanaConfig            `config:"kibana"`
+	AgentConfig               *AgentConfig            `config:"agent.config"`
+	SecretToken               string                  `config:"secret_token"`
+	APIKeyConfig              *APIKeyConfig           `config:"api_key"`
+	JaegerConfig              JaegerConfig            `config:"jaeger"`
+	Aggregation               AggregationConfig       `config:"aggregation"`
+	Sampling                  SamplingConfig          `config:"sampling"`
+	DataStreams               DataStreamsConfig       `config:"data_streams"`
+	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 
 	Pipeline string
 }
