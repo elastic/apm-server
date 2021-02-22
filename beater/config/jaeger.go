@@ -57,7 +57,7 @@ func (c *JaegerConfig) setup(cfg *Config) error {
 		if err != nil {
 			return err
 		}
-		c.GRPC.TLS = tlsServerConfig.BuildModuleConfig(c.GRPC.Host)
+		c.GRPC.TLS = tlsServerConfig.BuildServerConfig(c.GRPC.Host)
 	}
 	return nil
 }

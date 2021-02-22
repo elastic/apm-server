@@ -41,7 +41,11 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 	t.Helper()
 	var result SearchResult
 	opts = append(opts, WithCondition(result.Hits.MinHitsCondition(min)))
-	if _, err := es.Search(index).WithQuery(query).Do(context.Background(), &result, opts...); err != nil {
+	req := es.Search(index)
+	if query != nil {
+		req = req.WithQuery(query)
+	}
+	if _, err := req.Do(context.Background(), &result, opts...); err != nil {
 		t.Error(err)
 	}
 	return result
@@ -67,6 +71,11 @@ func (r *SearchRequest) WithQuery(q interface{}) *SearchRequest {
 	return r
 }
 
+func (r *SearchRequest) WithSort(fieldDirection ...string) *SearchRequest {
+	r.Sort = fieldDirection
+	return r
+}
+
 func (r *SearchRequest) WithSize(size int) *SearchRequest {
 	r.Size = &size
 	return r
@@ -77,7 +86,8 @@ func (r *SearchRequest) Do(ctx context.Context, out *SearchResult, opts ...Reque
 }
 
 type SearchResult struct {
-	Hits SearchHits `json:"hits"`
+	Hits         SearchHits                 `json:"hits"`
+	Aggregations map[string]json.RawMessage `json:"aggregations"`
 }
 
 type SearchHits struct {

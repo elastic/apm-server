@@ -97,7 +97,7 @@ func TestMetadata_Set(t *testing.T) {
 				"service": common.MapStr{"node": common.MapStr{"name": host}}},
 		},
 	} {
-		assert.Equal(t, test.output, test.input.Set(test.fields))
+		assert.Equal(t, test.output, test.input.Set(test.fields, nil))
 	}
 }
 
@@ -109,7 +109,7 @@ func BenchmarkMetadataSet(b *testing.B) {
 
 			out := make(common.MapStr)
 			for i := 0; i < b.N; i++ {
-				input.Set(out)
+				input.Set(out, nil)
 				for k := range out {
 					delete(out, k)
 				}

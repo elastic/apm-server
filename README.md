@@ -3,21 +3,20 @@
 
 # APM Server
 
-The APM Server receives data from the Elastic APM agents and stores the data into Elasticsearch.
+The APM Server receives data from Elastic APM agents and transforms it into Elasticsearch documents.
+Read more about Elastic APM at [elastic.co/apm](https://www.elastic.co/apm).
 
-[Read more about Elastic APM](https://www.elastic.co/products/apm).
-
-Please take questions or feedback to the [Discuss forum](https://discuss.elastic.co/c/apm) for APM.
+For questions and feature requests, visit the [discussion forum](https://discuss.elastic.co/c/apm).
 
 ## Getting Started
 
-To get started with APM please see our [Getting Started Guide](https://www.elastic.co/guide/en/apm/get-started).
+To get started with APM, see our [Quick start guide](https://www.elastic.co/guide/en/apm/get-started/current/install-and-run.html).
 
 ## APM Server Development
 
 ### Requirements
 
-* [Golang](https://golang.org/dl/) 1.14.7
+* [Golang](https://golang.org/dl/) 1.15.8
 
 ### Install
 
@@ -75,6 +74,21 @@ To generate required configuration files and templates run:
 make update
 ```
 
+### Generate package
+
+APM-Server includes a script to generate an integration package to run with Fleet.
+To Generate a package run:
+
+```
+make fields gen-package
+```
+
+That command takes the existing `fields.yml` files and split them into `ecs.yml` and `fields.yml` files for each data stream type.
+It also generates a `README.md` with a field reference that will be shown in the integration package.
+
+After generating a package, `apmpackage/apm` should be manually copied to `elastic/integrations`.
+Then follow instructions in https://github.com/elastic/integrations/blob/master/CONTRIBUTING.md.
+
 ### Cleanup
 
 To clean APM Server source code, run the following commands:
@@ -93,7 +107,8 @@ For further development, check out the [beat developer guide](https://www.elasti
 
 ### Contributing
 
-See [contributing](CONTRIBUTING.md) for details about reporting bugs or requesting features in APM server.
+See [contributing](CONTRIBUTING.md) for details about reporting bugs, requesting features,
+or contributing to APM Server.
 
 ### Releases
 
@@ -158,4 +173,4 @@ When building images for testing pre-release versions, we recommend setting `SNA
 
 ## Documentation
 
-The [Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.
+[Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.

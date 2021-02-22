@@ -48,6 +48,7 @@ var (
 const (
 	errorProcessorName = "error"
 	errorDocType       = "error"
+	ErrorsDataset      = "apm.error"
 )
 
 type Error struct {
@@ -60,11 +61,11 @@ type Error struct {
 	Metadata  Metadata
 
 	Culprit *string
-	Labels  *Labels
+	Labels  common.MapStr
 	Page    *Page
 	HTTP    *Http
 	URL     *URL
-	Custom  *Custom
+	Custom  common.MapStr
 
 	Exception *Exception
 	Log       *Log
@@ -110,25 +111,24 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 		addStacktraceCounter(e.Log.Stacktrace)
 	}
 
-	// Errors are stored in an APM errors-specific "logs" data stream, per service.
-	// By storing errors in a "logs" data stream, they can be viewed in the Logs app
-	// in Kibana.
-	dataset := fmt.Sprintf("apm.error.%s", datastreams.NormalizeServiceName(e.Metadata.Service.Name))
-
 	fields := common.MapStr{
-		datastreams.TypeField:    datastreams.LogsType,
-		datastreams.DatasetField: dataset,
-
 		"error":     e.fields(ctx, cfg),
 		"processor": errorProcessorEntry,
 	}
 
+	if cfg.DataStreams {
+		// Errors are stored in an APM errors-specific "logs" data stream, per service.
+		// By storing errors in a "logs" data stream, they can be viewed in the Logs app
+		// in Kibana.
+		fields[datastreams.TypeField] = datastreams.LogsType
+		dataset := fmt.Sprintf("%s.%s", ErrorsDataset, datastreams.NormalizeServiceName(e.Metadata.Service.Name))
+		fields[datastreams.DatasetField] = dataset
+	}
+
 	// first set the generic metadata (order is relevant)
-	e.Metadata.Set(fields)
+	e.Metadata.Set(fields, e.Labels)
 	utility.Set(fields, "source", fields["client"])
 	// then add event specific information
-	// merges with metadata labels, overrides conflicting keys
-	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.HTTP.Fields())
 	urlFields := e.URL.Fields()
 	if urlFields != nil {
@@ -177,7 +177,7 @@ func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr
 
 	e.updateCulprit(cfg)
 	e.add("culprit", e.Culprit)
-	e.add("custom", e.Custom.Fields())
+	e.add("custom", customFields(e.Custom))
 
 	e.add("grouping_key", e.calcGroupingKey(exceptionChain))
 

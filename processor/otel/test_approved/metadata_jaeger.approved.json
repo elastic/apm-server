@@ -10,7 +10,7 @@
             "data_stream.dataset": "apm.foo",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host-foo",
@@ -18,15 +18,8 @@
                 "name": "host-foo"
             },
             "labels": {
-                "a": "b",
-                "c": "d",
-                "e_f": "g",
                 "foo": "bar",
-                "peer_port": "80",
-                "resource": "request"
-            },
-            "process": {
-                "pid": 107892
+                "peer_port": "80"
             },
             "processor": {
                 "event": "transaction",
@@ -45,14 +38,13 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "transaction": {
                 "duration": {
                     "us": 0
                 },
-                "id": "41414646",
-                "result": "Success",
+                "id": "0000000041414646",
                 "sampled": true,
                 "type": "custom"
             }

@@ -262,8 +262,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		}
 		// metadata labels and context labels are merged only in the output model
 		if len(from.Context.Tags) > 0 {
-			labels := model.Labels(from.Context.Tags.Clone())
-			out.Labels = &labels
+			out.Labels = from.Context.Tags.Clone()
 		}
 		if from.Context.Page.IsSet() {
 			out.Page = &model.Page{}
@@ -289,8 +288,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			mapToRequestURLModel(from.Context.Request.URL, out.URL)
 		}
 		if len(from.Context.Custom) > 0 {
-			custom := model.Custom(from.Context.Custom.Clone())
-			out.Custom = &custom
+			out.Custom = from.Context.Custom.Clone()
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -422,6 +420,9 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	}
 	if from.Cloud.Region.IsSet() {
 		out.Cloud.Region = from.Cloud.Region.Val
+	}
+	if from.Cloud.Service.Name.IsSet() {
+		out.Cloud.ServiceName = from.Cloud.Service.Name.Val
 	}
 
 	// Labels
@@ -577,7 +578,7 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 
 func mapToPageModel(from contextPage, out *model.Page) {
 	if from.URL.IsSet() {
-		out.URL = model.ParseURL(from.URL.Val, "")
+		out.URL = model.ParseURL(from.URL.Val, "", "")
 	}
 	if from.Referer.IsSet() {
 		referer := from.Referer.Val
@@ -1016,16 +1017,14 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			custom := model.Custom(from.Context.Custom.Clone())
-			out.Custom = &custom
+			out.Custom = from.Context.Custom.Clone()
 		}
 		if config.Experimental && from.Context.Experimental.IsSet() {
 			out.Experimental = from.Context.Experimental.Val
 		}
 		// metadata labels and context labels are merged when transforming the output model
 		if len(from.Context.Tags) > 0 {
-			labels := model.Labels(from.Context.Tags.Clone())
-			out.Labels = &labels
+			out.Labels = from.Context.Tags.Clone()
 		}
 		if from.Context.Message.IsSet() {
 			out.Message = &model.Message{}

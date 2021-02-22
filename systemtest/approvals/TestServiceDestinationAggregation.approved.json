@@ -15,6 +15,7 @@
             "metricset": {
                 "period": 1000
             },
+            "metricset.name": "service_destination",
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",

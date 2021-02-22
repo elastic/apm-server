@@ -9,7 +9,11 @@
             "data_stream.dataset": "apm.unknown",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
+            },
+            "host": {
+                "hostname": "host-abc",
+                "name": "host-abc"
             },
             "labels": {
                 "a_b": "foo"
@@ -22,14 +26,16 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown"
+                "name": "unknown",
+                "node": {
+                    "name": "host-abc"
+                }
             },
             "transaction": {
                 "duration": {
                     "us": 0
                 },
                 "id": "",
-                "result": "Success",
                 "sampled": true,
                 "type": "custom"
             }

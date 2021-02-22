@@ -25,7 +25,7 @@ import (
 
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
-	"github.com/open-telemetry/opentelemetry-collector/consumer"
+	"go.opentelemetry.io/collector/consumer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -47,7 +47,7 @@ var (
 type grpcCollector struct {
 	log      *logp.Logger
 	auth     authFunc
-	consumer consumer.TraceConsumer
+	consumer consumer.TracesConsumer
 }
 
 // PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry

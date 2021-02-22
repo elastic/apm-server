@@ -147,9 +147,8 @@ func TestIntegrationRum(t *testing.T) {
 			bodyReader := bytes.NewBuffer(b)
 
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
-			ctx := context.WithValue(context.Background(), "name", name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
-			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
+			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
 			report := makeApproveEventsReporter(t, name)
 
 			reqDecoderMeta := model.Metadata{
@@ -227,7 +226,7 @@ func makeApproveEventsReporter(t *testing.T, name string) publish.Reporter {
 	return func(ctx context.Context, p publish.PendingReq) error {
 		var events []beat.Event
 		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, &transform.Config{})...)
+			events = append(events, transformable.Transform(ctx, &transform.Config{DataStreams: true})...)
 		}
 		docs := beatertest.EncodeEventDocs(events...)
 		approvaltest.ApproveEventDocs(t, name, docs)

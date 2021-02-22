@@ -20,7 +20,7 @@
                 "name": "host-abc"
             },
             "parent": {
-                "id": "58585858"
+                "id": "0000000058585858"
             },
             "processor": {
                 "event": "span",
@@ -51,7 +51,7 @@
                         "original": "https://foo.bar.com:443?a=12"
                     }
                 },
-                "id": "41414646",
+                "id": "0000000041414646",
                 "name": "HTTPS GET",
                 "subtype": "http",
                 "type": "external"
@@ -60,7 +60,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             }
         }
     ]

@@ -7,10 +7,8 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.driver",
-            "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host01",
@@ -42,7 +40,7 @@
                 "us": 1576827704953864
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             },
             "transaction": {
                 "duration": {
@@ -50,7 +48,6 @@
                 },
                 "id": "7be2fd98d0973be3",
                 "name": "Driver::findNearest",
-                "result": "Success",
                 "sampled": true,
                 "type": "custom"
             }
@@ -62,8 +59,6 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.error.driver",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -100,7 +95,7 @@
                 "us": 1576827705007552
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             },
             "transaction": {
                 "id": "7be2fd98d0973be3",
@@ -114,8 +109,6 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.error.driver",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -152,7 +145,7 @@
                 "us": 1576827705089431
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             },
             "transaction": {
                 "id": "7be2fd98d0973be3",
@@ -166,8 +159,6 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.error.driver",
-            "data_stream.type": "logs",
             "error": {
                 "exception": [
                     {
@@ -204,7 +195,7 @@
                 "us": 1576827705172530
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             },
             "transaction": {
                 "id": "7be2fd98d0973be3",

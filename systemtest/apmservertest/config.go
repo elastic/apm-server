@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"sort"
@@ -47,6 +48,11 @@ type Config struct {
 	Aggregation *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 	Sampling    *SamplingConfig    `json:"apm-server.sampling,omitempty"`
 	RUM         *RUMConfig         `json:"apm-server.rum,omitempty"`
+	DataStreams *DataStreamsConfig `json:"apm-server.data_streams,omitempty"`
+	APIKey      *APIKeyConfig      `json:"apm-server.api_key,omitempty"`
+
+	// ResponseHeaders holds headers to add to all APM Server HTTP responses.
+	ResponseHeaders http.Header `json:"apm-server.response_headers,omitempty"`
 
 	// Instrumentation holds configuration for libbeat and apm-server instrumentation.
 	Instrumentation *InstrumentationConfig `json:"instrumentation,omitempty"`
@@ -63,7 +69,7 @@ type Config struct {
 	Output OutputConfig `json:"output"`
 
 	// Setup holds configuration for libbeat setup.
-	Setup SetupConfig `json:"setup"`
+	Setup *SetupConfig `json:"setup,omitempty"`
 
 	// Queue holds configuration for the libbeat event queue.
 	Queue QueueConfig `json:"queue"`
@@ -120,12 +126,12 @@ func (t *TailSamplingConfig) MarshalJSON() ([]byte, error) {
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
 		Enabled  bool                 `json:"enabled"`
-		Interval duration             `json:"interval"`
+		Interval string               `json:"interval"`
 		Policies []TailSamplingPolicy `json:"policies,omitempty"`
 	}
 	return json.Marshal(config{
 		Enabled:  t.Enabled,
-		Interval: duration(t.Interval),
+		Interval: durationString(t.Interval),
 		Policies: t.Policies,
 	})
 }
@@ -142,11 +148,76 @@ type TailSamplingPolicy struct {
 // RUMConfig holds APM Server RUM configuration.
 type RUMConfig struct {
 	Enabled bool `json:"enabled"`
+
+	// ResponseHeaders holds headers to add to all APM Server RUM HTTP responses.
+	ResponseHeaders http.Header `json:"response_headers,omitempty"`
+}
+
+// DataStreamsConfig holds APM Server data streams configuration.
+type DataStreamsConfig struct {
+	Enabled bool `json:"enabled"`
+}
+
+// APIKeyConfig holds APM Server API Key auth configuration.
+type APIKeyConfig struct {
+	Enabled bool `json:"enabled"`
 }
 
 // InstrumentationConfig holds APM Server instrumentation configuration.
 type InstrumentationConfig struct {
-	Enabled bool `json:"enabled"`
+	Enabled   bool             `json:"enabled"`
+	Profiling *ProfilingConfig `json:"profiling,omitempty"`
+
+	Hosts       []string `json:"hosts,omitempty"`
+	APIKey      string   `json:"api_key,omitempty"`
+	SecretToken string   `json:"secret_token,omitempty"`
+}
+
+// ProfilingConfig holds APM Server profiling configuration.
+type ProfilingConfig struct {
+	CPU  *CPUProfilingConfig  `json:"cpu,omitempty"`
+	Heap *HeapProfilingConfig `json:"heap,omitempty"`
+}
+
+// CPUProfilingConfig holds APM Server profiling configuration.
+type CPUProfilingConfig struct {
+	Enabled  bool          `json:"enabled"`
+	Interval time.Duration `json:"interval,omitempty"`
+	Duration time.Duration `json:"duration,omitempty"`
+}
+
+func (c *CPUProfilingConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled  bool   `json:"enabled"`
+		Interval string `json:"interval,omitempty"`
+		Duration string `json:"duration,omitempty"`
+	}
+	return json.Marshal(config{
+		Enabled:  c.Enabled,
+		Interval: durationString(c.Interval),
+		Duration: durationString(c.Duration),
+	})
+}
+
+// HeapProfilingConfig holds APM Server profiling configuration.
+type HeapProfilingConfig struct {
+	Enabled  bool          `json:"enabled"`
+	Interval time.Duration `json:"interval,omitempty"`
+}
+
+func (c *HeapProfilingConfig) MarshalJSON() ([]byte, error) {
+	// time.Duration is encoded as int64.
+	// Convert time.Durations to durations, to encode as duration strings.
+	type config struct {
+		Enabled  bool   `json:"enabled"`
+		Interval string `json:"interval,omitempty"`
+	}
+	return json.Marshal(config{
+		Enabled:  c.Enabled,
+		Interval: durationString(c.Interval),
+	})
 }
 
 // OutputConfig holds APM Server libbeat output configuration.
@@ -159,6 +230,7 @@ type ElasticsearchOutputConfig struct {
 	Hosts    []string `json:"hosts,omitempty"`
 	Username string   `json:"username,omitempty"`
 	Password string   `json:"password,omitempty"`
+	APIKey   string   `json:"api_key,omitempty"`
 }
 
 // SetupConfig holds APM Server libbeat setup configuration.
@@ -189,14 +261,14 @@ func (m *MemoryQueueConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Events         int      `json:"events"`
-		FlushMinEvents int      `json:"flush.min_events"`
-		FlushTimeout   duration `json:"flush.timeout"`
+		Events         int    `json:"events"`
+		FlushMinEvents int    `json:"flush.min_events"`
+		FlushTimeout   string `json:"flush.timeout,omitempty"`
 	}
 	return json.Marshal(config{
 		Events:         m.Events,
 		FlushMinEvents: m.FlushMinEvents,
-		FlushTimeout:   duration(m.FlushTimeout),
+		FlushTimeout:   durationString(m.FlushTimeout),
 	})
 }
 
@@ -214,14 +286,14 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 	type config struct {
 		Enabled       bool                       `json:"enabled"`
 		Elasticsearch *ElasticsearchOutputConfig `json:"elasticsearch,omitempty"`
-		MetricsPeriod duration                   `json:"elasticsearch.metrics.period,omitempty"`
-		StatePeriod   duration                   `json:"elasticsearch.state.period,omitempty"`
+		MetricsPeriod string                     `json:"elasticsearch.metrics.period,omitempty"`
+		StatePeriod   string                     `json:"elasticsearch.state.period,omitempty"`
 	}
 	return json.Marshal(config{
 		Enabled:       m.Enabled,
 		Elasticsearch: m.Elasticsearch,
-		MetricsPeriod: duration(m.MetricsPeriod),
-		StatePeriod:   duration(m.StatePeriod),
+		MetricsPeriod: durationString(m.MetricsPeriod),
+		StatePeriod:   durationString(m.StatePeriod),
 	})
 }
 
@@ -241,12 +313,12 @@ func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool     `json:"enabled"`
-		Interval duration `json:"interval,omitempty"`
+		Enabled  bool   `json:"enabled"`
+		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
 		Enabled:  m.Enabled,
-		Interval: duration(m.Interval),
+		Interval: durationString(m.Interval),
 	})
 }
 
@@ -260,19 +332,20 @@ func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool     `json:"enabled"`
-		Interval duration `json:"interval,omitempty"`
+		Enabled  bool   `json:"enabled"`
+		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
 		Enabled:  s.Enabled,
-		Interval: duration(s.Interval),
+		Interval: durationString(s.Interval),
 	})
 }
 
-type duration time.Duration
-
-func (d duration) MarshalText() (text []byte, err error) {
-	return []byte(time.Duration(d).String()), nil
+func durationString(d time.Duration) string {
+	if d == 0 {
+		return ""
+	}
+	return d.String()
 }
 
 func configArgs(cfg Config, extra map[string]interface{}) ([]string, error) {
@@ -332,7 +405,7 @@ func DefaultConfig() Config {
 				Scheme: "http",
 				Host: net.JoinHostPort(
 					getenvDefault("KIBANA_HOST", defaultKibanaHost),
-					getenvDefault("KIBANA_PORT", defaultKibanaPort),
+					KibanaPort(),
 				),
 			}).String(),
 			Username: getenvDefault("KIBANA_USER", defaultKibanaUser),
@@ -348,7 +421,7 @@ func DefaultConfig() Config {
 				Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
 			},
 		},
-		Setup: SetupConfig{
+		Setup: &SetupConfig{
 			IndexTemplate: IndexTemplateConfig{
 				Shards:          1,
 				RefreshInterval: "250ms",
@@ -361,6 +434,12 @@ func DefaultConfig() Config {
 			},
 		},
 	}
+}
+
+// KibanaPort returns the Kibana port, configured using
+// KIBANA_PORT, or otherwise returning the default of 5601.
+func KibanaPort() string {
+	return getenvDefault("KIBANA_PORT", defaultKibanaPort)
 }
 
 func getenvDefault(k, defaultv string) string {

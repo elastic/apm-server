@@ -36,6 +36,7 @@ import (
 const (
 	profileProcessorName = "profile"
 	profileDocType       = "profile"
+	ProfilesDataset      = "apm.profiling"
 )
 
 var profileProcessorEntry = common.MapStr{
@@ -50,14 +51,21 @@ type PprofProfile struct {
 }
 
 // Transform transforms a Profile into a sequence of beat.Events: one per profile sample.
-func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []beat.Event {
+func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
 	profileTimestamp := time.Unix(0, pp.Profile.TimeNanos)
 	valueFieldNames := make([]string, len(pp.Profile.SampleType))
 	for i, sampleType := range pp.Profile.SampleType {
 		sampleUnit := normalizeUnit(sampleType.Unit)
-		valueFieldNames[i] = sampleType.Type + "." + sampleUnit
+		// Go profiles report samples.count, Node.js profiles report sample.count.
+		// We use samples.count for both so we can aggregate on one field.
+		if sampleType.Type == "sample" || sampleType.Type == "samples" {
+			valueFieldNames[i] = "samples.count"
+		} else {
+			valueFieldNames[i] = sampleType.Type + "." + sampleUnit
+		}
+
 	}
 
 	// Generate a unique profile ID shared by all samples in the profile.
@@ -70,7 +78,6 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 	// Profiles are stored in their own "metrics" data stream, with a data
 	// set per service. This enables managing retention of profiling data
 	// per-service, and indepedently of lower volume metrics.
-	dataset := fmt.Sprintf("apm.profiling.%s", datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
 
 	samples := make([]beat.Event, len(pp.Profile.Sample))
 	for i, sample := range pp.Profile.Sample {
@@ -122,20 +129,23 @@ func (pp PprofProfile) Transform(ctx context.Context, _ *transform.Config) []bea
 		event := beat.Event{
 			Timestamp: profileTimestamp,
 			Fields: common.MapStr{
-				datastreams.TypeField:    datastreams.MetricsType,
-				datastreams.DatasetField: dataset,
-				"processor":              profileProcessorEntry,
-				profileDocType:           profileFields,
+				"processor":    profileProcessorEntry,
+				profileDocType: profileFields,
 			},
 		}
-		pp.Metadata.Set(event.Fields)
-		if len(sample.Label) > 0 {
-			labels := make(common.MapStr)
-			for k, v := range sample.Label {
-				utility.Set(labels, k, v)
-			}
-			utility.DeepUpdate(event.Fields, "labels", labels)
+		if cfg.DataStreams {
+			event.Fields[datastreams.TypeField] = datastreams.MetricsType
+			dataset := fmt.Sprintf("%s.%s", ProfilesDataset, datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
+			event.Fields[datastreams.DatasetField] = dataset
 		}
+		var profileLabels common.MapStr
+		if len(sample.Label) > 0 {
+			profileLabels = make(common.MapStr)
+			for k, v := range sample.Label {
+				profileLabels[k] = v
+			}
+		}
+		pp.Metadata.Set(event.Fields, profileLabels)
 		samples[i] = event
 	}
 	return samples
@@ -145,6 +155,9 @@ func normalizeUnit(unit string) string {
 	switch unit {
 	case "nanoseconds":
 		unit = "ns"
+
+	case "microseconds":
+		unit = "us"
 	}
 	return unit
 }

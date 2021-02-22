@@ -121,10 +121,6 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 		default:
 			switch t := f.Type().Underlying().(type) {
 			case *types.Map:
-				if _, ok := tags[tagPatternKeys]; !ok && name == "" {
-					// ignore the field in case no json name and no patternProperties are given
-					continue
-				}
 				nestedProp := property{Properties: make(map[string]*property)}
 				if err = generateJSONPropertyMap(&info, prop, &childProp, &nestedProp); err != nil {
 					break
@@ -140,12 +136,15 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 				if !ok {
 					break
 				}
+				childProp.Items = &property{
+					Type:       &propertyType{names: []propertyTypeName{TypeNameObject}, required: true},
+					Properties: make(map[string]*property),
+				}
 				if child.name == st.name {
-					// if recursive reference to struct itself, set object type and do not call generate function
-					childProp.Items = &property{Type: &propertyType{names: []propertyTypeName{TypeNameObject}}}
+					// if recursive reference to struct itself do not call generate function
 					break
 				}
-				err = g.generate(child, flattenedName, &childProp)
+				err = g.generate(child, flattenedName, childProp.Items)
 			case *types.Struct:
 				if err = generateJSONPropertyStruct(&info, prop, &childProp); err != nil {
 					break
@@ -240,7 +239,7 @@ type property struct {
 	Type        *propertyType `json:"type,omitempty"`
 	// AdditionalProperties should default to `true` and be set to `false`
 	// in case PatternProperties are set
-	AdditionalProperties *bool                `json:"additionalProperties,omitempty"`
+	AdditionalProperties interface{}          `json:"additionalProperties,omitempty"`
 	PatternProperties    map[string]*property `json:"patternProperties,omitempty"`
 	Properties           map[string]*property `json:"properties,omitempty"`
 	Items                *property            `json:"items,omitempty"`

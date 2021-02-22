@@ -1,0 +1,8 @@
+- name: event.ingested
+  type: date
+  description: |
+    Timestamp when an event arrived in the central data store.
+- name: trace.id
+  type: keyword
+  description: |
+    The ID of the sampled trace.

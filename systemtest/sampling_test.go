@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 	"go.elastic.co/apm"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -68,31 +69,25 @@ func TestKeepUnsampled(t *testing.T) {
 	}
 }
 
+func TestKeepUnsampledWarning(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Sampling = &apmservertest.SamplingConfig{KeepUnsampled: false}
+	require.NoError(t, srv.Start())
+	require.NoError(t, srv.Close())
+
+	var messages []string
+	for _, log := range srv.Logs.All() {
+		messages = append(messages, log.Message)
+	}
+	assert.Contains(t, messages, ""+
+		"apm-server.sampling.keep_unsampled and apm-server.aggregation.transactions.enabled are both false, "+
+		"which will lead to incorrect metrics being reported in the APM UI",
+	)
+}
+
 func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-
-	// Create the apm-sampled-traces index for the two servers to coordinate.
-	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.IndicesCreateRequest{
-		Index: "apm-sampled-traces",
-		Body: strings.NewReader(`{
-  "mappings": {
-    "properties": {
-      "event.ingested": {"type": "date"},
-      "observer": {
-        "properties": {
-          "id": {"type": "keyword"}
-        }
-      },
-      "trace": {
-        "properties": {
-          "id": {"type": "keyword"}
-        }
-      }
-    }
-  }
-}`),
-	}, nil)
-	require.NoError(t, err)
 
 	srv1 := apmservertest.NewUnstartedServer(t)
 	srv1.Config.Sampling = &apmservertest.SamplingConfig{
@@ -130,6 +125,10 @@ func TestTailSampling(t *testing.T) {
 	}
 	tracer1.Flush(nil)
 	tracer2.Flush(nil)
+
+	// Flush the data stream while the test is running, as we have no
+	// control over the settings for the sampled traces index template.
+	refreshPeriodically(t, 250*time.Millisecond, "apm-sampled-traces")
 
 	for _, transactionType := range []string{"parent", "child"} {
 		var result estest.SearchResult
@@ -202,4 +201,34 @@ func TestTailSamplingUnlicensed(t *testing.T) {
 	_, err = es.Client.Search("apm-*").Do(context.Background(), &result)
 	assert.NoError(t, err)
 	assert.Empty(t, result.Hits.Hits)
+}
+
+func refreshPeriodically(t *testing.T, interval time.Duration, index ...string) {
+	g, ctx := errgroup.WithContext(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
+	t.Cleanup(func() {
+		cancel()
+		assert.NoError(t, g.Wait())
+	})
+	g.Go(func() error {
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+		allowNoIndices := true
+		ignoreUnavailable := true
+		request := esapi.IndicesRefreshRequest{
+			Index:             index,
+			AllowNoIndices:    &allowNoIndices,
+			IgnoreUnavailable: &ignoreUnavailable,
+		}
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-ticker.C:
+			}
+			if _, err := systemtest.Elasticsearch.Do(ctx, &request, nil); err != nil {
+				return err
+			}
+		}
+	})
 }

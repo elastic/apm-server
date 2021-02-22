@@ -55,7 +55,7 @@ func init() {
 	})
 
 	mage.BeatDescription = "Elastic APM Server"
-	mage.BeatURL = "https://www.elastic.co/products/apm"
+	mage.BeatURL = "https://www.elastic.co/apm"
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
@@ -176,6 +176,15 @@ func Package() {
 		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	}
 	mg.SerialDeps(mage.Package, TestPackages)
+}
+
+func Version() error {
+	v, err := mage.BeatQualifiedVersion()
+	if err != nil {
+		return err
+	}
+	fmt.Print(v)
+	return nil
 }
 
 // TestPackages tests the generated packages (i.e. file modes, owners, groups).

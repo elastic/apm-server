@@ -15,9 +15,6 @@
                 "hostname": "host-abc",
                 "name": "host-abc"
             },
-            "labels": {
-                "error": true
-            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"

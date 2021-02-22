@@ -30,9 +30,8 @@ import (
 )
 
 var (
-	patternAlphaNumericExtRegexp    = regexp.MustCompile(patternAlphaNumericExt)
-	patternNoAsteriskQuoteRegexp    = regexp.MustCompile(patternNoAsteriskQuote)
-	patternNoDotAsteriskQuoteRegexp = regexp.MustCompile(patternNoDotAsteriskQuote)
+	patternAlphaNumericExtRegexp = regexp.MustCompile(patternAlphaNumericExt)
+	patternNoAsteriskQuoteRegexp = regexp.MustCompile(patternNoAsteriskQuote)
 )
 
 func (val *metadataRoot) IsSet() bool {
@@ -76,9 +75,6 @@ func (val *metadata) validate() error {
 		return errors.Wrapf(err, "cloud")
 	}
 	for k, v := range val.Labels {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'labels': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:
@@ -110,7 +106,7 @@ func (val *metadata) validate() error {
 }
 
 func (val *metadataCloud) IsSet() bool {
-	return val.Account.IsSet() || val.AvailabilityZone.IsSet() || val.Instance.IsSet() || val.Machine.IsSet() || val.Project.IsSet() || val.Provider.IsSet() || val.Region.IsSet()
+	return val.Account.IsSet() || val.AvailabilityZone.IsSet() || val.Instance.IsSet() || val.Machine.IsSet() || val.Project.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.Service.IsSet()
 }
 
 func (val *metadataCloud) Reset() {
@@ -121,6 +117,7 @@ func (val *metadataCloud) Reset() {
 	val.Project.Reset()
 	val.Provider.Reset()
 	val.Region.Reset()
+	val.Service.Reset()
 }
 
 func (val *metadataCloud) validate() error {
@@ -150,6 +147,9 @@ func (val *metadataCloud) validate() error {
 	}
 	if utf8.RuneCountInString(val.Region.Val) > 1024 {
 		return fmt.Errorf("'region': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
 	}
 	return nil
 }
@@ -231,6 +231,24 @@ func (val *metadataCloudProject) validate() error {
 	}
 	if utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
+	}
+	if utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataCloudService) IsSet() bool {
+	return val.Name.IsSet()
+}
+
+func (val *metadataCloudService) Reset() {
+	val.Name.Reset()
+}
+
+func (val *metadataCloudService) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	if utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
@@ -726,11 +744,6 @@ func (val *context) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	for k := range val.Custom {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'custom': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
-	}
 	if err := val.Message.validate(); err != nil {
 		return errors.Wrapf(err, "message")
 	}
@@ -747,9 +760,6 @@ func (val *context) validate() error {
 		return errors.Wrapf(err, "service")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'tags': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:
@@ -1350,9 +1360,6 @@ func (val *metricset) validate() error {
 		return errors.Wrapf(err, "span")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'tags': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:
@@ -1594,9 +1601,6 @@ func (val *spanContext) validate() error {
 		return errors.Wrapf(err, "service")
 	}
 	for k, v := range val.Tags {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'tags': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 		switch t := v.(type) {
 		case nil:
 		case string:
@@ -1857,14 +1861,6 @@ func (val *transactionMarks) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	for k, v := range val.Events {
-		if err := v.validate(); err != nil {
-			return errors.Wrapf(err, "events")
-		}
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'events': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
-	}
 	return nil
 }
 
@@ -1881,11 +1877,6 @@ func (val *transactionMarkEvents) Reset() {
 func (val *transactionMarkEvents) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	for k := range val.Measurements {
-		if k != "" && !patternNoDotAsteriskQuoteRegexp.MatchString(k) {
-			return fmt.Errorf("'measurements': validation rule 'patternKeys(patternNoDotAsteriskQuote)' violated")
-		}
 	}
 	return nil
 }
