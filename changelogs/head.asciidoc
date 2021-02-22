@@ -1,37 +1,20 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/7.11\...master[View commits]
+https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 
 [float]
 ==== Breaking Changes
-* Leading 0s are no longer removed from trace/span ids if they are created by Jaeger {pull}4671[4671]
-* Jaeger spans will now have a type of "app" where they previously were "custom" {pull}4711[4711]
-* Jaeger spans may now have a (more accurate) outcome of "unknown" where they previously were "success" {pull}4711[4711]
 
 [float]
 ==== Bug fixes
-* Dynamic templates for labels are no longer repeated {pull}4695[4695]
-* Tail-based sampling policies are now always matched in the order given {pull}4685[4685]
 
 [float]
 ==== Intake API Changes
-* Add `cloud.service.name` support for metadata {pull}4626[4626]
 
 [float]
 ==== Added
-* Jaeger gRPC is now served over the same port as the Elastic APM agent protocol {pull}4618[4618]
-* Support for reloading config in Fleet mode, gracefully stopping the HTTP server and starting a new one {pull}4623[4623]
-* Add a `_doc_count` field to transaction histogram docs {pull}4647[4647]
-* OpenTelemetry Protocol (OTLP) over gRPC is now supported on the standard endpoint (8200) {pull}4677[4677] {pull}4722[4722]
-* Add initial support for APM central config and sourcemaps when running under Fleet {pull}4670[4670]
-* Data stream and ILM policy for tail-based sampling {pull}4707[4707]
-* Add service name to index dataset {pull}4674[4674]
-* When tail-sampling is enabled, a default policy must be defined {pull}4729[4729]
-* Support additional config options when running under Fleet {pull}4690[4690]
-* Upgrade Go to 1.15.8 {pull}4733[4733]
 * Add support for Node.js wall time profiles {pull}4728[4728]
 
 [float]
 ==== Deprecated
-* `apm-server.jaeger` config is deprecated and will be removed in 8.0. Jaeger is now served on 8200 {pull}4618[4618]
