@@ -211,7 +211,7 @@ func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
 		}
 		// BUG(axw) the Fleet API is returning 404 when deleting agent policies
 		// in some circumstances: https://github.com/elastic/kibana/issues/90544
-		fleet.DeleteAgentPolicy(p.ID)
+		err = fleet.DeleteAgentPolicy(p.ID)
 		var fleetError *fleettest.Error
 		if errors.As(err, &fleetError) {
 			assert.Equal(t, http.StatusNotFound, fleetError.StatusCode)
