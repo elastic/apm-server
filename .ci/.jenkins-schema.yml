@@ -9,6 +9,7 @@ agents:
   - REPO: "apm-agent-nodejs"
     SPEC_FILEPATH: "test/integration/api-schema/apm-server-schema"
   - REPO: "apm-agent-php"
+    SPEC_FILEPATH: "tests/APM_Server_intake_API_schema/latest_used"
   - REPO: "apm-agent-python"
     SPEC_FILEPATH: "tests/upstream/json-specs"
   - REPO: "apm-agent-ruby"
