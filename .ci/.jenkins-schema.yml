@@ -14,4 +14,3 @@ agents:
     SPEC_FILEPATH: "tests/upstream/json-specs"
   - REPO: "apm-agent-ruby"
     SPEC_FILEPATH: "spec/fixtures"
-  - REPO: "apm-agent-rum-js"
