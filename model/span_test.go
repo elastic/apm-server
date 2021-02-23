@@ -27,7 +27,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -107,7 +106,7 @@ func TestSpanTransform(t *testing.T) {
 				RepresentativeCount: 5,
 				Duration:            1.20,
 				RUM:                 true,
-				Stacktrace:          Stacktrace{{AbsPath: &path}},
+				Stacktrace:          Stacktrace{{AbsPath: path}},
 				Labels:              common.MapStr{"label_a": 12},
 				HTTP:                &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
 				DB: &DB{
@@ -122,7 +121,7 @@ func TestSpanTransform(t *testing.T) {
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
 				},
-				Message: &Message{QueueName: tests.StringPtr("users")},
+				Message: &Message{QueueName: "users"},
 			},
 			Output: common.MapStr{
 				"data_stream.type":    "traces",

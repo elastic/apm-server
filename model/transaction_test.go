@@ -30,7 +30,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -176,7 +175,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		HTTP:      &Http{Request: &request, Response: &response},
 		URL:       &URL{Original: &url},
 		Custom:    common.MapStr{"foo.bar": "baz"},
-		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
+		Message:   &Message{QueueName: "routeUser"},
 	}
 	events := txWithContext.Transform(context.Background(), &transform.Config{DataStreams: true})
 	require.Len(t, events, 1)

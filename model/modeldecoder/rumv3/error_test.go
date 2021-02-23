@@ -186,6 +186,6 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var out model.Error
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		require.NotNil(t, out.Log.LoggerName)
-		assert.Equal(t, "default", *out.Log.LoggerName)
+		assert.Equal(t, "default", out.Log.LoggerName)
 	})
 }
