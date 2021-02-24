@@ -235,7 +235,7 @@ pipeline {
               expression { return env.GITHUB_COMMENT?.contains('arm tests') || env.GITHUB_COMMENT?.contains('/arm')}
               branch 'master'
               allOf {
-                changeRequest
+                changeRequest()
                 expression { return params.arm_ci }
               }
             }
