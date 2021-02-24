@@ -35,7 +35,7 @@ For a full list of changes, see the
 https://github.com/elastic/apm-agent-dotnet/[Elastic APM agent for .NET] is now
 generally available! The .NET Agent adds automatic instrumentation for ASP.NET
 Core 2.x+ and Entity Framework Core 2.x+, while also providing a
-{apm-dotnet-ref}/public-api.html[Public API] for the .NET agent that will allow
+{apm-dotnet-ref-v}/public-api.html[Public API] for the .NET agent that will allow
 you to instrument any .NET custom application code.
 
 [discrete]
@@ -64,7 +64,7 @@ about this configuration, see
 image::images/apm-highlight-sample-rate.png[APM sample rate configuration in Kibana]
 
 [discrete]
-==== React support for Single Page Applications 
+==== React support for Single Page Applications
 
 The 7.3 release also brings a lot of exciting changes to the Real User
 Monitoring (RUM) agent. We have furthered our support of Single Page
@@ -187,7 +187,7 @@ Elastic APM now enables {apm-overview-ref-v}/distributed-tracing.html[distribute
 [float]
 ==== Bug Fixes
 Changes introduced in 6.4.0 potentially caused an empty APM Kibana UI.
-This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices. 
+This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices.
 To fix this, the APM Kibana UI now falls back to use `apm-*` as default indices to query.
 Users can still leverage separate indices for queries by overriding the default values described in {kibana-ref}/apm-settings-kb.html[Kibana APM settings].
 
