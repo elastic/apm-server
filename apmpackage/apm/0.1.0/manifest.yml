@@ -33,23 +33,16 @@ policy_templates:
         default: localhost:8200
       - name: secret_token
         type: string
-        title: Secret token
+        title: Secret token for Agent authentication
         required: false
         show_user: true
       - name: api_key_enabled
         type: bool
-        title: API Key Auth
+        title: API Key for Agent authentication
         description: Enable API Key auth between APM Server and APM Agents.
         required: false
         show_user: true
         default: false
-      - name: api_key_limit
-        type: int
-        title: Maximum number of API Keys
-        description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.
-        required: false
-        show_user: false
-        default: 100
       - name: kibana_api_key
         type: string
         title: API Key for Central Configuration
@@ -63,12 +56,6 @@ policy_templates:
         required: true
         show_user: true
         default: false
-      - name: sourcemap_api_key
-        type: string
-        title: RUM - API Key for Sourcemaps
-        required: false
-        description: API Key for sourcemap feature. Enter as <Id>:<API Key>
-        show_user: true
       - name: rum_allow_origins
         type: string
         title: RUM - Origin Headers
@@ -104,6 +91,19 @@ policy_templates:
         required: false
         show_user: false
         default: 1000
+      - name: sourcemap_api_key
+        type: string
+        title: RUM - API Key for Sourcemaps
+        required: false
+        description: API Key for sourcemap feature. Enter as <Id>:<API Key>
+        show_user: false
+      - name: api_key_limit
+        type: int
+        title: Maximum number of API Keys for Agent authentication
+        description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.
+        required: false
+        show_user: false
+        default: 100
       - name: max_event_bytes
         type: int
         title: Maximum size per event (bytes)
