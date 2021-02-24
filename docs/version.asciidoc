@@ -16,7 +16,7 @@
 :node-branch: 2.x
 :py-branch: 4.x
 :ruby-branch: 2.x
-:dotnet-branch: 1.x
+:dotnet-branch: 1.8
 
 // Agent links
 :apm-py-ref-v:         https://www.elastic.co/guide/en/apm/agent/python/{py-branch}
