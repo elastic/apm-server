@@ -255,6 +255,13 @@ pipeline {
               }
             }
           }
+          post {
+            always {
+              dir("${BASE_DIR}/build"){
+                junit(allowEmptyResults: true, keepLongStdio: true, testResults: "junit-*.xml")
+              }
+            }
+          }
         }
         /**
           Run unit tests and report junit results.
