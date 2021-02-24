@@ -29,10 +29,11 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package)')
+    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package|arm)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package|^\\/arm)')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+    booleanParam(name: 'arm_ci', defaultValue: false, description: 'Enable ARM build')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
     booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
@@ -219,6 +220,39 @@ pipeline {
           post {
             always {
               junit(allowEmptyResults: true, keepLongStdio: true, testResults: "${BASE_DIR}/build/junit-*.xml")
+            }
+          }
+        }
+        stage('ARM build-test') {
+          agent { label 'arm' }
+          options {
+            skipDefaultCheckout()
+            warnError('ARM execution failed')
+          }
+          when {
+            beforeAgent true
+            anyOf {
+              expression { return env.GITHUB_COMMENT?.contains('arm tests') || env.GITHUB_COMMENT?.contains('/arm')}
+              branch 'master'
+              allOf {
+                changeRequest
+                expression { return params.arm_ci }
+              }
+            }
+          }
+          environment {
+            HOME = "${env.WORKSPACE}"
+          }
+          steps {
+            withGithubNotify(context: 'Build-Test - ARM') {
+              deleteDir()
+              unstash 'source'
+              withGoEnv(version: "${env.GO_VERSION}"){
+                dir("${BASE_DIR}"){
+                  sh(label: 'ARM build', script: '.ci/scripts/build.sh')
+                  sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
+                }
+              }
             }
           }
         }
