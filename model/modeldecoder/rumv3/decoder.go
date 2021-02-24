@@ -234,35 +234,31 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		}
 	}
 	if from.Culprit.IsSet() {
-		val := from.Culprit.Val
-		out.Culprit = &val
+		out.Culprit = from.Culprit.Val
 	}
 	if from.Exception.IsSet() {
 		out.Exception = &model.Exception{}
 		mapToExceptionModel(from.Exception, out.Exception)
 	}
 	if from.ID.IsSet() {
-		val := from.ID.Val
-		out.ID = &val
+		out.ID = from.ID.Val
 	}
 	if from.Log.IsSet() {
 		log := model.Log{}
 		if from.Log.Level.IsSet() {
-			val := from.Log.Level.Val
-			log.Level = &val
+			log.Level = from.Log.Level.Val
 		}
 		loggerName := "default"
 		if from.Log.LoggerName.IsSet() {
 			loggerName = from.Log.LoggerName.Val
 
 		}
-		log.LoggerName = &loggerName
+		log.LoggerName = loggerName
 		if from.Log.Message.IsSet() {
 			log.Message = from.Log.Message.Val
 		}
 		if from.Log.ParamMessage.IsSet() {
-			val := from.Log.ParamMessage.Val
-			log.ParamMessage = &val
+			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
 			log.Stacktrace = make(model.Stacktrace, len(from.Log.Stacktrace))
@@ -286,8 +282,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		out.TransactionSampled = &val
 	}
 	if from.Transaction.Type.IsSet() {
-		val := from.Transaction.Type.Val
-		out.TransactionType = &val
+		out.TransactionType = from.Transaction.Type.Val
 	}
 	if from.TransactionID.IsSet() {
 		out.TransactionID = from.TransactionID.Val
@@ -316,17 +311,17 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 		out.Handled = &from.Handled.Val
 	}
 	if from.Message.IsSet() {
-		out.Message = &from.Message.Val
+		out.Message = from.Message.Val
 	}
 	if from.Module.IsSet() {
-		out.Module = &from.Module.Val
+		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
 		out.Stacktrace = make(model.Stacktrace, len(from.Stacktrace))
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
-		out.Type = &from.Type.Val
+		out.Type = from.Type.Val
 	}
 }
 
@@ -667,36 +662,30 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 	for idx, eventFrame := range from {
 		fr := model.StacktraceFrame{}
 		if eventFrame.AbsPath.IsSet() {
-			val := eventFrame.AbsPath.Val
-			fr.AbsPath = &val
+			fr.AbsPath = eventFrame.AbsPath.Val
 		}
 		if eventFrame.Classname.IsSet() {
-			val := eventFrame.Classname.Val
-			fr.Classname = &val
+			fr.Classname = eventFrame.Classname.Val
 		}
 		if eventFrame.ColumnNumber.IsSet() {
 			val := eventFrame.ColumnNumber.Val
 			fr.Colno = &val
 		}
 		if eventFrame.ContextLine.IsSet() {
-			val := eventFrame.ContextLine.Val
-			fr.ContextLine = &val
+			fr.ContextLine = eventFrame.ContextLine.Val
 		}
 		if eventFrame.Filename.IsSet() {
-			val := eventFrame.Filename.Val
-			fr.Filename = &val
+			fr.Filename = eventFrame.Filename.Val
 		}
 		if eventFrame.Function.IsSet() {
-			val := eventFrame.Function.Val
-			fr.Function = &val
+			fr.Function = eventFrame.Function.Val
 		}
 		if eventFrame.LineNumber.IsSet() {
 			val := eventFrame.LineNumber.Val
 			fr.Lineno = &val
 		}
 		if eventFrame.Module.IsSet() {
-			val := eventFrame.Module.Val
-			fr.Module = &val
+			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
 			fr.PostContext = make([]string, len(eventFrame.PostContext))
