@@ -15,12 +15,10 @@ To do so, download and enroll an Elastic Agent in the same machines where your i
 Note that template, pipeline and ILM settings cannot be configured through this file - they are installed by the integration,
 If you need additional pipelines, override ILM policies, etc; you must do it externally.
 
-#### Namespace
+#### Data Streams
 
-When you create a policy in the Fleet UI, under "Advanced Settings" you can choose a Namespace.
-It is recommended to use your service environment as namespace.
-Data streams created by the APM integration will already include the service name.
-
+When using the APM integration, apm events are indexed into data streams. Data stream names contain the event type,
+ the service name, and a user configurable namespace.
 
 ## Compatibility and limitations
 
