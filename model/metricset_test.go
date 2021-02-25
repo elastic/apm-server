@@ -196,7 +196,7 @@ func TestTransform(t *testing.T) {
 				Timestamp: timestamp,
 				Metadata:  metadata,
 				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
-					Resource: &resource,
+					Resource: resource,
 				}},
 				Samples: []Sample{
 					{

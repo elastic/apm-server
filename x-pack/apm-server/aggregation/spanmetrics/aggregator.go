@@ -192,7 +192,7 @@ func (a *Aggregator) ProcessTransformables(ctx context.Context, in []transform.T
 }
 
 func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
-	if span.DestinationService == nil || span.DestinationService.Resource == nil {
+	if span.DestinationService == nil || span.DestinationService.Resource == "" {
 		return nil
 	}
 	if span.RepresentativeCount <= 0 {
@@ -207,7 +207,7 @@ func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
 		serviceName:        span.Metadata.Service.Name,
 		agentName:          span.Metadata.Service.Agent.Name,
 		outcome:            span.Outcome,
-		resource:           *span.DestinationService.Resource,
+		resource:           span.DestinationService.Resource,
 	}
 	duration := time.Duration(span.Duration * float64(time.Millisecond))
 	metrics := spanMetrics{
@@ -276,7 +276,7 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 			Outcome: key.outcome,
 		},
 		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: &key.resource},
+			DestinationService: model.DestinationService{Resource: key.resource},
 		},
 		Samples: []model.Sample{
 			{

@@ -60,7 +60,7 @@ func (tx *transactionBuilder) setHTTPHost(hostport string) {
 
 func (tx transactionBuilder) setHTTPVersion(version string) {
 	tx.ensureHTTP()
-	tx.HTTP.Version = &version
+	tx.HTTP.Version = version
 }
 
 func (tx transactionBuilder) setHTTPRemoteAddr(remoteAddr string) {
@@ -68,7 +68,7 @@ func (tx transactionBuilder) setHTTPRemoteAddr(remoteAddr string) {
 	if tx.HTTP.Request.Socket == nil {
 		tx.HTTP.Request.Socket = &model.Socket{}
 	}
-	tx.HTTP.Request.Socket.RemoteAddress = &remoteAddr
+	tx.HTTP.Request.Socket.RemoteAddress = remoteAddr
 }
 
 func (tx *transactionBuilder) setHTTPStatusCode(statusCode int) {
