@@ -126,6 +126,7 @@ func TestAggregatorRun(t *testing.T) {
 	}
 
 	assert.ElementsMatch(t, []*model.Metricset{{
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
@@ -133,7 +134,7 @@ func TestAggregatorRun(t *testing.T) {
 			Outcome: "success",
 		},
 		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: &destinationX},
+			DestinationService: model.DestinationService{Resource: destinationX},
 		},
 		Samples: []model.Sample{
 			{Name: "span.destination.service.response_time.count", Value: 100.0},
@@ -141,6 +142,7 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
@@ -148,7 +150,7 @@ func TestAggregatorRun(t *testing.T) {
 			Outcome: "failure",
 		},
 		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: &destinationZ},
+			DestinationService: model.DestinationService{Resource: destinationZ},
 		},
 		Samples: []model.Sample{
 			{Name: "span.destination.service.response_time.count", Value: 100.0},
@@ -156,6 +158,7 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-A", Agent: model.Agent{Name: "java"}},
 		},
@@ -163,7 +166,7 @@ func TestAggregatorRun(t *testing.T) {
 			Outcome: "success",
 		},
 		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: &destinationZ},
+			DestinationService: model.DestinationService{Resource: destinationZ},
 		},
 		Samples: []model.Sample{
 			{Name: "span.destination.service.response_time.count", Value: 300.0},
@@ -171,6 +174,7 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "metricset.period", Value: 10},
 		},
 	}, {
+		Name: "service_destination",
 		Metadata: model.Metadata{
 			Service: model.Service{Name: "service-B", Agent: model.Agent{Name: "python"}},
 		},
@@ -178,7 +182,7 @@ func TestAggregatorRun(t *testing.T) {
 			Outcome: "success",
 		},
 		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: &destinationZ},
+			DestinationService: model.DestinationService{Resource: destinationZ},
 		},
 		Samples: []model.Sample{
 			{Name: "span.destination.service.response_time.count", Value: 100.0},
@@ -231,6 +235,7 @@ func TestAggregatorOverflow(t *testing.T) {
 
 		m.Timestamp = time.Time{}
 		assert.Equal(t, &model.Metricset{
+			Name: "service_destination",
 			Metadata: model.Metadata{
 				Service: model.Service{Name: "service", Agent: model.Agent{Name: "agent"}},
 			},
@@ -238,7 +243,7 @@ func TestAggregatorOverflow(t *testing.T) {
 				Outcome: "success",
 			},
 			Span: model.MetricsetSpan{
-				DestinationService: model.DestinationService{Resource: newString("destination3")},
+				DestinationService: model.DestinationService{Resource: "destination3"},
 			},
 			Samples: []model.Sample{
 				{Name: "span.destination.service.response_time.count", Value: 1.0},
@@ -263,7 +268,7 @@ func makeSpan(
 	}
 	if destinationServiceResource != "" {
 		span.DestinationService = &model.DestinationService{
-			Resource: &destinationServiceResource,
+			Resource: destinationServiceResource,
 		}
 	}
 	return span
@@ -293,8 +298,4 @@ func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingRe
 		t.Fatal("expected publish")
 	}
 	panic("unreachable")
-}
-
-func newString(s string) *string {
-	return &s
 }

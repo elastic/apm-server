@@ -36,14 +36,14 @@ const (
 )
 
 type StacktraceFrame struct {
-	AbsPath      *string
-	Filename     *string
-	Classname    *string
+	AbsPath      string
+	Filename     string
+	Classname    string
 	Lineno       *int
 	Colno        *int
-	ContextLine  *string
-	Module       *string
-	Function     *string
+	ContextLine  string
+	Module       string
+	Function     string
 	LibraryFrame *bool
 	Vars         common.MapStr
 	PreContext   []string
@@ -52,69 +52,76 @@ type StacktraceFrame struct {
 	ExcludeFromGrouping bool
 
 	SourcemapUpdated *bool
-	SourcemapError   *string
+	SourcemapError   string
 	Original         Original
 }
 
 type Original struct {
-	AbsPath      *string
-	Filename     *string
-	Classname    *string
+	AbsPath      string
+	Filename     string
+	Classname    string
 	Lineno       *int
 	Colno        *int
-	Function     *string
+	Function     string
 	LibraryFrame *bool
 
 	sourcemapCopied bool
 }
 
 func (s *StacktraceFrame) transform(cfg *transform.Config, rum bool) common.MapStr {
-	m := common.MapStr{}
-	utility.Set(m, "filename", s.Filename)
-	utility.Set(m, "classname", s.Classname)
-	utility.Set(m, "abs_path", s.AbsPath)
-	utility.Set(m, "module", s.Module)
-	utility.Set(m, "function", s.Function)
-	utility.Set(m, "vars", s.Vars)
+	var m mapStr
+	m.maybeSetString("filename", s.Filename)
+	m.maybeSetString("classname", s.Classname)
+	m.maybeSetString("abs_path", s.AbsPath)
+	m.maybeSetString("module", s.Module)
+	m.maybeSetString("function", s.Function)
+	m.maybeSetMapStr("vars", s.Vars)
+
 	if rum && cfg.RUM.LibraryPattern != nil {
 		s.setLibraryFrame(cfg.RUM.LibraryPattern)
 	}
-	utility.Set(m, "library_frame", s.LibraryFrame)
+	if s.LibraryFrame != nil {
+		m.set("library_frame", *s.LibraryFrame)
+	}
 
 	if rum && cfg.RUM.ExcludeFromGrouping != nil {
 		s.setExcludeFromGrouping(cfg.RUM.ExcludeFromGrouping)
 	}
-	utility.Set(m, "exclude_from_grouping", s.ExcludeFromGrouping)
+	m.set("exclude_from_grouping", s.ExcludeFromGrouping)
 
-	context := common.MapStr{}
-	utility.Set(context, "pre", s.PreContext)
-	utility.Set(context, "post", s.PostContext)
-	utility.Set(m, "context", context)
-
-	line := common.MapStr{}
-	utility.Set(line, "number", s.Lineno)
-	utility.Set(line, "column", s.Colno)
-	utility.Set(line, "context", s.ContextLine)
-	utility.Set(m, "line", line)
-
-	sm := common.MapStr{}
-	utility.Set(sm, "updated", s.SourcemapUpdated)
-	utility.Set(sm, "error", s.SourcemapError)
-	utility.Set(m, "sourcemap", sm)
-
-	orig := common.MapStr{}
-	utility.Set(orig, "library_frame", s.Original.LibraryFrame)
-	if s.SourcemapUpdated != nil && *(s.SourcemapUpdated) {
-		utility.Set(orig, "filename", s.Original.Filename)
-		utility.Set(orig, "classname", s.Original.Classname)
-		utility.Set(orig, "abs_path", s.Original.AbsPath)
-		utility.Set(orig, "function", s.Original.Function)
-		utility.Set(orig, "colno", s.Original.Colno)
-		utility.Set(orig, "lineno", s.Original.Lineno)
+	var context mapStr
+	if len(s.PreContext) > 0 {
+		context.set("pre", s.PreContext)
 	}
-	utility.Set(m, "original", orig)
+	if len(s.PostContext) > 0 {
+		context.set("post", s.PostContext)
+	}
+	m.maybeSetMapStr("context", common.MapStr(context))
 
-	return m
+	var line mapStr
+	line.maybeSetIntptr("number", s.Lineno)
+	line.maybeSetIntptr("column", s.Colno)
+	line.maybeSetString("context", s.ContextLine)
+	m.maybeSetMapStr("line", common.MapStr(line))
+
+	var sm mapStr
+	sm.maybeSetBool("updated", s.SourcemapUpdated)
+	sm.maybeSetString("error", s.SourcemapError)
+	m.maybeSetMapStr("sourcemap", common.MapStr(sm))
+
+	var orig mapStr
+	orig.maybeSetBool("library_frame", s.Original.LibraryFrame)
+	if s.SourcemapUpdated != nil && *(s.SourcemapUpdated) {
+		orig.maybeSetString("filename", s.Original.Filename)
+		orig.maybeSetString("classname", s.Original.Classname)
+		orig.maybeSetString("abs_path", s.Original.AbsPath)
+		orig.maybeSetString("function", s.Original.Function)
+		orig.maybeSetIntptr("colno", s.Original.Colno)
+		orig.maybeSetIntptr("lineno", s.Original.Lineno)
+	}
+	m.maybeSetMapStr("original", common.MapStr(orig))
+
+	return common.MapStr(m)
 }
 
 func (s *StacktraceFrame) IsLibraryFrame() bool {
@@ -126,13 +133,13 @@ func (s *StacktraceFrame) IsSourcemapApplied() bool {
 }
 
 func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
-	s.ExcludeFromGrouping = s.Filename != nil && pattern.MatchString(*s.Filename)
+	s.ExcludeFromGrouping = s.Filename != "" && pattern.MatchString(s.Filename)
 }
 
 func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.Original.LibraryFrame = s.LibraryFrame
-	libraryFrame := (s.Filename != nil && pattern.MatchString(*s.Filename)) ||
-		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
+	libraryFrame := (s.Filename != "" && pattern.MatchString(s.Filename)) ||
+		(s.AbsPath != "" && pattern.MatchString(s.AbsPath))
 	s.LibraryFrame = &libraryFrame
 }
 
@@ -147,7 +154,7 @@ func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.S
 
 	s.setOriginalSourcemapData()
 
-	path := utility.CleanUrlPath(*s.Original.AbsPath)
+	path := utility.CleanUrlPath(s.Original.AbsPath)
 	mapper, err := store.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
 		errMsg = err.Error()
@@ -168,15 +175,14 @@ func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.S
 	}
 
 	if file != "" {
-		s.Filename = &file
+		s.Filename = file
 	}
-
 	s.Colno = &col
 	s.Lineno = &line
-	s.AbsPath = &path
+	s.AbsPath = path
 	s.updateSmap(true)
-	s.Function = &prevFunction
-	s.ContextLine = &ctxLine
+	s.Function = prevFunction
+	s.ContextLine = ctxLine
 	s.PreContext = preCtx
 	s.PostContext = postCtx
 
@@ -195,7 +201,7 @@ func (s *StacktraceFrame) validForSourcemapping() (bool, string) {
 	if s.Lineno == nil {
 		return false, errMsgSourcemapLineMandatory
 	}
-	if s.AbsPath == nil {
+	if s.AbsPath == "" {
 		return false, errMsgSourcemapPathMandatory
 	}
 	return true, ""
@@ -216,7 +222,7 @@ func (s *StacktraceFrame) setOriginalSourcemapData() {
 }
 
 func (s *StacktraceFrame) updateError(errMsg string) {
-	s.SourcemapError = &errMsg
+	s.SourcemapError = errMsg
 	s.updateSmap(false)
 }
 

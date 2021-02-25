@@ -19,6 +19,10 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
+const (
+	metricsetName = "service_destination"
+)
+
 // AggregatorConfig holds configuration for creating an Aggregator.
 type AggregatorConfig struct {
 	// Report is a publish.Reporter for reporting metrics documents.
@@ -188,7 +192,7 @@ func (a *Aggregator) ProcessTransformables(ctx context.Context, in []transform.T
 }
 
 func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
-	if span.DestinationService == nil || span.DestinationService.Resource == nil {
+	if span.DestinationService == nil || span.DestinationService.Resource == "" {
 		return nil
 	}
 	if span.RepresentativeCount <= 0 {
@@ -203,7 +207,7 @@ func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {
 		serviceName:        span.Metadata.Service.Name,
 		agentName:          span.Metadata.Service.Agent.Name,
 		outcome:            span.Outcome,
-		resource:           *span.DestinationService.Resource,
+		resource:           span.DestinationService.Resource,
 	}
 	duration := time.Duration(span.Duration * float64(time.Millisecond))
 	metrics := spanMetrics{
@@ -260,6 +264,7 @@ type spanMetrics struct {
 func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics, interval int64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: timestamp,
+		Name:      metricsetName,
 		Metadata: model.Metadata{
 			Service: model.Service{
 				Name:        key.serviceName,
@@ -271,7 +276,7 @@ func makeMetricset(timestamp time.Time, key aggregationKey, metrics spanMetrics,
 			Outcome: key.outcome,
 		},
 		Span: model.MetricsetSpan{
-			DestinationService: model.DestinationService{Resource: &key.resource},
+			DestinationService: model.DestinationService{Resource: key.resource},
 		},
 		Samples: []model.Sample{
 			{

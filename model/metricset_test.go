@@ -73,6 +73,21 @@ func TestTransform(t *testing.T) {
 			Msg: "Payload with empty metric.",
 		},
 		{
+			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata, Name: "raj"},
+			Output: []common.MapStr{
+				{
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "apm.app.myservice",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
+					"metricset.name":      "raj",
+					"service": common.MapStr{
+						"name": "myservice",
+					},
+				},
+			},
+			Msg: "Payload with metricset name.",
+		},
+		{
 			Metricset: &Metricset{
 				Metadata:  metadata,
 				Labels:    common.MapStr{"a_b": "a.b.value"},
@@ -181,7 +196,7 @@ func TestTransform(t *testing.T) {
 				Timestamp: timestamp,
 				Metadata:  metadata,
 				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
-					Resource: &resource,
+					Resource: resource,
 				}},
 				Samples: []Sample{
 					{

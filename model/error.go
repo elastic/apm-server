@@ -52,7 +52,7 @@ const (
 )
 
 type Error struct {
-	ID            *string
+	ID            string
 	TransactionID string
 	TraceID       string
 	ParentID      string
@@ -60,7 +60,7 @@ type Error struct {
 	Timestamp time.Time
 	Metadata  Metadata
 
-	Culprit *string
+	Culprit string
 	Labels  common.MapStr
 	Page    *Page
 	HTTP    *Http
@@ -71,23 +71,22 @@ type Error struct {
 	Log       *Log
 
 	TransactionSampled *bool
-	TransactionType    *string
+	TransactionType    string
 
 	// RUM records whether or not this is a RUM error,
 	// and should have its stack frames sourcemapped.
 	RUM bool
 
 	Experimental interface{}
-	data         common.MapStr
 }
 
 type Exception struct {
-	Message    *string
-	Module     *string
+	Message    string
+	Module     string
 	Code       interface{}
 	Attributes interface{}
 	Stacktrace Stacktrace
-	Type       *string
+	Type       string
 	Handled    *bool
 	Cause      []Exception
 	Parent     *int
@@ -95,9 +94,9 @@ type Exception struct {
 
 type Log struct {
 	Message      string
-	Level        *string
-	ParamMessage *string
-	LoggerName   *string
+	Level        string
+	ParamMessage string
+	LoggerName   string
 	Stacktrace   Stacktrace
 }
 
@@ -111,7 +110,7 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 		addStacktraceCounter(e.Log.Stacktrace)
 	}
 
-	fields := common.MapStr{
+	fields := mapStr{
 		"error":     e.fields(ctx, cfg),
 		"processor": errorProcessorEntry,
 	}
@@ -126,62 +125,62 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 	}
 
 	// first set the generic metadata (order is relevant)
-	e.Metadata.Set(fields, e.Labels)
-	utility.Set(fields, "source", fields["client"])
-	// then add event specific information
-	utility.Set(fields, "http", e.HTTP.Fields())
-	urlFields := e.URL.Fields()
-	if urlFields != nil {
-		utility.Set(fields, "url", e.URL.Fields())
+	e.Metadata.set(&fields, e.Labels)
+	if client := fields["client"]; client != nil {
+		fields["source"] = client
 	}
+
+	// then add event specific information
+	fields.maybeSetMapStr("http", e.HTTP.Fields())
+	haveURL := fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Page != nil {
-		utility.DeepUpdate(fields, "http.request.referrer", e.Page.Referer)
-		if urlFields == nil {
-			utility.Set(fields, "url", e.Page.URL.Fields())
+		// TODO(axw) e.Page.Referer should be recorded in e.HTTP.Request.
+		common.MapStr(fields).Put("http.request.referrer", e.Page.Referer)
+		if !haveURL {
+			fields.maybeSetMapStr("url", e.Page.URL.Fields())
 		}
 	}
-	utility.Set(fields, "experimental", e.Experimental)
+	if e.Experimental != nil {
+		fields.set("experimental", e.Experimental)
+	}
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
-	if e.TransactionSampled != nil || e.TransactionType != nil || e.TransactionID != "" {
-		transaction := common.MapStr{}
-		if e.TransactionID != "" {
-			transaction["id"] = e.TransactionID
-		}
-		utility.Set(transaction, "type", e.TransactionType)
-		utility.Set(transaction, "sampled", e.TransactionSampled)
-		utility.Set(fields, "transaction", transaction)
-	}
+	var transaction mapStr
+	transaction.maybeSetString("id", e.TransactionID)
+	transaction.maybeSetString("type", e.TransactionType)
+	transaction.maybeSetBool("sampled", e.TransactionSampled)
+	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
 
-	utility.AddID(fields, "parent", e.ParentID)
-	utility.AddID(fields, "trace", e.TraceID)
-	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	var parent, trace mapStr
+	parent.maybeSetString("id", e.ParentID)
+	trace.maybeSetString("id", e.TraceID)
+	fields.maybeSetMapStr("parent", common.MapStr(parent))
+	fields.maybeSetMapStr("trace", common.MapStr(trace))
+	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 
-	return []beat.Event{
-		{
-			Fields:    fields,
-			Timestamp: e.Timestamp,
-		},
-	}
+	return []beat.Event{{
+		Fields:    common.MapStr(fields),
+		Timestamp: e.Timestamp,
+	}}
 }
 
 func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr {
-	e.data = common.MapStr{}
-	e.add("id", e.ID)
-	e.add("page", e.Page.Fields())
+	var fields mapStr
+	fields.maybeSetString("id", e.ID)
+	fields.maybeSetMapStr("page", e.Page.Fields())
 
 	exceptionChain := flattenExceptionTree(e.Exception)
-	e.addException(ctx, cfg, exceptionChain)
-	e.addLog(ctx, cfg)
+	if exception := e.exceptionFields(ctx, cfg, exceptionChain); len(exception) > 0 {
+		fields.set("exception", exception)
+	}
+	fields.maybeSetMapStr("log", e.logFields(ctx, cfg))
 
 	e.updateCulprit(cfg)
-	e.add("culprit", e.Culprit)
-	e.add("custom", customFields(e.Custom))
-
-	e.add("grouping_key", e.calcGroupingKey(exceptionChain))
-
-	return e.data
+	fields.maybeSetString("culprit", e.Culprit)
+	fields.maybeSetMapStr("custom", customFields(e.Custom))
+	fields.maybeSetString("grouping_key", e.calcGroupingKey(exceptionChain))
+	return common.MapStr(fields)
 }
 
 func (e *Error) updateCulprit(cfg *transform.Config) {
@@ -199,15 +198,15 @@ func (e *Error) updateCulprit(cfg *transform.Config) {
 		return
 	}
 	var culprit string
-	if fr.Filename != nil {
-		culprit = *fr.Filename
-	} else if fr.Classname != nil {
-		culprit = *fr.Classname
+	if fr.Filename != "" {
+		culprit = fr.Filename
+	} else if fr.Classname != "" {
+		culprit = fr.Classname
 	}
-	if fr.Function != nil {
-		culprit += fmt.Sprintf(" in %v", *fr.Function)
+	if fr.Function != "" {
+		culprit += fmt.Sprintf(" in %v", fr.Function)
 	}
-	e.Culprit = &culprit
+	e.Culprit = culprit
 }
 
 func findSmappedNonLibraryFrame(frames []*StacktraceFrame) *StacktraceFrame {
@@ -219,50 +218,54 @@ func findSmappedNonLibraryFrame(frames []*StacktraceFrame) *StacktraceFrame {
 	return nil
 }
 
-func (e *Error) addException(ctx context.Context, cfg *transform.Config, chain []Exception) {
+func (e *Error) exceptionFields(ctx context.Context, cfg *transform.Config, chain []Exception) []common.MapStr {
 	var result []common.MapStr
 	for _, exception := range chain {
-		ex := common.MapStr{}
-		utility.Set(ex, "message", exception.Message)
-		utility.Set(ex, "module", exception.Module)
-		utility.Set(ex, "attributes", exception.Attributes)
-		utility.Set(ex, "type", exception.Type)
-		utility.Set(ex, "handled", exception.Handled)
-		utility.Set(ex, "parent", exception.Parent)
+		var ex mapStr
+		ex.maybeSetString("message", exception.Message)
+		ex.maybeSetString("module", exception.Module)
+		ex.maybeSetString("type", exception.Type)
+		ex.maybeSetBool("handled", exception.Handled)
+		if exception.Parent != nil {
+			ex.set("parent", exception.Parent)
+		}
+		if exception.Attributes != nil {
+			ex.set("attributes", exception.Attributes)
+		}
 
 		switch code := exception.Code.(type) {
 		case int:
-			utility.Set(ex, "code", strconv.Itoa(code))
+			ex.set("code", strconv.Itoa(code))
 		case float64:
-			utility.Set(ex, "code", fmt.Sprintf("%.0f", code))
+			ex.set("code", fmt.Sprintf("%.0f", code))
 		case string:
-			utility.Set(ex, "code", code)
+			ex.set("code", code)
 		case json.Number:
-			utility.Set(ex, "code", code.String())
+			ex.set("code", code.String())
 		}
 
-		st := exception.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service)
-		utility.Set(ex, "stacktrace", st)
+		if st := exception.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service); len(st) > 0 {
+			ex.set("stacktrace", st)
+		}
 
-		result = append(result, ex)
+		result = append(result, common.MapStr(ex))
 	}
-
-	e.add("exception", result)
+	return result
 }
 
-func (e *Error) addLog(ctx context.Context, cfg *transform.Config) {
+func (e *Error) logFields(ctx context.Context, cfg *transform.Config) common.MapStr {
 	if e.Log == nil {
-		return
+		return nil
 	}
-	log := common.MapStr{}
-	utility.Set(log, "message", e.Log.Message)
-	utility.Set(log, "param_message", e.Log.ParamMessage)
-	utility.Set(log, "logger_name", e.Log.LoggerName)
-	utility.Set(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service)
-	utility.Set(log, "stacktrace", st)
-
-	e.add("log", log)
+	var log mapStr
+	log.maybeSetString("message", e.Log.Message)
+	log.maybeSetString("param_message", e.Log.ParamMessage)
+	log.maybeSetString("logger_name", e.Log.LoggerName)
+	log.maybeSetString("level", e.Log.Level)
+	if st := e.Log.Stacktrace.transform(ctx, cfg, e.RUM, &e.Metadata.Service); len(st) > 0 {
+		log.set("stacktrace", st)
+	}
+	return common.MapStr(log)
 }
 
 type groupingKey struct {
@@ -277,16 +280,16 @@ func newGroupingKey() *groupingKey {
 	}
 }
 
-func (k *groupingKey) add(s *string) bool {
-	if s == nil {
+func (k *groupingKey) add(s string) bool {
+	if s == "" {
 		return false
 	}
-	io.WriteString(k.hash, *s)
+	io.WriteString(k.hash, s)
 	k.empty = false
 	return true
 }
 
-func (k *groupingKey) addEither(str ...*string) {
+func (k *groupingKey) addEither(str ...string) {
 	for _, s := range str {
 		if ok := k.add(s); ok {
 			break
@@ -329,14 +332,10 @@ func (e *Error) calcGroupingKey(chain []Exception) string {
 		}
 	}
 	if k.empty && e.Log != nil {
-		k.add(&e.Log.Message)
+		k.add(e.Log.Message)
 	}
 
 	return k.String()
-}
-
-func (e *Error) add(key string, val interface{}) {
-	utility.Set(e.data, key, val)
 }
 
 func addStacktraceCounter(st Stacktrace) {

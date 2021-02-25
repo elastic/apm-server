@@ -176,7 +176,7 @@ Traces are written to `traces-apm.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "event": {
     "ingested": "2020-08-11T09:55:04.391451Z",
@@ -272,7 +272,7 @@ Traces are written to `traces-apm.*` indices.
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "event": {
     "outcome": "unknown"
@@ -422,6 +422,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*` and `metric
 |kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|metricset.name|Name of the set of metrics.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |metricset.period|Current data collection period for this event in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -479,7 +480,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*` and `metric
     "version": "3.14.0"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "event": {
     "ingested": "2020-04-22T14:55:05.425020Z"
@@ -658,7 +659,7 @@ Logs are written to `logs-apm.error.*` indices.
     "id": "container-id"
   },
   "ecs": {
-    "version": "1.6.0"
+    "version": "1.8.0"
   },
   "error": {
     "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

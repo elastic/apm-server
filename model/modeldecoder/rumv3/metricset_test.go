@@ -86,6 +86,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				strings.HasPrefix(key, "Transaction") ||
 				// only set by aggregator
 				strings.HasPrefix(key, "Event") ||
+				key == "Name" ||
 				key == "TimeseriesInstanceID" ||
 				strings.HasPrefix(key, "Span.DestinationService") ||
 				// test Samples separately

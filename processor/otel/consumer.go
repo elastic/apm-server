@@ -298,7 +298,7 @@ func translateTransaction(
 			//
 			// TODO(axw) translate OpenTelemtry messaging conventions.
 			case "message_bus.destination":
-				message.QueueName = &stringval
+				message.QueueName = stringval
 				isMessaging = true
 
 			// miscellaneous
@@ -441,27 +441,26 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				httpURL = stringval
 				isHTTPSpan = true
 			case conventions.AttributeHTTPMethod:
-				http.Method = &stringval
+				http.Method = stringval
 				isHTTPSpan = true
 
 			// db.*
 			case "sql.query":
-				if db.Type == nil {
-					dbType := "sql"
-					db.Type = &dbType
+				if db.Type == "" {
+					db.Type = "sql"
 				}
 				fallthrough
 			case conventions.AttributeDBStatement:
-				db.Statement = &stringval
+				db.Statement = stringval
 				isDBSpan = true
 			case conventions.AttributeDBName, "db.instance":
-				db.Instance = &stringval
+				db.Instance = stringval
 				isDBSpan = true
 			case conventions.AttributeDBSystem, "db.type":
-				db.Type = &stringval
+				db.Type = stringval
 				isDBSpan = true
 			case conventions.AttributeDBUser:
-				db.UserName = &stringval
+				db.UserName = stringval
 				isDBSpan = true
 
 			// net.*
@@ -470,7 +469,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			case conventions.AttributeNetPeerIP, "peer.ipv4", "peer.ipv6":
 				netPeerIP = stringval
 			case "peer.address":
-				destinationService.Resource = &stringval
+				destinationService.Resource = stringval
 				if !strings.ContainsRune(stringval, ':') || net.ParseIP(stringval) != nil {
 					// peer.address is not necessarily a hostname
 					// or IP address; it could be something like
@@ -483,16 +482,16 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			//
 			// TODO(axw) translate OpenTelemtry messaging conventions.
 			case "message_bus.destination":
-				message.QueueName = &stringval
+				message.QueueName = stringval
 				isMessagingSpan = true
 
 			// miscellaneous
 			case "span.kind": // filter out
 			case conventions.AttributePeerService:
-				destinationService.Name = &stringval
-				if destinationService.Resource == nil {
+				destinationService.Name = stringval
+				if destinationService.Resource == "" {
 					// Prefer using peer.address for resource.
-					destinationService.Resource = &stringval
+					destinationService.Resource = stringval
 				}
 			case conventions.AttributeComponent:
 				component = stringval
@@ -530,7 +529,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			}
 		}
 		if fullURL != nil {
-			http.URL = &httpURL
+			http.URL = httpURL
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
 			hostname := truncate(url.Hostname())
 			var port int
@@ -549,7 +548,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			}
 
 			// Set destination.service.* from the HTTP URL, unless peer.service was specified.
-			if destinationService.Name == nil {
+			if destinationService.Name == "" {
 				resource := url.Host
 				if port > 0 && port == schemeDefaultPort(url.Scheme) {
 					hasDefaultPort := portString != ""
@@ -561,9 +560,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 						resource = fmt.Sprintf("%s:%d", resource, port)
 					}
 				}
-				name := url.String()
-				destinationService.Name = &name
-				destinationService.Resource = &resource
+				destinationService.Name = url.String()
+				destinationService.Resource = resource
 			}
 		}
 	}
@@ -577,13 +575,13 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		}
 		event.Type = "external"
 		subtype := "http"
-		event.Subtype = &subtype
+		event.Subtype = subtype
 		event.HTTP = &http
 	case isDBSpan:
 		event.Type = "db"
-		if db.Type != nil && *db.Type != "" {
+		if db.Type != "" {
 			event.Subtype = db.Type
-			if destinationService.Name == nil {
+			if destinationService.Name == "" {
 				// For database requests, we currently just identify
 				// the destination service by db.system.
 				destinationService.Name = event.Subtype
@@ -596,21 +594,19 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		event.Message = &message
 	default:
 		event.Type = "app"
-		if component != "" {
-			event.Subtype = &component
-		}
+		event.Subtype = component
 	}
 
 	if destAddr != "" {
-		event.Destination = &model.Destination{Address: &destAddr}
+		event.Destination = &model.Destination{Address: destAddr}
 		if destPort > 0 {
 			event.Destination.Port = &destPort
 		}
 	}
 	if destinationService != (model.DestinationService{}) {
-		if destinationService.Type == nil {
+		if destinationService.Type == "" {
 			// Copy span type to destination.service.type.
-			destinationService.Type = &event.Type
+			destinationService.Type = event.Type
 		}
 		event.DestinationService = &destinationService
 	}
@@ -701,12 +697,9 @@ func convertSpanEvent(
 		e.Log = &model.Log{Message: logMessage}
 	}
 	if exMessage != "" || exType != "" {
-		e.Exception = &model.Exception{}
-		if exMessage != "" {
-			e.Exception.Message = &exMessage
-		}
-		if exType != "" {
-			e.Exception.Type = &exType
+		e.Exception = &model.Exception{
+			Message: exMessage,
+			Type:    exType,
 		}
 	}
 	if transaction != nil {
@@ -725,7 +718,7 @@ func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
 	err.URL = transaction.URL
-	err.TransactionType = &transaction.Type
+	err.TransactionType = transaction.Type
 }
 
 func addSpanCtxToErr(span *model.Span, hostname string, err *model.Error) {
@@ -738,11 +731,11 @@ func addSpanCtxToErr(span *model.Span, hostname string, err *model.Error) {
 		if span.HTTP.StatusCode != nil {
 			err.HTTP.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: span.HTTP.StatusCode}}
 		}
-		if span.HTTP.Method != nil {
-			err.HTTP.Request = &model.Req{Method: *span.HTTP.Method}
+		if span.HTTP.Method != "" {
+			err.HTTP.Request = &model.Req{Method: span.HTTP.Method}
 		}
-		if span.HTTP.URL != nil {
-			err.URL = model.ParseURL(*span.HTTP.URL, hostname, "")
+		if span.HTTP.URL != "" {
+			err.URL = model.ParseURL(span.HTTP.URL, hostname, "")
 		}
 	}
 }

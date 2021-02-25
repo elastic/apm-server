@@ -17,6 +17,7 @@
                 "hostname": "beowulf",
                 "name": "beowulf"
             },
+            "metricset.name": "transaction",
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -71,6 +72,7 @@
                 "hostname": "beowulf",
                 "name": "beowulf"
             },
+            "metricset.name": "transaction",
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",

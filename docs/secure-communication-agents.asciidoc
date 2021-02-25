@@ -1,5 +1,5 @@
 [[secure-communication-agents]]
-== Secure communication with APM Agents
+== Secure communication with APM agents
 
 Communication between APM agents and APM Server can be both encrypted and authenticated.
 Encryption is achievable through <<ssl-setup>>.
@@ -279,18 +279,18 @@ Authorized for privilege "sourcemap:write"...:    Yes
 
 [[set-api-key]]
 [float]
-=== Set the API key in your APM Agents
+=== Set the API key in your APM agents
 
-You can now apply your newly created API keys in the configuration of each of your APM Agents.
-See the relevant Agent documentation for additional information:
+You can now apply your newly created API keys in the configuration of each of your APM agents.
+See the relevant agent documentation for additional information:
 
-* *Go Agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
-* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-api-key[`ApiKey`]
-* *Java Agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
-* *Python Agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
-* *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
-// No issue or docs yet
-// * *Node.js Agent*: {apm-node-ref}/configuration.html[`api_key`]
+* *Go agent*: {apm-go-ref}/configuration.html#config-api-key[`ELASTIC_APM_API_KEY`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-api-key[`ApiKey`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-api-key[`api_key`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#api-key[`apiKey`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-api-key[`api_key`]
+* *Python agent*: {apm-py-ref}/configuration.html#config-api-key[`api_key`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-api-key[`api_key`]
 
 [[api-key-settings]]
 === `api_key.*` configuration options
@@ -436,11 +436,11 @@ Both the agents and the APM servers have to be configured with the same secret t
 NOTE: Secret tokens are sent as plain-text,
 so they only provide security when used in combination with <<ssl-setup,SSL/TLS>>.
 
-To secure the communication between APM Agents and the APM Server with a secret token:
+To secure the communication between APM agents and the APM Server with a secret token:
 
 . Make sure <<ssl-setup,SSL/TLS>> is enabled
-. <<set-secret-token,Set a secret token in your Agents and Server>>
-. <<https-in-agents,Enable HTTPS in your APM Agents>>
+. <<set-secret-token,Set a secret token in your agents and Server>>
+. <<https-in-agents,Enable HTTPS in your APM agents>>
 
 NOTE: Secret tokens are not applicable for the RUM Agent,
 as there is no way to prevent them from being publicly exposed.
@@ -460,43 +460,52 @@ apm-server.secret_token: <secret-token>
 
 We recommend saving the token in the APM Server <<keystore>>.
 
-IMPORTANT: Secret tokens are not applicable for the RUM Agent,
+IMPORTANT: Secret tokens are not applicable for the RUM agent,
 as there is no way to prevent them from being publicly exposed.
 
 **Agent specific configuration**
 
 Each Agent has a configuration for setting the value of the secret token:
 
-* *Go Agent*: {apm-go-ref}/configuration.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
-* *Java Agent*: {apm-java-ref}/config-reporter.html#config-secret-token[`secret_token`]
-* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
-* *Node.js Agent*: {apm-node-ref}/configuration.html#secret-token[`Secret Token`]
-* *Python Agent*: {apm-py-ref}/configuration.html#config-secret-token[`secret_token`]
-* *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-secret-token[`secret_token`]
+* *Go agent*: {apm-go-ref}/configuration.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-secret-token[`secret_token`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-secret-token[`ELASTIC_APM_SECRET_TOKEN`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#secret-token[`Secret Token`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-secret-token[`secret_token`]
+* *Python agent*: {apm-py-ref}/configuration.html#config-secret-token[`secret_token`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-secret-token[`secret_token`]
 
 [[https-in-agents]]
 [float]
-=== HTTPS communication in APM Agents
+=== HTTPS communication in APM agents
 
-To enable secure communication in your Agents, you need to update the configured server URL to use `HTTPS` instead of `HTTP`.
+To enable secure communication in your agents, you need to update the configured server URL to use `HTTPS` instead of `HTTP`.
 
-* *Go Agent*: {apm-go-ref}/configuration.html#config-server-url[`ELASTIC_APM_SERVER_URL`]
-* *Java Agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
-// * *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-server-url[`ServerUrls`]
-* *Node.js Agent*: {apm-node-ref}/configuration.html#server-url[`serverUrl`]
-* *Python Agent*: {apm-py-ref}/[`server_url`]
-* *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
+* *Go agent*: {apm-go-ref}/configuration.html#config-server-url[`ELASTIC_APM_SERVER_URL`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-url[`ServerUrl`]
+* *Node.js agent*: {apm-node-ref}/configuration.html#server-url[`serverUrl`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-server-url[`server_url`]
+* *Python agent*: {apm-py-ref}/[`server_url`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
 
-Some Agents also allow you to specify a custom certificate authority for connecting to APM Server.
+Some agents also allow you to specify a custom certificate authority for connecting to APM Server.
 
-* *Go Agent*: {apm-go-ref}/configuration.html#config-server-cert[`ELASTIC_APM_SERVER_CERT`]
-* *Python Agent*: {apm-py-ref}/configuration.html#config-server-cert[`ELASTIC_APM_SERVER_CERT`]
-* *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-ssl-ca-cert[`server_ca_certedit`]
+* *Go agent*: certificate pinning through {apm-go-ref}/configuration.html#config-server-cert[`ELASTIC_APM_SERVER_CERT`]
+* *Python agent*: certificate pinning through {apm-py-ref}/configuration.html#config-server-cert[`server_cert`]
+* *Ruby agent*: certificate pinning through {apm-ruby-ref}/configuration.html#config-ssl-ca-cert[`server_ca_cert`]
+* *NodeJS agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
+* *Java agent*: adding the certificate to the JVM `trustStore`.
+See {apm-java-ref}/ssl-configuration.html#ssl-server-authentication[APM Server authentication] for more details.
 
-Most Agents that don't allow you specify a custom certificate will allow you to
+Agents that don't allow you specify a custom certificate will allow you to
 disable verification of the SSL certificate.
 This ensures encryption, but does not verify that you are sending data to the correct APM Server.
 
-* *Java Agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
-* *Node.js Agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]
-* *.NET Agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
+* *Go agent*: {apm-go-ref}/configuration.html#config-verify-server-cert[`ELASTIC_APM_VERIFY_SERVER_CERT`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-verify-server-cert[`VerifyServerCert`]
+* *Java agent*: {apm-java-ref}/config-reporter.html#config-verify-server-cert[`verify_server_cert`]
+* *PHP agent*: {apm-php-ref-v}/configuration-reference.html#config-verify-server-cert[`verify_server_cert`]
+* *Python agent*: {apm-py-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
+* *Ruby agent*: {apm-ruby-ref}/configuration.html#config-verify-server-cert[`verify_server_cert`]
+* *NodeJS agent*: {apm-node-ref}/configuration.html#validate-server-cert[`verifyServerCert`]

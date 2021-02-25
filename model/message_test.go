@@ -34,11 +34,11 @@ func TestMessaging_Fields(t *testing.T) {
 	require.Nil(t, m.Fields())
 
 	m = &Message{}
-	require.Equal(t, common.MapStr{}, m.Fields())
+	require.Nil(t, m.Fields())
 
 	m = &Message{
-		QueueName: tests.StringPtr("orders"),
-		Body:      tests.StringPtr("order confirmed"),
+		QueueName: "orders",
+		Body:      "order confirmed",
 		Headers:   http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
 		AgeMillis: tests.IntPtr(1577958057123),
 	}
