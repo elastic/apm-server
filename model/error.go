@@ -110,7 +110,7 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 		addStacktraceCounter(e.Log.Stacktrace)
 	}
 
-	fields := common.MapStr{
+	fields := mapStr{
 		"error":     e.fields(ctx, cfg),
 		"processor": errorProcessorEntry,
 	}
@@ -125,21 +125,24 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 	}
 
 	// first set the generic metadata (order is relevant)
-	e.Metadata.Set(fields, e.Labels)
-	utility.Set(fields, "source", fields["client"])
-	// then add event specific information
-	utility.Set(fields, "http", e.HTTP.Fields())
-	urlFields := e.URL.Fields()
-	if urlFields != nil {
-		utility.Set(fields, "url", e.URL.Fields())
+	e.Metadata.set(&fields, e.Labels)
+	if client := fields["client"]; client != nil {
+		fields["source"] = client
 	}
+
+	// then add event specific information
+	fields.maybeSetMapStr("http", e.HTTP.Fields())
+	haveURL := fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Page != nil {
-		utility.DeepUpdate(fields, "http.request.referrer", e.Page.Referer)
-		if urlFields == nil {
-			utility.Set(fields, "url", e.Page.URL.Fields())
+		// TODO(axw) e.Page.Referer should be recorded in e.HTTP.Request.
+		common.MapStr(fields).Put("http.request.referrer", e.Page.Referer)
+		if !haveURL {
+			fields.maybeSetMapStr("url", e.Page.URL.Fields())
 		}
 	}
-	utility.Set(fields, "experimental", e.Experimental)
+	if e.Experimental != nil {
+		fields.set("experimental", e.Experimental)
+	}
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
@@ -147,18 +150,19 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 	transaction.maybeSetString("id", e.TransactionID)
 	transaction.maybeSetString("type", e.TransactionType)
 	transaction.maybeSetBool("sampled", e.TransactionSampled)
-	utility.Set(fields, "transaction", common.MapStr(transaction))
+	fields.maybeSetMapStr("transaction", common.MapStr(transaction))
 
-	utility.AddID(fields, "parent", e.ParentID)
-	utility.AddID(fields, "trace", e.TraceID)
-	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	var parent, trace mapStr
+	parent.maybeSetString("id", e.ParentID)
+	trace.maybeSetString("id", e.TraceID)
+	fields.maybeSetMapStr("parent", common.MapStr(parent))
+	fields.maybeSetMapStr("trace", common.MapStr(trace))
+	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 
-	return []beat.Event{
-		{
-			Fields:    fields,
-			Timestamp: e.Timestamp,
-		},
-	}
+	return []beat.Event{{
+		Fields:    common.MapStr(fields),
+		Timestamp: e.Timestamp,
+	}}
 }
 
 func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr {

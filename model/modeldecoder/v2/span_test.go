@@ -240,18 +240,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				var out model.Span
 				mapToSpanModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{}, &out)
 				assert.Equal(t, tc.typ, out.Type)
-				if tc.subtype == "" {
-					assert.Nil(t, out.Subtype)
-				} else {
-					require.NotNil(t, out.Subtype)
-					assert.Equal(t, tc.subtype, *out.Subtype)
-				}
-				if tc.action == "" {
-					assert.Nil(t, out.Action)
-				} else {
-					require.NotNil(t, out.Action)
-					assert.Equal(t, tc.action, *out.Action)
-				}
+				assert.Equal(t, tc.subtype, out.Subtype)
+				assert.Equal(t, tc.action, out.Action)
 			})
 		}
 	})
