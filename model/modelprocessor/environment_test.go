@@ -36,12 +36,14 @@ func TestSetDefaultServiceEnvironment(t *testing.T) {
 		&model.Span{Metadata: nonEmptyMetadata},
 		&model.Metricset{Metadata: nonEmptyMetadata},
 		&model.Error{Metadata: nonEmptyMetadata},
+		&model.PprofProfile{Metadata: nonEmptyMetadata},
 
 		// Should be updated.
 		&model.Transaction{},
 		&model.Span{},
 		&model.Metricset{},
 		&model.Error{},
+		&model.PprofProfile{},
 	}
 
 	processor := modelprocessor.SetDefaultServiceEnvironment{
@@ -57,11 +59,13 @@ func TestSetDefaultServiceEnvironment(t *testing.T) {
 		&model.Span{Metadata: nonEmptyMetadata},
 		&model.Metricset{Metadata: nonEmptyMetadata},
 		&model.Error{Metadata: nonEmptyMetadata},
+		&model.PprofProfile{Metadata: nonEmptyMetadata},
 
 		// Should be updated.
 		&model.Transaction{Metadata: defaultMetadata},
 		&model.Span{Metadata: defaultMetadata},
 		&model.Metricset{Metadata: defaultMetadata},
 		&model.Error{Metadata: defaultMetadata},
+		&model.PprofProfile{Metadata: defaultMetadata},
 	}, out)
 }

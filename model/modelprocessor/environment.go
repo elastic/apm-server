@@ -52,6 +52,10 @@ func (s *SetDefaultServiceEnvironment) ProcessTransformables(ctx context.Context
 			if t.Metadata.Service.Environment == "" {
 				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
 			}
+		case *model.PprofProfile:
+			if t.Metadata.Service.Environment == "" {
+				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
+			}
 		}
 	}
 	return in, nil
