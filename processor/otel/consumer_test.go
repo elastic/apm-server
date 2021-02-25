@@ -32,7 +32,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otel
+package otel_test
 
 import (
 	"context"
@@ -46,6 +46,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/translator/conventions"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -54,6 +55,7 @@ import (
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 )
@@ -64,7 +66,7 @@ func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 		return nil
 	}
 
-	consumer := Consumer{Reporter: reporter}
+	consumer := otel.Consumer{Reporter: reporter}
 	traces := pdata.NewTraces()
 	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 }
@@ -499,7 +501,7 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 			}
 			jaegerBatch.Process = tc.process
 			traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+			require.NoError(t, (&otel.Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 		})
 	}
 }
@@ -551,7 +553,7 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 		}},
 	}
 	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+	require.NoError(t, (&otel.Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
 	require.Len(t, transformables, 3)
 	tx1 := transformables[0].(*model.Transaction)
@@ -580,7 +582,7 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 		}},
 	}
 	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+	require.NoError(t, (&otel.Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
 	require.Len(t, transformables, 2)
 	assert.Equal(t, "00000000000000000000000046467830", transformables[0].(*model.Transaction).TraceID)
@@ -707,7 +709,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				approveEvents(t, "transaction_"+tc.name, events)
 				return nil
 			}
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+			require.NoError(t, (&otel.Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 		})
 	}
 }
@@ -823,7 +825,7 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 				approveEvents(t, "span_"+tc.name, events)
 				return nil
 			}
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+			require.NoError(t, (&otel.Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 		})
 	}
 }
@@ -852,7 +854,7 @@ func TestJaegerServiceVersion(t *testing.T) {
 		}},
 	}
 	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+	require.NoError(t, (&otel.Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
 	require.Len(t, transformables, 2)
 	assert.Equal(t, "process_tag_value", transformables[0].(*model.Transaction).Metadata.Service.Version)
@@ -1000,13 +1002,35 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	return events[0].(*model.Span)
 }
 
+func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (*model.Transaction, []*model.Error) {
+	traces, spans := newTracesSpans()
+	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		conventions.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
+	})
+	otelSpan := pdata.NewSpan()
+	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	for _, spanEvent := range spanEvents {
+		otelSpan.Events().Append(spanEvent)
+	}
+	spans.Spans().Append(otelSpan)
+	events := transformTraces(t, traces)
+	require.NotEmpty(t, events)
+	tx := events[0].(*model.Transaction)
+	var errors []*model.Error
+	for _, event := range events[1:] {
+		errors = append(errors, event.(*model.Error))
+	}
+	return tx, errors
+}
+
 func transformTraces(t *testing.T, traces pdata.Traces) []transform.Transformable {
 	var events []transform.Transformable
 	reporter := func(ctx context.Context, req publish.PendingReq) error {
 		events = append(events, req.Transformables...)
 		return nil
 	}
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+	require.NoError(t, (&otel.Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 	return events
 }
 
@@ -1020,5 +1044,9 @@ func newTracesSpans() (pdata.Traces, pdata.InstrumentationLibrarySpans) {
 }
 
 func newInt(v int) *int {
+	return &v
+}
+
+func newBool(v bool) *bool {
 	return &v
 }
