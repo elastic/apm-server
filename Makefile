@@ -179,7 +179,7 @@ copy-docs:
 # Beats synchronisation.
 ##############################################################################
 
-BEATS_VERSION?=7.x
+BEATS_VERSION?=7.12
 BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
 
 .PHONY: update-beats
@@ -208,7 +208,7 @@ build/index-pattern.json: $(PYTHON) apm-server
 ##############################################################################
 
 GOLINT_TARGETS?=$(shell $(GO) list ./...)
-GOLINT_UPSTREAM?=origin/7.x
+GOLINT_UPSTREAM?=origin/7.12
 REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
 GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
 
