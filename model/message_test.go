@@ -34,7 +34,7 @@ func TestMessaging_Fields(t *testing.T) {
 	require.Nil(t, m.Fields())
 
 	m = &Message{}
-	require.Equal(t, common.MapStr{}, m.Fields())
+	require.Nil(t, m.Fields())
 
 	m = &Message{
 		QueueName: "orders",

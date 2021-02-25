@@ -26,8 +26,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/approvaltest"
 )
 
@@ -60,9 +58,9 @@ func TestSystemTransformation(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			fields := make(common.MapStr)
+			var fields mapStr
 			metadata := &Metadata{System: system}
-			metadata.Set(fields, nil)
+			metadata.set(&fields, nil)
 			resultJSON, err := json.Marshal(fields["host"])
 			require.NoError(t, err)
 			name := filepath.Join("test_approved", "system", strings.ReplaceAll(name, " ", "_"))
