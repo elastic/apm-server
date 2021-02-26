@@ -56,6 +56,12 @@ policy_templates:
         required: true
         show_user: true
         default: false
+      - name: default_service_environment
+        type: string
+        title: Default Service Environment
+        description: Default service environment to record in events which have no service environment defined.
+        required: false
+        show_user: false
       - name: rum_allow_origins
         type: string
         title: RUM - Origin Headers

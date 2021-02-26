@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -181,14 +182,12 @@ func TestAgentConfigHandler(t *testing.T) {
 	for name, tc := range testcases {
 
 		runTest := func(t *testing.T, expectedBody map[string]string, auth authorization.Authorization) {
-			h := Handler(tc.kbClient, &cfg)
-			w := httptest.NewRecorder()
+			h := Handler(tc.kbClient, &cfg, "")
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
 			}
-			ctx := request.NewContext()
-			ctx.Reset(w, r)
+			ctx, w := newRequestContext(r)
 			ctx.Authorization = auth
 			h(ctx)
 
@@ -214,13 +213,9 @@ func TestAgentConfigHandler(t *testing.T) {
 
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 	cfg := config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	h := Handler(nil, &cfg)
+	h := Handler(nil, &cfg, "")
 
-	w := httptest.NewRecorder()
-	ctx := request.NewContext()
-	ctx.Reset(w, httptest.NewRequest(http.MethodGet, "/config", nil))
-	h(ctx)
-
+	w := sendRequest(h, httptest.NewRequest(http.MethodGet, "/config", nil))
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
 }
 
@@ -236,25 +231,43 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 	}, mockVersion, true)
 
 	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	h := Handler(kb, &cfg)
+	h := Handler(kb, &cfg, "")
 
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
-		"service": m{"name": "opbeans-node"}}))
-	ctx := request.NewContext()
-	ctx.Reset(w, r)
-	h(ctx)
-
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
+		"service": m{"name": "opbeans-node"}})))
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
+
+func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
+	kb := &recordingKibanaClient{
+		Client: tests.MockKibana(http.StatusOK, m{
+			"_id": "1",
+			"_source": m{
+				"settings": m{
+					"sampling_rate": 0.5,
+				},
+			},
+		}, mockVersion, true),
+	}
+
+	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	h := Handler(kb, &cfg, "default")
+
+	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
+	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node"}})))
+	require.Len(t, kb.requests, 2)
+
+	body0, _ := ioutil.ReadAll(kb.requests[0].Body)
+	body1, _ := ioutil.ReadAll(kb.requests[1].Body)
+	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"specified"},"etag":""}`, string(body0))
+	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"default"},"etag":""}`, string(body1))
 }
 
 func TestAgentConfigRum(t *testing.T) {
 	h := getHandler("rum-js")
-	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := request.NewContext()
-	ctx.Reset(w, r)
+	ctx, w := newRequestContext(r)
 	ctx.IsRum = true
 	h(ctx)
 	var actual map[string]string
@@ -266,10 +279,8 @@ func TestAgentConfigRum(t *testing.T) {
 
 func TestAgentConfigRumEtag(t *testing.T) {
 	h := getHandler("rum-js")
-	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/rum?ifnonematch=123&service.name=opbeans", nil)
-	ctx := request.NewContext()
-	ctx.Reset(w, r)
+	ctx, w := newRequestContext(r)
 	ctx.IsRum = true
 	h(ctx)
 	assert.Equal(t, http.StatusNotModified, w.Code, w.Body.String())
@@ -277,11 +288,9 @@ func TestAgentConfigRumEtag(t *testing.T) {
 
 func TestAgentConfigNotRum(t *testing.T) {
 	h := getHandler("node-js")
-	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := request.NewContext()
-	ctx.Reset(w, r)
+	ctx, w := newRequestContext(r)
 	h(ctx)
 	var actual map[string]string
 	json.Unmarshal(w.Body.Bytes(), &actual)
@@ -291,11 +300,9 @@ func TestAgentConfigNotRum(t *testing.T) {
 
 func TestAgentConfigNoLeak(t *testing.T) {
 	h := getHandler("node-js")
-	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := request.NewContext()
-	ctx.Reset(w, r)
+	ctx, w := newRequestContext(r)
 	ctx.IsRum = true
 	h(ctx)
 	var actual map[string]string
@@ -306,11 +313,9 @@ func TestAgentConfigNoLeak(t *testing.T) {
 
 func TestAgentConfigRateLimit(t *testing.T) {
 	h := getHandler("rum-js")
-	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
 		"service": m{"name": "opbeans"}}))
-	ctx := request.NewContext()
-	ctx.Reset(w, r)
+	ctx, w := newRequestContext(r)
 	ctx.IsRum = true
 	ctx.RateLimiter = rate.NewLimiter(rate.Limit(0), 0)
 	h(ctx)
@@ -334,7 +339,7 @@ func getHandler(agent string) request.Handler {
 	}, mockVersion, true)
 
 	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	return Handler(kb, &cfg)
+	return Handler(kb, &cfg, "")
 }
 
 func TestIfNoneMatch(t *testing.T) {
@@ -358,20 +363,29 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	kibanaCfg := config.KibanaConfig{Enabled: true, ClientConfig: libkibana.DefaultClientConfig()}
 	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
-	handler := Handler(client, &config.AgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}})
+	handler := Handler(client, &config.AgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}, "")
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
 		// When the handler is called with a context containing
 		// a transaction, the underlying Kibana query should create a span
-		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
 			"service": m{"name": "opbeans"}}))
-		r = r.WithContext(ctx)
-		c := request.NewContext()
-		c.Reset(w, r)
-		handler(c)
+		sendRequest(handler, r.WithContext(ctx))
 	})
 	require.Len(t, spans, 1)
 	assert.Equal(t, "app", spans[0].Type)
+}
+
+func sendRequest(h request.Handler, r *http.Request) *httptest.ResponseRecorder {
+	ctx, recorder := newRequestContext(r)
+	h(ctx)
+	return recorder
+}
+
+func newRequestContext(r *http.Request) (*request.Context, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	ctx := request.NewContext()
+	ctx.Reset(w, r)
+	return ctx, w
 }
 
 func target(params map[string]string) string {
@@ -384,4 +398,21 @@ func target(params map[string]string) string {
 		t = fmt.Sprintf("%s%s=%s", t, k, v)
 	}
 	return t
+}
+
+type recordingKibanaClient struct {
+	kibana.Client
+	requests []*http.Request
+}
+
+func (c *recordingKibanaClient) Send(ctx context.Context, method string, path string, params url.Values, header http.Header, body io.Reader) (*http.Response, error) {
+	req := httptest.NewRequest(method, path, body)
+	req.URL.RawQuery = params.Encode()
+	for k, values := range header {
+		for _, v := range values {
+			req.Header.Add(k, v)
+		}
+	}
+	c.requests = append(c.requests, req.WithContext(ctx))
+	return c.Client.Send(ctx, method, path, params, header, body)
 }

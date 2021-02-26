@@ -18,7 +18,11 @@ If you need additional pipelines, override ILM policies, etc; you must do it ext
 #### Data Streams
 
 When using the APM integration, apm events are indexed into data streams. Data stream names contain the event type,
- the service name, and a user configurable namespace.
+the service name, and a user configurable namespace.
+
+There is no specific recommendaton for what to use as a namespace; it is intentionally flexible.
+You might use the environment (production, testing, development) as the namespace,
+or alternatively you could namespace data by business unit. It is your choice.
 
 ## Compatibility and limitations
 

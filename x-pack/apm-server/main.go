@@ -18,7 +18,6 @@ import (
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
@@ -41,7 +40,7 @@ type namedProcessor struct {
 }
 
 type processor interface {
-	ProcessTransformables(context.Context, []transform.Transformable) ([]transform.Transformable, error)
+	transform.Processor
 	Run() error
 	Stop(context.Context) error
 }
@@ -176,17 +175,11 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 		return runServer(ctx, args)
 	}
 
-	origReport := args.Reporter
-	args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
-		var err error
-		for _, p := range processors {
-			req.Transformables, err = p.ProcessTransformables(ctx, req.Transformables)
-			if err != nil {
-				return err
-			}
-		}
-		return origReport(ctx, req)
+	transformProcessors := make([]transform.Processor, len(processors))
+	for i, p := range processors {
+		transformProcessors[i] = p
 	}
+	runServer = beater.WrapRunServerWithProcessors(runServer, transformProcessors...)
 
 	g, ctx := errgroup.WithContext(ctx)
 	for _, p := range processors {
