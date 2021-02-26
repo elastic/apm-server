@@ -21,6 +21,10 @@ import (
 	"context"
 
 	"github.com/elastic/apm-server/model"
+<<<<<<< HEAD
+=======
+	"github.com/elastic/apm-server/transform"
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 )
 
 // SetDefaultServiceEnvironment is a transform.Processor that sets a default
@@ -31,6 +35,7 @@ type SetDefaultServiceEnvironment struct {
 	DefaultServiceEnvironment string
 }
 
+<<<<<<< HEAD
 // ProcessBatch sets a default service.value for events without one already set.
 func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	return MetadataProcessorFunc(s.setDefaultServiceEnvironment).ProcessBatch(ctx, b)
@@ -41,4 +46,33 @@ func (s *SetDefaultServiceEnvironment) setDefaultServiceEnvironment(ctx context.
 		meta.Service.Environment = s.DefaultServiceEnvironment
 	}
 	return nil
+=======
+// ProcessTransformables sets a default service.value for events without one already set.
+func (s *SetDefaultServiceEnvironment) ProcessTransformables(ctx context.Context, in []transform.Transformable) ([]transform.Transformable, error) {
+	for _, t := range in {
+		switch t := t.(type) {
+		case *model.Transaction:
+			if t.Metadata.Service.Environment == "" {
+				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
+			}
+		case *model.Span:
+			if t.Metadata.Service.Environment == "" {
+				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
+			}
+		case *model.Metricset:
+			if t.Metadata.Service.Environment == "" {
+				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
+			}
+		case *model.Error:
+			if t.Metadata.Service.Environment == "" {
+				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
+			}
+		case *model.PprofProfile:
+			if t.Metadata.Service.Environment == "" {
+				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
+			}
+		}
+	}
+	return in, nil
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 }

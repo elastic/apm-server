@@ -180,14 +180,22 @@ func TestAgentConfigHandler(t *testing.T) {
 
 	for name, tc := range testcases {
 
+<<<<<<< HEAD
 		runTest := func(t *testing.T, expectedBody map[string]string, authorized bool) {
+=======
+		runTest := func(t *testing.T, expectedBody map[string]string, auth authorization.Authorization) {
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 			h := Handler(tc.kbClient, &cfg, "")
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
 			}
 			ctx, w := newRequestContext(r)
+<<<<<<< HEAD
 			ctx.AuthResult.Authorized = authorized
+=======
+			ctx.Authorization = auth
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 			h(ctx)
 
 			require.Equal(t, tc.respStatus, w.Code)

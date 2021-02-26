@@ -75,7 +75,10 @@ type Config struct {
 	MaxConnections            int                     `config:"max_connections"`
 	ResponseHeaders           map[string][]string     `config:"response_headers"`
 	Expvar                    *ExpvarConfig           `config:"expvar"`
+<<<<<<< HEAD
 	Pprof                     *PprofConfig            `config:"pprof"`
+=======
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 	AugmentEnabled            bool                    `config:"capture_personal_data"`
 	SelfInstrumentation       *InstrumentationConfig  `config:"instrumentation"`
 	RumConfig                 *RumConfig              `config:"rum"`

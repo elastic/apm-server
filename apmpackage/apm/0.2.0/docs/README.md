@@ -20,6 +20,7 @@ on the same machines that your instrumented services run.
 #### Data Streams
 
 When using the APM integration, apm events are indexed into data streams. Data stream names contain the event type,
+<<<<<<< HEAD:apmpackage/apm/0.2.0/docs/README.md
 service name, and a user-configurable namespace.
 
 There is no specific recommendation for what to use as a namespace; it is intentionally flexible.
@@ -27,6 +28,13 @@ You might use the environment, like `production`, `testing`, or `development`,
 or you could namespace data by business unit. It is your choice.
 
 See [APM data streams](https://ela.st/apm-data-streams) for more information.
+=======
+the service name, and a user configurable namespace.
+
+There is no specific recommendaton for what to use as a namespace; it is intentionally flexible.
+You might use the environment (production, testing, development) as the namespace,
+or alternatively you could namespace data by business unit. It is your choice.
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861):apmpackage/apm/0.1.0/docs/README.md
 
 ## Compatibility and limitations
 

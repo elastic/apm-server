@@ -18,7 +18,11 @@ import (
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/elasticsearch"
+<<<<<<< HEAD
 	"github.com/elastic/apm-server/model"
+=======
+	"github.com/elastic/apm-server/transform"
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
@@ -40,7 +44,11 @@ type namedProcessor struct {
 }
 
 type processor interface {
+<<<<<<< HEAD
 	model.BatchProcessor
+=======
+	transform.Processor
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 	Run() error
 	Stop(context.Context) error
 }
@@ -175,11 +183,19 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 		return runServer(ctx, args)
 	}
 
+<<<<<<< HEAD
 	batchProcessors := make([]model.BatchProcessor, len(processors))
 	for i, p := range processors {
 		batchProcessors[i] = p
 	}
 	runServer = beater.WrapRunServerWithProcessors(runServer, batchProcessors...)
+=======
+	transformProcessors := make([]transform.Processor, len(processors))
+	for i, p := range processors {
+		transformProcessors[i] = p
+	}
+	runServer = beater.WrapRunServerWithProcessors(runServer, transformProcessors...)
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 
 	g, ctx := errgroup.WithContext(ctx)
 	for _, p := range processors {

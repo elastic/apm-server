@@ -19,6 +19,7 @@ package modelprocessor_test
 
 import (
 	"context"
+<<<<<<< HEAD
 	"reflect"
 	"testing"
 
@@ -27,10 +28,20 @@ import (
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
+=======
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
+	"github.com/elastic/apm-server/transform"
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 )
 
 func TestSetDefaultServiceEnvironment(t *testing.T) {
 	nonEmptyMetadata := model.Metadata{Service: model.Service{Environment: "nonempty"}}
+<<<<<<< HEAD
 	defaultMetadata := model.Metadata{Service: model.Service{Environment: "default"}}
 
 	processor := modelprocessor.SetDefaultServiceEnvironment{
@@ -96,4 +107,44 @@ func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, 
 		},
 	}
 	assert.Equal(t, expected, batch)
+=======
+	in := []transform.Transformable{
+		// Should be left alone.
+		&model.Transaction{Metadata: nonEmptyMetadata},
+		&model.Span{Metadata: nonEmptyMetadata},
+		&model.Metricset{Metadata: nonEmptyMetadata},
+		&model.Error{Metadata: nonEmptyMetadata},
+		&model.PprofProfile{Metadata: nonEmptyMetadata},
+
+		// Should be updated.
+		&model.Transaction{},
+		&model.Span{},
+		&model.Metricset{},
+		&model.Error{},
+		&model.PprofProfile{},
+	}
+
+	processor := modelprocessor.SetDefaultServiceEnvironment{
+		DefaultServiceEnvironment: "default",
+	}
+	out, err := processor.ProcessTransformables(context.Background(), in)
+	assert.NoError(t, err)
+
+	defaultMetadata := model.Metadata{Service: model.Service{Environment: "default"}}
+	assert.Equal(t, []transform.Transformable{
+		// Should be left alone.
+		&model.Transaction{Metadata: nonEmptyMetadata},
+		&model.Span{Metadata: nonEmptyMetadata},
+		&model.Metricset{Metadata: nonEmptyMetadata},
+		&model.Error{Metadata: nonEmptyMetadata},
+		&model.PprofProfile{Metadata: nonEmptyMetadata},
+
+		// Should be updated.
+		&model.Transaction{Metadata: defaultMetadata},
+		&model.Span{Metadata: defaultMetadata},
+		&model.Metricset{Metadata: defaultMetadata},
+		&model.Error{Metadata: defaultMetadata},
+		&model.PprofProfile{Metadata: defaultMetadata},
+	}, out)
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 }

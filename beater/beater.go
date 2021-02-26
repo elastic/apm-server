@@ -47,7 +47,10 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
+<<<<<<< HEAD
 	"github.com/elastic/apm-server/model"
+=======
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
@@ -355,6 +358,20 @@ func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
+<<<<<<< HEAD
+=======
+	runServer := runServer
+	if s.tracerServer != nil {
+		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
+	}
+	if s.wrapRunServer != nil {
+		// Wrap runServer function, enabling injection of
+		// behaviour into the processing/reporting pipeline.
+		runServer = s.wrapRunServer(runServer)
+	}
+	runServer = s.wrapRunServerWithPreprocessors(runServer)
+
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 	transformConfig, err := newTransformConfig(s.beat.Info, s.config)
 	if err != nil {
 		return err
@@ -418,12 +435,16 @@ func (s *serverRunner) run() error {
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
+<<<<<<< HEAD
 	processors := []model.BatchProcessor{
 		modelprocessor.SetSystemHostname{},
 		modelprocessor.SetServiceNodeName{},
 		// Set metricset.name for well-known agent metrics.
 		modelprocessor.SetMetricsetName{},
 	}
+=======
+	var processors []transform.Processor
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
@@ -627,13 +648,20 @@ func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcema
 }
 
 // WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter
+<<<<<<< HEAD
 // with a function that event batches are first passed through the given processors
 // in order.
 func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.BatchProcessor) RunServerFunc {
+=======
+// with a function that transformables are first passed through the given
+// processors in order.
+func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...transform.Processor) RunServerFunc {
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
 	if len(processors) == 0 {
 		return runServer
 	}
 	return func(ctx context.Context, args ServerParams) error {
+<<<<<<< HEAD
 		processors = append(processors, args.BatchProcessor)
 		args.BatchProcessor = modelprocessor.Chained(processors)
 		return runServer(ctx, args)
@@ -650,3 +678,19 @@ func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.
 	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
 	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
 }
+=======
+		origReporter := args.Reporter
+		args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
+			var err error
+			for _, p := range processors {
+				req.Transformables, err = p.ProcessTransformables(ctx, req.Transformables)
+				if err != nil {
+					return err
+				}
+			}
+			return origReporter(ctx, req)
+		}
+		return runServer(ctx, args)
+	}
+}
+>>>>>>> 992699dc8... Introduce a configurable default service environment (#4861)
