@@ -18,7 +18,7 @@ import (
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/cmd"
@@ -40,7 +40,7 @@ type namedProcessor struct {
 }
 
 type processor interface {
-	transform.Processor
+	model.BatchProcessor
 	Run() error
 	Stop(context.Context) error
 }
@@ -53,7 +53,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		const name = "transaction metrics aggregation"
 		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.Transactions)
 		agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-			Report:                         args.Reporter,
+			BatchProcessor:                 args.BatchProcessor,
 			MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
 			MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
 			HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
@@ -68,9 +68,9 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		const name = "service destinations aggregation"
 		args.Logger.Infof("creating %s with config: %+v", name, args.Config.Aggregation.ServiceDestinations)
 		spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
-			Report:    args.Reporter,
-			Interval:  args.Config.Aggregation.ServiceDestinations.Interval,
-			MaxGroups: args.Config.Aggregation.ServiceDestinations.MaxGroups,
+			BatchProcessor: args.BatchProcessor,
+			Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
+			MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
 		})
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", name)
@@ -146,8 +146,8 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		}
 	}
 	return sampling.NewProcessor(sampling.Config{
-		BeatID:   args.Info.ID.String(),
-		Reporter: args.Reporter,
+		BeatID:         args.Info.ID.String(),
+		BatchProcessor: args.BatchProcessor,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         tailSamplingConfig.Interval,
 			MaxDynamicServices:    1000,
@@ -175,11 +175,11 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 		return runServer(ctx, args)
 	}
 
-	transformProcessors := make([]transform.Processor, len(processors))
+	batchProcessors := make([]model.BatchProcessor, len(processors))
 	for i, p := range processors {
-		transformProcessors[i] = p
+		batchProcessors[i] = p
 	}
-	runServer = beater.WrapRunServerWithProcessors(runServer, transformProcessors...)
+	runServer = beater.WrapRunServerWithProcessors(runServer, batchProcessors...)
 
 	g, ctx := errgroup.WithContext(ctx)
 	for _, p := range processors {

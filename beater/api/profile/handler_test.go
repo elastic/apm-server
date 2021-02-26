@@ -37,7 +37,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/publish"
@@ -66,14 +65,18 @@ func TestHandler(t *testing.T) {
 			id:        request.IDResponseErrorsRateLimit,
 		},
 		"Closing": {
-			reporter: func(t *testing.T) publish.Reporter {
-				return beatertest.ErrorReporterFn(publish.ErrChannelClosed)
+			batchProcessor: func(t *testing.T) model.BatchProcessor {
+				return model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+					return publish.ErrChannelClosed
+				})
 			},
 			id: request.IDResponseErrorsShuttingDown,
 		},
 		"FullQueue": {
-			reporter: func(t *testing.T) publish.Reporter {
-				return beatertest.ErrorReporterFn(publish.ErrFull)
+			batchProcessor: func(t *testing.T) model.BatchProcessor {
+				return model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+					return publish.ErrFull
+				})
 			},
 			id: request.IDResponseErrorsFullQueue,
 		},
@@ -142,15 +145,14 @@ func TestHandler(t *testing.T) {
 			},
 			body:    prettyJSON(map[string]interface{}{"accepted": 2}),
 			reports: 1,
-			reporter: func(t *testing.T) publish.Reporter {
-				return func(ctx context.Context, req publish.PendingReq) error {
-					require.Len(t, req.Transformables, 2)
-					for _, tr := range req.Transformables {
-						profile := tr.(model.PprofProfile)
+			batchProcessor: func(t *testing.T) model.BatchProcessor {
+				return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+					require.Len(t, batch.Profiles, 2)
+					for _, profile := range batch.Profiles {
 						assert.Equal(t, "foo", profile.Metadata.Service.Name)
 					}
 					return nil
-				}
+				})
 			},
 		},
 		"ProfileInvalidContentType": {
@@ -200,7 +202,7 @@ func TestHandler(t *testing.T) {
 			if tc.rateLimit != nil {
 				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
 			}
-			Handler(tc.reporter(t))(tc.c)
+			Handler(tc.batchProcessor(t))(tc.c)
 
 			assert.Equal(t, string(tc.id), string(tc.c.Result.ID))
 			resultStatus := request.MapResultIDToStatus[tc.id]
@@ -220,32 +222,32 @@ func TestHandler(t *testing.T) {
 }
 
 type testcaseIntakeHandler struct {
-	c         *request.Context
-	w         *httptest.ResponseRecorder
-	r         *http.Request
-	rateLimit *ratelimit.Store
-	reporter  func(t *testing.T) publish.Reporter
-	reports   int
-	parts     []part
+	c              *request.Context
+	w              *httptest.ResponseRecorder
+	r              *http.Request
+	rateLimit      *ratelimit.Store
+	batchProcessor func(t *testing.T) model.BatchProcessor
+	reports        int
+	parts          []part
 
 	id   request.ResultID
 	body string
 }
 
 func (tc *testcaseIntakeHandler) setup(t *testing.T) {
-	if tc.reporter == nil {
-		tc.reporter = func(t *testing.T) publish.Reporter {
-			return beatertest.NilReporter
+	if tc.batchProcessor == nil {
+		tc.batchProcessor = func(t *testing.T) model.BatchProcessor {
+			return model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
 		}
 	}
 	if tc.reports > 0 {
-		orig := tc.reporter
-		tc.reporter = func(t *testing.T) publish.Reporter {
+		orig := tc.batchProcessor
+		tc.batchProcessor = func(t *testing.T) model.BatchProcessor {
 			orig := orig(t)
-			return func(ctx context.Context, req publish.PendingReq) error {
+			return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 				tc.reports--
-				return orig(ctx, req)
-			}
+				return orig.ProcessBatch(ctx, batch)
+			})
 		}
 	}
 	if tc.r == nil {

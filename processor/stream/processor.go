@@ -126,7 +126,7 @@ func (p *Processor) IdentifyEventType(body []byte, result *Result) string {
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream,
-// returning a slice of Transformables and a boolean indicating that there
+// adding events to batch and returning a boolean indicating that there
 // might be more to read.
 func (p *Processor) readBatch(
 	ctx context.Context,
@@ -264,7 +264,7 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 }
 
 // HandleStream processes a stream of events
-func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, report publish.Reporter) *Result {
+func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, processor model.BatchProcessor) *Result {
 	res := &Result{}
 
 	sr := p.getStreamReader(reader)
@@ -283,21 +283,19 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	var batch model.Batch
 	var done bool
 	for !done {
+		var batch model.Batch
 		done = p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, res)
 		if batch.Len() == 0 {
 			continue
 		}
-		// NOTE(axw) `report` takes ownership of transformables, which
-		// means we cannot reuse the slice memory. We should investigate
-		// alternative interfaces between the processor and publisher
-		// which would enable better memory reuse.
-		if err := report(ctx, publish.PendingReq{
-			Transformables: batch.Transformables(),
-			Trace:          !sp.Dropped(),
-		}); err != nil {
+		// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
+		// the slice memory. We should investigate alternative interfaces between the
+		// processor and publisher which would enable better memory reuse, e.g. by using
+		// a sync.Pool for creating batches, and having the publisher (terminal processor)
+		// release batches back into the pool.
+		if err := processor.ProcessBatch(ctx, &batch); err != nil {
 			switch err {
 			case publish.ErrChannelClosed:
 				res.Add(&Error{
@@ -315,7 +313,6 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 			return res
 		}
 		res.AddAccepted(batch.Len())
-		batch.Reset()
 	}
 	return res
 }

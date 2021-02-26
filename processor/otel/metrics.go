@@ -44,7 +44,6 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -52,10 +51,7 @@ import (
 // the Elastic APM metrics model and sending to the reporter.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
 	batch := c.convertMetrics(metrics)
-	return c.Reporter(ctx, publish.PendingReq{
-		Transformables: batch.Transformables(),
-		Trace:          true,
-	})
+	return c.Processor.ProcessBatch(ctx, batch)
 }
 
 func (c *Consumer) convertMetrics(metrics pdata.Metrics) *model.Batch {

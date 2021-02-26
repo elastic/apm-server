@@ -33,8 +33,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
@@ -130,19 +128,13 @@ func (p *intakeTestProcessor) Validate(data interface{}) error {
 }
 
 func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
-	var reqs []publish.PendingReq
-	report := tests.TestReporter(&reqs)
-
-	result := p.HandleStream(context.TODO(), nil, &model.Metadata{}, bytes.NewBuffer(buf), report)
 	var events []beat.Event
-	for _, req := range reqs {
-		if req.Transformables != nil {
-			for _, transformable := range req.Transformables {
-				events = append(events, transformable.Transform(context.Background(), &transform.Config{})...)
-			}
-		}
-	}
+	batchProcessor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		events = append(events, batch.Transform(context.Background(), &transform.Config{})...)
+		return nil
+	})
 
+	result := p.HandleStream(context.TODO(), nil, &model.Metadata{}, bytes.NewBuffer(buf), batchProcessor)
 	for _, event := range events {
 		// TODO(axw) migrate all of these tests to systemtest,
 		// so we can use the proper event publishing pipeline.

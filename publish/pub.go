@@ -55,8 +55,8 @@ type Publisher struct {
 }
 
 type PendingReq struct {
-	Transformables []transform.Transformable
-	Trace          bool
+	Transformable transform.Transformable
+	Trace         bool
 }
 
 // PublisherConfig is a struct holding configuration information for the publisher.
@@ -180,10 +180,6 @@ func (p *Publisher) Stop(ctx context.Context) error {
 //
 // Calling Send after Stop will return an error without enqueuing the request.
 func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
-	if len(req.Transformables) == 0 {
-		return nil
-	}
-
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	if p.stopping {
@@ -217,17 +213,14 @@ func (p *Publisher) processPendingReq(ctx context.Context, req PendingReq) {
 		defer tx.End()
 		ctx = apm.ContextWithTransaction(ctx, tx)
 	}
-
-	for _, transformable := range req.Transformables {
-		events := transformTransformable(ctx, transformable, p.transformConfig)
-		span := tx.StartSpan("PublishAll", "Publisher", nil)
-		p.client.PublishAll(events)
-		span.End()
-	}
+	events := transformTransformable(ctx, req.Transformable, p.transformConfig)
+	span := tx.StartSpan("PublishAll", "Publisher", nil)
+	defer span.End()
+	p.client.PublishAll(events)
 }
 
-func transformTransformable(ctx context.Context, t transform.Transformable, cfg *transform.Config) []beat.Event {
+func transformTransformable(ctx context.Context, transformable transform.Transformable, cfg *transform.Config) []beat.Event {
 	span, ctx := apm.StartSpan(ctx, "Transform", "Publisher")
 	defer span.End()
-	return t.Transform(ctx, cfg)
+	return transformable.Transform(ctx, cfg)
 }

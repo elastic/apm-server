@@ -22,40 +22,35 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-func TestNewDiscardUnsampledReporter(t *testing.T) {
-	var reported []transform.Transformable
-	reporter := sampling.NewDiscardUnsampledReporter(
-		func(ctx context.Context, req publish.PendingReq) error {
-			reported = req.Transformables
-			return nil
-		},
-	)
+func TestNewDiscardUnsampledBatchProcessor(t *testing.T) {
+	batchProcessor := sampling.NewDiscardUnsampledBatchProcessor()
 
 	t1 := &model.Transaction{}
 	t2 := &model.Transaction{Sampled: newBool(false)}
 	t3 := &model.Transaction{Sampled: newBool(true)}
 	span := &model.Span{}
 	t4 := &model.Transaction{Sampled: newBool(false)}
+	t5 := &model.Transaction{Sampled: newBool(true)}
 
-	reporter(context.Background(), publish.PendingReq{
-		Transformables: []transform.Transformable{t1, t2, t3, span, t4},
-	})
+	batch := model.Batch{
+		Transactions: []*model.Transaction{t1, t2, t3, t4, t5},
+		Spans:        []*model.Span{span},
+	}
+	err := batchProcessor.ProcessBatch(context.Background(), &batch)
+	assert.NoError(t, err)
 
 	// Note that t3 gets sent to the back of the slice;
 	// this reporter is not order-preserving.
-	require.Len(t, reported, 3)
-	assert.Equal(t, t1, reported[0])
-	assert.Equal(t, span, reported[1])
-	assert.Equal(t, t3, reported[2])
+	assert.Equal(t, model.Batch{
+		Transactions: []*model.Transaction{t1, t5, t3},
+		Spans:        []*model.Span{span},
+	}, batch)
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["transactions_dropped"] = 2

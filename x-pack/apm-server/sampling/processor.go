@@ -16,8 +16,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -32,7 +30,7 @@ const (
 	tooManyGroupsLoggerRateLimit = time.Minute
 )
 
-// ErrStopped is returned when calling ProcessTransformables on a stopped Processor.
+// ErrStopped is returned when calling ProcessBatch on a stopped Processor.
 var ErrStopped = errors.New("processor is stopped")
 
 // Processor is a tail-sampling event processor.
@@ -128,10 +126,10 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	})
 }
 
-// ProcessTransformables tail-samples transactions and spans.
+// ProcessBatch tail-samples transactions and spans.
 //
-// Any events returned by the processor will be published immediately.
-// This includes:
+// Any events remaining in the batch after the processor returns
+// will be published immediately. This includes:
 //
 // - Non-trace events (errors, metricsets)
 // - Trace events which are already known to have been tail-sampled
@@ -139,51 +137,60 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 //
 // All other trace events will either be dropped (e.g. known to not
 // be tail-sampled), or stored for possible later publication.
-func (p *Processor) ProcessTransformables(ctx context.Context, events []transform.Transformable) ([]transform.Transformable, error) {
+func (p *Processor) ProcessBatch(ctx context.Context, events *model.Batch) error {
 	p.storageMu.RLock()
 	defer p.storageMu.RUnlock()
 	if p.storage == nil {
-		return nil, ErrStopped
+		return ErrStopped
 	}
-	for i := 0; i < len(events); i++ {
-		var report, stored bool
-		var err error
-		switch event := events[i].(type) {
-		case *model.Transaction:
-			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			report, stored, err = p.processTransaction(event)
-		case *model.Span:
-			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			report, stored, err = p.processSpan(event)
-		default:
-			continue
-		}
+	for i := 0; i < len(events.Transactions); i++ {
+		atomic.AddInt64(&p.eventMetrics.processed, 1)
+		report, stored, err := p.processTransaction(events.Transactions[i])
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if !report {
 			// We shouldn't report this event, so remove it from the slice.
-			n := len(events)
-			events[i], events[n-1] = events[n-1], events[i]
-			events = events[:n-1]
+			n := len(events.Transactions)
+			events.Transactions[i], events.Transactions[n-1] = events.Transactions[n-1], events.Transactions[i]
+			events.Transactions = events.Transactions[:n-1]
 			i--
 		}
-		if stored {
-			atomic.AddInt64(&p.eventMetrics.stored, 1)
-		} else if !report {
-			// We only increment the "dropped" counter if
-			// we neither reported nor stored the event, so
-			// we can track how many events are definitely
-			// dropped and indexing isn't just deferred until
-			// later.
-			//
-			// The counter does not include events that are
-			// implicitly dropped, i.e. stored and never
-			// indexed.
-			atomic.AddInt64(&p.eventMetrics.dropped, 1)
-		}
+		p.updateProcessorMetrics(report, stored)
 	}
-	return events, nil
+	for i := 0; i < len(events.Spans); i++ {
+		atomic.AddInt64(&p.eventMetrics.processed, 1)
+		report, stored, err := p.processSpan(events.Spans[i])
+		if err != nil {
+			return err
+		}
+		if !report {
+			// We shouldn't report this event, so remove it from the slice.
+			n := len(events.Spans)
+			events.Spans[i], events.Spans[n-1] = events.Spans[n-1], events.Spans[i]
+			events.Spans = events.Spans[:n-1]
+			i--
+		}
+		p.updateProcessorMetrics(report, stored)
+	}
+	return nil
+}
+
+func (p *Processor) updateProcessorMetrics(report, stored bool) {
+	if stored {
+		atomic.AddInt64(&p.eventMetrics.stored, 1)
+	} else if !report {
+		// We only increment the "dropped" counter if
+		// we neither reported nor stored the event, so
+		// we can track how many events are definitely
+		// dropped and indexing isn't just deferred until
+		// later.
+		//
+		// The counter does not include events that are
+		// implicitly dropped, i.e. stored and never
+		// indexed.
+		atomic.AddInt64(&p.eventMetrics.dropped, 1)
+	}
 }
 
 func (p *Processor) processTransaction(tx *model.Transaction) (report, stored bool, _ error) {
@@ -282,8 +289,8 @@ func (p *Processor) Stop(ctx context.Context) error {
 	case <-p.stopped:
 	}
 
-	// Lock storage before stopping, to prevent closing
-	// storage while ProcessTransformables is using it.
+	// Lock storage before stopping, to prevent closing storage while
+	// ProcessBatch is using it.
 	p.storageMu.Lock()
 	defer p.storageMu.Unlock()
 
@@ -409,7 +416,6 @@ func (p *Processor) Run() error {
 		// Alternatively we can rely on backpressure from the reporter,
 		// removing the artificial one second timeout from publisher code
 		// and just waiting as long as it takes here.
-		var events model.Batch
 		for {
 			var remoteDecision bool
 			var traceID string
@@ -424,12 +430,12 @@ func (p *Processor) Run() error {
 			if err := p.storage.WriteTraceSampled(traceID, true); err != nil {
 				return err
 			}
+			var events model.Batch
 			if err := p.storage.ReadEvents(traceID, &events); err != nil {
 				return err
 			}
-			transformables := events.Transformables()
-			if len(transformables) > 0 {
-				p.logger.Debugf("reporting %d events", len(transformables))
+			if n := events.Len(); n > 0 {
+				p.logger.Debugf("reporting %d events", n)
 				if remoteDecision {
 					// Remote decisions may be received multiple times,
 					// e.g. if this server restarts and resubscribes to
@@ -448,14 +454,10 @@ func (p *Processor) Run() error {
 						}
 					}
 				}
-				if err := p.config.Reporter(ctx, publish.PendingReq{
-					Transformables: transformables,
-					Trace:          true,
-				}); err != nil {
+				if err := p.config.BatchProcessor.ProcessBatch(ctx, &events); err != nil {
 					p.logger.With(logp.Error(err)).Warn("failed to report events")
 				}
 			}
-			events.Reset()
 		}
 	})
 	if err := errgroup.Wait(); err != nil && err != context.Canceled {

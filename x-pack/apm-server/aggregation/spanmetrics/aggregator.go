@@ -14,8 +14,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
@@ -25,8 +23,9 @@ const (
 
 // AggregatorConfig holds configuration for creating an Aggregator.
 type AggregatorConfig struct {
-	// Report is a publish.Reporter for reporting metrics documents.
-	Report publish.Reporter
+	// BatchProcessor is a model.BatchProcessor for asynchronously
+	// processing metrics documents.
+	BatchProcessor model.BatchProcessor
 
 	// MaxGroups is the maximum number of distinct service destination
 	// group metrics to store within an aggregation period. Once this
@@ -47,8 +46,8 @@ type AggregatorConfig struct {
 
 // Validate validates the aggregator config.
 func (config AggregatorConfig) Validate() error {
-	if config.Report == nil {
-		return errors.New("Report unspecified")
+	if config.BatchProcessor == nil {
+		return errors.New("BatchProcessor unspecified")
 	}
 	if config.MaxGroups <= 0 {
 		return errors.New("MaxGroups unspecified or negative")
@@ -159,36 +158,30 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	}
 
 	now := time.Now()
-	metricsets := make([]transform.Transformable, 0, size)
+	metricsets := make([]*model.Metricset, 0, size)
 	for key, metrics := range a.inactive.m {
 		metricset := makeMetricset(now, key, metrics, a.config.Interval.Milliseconds())
 		metricsets = append(metricsets, &metricset)
 		delete(a.inactive.m, key)
 	}
 	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
-	return a.config.Report(ctx, publish.PendingReq{
-		Transformables: metricsets,
-		Trace:          true,
-	})
+	return a.config.BatchProcessor.ProcessBatch(ctx, &model.Batch{Metricsets: metricsets})
 }
 
-// ProcessTransformables aggregates all transactions contained in
-// "in", returning the input.
+// ProcessBatch aggregates all spans contained in "b", adding to it any
+// metricsets requiring immediate publication.
 //
 // This method is expected to be used immediately prior to publishing
 // the events.
-func (a *Aggregator) ProcessTransformables(ctx context.Context, in []transform.Transformable) ([]transform.Transformable, error) {
+func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
-	out := in
-	for _, tf := range in {
-		if span, ok := tf.(*model.Span); ok {
-			if metricset := a.processSpan(span); metricset != nil {
-				out = append(out, metricset)
-			}
+	for _, span := range b.Spans {
+		if metricset := a.processSpan(span); metricset != nil {
+			b.Metricsets = append(b.Metricsets, metricset)
 		}
 	}
-	return out, nil
+	return nil
 }
 
 func (a *Aggregator) processSpan(span *model.Span) *model.Metricset {

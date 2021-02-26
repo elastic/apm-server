@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
 )
 
 // SetDefaultServiceEnvironment is a transform.Processor that sets a default
@@ -32,31 +31,32 @@ type SetDefaultServiceEnvironment struct {
 	DefaultServiceEnvironment string
 }
 
-// ProcessTransformables sets a default service.value for events without one already set.
-func (s *SetDefaultServiceEnvironment) ProcessTransformables(ctx context.Context, in []transform.Transformable) ([]transform.Transformable, error) {
-	for _, t := range in {
-		switch t := t.(type) {
-		case *model.Transaction:
-			if t.Metadata.Service.Environment == "" {
-				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
-			}
-		case *model.Span:
-			if t.Metadata.Service.Environment == "" {
-				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
-			}
-		case *model.Metricset:
-			if t.Metadata.Service.Environment == "" {
-				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
-			}
-		case *model.Error:
-			if t.Metadata.Service.Environment == "" {
-				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
-			}
-		case *model.PprofProfile:
-			if t.Metadata.Service.Environment == "" {
-				t.Metadata.Service.Environment = s.DefaultServiceEnvironment
-			}
+// ProcessBatch sets a default service.value for events without one already set.
+func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *model.Batch) error {
+	for _, event := range b.Transactions {
+		if event.Metadata.Service.Environment == "" {
+			event.Metadata.Service.Environment = s.DefaultServiceEnvironment
 		}
 	}
-	return in, nil
+	for _, event := range b.Spans {
+		if event.Metadata.Service.Environment == "" {
+			event.Metadata.Service.Environment = s.DefaultServiceEnvironment
+		}
+	}
+	for _, event := range b.Metricsets {
+		if event.Metadata.Service.Environment == "" {
+			event.Metadata.Service.Environment = s.DefaultServiceEnvironment
+		}
+	}
+	for _, event := range b.Errors {
+		if event.Metadata.Service.Environment == "" {
+			event.Metadata.Service.Environment = s.DefaultServiceEnvironment
+		}
+	}
+	for _, event := range b.Profiles {
+		if event.Metadata.Service.Environment == "" {
+			event.Metadata.Service.Environment = s.DefaultServiceEnvironment
+		}
+	}
+	return nil
 }
