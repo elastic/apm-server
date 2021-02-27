@@ -94,13 +94,13 @@ func (p *intakeTestProcessor) Decode(data interface{}) error {
 		if err != nil && err != io.EOF {
 			return err
 		}
-		eventType := p.IdentifyEventType(body, &stream.Result{})
+		eventType := p.IdentifyEventType(body)
 		input := modeldecoder.Input{
 			RequestTime: time.Now(),
 			Metadata:    model.Metadata{},
 			Config:      p.Mconfig,
 		}
-		switch eventType {
+		switch string(eventType) {
 		case "error":
 			var event model.Error
 			err = v2.DecodeNestedError(d, &input, &event)
