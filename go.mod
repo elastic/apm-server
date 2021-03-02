@@ -49,6 +49,8 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
+	github.com/tidwall/gjson v1.6.0
+	github.com/tidwall/sjson v1.1.1
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
 	github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56
 	go.elastic.co/apm v1.11.0
