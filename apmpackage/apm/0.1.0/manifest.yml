@@ -9,12 +9,29 @@ categories:
   - monitoring
 release: experimental # experimental / beta / ga
 conditions:
-  kibana.version: '^7.12.0'
+  kibana.version: "^7.12.0"
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
     size: 32x32
     type: image/svg+xml
+screenshots:
+  - src: /img/apm-01-service-inventory.png
+    title: apm app service inventory
+    size: 1440x1025
+    type: image/png
+  - src: /img/apm-02-service-overview.png
+    title: apm app service overview
+    size: 1440x2032
+    type: image/png
+  - src: /img/apm-03-trace.png
+    title: apm app trace
+    size: 1440x1382
+    type: image/png
+  - src: /img/apm-04-service-map.png
+    title: apm app service map
+    size: 1440x1025
+    type: image/png
 policy_templates:
 - name: apmserver
   title: Elastic APM Integration
