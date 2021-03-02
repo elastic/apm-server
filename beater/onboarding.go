@@ -34,7 +34,7 @@ import (
 func notifyListening(ctx context.Context, listenAddr net.Addr, reporter publish.Reporter) {
 	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
 	reporter(ctx, publish.PendingReq{
-		Transformables: []transform.Transformable{onboardingDoc{listenAddr: listenAddr.String()}},
+		Transformable: onboardingDoc{listenAddr: listenAddr.String()},
 	})
 }
 

@@ -29,11 +29,11 @@ import (
 
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api/ratelimit"
+	"github.com/elastic/apm-server/model"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -103,10 +103,16 @@ func TestIntakeHandler(t *testing.T) {
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
-			path: "errors.ndjson", reporter: beatertest.ErrorReporterFn(publish.ErrChannelClosed),
+			path: "errors.ndjson",
+			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+				return publish.ErrChannelClosed
+			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsShuttingDown},
 		"FullQueue": {
-			path: "errors.ndjson", reporter: beatertest.ErrorReporterFn(publish.ErrFull),
+			path: "errors.ndjson",
+			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+				return publish.ErrFull
+			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue},
 		"InvalidEvent": {
 			path: "invalid-event.ndjson",
@@ -139,7 +145,7 @@ func TestIntakeHandler(t *testing.T) {
 				tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
 			}
 			// call handler
-			h := Handler(tc.processor, tc.reporter)
+			h := Handler(tc.processor, tc.batchProcessor)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -159,13 +165,13 @@ func TestIntakeHandler(t *testing.T) {
 }
 
 type testcaseIntakeHandler struct {
-	c         *request.Context
-	w         *httptest.ResponseRecorder
-	r         *http.Request
-	processor *stream.Processor
-	rateLimit *ratelimit.Store
-	reporter  func(ctx context.Context, p publish.PendingReq) error
-	path      string
+	c              *request.Context
+	w              *httptest.ResponseRecorder
+	r              *http.Request
+	processor      *stream.Processor
+	rateLimit      *ratelimit.Store
+	batchProcessor model.BatchProcessor
+	path           string
 
 	code int
 	id   request.ResultID
@@ -176,8 +182,8 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 		cfg := config.DefaultConfig()
 		tc.processor = stream.BackendProcessor(cfg)
 	}
-	if tc.reporter == nil {
-		tc.reporter = beatertest.NilReporter
+	if tc.batchProcessor == nil {
+		tc.batchProcessor = model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
 	}
 
 	if tc.r == nil {

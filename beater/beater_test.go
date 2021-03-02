@@ -37,7 +37,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
@@ -151,26 +150,18 @@ func newTestBeater(
 	createBeater := NewCreator(CreatorParams{
 		Logger: logger,
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
-			return func(ctx context.Context, args ServerParams) error {
-				// Wrap the reporter so we can intercept the
-				// onboarding doc, to extract the listen address.
-				origReporter := args.Reporter
-				args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
-					for _, tf := range req.Transformables {
-						switch tf := tf.(type) {
-						case *model.Transaction:
-							// Add a label to test that everything
-							// goes through the wrapped reporter.
-							if tf.Labels == nil {
-								tf.Labels = common.MapStr{}
-							}
-							tf.Labels["wrapped_reporter"] = true
-						}
+			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+				for _, tx := range batch.Transactions {
+					// Add a label to test that everything
+					// goes through the wrapped reporter.
+					if tx.Labels == nil {
+						tx.Labels = common.MapStr{}
 					}
-					return origReporter(ctx, req)
+					tx.Labels["wrapped_reporter"] = true
 				}
-				return runServer(ctx, args)
+				return nil
 			}
+			return WrapRunServerWithProcessors(runServer, processor)
 		},
 	})
 

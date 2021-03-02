@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -57,7 +56,7 @@ const (
 )
 
 // Handler returns a request.Handler for managing profile requests.
-func Handler(report publish.Reporter) request.Handler {
+func Handler(processor model.BatchProcessor) request.Handler {
 	handle := func(c *request.Context) (*result, error) {
 		if c.Request.Method != http.MethodPost {
 			return nil, requestError{
@@ -165,15 +164,15 @@ func Handler(report publish.Reporter) request.Handler {
 			}
 		}
 
-		transformables := make([]transform.Transformable, len(profiles))
+		modelProfiles := make([]*model.PprofProfile, len(profiles))
 		for i, p := range profiles {
-			transformables[i] = model.PprofProfile{
+			modelProfiles[i] = &model.PprofProfile{
 				Metadata: profileMetadata,
 				Profile:  p,
 			}
 		}
 
-		if err := report(c.Request.Context(), publish.PendingReq{Transformables: transformables}); err != nil {
+		if err := processor.ProcessBatch(c.Request.Context(), &model.Batch{Profiles: modelProfiles}); err != nil {
 			switch err {
 			case publish.ErrChannelClosed:
 				return nil, requestError{
@@ -188,7 +187,7 @@ func Handler(report publish.Reporter) request.Handler {
 			}
 			return nil, err
 		}
-		return &result{Accepted: len(transformables)}, nil
+		return &result{Accepted: len(modelProfiles)}, nil
 	}
 	return func(c *request.Context) {
 		result, err := handle(c)

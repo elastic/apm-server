@@ -22,8 +22,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
@@ -36,13 +34,15 @@ func TestProcessUnsampled(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
-	transaction := &model.Transaction{
-		TraceID: "0102030405060708090a0b0c0d0e0f10",
-		ID:      "0102030405060708",
-		Sampled: newBool(false),
+	in := &model.Batch{
+		Transactions: []*model.Transaction{{
+			TraceID: "0102030405060708090a0b0c0d0e0f10",
+			ID:      "0102030405060708",
+			Sampled: newBool(false),
+		}},
 	}
-	in := []transform.Transformable{transaction}
-	out, err := processor.ProcessTransformables(context.Background(), in)
+	out := cloneBatch(in)
+	err = processor.ProcessBatch(context.Background(), out)
 	require.NoError(t, err)
 
 	// Unsampled transaction should be reported immediately.
@@ -92,14 +92,20 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 		ID:      "0102030405060711",
 	}
 
-	in := []transform.Transformable{transaction1, transaction2, span1, span2}
-	out, err := processor.ProcessTransformables(context.Background(), in)
+	batch := &model.Batch{
+		Transactions: []*model.Transaction{transaction1, transaction2},
+		Spans:        []*model.Span{span1, span2},
+	}
+	err = processor.ProcessBatch(context.Background(), batch)
 	require.NoError(t, err)
 
 	// Tail sampling decision already made. The first transaction and span should be
 	// reported immediately, whereas the second ones should be written storage since
 	// they were received after the trace sampling entry expired.
-	assert.Equal(t, []transform.Transformable{transaction1, span1}, out)
+	assert.Equal(t, &model.Batch{
+		Transactions: []*model.Transaction{transaction1},
+		Spans:        []*model.Span{span1},
+	}, batch)
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 4
@@ -165,10 +171,13 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		}},
 	}
 
-	in := append(trace1Events.Transformables(), trace2Events.Transformables()...)
-	out, err := processor.ProcessTransformables(context.Background(), in)
+	in := &model.Batch{
+		Transactions: append(trace1Events.Transactions[:], trace2Events.Transactions...),
+		Spans:        append(trace1Events.Spans[:], trace2Events.Spans...),
+	}
+	err = processor.ProcessBatch(context.Background(), in)
 	require.NoError(t, err)
-	assert.Empty(t, out)
+	assert.Equal(t, 0, in.Len())
 
 	// Start periodic tail-sampling. We start the processor after processing
 	// events to ensure all events are processed before any local sampling
@@ -251,14 +260,16 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	for i := range traceIDs {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		traceIDs[i] = traceID
-		tx := &model.Transaction{
-			TraceID:  traceID,
-			ID:       traceID,
-			Duration: 1,
+		batch := model.Batch{
+			Transactions: []*model.Transaction{{
+				TraceID:  traceID,
+				ID:       traceID,
+				Duration: 1,
+			}},
 		}
-		out, err := processor.ProcessTransformables(context.Background(), []transform.Transformable{tx})
+		err := processor.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
-		assert.Empty(t, out)
+		assert.Equal(t, 0, batch.Len())
 	}
 
 	// Stop the processor so we can access the database.
@@ -306,23 +317,24 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	// Send transactions which would match either policy defined above.
 	rng := rand.New(rand.NewSource(0))
 	metadata := model.Metadata{Service: model.Service{Name: "service_name"}}
-	var events []transform.Transformable
+	numTransactions := 100
+	events := &model.Batch{Transactions: make([]*model.Transaction, numTransactions)}
 	for i := 0; i < 100; i++ {
 		var traceIDBytes [16]byte
 		_, err := rng.Read(traceIDBytes[:])
 		require.NoError(t, err)
-		events = append(events, &model.Transaction{
+		events.Transactions[i] = &model.Transaction{
 			Metadata: metadata,
 			Name:     "trace_name",
 			TraceID:  fmt.Sprintf("%x", traceIDBytes[:]),
 			ID:       fmt.Sprintf("%x", traceIDBytes[8:]),
 			Duration: 123,
-		})
+		}
 	}
 
-	out, err := processor.ProcessTransformables(context.Background(), events)
+	err = processor.ProcessBatch(context.Background(), events)
 	require.NoError(t, err)
-	assert.Empty(t, out)
+	assert.Equal(t, 0, events.Len())
 
 	// Start periodic tail-sampling. We start the processor after processing
 	// events to ensure all events are processed before any local sampling
@@ -332,7 +344,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	// The first matching policy should win, and sample 50%.
-	for i := 0; i < len(events)/2; i++ {
+	for i := 0; i < numTransactions/2; i++ {
 		select {
 		case <-published:
 		case <-time.After(10 * time.Second):
@@ -360,15 +372,15 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	subscriber := pubsubtest.SubscriberChan(subscriberChan)
 	config.Elasticsearch = pubsubtest.Client(publisher, subscriber)
 
-	reported := make(chan []transform.Transformable)
-	config.Reporter = func(ctx context.Context, req publish.PendingReq) error {
+	reported := make(chan *model.Batch)
+	config.BatchProcessor = model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case reported <- req.Transformables:
+		case reported <- batch:
 			return nil
 		}
-	}
+	})
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -377,7 +389,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
-	trace1Events := model.Batch{
+	trace1Events := &model.Batch{
 		Spans: []*model.Span{{
 			TraceID:  traceID1,
 			ID:       "0102030405060709",
@@ -385,10 +397,10 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		}},
 	}
 
-	in := trace1Events.Transformables()
-	out, err := processor.ProcessTransformables(context.Background(), in)
+	in := cloneBatch(trace1Events)
+	err = processor.ProcessBatch(context.Background(), in)
 	require.NoError(t, err)
-	assert.Empty(t, out)
+	assert.Equal(t, 0, in.Len())
 
 	// Simulate receiving remote sampling decisions multiple times,
 	// to show that we don't report duplicate events.
@@ -397,7 +409,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	subscriberChan <- traceID2
 	subscriberChan <- traceID1
 
-	var events []transform.Transformable
+	var events *model.Batch
 	select {
 	case events = <-reported:
 	case <-time.After(10 * time.Second):
@@ -419,7 +431,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
-	assert.Equal(t, trace1Events.Transformables(), events)
+	assert.Equal(t, trace1Events, events)
 
 	withBadger(t, config.StorageDir, func(db *badger.DB) {
 		storage := eventstorage.New(db, eventstorage.JSONCodec{}, time.Minute)
@@ -458,14 +470,16 @@ func TestGroupsMonitoring(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	for i := 0; i < config.MaxDynamicServices+1; i++ {
-		_, err := processor.ProcessTransformables(context.Background(), []transform.Transformable{&model.Transaction{
-			Metadata: model.Metadata{
-				Service: model.Service{Name: fmt.Sprintf("service_%d", i)},
-			},
-			TraceID:  uuid.Must(uuid.NewV4()).String(),
-			ID:       "0102030405060709",
-			Duration: 123,
-		}})
+		err := processor.ProcessBatch(context.Background(), &model.Batch{
+			Transactions: []*model.Transaction{{
+				Metadata: model.Metadata{
+					Service: model.Service{Name: fmt.Sprintf("service_%d", i)},
+				},
+				TraceID:  uuid.Must(uuid.NewV4()).String(),
+				ID:       "0102030405060709",
+				Duration: 123,
+			}},
+		})
 		require.NoError(t, err)
 	}
 
@@ -486,13 +500,16 @@ func TestStorageMonitoring(t *testing.T) {
 	defer processor.Stop(context.Background())
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
-		out, err := processor.ProcessTransformables(context.Background(), []transform.Transformable{&model.Transaction{
-			TraceID:  traceID,
-			ID:       traceID,
-			Duration: 123,
-		}})
+		batch := model.Batch{
+			Transactions: []*model.Transaction{{
+				TraceID:  traceID,
+				ID:       traceID,
+				Duration: 123,
+			}},
+		}
+		err := processor.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
-		assert.Empty(t, out)
+		assert.Equal(t, 0, batch.Len())
 	}
 
 	// Stop the processor and create a new one, which will reopen storage
@@ -525,13 +542,16 @@ func TestStorageGC(t *testing.T) {
 		defer processor.Stop(context.Background())
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
-			out, err := processor.ProcessTransformables(context.Background(), []transform.Transformable{&model.Span{
-				TraceID:  traceID,
-				ID:       traceID,
-				Duration: 123,
-			}})
+			batch := model.Batch{
+				Spans: []*model.Span{{
+					TraceID:  traceID,
+					ID:       traceID,
+					Duration: 123,
+				}},
+			}
+			err := processor.ProcessBatch(context.Background(), &batch)
 			require.NoError(t, err)
-			assert.Empty(t, out)
+			assert.Equal(t, 0, batch.Len())
 		}
 	}
 
@@ -588,8 +608,8 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 	return sampling.Config{
-		BeatID:   "local-apm-server",
-		Reporter: func(ctx context.Context, req publish.PendingReq) error { return nil },
+		BeatID:         "local-apm-server",
+		BatchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil }),
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         time.Second,
 			MaxDynamicServices:    1000,
@@ -672,4 +692,11 @@ func collectProcessorMetrics(p *sampling.Processor) monitoring.FlatSnapshot {
 
 func newBool(v bool) *bool {
 	return &v
+}
+
+func cloneBatch(in *model.Batch) *model.Batch {
+	return &model.Batch{
+		Transactions: in.Transactions[:],
+		Spans:        in.Spans[:],
+	}
 }

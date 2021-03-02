@@ -36,8 +36,8 @@ import (
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana"
-	processor "github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/processor/otel"
 )
 
 // ElasticAuthTag is the name of the agent tag that will be used for auth.
@@ -64,11 +64,11 @@ type Server struct {
 }
 
 // NewServer creates a new Server.
-func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*Server, error) {
+func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, processor model.BatchProcessor) (*Server, error) {
 	if !cfg.JaegerConfig.GRPC.Enabled && !cfg.JaegerConfig.HTTP.Enabled {
 		return nil, nil
 	}
-	traceConsumer := &processor.Consumer{Reporter: reporter}
+	traceConsumer := &otel.Consumer{Processor: processor}
 
 	srv := &Server{logger: logger}
 	if cfg.JaegerConfig.GRPC.Enabled {
@@ -109,7 +109,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 			srv.grpc.server,
 			authBuilder, cfg.JaegerConfig.GRPC.AuthTag,
 			logger,
-			reporter,
+			processor,
 			client, fetcher,
 		)
 	}
@@ -141,7 +141,7 @@ func RegisterGRPCServices(
 	authBuilder *authorization.Builder,
 	authTag string,
 	logger *logp.Logger,
-	reporter publish.Reporter,
+	processor model.BatchProcessor,
 	kibanaClient kibana.Client,
 	agentcfgFetcher *agentcfg.Fetcher,
 ) {
@@ -149,7 +149,7 @@ func RegisterGRPCServices(
 	if authTag != "" {
 		auth = makeAuthFunc(authTag, authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action))
 	}
-	traceConsumer := &processor.Consumer{Reporter: reporter}
+	traceConsumer := &otel.Consumer{Processor: processor}
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{logger, auth, traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, kibanaClient, agentcfgFetcher})
 }

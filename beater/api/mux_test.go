@@ -18,6 +18,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,6 +30,8 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
@@ -46,7 +49,9 @@ func requestToMuxerWithHeader(cfg *config.Config, pattern string, method string,
 }
 
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, beatertest.NilReporter)
+	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
+	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +84,9 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[re
 }
 
 func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, beatertest.NilReporter)
+	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
+	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor)
 	require.NoError(t, err)
 	return mux
 }
