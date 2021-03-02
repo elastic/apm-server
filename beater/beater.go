@@ -388,8 +388,8 @@ func (s *serverRunner) run() error {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
 		// the publisher to avoid affecting aggregations.
-		batchProcessor = wrapBatchProcessor(
-			batchProcessor, sampling.NewDiscardUnsampledBatchProcessor(),
+		batchProcessor = chainBatchProcessors(
+			sampling.NewDiscardUnsampledBatchProcessor(), batchProcessor,
 		)
 	}
 
@@ -619,19 +619,20 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 		return runServer
 	}
 	return func(ctx context.Context, args ServerParams) error {
-		args.BatchProcessor = wrapBatchProcessor(args.BatchProcessor, processors...)
+		processors = append(processors, args.BatchProcessor)
+		args.BatchProcessor = chainBatchProcessors(processors...)
 		return runServer(ctx, args)
 	}
 }
 
-func wrapBatchProcessor(final model.BatchProcessor, pre ...model.BatchProcessor) model.BatchProcessor {
+func chainBatchProcessors(processors ...model.BatchProcessor) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		for _, p := range pre {
+		for _, p := range processors {
 			if err := p.ProcessBatch(ctx, batch); err != nil {
 				return err
 			}
 		}
-		return final.ProcessBatch(ctx, batch)
+		return nil
 	})
 }
 
