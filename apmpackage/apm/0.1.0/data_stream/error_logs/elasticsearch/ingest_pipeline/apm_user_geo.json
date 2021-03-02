@@ -5,17 +5,17 @@
       "geoip": {
         "database_file": "GeoLite2-City.mmdb",
         "field": "client.ip",
+        "target_field": "client.geo",
         "ignore_missing": true,
         "on_failure": [
           {
             "remove": {
               "field": "client.ip",
-              "ignore_failure": true,
-              "ignore_missing": true
+              "ignore_missing": true,
+              "ignore_failure": true
             }
           }
-        ],
-        "target_field": "client.geo"
+        ]
       }
     }
   ]
