@@ -9,7 +9,7 @@ categories:
   - monitoring
 release: experimental # experimental / beta / ga
 conditions:
-  kibana.version: '^7.12.0'
+  kibana.version: "^7.12.0"
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
