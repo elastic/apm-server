@@ -66,8 +66,8 @@ type ServerParams struct {
 	// for self-instrumentation.
 	Tracer *apm.Tracer
 
-	// BatchProcessor is the model.BathcProcessor that the
-	// APM Server should use for processing events.
+	// BatchProcessor is the model.BatchProcessor that is used
+	// for publishing events to the output, such as Elasticsearch.
 	BatchProcessor model.BatchProcessor
 }
 
