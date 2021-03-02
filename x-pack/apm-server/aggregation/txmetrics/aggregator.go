@@ -42,6 +42,8 @@ const (
 	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
 	// "too many groups" log messages are logged.
 	tooManyGroupsLoggerRateLimit = time.Minute
+
+	metricsetName = "transaction"
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
@@ -365,6 +367,7 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, counts []int64, values []float64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: ts,
+		Name:      metricsetName,
 		Metadata: model.Metadata{
 			Service: model.Service{
 				Name:        key.serviceName,

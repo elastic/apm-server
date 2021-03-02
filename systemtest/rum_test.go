@@ -21,14 +21,18 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -91,6 +95,30 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 	)
 }
 
+func TestRUMAuth(t *testing.T) {
+	// The RUM endpoint does not require auth. Start the server
+	// with a randomly generated secret token to show that RUM
+	// events can be sent without passing the secret token.
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	secretToken := strconv.Itoa(rng.Int())
+
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.SecretToken = secretToken
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	sendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions.ndjson")
+
+	req, _ := http.NewRequest("GET", srv.URL+"/config/v1/rum/agents", nil)
+	req.Header.Add("Content-Type", "application/json")
+	req.URL.RawQuery = url.Values{"service.name": []string{"service_name"}}.Encode()
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
 func sendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
 	t.Helper()
 
@@ -112,6 +140,19 @@ func sendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile s
 func uploadSourcemap(t *testing.T, srv *apmservertest.Server, sourcemapFile, bundleFilepath, serviceName, serviceVersion string) {
 	t.Helper()
 
+	req := newUploadSourcemapRequest(t, srv, sourcemapFile, bundleFilepath, serviceName, serviceVersion)
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
+}
+
+func newUploadSourcemapRequest(t *testing.T, srv *apmservertest.Server, sourcemapFile, bundleFilepath, serviceName, serviceVersion string) *http.Request {
+	t.Helper()
+
 	var data bytes.Buffer
 	mw := multipart.NewWriter(&data)
 	require.NoError(t, mw.WriteField("service_name", serviceName))
@@ -129,11 +170,5 @@ func uploadSourcemap(t *testing.T, srv *apmservertest.Server, sourcemapFile, bun
 
 	req, _ := http.NewRequest("POST", srv.URL+"/assets/v1/sourcemaps", &data)
 	req.Header.Add("Content-Type", mw.FormDataContentType())
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
+	return req
 }

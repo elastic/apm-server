@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-server/datastreams"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -85,6 +84,9 @@ type Metricset struct {
 	// instance, such as a hash of the labels used for aggregating the
 	// metrics.
 	TimeseriesInstanceID string
+
+	// Name holds an optional name for the metricset.
+	Name string
 }
 
 // Sample represents a single named metric.
@@ -160,9 +162,9 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 		return nil
 	}
 
-	fields := common.MapStr{}
+	fields := mapStr{}
 	for _, sample := range me.Samples {
-		if err := sample.set(fields); err != nil {
+		if err := sample.set(common.MapStr(fields)); err != nil {
 			logp.NewLogger(logs.Transform).Warnf("failed to transform sample %#v", sample)
 			continue
 		}
@@ -174,27 +176,31 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 		for _, count := range me.Samples[0].Counts {
 			total += count
 		}
-		fields.Put("_doc_count", total)
+		fields["_doc_count"] = total
 	}
 
-	me.Metadata.Set(fields, me.Labels)
+	me.Metadata.set(&fields, me.Labels)
 
 	var isInternal bool
 	if eventFields := me.Event.fields(); eventFields != nil {
 		isInternal = true
-		utility.DeepUpdate(fields, metricsetEventKey, eventFields)
+		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetEventKey: eventFields})
 	}
 	if transactionFields := me.Transaction.fields(); transactionFields != nil {
 		isInternal = true
-		utility.DeepUpdate(fields, metricsetTransactionKey, transactionFields)
+		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetTransactionKey: transactionFields})
 	}
 	if spanFields := me.Span.fields(); spanFields != nil {
 		isInternal = true
-		utility.DeepUpdate(fields, metricsetSpanKey, spanFields)
+		common.MapStr(fields).DeepUpdate(common.MapStr{metricsetSpanKey: spanFields})
 	}
 
 	if me.TimeseriesInstanceID != "" {
 		fields["timeseries"] = common.MapStr{"instance": me.TimeseriesInstanceID}
+	}
+
+	if me.Name != "" {
+		fields["metricset.name"] = me.Name
 	}
 
 	fields["processor"] = metricsetProcessorEntry
@@ -214,7 +220,7 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 	}
 
 	return []beat.Event{{
-		Fields:    fields,
+		Fields:    common.MapStr(fields),
 		Timestamp: me.Timestamp,
 	}}
 }

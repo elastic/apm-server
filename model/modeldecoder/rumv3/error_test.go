@@ -175,9 +175,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Page.URL.Set("https://my.site.test:9201")
 		var out model.Error
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
-		assert.Equal(t, "https://my.site.test:9201", *out.Page.URL.Full)
+		assert.Equal(t, "https://my.site.test:9201", out.Page.URL.Full)
 		assert.Equal(t, 9201, *out.Page.URL.Port)
-		assert.Equal(t, "https", *out.Page.URL.Scheme)
+		assert.Equal(t, "https", out.Page.URL.Scheme)
 	})
 
 	t.Run("loggerName", func(t *testing.T) {
@@ -186,6 +186,6 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var out model.Error
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		require.NotNil(t, out.Log.LoggerName)
-		assert.Equal(t, "default", *out.Log.LoggerName)
+		assert.Equal(t, "default", out.Log.LoggerName)
 	})
 }
