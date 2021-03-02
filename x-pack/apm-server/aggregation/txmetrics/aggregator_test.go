@@ -19,15 +19,13 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 func TestNewAggregatorConfigInvalid(t *testing.T) {
-	report := makeErrReporter(nil)
+	batchProcessor := makeErrBatchProcessor(nil)
 
 	type test struct {
 		config txmetrics.AggregatorConfig
@@ -36,21 +34,21 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 
 	for _, test := range []test{{
 		config: txmetrics.AggregatorConfig{},
-		err:    "Report unspecified",
+		err:    "BatchProcessor unspecified",
 	}, {
 		config: txmetrics.AggregatorConfig{
-			Report: report,
+			BatchProcessor: batchProcessor,
 		},
 		err: "MaxTransactionGroups unspecified or negative",
 	}, {
 		config: txmetrics.AggregatorConfig{
-			Report:               report,
+			BatchProcessor:       batchProcessor,
 			MaxTransactionGroups: 1,
 		},
 		err: "MetricsInterval unspecified or negative",
 	}, {
 		config: txmetrics.AggregatorConfig{
-			Report:                         report,
+			BatchProcessor:                 batchProcessor,
 			MaxTransactionGroups:           1,
 			MetricsInterval:                time.Nanosecond,
 			HDRHistogramSignificantFigures: 6,
@@ -65,7 +63,7 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 }
 
 func TestProcessTransformablesOverflow(t *testing.T) {
-	reqs := make(chan publish.PendingReq, 1)
+	batches := make(chan *model.Batch, 1)
 
 	core, observed := observer.New(zapcore.DebugLevel)
 	logger := logp.NewLogger("foo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
@@ -73,7 +71,7 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 	}))
 
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         makeChanReporter(reqs),
+		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           2,
 		MetricsInterval:                time.Microsecond,
 		HDRHistogramSignificantFigures: 1,
@@ -83,31 +81,30 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 
 	// The first two transaction groups will not require immediate publication,
 	// as we have configured the txmetrics with a maximum of two buckets.
-	var input []transform.Transformable
+	var batch model.Batch
 	for i := 0; i < 10; i++ {
-		input = append(input, &model.Transaction{Name: "foo", RepresentativeCount: 1})
-		input = append(input, &model.Transaction{Name: "bar", RepresentativeCount: 1})
+		batch.Transactions = append(batch.Transactions,
+			&model.Transaction{Name: "foo", RepresentativeCount: 1},
+			&model.Transaction{Name: "bar", RepresentativeCount: 1},
+		)
 	}
-	output, err := agg.ProcessTransformables(context.Background(), input)
+	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
-	assert.Equal(t, input, output)
+	assert.Empty(t, batch.Metricsets)
 
 	// The third transaction group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
-		input = append(input, &model.Transaction{
+		batch.Transactions = append(batch.Transactions, &model.Transaction{
 			Name:                "baz",
 			Duration:            float64(time.Minute / time.Millisecond),
 			RepresentativeCount: 1,
 		})
 	}
-	output, err = agg.ProcessTransformables(context.Background(), input)
+	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
-	assert.Len(t, output, len(input)+2)
-	assert.Equal(t, input, output[:len(input)])
+	assert.Len(t, batch.Metricsets, 2)
 
-	for _, tf := range output[len(input):] {
-		m, ok := tf.(*model.Metricset)
-		require.True(t, ok)
+	for _, m := range batch.Metricsets {
 		require.NotNil(t, m)
 		require.False(t, m.Timestamp.IsZero())
 
@@ -145,9 +142,9 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 }
 
 func TestAggregatorRun(t *testing.T) {
-	reqs := make(chan publish.PendingReq, 1)
+	batches := make(chan *model.Batch, 1)
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         makeChanReporter(reqs),
+		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           2,
 		MetricsInterval:                10 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
@@ -172,37 +169,33 @@ func TestAggregatorRun(t *testing.T) {
 	go agg.Run()
 	defer agg.Stop(context.Background())
 
-	req := expectPublish(t, reqs)
-	require.Len(t, req.Transformables, 2)
-	metricsets := make([]*model.Metricset, len(req.Transformables))
-	for i, tf := range req.Transformables {
-		metricsets[i] = tf.(*model.Metricset)
-	}
-	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
+	batch := expectBatch(t, batches)
+	require.Len(t, batch.Metricsets, 2)
+	sort.Slice(batch.Metricsets, func(i, j int) bool {
+		return batch.Metricsets[i].Transaction.Name < batch.Metricsets[j].Transaction.Name
 	})
 
-	assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
-	assert.Equal(t, []int64{1000}, metricsets[0].Samples[0].Counts)
-	assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
-	assert.Equal(t, []int64{800}, metricsets[1].Samples[0].Counts)
+	assert.Equal(t, "T-1000", batch.Metricsets[0].Transaction.Name)
+	assert.Equal(t, []int64{1000}, batch.Metricsets[0].Samples[0].Counts)
+	assert.Equal(t, "T-800", batch.Metricsets[1].Transaction.Name)
+	assert.Equal(t, []int64{800}, batch.Metricsets[1].Samples[0].Counts)
 
 	select {
-	case <-reqs:
+	case <-batches:
 		t.Fatal("unexpected publish")
 	case <-time.After(100 * time.Millisecond):
 	}
 }
 
 func TestAggregatorRunPublishErrors(t *testing.T) {
-	reqs := make(chan publish.PendingReq, 1)
-	chanReporter := makeChanReporter(reqs)
-	reportErr := errors.New("report failed")
-	report := func(ctx context.Context, req publish.PendingReq) error {
-		if err := chanReporter(ctx, req); err != nil {
+	batches := make(chan *model.Batch, 1)
+	chanBatchProcessor := makeChanBatchProcessor(batches)
+	processBatchErr := errors.New("report failed")
+	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		if err := chanBatchProcessor(ctx, batch); err != nil {
 			return err
 		}
-		return reportErr
+		return processBatchErr
 	}
 
 	core, observed := observer.New(zapcore.DebugLevel)
@@ -211,7 +204,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	}))
 
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         report,
+		BatchProcessor:                 batchProcessor,
 		MaxTransactionGroups:           2,
 		MetricsInterval:                10 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
@@ -228,7 +221,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 			RepresentativeCount: 1,
 		})
 		require.Nil(t, metricset)
-		expectPublish(t, reqs)
+		expectBatch(t, batches)
 	}
 
 	// Wait for aggregator to stop before checking logs, to ensure we don't race with logging.
@@ -239,15 +232,14 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	for _, record := range logs {
 		require.Len(t, record.Context, 1)
 		assert.Equal(t, "error", record.Context[0].Key)
-		assert.Equal(t, reportErr, record.Context[0].Interface)
+		assert.Equal(t, processBatchErr, record.Context[0].Interface)
 	}
 }
 
 func TestAggregateRepresentativeCount(t *testing.T) {
-	reqs := make(chan publish.PendingReq, 1)
-
+	batches := make(chan *model.Batch, 1)
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         makeChanReporter(reqs),
+		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           1,
 		MetricsInterval:                time.Microsecond,
 		HDRHistogramSignificantFigures: 1,
@@ -311,11 +303,10 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 	// group were accumulated with some degree of accuracy. i.e. we should
 	// receive round(1+1.5)=3; the fractional values should not have been
 	// truncated.
-	req := expectPublish(t, reqs)
-	require.Len(t, req.Transformables, 1)
-	metricset := req.Transformables[0].(*model.Metricset)
-	require.Len(t, metricset.Samples, 1)
-	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, metricset.Samples[0].Counts)
+	batch := expectBatch(t, batches)
+	require.Len(t, batch.Metricsets, 1)
+	require.Len(t, batch.Metricsets[0].Samples, 1)
+	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, batch.Metricsets[0].Samples[0].Counts)
 }
 
 func TestHDRHistogramSignificantFigures(t *testing.T) {
@@ -328,9 +319,9 @@ func TestHDRHistogramSignificantFigures(t *testing.T) {
 
 func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 	t.Run(fmt.Sprintf("%d_sigfigs", sigfigs), func(t *testing.T) {
-		reqs := make(chan publish.PendingReq, 1)
+		batches := make(chan *model.Batch, 1)
 		agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-			Report:                         makeChanReporter(reqs),
+			BatchProcessor:                 makeChanBatchProcessor(batches),
 			MaxTransactionGroups:           2,
 			MetricsInterval:                10 * time.Millisecond,
 			HDRHistogramSignificantFigures: sigfigs,
@@ -361,20 +352,19 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 		go agg.Run()
 		defer agg.Stop(context.Background())
 
-		req := expectPublish(t, reqs)
-		require.Len(t, req.Transformables, 1)
+		batch := expectBatch(t, batches)
+		require.Len(t, batch.Metricsets, 1)
 
-		metricset := req.Transformables[0].(*model.Metricset)
-		require.Len(t, metricset.Samples, 1)
-		assert.Len(t, metricset.Samples[0].Counts, len(metricset.Samples[0].Values))
-		assert.Len(t, metricset.Samples[0].Counts, sigfigs)
+		require.Len(t, batch.Metricsets[0].Samples, 1)
+		assert.Len(t, batch.Metricsets[0].Samples[0].Counts, len(batch.Metricsets[0].Samples[0].Values))
+		assert.Len(t, batch.Metricsets[0].Samples[0].Counts, sigfigs)
 	})
 }
 
 func TestAggregationFields(t *testing.T) {
-	reqs := make(chan publish.PendingReq, 1)
+	batches := make(chan *model.Batch, 1)
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         makeChanReporter(reqs),
+		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           1000,
 		MetricsInterval:                100 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
@@ -397,9 +387,9 @@ func TestAggregationFields(t *testing.T) {
 		&input.Metadata.System.Kubernetes.PodName,
 	}
 
-	var expected []model.Metricset
+	var expected []*model.Metricset
 	addExpectedCount := func(expectedCount int64) {
-		expected = append(expected, model.Metricset{
+		expected = append(expected, &model.Metricset{
 			Name:     "transaction",
 			Metadata: input.Metadata,
 			Event: model.MetricsetEventCategorization{
@@ -447,20 +437,17 @@ func TestAggregationFields(t *testing.T) {
 	}
 	addExpectedCount(4)
 
-	var output []model.Metricset
-	req := expectPublish(t, reqs)
-	for _, tf := range req.Transformables {
-		ms := tf.(*model.Metricset)
+	batch := expectBatch(t, batches)
+	for _, ms := range batch.Metricsets {
 		ms.Timestamp = time.Time{}
 		ms.TimeseriesInstanceID = ""
-		output = append(output, *ms)
 	}
-	assert.ElementsMatch(t, expected, output)
+	assert.ElementsMatch(t, expected, batch.Metricsets)
 }
 
 func BenchmarkAggregateTransaction(b *testing.B) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		Report:                         makeErrReporter(nil),
+		BatchProcessor:                 makeErrBatchProcessor(nil),
 		MaxTransactionGroups:           1000,
 		MetricsInterval:                time.Minute,
 		HDRHistogramSignificantFigures: 2,
@@ -480,26 +467,26 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	})
 }
 
-func makeErrReporter(err error) publish.Reporter {
-	return func(context.Context, publish.PendingReq) error { return err }
+func makeErrBatchProcessor(err error) model.ProcessBatchFunc {
+	return func(context.Context, *model.Batch) error { return err }
 }
 
-func makeChanReporter(ch chan<- publish.PendingReq) publish.Reporter {
-	return func(ctx context.Context, req publish.PendingReq) error {
+func makeChanBatchProcessor(ch chan<- *model.Batch) model.ProcessBatchFunc {
+	return func(ctx context.Context, batch *model.Batch) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case ch <- req:
+		case ch <- batch:
 			return nil
 		}
 	}
 }
 
-func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingReq {
+func expectBatch(t *testing.T, ch <-chan *model.Batch) *model.Batch {
 	t.Helper()
 	select {
-	case req := <-ch:
-		return req
+	case batch := <-ch:
+		return batch
 	case <-time.After(time.Second):
 		t.Fatal("expected publish")
 	}

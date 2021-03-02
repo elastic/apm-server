@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
@@ -19,8 +19,9 @@ type Config struct {
 	// BeatID holds the unique ID of this apm-server.
 	BeatID string
 
-	// Reporter holds the publish.Reporter, for publishing tail-sampled trace events.
-	Reporter publish.Reporter
+	// BatchProcessor holds the model.BatchProcessor, for asynchronously processing
+	// tail-sampled trace events.
+	BatchProcessor model.BatchProcessor
 
 	LocalSamplingConfig
 	RemoteSamplingConfig
@@ -151,8 +152,8 @@ func (config Config) Validate() error {
 	if config.BeatID == "" {
 		return errors.New("BeatID unspecified")
 	}
-	if config.Reporter == nil {
-		return errors.New("Reporter unspecified")
+	if config.BatchProcessor == nil {
+		return errors.New("BatchProcessor unspecified")
 	}
 	if err := config.LocalSamplingConfig.validate(); err != nil {
 		return errors.Wrap(err, "invalid local sampling config")

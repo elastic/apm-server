@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 )
 
@@ -48,9 +47,9 @@ func BenchmarkProcess(b *testing.B) {
 				ID:       hex.EncodeToString(spanID),
 				ParentID: spanParentID,
 			}
-			if _, err := processor.ProcessTransformables(context.Background(), []transform.Transformable{
-				transaction,
-				span, span, span,
+			if err := processor.ProcessBatch(context.Background(), &model.Batch{
+				Transactions: []*model.Transaction{transaction},
+				Spans:        []*model.Span{span, span, span},
 			}); err != nil {
 				b.Fatal(err)
 			}

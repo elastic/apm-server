@@ -14,31 +14,29 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 func BenchmarkAggregateSpan(b *testing.B) {
 	agg, err := NewAggregator(AggregatorConfig{
-		Report:    makeErrReporter(nil),
-		Interval:  time.Minute,
-		MaxGroups: 1000,
+		BatchProcessor: makeErrBatchProcessor(nil),
+		Interval:       time.Minute,
+		MaxGroups:      1000,
 	})
 	require.NoError(b, err)
 
 	span := makeSpan("test_service", "agent", "test_destination", "success", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			agg.ProcessTransformables(
+			agg.ProcessBatch(
 				context.Background(),
-				[]transform.Transformable{span},
+				&model.Batch{Spans: []*model.Span{span}},
 			)
 		}
 	})
 }
 
 func TestNewAggregatorConfigInvalid(t *testing.T) {
-	report := makeErrReporter(nil)
+	report := makeErrBatchProcessor(nil)
 
 	type test struct {
 		config AggregatorConfig
@@ -47,16 +45,16 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 
 	for _, test := range []test{{
 		config: AggregatorConfig{},
-		err:    "Report unspecified",
+		err:    "BatchProcessor unspecified",
 	}, {
 		config: AggregatorConfig{
-			Report: report,
+			BatchProcessor: report,
 		},
 		err: "MaxGroups unspecified or negative",
 	}, {
 		config: AggregatorConfig{
-			Report:    report,
-			MaxGroups: 1,
+			BatchProcessor: report,
+			MaxGroups:      1,
 		},
 		err: "Interval unspecified or negative",
 	}} {
@@ -68,11 +66,11 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 }
 
 func TestAggregatorRun(t *testing.T) {
-	reqs := make(chan publish.PendingReq, 1)
+	batches := make(chan *model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
-		Report:    makeChanReporter(reqs),
-		Interval:  10 * time.Millisecond,
-		MaxGroups: 1000,
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       10 * time.Millisecond,
+		MaxGroups:      1000,
 	})
 	require.NoError(t, err)
 
@@ -102,11 +100,11 @@ func TestAggregatorRun(t *testing.T) {
 		go func(in input) {
 			defer wg.Done()
 			span := makeSpan(in.serviceName, in.agentName, in.destination, in.outcome, 100*time.Millisecond, in.count)
-			transformables := []transform.Transformable{span}
+			batch := &model.Batch{Spans: []*model.Span{span}}
 			for i := 0; i < 100; i++ {
-				out, err := agg.ProcessTransformables(context.Background(), transformables)
+				err := agg.ProcessBatch(context.Background(), batch)
 				require.NoError(t, err)
-				assert.Equal(t, transformables, out)
+				assert.Empty(t, batch.Metricsets)
 			}
 		}(in)
 	}
@@ -116,13 +114,10 @@ func TestAggregatorRun(t *testing.T) {
 	go agg.Run()
 	defer agg.Stop(context.Background())
 
-	req := expectPublish(t, reqs)
-	metricsets := make([]*model.Metricset, len(req.Transformables))
-	for i, tf := range req.Transformables {
-		ms := tf.(*model.Metricset)
+	batch := expectBatch(t, batches)
+	for _, ms := range batch.Metricsets {
 		require.NotZero(t, ms.Timestamp)
 		ms.Timestamp = time.Time{}
-		metricsets[i] = ms
 	}
 
 	assert.ElementsMatch(t, []*model.Metricset{{
@@ -189,47 +184,48 @@ func TestAggregatorRun(t *testing.T) {
 			{Name: "span.destination.service.response_time.sum.us", Value: 10000000.0},
 			{Name: "metricset.period", Value: 10},
 		},
-	}}, metricsets)
+	}}, batch.Metricsets)
 
 	select {
-	case <-reqs:
+	case <-batches:
 		t.Fatal("unexpected publish")
 	case <-time.After(100 * time.Millisecond):
 	}
 }
 
 func TestAggregatorOverflow(t *testing.T) {
-	reqs := make(chan publish.PendingReq, 1)
+	batches := make(chan *model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
-		Report:    makeChanReporter(reqs),
-		Interval:  10 * time.Millisecond,
-		MaxGroups: 2,
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       10 * time.Millisecond,
+		MaxGroups:      2,
 	})
 	require.NoError(t, err)
 
 	// The first two transaction groups will not require immediate publication,
 	// as we have configured the spanmetrics with a maximum of two buckets.
-	var input []transform.Transformable
+	var batch model.Batch
 	for i := 0; i < 10; i++ {
-		input = append(input, makeSpan("service", "agent", "destination1", "success", 100*time.Millisecond, 1))
-		input = append(input, makeSpan("service", "agent", "destination2", "success", 100*time.Millisecond, 1))
+		batch.Spans = append(batch.Spans,
+			makeSpan("service", "agent", "destination1", "success", 100*time.Millisecond, 1),
+			makeSpan("service", "agent", "destination2", "success", 100*time.Millisecond, 1),
+		)
 	}
-	output, err := agg.ProcessTransformables(context.Background(), input)
+	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
-	assert.Equal(t, input, output)
+	assert.Empty(t, batch.Metricsets)
 
 	// The third group will return a metricset for immediate publication.
 	for i := 0; i < 2; i++ {
-		input = append(input, makeSpan("service", "agent", "destination3", "success", 100*time.Millisecond, 1))
+		batch.Spans = append(batch.Spans,
+			makeSpan("service", "agent", "destination3", "success", 100*time.Millisecond, 1),
+		)
 	}
-	output, err = agg.ProcessTransformables(context.Background(), input)
+	err = agg.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
-	assert.Len(t, output, len(input)+2)
-	assert.Equal(t, input, output[:len(input)])
+	assert.Len(t, batch.Metricsets, 2)
 
-	for _, tf := range output[len(input):] {
-		m, ok := tf.(*model.Metricset)
-		require.True(t, ok)
+	for _, m := range batch.Metricsets {
 		require.NotNil(t, m)
 		require.False(t, m.Timestamp.IsZero())
 
@@ -274,26 +270,26 @@ func makeSpan(
 	return span
 }
 
-func makeErrReporter(err error) publish.Reporter {
-	return func(context.Context, publish.PendingReq) error { return err }
+func makeErrBatchProcessor(err error) model.BatchProcessor {
+	return model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return err })
 }
 
-func makeChanReporter(ch chan<- publish.PendingReq) publish.Reporter {
-	return func(ctx context.Context, req publish.PendingReq) error {
+func makeChanBatchProcessor(ch chan<- *model.Batch) model.BatchProcessor {
+	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case ch <- req:
+		case ch <- batch:
 			return nil
 		}
-	}
+	})
 }
 
-func expectPublish(t *testing.T, ch <-chan publish.PendingReq) publish.PendingReq {
+func expectBatch(t *testing.T, ch <-chan *model.Batch) *model.Batch {
 	t.Helper()
 	select {
-	case req := <-ch:
-		return req
+	case batch := <-ch:
+		return batch
 	case <-time.After(time.Second * 5):
 		t.Fatal("expected publish")
 	}
