@@ -23,6 +23,12 @@
         "pipeline": {
           "name": "apm_remove_span_metadata"
         }
+      },
+      {
+        "pipeline": {
+          "name": "apm_error_grouping_name",
+          "if": "ctx.processor?.event == 'error'"
+        }
       }
     ]
   }
@@ -95,6 +101,27 @@
           "service.node", "service.version", "service.language", "service.runtime", "service.framework"],
           "ignore_missing": true,
           "ignore_failure": true
+        }
+      }
+    ]
+  }
+},
+{
+  "id": "apm_error_grouping_name",
+  "body": {
+    "description" : "Set error.grouping_name for APM error events",
+    "processors" : [
+      {
+        "script" : {
+          "source": "ctx.error.grouping_name = ctx.error.exception[0].message",
+          "if": "ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0"
+        }
+      },
+      {
+        "set" : {
+          "field": "error.grouping_name",
+          "copy_from": "error.log.message",
+          "if": "ctx.error?.log?.message != null"
         }
       }
     ]
