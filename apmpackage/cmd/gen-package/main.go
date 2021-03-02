@@ -52,7 +52,9 @@ func main() {
 	clear(packageVersion)
 	inputFields := generateFields(packageVersion)
 	for dataStream := range inputFields {
-		generatePipelines(packageVersion, dataStream)
+		if err := generatePipelines(packageVersion, dataStream); err != nil {
+			log.Fatal(err)
+		}
 	}
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
