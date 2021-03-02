@@ -3,6 +3,7 @@
   "processors": [
     {
       "remove": {
+        "if": "ctx.processor?.event == 'span'",
         "field": [
           "host",
           "process",
@@ -16,9 +17,8 @@
           "service.runtime",
           "service.framework"
         ],
-        "if": "ctx.processor?.event == 'span'",
-        "ignore_failure": true,
-        "ignore_missing": true
+        "ignore_missing": true,
+        "ignore_failure": true
       }
     }
   ]
