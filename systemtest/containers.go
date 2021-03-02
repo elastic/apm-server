@@ -363,8 +363,9 @@ func (c *ElasticAgentContainer) Start() error {
 	// Update request from user-definable fields.
 	if c.FleetEnrollmentToken != "" {
 		c.request.Env["FLEET_ENROLL"] = "1"
-		c.request.Env["FLEET_ENROLL_INSECURE"] = "1"
 		c.request.Env["FLEET_ENROLLMENT_TOKEN"] = c.FleetEnrollmentToken
+		c.request.Env["FLEET_INSECURE"] = "1"
+		c.request.Env["FLEET_URL"] = "http://kibana:5601"
 	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
