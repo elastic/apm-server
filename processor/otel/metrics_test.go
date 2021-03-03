@@ -45,7 +45,6 @@ import (
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -192,15 +191,12 @@ func TestConsumeMetrics(t *testing.T) {
 }
 
 func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, otel.ConsumerStats) {
-	var metricsets []*model.Metricset
-	reporter := func(ctx context.Context, req publish.PendingReq) error {
-		for _, tf := range req.Transformables {
-			metricsets = append(metricsets, tf.(*model.Metricset))
-		}
-		return nil
-	}
-	consumer := &otel.Consumer{Reporter: reporter}
+	var batches []*model.Batch
+	recorder := batchRecorderBatchProcessor(&batches)
+
+	consumer := &otel.Consumer{Processor: recorder}
 	err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
-	return metricsets, consumer.Stats()
+	require.Len(t, batches, 1)
+	return batches[0].Metricsets, consumer.Stats()
 }

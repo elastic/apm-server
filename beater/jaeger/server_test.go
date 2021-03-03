@@ -47,7 +47,7 @@ import (
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -357,16 +357,14 @@ type testcase struct {
 }
 
 func (tc *testcase) setup(t *testing.T) {
-	reporter := func(ctx context.Context, req publish.PendingReq) error {
-		for _, transformable := range req.Transformables {
-			tc.events = append(tc.events, transformable.Transform(ctx, &transform.Config{})...)
-		}
+	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		tc.events = append(tc.events, batch.Transform(ctx, &transform.Config{})...)
 		return nil
 	}
 
 	var err error
 	tc.tracer = apmtest.NewRecordingTracer()
-	tc.server, err = NewServer(logp.NewLogger("jaeger"), tc.cfg, tc.tracer.Tracer, reporter)
+	tc.server, err = NewServer(logp.NewLogger("jaeger"), tc.cfg, tc.tracer.Tracer, batchProcessor)
 	require.NoError(t, err)
 	if tc.server == nil {
 		return

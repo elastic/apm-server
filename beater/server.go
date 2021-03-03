@@ -37,6 +37,7 @@ import (
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/kibana"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -65,27 +66,36 @@ type ServerParams struct {
 	// for self-instrumentation.
 	Tracer *apm.Tracer
 
-	// Reporter is the publish.Reporter that the APM Server
-	// should use for reporting events.
-	Reporter publish.Reporter
+	// BatchProcessor is the model.BatchProcessor that is used
+	// for publishing events to the output, such as Elasticsearch.
+	BatchProcessor model.BatchProcessor
 }
 
-// runServer runs the APM Server until a fatal error occurs, or ctx is cancelled.
-func runServer(ctx context.Context, args ServerParams) error {
-	srv, err := newServer(args.Logger, args.Info, args.Config, args.Tracer, args.Reporter)
-	if err != nil {
-		return err
-	}
-	done := make(chan struct{})
-	defer close(done)
-	go func() {
-		select {
-		case <-ctx.Done():
-			srv.stop()
-		case <-done:
+// newBaseRunServer returns the base RunServerFunc.
+//
+// reporter is the publish.Reporter that the server should use
+// uploading sourcemaps and publishing its onboarding doc.
+// Everything else should be using ServerParams.BatchProcessor.
+//
+// Once we remove sourcemap uploading and onboarding docs, we
+// should remove the reporter parameter.
+func newBaseRunServer(reporter publish.Reporter) RunServerFunc {
+	return func(ctx context.Context, args ServerParams) error {
+		srv, err := newServer(args.Logger, args.Info, args.Config, args.Tracer, reporter, args.BatchProcessor)
+		if err != nil {
+			return err
 		}
-	}()
-	return srv.run()
+		done := make(chan struct{})
+		defer close(done)
+		go func() {
+			select {
+			case <-ctx.Done():
+				srv.stop()
+			case <-done:
+			}
+		}()
+		return srv.run()
+	}
 }
 
 type server struct {
@@ -95,19 +105,18 @@ type server struct {
 	httpServer   *httpServer
 	grpcServer   *grpc.Server
 	jaegerServer *jaeger.Server
-	reporter     publish.Reporter
 }
 
-func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
-	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter)
+func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor) (server, error) {
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor)
 	if err != nil {
 		return server{}, err
 	}
-	grpcServer, err := newGRPCServer(logger, cfg, tracer, reporter, httpServer.TLSConfig)
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig)
 	if err != nil {
 		return server{}, err
 	}
-	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, reporter)
+	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor)
 	if err != nil {
 		return server{}, err
 	}
@@ -117,12 +126,11 @@ func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *
 		httpServer:   httpServer,
 		grpcServer:   grpcServer,
 		jaegerServer: jaegerServer,
-		reporter:     reporter,
 	}, nil
 }
 
 func newGRPCServer(
-	logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, tlsConfig *tls.Config,
+	logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, batchProcessor model.BatchProcessor, tlsConfig *tls.Config,
 ) (*grpc.Server, error) {
 	// TODO(axw) share auth builder with beater/api.
 	authBuilder, err := authorization.NewBuilder(cfg)
@@ -141,8 +149,8 @@ func newGRPCServer(
 		kibanaClient = kibana.NewConnectingClient(&cfg.Kibana)
 		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
 	}
-	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, reporter, kibanaClient, agentcfgFetcher)
-	if err := otlp.RegisterGRPCServices(srv, reporter, logger); err != nil {
+	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, kibanaClient, agentcfgFetcher)
+	if err := otlp.RegisterGRPCServices(srv, batchProcessor, logger); err != nil {
 		return nil, err
 	}
 	return srv, nil

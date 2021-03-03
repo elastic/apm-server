@@ -32,14 +32,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
-
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -53,8 +50,11 @@ func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 }
 
 func TestHandlerReadStreamError(t *testing.T) {
-	var pendingReqs []publish.PendingReq
-	report := tests.TestReporter(&pendingReqs)
+	var batches []*model.Batch
+	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		batches = append(batches, batch)
+		return nil
+	})
 
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
@@ -62,25 +62,25 @@ func TestHandlerReadStreamError(t *testing.T) {
 	timeoutReader := iotest.TimeoutReader(bodyReader)
 
 	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-	actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, timeoutReader, report)
+	actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, timeoutReader, processor)
 	assertApproveResult(t, actualResult, "ReadError")
 }
 
 func TestHandlerReportingStreamError(t *testing.T) {
 	for _, test := range []struct {
-		name   string
-		report func(ctx context.Context, p publish.PendingReq) error
+		name      string
+		processor model.BatchProcessor
 	}{
 		{
 			name: "ShuttingDown",
-			report: func(ctx context.Context, p publish.PendingReq) error {
+			processor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
 				return publish.ErrChannelClosed
-			},
+			}),
 		}, {
 			name: "QueueFull",
-			report: func(ctx context.Context, p publish.PendingReq) error {
+			processor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
 				return publish.ErrFull
-			},
+			}),
 		},
 	} {
 
@@ -89,7 +89,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 		bodyReader := bytes.NewBuffer(b)
 
 		sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-		actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, bodyReader, test.report)
+		actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, bodyReader, test.processor)
 		assertApproveResult(t, actualResult, test.name)
 	}
 }
@@ -122,12 +122,12 @@ func TestIntegrationESOutput(t *testing.T) {
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
-			report := makeApproveEventsReporter(t, name)
+			batchProcessor := makeApproveEventsBatchProcessor(t, name)
 
 			reqDecoderMeta := &model.Metadata{System: model.System{IP: net.ParseIP("192.0.0.1")}}
 
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
+			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bodyReader, batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -149,14 +149,14 @@ func TestIntegrationRum(t *testing.T) {
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
-			report := makeApproveEventsReporter(t, name)
+			batchProcessor := makeApproveEventsBatchProcessor(t, name)
 
 			reqDecoderMeta := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, report)
+			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -178,24 +178,20 @@ func TestRUMV3(t *testing.T) {
 			name := fmt.Sprintf("test_approved_es_documents/testIntake%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx := utility.ContextWithRequestTime(context.Background(), reqTimestamp)
-			report := makeApproveEventsReporter(t, name)
+			batchProcessor := makeApproveEventsBatchProcessor(t, name)
 
 			reqDecoderMeta := model.Metadata{
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, report)
+			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
 }
 
 func TestRateLimiting(t *testing.T) {
-	report := func(ctx context.Context, p publish.PendingReq) error {
-		return nil
-	}
-
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/ratelimit.ndjson")
 	require.NoError(t, err)
 	for _, test := range []struct {
@@ -216,20 +212,23 @@ func TestRateLimiting(t *testing.T) {
 			}
 
 			actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
-				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), report)
+				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), nopBatchProcessor{})
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
 }
 
-func makeApproveEventsReporter(t *testing.T, name string) publish.Reporter {
-	return func(ctx context.Context, p publish.PendingReq) error {
-		var events []beat.Event
-		for _, transformable := range p.Transformables {
-			events = append(events, transformable.Transform(ctx, &transform.Config{DataStreams: true})...)
-		}
+func makeApproveEventsBatchProcessor(t *testing.T, name string) model.BatchProcessor {
+	return model.ProcessBatchFunc(func(ctx context.Context, b *model.Batch) error {
+		events := b.Transform(ctx, &transform.Config{DataStreams: true})
 		docs := beatertest.EncodeEventDocs(events...)
 		approvaltest.ApproveEventDocs(t, name, docs)
 		return nil
-	}
+	})
+}
+
+type nopBatchProcessor struct{}
+
+func (nopBatchProcessor) ProcessBatch(context.Context, *model.Batch) error {
+	return nil
 }
