@@ -3,7 +3,7 @@ import time
 from apmserver import integration_test
 from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest, ProcStartupFailureTest
 from helper import wait_until
-from es_helper import index_smap, index_metric, index_transaction, index_error, index_span, index_onboarding, index_name
+from es_helper import index_smap, index_transaction, index_error, index_span, index_onboarding, index_name
 
 
 @integration_test
@@ -77,14 +77,6 @@ class Test(ElasticTest):
         self.approve_docs('error', error_docs)
 
         self.check_backend_error_sourcemap(index_error, count=4)
-
-    def test_load_docs_with_template_and_add_metricset(self):
-        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 3)
-        self.assert_no_logged_warnings()
-
-        # compare existing ES documents for metricsets with new ones
-        metricset_docs = self.wait_for_events('metric', 3, index=index_metric)
-        self.approve_docs('metricset', metricset_docs)
 
 
 @integration_test
@@ -302,18 +294,6 @@ class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
         """expvar enabled, should 200"""
         r = self.get_debug_vars()
         assert r.status_code == 200, r.status_code
-
-
-@integration_test
-class MetricsIntegrationTest(ElasticTest):
-    def test_metric_doc(self):
-        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 3)
-        mappings = self.es.indices.get_field_mapping(
-            index=index_metric, fields="system.process.cpu.total.norm.pct")
-        expected_type = "scaled_float"
-        doc = mappings[self.ilm_index(index_metric)]["mappings"]
-        actual_type = doc["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
-        assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
 
 @integration_test

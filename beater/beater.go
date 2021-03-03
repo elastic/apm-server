@@ -408,7 +408,10 @@ func (s *serverRunner) run() error {
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
-	var processors []model.BatchProcessor
+	processors := []model.BatchProcessor{
+		// Set metricset.name for well-known agent metrics.
+		modelprocessor.SetMetricsetName{},
+	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,

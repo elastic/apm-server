@@ -19,6 +19,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Add `apm-server.default_service_environment` config {pull}4861[4861]
 * Transaction histogram metrics are now recorded by default {pull}4882[4882]
 * Add `error.grouping_name` field to speed up error grouping aggregations {pull}4886[4886]
+* Set metricset.name for breakdown metrics {pull}4910[4910]
 
 [float]
 ==== Deprecated
