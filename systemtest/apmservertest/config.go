@@ -223,11 +223,18 @@ func (c *HeapProfilingConfig) MarshalJSON() ([]byte, error) {
 
 // OutputConfig holds APM Server libbeat output configuration.
 type OutputConfig struct {
-	Elasticsearch *ElasticsearchOutputConfig `json:"elasticsearch"`
+	Console       *ConsoleOutputConfig       `json:"console,omitempty"`
+	Elasticsearch *ElasticsearchOutputConfig `json:"elasticsearch,omitempty"`
+}
+
+// ConsolehOutputConfig holds APM Server libbeat console output configuration.
+type ConsoleOutputConfig struct {
+	Enabled bool `json:"enabled"`
 }
 
 // ElasticsearchOutputConfig holds APM Server libbeat Elasticsearch output configuration.
 type ElasticsearchOutputConfig struct {
+	Enabled  bool     `json:"enabled"`
 	Hosts    []string `json:"hosts,omitempty"`
 	Username string   `json:"username,omitempty"`
 	Password string   `json:"password,omitempty"`
@@ -412,16 +419,7 @@ func DefaultConfig() Config {
 			Username: getenvDefault("KIBANA_USER", defaultKibanaUser),
 			Password: getenvDefault("KIBANA_PASS", defaultKibanaPass),
 		},
-		Output: OutputConfig{
-			Elasticsearch: &ElasticsearchOutputConfig{
-				Hosts: []string{net.JoinHostPort(
-					getenvDefault("ES_HOST", defaultElasticsearchHost),
-					getenvDefault("ES_PORT", defaultElasticsearchPort),
-				)},
-				Username: getenvDefault("ES_USER", defaultElasticsearchUser),
-				Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
-			},
-		},
+		Output: defaultOutputConfig(),
 		Setup: &SetupConfig{
 			IndexTemplate: IndexTemplateConfig{
 				Shards:          1,
@@ -435,6 +433,31 @@ func DefaultConfig() Config {
 			},
 		},
 	}
+}
+
+// defaultOutputConfig enables overriding the default output, and is used to
+// default to console output in tests for apmservertest itself. This is needed
+// to avoid interacting with Elasticsearch, which would cause systemtest tests
+// to fail as they assume sole access to Elasticsearch.
+func defaultOutputConfig() OutputConfig {
+	var outputConfig OutputConfig
+	switch v := os.Getenv("APMSERVERTEST_DEFAULT_OUTPUT"); v {
+	case "console":
+		outputConfig.Console = &ConsoleOutputConfig{Enabled: true}
+	case "":
+		outputConfig.Elasticsearch = &ElasticsearchOutputConfig{
+			Enabled: true,
+			Hosts: []string{net.JoinHostPort(
+				getenvDefault("ES_HOST", defaultElasticsearchHost),
+				getenvDefault("ES_PORT", defaultElasticsearchPort),
+			)},
+			Username: getenvDefault("ES_USER", defaultElasticsearchUser),
+			Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
+		}
+	default:
+		panic("APMSERVERTEST_DEFAULT_OUTPUT has unexpected value: " + v)
+	}
+	return outputConfig
 }
 
 // KibanaPort returns the Kibana port, configured using
