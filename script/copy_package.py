@@ -83,7 +83,8 @@ if __name__ == "__main__":
 
     # copy over the package and replace version in manifest and pipeline names
     shutil.copytree(src, dst)
-    cmd = 'find {0} -not -name "*.png" -type f -print0 | xargs -0 sed -i "" "s/{1}/{2}/g"'.format(dst, original_version, next_version)
+    cmd = 'find {0} -not -name "*.png" -type f -print0 | xargs -0 sed -i "" "s/{1}/{2}/g"'.format(
+        dst, original_version, next_version)
 
     out = subprocess.check_output(cmd, shell=True)
     if out:
