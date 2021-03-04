@@ -20,6 +20,12 @@
       "pipeline": {
         "name": "metrics-apm.app-0.1.0-apm_remove_span_metadata"
       }
+    },
+    {
+      "pipeline": {
+        "name": "metrics-apm.app-0.1.0-apm_error_grouping_name",
+        "if": "ctx.processor?.event == 'error'"
+      }
     }
   ]
 }
