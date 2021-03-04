@@ -26,6 +26,8 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 )
 
+// Transformable is an interface implemented by all top-level model objects for
+// translating to beat.Events.
 type Transformable interface {
 	Transform(context.Context, *Config) []beat.Event
 }

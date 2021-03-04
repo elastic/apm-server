@@ -4,9 +4,9 @@
     {
       "user_agent": {
         "field": "user_agent.original",
-        "ignore_failure": true,
+        "target_field": "user_agent",
         "ignore_missing": true,
-        "target_field": "user_agent"
+        "ignore_failure": true
       }
     }
   ]

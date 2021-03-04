@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 )
@@ -65,7 +66,7 @@ const (
 )
 
 // NewMux registers apm handlers to paths building up the APM Server API.
-func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Reporter) (*http.ServeMux, error) {
+func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Reporter, batchProcessor model.BatchProcessor) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
@@ -76,10 +77,11 @@ func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Repo
 	}
 
 	builder := routeBuilder{
-		info:        beatInfo,
-		cfg:         beaterConfig,
-		authBuilder: auth,
-		reporter:    report,
+		info:           beatInfo,
+		cfg:            beaterConfig,
+		authBuilder:    auth,
+		reporter:       report,
+		batchProcessor: batchProcessor,
 	}
 
 	type route struct {
@@ -115,31 +117,32 @@ func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Repo
 }
 
 type routeBuilder struct {
-	info        beat.Info
-	cfg         *config.Config
-	authBuilder *authorization.Builder
-	reporter    publish.Reporter
+	info           beat.Info
+	cfg            *config.Config
+	authBuilder    *authorization.Builder
+	reporter       publish.Reporter
+	batchProcessor model.BatchProcessor
 }
 
 func (r *routeBuilder) profileHandler() (request.Handler, error) {
-	h := profile.Handler(r.reporter)
+	h := profile.Handler(r.batchProcessor)
 	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, profile.MonitoringMap)...)
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.BackendProcessor(r.cfg), r.reporter)
+	h := intake.Handler(stream.BackendProcessor(r.cfg), r.batchProcessor)
 	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, authHandler, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) rumIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.RUMV2Processor(r.cfg), r.reporter)
+	h := intake.Handler(stream.RUMV2Processor(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
 }
 
 func (r *routeBuilder) rumV3IntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.RUMV3Processor(r.cfg), r.reporter)
+	h := intake.Handler(stream.RUMV3Processor(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, rumMiddleware(r.cfg, nil, intake.MonitoringMap)...)
 }
 
@@ -170,7 +173,7 @@ func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, 
 	if cfg.Kibana.Enabled {
 		client = kibana.NewConnectingClient(&cfg.Kibana)
 	}
-	h := agent.Handler(client, cfg.AgentConfig)
+	h := agent.Handler(client, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
 	msg := "Agent remote configuration is disabled. " +
 		"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
 		"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +

@@ -91,7 +91,7 @@ func newElasticsearchConfig() elasticsearch.Config {
 // and deletes the default ILM policy "apm-rollover-30-days".
 func CleanupElasticsearch(t testing.TB) {
 	const (
-		legacyPrefix     = "apm-*"
+		legacyPrefix     = "apm*" // Not "apm-*", as that would not capture the "apm" ingest pipeline.
 		apmTracesPrefix  = "traces-apm*"
 		apmMetricsPrefix = "metrics-apm*"
 		apmLogsPrefix    = "logs-apm*"
@@ -134,11 +134,6 @@ func CleanupElasticsearch(t testing.TB) {
 		esapi.IndicesDeleteIndexTemplateRequest{Name: apmMetricsPrefix},
 		esapi.IndicesDeleteIndexTemplateRequest{Name: apmLogsPrefix},
 	)
-
-	// Refresh indices to ensure all recent changes are visible.
-	if err := doReq(esapi.IndicesRefreshRequest{}); err != nil {
-		t.Fatal(err)
-	}
 
 	// Delete index templates after deleting data streams.
 	if err := doReq(esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}); err != nil {

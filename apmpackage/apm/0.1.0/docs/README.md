@@ -12,52 +12,27 @@ Make sure to configure the APM Server `host` if it needs to be accessed from out
 If you have RUM enabled, you must run APM Server centrally. Otherwise, you can run it at the edge machines.
 To do so, download and enroll an Elastic Agent in the same machines where your instrumented services run.
 
-If you want to change the default APM Server configuration, you need to edit the `elastic-agent.yml` policy file manually.
-Find the input with `type:apm` and add any settings under `apm-server`.
-For instance:
+Note that template, pipeline and ILM settings cannot be configured through this file - they are installed by the integration,
+If you need additional pipelines, override ILM policies, etc; you must do it externally.
 
-```yaml
-inputs:
-  - id: ba928403-d7b8-4c09-adcb-d670c5eac89c
-    name: apm-1
-    revision: 1
-    type: apm
-    use_output: default
-    meta:
-      package:
-        name: apm
-        version: 0.1.0
-    data_stream:
-      namespace: default
-    apm-server:
-      rum:
-        enabled: true
-        event_rate.limit: 100
-      secret_token: changeme
-```
+#### Data Streams
 
-Note that template, pipeline and ILM settings cannot be configured through this file - Templates and pipelines are installed by the integration,
-and ILM policies must be created externally. If you need additional pipelines, they must also be created externally.
+When using the APM integration, apm events are indexed into data streams. Data stream names contain the event type,
+the service name, and a user configurable namespace.
 
-#### Namespace
-
-When you create a policy in the Fleet UI, under "Advanced Settings" you can choose a Namespace.
-In future versions, data streams created by the APM integration will include the service name,
-and you will be recommended to use the environment as namespace.
-
-This version doesn't automatically use the service name, so the recommendation instead is to use
-both the service name and the environment as the namespace.
+There is no specific recommendaton for what to use as a namespace; it is intentionally flexible.
+You might use the environment (production, testing, development) as the namespace,
+or alternatively you could namespace data by business unit. It is your choice.
 
 ## Compatibility and limitations
 
-The APM integration requires Kibana 7.11 and Elasticsearch with basic license.
+The APM integration requires Kibana 7.12 and Elasticsearch with basic license.
 This version is experimental and has some limitations, listed bellow:
 
-You must update the policy with any changes you need and restart the APM Server process.
-- Sourcemap enrichment is not yet supported.
-- There is no default ILM policy for traces (spans and transactions).
-- You can't use an Elastic Agent enrolled before 7.11 with an APM integration.
-- Only a handful of configuration options are supported yet. 
+- Sourcemaps need to be uploaded to Elasticsearch directly.
+- You need to create specific API keys for sourcemaps and central configuration.
+- You can't use an Elastic Agent enrolled before 7.12.
+- Not all settings are supported.
 
 IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
 
@@ -411,7 +386,7 @@ Traces are written to `traces-apm.*` indices.
 ## Metrics
 
 Metrics include application-based metrics and some basic system metrics.
-Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-apm.profiling.*` indices.
+Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*` and `metrics-apm.profiling.*` indices.
 
 **Exported Fields**
 
@@ -600,7 +575,8 @@ Logs are written to `logs-apm.error.*` indices.
 |error.exception.message|The original error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.module|The module namespace of the original error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.type|The type of the original error, e.g. the Java exception class name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.grouping\_key|GroupingKey of the logged error for use in grouping.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|error.grouping\_key|Hash of select properties of the logged error for grouping purposes.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|error.grouping\_name|Name to associate with an error group. Errors belonging to the same group (same grouping\_key) may have differing values for grouping\_name. Consumers may choose one arbitrarily.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.id|The ID of the error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |error.log.level|The severity of the record.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.log.logger\_name|The name of the logger instance used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -692,6 +668,7 @@ Logs are written to `logs-apm.error.*` indices.
   },
   "error": {
     "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+    "grouping_name": "Cannot read property 'baz' of undefined",
     "id": "0f0e9d67c1854d21a6f44673ed561ec8",
     "log": {
       "level": "custom log level",

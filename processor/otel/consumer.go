@@ -52,7 +52,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 )
 
 const (
@@ -69,7 +68,7 @@ const (
 type Consumer struct {
 	stats consumerStats
 
-	Reporter publish.Reporter
+	Processor model.BatchProcessor
 }
 
 // ConsumerStats holds a snapshot of statistics about data consumption.
@@ -96,10 +95,7 @@ func (c *Consumer) Stats() ConsumerStats {
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
 	batch := c.convert(traces)
-	return c.Reporter(ctx, publish.PendingReq{
-		Transformables: batch.Transformables(),
-		Trace:          true,
-	})
+	return c.Processor.ProcessBatch(ctx, batch)
 }
 
 func (c *Consumer) convert(td pdata.Traces) *model.Batch {

@@ -54,6 +54,7 @@ type ServiceDestinationAggregationConfig struct {
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
 		Transactions: TransactionAggregationConfig{
+			Enabled:                        true,
 			Interval:                       defaultTransactionAggregationInterval,
 			MaxTransactionGroups:           defaultTransactionAggregationMaxGroups,
 			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,

@@ -127,7 +127,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
-						"enabled":                          true,
+						"enabled":                          false,
 						"interval":                         "1s",
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
@@ -136,6 +136,7 @@ func TestUnpackConfig(t *testing.T) {
 						"max_groups": 456,
 					},
 				},
+				"default_service_environment": "overridden",
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -222,7 +223,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Enabled:                        true,
+						Enabled:                        false,
 						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
@@ -245,6 +246,7 @@ func TestUnpackConfig(t *testing.T) {
 						TTL:                   30 * time.Minute,
 					},
 				},
+				DefaultServiceEnvironment: "overridden",
 			},
 		},
 		"merge config with default": {
@@ -278,7 +280,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				"jaeger.grpc.enabled":                      true,
 				"api_key.enabled":                          true,
-				"aggregation.transactions.enabled":         true,
+				"aggregation.transactions.enabled":         false,
 				"aggregation.service_destinations.enabled": false,
 				"sampling.keep_unsampled":                  false,
 				"sampling.tail": map[string]interface{}{
@@ -357,7 +359,7 @@ func TestUnpackConfig(t *testing.T) {
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Enabled:                        true,
+						Enabled:                        false,
 						Interval:                       time.Minute,
 						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,

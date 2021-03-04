@@ -19,6 +19,7 @@ package apmservertest_test
 
 import (
 	"net/url"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,6 +27,14 @@ import (
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 )
+
+func TestMain(m *testing.M) {
+	// Ensure events are sent to stdout by default in apmservertest tests,
+	// so we don't pollute Elasticsearch in parallel with systemtest tests
+	// running.
+	os.Setenv("APMSERVERTEST_DEFAULT_OUTPUT", "console")
+	os.Exit(m.Run())
+}
 
 func TestAPMServer(t *testing.T) {
 	srv := apmservertest.NewServer(t)

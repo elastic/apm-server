@@ -46,6 +46,8 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
@@ -343,16 +345,6 @@ func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	runServer := runServer
-	if s.tracerServer != nil {
-		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
-	}
-	if s.wrapRunServer != nil {
-		// Wrap runServer function, enabling injection of
-		// behaviour into the processing/reporting pipeline.
-		runServer = s.wrapRunServer(runServer)
-	}
-
 	transformConfig, err := newTransformConfig(s.beat.Info, s.config)
 	if err != nil {
 		return err
@@ -377,26 +369,52 @@ func (s *serverRunner) run() error {
 	}
 	defer publisher.Stop(s.backgroundContext)
 
+	// Create the runServer function. We start with newBaseRunServer, and then
+	// wrap depending on the configuration in order to inject behaviour.
 	reporter := publisher.Send
+	runServer := newBaseRunServer(reporter)
+	if s.tracerServer != nil {
+		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
+	}
+	if s.wrapRunServer != nil {
+		// Wrap runServer function, enabling injection of
+		// behaviour into the processing/reporting pipeline.
+		runServer = s.wrapRunServer(runServer)
+	}
+	runServer = s.wrapRunServerWithPreprocessors(runServer)
+
+	var batchProcessor model.BatchProcessor = &reporterBatchProcessor{reporter}
 	if !s.config.Sampling.KeepUnsampled {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
 		// the publisher to avoid affecting aggregations.
-		reporter = sampling.NewDiscardUnsampledReporter(reporter)
+		batchProcessor = chainBatchProcessors(
+			sampling.NewDiscardUnsampledBatchProcessor(), batchProcessor,
+		)
 	}
 
 	if err := runServer(s.runServerContext, ServerParams{
-		Info:      s.beat.Info,
-		Config:    s.config,
-		Managed:   s.beat.Manager != nil && s.beat.Manager.Enabled(),
-		Namespace: s.namespace,
-		Logger:    s.logger,
-		Tracer:    s.tracer,
-		Reporter:  reporter,
+		Info:           s.beat.Info,
+		Config:         s.config,
+		Managed:        s.beat.Manager != nil && s.beat.Manager.Enabled(),
+		Namespace:      s.namespace,
+		Logger:         s.logger,
+		Tracer:         s.tracer,
+		BatchProcessor: batchProcessor,
 	}); err != nil {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
+}
+
+func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
+	var processors []model.BatchProcessor
+	if s.config.DefaultServiceEnvironment != "" {
+		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
+			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
+		})
+	}
+	return WrapRunServerWithProcessors(runServer, processors...)
 }
 
 // checkConfig verifies the global configuration doesn't use unsupported settings
@@ -555,7 +573,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	return func(ctx context.Context, args ServerParams) error {
 		g, ctx := errgroup.WithContext(ctx)
 		g.Go(func() error {
-			return tracerServer.serve(ctx, args.Reporter)
+			return tracerServer.serve(ctx, args.BatchProcessor)
 		})
 		g.Go(func() error {
 			return runServer(ctx, args)
@@ -591,4 +609,40 @@ func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcema
 	}
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
 	return sourcemap.NewStore(esClient, index, cfg.Cache.Expiration)
+}
+
+// WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter
+// with a function that event batches are first passed through the given processors
+// in order.
+func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.BatchProcessor) RunServerFunc {
+	if len(processors) == 0 {
+		return runServer
+	}
+	return func(ctx context.Context, args ServerParams) error {
+		processors = append(processors, args.BatchProcessor)
+		args.BatchProcessor = chainBatchProcessors(processors...)
+		return runServer(ctx, args)
+	}
+}
+
+func chainBatchProcessors(processors ...model.BatchProcessor) model.BatchProcessor {
+	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		for _, p := range processors {
+			if err := p.ProcessBatch(ctx, batch); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+type disablePublisherTracingKey struct{}
+
+type reporterBatchProcessor struct {
+	reporter publish.Reporter
+}
+
+func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
+	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
 }
