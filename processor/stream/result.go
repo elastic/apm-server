@@ -18,9 +18,11 @@
 package stream
 
 import (
+	"context"
 	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
+	"github.com/pkg/errors"
 )
 
 type Error struct {
@@ -43,6 +45,7 @@ const (
 	ServerErrType
 	MethodForbiddenErrType
 	RateLimitErrType
+	TimeoutErrType
 )
 
 const (
@@ -58,6 +61,7 @@ var (
 		InputTooLargeErrType: monitoring.NewInt(m, "errors.toolarge"),
 		ShuttingDownErrType:  monitoring.NewInt(m, "errors.server"),
 		ServerErrType:        monitoring.NewInt(m, "errors.closed"),
+		TimeoutErrType:       monitoring.NewInt(m, "errors.timeout"),
 	}
 )
 
@@ -88,8 +92,10 @@ func (r *Result) Error() string {
 }
 
 func (r *Result) add(err error, add bool) {
-	e, ok := err.(*Error)
-	if !ok {
+	var e *Error
+	if errors.Is(err, context.Canceled) {
+		e = &Error{Message: "server timeout", Type: TimeoutErrType}
+	} else if !errors.As(err, &e) {
 		e = &Error{Message: err.Error(), Type: ServerErrType}
 	}
 	if add {
