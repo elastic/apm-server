@@ -73,6 +73,9 @@ func TestKeepUnsampledWarning(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
 	srv.Config.Sampling = &apmservertest.SamplingConfig{KeepUnsampled: false}
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		Transactions: &apmservertest.TransactionAggregationConfig{Enabled: false},
+	}
 	require.NoError(t, srv.Start())
 	require.NoError(t, srv.Close())
 
