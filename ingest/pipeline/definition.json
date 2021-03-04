@@ -52,6 +52,7 @@
             "ignore_failure": true
           }
         }
+<<<<<<< HEAD
       ]
     }
   },
@@ -69,6 +70,58 @@
             "on_failure": [
               {
                 "remove": {
+=======
+      },
+      {
+        "pipeline": {
+          "name": "apm_ingest_timestamp"
+        }
+      },
+      {
+        "pipeline": {
+          "name": "apm_remove_span_metadata"
+        }
+      },
+      {
+        "pipeline": {
+          "name": "apm_error_grouping_name",
+          "if": "ctx.processor?.event == 'error'"
+        }
+      }
+    ]
+  }
+},
+{
+  "id": "apm_user_agent",
+  "body": {
+    "description" : "Add user agent information for APM events",
+    "processors" : [
+      {
+        "user_agent" : {
+          "field": "user_agent.original",
+          "target_field": "user_agent",
+          "ignore_missing": true,
+          "ignore_failure": true
+        }
+      }
+    ]
+  }
+},
+{
+  "id": "apm_user_geo",
+  "body": {
+    "description" : "Add user geo information for APM events",
+    "processors" : [
+      {
+        "geoip" : {
+          "database_file": "GeoLite2-City.mmdb",
+          "field": "client.ip",
+          "target_field": "client.geo",
+          "ignore_missing": true,
+          "on_failure": [
+            {
+              "remove": {
+>>>>>>> 0d5f79583... Add error.grouping_name field (#4886)
                   "field": "client.ip",
                   "ignore_missing": true,
                   "ignore_failure": true
@@ -188,4 +241,30 @@
       ]
     }
   }
+<<<<<<< HEAD
 ]
+=======
+},
+{
+  "id": "apm_error_grouping_name",
+  "body": {
+    "description" : "Set error.grouping_name for APM error events",
+    "processors" : [
+      {
+        "script" : {
+          "source": "ctx.error.grouping_name = ctx.error.exception[0].message",
+          "if": "ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0"
+        }
+      },
+      {
+        "set" : {
+          "field": "error.grouping_name",
+          "copy_from": "error.log.message",
+          "if": "ctx.error?.log?.message != null"
+        }
+      }
+    ]
+  }
+}
+]
+>>>>>>> 0d5f79583... Add error.grouping_name field (#4886)
