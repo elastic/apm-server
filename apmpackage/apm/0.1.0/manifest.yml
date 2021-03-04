@@ -5,7 +5,7 @@ version: 0.1.0
 license: basic
 description: Ingest APM data
 type: integration
-categories: ["elastic_stack"]
+categories: ["elastic_stack", "monitoring"]
 release: experimental # experimental / beta / ga
 conditions:
   kibana.version: "^7.12.0"
