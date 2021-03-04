@@ -18,6 +18,7 @@
 package stream
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -58,6 +59,7 @@ func TestMonitoring(t *testing.T) {
 		{monitoringMap[InputTooLargeErrType], 1},
 		{monitoringMap[ShuttingDownErrType], 1},
 		{monitoringMap[ServerErrType], 2},
+		{monitoringMap[TimeoutErrType], 2},
 		{mAccepted, 12},
 	} {
 		// get current value for counter
@@ -73,6 +75,8 @@ func TestMonitoring(t *testing.T) {
 		sr.LimitedAdd(&Error{Type: ServerErrType})
 		sr.LimitedAdd(&Error{Type: InputTooLargeErrType, Message: "err3", Document: "buf3"})
 		sr.Add(&Error{Type: InvalidInputErrType})
+		sr.Add(context.Canceled)
+		sr.Add(context.Canceled)
 
 		assert.Equal(t, ct+test.expected, test.counter.Get())
 	}
