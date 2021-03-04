@@ -502,6 +502,18 @@ type metadataSystem struct {
 	Kubernetes metadataSystemKubernetes `json:"kubernetes"`
 	// Platform name of the system platform the monitored service is running on.
 	Platform nullable.String `json:"platform" validate:"maxLength=1024"`
+	// Memory holds the memory of the system on which the monitored service is
+	// running, in bytes.
+	Memory nullable.Int `json:"memory" validate:"min=1"`
+	// CPUCores holds the number of CPU cores of the system on which the monitored
+	// service is running.
+	CPUCores nullable.Int `json:"cpus" validate:"min=1"`
+	// Network holds information about the network that the system is connected to.
+	// This is only relevant for browsers and mobile devices.
+	//
+	// See https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation for
+	// more details on how these fields should be set and interpreted for browsers.
+	Network metadataSystemNetwork `json:"network"`
 }
 
 type metadataSystemContainer struct {
@@ -528,6 +540,23 @@ type metadataSystemKubernetesPod struct {
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
 	// UID is the system-generated string uniquely identifying the Pod.
 	UID nullable.String `json:"uid" validate:"maxLength=1024"`
+}
+
+type metadataSystemNetwork struct {
+	// Downlink holds the effective bandwidth estimate in megabits per second.
+	Downlink nullable.Int
+
+	// EffectiveType describes the effective network type as one of a
+	// discrete set of network types, e.g. 'slow-2g', '2g', '3g', or '4g'.
+	EffectiveType nullable.String
+
+	// RTT holds the estimated effective round-trip time of the current
+	// connection, in milliseconds.
+	RTT nullable.Int
+
+	// SaveData reports whether or not reduced data usage has been enabled
+	// on the client device.
+	SaveData nullable.Bool
 }
 
 type metricset struct {

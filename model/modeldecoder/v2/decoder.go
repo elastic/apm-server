@@ -512,6 +512,12 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	if from.System.Platform.IsSet() {
 		out.System.Platform = from.System.Platform.Val
 	}
+	if from.System.Memory.IsSet() {
+		out.System.Memory = from.System.Memory.Val
+	}
+	if from.System.CPUCores.IsSet() {
+		out.System.CPUCores = from.System.CPUCores.Val
+	}
 
 	// User
 	if from.User.ID.IsSet() {
