@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f918dd0aa... add license to new files
 // Licensed to Elasticsearch B.V. under one or more contributor
 // license agreements. See the NOTICE file distributed with
 // this work for additional information regarding copyright
@@ -16,8 +19,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+<<<<<<< HEAD
 =======
 >>>>>>> 6c695c6d7... modify result via middleware
+=======
+>>>>>>> f918dd0aa... add license to new files
 package middleware
 
 import (
