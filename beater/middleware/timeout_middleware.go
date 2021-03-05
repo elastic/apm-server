@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Licensed to Elasticsearch B.V. under one or more contributor
 // license agreements. See the NOTICE file distributed with
 // this work for additional information regarding copyright
@@ -15,14 +16,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
+=======
+>>>>>>> 6c695c6d7... modify result via middleware
 package middleware
 
 import (
 	"context"
 
+<<<<<<< HEAD
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/beater/request"
+=======
+	"github.com/elastic/apm-server/beater/request"
+	"github.com/pkg/errors"
+>>>>>>> 6c695c6d7... modify result via middleware
 )
 
 // TimeoutMiddleware assumes that a context.Canceled error indicates a timed out
@@ -36,9 +44,16 @@ func TimeoutMiddleware() Middleware {
 
 			err := c.Request.Context().Err()
 			if errors.Is(err, context.Canceled) {
+<<<<<<< HEAD
 				c.Result.SetDefault(request.IDResponseErrorsTimeout)
 				c.Result.Err = tErr
 				c.Result.Body = tErr.Error()
+=======
+				id := request.IDResponseErrorsTimeout
+				code := request.MapResultIDToStatus[id].Code
+
+				c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, tErr.Error(), tErr)
+>>>>>>> 6c695c6d7... modify result via middleware
 			}
 		}, nil
 	}

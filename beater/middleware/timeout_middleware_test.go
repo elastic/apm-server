@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Licensed to Elasticsearch B.V. under one or more contributor
 // license agreements. See the NOTICE file distributed with
 // this work for additional information regarding copyright
@@ -15,6 +16,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+=======
+>>>>>>> 6c695c6d7... modify result via middleware
 package middleware
 
 import (
@@ -23,9 +26,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+<<<<<<< HEAD
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/request"
+=======
+	"github.com/elastic/apm-server/beater/request"
+	"github.com/stretchr/testify/assert"
+>>>>>>> 6c695c6d7... modify result via middleware
 )
 
 func TestTimeoutMiddleware(t *testing.T) {
