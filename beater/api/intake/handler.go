@@ -95,8 +95,6 @@ L:
 			set(request.MapResultIDToStatus[request.IDResponseErrorsValidate].Code, request.IDResponseErrorsValidate)
 		case stream.RateLimitErrType:
 			set(request.MapResultIDToStatus[request.IDResponseErrorsRateLimit].Code, request.IDResponseErrorsRateLimit)
-		case stream.TimeoutErrType:
-			set(request.MapResultIDToStatus[request.IDResponseErrorsTimeout].Code, request.IDResponseErrorsTimeout)
 		case stream.QueueFullErrType:
 			set(request.MapResultIDToStatus[request.IDResponseErrorsFullQueue].Code, request.IDResponseErrorsFullQueue)
 			break L
