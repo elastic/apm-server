@@ -30,6 +30,7 @@ import (
 	"context"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/beater/request"
@@ -37,6 +38,11 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/pkg/errors"
 >>>>>>> 6c695c6d7... modify result via middleware
+=======
+	"github.com/pkg/errors"
+
+	"github.com/elastic/apm-server/beater/request"
+>>>>>>> 24554c77e... gofmt
 )
 
 // TimeoutMiddleware assumes that a context.Canceled error indicates a timed out

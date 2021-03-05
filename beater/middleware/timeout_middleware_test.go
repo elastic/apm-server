@@ -33,6 +33,7 @@ import (
 	"testing"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/request"
@@ -40,6 +41,11 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/stretchr/testify/assert"
 >>>>>>> 6c695c6d7... modify result via middleware
+=======
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/beater/request"
+>>>>>>> 24554c77e... gofmt
 )
 
 func TestTimeoutMiddleware(t *testing.T) {
