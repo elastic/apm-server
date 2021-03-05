@@ -1,0 +1,88 @@
+[[apm-integration]]
+= APM integration for {agent}
+
+++++
+<titleabbrev>APM integration ({agent})</titleabbrev>
+++++
+
+experimental::[]
+
+{agent} is a single, unified way to add monitoring for logs, metrics, and other types of data to each host.
+The APM integration for {agent} assigns the APM input to a specified policy,
+and installs {es} templates and ingest node pipelines for APM data.
+When {agent} is assigned a policy with an APM input,
+{agent} will run the APM Server binary locally and listen for APM data.
+
+[discrete]
+[[apm-integration-get-started]]
+=== Get started
+
+Ready to jump in?
+Read through the <<apm-integration-limitations,APM integration limitations>>, then head over to the
+Quick start guide: {fleet-guide}/getting-started-traces.html[Get application traces into the {stack}].
+
+[discrete]
+[[apm-integration-considerations]]
+=== Architecture considerations
+
+Real User Monitoring (RUM)::
+If RUM is enabled, you must run {agent} centrally.
+If RUM is disabled, {agent} can be run on edge machines. To do this,
+download and enroll an {agent} on the same machines that your instrumented services run on.
+
+Standalone mode::
+{fleet-guide}/run-elastic-agent-standalone.html[Standalone mode] is not currently supported.
+An {agent} with the APM integration enabled must be managed by fleet.
+
+[discrete]
+[[apm-integration-limitations]]
+=== Limitations
+
+Index lifecycle management (ILM)::
+A default ILM policy, named `traces-apm.traces-default_policy` is created for all event types.
+This policy moves indices to a warm data tier after 30 days.
+No default cold or delete data tier is defined.
+It is not possible to configure this policy in APM Server or {agent}–
+it must be configured with {es} or {kib}.
+See {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] for more information.
+
+Onboarding::
+APM Server no longer writes an onboarding document when setting up.
+
+Incompatible with `apm_user` role::
+The built-in `apm_user` role is not compatible with the APM package
+as it only provides read access to `apm-*` indices.
+Because the new data stream index naming scheme does not follow this pattern,
+users with the `apm_user` role will not be able to view apm data.
+
+Service names::
+Service names are case-insensitive and must be unique.
+See <<apm-integration-service-name>> for more information.
+
+Upgrading from prior {agent} versions::
+Due to changing API key permissions, an Agent enrolled before version 7.11 cannot be used with version 7.12 without generating a new API key and re-enrolling.
+
+[discrete]
+[[apm-integration-versioning]]
+=== Package versioning
+
+The APM package is versioned separately from the Elastic Stack.
+The current version is `0.1.0`. In the future, we may align with Elastic Stack versioning.
+
+[discrete]
+[[apm-integration-learn-more]]
+=== Learn more
+
+* <<input-apm>>
+* <<apm-integration-data-streams>>
+* {fleet-guide}/fleet-overview.html[Fleet overview]
+
+
+include::./data-streams.asciidoc[]
+
+include::./input-apm.asciidoc[]
+
+// APM agents (not to be confused with Elastic agent)
+// send APM data from their instrumented services to APM Server.
+// Don't forget to configure the APM Server host if it needs to be accessible from outside your environment,
+// for example, when running in Docker.

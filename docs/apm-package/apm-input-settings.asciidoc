@@ -1,0 +1,207 @@
+// tag::NAME-setting[]
+|
+[id="input-{input-type}-NAME-setting"]
+`NAME`
+
+| (TYPE) DESCRIPTION.
+
+*Default:* `DEFAULT`
+
+OPTIONAL INFO AND EXAMPLE
+// end::NAME-setting[]
+
+// =============================================================================
+
+// These settings are shared across the docs for multiple inputs. Copy and use
+// the above template to add a shared setting. Replace values in all caps.
+// Use an include statement // to pull the tagged region into your source file:
+// include::input-shared-settings.asciidoc[tag=NAME-setting]
+
+// tag::host-setting[]
+|
+[id="input-{input-type}-host-setting"]
+`host`
+
+| (string) Defines the host and port the server is listening on.
+Use `unix:/path/to.sock` to listen on a unix domain socket.
+
+*Default:* `localhost:8200`
+// end::host-setting[]
+
+// =============================================================================
+
+// tag::secret_token-setting[]
+|
+[id="input-{input-type}-secret_token-setting"]
+`secret_token`
+
+| (string) Authorization token for sending APM data.
+The same token must also be set in each APM agent.
+This token is not used for RUM endpoints.
+By default, no authorization token is set.
+// end::secret_token-setting[]
+
+// =============================================================================
+
+// tag::max_event_bytes-setting[]
+|
+[id="input-{input-type}-max_event_bytes-setting"]
+`max_event_bytes`
+
+| (int) Maximum permitted size of an event accepted by the server to be processed (in Bytes).
+
+*Default:* `307200` Bytes
+// end::max_event_bytes-setting[]
+
+// =============================================================================
+
+// tag::default_service_environment-setting[]
+|
+[id="input-{input-type}-default_service_environment-setting"]
+`default_service_environment`
+
+| (string) The default service environment for events without a defined service environment.
+
+// end::default_service_environment-setting[]
+
+// =============================================================================
+
+// tag::capture_personal_data-setting[]
+|
+[id="input-{input-type}-capture_personal_data-setting"]
+`capture_personal_data`
+
+| (bool) Capture personal data such as IP or User Agent.
+If true, APM Server captures the IP of the instrumented service and its User Agent if any.
+
+*Default:* `true`
+// end::capture_personal_data-setting[]
+
+// =============================================================================
+
+// tag::enable_rum-setting[]
+|
+[id="input-{input-type}-enable_rum-setting"]
+`enable_rum`
+
+| (bool) Enables and disables Real User Monitoring (RUM).
+
+*Default:* `false` (disabled)
+// end::enable_rum-setting[]
+
+// =============================================================================
+
+// tag::rum_allow_origins-setting[]
+|
+[id="input-{input-type}-rum_allow_origins-setting"]
+`rum_allow_origins`
+
+| (string) A list of permitted origins for RUM support.
+User-agents send an Origin header that will be validated against this list.
+This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
+An origin is made of a protocol scheme, host and port, without the URL path.
+
+*Default:* `["*"]` (allows everything)
+// end::rum_allow_origins-setting[]
+
+// =============================================================================
+
+// tag::rum_allow_headers-setting[]
+|
+[id="input-{input-type}-rum_allow_headers-setting"]
+`rum_allow_headers`
+
+| (string) By default, HTTP requests made from the RUM agent to the APM integration are limited in the HTTP headers they are allowed to have.
+If any other headers are added, the request will be rejected by the browser due to Cross-Origin Resource Sharing (CORS) restrictions.
+If you need to add extra headers to these requests, use this configuration to allow additional headers.
+
+The default list of values includes `"Content-Type"`, `"Content-Encoding"`, and `"Accept"`.
+Configured values are appended to the default list and used as the value for the
+`Access-Control-Allow-Headers` header.
+// end::rum_allow_headers-setting[]
+
+// =============================================================================
+
+// tag::rum_response_headers-setting[]
+|
+[id="input-{input-type}-rum_response_headers-setting"]
+`rum_response_headers`
+
+| (yaml) Custom HTTP headers to add to RUM responses. For example, for security policy compliance.
+
+// end::rum_response_headers-setting[]
+
+// =============================================================================
+
+// tag::rum_event_rate_limit-setting[]
+|
+[id="input-{input-type}-rum_event_rate_limit-setting"]
+`rum_event_rate_limit`
+
+| (int) Defines the maximum amount of events allowed to be sent to the APM Server RUM endpoint per ip per second.
+
+*Default:* `300`
+// end::rum_event_rate_limit-setting[]
+
+// =============================================================================
+
+// tag::rum_event_rate_lru_size-setting[]
+|
+[id="input-{input-type}-rum_event_rate_lru_size-setting"]
+`rum_event_rate_lru_size`
+
+| (int) An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
+This setting defines the number of unique IPs that can be tracked in the cache.
+Sites with many concurrent clients should consider increasing this limit.
+
+*Default:* `1000`
+// end::rum_event_rate_lru_size-setting[]
+
+// =============================================================================
+
+// tag::api_key_enabled-setting[]
+|
+[id="input-{input-type}-api_key_enabled-setting"]
+`api_key_enabled`
+
+| (bool) Enable or disable API key authorization between APM Server and APM agents.
+
+*Default:* `false` (disabled)
+// end::api_key_enabled-setting[]
+
+// =============================================================================
+
+// tag::api_key_limit-setting[]
+|
+[id="input-{input-type}-api_key_limit-setting"]
+`api_key_limit`
+
+| (int) Each unique API key triggers one request to Elasticsearch.
+This setting restricts the number of unique API keys are allowed per minute.
+The minimum value for this setting should be the number of API keys configured in your monitored services.
+
+*Default:* `100`
+// end::api_key_limit-setting[]
+
+// =============================================================================
+
+// tag::sourcemap_api_key-setting[]
+|
+[id="input-{input-type}-sourcemap_api_key-setting"]
+`sourcemap_api_key`
+
+| (string) RUM API key for sourcemaps. Formatted as `<Id>:<API Key>`.
+// end::sourcemap_api_key-setting[]
+
+// =============================================================================
+
+// tag::kibana_api_key-setting[]
+|
+[id="input-{input-type}-kibana_api_key-setting"]
+`kibana_api_key`
+
+| (string) API Key for APM central configuration feature. Formatted as `<Id>:<API Key>`.
+
+// end::kibana_api_key-setting[]
+
+// =============================================================================
