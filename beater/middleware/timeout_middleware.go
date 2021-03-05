@@ -20,8 +20,9 @@ package middleware
 import (
 	"context"
 
-	"github.com/elastic/apm-server/beater/request"
 	"github.com/pkg/errors"
+
+	"github.com/elastic/apm-server/beater/request"
 )
 
 // TimeoutMiddleware assumes that a context.Canceled error indicates a timed out

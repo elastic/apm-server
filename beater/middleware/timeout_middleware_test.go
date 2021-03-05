@@ -23,8 +23,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/elastic/apm-server/beater/request"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/beater/request"
 )
 
 func TestTimeoutMiddleware(t *testing.T) {
