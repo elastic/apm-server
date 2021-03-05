@@ -71,6 +71,11 @@ func (r *SearchRequest) WithQuery(q interface{}) *SearchRequest {
 	return r
 }
 
+func (r *SearchRequest) WithSort(fieldDirection ...string) *SearchRequest {
+	r.Sort = fieldDirection
+	return r
+}
+
 func (r *SearchRequest) WithSize(size int) *SearchRequest {
 	r.Size = &size
 	return r
@@ -81,7 +86,8 @@ func (r *SearchRequest) Do(ctx context.Context, out *SearchResult, opts ...Reque
 }
 
 type SearchResult struct {
-	Hits SearchHits `json:"hits"`
+	Hits         SearchHits                 `json:"hits"`
+	Aggregations map[string]json.RawMessage `json:"aggregations"`
 }
 
 type SearchHits struct {

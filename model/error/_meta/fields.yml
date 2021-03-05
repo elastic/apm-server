@@ -249,43 +249,6 @@
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
           overwrite: true
 
-        - name: duration
-          type: group
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-              overwrite: true 
-
-        - name: self_time
-          type: group
-          description: >
-            Portion of the transaction's duration where no direct child was running
-          fields:
-            - name: count
-              type: long
-              overwrite: true 
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-                  overwrite: true 
-
-        - name: breakdown
-          type: group
-          description: >
-            Counter for collected breakdowns for the transaction
-          fields:
-            - name: count
-              type: long
-              overwrite: true 
-
     - name: trace
       type: group
       dynamic: false
@@ -771,6 +734,18 @@
         description: Cloud region name
         example: us-east1
         overwrite: true
+      - name: service
+        type: group
+        dynamic: false
+        fields:
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: >
+            Cloud service name, intended to distinguish services running on
+            different platforms within a provider.
+          overwrite: true
 
     - name: error
       type: group
@@ -818,6 +793,7 @@
             - name: type
               type: keyword
               count: 4
+              description: The type of the original error, e.g. the Java exception class name.
 
             - name: handled
               type: boolean

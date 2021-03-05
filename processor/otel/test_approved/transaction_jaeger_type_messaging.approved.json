@@ -6,17 +6,17 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.unknown",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"
             },
             "parent": {
-                "id": "61626364"
+                "id": "0000000061626364"
             },
             "processor": {
                 "event": "transaction",
@@ -44,7 +44,6 @@
                         "name": "queue-abc"
                     }
                 },
-                "result": "Success",
                 "sampled": true,
                 "type": "messaging"
             }

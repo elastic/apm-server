@@ -6,7 +6,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.unknown",
             "data_stream.type": "traces",
             "destination": {
                 "address": "foo.bar.com",
@@ -22,13 +22,12 @@
             "labels": {
                 "component": "foo",
                 "double_a": 14.65,
-                "error": true,
                 "hasErrors": true,
                 "int_a": 148,
                 "string_a_b": "some note"
             },
             "parent": {
-                "id": "58585858"
+                "id": "0000000058585858"
             },
             "processor": {
                 "event": "span",
@@ -63,7 +62,7 @@
                         "original": "http://foo.bar.com?a=12"
                     }
                 },
-                "id": "41414646",
+                "id": "0000000041414646",
                 "name": "HTTP GET",
                 "subtype": "http",
                 "type": "external"
@@ -72,7 +71,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             }
         },
         {
@@ -81,7 +80,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.unknown",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -107,7 +106,7 @@
                 }
             },
             "parent": {
-                "id": "41414646"
+                "id": "0000000041414646"
             },
             "processor": {
                 "event": "error",
@@ -126,7 +125,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "url": {
                 "domain": "foo.bar.com",
@@ -142,7 +141,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.unknown",
             "data_stream.type": "logs",
             "error": {
                 "grouping_key": "23b7ac1bdf1ca957f9f581cfadee467c",
@@ -163,7 +162,7 @@
                 }
             },
             "parent": {
-                "id": "41414646"
+                "id": "0000000041414646"
             },
             "processor": {
                 "event": "error",
@@ -182,7 +181,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "url": {
                 "domain": "foo.bar.com",
@@ -198,7 +197,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.unknown",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -221,7 +220,7 @@
                 }
             },
             "parent": {
-                "id": "41414646"
+                "id": "0000000041414646"
             },
             "processor": {
                 "event": "error",
@@ -240,7 +239,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "url": {
                 "domain": "foo.bar.com",
@@ -256,7 +255,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.unknown",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -279,7 +278,7 @@
                 }
             },
             "parent": {
-                "id": "41414646"
+                "id": "0000000041414646"
             },
             "processor": {
                 "event": "error",
@@ -298,7 +297,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "url": {
                 "domain": "foo.bar.com",
@@ -314,7 +313,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.unknown",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -337,7 +336,7 @@
                 }
             },
             "parent": {
-                "id": "41414646"
+                "id": "0000000041414646"
             },
             "processor": {
                 "event": "error",
@@ -356,7 +355,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "url": {
                 "domain": "foo.bar.com",
@@ -372,7 +371,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.unknown",
             "data_stream.type": "logs",
             "error": {
                 "grouping_key": "c9221918248f05433f6b81c46a666aee",
@@ -393,7 +392,7 @@
                 }
             },
             "parent": {
-                "id": "41414646"
+                "id": "0000000041414646"
             },
             "processor": {
                 "event": "error",
@@ -412,7 +411,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "url": {
                 "domain": "foo.bar.com",

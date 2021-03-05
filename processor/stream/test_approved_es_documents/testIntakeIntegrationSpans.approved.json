@@ -29,12 +29,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.backendspans",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
@@ -146,12 +149,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.backendspans",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -264,12 +270,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.backendspans",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -386,12 +395,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.backendspans",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "unknown"
@@ -505,12 +517,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.backendspans",
             "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",
@@ -706,12 +721,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.backendspans",
             "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",

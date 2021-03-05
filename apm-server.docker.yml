@@ -137,10 +137,22 @@ apm-server:
       #ssl.enabled: true
 
       # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
-      # Configure SSL verification mode. If `none` is configured, all server hosts
-      # and certificates will be accepted. In this mode, SSL based connections are
-      # susceptible to man-in-the-middle attacks. Use only for testing. Default is
-      # `full`.
+      #
+      # Control the verification of Elasticsearch certificates. Valid values are:
+      # * full, which verifies that the provided certificate is signed by a trusted
+      # authority (CA) and also verifies that the server's hostname (or IP address)
+      # matches the names identified within the certificate.
+      # * strict, which verifies that the provided certificate is signed by a trusted
+      # authority (CA) and also verifies that the server's hostname (or IP address)
+      # matches the names identified within the certificate. If the Subject Alternative
+      # Name is empty, it returns an error.
+      # * certificate, which verifies that the provided certificate is signed by a
+      # trusted authority (CA), but does not perform any hostname verification.
+      #  * none, which performs no verification of the server's certificate. This
+      # mode disables many of the security benefits of SSL/TLS and should only be used
+      # after very careful consideration. It is primarily intended as a temporary
+      # diagnostic mechanism when attempting to resolve TLS errors; its use in
+      # production environments is strongly discouraged.
       #ssl.verification_mode: full
 
       # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
@@ -278,10 +290,22 @@ apm-server:
     #ssl.enabled: true
 
     # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
-    # Configure SSL verification mode. If `none` is configured, all server hosts
-    # and certificates will be accepted. In this mode, SSL based connections are
-    # susceptible to man-in-the-middle attacks. Use only for testing. Default is
-    # `full`.
+    #
+    # Control the verification of Kibana certificates. Valid values are:
+    # * full, which verifies that the provided certificate is signed by a trusted
+    # authority (CA) and also verifies that the server's hostname (or IP address)
+    # matches the names identified within the certificate.
+    # * strict, which verifies that the provided certificate is signed by a trusted
+    # authority (CA) and also verifies that the server's hostname (or IP address)
+    # matches the names identified within the certificate. If the Subject Alternative
+    # Name is empty, it returns an error.
+    # * certificate, which verifies that the provided certificate is signed by a
+    # trusted authority (CA), but does not perform any hostname verification.
+    #  * none, which performs no verification of the server's certificate. This
+    # mode disables many of the security benefits of SSL/TLS and should only be used
+    # after very careful consideration. It is primarily intended as a temporary
+    # diagnostic mechanism when attempting to resolve TLS errors; its use in
+    # production environments is strongly discouraged.
     #ssl.verification_mode: full
 
     # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
@@ -388,6 +412,12 @@ apm-server:
 
   # When enabling Jaeger integration, APM Server acts as Jaeger collector. It supports jaeger.thrift over HTTP
   # and gRPC. This is an experimental feature, use with care.
+  #
+  # WARNING: This configuration is deprecated, and will be removed in the 8.0 release.
+  #
+  # Jaeger gRPC is now served on the same port as Elastic APM agents, defined by the
+  # "apm-server.host" configuration; it is implicitly enabled, and an agent tag called
+  # "elastic-apm-auth" is required when auth is enabled.
   #jaeger:
     #grpc:
       # Set to true to enable the Jaeger gRPC collector service.
@@ -611,10 +641,22 @@ output.elasticsearch:
   #ssl.enabled: true
 
   # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
-  # Configure SSL verification mode. If `none` is configured, all server hosts
-  # and certificates will be accepted. In this mode, SSL based connections are
-  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
-  # `full`.
+  #
+  # Control the verification of Elasticsearch certificates. Valid values are:
+  # * full, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate.
+  # * strict, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate. If the Subject Alternative
+  # Name is empty, it returns an error.
+  # * certificate, which verifies that the provided certificate is signed by a
+  # trusted authority (CA), but does not perform any hostname verification.
+  #  * none, which performs no verification of the server's certificate. This
+  # mode disables many of the security benefits of SSL/TLS and should only be used
+  # after very careful consideration. It is primarily intended as a temporary
+  # diagnostic mechanism when attempting to resolve TLS errors; its use in
+  # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
   # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
@@ -740,10 +782,22 @@ output.elasticsearch:
   #ssl.enabled: false
 
   # Optional SSL configuration options. SSL is off by default.
-  # Configure SSL verification mode. If `none` is configured, all server hosts
-  # and certificates will be accepted. In this mode, SSL based connections are
-  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
-  # `full`.
+  #
+  # Control the verification of Logstash certificates. Valid values are:
+  # * full, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate.
+  # * strict, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate. If the Subject Alternative
+  # Name is empty, it returns an error.
+  # * certificate, which verifies that the provided certificate is signed by a
+  # trusted authority (CA), but does not perform any hostname verification.
+  #  * none, which performs no verification of the server's certificate. This
+  # mode disables many of the security benefits of SSL/TLS and should only be used
+  # after very careful consideration. It is primarily intended as a temporary
+  # diagnostic mechanism when attempting to resolve TLS errors; its use in
+  # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
   # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
@@ -887,10 +941,22 @@ output.elasticsearch:
   #ssl.enabled: false
 
   # Optional SSL configuration options. SSL is off by default.
-  # Configure SSL verification mode. If `none` is configured, all server hosts
-  # and certificates will be accepted. In this mode, SSL based connections are
-  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
-  # `full`.
+  #
+  # Control the verification of Kafka certificates. Valid values are:
+  # * full, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate.
+  # * strict, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate. If the Subject Alternative
+  # Name is empty, it returns an error.
+  # * certificate, which verifies that the provided certificate is signed by a
+  # trusted authority (CA), but does not perform any hostname verification.
+  #  * none, which performs no verification of the server's certificate. This
+  # mode disables many of the security benefits of SSL/TLS and should only be used
+  # after very careful consideration. It is primarily intended as a temporary
+  # diagnostic mechanism when attempting to resolve TLS errors; its use in
+  # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
   # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
@@ -1153,10 +1219,22 @@ output.elasticsearch:
   #ssl.enabled: true
 
   # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
-  # Configure SSL verification mode. If `none` is configured, all server hosts
-  # and certificates will be accepted. In this mode, SSL based connections are
-  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
-  # `full`.
+  #
+  # Control the verification of Elasticsearch certificates. Valid values are:
+  # * full, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate.
+  # * strict, which verifies that the provided certificate is signed by a trusted
+  # authority (CA) and also verifies that the server's hostname (or IP address)
+  # matches the names identified within the certificate. If the Subject Alternative
+  # Name is empty, it returns an error.
+  # * certificate, which verifies that the provided certificate is signed by a
+  # trusted authority (CA), but does not perform any hostname verification.
+  #  * none, which performs no verification of the server's certificate. This
+  # mode disables many of the security benefits of SSL/TLS and should only be used
+  # after very careful consideration. It is primarily intended as a temporary
+  # diagnostic mechanism when attempting to resolve TLS errors; its use in
+  # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
   # List of supported/valid TLS versions. By default all TLS versions 1.0 up to

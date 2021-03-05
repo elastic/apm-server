@@ -1,3 +1,9 @@
+- name: cloud.service.name
+  level: extended
+  type: keyword
+  description: |
+    Cloud service name, intended to distinguish services running on different platforms within a provider.
+  ignore_above: 1024
 - name: error.culprit
   type: keyword
   description: Function call which was the primary perpetrator of this event.
@@ -15,6 +21,7 @@
   description: The module namespace of the original error.
 - name: error.exception.type
   type: keyword
+  description: The type of the original error, e.g. the Java exception class name.
 - name: error.grouping_key
   type: keyword
   description: |
@@ -35,6 +42,7 @@
 - name: experimental
   type: object
   description: Additional experimental data sent by the agents.
+  dynamic: true
 - name: http.request.headers
   type: object
   description: |
@@ -113,12 +121,6 @@
   type: long
   description: |
     Timestamp of the event in microseconds since Unix epoch.
-- name: transaction.breakdown.count
-  type: long
-- name: transaction.duration.count
-  type: long
-- name: transaction.duration.sum.us
-  type: long
 - name: transaction.name
   type: keyword
   description: |
@@ -130,10 +132,6 @@
   type: boolean
   description: |
     Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
-- name: transaction.self_time.count
-  type: long
-- name: transaction.self_time.sum.us
-  type: long
 - name: transaction.type
   type: keyword
   description: |

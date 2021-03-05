@@ -1,4 +1,4 @@
-FROM golang:1.14.12
+FROM golang:1.15.8
 MAINTAINER Nicolas Ruflin <ruflin@elastic.co>
 
 RUN apt-get update
@@ -27,6 +27,7 @@ WORKDIR $HOME
 COPY go.mod go.sum ./
 COPY approvaltest/go.mod approvaltest/go.sum ./approvaltest/
 COPY systemtest/go.mod systemtest/go.sum ./systemtest/
+COPY internal/otel_collector/go.mod internal/otel_collector/go.sum ./internal/otel_collector/
 RUN go mod download
 RUN cd approvaltest && go mod download
 RUN cd systemtest && go mod download

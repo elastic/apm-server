@@ -14,7 +14,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "float_gauge": 9.16,
             "host": {
@@ -47,8 +47,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "process": {
                 "pid": 1234
@@ -109,7 +109,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "go": {
                 "memstats": {
@@ -132,8 +132,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "process": {
                 "pid": 1234
@@ -164,7 +164,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -178,8 +178,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "process": {
                 "pid": 1234

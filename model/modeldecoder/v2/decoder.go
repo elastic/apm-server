@@ -421,6 +421,9 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	if from.Cloud.Region.IsSet() {
 		out.Cloud.Region = from.Cloud.Region.Val
 	}
+	if from.Cloud.Service.Name.IsSet() {
+		out.Cloud.ServiceName = from.Cloud.Service.Name.Val
+	}
 
 	// Labels
 	if len(from.Labels) > 0 {
@@ -575,7 +578,7 @@ func mapToMetricsetModel(from *metricset, metadata *model.Metadata, reqTime time
 
 func mapToPageModel(from contextPage, out *model.Page) {
 	if from.URL.IsSet() {
-		out.URL = model.ParseURL(from.URL.Val, "")
+		out.URL = model.ParseURL(from.URL.Val, "", "")
 	}
 	if from.Referer.IsSet() {
 		referer := from.Referer.Val

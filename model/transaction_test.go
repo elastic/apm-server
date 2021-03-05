@@ -182,7 +182,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"data_stream.type":    "traces",
-		"data_stream.dataset": "apm",
+		"data_stream.dataset": "apm." + serviceName,
 		"user":                common.MapStr{"id": "123", "name": "jane"},
 		"client":              common.MapStr{"ip": ip},
 		"source":              common.MapStr{"ip": ip},
@@ -240,7 +240,7 @@ func TestTransactionTransformPage(t *testing.T) {
 				Type:     "tx",
 				Duration: 65.98,
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},
@@ -259,9 +259,9 @@ func TestTransactionTransformPage(t *testing.T) {
 				Type:      "tx",
 				Timestamp: time.Now(),
 				Duration:  65.98,
-				URL:       ParseURL("https://localhost:8200/", ""),
+				URL:       ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},

@@ -189,8 +189,9 @@ func TestTraceGroupsRemoval(t *testing.T) {
 		ingestRateCoefficient = 1.0
 	)
 	policies := []Policy{
-		{SampleRate: 0.5},
 		{PolicyCriteria: PolicyCriteria{ServiceName: "defined"}, SampleRate: 0.5},
+		{SampleRate: 0.5},
+		{PolicyCriteria: PolicyCriteria{ServiceName: "defined_later"}, SampleRate: 0.5},
 	}
 	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
 
@@ -211,11 +212,18 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	assert.Equal(t, errTooManyTraceGroups, err)
 
 	// When there is a policy with an explicitly defined service name, that
-	// will not be affected by the limit.
+	// will not be affected by the limit...
 	_, err = groups.sampleTrace(&model.Transaction{
 		Metadata: model.Metadata{Service: model.Service{Name: "defined"}},
 	})
 	assert.NoError(t, err)
+
+	// ...unless the policy with an explicitly defined service name comes after
+	// a matching dynamic policy.
+	_, err = groups.sampleTrace(&model.Transaction{
+		Metadata: model.Metadata{Service: model.Service{Name: "defined_later"}},
+	})
+	assert.Equal(t, errTooManyTraceGroups, err)
 
 	// Finalizing should remove the "few" trace group, since its reservoir
 	// size is at the minimum, and the number of groups is at the maximum.

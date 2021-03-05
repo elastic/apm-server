@@ -6,7 +6,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.unknown",
             "data_stream.type": "traces",
             "destination": {
                 "address": "mq",
@@ -20,7 +20,7 @@
                 "name": "host-abc"
             },
             "parent": {
-                "id": "58585858"
+                "id": "0000000058585858"
             },
             "processor": {
                 "event": "span",
@@ -39,7 +39,7 @@
                 "duration": {
                     "us": 79000000
                 },
-                "id": "41414646",
+                "id": "0000000041414646",
                 "message": {
                     "queue": {
                         "name": "queue-abc"
@@ -52,7 +52,7 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             }
         }
     ]

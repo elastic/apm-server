@@ -33,7 +33,7 @@ import (
 // ServerCommand returns a ServerCmd (wrapping os/exec) for running
 // apm-server with args.
 func ServerCommand(subcommand string, args ...string) *ServerCmd {
-	binary, buildErr := buildServer()
+	binary, buildErr := BuildServerBinary(runtime.GOOS)
 	if buildErr != nil {
 		// Dummy command; Start etc. will return the build error.
 		binary = "/usr/bin/false"
@@ -149,27 +149,37 @@ func (c *ServerCmd) cleanup() {
 	}
 }
 
-// buildServer builds the apm-server binary, returning its absolute path.
-func buildServer() (string, error) {
-	apmServerBinaryMu.Lock()
-	defer apmServerBinaryMu.Unlock()
-	if apmServerBinary != "" {
-		return apmServerBinary, nil
+// BuildServerBinary builds the apm-server binary for the given GOOS,
+// returning its absolute path.
+func BuildServerBinary(goos string) (string, error) {
+	// Build apm-server binary in the repo root, unless
+	// we're building for another GOOS, in which case we
+	// suffix the binary with that GOOS and place it in
+	// the build directory.
+	var reldir, suffix string
+	if goos != runtime.GOOS {
+		reldir = "build/"
+		suffix = "-" + goos
+		if runtime.GOOS == "windows" {
+			suffix += ".exe"
+		}
 	}
 
-	// Build apm-server binary in the repo root.
-	output, err := exec.Command("go", "list", "-m", "-f={{.Dir}}/..").Output()
+	apmServerBinaryMu.Lock()
+	defer apmServerBinaryMu.Unlock()
+	if binary := apmServerBinary[goos]; binary != "" {
+		return binary, nil
+	}
+
+	repoRoot, err := getRepoRoot()
 	if err != nil {
 		return "", err
 	}
-	repoRoot := filepath.Clean(strings.TrimSpace(string(output)))
-	abspath := filepath.Join(repoRoot, "apm-server")
-	if runtime.GOOS == "windows" {
-		abspath += ".exe"
-	}
+	abspath := filepath.Join(repoRoot, reldir, "apm-server"+suffix)
 
 	log.Println("Building apm-server...")
 	cmd := exec.Command("go", "build", "-o", abspath, "./x-pack/apm-server")
+	cmd.Env = append(os.Environ(), "GOOS="+goos)
 	cmd.Dir = repoRoot
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -177,11 +187,30 @@ func buildServer() (string, error) {
 		return "", err
 	}
 	log.Println("Built", abspath)
-	apmServerBinary = abspath
-	return apmServerBinary, nil
+	apmServerBinary[goos] = abspath
+	return abspath, nil
+}
+
+func getRepoRoot() (string, error) {
+	repoRootMu.Lock()
+	defer repoRootMu.Unlock()
+	if repoRoot != "" {
+		return repoRoot, nil
+	}
+
+	// Build apm-server binary in the repo root.
+	output, err := exec.Command("go", "list", "-m", "-f={{.Dir}}/..").Output()
+	if err != nil {
+		return "", err
+	}
+	repoRoot = filepath.Clean(strings.TrimSpace(string(output)))
+	return repoRoot, nil
 }
 
 var (
 	apmServerBinaryMu sync.Mutex
-	apmServerBinary   string
+	apmServerBinary   = make(map[string]string)
+
+	repoRootMu sync.Mutex
+	repoRoot   string
 )

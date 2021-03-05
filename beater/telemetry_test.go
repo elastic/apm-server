@@ -54,7 +54,8 @@ func TestRecordConfigs(t *testing.T) {
 			},
 		},
 	})
-	require.NoError(t, recordConfigs(info, apmCfg, rootCfg))
+	require.NoError(t, recordRootConfig(info, rootCfg))
+	recordAPMServerConfig(apmCfg)
 
 	assert.Equal(t, configMonitors.ilmSetupEnabled.Get(), true)
 	assert.Equal(t, configMonitors.rumEnabled.Get(), false)

@@ -46,11 +46,13 @@ func TestPprofProfileTransform(t *testing.T) {
 			TimeNanos:     timestamp.UnixNano(),
 			DurationNanos: int64(10 * time.Second),
 			SampleType: []*pprof_profile.ValueType{
+				{Type: "sample", Unit: "count"},
 				{Type: "cpu", Unit: "nanoseconds"},
+				{Type: "wall", Unit: "microseconds"},
 				{Type: "inuse_space", Unit: "bytes"},
 			},
 			Sample: []*pprof_profile.Sample{{
-				Value: []int64{123, 456},
+				Value: []int64{1, 123, 789, 456},
 				Label: map[string][]string{
 					"key1": []string{"abc", "def"},
 					"key2": []string{"ghi"},
@@ -66,7 +68,7 @@ func TestPprofProfileTransform(t *testing.T) {
 					}},
 				}},
 			}, {
-				Value: []int64{123, 456},
+				Value: []int64{1, 123, 789, 456},
 				Label: map[string][]string{
 					"key1": []string{"abc", "def"},
 					"key2": []string{"ghi"},
@@ -98,7 +100,7 @@ func TestPprofProfileTransform(t *testing.T) {
 		Timestamp: timestamp,
 		Fields: common.MapStr{
 			"data_stream.type":    "metrics",
-			"data_stream.dataset": "apm.profiling",
+			"data_stream.dataset": "apm.profiling.myservice",
 			"processor":           common.MapStr{"event": "profile", "name": "profile"},
 			"service": common.MapStr{
 				"name":        "myService",
@@ -112,7 +114,9 @@ func TestPprofProfileTransform(t *testing.T) {
 				"id":                "random",
 				"duration":          int64(10 * time.Second),
 				"cpu.ns":            int64(123),
+				"wall.us":           int64(789),
 				"inuse_space.bytes": int64(456),
+				"samples.count":     int64(1),
 				"top": common.MapStr{
 					"function": "foo",
 					"filename": "foo.go",

@@ -28,13 +28,16 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "culprit": "my.module.function_name",
@@ -296,8 +299,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "process": {
                 "args": [
@@ -381,13 +384,16 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
@@ -426,8 +432,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "process": {
                 "args": [
@@ -496,13 +502,16 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "exception": [
@@ -537,8 +546,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "process": {
                 "args": [
@@ -607,13 +616,16 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "exception": [
@@ -648,8 +660,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "parent": {
                 "id": "9632587410abcdef"
@@ -724,13 +736,16 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -764,8 +779,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "parent": {
                 "id": "9632587410abcdef"

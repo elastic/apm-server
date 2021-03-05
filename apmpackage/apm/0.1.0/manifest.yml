@@ -9,11 +9,34 @@ categories:
   - monitoring
 release: experimental # experimental / beta / ga
 conditions:
-  kibana.version: '^7.11.0'
+  kibana.version: "^7.12.0"
+icons:
+  - src: /img/logo_apm.svg
+    title: APM Logo
+    size: 32x32
+    type: image/svg+xml
+screenshots:
+  - src: /img/apm-01-service-inventory.png
+    title: apm app service inventory
+    size: 1440x1025
+    type: image/png
+  - src: /img/apm-02-service-overview.png
+    title: apm app service overview
+    size: 1440x2032
+    type: image/png
+  - src: /img/apm-03-trace.png
+    title: apm app trace
+    size: 1440x1382
+    type: image/png
+  - src: /img/apm-04-service-map.png
+    title: apm app service map
+    size: 1440x1025
+    type: image/png
 policy_templates:
 - name: apmserver
   title: Elastic APM Integration
   description: Elastic APM Integration
+  multiple: false
   inputs:
   - type: apm
     title: Collect application traces
@@ -27,16 +50,22 @@ policy_templates:
         default: localhost:8200
       - name: secret_token
         type: string
-        title: Secret token
+        title: Secret token for Agent authentication
         required: false
         show_user: true
       - name: api_key_enabled
         type: bool
-        title: API Key Auth
+        title: API Key for Agent authentication
         description: Enable API Key auth between APM Server and APM Agents.
         required: false
         show_user: true
         default: false
+      - name: kibana_api_key
+        type: string
+        title: API Key for Central Configuration
+        required: false
+        description: API Key for APM central configuration feature. Enter as <Id>:<API Key>
+        show_user: true
       - name: enable_rum
         type: bool
         title: Enable RUM
@@ -44,40 +73,14 @@ policy_templates:
         required: true
         show_user: true
         default: false
-      - name: kibana_api_key
-        type: string
-        title: API Key for Central Configuration
-        required: false
-        description: Enter as <Id>:<API Key>
-        show_user: true
-      - name: sourcemap_api_key
-        type: string
-        title: API Key for Sourcemaps
-        required: false
-        description: Enter as <Id>:<API Key>
-        show_user: true
-      - name: api_key_limit
-        type: int
-        title: Maximum number of API Keys
-        description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.  
-        required: false
-        show_user: false
-        default: 100
-      - name: capture_personal_data
-        type: bool
-        title: Capture personal data
-        description: Capture personal data such as IP or User Agent.
-        required: false
-        show_user: false
-        default: true
       - name: rum_allow_origins
         type: string
         title: RUM - Origin Headers
-        description: Allowed Origin headers to be sent by User Agents. 
+        description: Allowed Origin headers to be sent by User Agents.
         multi: true
         required: false
         show_user: false
-        default: ['*']
+        default: ['"*"']
       - name: rum_allow_headers
         type: string
         title: RUM - Access-Control-Allow-Headers
@@ -94,24 +97,43 @@ policy_templates:
       - name: rum_event_rate_limit
         type: int
         title: RUM - Rate limit events per IP
-        description: Maximum number of events allowed per IP per second. 
+        description: Maximum number of events allowed per IP per second.
         required: false
         show_user: false
         default: 300
       - name: rum_event_rate_lru_size
         type: int
-        title: RUM - Rate limit cache size 
-        description: Number of unique IPs to be cached for the rate limiter. 
+        title: RUM - Rate limit cache size
+        description: Number of unique IPs to be cached for the rate limiter.
         required: false
         show_user: false
         default: 1000
+      - name: sourcemap_api_key
+        type: string
+        title: RUM - API Key for Sourcemaps
+        required: false
+        description: API Key for sourcemap feature. Enter as <Id>:<API Key>
+        show_user: false
+      - name: api_key_limit
+        type: int
+        title: Maximum number of API Keys for Agent authentication
+        description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.
+        required: false
+        show_user: false
+        default: 100
       - name: max_event_bytes
         type: int
         title: Maximum size per event (bytes)
         required: false
         show_user: false
-        default: 307200   
->>>>>>> a25b11076... [apmpackage] Add config options supported in ESS (#4690)
+        default: 307200
+      - name: capture_personal_data
+        type: bool
+        title: Capture personal data
+        description: Capture personal data such as IP or User Agent.
+        required: false
+        show_user: false
+        default: true
     template_path: template.yml.hbs
 owner:
   github: elastic/apm-server

@@ -20,8 +20,7 @@ Each agent has its own documentation:
 * {apm-java-ref-v}/intro.html[Java agent]
 * {apm-dotnet-ref-v}/intro.html[.NET agent]
 * {apm-node-ref-v}/intro.html[Node.js agent]
-// Uncomment PHP Agent when ready
-// * {apm-php-ref}/intro.html[PHP agent]
+* {apm-php-ref-v}/intro.html[PHP agent]
 * {apm-py-ref-v}/getting-started.html[Python agent]
 * {apm-ruby-ref-v}/introduction.html[Ruby agent]
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]

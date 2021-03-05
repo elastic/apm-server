@@ -28,22 +28,87 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/instrumentation"
+	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 type testBeater struct {
 	*beater
+	b     *beat.Beat
+	logs  *observer.ObservedLogs
+	runCh chan error
 
 	listenAddr string
 	baseURL    string
 	client     *http.Client
+}
+
+func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*testBeater, error) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+	apmBeat, cfg := newBeat(t, cfg, beatConfig, events)
+	return setupBeater(t, apmBeat, cfg, beatConfig)
+}
+
+func newBeat(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beat.Beat, *common.Config) {
+	info := beat.Info{
+		Beat:        "test-apm-server",
+		IndexPrefix: "test-apm-server",
+		Version:     "1.2.3", // hard-coded to avoid changing approvals
+		ID:          uuid.Must(uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")),
+	}
+
+	combinedConfig := common.MustNewConfigFrom(map[string]interface{}{
+		"host": "localhost:0",
+
+		// Enable instrumentation so the profile endpoint is
+		// available, but set the profiling interval to something
+		// long enough that it won't kick in.
+		"instrumentation": map[string]interface{}{
+			"enabled": true,
+			"profiling": map[string]interface{}{
+				"cpu": map[string]interface{}{
+					"enabled":  true,
+					"interval": "360s",
+				},
+			},
+		},
+	})
+	if cfg != nil {
+		require.NoError(t, cfg.Unpack(combinedConfig))
+	}
+
+	var pub beat.Pipeline
+	if events != nil {
+		// capture events
+		pubClient := newChanClientWith(events)
+		pub = dummyPipeline(cfg, info, pubClient)
+	} else {
+		// don't capture events
+		pub = dummyPipeline(cfg, info)
+	}
+
+	instrumentation, err := instrumentation.New(combinedConfig, info.Beat, info.Version)
+	require.NoError(t, err)
+	return &beat.Beat{
+		Publisher:       pub,
+		Info:            info,
+		Config:          beatConfig,
+		Instrumentation: instrumentation,
+	}, combinedConfig
 }
 
 func setupBeater(
@@ -52,9 +117,39 @@ func setupBeater(
 	ucfg *common.Config,
 	beatConfig *beat.BeatConfig,
 ) (*testBeater, error) {
+	tb, err := newTestBeater(t, apmBeat, ucfg, beatConfig)
+	if err != nil {
+		return nil, err
+	}
+	tb.start()
 
-	onboardingDocs := make(chan onboardingDoc, 1)
+	listenAddr, err := tb.waitListenAddr(10 * time.Second)
+	if err != nil {
+		return nil, err
+	}
+	tb.initClient(tb.config, listenAddr)
+
+	res, err := tb.client.Get(tb.baseURL)
+	require.NoError(t, err)
+	defer res.Body.Close()
+	require.Equal(t, http.StatusOK, res.StatusCode)
+	return tb, nil
+}
+
+func newTestBeater(
+	t *testing.T,
+	apmBeat *beat.Beat,
+	ucfg *common.Config,
+	beatConfig *beat.BeatConfig,
+) (*testBeater, error) {
+
+	core, observedLogs := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
 	createBeater := NewCreator(CreatorParams{
+		Logger: logger,
 		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
 			return func(ctx context.Context, args ServerParams) error {
 				// Wrap the reporter so we can intercept the
@@ -63,13 +158,6 @@ func setupBeater(
 				args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
 					for _, tf := range req.Transformables {
 						switch tf := tf.(type) {
-						case onboardingDoc:
-							select {
-							case <-ctx.Done():
-								return ctx.Err()
-							case onboardingDocs <- tf:
-							}
-
 						case *model.Transaction:
 							// Add a label to test that everything
 							// goes through the wrapped reporter.
@@ -86,36 +174,51 @@ func setupBeater(
 		},
 	})
 
-	// create our beater
 	beatBeater, err := createBeater(apmBeat, ucfg)
 	if err != nil {
 		return nil, err
 	}
 	require.NotNil(t, beatBeater)
+	t.Cleanup(func() {
+		beatBeater.Stop()
+	})
 
-	errCh := make(chan error)
+	return &testBeater{
+		beater: beatBeater.(*beater),
+		b:      apmBeat,
+		logs:   observedLogs,
+		runCh:  make(chan error),
+	}, nil
+}
+
+// start starts running a beater created with newTestBeater.
+func (tb *testBeater) start() {
 	go func() {
-		err := beatBeater.Run(apmBeat)
-		if err != nil {
-			errCh <- err
-		}
+		tb.runCh <- tb.beater.Run(tb.b)
 	}()
+}
 
-	tb := &testBeater{beater: beatBeater.(*beater)}
-	select {
-	case err := <-errCh:
-		return nil, err
-	case o := <-onboardingDocs:
-		tb.initClient(tb.config, o.listenAddr)
-	case <-time.After(time.Second * 10):
-		return nil, errors.New("timeout waiting for server to start listening")
+func (tb *testBeater) waitListenAddr(timeout time.Duration) (string, error) {
+	deadline := time.After(timeout)
+	for {
+		for _, entry := range tb.logs.TakeAll() {
+			const prefix = "Listening on: "
+			if strings.HasPrefix(entry.Message, prefix) {
+				listenAddr := entry.Message[len(prefix):]
+				return listenAddr, nil
+			}
+		}
+		select {
+		case err := <-tb.runCh:
+			if err != nil {
+				return "", err
+			}
+			return "", errors.New("server exited cleanly without logging expected message")
+		case <-deadline:
+			return "", errors.New("timeout waiting for server to start listening")
+		case <-time.After(10 * time.Millisecond):
+		}
 	}
-
-	res, err := tb.client.Get(tb.baseURL)
-	require.NoError(t, err)
-	defer res.Body.Close()
-	require.Equal(t, http.StatusOK, res.StatusCode)
-	return tb, nil
 }
 
 func (tb *testBeater) initClient(cfg *config.Config, listenAddr string) {

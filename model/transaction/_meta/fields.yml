@@ -248,74 +248,6 @@
           description: >
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
           overwrite: true
-        - name: duration
-          type: group
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-                  overwrite: true
-        - name: self_time
-          type: group
-          description: >
-            Portion of the transaction's duration where no direct child was running
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-                  overwrite: true
-
-        - name: breakdown
-          type: group
-          description: >
-            Counter for collected breakdowns for the transaction
-          fields:
-            - name: count
-              type: long
-              overwrite: true
-
-    - name: span
-      type: group
-      dynamic: false
-      fields:
-        - name: type
-          type: keyword
-          count: 1
-          description: >
-            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-          overwrite: true
-
-        - name: subtype
-          type: keyword
-          count: 1
-          description: >
-            A further sub-division of the type (e.g. postgresql, elasticsearch)
-          overwrite: true
-
-        - name: self_time
-          type: group
-          description: >
-            Portion of the span's duration where no direct child was running
-          fields:
-          - name: count
-            type: long
-            overwrite: true
-          - name: sum
-            type: group
-            fields:
-              - name: us
-                type: long
-                overwrite: true
 
     - name: trace
       type: group
@@ -801,6 +733,18 @@
         description: Cloud region name
         example: us-east1
         overwrite: true
+      - name: service
+        type: group
+        dynamic: false
+        fields:
+        - name: name
+          level: extended
+          type: keyword
+          ignore_above: 1024
+          description: >
+            Cloud service name, intended to distinguish services running on
+            different platforms within a provider.
+          overwrite: true
 
     - name: event
       type: group
@@ -845,6 +789,8 @@
           object_type: scaled_float
           scaling_factor: 1000000
           dynamic: true
+          description: >
+            A user-defined mapping of groups of marks in milliseconds.
 
         - name: experience
           type: group

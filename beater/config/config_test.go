@@ -203,7 +203,7 @@ func TestUnpackConfig(t *testing.T) {
 								ClientAuth:  4,
 								CAs:         []string{"../../testdata/tls/ca.crt.pem"}})
 							require.NoError(t, err)
-							return tlsServerConfig.BuildModuleConfig("localhost:12345")
+							return tlsServerConfig.BuildServerConfig("localhost:12345")
 						}(),
 					},
 					HTTP: JaegerHTTPConfig{
@@ -283,6 +283,7 @@ func TestUnpackConfig(t *testing.T) {
 				"sampling.keep_unsampled":                  false,
 				"sampling.tail": map[string]interface{}{
 					"enabled":           true,
+					"policies":          []map[string]interface{}{{"sample_rate": 0.5}},
 					"interval":          "2m",
 					"ingest_rate_decay": 1.0,
 				},
@@ -345,7 +346,7 @@ func TestUnpackConfig(t *testing.T) {
 								Certificate: testdataCertificateConfig,
 								ClientAuth:  0})
 							require.NoError(t, err)
-							return tlsServerConfig.BuildModuleConfig("localhost:14250")
+							return tlsServerConfig.BuildServerConfig("localhost:14250")
 						}(),
 					},
 					HTTP: JaegerHTTPConfig{
@@ -371,6 +372,7 @@ func TestUnpackConfig(t *testing.T) {
 					KeepUnsampled: false,
 					Tail: &TailSamplingConfig{
 						Enabled:               true,
+						Policies:              []TailSamplingPolicy{{SampleRate: 0.5}},
 						ESConfig:              elasticsearch.DefaultConfig(),
 						Interval:              2 * time.Minute,
 						IngestRateDecayFactor: 1.0,
@@ -425,6 +427,13 @@ func TestUnpackConfig(t *testing.T) {
 			cfg, err := NewConfig(inpCfg, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
+			if test.outCfg.JaegerConfig.GRPC.TLS != nil {
+				// tlscommon sets VerifyConnection to a closure, so we
+				// cannot compare the TLS configs as-is. We don't need
+				// to test libbeat behaviour, so just unset the field.
+				test.outCfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
+				cfg.JaegerConfig.GRPC.TLS.VerifyConnection = nil
+			}
 			assert.Equal(t, test.outCfg, cfg)
 		})
 	}
@@ -471,24 +480,24 @@ func TestTLSSettings(t *testing.T) {
 			"ConfiguredToRequired": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication": "required",
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                   "../../testdata/tls/key.pem",
+					"certificate":           "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredToOptional": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication": "optional",
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                   "../../testdata/tls/key.pem",
+					"certificate":           "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 3, Certificate: testdataCertificateConfig},
 			},
 			"DefaultRequiredByCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                     "../../testdata/tls/key.pem",
+					"certificate":             "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4, Certificate: testdataCertificateConfig},
 			},
@@ -496,8 +505,8 @@ func TestTLSSettings(t *testing.T) {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
 					"client_authentication":   "none",
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
-					"key":         "../../testdata/tls/key.pem",
-					"certificate": "../../testdata/tls/certificate.pem",
+					"key":                     "../../testdata/tls/key.pem",
+					"certificate":             "../../testdata/tls/certificate.pem",
 				}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 0, Certificate: testdataCertificateConfig},
 			},
@@ -557,7 +566,7 @@ func TestAgentConfig(t *testing.T) {
 }
 
 func TestNewConfig_ESConfig(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true,"sampling.tail.enabled":true}`)
+	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true,"sampling.tail.policies":[{"sample_rate": 0.5}]}`)
 	require.NoError(t, err)
 
 	// no es config given

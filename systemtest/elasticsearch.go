@@ -91,19 +91,11 @@ func newElasticsearchConfig() elasticsearch.Config {
 // and deletes the default ILM policy "apm-rollover-30-days".
 func CleanupElasticsearch(t testing.TB) {
 	const (
-		legacyPrefix     = "apm*"
-		apmTracesPrefix  = "traces-apm.*"
-		apmMetricsPrefix = "metrics-apm.*"
-		apmLogsPrefix    = "logs-apm.*"
+		legacyPrefix     = "apm-*"
+		apmTracesPrefix  = "traces-apm*"
+		apmMetricsPrefix = "metrics-apm*"
+		apmLogsPrefix    = "logs-apm*"
 	)
-	requests := []estest.Request{
-		esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
-		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
-		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
-		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
-	}
 
 	doReq := func(req estest.Request) error {
 		_, err := Elasticsearch.Do(context.Background(), req, nil)
@@ -113,17 +105,43 @@ func CleanupElasticsearch(t testing.TB) {
 		return err
 	}
 
-	var g errgroup.Group
-	for _, req := range requests {
-		req := req // copy for closure
-		g.Go(func() error { return doReq(req) })
+	doParallel := func(requests ...estest.Request) {
+		t.Helper()
+		var g errgroup.Group
+		for _, req := range requests {
+			req := req // copy for closure
+			g.Go(func() error { return doReq(req) })
+		}
+		if err := g.Wait(); err != nil {
+			t.Fatal(err)
+		}
 	}
-	if err := g.Wait(); err != nil {
-		t.Fatal(err)
-	}
+
+	// Delete indices, data streams, and ingest pipelines.
+	doReq(esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}})
+	doParallel(
+		esapi.IndicesDeleteDataStreamRequest{Name: legacyPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmMetricsPrefix},
+		esapi.IndicesDeleteDataStreamRequest{Name: apmLogsPrefix},
+		esapi.IngestDeletePipelineRequest{PipelineID: legacyPrefix},
+	)
+
+	// Delete index templates after deleting data streams.
+	doParallel(
+		esapi.IndicesDeleteTemplateRequest{Name: legacyPrefix},
+		esapi.IndicesDeleteIndexTemplateRequest{Name: apmTracesPrefix},
+		esapi.IndicesDeleteIndexTemplateRequest{Name: apmMetricsPrefix},
+		esapi.IndicesDeleteIndexTemplateRequest{Name: apmLogsPrefix},
+	)
 
 	// Refresh indices to ensure all recent changes are visible.
 	if err := doReq(esapi.IndicesRefreshRequest{}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Delete index templates after deleting data streams.
+	if err := doReq(esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}); err != nil {
 		t.Fatal(err)
 	}
 

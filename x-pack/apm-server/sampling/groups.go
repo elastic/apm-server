@@ -27,94 +27,58 @@ type traceGroups struct {
 	// exponentially weighted moving average ingest rate for each trace group.
 	ingestRateDecayFactor float64
 
-	// maxDynamicServices holds the maximum number of dynamic service groups
+	// maxDynamicServiceGroups holds the maximum number of dynamic service groups
 	// to maintain. Once this is reached, no new dynamic service groups will
 	// be created, and events may be dropped.
-	maxDynamicServices int
+	maxDynamicServiceGroups int
 
-	// catchallServicePolicies, if non-nil, holds policies that apply to
-	// services which are not explicitly specified.
-	catchallServicePolicies []Policy
-
-	mu            sync.RWMutex
-	staticGroups  map[string]serviceGroups
-	dynamicGroups map[string]serviceGroups
+	mu                      sync.RWMutex
+	policyGroups            []policyGroup
+	numDynamicServiceGroups int
 }
 
-type serviceGroupKey struct {
-	serviceEnvironment string
-	traceOutcome       string
-	traceName          string
+type policyGroup struct {
+	policy  Policy
+	g       *traceGroup            // nil for catch-all
+	dynamic map[string]*traceGroup // nil for static
 }
 
-func (k *serviceGroupKey) match(tx *model.Transaction) bool {
-	if k.serviceEnvironment != "" && k.serviceEnvironment != tx.Metadata.Service.Environment {
+func (g *policyGroup) match(tx *model.Transaction) bool {
+	if g.policy.ServiceName != "" && g.policy.ServiceName != tx.Metadata.Service.Name {
 		return false
 	}
-	if k.traceOutcome != "" && k.traceOutcome != tx.Outcome {
+	if g.policy.ServiceEnvironment != "" && g.policy.ServiceEnvironment != tx.Metadata.Service.Environment {
 		return false
 	}
-	if k.traceName != "" && k.traceName != tx.Name {
+	if g.policy.TraceOutcome != "" && g.policy.TraceOutcome != tx.Outcome {
+		return false
+	}
+	if g.policy.TraceName != "" && g.policy.TraceName != tx.Name {
 		return false
 	}
 	return true
 }
 
-type serviceGroups []serviceGroup
-
-type serviceGroup struct {
-	key serviceGroupKey
-	g   *traceGroup
-}
-
-// get returns the traceGroup to which tx should be added based on the
-// defined sampling policies, matching policies in the order given.
-func (sgs serviceGroups) get(tx *model.Transaction) (*traceGroup, bool) {
-	for _, sg := range sgs {
-		if sg.key.match(tx) {
-			return sg.g, true
-		}
-	}
-	return nil, false
-}
-
 func newTraceGroups(
 	policies []Policy,
-	maxDynamicServices int,
+	maxDynamicServiceGroups int,
 	ingestRateDecayFactor float64,
 ) *traceGroups {
 	groups := &traceGroups{
-		ingestRateDecayFactor: ingestRateDecayFactor,
-		maxDynamicServices:    maxDynamicServices,
-		staticGroups:          make(map[string]serviceGroups),
-		dynamicGroups:         make(map[string]serviceGroups),
+		ingestRateDecayFactor:   ingestRateDecayFactor,
+		maxDynamicServiceGroups: maxDynamicServiceGroups,
+		policyGroups:            make([]policyGroup, len(policies)),
 	}
-	for _, policy := range policies {
-		if policy.ServiceName == "" {
-			// ServiceName is a special case; see PolicyCriteria.
-			//
-			// We maintain policies which are not service-specific separately, so we
-			// can easily keep track how many dynamic services (dynamicGroups) there
-			// are to enforce a limit, and to uphold the invariant that sampling groups
-			// are service-specific, similar to head-based sampling.
-			groups.catchallServicePolicies = append(groups.catchallServicePolicies, policy)
-			continue
+	for i, policy := range policies {
+		pg := policyGroup{policy: policy}
+		if policy.ServiceName != "" {
+			pg.g = newTraceGroup(policy.SampleRate)
+		} else {
+			pg.dynamic = make(map[string]*traceGroup)
 		}
-		serviceGroups := groups.staticGroups[policy.ServiceName]
-		groups.staticGroups[policy.ServiceName] = updateServiceNameGroups(policy, serviceGroups)
+		groups.policyGroups[i] = pg
 	}
 	return groups
-}
-
-func updateServiceNameGroups(policy Policy, groups serviceGroups) serviceGroups {
-	return append(groups, serviceGroup{
-		key: serviceGroupKey{
-			serviceEnvironment: policy.ServiceEnvironment,
-			traceName:          policy.TraceName,
-			traceOutcome:       policy.TraceOutcome,
-		},
-		g: newTraceGroup(policy.SampleRate),
-	})
 }
 
 // traceGroup represents a single trace group, including a measurement of the
@@ -155,42 +119,41 @@ func newTraceGroup(samplingFraction float64) *traceGroup {
 // If the transaction is not admitted due to the transaction group limit
 // having been reached, sampleTrace will return errTooManyTraceGroups.
 func (g *traceGroups) sampleTrace(tx *model.Transaction) (bool, error) {
-	byService, ok := g.staticGroups[tx.Metadata.Service.Name]
-	if !ok {
-		// No static group, look for or create a dynamic group
-		// if there are any catch-all policies defined.
-		if len(g.catchallServicePolicies) == 0 {
-			return false, errNoMatchingPolicy
-		}
-		// First attempt to locate a dynamic group with a read lock, to
-		// avoid contention in the common case that a group has already
-		// been defined.
-		g.mu.RLock()
-		byService, ok = g.dynamicGroups[tx.Metadata.Service.Name]
-		if ok {
-			defer g.mu.RUnlock()
-		} else {
-			g.mu.RUnlock()
-			g.mu.Lock()
-			defer g.mu.Unlock()
-			byService, ok = g.dynamicGroups[tx.Metadata.Service.Name]
-			if !ok {
-				if len(g.dynamicGroups) == g.maxDynamicServices {
-					return false, errTooManyTraceGroups
-				}
-				byService = make(serviceGroups, 0, len(g.catchallServicePolicies))
-				for _, policy := range g.catchallServicePolicies {
-					byService = updateServiceNameGroups(policy, byService)
-				}
-				g.dynamicGroups[tx.Metadata.Service.Name] = byService
-			}
-		}
-	}
-	group, ok := byService.get(tx)
-	if !ok {
-		return false, errNoMatchingPolicy
+	group, err := g.getTraceGroup(tx)
+	if err != nil {
+		return false, err
 	}
 	return group.sampleTrace(tx)
+}
+
+func (g *traceGroups) getTraceGroup(tx *model.Transaction) (*traceGroup, error) {
+	var pg *policyGroup
+	for i := range g.policyGroups {
+		if g.policyGroups[i].match(tx) {
+			pg = &g.policyGroups[i]
+			break
+		}
+	}
+	if pg == nil {
+		return nil, errNoMatchingPolicy
+	}
+	if pg.g != nil {
+		return pg.g, nil
+	}
+
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	group, ok := pg.dynamic[tx.Metadata.Service.Name]
+	if !ok {
+		if g.numDynamicServiceGroups == g.maxDynamicServiceGroups {
+			return nil, errTooManyTraceGroups
+		}
+		g.numDynamicServiceGroups++
+		group = newTraceGroup(pg.policy.SampleRate)
+		pg.dynamic[tx.Metadata.Service.Name] = group
+	}
+	return group, nil
 }
 
 func (g *traceGroup) sampleTrace(tx *model.Transaction) (bool, error) {
@@ -214,36 +177,22 @@ func (g *traceGroup) sampleTrace(tx *model.Transaction) (bool, error) {
 func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	for _, byService := range g.staticGroups {
-		traceIDs, _, _ = g.finalizeServiceSampledTraces(byService, traceIDs)
-	}
-	maxDynamicServicesReached := len(g.dynamicGroups) == g.maxDynamicServices
-	for serviceName, byService := range g.dynamicGroups {
-		var total int
-		var allMinReservoirSize bool
-		traceIDs, total, allMinReservoirSize = g.finalizeServiceSampledTraces(byService, traceIDs)
-		if allMinReservoirSize {
-			if maxDynamicServicesReached || total == 0 {
-				delete(g.dynamicGroups, serviceName)
+	maxDynamicServiceGroupsReached := g.numDynamicServiceGroups == g.maxDynamicServiceGroups
+	for _, pg := range g.policyGroups {
+		if pg.g != nil {
+			traceIDs = pg.g.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+			continue
+		}
+		for serviceName, group := range pg.dynamic {
+			total := group.total
+			traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+			if (maxDynamicServiceGroupsReached || total == 0) && group.reservoir.Size() == minReservoirSize {
+				g.numDynamicServiceGroups--
+				delete(pg.dynamic, serviceName)
 			}
 		}
 	}
 	return traceIDs
-}
-
-func (g *traceGroups) finalizeServiceSampledTraces(
-	byService serviceGroups,
-	traceIDs []string,
-) (_ []string, total int, allMinReservoirSize bool) {
-	allMinReservoirSize = true
-	for _, group := range byService {
-		total += group.g.total
-		traceIDs = group.g.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
-		if size := group.g.reservoir.Size(); size > minReservoirSize {
-			allMinReservoirSize = false
-		}
-	}
-	return traceIDs, total, allMinReservoirSize
 }
 
 // finalizeSampledTraces appends the group's current trace IDs to traceIDs, and

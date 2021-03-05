@@ -6,10 +6,10 @@
                 "name": "Jaeger",
                 "version": "3.4.12"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.unknown",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "processor": {
                 "event": "transaction",
@@ -25,14 +25,13 @@
                 "us": 1576500418000768
             },
             "trace": {
-                "id": "46467830"
+                "id": "00000000000000000000000046467830"
             },
             "transaction": {
                 "duration": {
                     "us": 0
                 },
-                "id": "41414646",
-                "result": "Success",
+                "id": "0000000041414646",
                 "sampled": true,
                 "type": "custom"
             }

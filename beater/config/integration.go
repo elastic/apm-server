@@ -18,7 +18,10 @@
 package config
 
 import (
+	"errors"
+
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/kibana"
 )
 
 func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error) {
@@ -27,8 +30,13 @@ func NewIntegrationConfig(rootConfig *common.Config) (*IntegrationConfig, error)
 			Namespace: "default",
 		},
 	}
-	err := rootConfig.Unpack(config)
-	return config, err
+	if err := rootConfig.Unpack(config); err != nil {
+		return nil, err
+	}
+	if config.APMServer == nil {
+		return nil, errors.New("'apm-server' not found in integration config")
+	}
+	return config, nil
 }
 
 // IntegrationConfig that comes from Elastic Agent
@@ -41,6 +49,7 @@ type IntegrationConfig struct {
 	Meta       *Meta          `config:"meta"`
 	DataStream *DataStream    `config:"data_stream"`
 	APMServer  *common.Config `config:"apm-server"`
+	Fleet      Fleet          `config:"fleet"`
 }
 
 type DataStream struct {
@@ -54,4 +63,8 @@ type Meta struct {
 type Package struct {
 	Name    string `config:"name"`
 	Version string `config:"version"`
+}
+
+type Fleet struct {
+	Kibana kibana.ClientConfig `config:"kibana"`
 }

@@ -35,14 +35,20 @@ var (
 	registry      = monitoring.Default.NewRegistry("apm-server.root")
 )
 
+// HandlerConfig holds configuration for Handler.
+type HandlerConfig struct {
+	// Version holds the APM Server version.
+	Version string
+}
+
 // Handler returns error if route does not exist,
 // otherwise returns information about the server. The detail level differs for authorized and non-authorized requests.
 //TODO: only allow GET, HEAD requests (breaking change)
-func Handler() request.Handler {
+func Handler(cfg HandlerConfig) request.Handler {
 	serverInfo := common.MapStr{
 		"build_date": version.BuildTime().Format(time.RFC3339),
 		"build_sha":  version.Commit(),
-		"version":    version.GetDefaultVersion(),
+		"version":    cfg.Version,
 	}
 
 	return func(c *request.Context) {

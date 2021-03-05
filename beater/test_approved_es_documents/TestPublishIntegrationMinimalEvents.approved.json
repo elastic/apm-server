@@ -7,7 +7,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -23,8 +23,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "transaction",
@@ -58,7 +58,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -71,8 +71,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -109,7 +109,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "event": {
                 "outcome": "unknown"
@@ -122,8 +122,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -158,7 +158,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -168,8 +168,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "metric",
@@ -186,7 +186,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
@@ -203,8 +203,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "error",
@@ -224,7 +224,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "exception": [
@@ -243,8 +243,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "error",
@@ -264,7 +264,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.6.0"
+                "version": "1.8.0"
             },
             "error": {
                 "exception": [
@@ -283,8 +283,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.11.0",
-                "version_major": 7
+                "version": "1.2.3",
+                "version_major": 1
             },
             "processor": {
                 "event": "error",

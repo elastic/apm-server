@@ -40,13 +40,13 @@
                 },
                 "id": "6e09e8bcefd6b828",
                 "name": "FindDriverIDs",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827704954062
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -57,7 +57,7 @@
                 "version": "2.20.1"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "failure"
             },
             "host": {
                 "hostname": "host01",
@@ -65,7 +65,6 @@
                 "name": "host01"
             },
             "labels": {
-                "error": true,
                 "param_driverID": "T762465C"
             },
             "parent": {
@@ -90,13 +89,13 @@
                 },
                 "id": "333295bfb438ea03",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827704973809
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -139,13 +138,13 @@
                 },
                 "id": "627c37a97e475c2f",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705007578
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -188,13 +187,13 @@
                 },
                 "id": "7bd7663d39c5a847",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705016845
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -237,13 +236,13 @@
                 },
                 "id": "6b4051dd2a5e2366",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705029415
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -286,13 +285,13 @@
                 },
                 "id": "6df97a86b9b3451b",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705040082
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -303,7 +302,7 @@
                 "version": "2.20.1"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "failure"
             },
             "host": {
                 "hostname": "host01",
@@ -311,7 +310,6 @@
                 "name": "host01"
             },
             "labels": {
-                "error": true,
                 "param_driverID": "T781861C"
             },
             "parent": {
@@ -336,13 +334,13 @@
                 },
                 "id": "614811d6c498bfb0",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705054046
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -385,13 +383,13 @@
                 },
                 "id": "231604559da84d61",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705089459
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -434,13 +432,13 @@
                 },
                 "id": "61f7ecf24d13c36a",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705101278
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -483,13 +481,13 @@
                 },
                 "id": "2ef335bad24accc2",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705113531
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -532,13 +530,13 @@
                 },
                 "id": "38ec645e7201224d",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705125567
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -549,7 +547,7 @@
                 "version": "2.20.1"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "failure"
             },
             "host": {
                 "hostname": "host01",
@@ -557,7 +555,6 @@
                 "name": "host01"
             },
             "labels": {
-                "error": true,
                 "param_driverID": "T752547C"
             },
             "parent": {
@@ -580,15 +577,15 @@
                 "duration": {
                     "us": 39602
                 },
-                "id": "242ee3774d9eab1",
+                "id": "0242ee3774d9eab1",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705132896
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -631,13 +628,13 @@
                 },
                 "id": "6a63d1e81cfc7d95",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705172618
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -680,13 +677,13 @@
                 },
                 "id": "2b4c28f02b272f17",
                 "name": "GetDriver",
-                "type": "custom"
+                "type": "app"
             },
             "timestamp": {
                 "us": 1576827705186670
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -732,7 +729,7 @@
                 "us": 1576827705006847
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -778,7 +775,7 @@
                 "us": 1576827705089372
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
@@ -805,7 +802,7 @@
                 "name": "host01"
             },
             "parent": {
-                "id": "242ee3774d9eab1"
+                "id": "0242ee3774d9eab1"
             },
             "processor": {
                 "event": "error",
@@ -824,7 +821,7 @@
                 "us": 1576827705172347
             },
             "trace": {
-                "id": "7be2fd98d0973be3"
+                "id": "00000000000000007be2fd98d0973be3"
             }
         }
     ]

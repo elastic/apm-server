@@ -5,7 +5,12 @@
 # Enforce use of modules.
 export GO111MODULE=on
 
-GOOSBUILD=./build/$(shell go env GOOS)
+# Ensure the Go version in .go_version is installed and used.
+GOROOT?=$(shell ./script/run_with_go_ver go env GOROOT)
+GO:=$(GOROOT)/bin/go
+export PATH:=$(GOROOT)/bin:$(PATH)
+
+GOOSBUILD:=./build/$(shell $(GO) env GOOS)
 APPROVALS=$(GOOSBUILD)/approvals
 GENPACKAGE=$(GOOSBUILD)/genpackage
 GOIMPORTS=$(GOOSBUILD)/goimports
@@ -16,7 +21,7 @@ REVIEWDOG=$(GOOSBUILD)/reviewdog
 STATICCHECK=$(GOOSBUILD)/staticcheck
 
 PYTHON_ENV?=.
-PYTHON_BIN=$(PYTHON_ENV)/build/ve/$(shell go env GOOS)/bin
+PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
 PYTHON=$(PYTHON_BIN)/python
 
 # Create a local config.mk file to override configuration,
@@ -31,23 +36,23 @@ PYTHON=$(PYTHON_BIN)/python
 
 .PHONY: apm-server
 apm-server:
-	@go build -o $@ ./x-pack/apm-server
+	@$(GO) build -o $@ ./x-pack/apm-server
 
 .PHONY: apm-server-oss
 apm-server-oss:
-	@go build -o $@
+	@$(GO) build -o $@
 
 .PHONY: apm-server.test
 apm-server.test:
-	go test -c -coverpkg=github.com/elastic/apm-server/... ./x-pack/apm-server
+	$(GO) test -c -coverpkg=github.com/elastic/apm-server/... ./x-pack/apm-server
 
 .PHONY: apm-server-oss.test
 apm-server-oss.test:
-	go test -c -coverpkg=github.com/elastic/apm-server/...
+	$(GO) test -c -coverpkg=github.com/elastic/apm-server/...
 
 .PHONY: test
 test:
-	go test -v ./...
+	$(GO) test -v ./...
 
 .PHONY:
 clean: $(MAGE)
@@ -73,7 +78,7 @@ check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
 .PHONY: check
-check: $(MAGE) check-headers
+check: $(MAGE) check-fmt check-headers
 	@$(MAGE) check
 
 .PHONY: gen-package
@@ -82,7 +87,7 @@ gen-package: $(GENPACKAGE)
 
 .PHONY: bench
 bench:
-	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
+	@$(GO) test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
 
 .PHONY: system-tests
 system-tests: $(PYTHON_BIN) apm-server.test
@@ -127,7 +132,7 @@ apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
 
 .PHONY: go-generate
 go-generate:
-	@go generate
+	@$(GO) generate
 
 notice: NOTICE.txt
 NOTICE.txt: $(PYTHON) go.mod
@@ -136,7 +141,7 @@ NOTICE.txt: $(PYTHON) go.mod
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -exclude x-pack
+	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector
 	@$(GOLICENSER) -license Elastic x-pack
 endif
 
@@ -175,18 +180,18 @@ copy-docs:
 ##############################################################################
 
 BEATS_VERSION?=7.x
-BEATS_MODULE=$(shell go list -m -f {{.Path}} all | grep github.com/elastic/beats)
+BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
 
 .PHONY: update-beats
 update-beats: update-beats-module update
-	@echo --- Use this commit message: Update to elastic/beats@$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
+	@echo --- Use this commit message: Update to elastic/beats@$(shell $(GO) list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
 
 .PHONY: update-beats-module
 update-beats-module:
-	go get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && go mod tidy
-	diff -u .go-version $$(go list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version \
+	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
+	diff -u .go-version $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version \
 		|| { code=$$?; echo ".go-version out of sync with Beats"; exit $$code; }
-	rsync -crv --delete $$(go list -m -f {{.Dir}} $(BEATS_MODULE))/testing/environments testing/
+	rsync -crv --delete $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/testing/environments testing/
 
 ##############################################################################
 # Kibana synchronisation.
@@ -202,7 +207,7 @@ build/index-pattern.json: $(PYTHON) apm-server
 # Linting, style-checking, license header checks, etc.
 ##############################################################################
 
-GOLINT_TARGETS?=$(shell go list ./...)
+GOLINT_TARGETS?=$(shell $(GO) list ./...)
 GOLINT_UPSTREAM?=origin/7.x
 REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
 GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
@@ -222,18 +227,24 @@ check-changelogs: $(PYTHON)
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -d -exclude build -exclude x-pack
+	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector
 	@$(GOLICENSER) -d -exclude build -license Elastic x-pack
 endif
 
-# TODO(axw) once we move to modules, start using "mage fmt" instead.
-.PHONY: gofmt autopep8
+
+.PHONY: check-gofmt check-autopep8 gofmt autopep8
+check-fmt: check-gofmt check-autopep8
 fmt: gofmt autopep8
+check-gofmt: $(GOIMPORTS)
+	@PATH=$(GOOSBUILD):$(PATH) sh script/check_goimports.sh
 gofmt: $(GOIMPORTS) add-headers
 	@echo "fmt - goimports: Formatting Go code"
-	@$(GOIMPORTS) -local github.com/elastic -l -w $(shell find . -type f -name '*.go' 2>/dev/null)
-autopep8: $(MAGE)
-	@$(MAGE) pythonAutopep8
+	@PATH=$(GOOSBUILD):$(PATH) GOIMPORTSFLAGS=-w sh script/goimports.sh
+check-autopep8: $(PYTHON_BIN)
+	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --diff --exit-code
+autopep8: $(PYTHON_BIN)
+	@echo "fmt - autopep8: Formatting Python code"
+	@PATH=$(PYTHON_BIN):$(PATH) sh script/autopep8_all.sh --in-place
 
 ##############################################################################
 # Rules for creating and installing build tools.
@@ -243,31 +254,31 @@ BIN_MAGE=$(GOOSBUILD)/bin/mage
 
 # BIN_MAGE is the standard "mage" binary.
 $(BIN_MAGE): go.mod
-	go build -o $@ github.com/magefile/mage
+	$(GO) build -o $@ github.com/magefile/mage
 
 # MAGE is the compiled magefile.
 $(MAGE): magefile.go $(BIN_MAGE)
 	$(BIN_MAGE) -compile=$@
 
 $(STATICCHECK): go.mod
-	go build -o $@ honnef.co/go/tools/cmd/staticcheck
+	$(GO) build -o $@ honnef.co/go/tools/cmd/staticcheck
 
 .PHONY: $(GENPACKAGE)
 $(GENPACKAGE):
-	@go build -o $@ github.com/elastic/apm-server/apmpackage/cmd/gen-package
+	@$(GO) build -o $@ github.com/elastic/apm-server/apmpackage/cmd/gen-package
 
 
 $(GOLINT): go.mod
-	go build -o $@ golang.org/x/lint/golint
+	$(GO) build -o $@ golang.org/x/lint/golint
 
 $(GOIMPORTS): go.mod
-	go build -o $@ golang.org/x/tools/cmd/goimports
+	$(GO) build -o $@ golang.org/x/tools/cmd/goimports
 
 $(GOLICENSER): go.mod
-	go build -o $@ github.com/elastic/go-licenser
+	$(GO) build -o $@ github.com/elastic/go-licenser
 
 $(REVIEWDOG): go.mod
-	go build -o $@ github.com/reviewdog/reviewdog/cmd/reviewdog
+	$(GO) build -o $@ github.com/reviewdog/reviewdog/cmd/reviewdog
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate
@@ -277,22 +288,19 @@ $(PYTHON_BIN)/activate: $(MAGE)
 
 .PHONY: $(APPROVALS)
 $(APPROVALS):
-	@go build -o $@ github.com/elastic/apm-server/approvaltest/cmd/check-approvals
+	@$(GO) build -o $@ github.com/elastic/apm-server/approvaltest/cmd/check-approvals
 
 ##############################################################################
 # Release manager.
 ##############################################################################
 
-# Builds a snapshot release. The Go version defined in .go-version will be
-# installed and used for the build.
+# Builds a snapshot release.
 release-manager-snapshot: export SNAPSHOT=true
-release-manager-snapshot: release-manager-release
+release-manager-snapshot: release
 
-# Builds a snapshot release. The Go version defined in .go-version will be
-# installed and used for the build.
+# Builds a snapshot release.
 .PHONY: release-manager-release
-release-manager-release:
-	script/run_with_go_ver $(MAKE) release
+release-manager-release: release
 
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)

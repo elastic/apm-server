@@ -63,7 +63,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm",
+					"data_stream.dataset": "apm.app.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service": common.MapStr{
 						"name": "myservice",
@@ -91,7 +91,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm",
+					"data_stream.dataset": "apm.app.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"labels":              common.MapStr{"a_b": "a.b.value"},
@@ -116,7 +116,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal",
+					"data_stream.dataset": "apm.internal.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"transaction":         common.MapStr{"type": trType, "name": trName},
@@ -154,7 +154,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal",
+					"data_stream.dataset": "apm.internal.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"event":               common.MapStr{"outcome": eventOutcome},
@@ -171,6 +171,7 @@ func TestTransform(t *testing.T) {
 							},
 						},
 					},
+					"_doc_count": int64(6), // 1+2+3
 				},
 			},
 			Msg: "Payload with transaction duration.",
@@ -196,7 +197,7 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"data_stream.type":    "metrics",
-					"data_stream.dataset": "apm.internal",
+					"data_stream.dataset": "apm.internal.myservice",
 					"processor":           common.MapStr{"event": "metric", "name": "metric"},
 					"service":             common.MapStr{"name": "myservice"},
 					"span": common.MapStr{"type": spType, "subtype": spSubtype,

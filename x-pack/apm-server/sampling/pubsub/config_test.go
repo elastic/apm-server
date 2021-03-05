@@ -32,24 +32,53 @@ func TestConfigInvalid(t *testing.T) {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
 		},
-		err: "Index unspecified",
+		err: "DataStream unspecified or invalid: Type unspecified",
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
-			Index:  "index",
+			DataStream: pubsub.DataStreamConfig{
+				Type: "type",
+			},
+		},
+		err: "DataStream unspecified or invalid: Dataset unspecified",
+	}, {
+		config: pubsub.Config{
+			Client: elasticsearchClient,
+			DataStream: pubsub.DataStreamConfig{
+				Type:    "type",
+				Dataset: "dataset",
+			},
+		},
+		err: "DataStream unspecified or invalid: Namespace unspecified",
+	}, {
+		config: pubsub.Config{
+			Client: elasticsearchClient,
+			DataStream: pubsub.DataStreamConfig{
+				Type:      "type",
+				Dataset:   "dataset",
+				Namespace: "namespace",
+			},
 		},
 		err: "BeatID unspecified",
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
-			Index:  "index",
+			DataStream: pubsub.DataStreamConfig{
+				Type:      "type",
+				Dataset:   "dataset",
+				Namespace: "namespace",
+			},
 			BeatID: "beat_id",
 		},
 		err: "SearchInterval unspecified or negative",
 	}, {
 		config: pubsub.Config{
-			Client:         elasticsearchClient,
-			Index:          "index",
+			Client: elasticsearchClient,
+			DataStream: pubsub.DataStreamConfig{
+				Type:      "type",
+				Dataset:   "dataset",
+				Namespace: "namespace",
+			},
 			BeatID:         "beat_id",
 			SearchInterval: time.Second,
 		},

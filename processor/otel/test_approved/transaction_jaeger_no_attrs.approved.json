@@ -6,7 +6,7 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.unknown",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "failure"
@@ -14,9 +14,6 @@
             "host": {
                 "hostname": "host-abc",
                 "name": "host-abc"
-            },
-            "labels": {
-                "error": true
             },
             "processor": {
                 "event": "transaction",

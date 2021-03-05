@@ -28,12 +28,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.service1",
             "data_stream.type": "logs",
             "error": {
                 "culprit": "my.module.function_name",
@@ -372,12 +375,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.1234_service_12a3",
             "data_stream.type": "logs",
             "error": {
                 "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
@@ -478,12 +484,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.1234_service_12a3",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -580,12 +589,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.service1",
             "data_stream.type": "logs",
             "error": {
                 "exception": [
@@ -688,12 +700,15 @@
                     "name": "project_name"
                 },
                 "provider": "cloud_provider",
-                "region": "cloud_region"
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
             },
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
+            "data_stream.dataset": "apm.error.1234_service_12a3",
             "data_stream.type": "logs",
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

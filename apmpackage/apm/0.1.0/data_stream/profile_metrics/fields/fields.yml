@@ -1,6 +1,13 @@
+- name: cloud.service.name
+  level: extended
+  type: keyword
+  description: |
+    Cloud service name, intended to distinguish services running on different platforms within a provider.
+  ignore_above: 1024
 - name: experimental
   type: object
   description: Additional experimental data sent by the agents.
+  dynamic: true
 - name: kubernetes.namespace
   type: keyword
   description: |
@@ -95,6 +102,10 @@
   type: long
   description: |
     Source code line number for the top stack frame.
+- name: profile.wall.us
+  type: long
+  description: |
+    Amount of wall time profiled, in microseconds.
 - name: service.environment
   type: keyword
   description: |

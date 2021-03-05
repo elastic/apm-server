@@ -7,7 +7,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.6.0"
+            "version": "1.8.0"
         },
         "event": {
             "ingested": "2020-08-11T09:59:10.729866Z",
@@ -51,7 +51,7 @@
             "us": 1576827704953864
         },
         "trace": {
-            "id": "7be2fd98d0973be3"
+            "id": "00000000000000007be2fd98d0973be3"
         },
         "transaction": {
             "duration": {
@@ -59,7 +59,6 @@
             },
             "id": "7be2fd98d0973be3",
             "name": "Driver::findNearest",
-            "result": "Success",
             "sampled": true,
             "type": "custom"
         }
@@ -72,7 +71,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.6.0"
+            "version": "1.8.0"
         },
         "error": {
             "exception": [
@@ -121,7 +120,7 @@
             "us": 1576827705007552
         },
         "trace": {
-            "id": "7be2fd98d0973be3"
+            "id": "00000000000000007be2fd98d0973be3"
         },
         "transaction": {
             "id": "7be2fd98d0973be3",
@@ -136,7 +135,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.6.0"
+            "version": "1.8.0"
         },
         "error": {
             "exception": [
@@ -185,7 +184,7 @@
             "us": 1576827705089431
         },
         "trace": {
-            "id": "7be2fd98d0973be3"
+            "id": "00000000000000007be2fd98d0973be3"
         },
         "transaction": {
             "id": "7be2fd98d0973be3",
@@ -200,7 +199,7 @@
             "version": "2.20.1"
         },
         "ecs": {
-            "version": "1.6.0"
+            "version": "1.8.0"
         },
         "error": {
             "exception": [
@@ -249,7 +248,7 @@
             "us": 1576827705172530
         },
         "trace": {
-            "id": "7be2fd98d0973be3"
+            "id": "00000000000000007be2fd98d0973be3"
         },
         "transaction": {
             "id": "7be2fd98d0973be3",

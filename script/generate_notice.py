@@ -19,11 +19,12 @@ DEFAULT_BUILD_TAGS = "darwin,linux,windows"
 
 # Get the beats repo root directory, making sure it's downloaded first.
 subprocess.run(["go", "mod", "download", "github.com/elastic/beats/..."], check=True)
-BEATS_DIR = subprocess.check_output(["go", "list", "-m", "-f", "{{.Dir}}", "github.com/elastic/beats/..."]).decode("utf-8").strip()
+BEATS_DIR = subprocess.check_output(
+    ["go", "list", "-m", "-f", "{{.Dir}}", "github.com/elastic/beats/..."]).decode("utf-8").strip()
 
 # notice_overrides holds additional overrides entries for go-licence-detector.
 notice_overrides = [
-  {"name": "github.com/elastic/beats/v7", "licenceType": "Elastic"}
+    {"name": "github.com/elastic/beats/v7", "licenceType": "Elastic"}
 ]
 
 # Additional third-party, non-source code dependencies, to add to the CSV output.
@@ -61,7 +62,7 @@ def read_go_deps(main_packages, build_tags):
         module = pkg['Module']
         if "Main" not in module:
             modules[module['Path']] = module
-    return sorted(modules.values(), key = lambda module: module['Path'])
+    return sorted(modules.values(), key=lambda module: module['Path'])
 
 
 def go_license_detector(notice_out, deps_out, modules):
@@ -101,7 +102,6 @@ def go_license_detector(notice_out, deps_out, modules):
             "-depsOut", deps_out,
         ]
         subprocess.run(args, check=True, input=modules_json.encode("utf-8"))
-
 
 
 def write_notice_file(notice_filename, modules):

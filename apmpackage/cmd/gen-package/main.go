@@ -31,7 +31,15 @@ import (
 var versionMapping = map[string]string{
 	"7.11": "0.1.0",
 	"7.12": "0.1.0",
+	"7.13": "0.1.0",
 	"8.0":  "0.1.0",
+}
+
+// Some data streams may not have a counterpart template
+// in standalone apm-server, and so it does not make sense
+// to maintain a separate fields.yml.
+var handwritten = map[string]bool{
+	"sampled_traces": true,
 }
 
 func main() {
@@ -44,7 +52,9 @@ func main() {
 	clear(packageVersion)
 	inputFields := generateFields(packageVersion)
 	for dataStream := range inputFields {
-		generatePipelines(packageVersion, dataStream)
+		if err := generatePipelines(packageVersion, dataStream); err != nil {
+			log.Fatal(err)
+		}
 	}
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
@@ -58,11 +68,28 @@ func clear(version string) {
 		panic(err)
 	}
 	for _, f := range fileInfo {
-		if f.IsDir() {
-			os.Remove(ecsFilePath(version, f.Name()))
-			os.Remove(fieldsFilePath(version, f.Name()))
-			os.RemoveAll(pipelinesPath(version, f.Name()))
+		if !f.IsDir() {
+			continue
 		}
+		name := f.Name()
+		if handwritten[name] {
+			continue
+		}
+		removeFile(ecsFilePath(version, name))
+		removeFile(fieldsFilePath(version, name))
+		removeDir(pipelinesPath(version, name))
 	}
 	ioutil.WriteFile(docsFilePath(version), nil, 0644)
+}
+
+func removeFile(path string) {
+	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+		log.Fatal(err)
+	}
+}
+
+func removeDir(path string) {
+	if err := os.RemoveAll(path); err != nil && !os.IsNotExist(err) {
+		log.Fatal(err)
+	}
 }

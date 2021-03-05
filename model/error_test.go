@@ -308,7 +308,7 @@ func TestEvents(t *testing.T) {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
+				"data_stream.dataset": "apm.error.myservice",
 				"agent":               common.MapStr{"name": "go", "version": "1.0"},
 				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"error": common.MapStr{
@@ -323,7 +323,7 @@ func TestEvents(t *testing.T) {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
+				"data_stream.dataset": "apm.error.myservice",
 				"transaction":         common.MapStr{"sampled": false},
 				"agent":               common.MapStr{"name": "go", "version": "1.0"},
 				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
@@ -339,7 +339,7 @@ func TestEvents(t *testing.T) {
 			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionType: &transactionType},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
+				"data_stream.dataset": "apm.error.myservice",
 				"transaction":         common.MapStr{"type": "request"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
@@ -370,7 +370,7 @@ func TestEvents(t *testing.T) {
 
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
-				"data_stream.dataset": "apm.error",
+				"data_stream.dataset": "apm.error.myservice",
 				"labels":              common.MapStr{"key": true, "label": 101},
 				"service":             common.MapStr{"name": "myservice", "version": "1.0"},
 				"agent":               common.MapStr{"name": "go", "version": "1.0"},
@@ -555,7 +555,7 @@ func TestErrorTransformPage(t *testing.T) {
 			Error: Error{
 				ID: &id,
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},
@@ -572,9 +572,9 @@ func TestErrorTransformPage(t *testing.T) {
 			Error: Error{
 				ID:        &id,
 				Timestamp: time.Now(),
-				URL:       ParseURL("https://localhost:8200/", ""),
+				URL:       ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
-					URL:     ParseURL(urlExample, ""),
+					URL:     ParseURL(urlExample, "", ""),
 					Referer: nil,
 				},
 			},

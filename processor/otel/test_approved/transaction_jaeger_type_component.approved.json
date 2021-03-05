@@ -6,10 +6,10 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm",
+            "data_stream.dataset": "apm.unknown",
             "data_stream.type": "traces",
             "event": {
-                "outcome": "success"
+                "outcome": "unknown"
             },
             "host": {
                 "hostname": "host-abc",
@@ -36,7 +36,6 @@
                     "us": 0
                 },
                 "id": "",
-                "result": "Success",
                 "sampled": true,
                 "type": "amqp"
             }

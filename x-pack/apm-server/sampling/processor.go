@@ -66,7 +66,10 @@ func NewProcessor(config Config) (*Processor, error) {
 
 	logger := logp.NewLogger(logs.Sampling)
 	badgerOpts := badger.DefaultOptions(config.StorageDir)
-	badgerOpts.ValueLogFileSize = badgerValueLogFileSize
+	badgerOpts.ValueLogFileSize = config.ValueLogFileSize
+	if badgerOpts.ValueLogFileSize == 0 {
+		badgerOpts.ValueLogFileSize = badgerValueLogFileSize
+	}
 	badgerOpts.Logger = eventstorage.LogpAdaptor{Logger: logger}
 	db, err := badger.Open(badgerOpts)
 	if err != nil {
@@ -107,7 +110,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	//     currently an option in libbeat/monitoring.
 
 	p.groups.mu.RLock()
-	numDynamicGroups := len(p.groups.dynamicGroups)
+	numDynamicGroups := p.groups.numDynamicServiceGroups
 	p.groups.mu.RUnlock()
 	monitoring.ReportInt(V, "dynamic_service_groups", int64(numDynamicGroups))
 
@@ -326,10 +329,10 @@ func (p *Processor) Run() error {
 	}
 
 	pubsub, err := pubsub.New(pubsub.Config{
-		BeatID: p.config.BeatID,
-		Client: p.config.Elasticsearch,
-		Index:  p.config.SampledTracesIndex,
-		Logger: p.logger,
+		BeatID:     p.config.BeatID,
+		Client:     p.config.Elasticsearch,
+		DataStream: pubsub.DataStreamConfig(p.config.SampledTracesDataStream),
+		Logger:     p.logger,
 
 		// Issue pubsub subscriber search requests at twice the frequency
 		// of publishing, so each server observes each other's sampled
