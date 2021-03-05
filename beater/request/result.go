@@ -96,6 +96,7 @@ var (
 		IDResponseErrorsValidate:           {Code: http.StatusBadRequest, Keyword: "data validation error"},
 		IDResponseErrorsMethodNotAllowed:   {Code: http.StatusMethodNotAllowed, Keyword: "method not supported"},
 		IDResponseErrorsRateLimit:          {Code: http.StatusTooManyRequests, Keyword: "too many requests"},
+		IDResponseErrorsTimeout:            {Code: http.StatusServiceUnavailable, Keyword: "request timed out"},
 		IDResponseErrorsFullQueue:          {Code: http.StatusServiceUnavailable, Keyword: "queue is full"},
 		IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
