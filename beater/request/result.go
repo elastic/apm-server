@@ -66,6 +66,8 @@ const (
 	IDResponseErrorsValidate ResultID = "response.errors.validate"
 	// IDResponseErrorsRateLimit identifies responses for rate limited requests
 	IDResponseErrorsRateLimit ResultID = "response.errors.ratelimit"
+	// IDResponseErrorsTimeout identifies responses for timed out requests
+	IDResponseErrorsTimeout ResultID = "response.errors.timeout"
 	// IDResponseErrorsMethodNotAllowed identifies responses for requests using a forbidden method
 	IDResponseErrorsMethodNotAllowed ResultID = "response.errors.method"
 	// IDResponseErrorsFullQueue identifies responses when internal queue was full
