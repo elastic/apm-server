@@ -15,20 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beatertest
+package modelprocessor
 
 import (
 	"context"
 
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/model"
 )
 
-// NilReporter is a noop implementation of the reporter interface
-func NilReporter(ctx context.Context, p publish.PendingReq) error { return nil }
+// Chained is a chained model.BatchProcessor, calling each of
+// the processors in the slice in series.
+type Chained []model.BatchProcessor
 
-// ErrorReporterFn returns a function implementing the reporter interface, returning given error
-func ErrorReporterFn(err error) func(ctx context.Context, p publish.PendingReq) error {
-	return func(ctx context.Context, p publish.PendingReq) error {
-		return err
+// ProcessBatch calls each of the processors in c in series.
+func (c Chained) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+	for _, p := range c {
+		if err := p.ProcessBatch(ctx, batch); err != nil {
+			return err
+		}
 	}
+	return nil
 }

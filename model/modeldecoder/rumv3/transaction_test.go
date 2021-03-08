@@ -334,7 +334,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var tr model.Transaction
 		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), &tr)
 		assert.Equal(t, "https://my.site.test:9201", tr.Page.URL.Full)
-		assert.Equal(t, 9201, *tr.Page.URL.Port)
+		assert.Equal(t, 9201, tr.Page.URL.Port)
 		assert.Equal(t, "https", tr.Page.URL.Scheme)
 	})
 

@@ -69,7 +69,8 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	// Flush in order for the writes to be visible to other readers.
 	assert.NoError(t, readWriter.Flush())
 
-	var recorded []interface{}
+	var recordedTransactions []*model.Transaction
+	var recordedSpans []*model.Span
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
 		iter := txn.NewIterator(badger.IteratorOptions{
 			Prefix: []byte(traceUUID.String()),
@@ -96,20 +97,24 @@ func testWriteEvents(t *testing.T, numSpans int) {
 			var value interface{}
 			switch meta := item.UserMeta(); meta {
 			case 'T':
-				value = &model.Transaction{}
+				tx := &model.Transaction{}
+				recordedTransactions = append(recordedTransactions, tx)
+				value = tx
 			case 'S':
-				value = &model.Span{}
+				span := &model.Span{}
+				recordedSpans = append(recordedSpans, span)
+				value = span
 			default:
 				t.Fatalf("invalid meta %q", meta)
 			}
 			assert.NoError(t, item.Value(func(data []byte) error {
 				return json.Unmarshal(data, value)
 			}))
-			recorded = append(recorded, value)
 		}
 		return nil
 	}))
-	assert.ElementsMatch(t, batch.Transformables(), recorded)
+	assert.ElementsMatch(t, batch.Spans, recordedSpans)
+	assert.ElementsMatch(t, batch.Transactions, recordedTransactions)
 }
 
 func TestWriteTraceSampled(t *testing.T) {

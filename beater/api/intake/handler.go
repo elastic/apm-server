@@ -32,7 +32,6 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/publish"
 )
 
 var (
@@ -42,7 +41,7 @@ var (
 )
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(processor *stream.Processor, report publish.Reporter) request.Handler {
+func Handler(processor *stream.Processor, batchProcessor model.BatchProcessor) request.Handler {
 	return func(c *request.Context) {
 
 		serr := validateRequest(c.Request)
@@ -68,7 +67,7 @@ func Handler(processor *stream.Processor, report publish.Reporter) request.Handl
 			UserAgent: model.UserAgent{Original: c.RequestMetadata.UserAgent},
 			Client:    model.Client{IP: c.RequestMetadata.ClientIP},
 			System:    model.System{IP: c.RequestMetadata.SystemIP}}
-		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, &metadata, reader, report)
+		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, &metadata, reader, batchProcessor)
 		sendResponse(c, res)
 	}
 }

@@ -213,6 +213,7 @@
                     }
                 ],
                 "grouping_key": "89e23da755c2dd759d2d529e37c92b8f",
+                "grouping_name": "Uncaught Error: log timeout test error",
                 "id": "aba2688e033848ce9c4e4005f1caa534",
                 "log": {
                     "message": "Uncaught Error: log timeout test error",

@@ -769,7 +769,13 @@
         - name: grouping_key
           type: keyword
           description: >
-            GroupingKey of the logged error for use in grouping.
+            Hash of select properties of the logged error for grouping purposes.
+
+        - name: grouping_name
+          type: keyword
+          description: >
+            Name to associate with an error group.
+            Errors belonging to the same group (same grouping_key) may have differing values for grouping_name. Consumers may choose one arbitrarily.
 
         - name: exception
           type: group

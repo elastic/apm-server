@@ -582,7 +582,8 @@ Logs are written to `logs-apm.error.*` indices.
 |error.exception.message|The original error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.module|The module namespace of the original error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.type|The type of the original error, e.g. the Java exception class name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.grouping\_key|GroupingKey of the logged error for use in grouping.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|error.grouping\_key|Hash of select properties of the logged error for grouping purposes.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|error.grouping\_name|Name to associate with an error group. Errors belonging to the same group (same grouping\_key) may have differing values for grouping\_name. Consumers may choose one arbitrarily.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.id|The ID of the error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |error.log.level|The severity of the record.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.log.logger\_name|The name of the logger instance used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -674,6 +675,7 @@ Logs are written to `logs-apm.error.*` indices.
   },
   "error": {
     "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+    "grouping_name": "Cannot read property 'baz' of undefined",
     "id": "0f0e9d67c1854d21a6f44673ed561ec8",
     "log": {
       "level": "custom log level",

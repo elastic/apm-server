@@ -5,124 +5,140 @@ version: 0.1.0
 license: basic
 description: Ingest APM data
 type: integration
-categories:
-  - monitoring
+categories: ["elastic_stack", "monitoring"]
 release: experimental # experimental / beta / ga
 conditions:
-  kibana.version: '^7.12.0'
+  kibana.version: "^7.12.0"
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
     size: 32x32
     type: image/svg+xml
+screenshots:
+  - src: /img/apm-01-service-inventory.png
+    title: apm app service inventory
+    size: 1440x1025
+    type: image/png
+  - src: /img/apm-02-service-overview.png
+    title: apm app service overview
+    size: 1440x2032
+    type: image/png
+  - src: /img/apm-03-trace.png
+    title: apm app trace
+    size: 1440x1382
+    type: image/png
+  - src: /img/apm-04-service-map.png
+    title: apm app service map
+    size: 1440x1025
+    type: image/png
 policy_templates:
-- name: apmserver
-  title: Elastic APM Integration
-  description: Elastic APM Integration
-  multiple: false
-  inputs:
-  - type: apm
-    title: Collect application traces
-    description: Collect application traces
-    vars:
-      - name: host
-        type: string
-        title: Host
-        required: true
-        show_user: true
-        default: localhost:8200
-      - name: secret_token
-        type: string
-        title: Secret token for Agent authentication
-        required: false
-        show_user: true
-      - name: api_key_enabled
-        type: bool
-        title: API Key for Agent authentication
-        description: Enable API Key auth between APM Server and APM Agents.
-        required: false
-        show_user: true
-        default: false
-      - name: kibana_api_key
-        type: string
-        title: API Key for Central Configuration
-        required: false
-        description: API Key for APM central configuration feature. Enter as <Id>:<API Key>
-        show_user: true
-      - name: enable_rum
-        type: bool
-        title: Enable RUM
-        description: Enable Real User Monitoring (RUM).
-        required: true
-        show_user: true
-        default: false
-      - name: default_service_environment
-        type: string
-        title: Default Service Environment
-        description: Default service environment to record in events which have no service environment defined.
-        required: false
-        show_user: false
-      - name: rum_allow_origins
-        type: string
-        title: RUM - Origin Headers
-        description: Allowed Origin headers to be sent by User Agents.
-        multi: true
-        required: false
-        show_user: false
-        default: ['*']
-      - name: rum_allow_headers
-        type: string
-        title: RUM - Access-Control-Allow-Headers
-        description: Supported Access-Control-Allow-Headers in addition to "Content-Type", "Content-Encoding" and "Accept".
-        multi: true
-        required: false
-        show_user: false
-      - name: rum_response_headers
-        type: yaml
-        title: RUM - Custom HTTP response headers
-        description: Added to RUM responses, e.g. for security policy compliance.
-        required: false
-        show_user: false
-      - name: rum_event_rate_limit
-        type: int
-        title: RUM - Rate limit events per IP
-        description: Maximum number of events allowed per IP per second.
-        required: false
-        show_user: false
-        default: 300
-      - name: rum_event_rate_lru_size
-        type: int
-        title: RUM - Rate limit cache size
-        description: Number of unique IPs to be cached for the rate limiter.
-        required: false
-        show_user: false
-        default: 1000
-      - name: sourcemap_api_key
-        type: string
-        title: RUM - API Key for Sourcemaps
-        required: false
-        description: API Key for sourcemap feature. Enter as <Id>:<API Key>
-        show_user: false
-      - name: api_key_limit
-        type: int
-        title: Maximum number of API Keys for Agent authentication
-        description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.
-        required: false
-        show_user: false
-        default: 100
-      - name: max_event_bytes
-        type: int
-        title: Maximum size per event (bytes)
-        required: false
-        show_user: false
-        default: 307200
-      - name: capture_personal_data
-        type: bool
-        title: Capture personal data
-        description: Capture personal data such as IP or User Agent.
-        required: false
-        show_user: false
-        default: true
-    template_path: template.yml.hbs
+  - name: apmserver
+    title: Elastic APM Integration
+    description: Elastic APM Integration
+    multiple: false
+    inputs:
+      - type: apm
+        title: Collect application traces
+        description: Collect application traces
+        vars:
+          - name: host
+            type: string
+            title: Host
+            required: true
+            show_user: true
+            default: localhost:8200
+          - name: secret_token
+            type: string
+            title: Secret token for Agent authentication
+            required: false
+            show_user: true
+          - name: api_key_enabled
+            type: bool
+            title: API Key for Agent authentication
+            description: Enable API Key auth between APM Server and APM Agents.
+            required: false
+            show_user: true
+            default: false
+          - name: kibana_api_key
+            type: string
+            title: API Key for Central Configuration
+            required: false
+            description: API Key for APM central configuration feature. Enter as <Id>:<API Key>
+            show_user: true
+          - name: enable_rum
+            type: bool
+            title: Enable RUM
+            description: Enable Real User Monitoring (RUM).
+            required: true
+            show_user: true
+            default: false
+          - name: default_service_environment
+            type: string
+            title: Default Service Environment
+            description: Default service environment to record in events which have no service environment defined.
+            required: false
+            show_user: false
+          - name: rum_allow_origins
+            type: string
+            title: RUM - Origin Headers
+            description: Allowed Origin headers to be sent by User Agents.
+            multi: true
+            required: false
+            show_user: false
+            default: ['"*"']
+          - name: rum_allow_headers
+            type: string
+            title: RUM - Access-Control-Allow-Headers
+            description: Supported Access-Control-Allow-Headers in addition to "Content-Type", "Content-Encoding" and "Accept".
+            multi: true
+            required: false
+            show_user: false
+          - name: rum_response_headers
+            type: yaml
+            title: RUM - Custom HTTP response headers
+            description: Added to RUM responses, e.g. for security policy compliance.
+            required: false
+            show_user: false
+          - name: rum_event_rate_limit
+            type: int
+            title: RUM - Rate limit events per IP
+            description: Maximum number of events allowed per IP per second.
+            required: false
+            show_user: false
+            default: 300
+          - name: rum_event_rate_lru_size
+            type: int
+            title: RUM - Rate limit cache size
+            description: Number of unique IPs to be cached for the rate limiter.
+            required: false
+            show_user: false
+            default: 1000
+          - name: sourcemap_api_key
+            type: string
+            title: RUM - API Key for Sourcemaps
+            required: false
+            description: API Key for sourcemap feature. Enter as <Id>:<API Key>
+            show_user: false
+          - name: api_key_limit
+            type: int
+            title: Maximum number of API Keys for Agent authentication
+            description: Restrict number of unique API Keys per minute, used for auth between APM Agents and Server.
+            required: false
+            show_user: false
+            default: 100
+          - name: max_event_bytes
+            type: int
+            title: Maximum size per event (bytes)
+            required: false
+            show_user: false
+            default: 307200
+          - name: capture_personal_data
+            type: bool
+            title: Capture personal data
+            description: Capture personal data such as IP or User Agent.
+            required: false
+            show_user: false
+            default: true
+        template_path: template.yml.hbs
 owner:
   github: elastic/apm-server

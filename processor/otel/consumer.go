@@ -42,6 +42,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
@@ -51,7 +52,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 )
 
 const (
@@ -68,7 +68,7 @@ const (
 type Consumer struct {
 	stats consumerStats
 
-	Reporter publish.Reporter
+	Processor model.BatchProcessor
 }
 
 // ConsumerStats holds a snapshot of statistics about data consumption.
@@ -95,10 +95,7 @@ func (c *Consumer) Stats() ConsumerStats {
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
 	batch := c.convert(traces)
-	return c.Reporter(ctx, publish.PendingReq{
-		Transformables: batch.Transformables(),
-		Trace:          true,
-	})
+	return c.Processor.ProcessBatch(ctx, batch)
 }
 
 func (c *Consumer) convert(td pdata.Traces) *model.Batch {
@@ -416,8 +413,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		case pdata.AttributeValueINT:
 			switch kDots {
 			case "http.status_code":
-				code := int(v.IntVal())
-				http.StatusCode = &code
+				http.StatusCode = int(v.IntVal())
 				isHTTPSpan = true
 			case conventions.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
@@ -568,9 +564,9 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 
 	switch {
 	case isHTTPSpan:
-		if http.StatusCode != nil {
+		if http.StatusCode > 0 {
 			if event.Outcome == outcomeUnknown {
-				event.Outcome = clientHTTPStatusCodeOutcome(*http.StatusCode)
+				event.Outcome = clientHTTPStatusCodeOutcome(http.StatusCode)
 			}
 		}
 		event.Type = "external"
@@ -598,10 +594,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	}
 
 	if destAddr != "" {
-		event.Destination = &model.Destination{Address: destAddr}
-		if destPort > 0 {
-			event.Destination.Port = &destPort
-		}
+		event.Destination = &model.Destination{Address: destAddr, Port: destPort}
 	}
 	if destinationService != (model.DestinationService{}) {
 		if destinationService.Type == "" {
@@ -644,16 +637,66 @@ func convertSpanEvent(
 	transaction *model.Transaction, span *model.Span, // only one is non-nil
 	out *model.Batch,
 ) {
+	var e *model.Error
+	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
+	if isJaeger {
+		e = convertJaegerErrorSpanEvent(logger, event)
+	} else {
+		// Translate exception span events to errors.
+		//
+		// If it's not Jaeger, we assume OpenTelemetry semantic conventions.
+		//
+		// TODO(axw) we don't currently support arbitrary events, we only look
+		// for exceptions and convert those to Elastic APM error events.
+		if event.Name() != "exception" {
+			// Per OpenTelemetry semantic conventions:
+			//   `The name of the event MUST be "exception"`
+			return
+		}
+		var exceptionEscaped bool
+		var exceptionMessage, exceptionStacktrace, exceptionType string
+		event.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
+			switch k {
+			case conventions.AttributeExceptionMessage:
+				exceptionMessage = v.StringVal()
+			case conventions.AttributeExceptionStacktrace:
+				exceptionStacktrace = v.StringVal()
+			case conventions.AttributeExceptionType:
+				exceptionType = v.StringVal()
+			case "exception.escaped":
+				exceptionEscaped = v.BoolVal()
+			}
+		})
+		if exceptionMessage == "" && exceptionType == "" {
+			// Per OpenTelemetry semantic conventions:
+			//   `At least one of the following sets of attributes is required:
+			//   - exception.type
+			//   - exception.message`
+			return
+		}
+		e = convertOpenTelemetryExceptionSpanEvent(
+			time.Unix(0, int64(event.Timestamp())).UTC(),
+			exceptionType, exceptionMessage, exceptionStacktrace,
+			exceptionEscaped, metadata.Service.Language.Name,
+		)
+	}
+	if e != nil {
+		if transaction != nil {
+			addTransactionCtxToErr(transaction, e)
+		}
+		if span != nil {
+			addSpanCtxToErr(span, e)
+		}
+		out.Errors = append(out.Errors, e)
+	}
+}
+
+func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *model.Error {
 	var isError bool
 	var exMessage, exType string
 	logMessage := event.Name()
 	hasMinimalInfo := logMessage != ""
-	isJaeger := strings.HasPrefix(metadata.Service.Agent.Name, "Jaeger")
 	event.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
-		if !isJaeger {
-			// TODO(axw) translate OpenTelemetry exception span events.
-			return
-		}
 		if v.Type() != pdata.AttributeValueSTRING {
 			return
 		}
@@ -683,13 +726,12 @@ func convertSpanEvent(
 		}
 	})
 	if !isError {
-		return
+		return nil
 	}
 	if !hasMinimalInfo {
 		logger.Debugf("Cannot convert span event (name=%q) into elastic apm error: %v", event.Name())
-		return
+		return nil
 	}
-
 	e := &model.Error{
 		Timestamp: pdata.UnixNanoToTime(event.Timestamp()),
 	}
@@ -702,13 +744,7 @@ func convertSpanEvent(
 			Type:    exType,
 		}
 	}
-	if transaction != nil {
-		addTransactionCtxToErr(transaction, e)
-	}
-	if span != nil {
-		addSpanCtxToErr(span, metadata.System.DetectedHostname, e)
-	}
-	out.Errors = append(out.Errors, e)
+	return e
 }
 
 func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
@@ -718,26 +754,16 @@ func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
 	err.URL = transaction.URL
+	err.Page = transaction.Page
+	err.Custom = transaction.Custom
+	err.TransactionSampled = transaction.Sampled
 	err.TransactionType = transaction.Type
 }
 
-func addSpanCtxToErr(span *model.Span, hostname string, err *model.Error) {
+func addSpanCtxToErr(span *model.Span, err *model.Error) {
 	err.Metadata = span.Metadata
-	err.TransactionID = span.TransactionID
 	err.TraceID = span.TraceID
 	err.ParentID = span.ID
-	if span.HTTP != nil {
-		err.HTTP = &model.Http{}
-		if span.HTTP.StatusCode != nil {
-			err.HTTP.Response = &model.Resp{MinimalResp: model.MinimalResp{StatusCode: span.HTTP.StatusCode}}
-		}
-		if span.HTTP.Method != "" {
-			err.HTTP.Request = &model.Req{Method: span.HTTP.Method}
-		}
-		if span.HTTP.URL != "" {
-			err.URL = model.ParseURL(span.HTTP.URL, hostname, "")
-		}
-	}
 }
 
 func replaceDots(s string) string {

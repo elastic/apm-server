@@ -19,53 +19,83 @@ package modelprocessor_test
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestSetDefaultServiceEnvironment(t *testing.T) {
 	nonEmptyMetadata := model.Metadata{Service: model.Service{Environment: "nonempty"}}
-	in := []transform.Transformable{
-		// Should be left alone.
-		&model.Transaction{Metadata: nonEmptyMetadata},
-		&model.Span{Metadata: nonEmptyMetadata},
-		&model.Metricset{Metadata: nonEmptyMetadata},
-		&model.Error{Metadata: nonEmptyMetadata},
-		&model.PprofProfile{Metadata: nonEmptyMetadata},
 
-		// Should be updated.
-		&model.Transaction{},
-		&model.Span{},
-		&model.Metricset{},
-		&model.Error{},
-		&model.PprofProfile{},
+	// Check that the model.Batch fields have not changed since this test was
+	// last updated, to ensure we process all model types.
+	var batchFields []string
+	typ := reflect.TypeOf(model.Batch{})
+	for i := 0; i < typ.NumField(); i++ {
+		batchFields = append(batchFields, typ.Field(i).Name)
+	}
+	assert.ElementsMatch(t, []string{
+		"Transactions",
+		"Spans",
+		"Metricsets",
+		"Errors",
+		"Profiles",
+	}, batchFields)
+
+	batch := &model.Batch{
+		Transactions: []*model.Transaction{
+			{Metadata: nonEmptyMetadata},
+			{},
+		},
+		Spans: []*model.Span{
+			{Metadata: nonEmptyMetadata},
+			{},
+		},
+		Metricsets: []*model.Metricset{
+			{Metadata: nonEmptyMetadata},
+			{},
+		},
+		Errors: []*model.Error{
+			{Metadata: nonEmptyMetadata},
+			{},
+		},
+		Profiles: []*model.PprofProfile{
+			{Metadata: nonEmptyMetadata},
+			{},
+		},
 	}
 
 	processor := modelprocessor.SetDefaultServiceEnvironment{
 		DefaultServiceEnvironment: "default",
 	}
-	out, err := processor.ProcessTransformables(context.Background(), in)
+	err := processor.ProcessBatch(context.Background(), batch)
 	assert.NoError(t, err)
 
 	defaultMetadata := model.Metadata{Service: model.Service{Environment: "default"}}
-	assert.Equal(t, []transform.Transformable{
-		// Should be left alone.
-		&model.Transaction{Metadata: nonEmptyMetadata},
-		&model.Span{Metadata: nonEmptyMetadata},
-		&model.Metricset{Metadata: nonEmptyMetadata},
-		&model.Error{Metadata: nonEmptyMetadata},
-		&model.PprofProfile{Metadata: nonEmptyMetadata},
-
-		// Should be updated.
-		&model.Transaction{Metadata: defaultMetadata},
-		&model.Span{Metadata: defaultMetadata},
-		&model.Metricset{Metadata: defaultMetadata},
-		&model.Error{Metadata: defaultMetadata},
-		&model.PprofProfile{Metadata: defaultMetadata},
-	}, out)
+	assert.Equal(t, &model.Batch{
+		Transactions: []*model.Transaction{
+			{Metadata: nonEmptyMetadata},
+			{Metadata: defaultMetadata},
+		},
+		Spans: []*model.Span{
+			{Metadata: nonEmptyMetadata},
+			{Metadata: defaultMetadata},
+		},
+		Metricsets: []*model.Metricset{
+			{Metadata: nonEmptyMetadata},
+			{Metadata: defaultMetadata},
+		},
+		Errors: []*model.Error{
+			{Metadata: nonEmptyMetadata},
+			{Metadata: defaultMetadata},
+		},
+		Profiles: []*model.PprofProfile{
+			{Metadata: nonEmptyMetadata},
+			{Metadata: defaultMetadata},
+		},
+	}, batch)
 }
