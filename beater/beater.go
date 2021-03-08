@@ -408,7 +408,10 @@ func (s *serverRunner) run() error {
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
-	var processors []model.BatchProcessor
+	processors := []model.BatchProcessor{
+		modelprocessor.SetSystemHostname{},
+		modelprocessor.SetServiceNodeName{},
+	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,

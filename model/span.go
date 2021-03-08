@@ -59,7 +59,6 @@ type Span struct {
 	Outcome    string
 	Start      *float64
 	Duration   float64
-	Service    *Service
 	Stacktrace Stacktrace
 	Sync       *bool
 	Labels     common.MapStr
@@ -227,14 +226,6 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 	}
 	fields.maybeSetMapStr("destination", e.Destination.fields())
 
-	// TODO(axw) instead of having separate Service/Agent fields on the model
-	// object, have the decoder merge into the relevant Metadata fields.
-	if serviceFields := e.Service.Fields("", ""); len(serviceFields) > 0 {
-		common.MapStr(fields).DeepUpdate(common.MapStr{"service": e.Service.Fields("", "")})
-	}
-	if agentFields := e.Service.AgentFields(); len(agentFields) > 0 {
-		common.MapStr(fields).DeepUpdate(common.MapStr{"agent": e.Service.AgentFields()})
-	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
 	return []beat.Event{{

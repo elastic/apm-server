@@ -165,7 +165,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Labels:    common.MapStr{"a": true},
 	}
 
-	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}}
+	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}, Referer: referer}
 	response := Resp{Finished: new(bool), MinimalResp: MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
 	txWithContext := Transaction{
 		Metadata:  eventMetadata,
@@ -250,24 +250,6 @@ func TestTransactionTransformPage(t *testing.T) {
 		Output      common.MapStr
 		Msg         string
 	}{
-		{
-			Transaction: Transaction{
-				ID:       id,
-				Type:     "tx",
-				Duration: 65.98,
-				Page: &Page{
-					URL: ParseURL(urlExample, "", ""),
-				},
-			},
-			Output: common.MapStr{
-				"domain":   "example.com",
-				"full":     "http://example.com/path",
-				"original": "http://example.com/path",
-				"path":     "/path",
-				"scheme":   "http",
-			},
-			Msg: "With page URL",
-		},
 		{
 			Transaction: Transaction{
 				ID:        id,

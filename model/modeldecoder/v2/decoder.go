@@ -264,10 +264,6 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		if len(from.Context.Tags) > 0 {
 			out.Labels = from.Context.Tags.Clone()
 		}
-		if from.Context.Page.IsSet() {
-			out.Page = &model.Page{}
-			mapToPageModel(from.Context.Page, out.Page)
-		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.Http{Request: &model.Req{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
@@ -285,6 +281,24 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		if from.Context.Request.URL.IsSet() {
 			out.URL = &model.URL{}
 			mapToRequestURLModel(from.Context.Request.URL, out.URL)
+		}
+		if from.Context.Page.IsSet() {
+			out.Page = &model.Page{}
+			mapToPageModel(from.Context.Page, out.Page)
+			if out.URL == nil {
+				out.URL = out.Page.URL
+			}
+			if out.Page.Referer != "" {
+				if out.HTTP == nil {
+					out.HTTP = &model.Http{}
+				}
+				if out.HTTP.Request == nil {
+					out.HTTP.Request = &model.Req{}
+				}
+				if out.HTTP.Request.Referer == "" {
+					out.HTTP.Request.Referer = out.Page.Referer
+				}
+			}
 		}
 		if len(from.Context.Custom) > 0 {
 			out.Custom = from.Context.Custom.Clone()
@@ -848,8 +862,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 		out.Message = &message
 	}
 	if from.Context.Service.IsSet() {
-		out.Service = &model.Service{}
-		mapToServiceModel(from.Context.Service, out.Service)
+		mapToServiceModel(from.Context.Service, &out.Metadata.Service)
 	}
 	if len(from.Context.Tags) > 0 {
 		out.Labels = from.Context.Tags.Clone()
@@ -1004,10 +1017,6 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 				out.Message.QueueName = from.Context.Message.Queue.Name.Val
 			}
 		}
-		if from.Context.Page.IsSet() {
-			out.Page = &model.Page{}
-			mapToPageModel(from.Context.Page, out.Page)
-		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.Http{Request: &model.Req{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
@@ -1025,6 +1034,24 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 			}
 			out.HTTP.Response = &model.Resp{}
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+		}
+		if from.Context.Page.IsSet() {
+			out.Page = &model.Page{}
+			mapToPageModel(from.Context.Page, out.Page)
+			if out.URL == nil {
+				out.URL = out.Page.URL
+			}
+			if out.Page.Referer != "" {
+				if out.HTTP == nil {
+					out.HTTP = &model.Http{}
+				}
+				if out.HTTP.Request == nil {
+					out.HTTP.Request = &model.Req{}
+				}
+				if out.HTTP.Request.Referer == "" {
+					out.HTTP.Request.Referer = out.Page.Referer
+				}
+			}
 		}
 	}
 	if from.Duration.IsSet() {

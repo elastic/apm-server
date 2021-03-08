@@ -183,8 +183,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"HTTP.Response.HeadersSent", "HTTP.Response.Finished",
 				"Experimental",
 				"RepresentativeCount", "Message",
-				// URL parts are derived from url (separately tested)
+				// URL parts are derived from page.url (separately tested)
 				"URL", "Page.URL",
+				// HTTP.Request.Referrer is derived from page.referer (separately tested)
 				// RUM is set in stream processor
 				"RUM",
 			} {
@@ -334,8 +335,18 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var tr model.Transaction
 		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), &tr)
 		assert.Equal(t, "https://my.site.test:9201", tr.Page.URL.Full)
+		assert.Equal(t, "https://my.site.test:9201", tr.URL.Full)
 		assert.Equal(t, 9201, *tr.Page.URL.Port)
 		assert.Equal(t, "https", tr.Page.URL.Scheme)
+	})
+
+	t.Run("page.referer", func(t *testing.T) {
+		var inputTr transaction
+		inputTr.Context.Page.Referer.Set("https://my.site.test:9201")
+		var tr model.Transaction
+		mapToTransactionModel(&inputTr, initializedMetadata(), time.Now(), &tr)
+		assert.Equal(t, "https://my.site.test:9201", tr.Page.Referer)
+		assert.Equal(t, "https://my.site.test:9201", tr.HTTP.Request.Referer)
 	})
 
 }
