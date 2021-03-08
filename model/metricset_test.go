@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -230,7 +229,7 @@ func TestTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Metricset.Transform(context.Background(), &transform.Config{DataStreams: true})
+		outputEvents := test.Metricset.appendBeatEvents(&transform.Config{DataStreams: true}, nil)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
