@@ -76,7 +76,7 @@ func (tx *transactionBuilder) setHTTPStatusCode(statusCode int) {
 	if tx.HTTP.Response == nil {
 		tx.HTTP.Response = &model.Resp{}
 	}
-	tx.HTTP.Response.MinimalResp.StatusCode = &statusCode
+	tx.HTTP.Response.MinimalResp.StatusCode = statusCode
 	if tx.Outcome == outcomeUnknown {
 		if statusCode >= 500 {
 			tx.Outcome = outcomeFailure
