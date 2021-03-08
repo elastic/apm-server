@@ -5,8 +5,7 @@ version: 0.1.0
 license: basic
 description: Ingest APM data
 type: integration
-categories:
-  - monitoring
+categories: ["elastic_stack", "monitoring"]
 release: experimental # experimental / beta / ga
 conditions:
   kibana.version: "^7.12.0"
@@ -86,7 +85,7 @@ policy_templates:
             multi: true
             required: false
             show_user: false
-            default: ["*"]
+            default: ['"*"']
           - name: rum_allow_headers
             type: string
             title: RUM - Access-Control-Allow-Headers
