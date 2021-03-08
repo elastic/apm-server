@@ -69,19 +69,19 @@ func (b *Batch) Len() int {
 func (b *Batch) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
 	events := make([]beat.Event, 0, b.Len())
 	for _, event := range b.Transactions {
-		events = append(events, event.Transform(ctx, cfg)...)
+		events = event.appendBeatEvents(cfg, events)
 	}
 	for _, event := range b.Spans {
-		events = append(events, event.Transform(ctx, cfg)...)
+		events = event.appendBeatEvents(ctx, cfg, events)
 	}
 	for _, event := range b.Metricsets {
-		events = append(events, event.Transform(ctx, cfg)...)
+		events = event.appendBeatEvents(cfg, events)
 	}
 	for _, event := range b.Errors {
-		events = append(events, event.Transform(ctx, cfg)...)
+		events = event.appendBeatEvents(ctx, cfg, events)
 	}
 	for _, event := range b.Profiles {
-		events = append(events, event.Transform(ctx, cfg)...)
+		events = event.appendBeatEvents(cfg, events)
 	}
 	return events
 }
