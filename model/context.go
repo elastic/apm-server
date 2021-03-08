@@ -52,7 +52,7 @@ type URL struct {
 	Scheme   string
 	Full     string
 	Domain   string
-	Port     *int
+	Port     int
 	Path     string
 	Query    string
 	Fragment string
@@ -84,7 +84,7 @@ func ParseURL(original, defaultHostname, defaultScheme string) *URL {
 	}
 	if port := url.Port(); port != "" {
 		if intv, err := strconv.Atoi(port); err == nil {
-			out.Port = &intv
+			out.Port = intv
 		}
 	}
 	return out
@@ -132,7 +132,7 @@ type Resp struct {
 }
 
 type MinimalResp struct {
-	StatusCode      *int
+	StatusCode      int
 	Headers         http.Header
 	TransferSize    *float64
 	EncodedBodySize *float64
@@ -149,7 +149,9 @@ func (url *URL) Fields() common.MapStr {
 	fields.maybeSetString("fragment", url.Fragment)
 	fields.maybeSetString("domain", url.Domain)
 	fields.maybeSetString("path", url.Path)
-	fields.maybeSetIntptr("port", url.Port)
+	if url.Port > 0 {
+		fields.set("port", url.Port)
+	}
 	fields.maybeSetString("original", url.Original)
 	fields.maybeSetString("scheme", url.Scheme)
 	fields.maybeSetString("query", url.Query)
@@ -221,8 +223,10 @@ func (m *MinimalResp) Fields() common.MapStr {
 		return nil
 	}
 	var fields mapStr
+	if m.StatusCode > 0 {
+		fields.set("status_code", m.StatusCode)
+	}
 	fields.maybeSetMapStr("headers", headerToFields(m.Headers))
-	fields.maybeSetIntptr("status_code", m.StatusCode)
 	fields.maybeSetFloat64ptr("transfer_size", m.TransferSize)
 	fields.maybeSetFloat64ptr("encoded_body_size", m.EncodedBodySize)
 	fields.maybeSetFloat64ptr("decoded_body_size", m.DecodedBodySize)

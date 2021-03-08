@@ -108,14 +108,14 @@ func TestSpanTransform(t *testing.T) {
 				RUM:                 true,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				Labels:              common.MapStr{"label_a": 12},
-				HTTP:                &HTTP{Method: method, StatusCode: &statusCode, URL: url},
+				HTTP:                &HTTP{Method: method, StatusCode: statusCode, URL: url},
 				DB: &DB{
 					Instance:     instance,
 					Statement:    statement,
 					Type:         dbType,
 					UserName:     user,
 					RowsAffected: &rowsAffected},
-				Destination: &Destination{Address: address, Port: &port},
+				Destination: &Destination{Address: address, Port: port},
 				DestinationService: &DestinationService{
 					Type:     destServiceType,
 					Name:     destServiceName,

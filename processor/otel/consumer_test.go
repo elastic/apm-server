@@ -115,7 +115,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.scheme": pdata.NewAttributeValueString("https"),
 			"http.host":   pdata.NewAttributeValueString("testing.invalid:80"),
@@ -130,7 +130,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.scheme":      pdata.NewAttributeValueString("https"),
 			"http.server_name": pdata.NewAttributeValueString("testing.invalid"),
@@ -146,7 +146,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.scheme":   pdata.NewAttributeValueString("https"),
 			"net.host.name": pdata.NewAttributeValueString("testing.invalid"),
@@ -162,7 +162,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.url": pdata.NewAttributeValueString("https://testing.invalid:80/foo?bar"),
 		})
@@ -266,7 +266,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("url_default_port_specified", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(443),
+			Port:    443,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid",
@@ -278,7 +278,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("url_port_scheme", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(443),
+			Port:    443,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid",
@@ -290,7 +290,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("url_non_default_port", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(444),
+			Port:    444,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid:444",
@@ -302,7 +302,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("scheme_host_target", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(444),
+			Port:    444,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid:444",
@@ -316,7 +316,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("scheme_netpeername_nethostport_target", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "::1",
-			Port:    newInt(444),
+			Port:    444,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://[::1]:444",
@@ -392,7 +392,7 @@ func TestHTTPTransactionStatusCode(t *testing.T) {
 	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.status_code": pdata.NewAttributeValueInt(200),
 	})
-	assert.Equal(t, newInt(200), tx.HTTP.Response.StatusCode)
+	assert.Equal(t, 200, tx.HTTP.Response.StatusCode)
 }
 
 func TestDatabaseSpan(t *testing.T) {
@@ -428,7 +428,7 @@ func TestDatabaseSpan(t *testing.T) {
 
 	assert.Equal(t, &model.Destination{
 		Address: "shopdb.example.com",
-		Port:    newInt(3306),
+		Port:    3306,
 	}, span.Destination)
 
 	assert.Equal(t, &model.DestinationService{
@@ -1012,8 +1012,4 @@ func newTracesSpans() (pdata.Traces, pdata.InstrumentationLibrarySpans) {
 	resourceSpans.InstrumentationLibrarySpans().Append(librarySpans)
 	traces.ResourceSpans().Append(resourceSpans)
 	return traces, librarySpans
-}
-
-func newInt(v int) *int {
-	return &v
 }
