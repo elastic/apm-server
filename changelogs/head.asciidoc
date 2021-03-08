@@ -1,0 +1,25 @@
+[[release-notes-head]]
+== APM Server version HEAD
+
+https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Bug fixes
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+* Add support for Node.js wall time profiles {pull}4728[4728]
+* Add metricset.name field to metric docs {pull}4857[4857]
+* Add `apm-server.default_service_environment` config {pull}4861[4861]
+* Transaction histogram metrics are now recorded by default {pull}4882[4882]
+* Add `error.grouping_name` field to speed up error grouping aggregations {pull}4886[4886]
+* Add support for OpenTelemetry exception span events {pull}4876[4876]
+
+[float]
+==== Deprecated

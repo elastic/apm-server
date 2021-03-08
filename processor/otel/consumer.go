@@ -42,6 +42,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
@@ -726,7 +727,11 @@ func convertSpanEvent(
 			return
 		}
 		e = convertOpenTelemetryExceptionSpanEvent(
+<<<<<<< HEAD
 			event.Timestamp().AsTime(),
+=======
+			time.Unix(0, int64(event.Timestamp())).UTC(),
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
 			exceptionType, exceptionMessage, exceptionStacktrace,
 			exceptionEscaped, metadata.Service.Language.Name,
 		)

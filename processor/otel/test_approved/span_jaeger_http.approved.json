@@ -90,7 +90,12 @@
                 }
             },
             "host": {
+<<<<<<< HEAD
                 "hostname": "host-abc"
+=======
+                "hostname": "host-abc",
+                "name": "host-abc"
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
             },
             "parent": {
                 "id": "0000000041414646"
@@ -127,7 +132,12 @@
                 }
             },
             "host": {
+<<<<<<< HEAD
                 "hostname": "host-abc"
+=======
+                "hostname": "host-abc",
+                "name": "host-abc"
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
             },
             "parent": {
                 "id": "0000000041414646"
@@ -166,7 +176,12 @@
                 "grouping_key": "c9221918248f05433f6b81c46a666aee"
             },
             "host": {
+<<<<<<< HEAD
                 "hostname": "host-abc"
+=======
+                "hostname": "host-abc",
+                "name": "host-abc"
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
             },
             "parent": {
                 "id": "0000000041414646"
@@ -205,7 +220,12 @@
                 "grouping_key": "c9221918248f05433f6b81c46a666aee"
             },
             "host": {
+<<<<<<< HEAD
                 "hostname": "host-abc"
+=======
+                "hostname": "host-abc",
+                "name": "host-abc"
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
             },
             "parent": {
                 "id": "0000000041414646"
@@ -244,7 +264,12 @@
                 "grouping_key": "b0cf243ae3f66aa9e6bbed022417d274"
             },
             "host": {
+<<<<<<< HEAD
                 "hostname": "host-abc"
+=======
+                "hostname": "host-abc",
+                "name": "host-abc"
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
             },
             "parent": {
                 "id": "0000000041414646"
@@ -281,7 +306,12 @@
                 }
             },
             "host": {
+<<<<<<< HEAD
                 "hostname": "host-abc"
+=======
+                "hostname": "host-abc",
+                "name": "host-abc"
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
             },
             "parent": {
                 "id": "0000000041414646"

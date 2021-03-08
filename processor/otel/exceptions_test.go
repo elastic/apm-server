@@ -65,7 +65,11 @@ func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
 
 	exceptionEvent1 := pdata.NewSpanEvent()
+<<<<<<< HEAD
 	exceptionEvent1.SetTimestamp(pdata.TimestampFromTime(timestamp))
+=======
+	exceptionEvent1.SetTimestamp(pdata.TimestampUnixNano(timestamp.UnixNano()))
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
 	exceptionEvent1.SetName("exception")
 	exceptionEvent1.Attributes().InitFromMap(map[string]pdata.AttributeValue{
 		"exception.type":    pdata.NewAttributeValueString("java.net.ConnectException.OSError"),
@@ -83,7 +87,11 @@ Exception in thread "main" java.lang.RuntimeException: Test exception
 		),
 	})
 	exceptionEvent2 := pdata.NewSpanEvent()
+<<<<<<< HEAD
 	exceptionEvent2.SetTimestamp(pdata.TimestampFromTime(timestamp))
+=======
+	exceptionEvent2.SetTimestamp(pdata.TimestampUnixNano(timestamp.UnixNano()))
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
 	exceptionEvent2.SetName("exception")
 	exceptionEvent2.Attributes().InitFromMap(map[string]pdata.AttributeValue{
 		"exception.type":    pdata.NewAttributeValueString("HighLevelException"),
@@ -291,7 +299,11 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
 
 	exceptionEvent := pdata.NewSpanEvent()
+<<<<<<< HEAD
 	exceptionEvent.SetTimestamp(pdata.TimestampFromTime(timestamp))
+=======
+	exceptionEvent.SetTimestamp(pdata.TimestampUnixNano(timestamp.UnixNano()))
+>>>>>>> 984563f2b... processor/otel: translate OpenTelemetry exceptions (#4876)
 	exceptionEvent.SetName("exception")
 	exceptionEvent.Attributes().InitFromMap(map[string]pdata.AttributeValue{
 		"exception.type":       pdata.NewAttributeValueString("the_type"),
