@@ -90,6 +90,8 @@ func setExceptionStacktrace(s, language string, out *model.Exception) error {
 	return fmt.Errorf("parsing %q stacktraces not implemented", language)
 }
 
+// setJavaExceptionStacktrace parses a Java exception stack trace according to
+// https://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace()
 func setJavaExceptionStacktrace(s string, out *model.Exception) error {
 	const (
 		causedByPrefix   = "Caused by: "

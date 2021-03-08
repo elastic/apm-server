@@ -653,7 +653,8 @@ func convertSpanEvent(
 		// TODO(axw) we don't currently support arbitrary events, we only look
 		// for exceptions and convert those to Elastic APM error events.
 		if event.Name() != "exception" {
-			// `The name of the event MUST be "exception"`
+			// Per OpenTelemetry semantic conventions:
+			//   `The name of the event MUST be "exception"`
 			return
 		}
 		var exceptionEscaped bool
@@ -671,9 +672,10 @@ func convertSpanEvent(
 			}
 		})
 		if exceptionMessage == "" && exceptionType == "" {
-			// `At least one of the following sets of attributes is required:
-			// - exception.type
-			// - exception.message`
+			// Per OpenTelemetry semantic conventions:
+			//   `At least one of the following sets of attributes is required:
+			//   - exception.type
+			//   - exception.message`
 			return
 		}
 		e = convertOpenTelemetryExceptionSpanEvent(
