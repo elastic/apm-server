@@ -176,7 +176,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var out model.Error
 		mapToErrorModel(&input, initializedMetadata(), time.Now(), &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Page.URL.Full)
-		assert.Equal(t, 9201, *out.Page.URL.Port)
+		assert.Equal(t, 9201, out.Page.URL.Port)
 		assert.Equal(t, "https", out.Page.URL.Scheme)
 	})
 
