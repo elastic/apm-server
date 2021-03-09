@@ -1,20 +1,24 @@
 [[apm-integration-data-streams]]
 == Data streams
 
-All Elastic Agent integrations store data in indices following the data stream naming scheme.
+{agent} uses data streams to store append-only time series data across multiple indices
+while giving users a single named resource for requests.
 If you're new to data streams, see the [Fleet user guide] to learn more.
+// to do: add a link to the Fleet user guide data stream docs
 
-All `apm` input data will be stored in the following indices:
+`apm` input data is divided into three types:
 
 Traces::
 
 Traces are comprised of {apm-overview-ref-v}/apm-data-model.html[spans and transactions].
+Traces are stored in the following data stream:
 
 - Application traces: `traces-apm.<service.name>-<namespace>`
 
 Metrics::
 
 Metrics include application-based metrics and basic system metrics.
+Metrics are stored in the following data streams:
 
 - Application defined metrics: `metrics-apm.<service.name>-<namespace>`
 - APM internal metrics: `metrics-apm.internal.<service.name>-<namespace>`
@@ -23,6 +27,7 @@ Metrics include application-based metrics and basic system metrics.
 Logs::
 
 Logs include application error events and application logs.
+Logs are stored in the following data streams:
 
 - Application logs: `logs-<service.name>-<namespace>`
 - APM error/exception logging: `logs-apm.error.<service.name>-<namespace>`
