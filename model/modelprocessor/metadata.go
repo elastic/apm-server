@@ -23,12 +23,16 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
+<<<<<<< HEAD
 // MetadataProcessorFunc is a function type which implements model.BatchProcessor
 // by processing the metadata in each event in the batch.
 type MetadataProcessorFunc func(ctx context.Context, meta *model.Metadata) error
 
 // ProcessBatch calls f with the metadata of each event in b.
 func (f MetadataProcessorFunc) ProcessBatch(ctx context.Context, b *model.Batch) error {
+=======
+func foreachEventMetadata(ctx context.Context, b *model.Batch, f func(ctx context.Context, meta *model.Metadata) error) error {
+>>>>>>> 09cbdea56... Move business logic out of model transformation (#4927)
 	for _, event := range b.Transactions {
 		if err := f(ctx, &event.Metadata); err != nil {
 			return err

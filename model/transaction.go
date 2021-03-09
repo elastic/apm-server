@@ -151,7 +151,10 @@ func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Even
 	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 	fields.maybeSetMapStr("http", e.HTTP.Fields())
 	fields.maybeSetMapStr("url", e.URL.Fields())
+<<<<<<< HEAD
 	fields.maybeSetMapStr("session", e.Session.fields())
+=======
+>>>>>>> 09cbdea56... Move business logic out of model transformation (#4927)
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}

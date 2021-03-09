@@ -38,6 +38,7 @@ type System struct {
 	// TODO(axw) rename this to Name.
 	ConfiguredHostname string
 
+<<<<<<< HEAD
 	// ID holds a unique ID for the host.
 	ID string
 
@@ -46,6 +47,10 @@ type System struct {
 	FullPlatform string // Full operating system name, including version
 	OSType       string
 	Type         string // host type, e.g. cloud instance machine type
+=======
+	Architecture string
+	Platform     string
+>>>>>>> 09cbdea56... Move business logic out of model transformation (#4927)
 	IP           net.IP
 
 	Container  Container

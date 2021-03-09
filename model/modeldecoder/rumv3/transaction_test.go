@@ -349,6 +349,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "https://my.site.test:9201", tr.HTTP.Request.Referer)
 	})
 
+<<<<<<< HEAD
 	t.Run("session", func(t *testing.T) {
 		var input transaction
 		var out model.Transaction
@@ -366,4 +367,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		}, out.Session)
 	})
 
+=======
+>>>>>>> 09cbdea56... Move business logic out of model transformation (#4927)
 }

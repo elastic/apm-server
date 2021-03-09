@@ -30,9 +30,12 @@ type Client struct {
 
 	// IP holds the client's IP address.
 	IP net.IP
+<<<<<<< HEAD
 
 	// Port holds the client's IP port.
 	Port int
+=======
+>>>>>>> 09cbdea56... Move business logic out of model transformation (#4927)
 }
 
 func (c *Client) fields() common.MapStr {

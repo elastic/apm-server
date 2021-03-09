@@ -31,6 +31,7 @@ type Container struct {
 
 func (c *Container) fields() common.MapStr {
 	var container mapStr
+<<<<<<< HEAD
 	container.maybeSetString("name", c.Name)
 	container.maybeSetString("id", c.ID)
 	container.maybeSetString("runtime", c.Runtime)
@@ -39,5 +40,8 @@ func (c *Container) fields() common.MapStr {
 	image.maybeSetString("name", c.ImageName)
 	image.maybeSetString("tag", c.ImageTag)
 	container.maybeSetMapStr("image", common.MapStr(image))
+=======
+	container.maybeSetString("id", c.ID)
+>>>>>>> 09cbdea56... Move business logic out of model transformation (#4927)
 	return common.MapStr(container)
 }
