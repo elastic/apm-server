@@ -126,6 +126,7 @@
             }
         },
         {
+<<<<<<< HEAD
             "@timestamp": "2017-05-30T18:53:41.366Z",
             "agent": {
                 "name": "elastic-node",
@@ -206,6 +207,8 @@
             }
         },
         {
+=======
+>>>>>>> 5747c1d89... Set metricset.name for breakdown metrics (#4910)
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "agent": {
                 "name": "elastic-node",

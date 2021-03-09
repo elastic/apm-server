@@ -419,8 +419,11 @@ func (s *serverRunner) run() error {
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
 	processors := []model.BatchProcessor{
+<<<<<<< HEAD
 		modelprocessor.SetSystemHostname{},
 		modelprocessor.SetServiceNodeName{},
+=======
+>>>>>>> 5747c1d89... Set metricset.name for breakdown metrics (#4910)
 		// Set metricset.name for well-known agent metrics.
 		modelprocessor.SetMetricsetName{},
 	}
