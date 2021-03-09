@@ -31,6 +31,7 @@ import (
 func TestMetadata_Set(t *testing.T) {
 	pid := 1234
 	host := "host"
+	hostname := "hostname"
 	containerID := "container-123"
 	serviceName, serviceNodeName := "myservice", "serviceABC"
 	uid := "12321"
@@ -52,7 +53,10 @@ func TestMetadata_Set(t *testing.T) {
 						Version: agentVersion,
 					},
 				},
-				System:  System{DetectedHostname: host, Container: Container{ID: containerID}},
+				System: System{
+					ConfiguredHostname: host,
+					DetectedHostname:   hostname,
+					Container:          Container{ID: containerID}},
 				Process: Process{Pid: pid},
 				User:    User{ID: uid, Email: mail},
 			},
@@ -66,7 +70,7 @@ func TestMetadata_Set(t *testing.T) {
 				"foo":       "bar",
 				"agent":     common.MapStr{"version": "1.0.0", "name": "elastic-node"},
 				"container": common.MapStr{"id": containerID},
-				"host":      common.MapStr{"hostname": host, "name": host},
+				"host":      common.MapStr{"hostname": hostname, "name": host},
 				"process":   common.MapStr{"pid": pid},
 				"service": common.MapStr{
 					"name": "myservice",
@@ -74,27 +78,6 @@ func TestMetadata_Set(t *testing.T) {
 				},
 				"user": common.MapStr{"id": "12321", "email": "user@email.com"},
 			},
-		},
-		{
-			input: Metadata{
-				Service: Service{},
-				System:  System{DetectedHostname: host, Container: Container{ID: containerID}},
-			},
-			fields: mapStr{},
-			output: mapStr{
-				"host":      common.MapStr{"hostname": host, "name": host},
-				"container": common.MapStr{"id": containerID},
-				"service":   common.MapStr{"node": common.MapStr{"name": containerID}}},
-		},
-		{
-			input: Metadata{
-				Service: Service{},
-				System:  System{DetectedHostname: host},
-			},
-			fields: mapStr{},
-			output: mapStr{
-				"host":    common.MapStr{"hostname": host, "name": host},
-				"service": common.MapStr{"node": common.MapStr{"name": host}}},
 		},
 	} {
 		test.input.set(&test.fields, nil)

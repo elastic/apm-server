@@ -138,17 +138,8 @@ func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Even
 	fields.maybeSetMapStr("parent", common.MapStr(parent))
 	fields.maybeSetMapStr("trace", common.MapStr(trace))
 	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
-
 	fields.maybeSetMapStr("http", e.HTTP.Fields())
-	haveURL := fields.maybeSetMapStr("url", e.URL.Fields())
-	if e.Page != nil {
-		// TODO(axw) e.Page.Referer should be recorded in e.HTTP.Request.
-		common.MapStr(fields).Put("http.request.referrer", e.Page.Referer)
-		if !haveURL {
-			fields.maybeSetMapStr("url", e.Page.URL.Fields())
-		}
-	}
-
+	fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
