@@ -69,7 +69,12 @@ func TimeoutMiddleware() Middleware {
 >>>>>>> 6c695c6d7... modify result via middleware
 =======
 				c.Result.SetDefault(request.IDResponseErrorsTimeout)
+<<<<<<< HEAD
 >>>>>>> 7cf450d1a... Update beater/middleware/timeout_middleware.go
+=======
+				c.Result.Err = tErr
+				c.Result.Body = tErr.Error()
+>>>>>>> 4a22ca5e8... set err and body on context result
 			}
 		}, nil
 	}
