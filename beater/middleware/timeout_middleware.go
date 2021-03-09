@@ -15,22 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package middleware
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"context"
+
+	"github.com/pkg/errors"
+
+	"github.com/elastic/apm-server/beater/request"
 )
 
-type User struct {
-	ID    string
-	Email string
-	Name  string
-}
+// TimeoutMiddleware assumes that a context.Canceled error indicates a timed out
+// request. This could be caused by a either a client timeout or server timeout.
+// The middleware sets the Context.Result.
+func TimeoutMiddleware() Middleware {
+	tErr := errors.New("request timed out")
+	return func(h request.Handler) (request.Handler, error) {
+		return func(c *request.Context) {
+			h(c)
 
-func (u *User) fields() common.MapStr {
-	var user mapStr
-	user.maybeSetString("id", u.ID)
-	user.maybeSetString("email", u.Email)
-	user.maybeSetString("name", u.Name)
-	return common.MapStr(user)
+			err := c.Request.Context().Err()
+			if errors.Is(err, context.Canceled) {
+				c.Result.SetDefault(request.IDResponseErrorsTimeout)
+				c.Result.Err = tErr
+				c.Result.Body = tErr.Error()
+			}
+		}, nil
+	}
 }

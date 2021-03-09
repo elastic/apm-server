@@ -363,6 +363,8 @@ func TestEvents(t *testing.T) {
 				TransactionSampled: &sampledTrue,
 				Labels:             labels,
 				Page:               &Page{URL: &URL{Original: url}, Referer: referer},
+				HTTP:               &Http{Request: &Req{Referer: referer}},
+				URL:                &URL{Original: url},
 				Custom:             custom,
 				RUM:                true,
 			},
@@ -550,22 +552,6 @@ func TestErrorTransformPage(t *testing.T) {
 		Output common.MapStr
 		Msg    string
 	}{
-		{
-			Error: Error{
-				ID: id,
-				Page: &Page{
-					URL: ParseURL(urlExample, "", ""),
-				},
-			},
-			Output: common.MapStr{
-				"domain":   "example.com",
-				"full":     "http://example.com/path",
-				"original": "http://example.com/path",
-				"path":     "/path",
-				"scheme":   "http",
-			},
-			Msg: "With page URL",
-		},
 		{
 			Error: Error{
 				ID:        id,

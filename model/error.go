@@ -132,14 +132,7 @@ func (e *Error) appendBeatEvents(ctx context.Context, cfg *transform.Config, eve
 
 	// then add event specific information
 	fields.maybeSetMapStr("http", e.HTTP.Fields())
-	haveURL := fields.maybeSetMapStr("url", e.URL.Fields())
-	if e.Page != nil {
-		// TODO(axw) e.Page.Referer should be recorded in e.HTTP.Request.
-		common.MapStr(fields).Put("http.request.referrer", e.Page.Referer)
-		if !haveURL {
-			fields.maybeSetMapStr("url", e.Page.URL.Fields())
-		}
-	}
+	fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}

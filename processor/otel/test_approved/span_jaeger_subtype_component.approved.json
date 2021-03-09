@@ -12,8 +12,7 @@
                 "outcome": "unknown"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "labels": {
                 "component": "whatever"
@@ -29,10 +28,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "span": {
                 "duration": {

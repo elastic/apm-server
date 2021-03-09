@@ -14,8 +14,7 @@
             },
             "host": {
                 "hostname": "host-foo",
-                "ip": "17.0.10.123",
-                "name": "host-foo"
+                "ip": "17.0.10.123"
             },
             "labels": {
                 "foo": "bar",
@@ -29,10 +28,7 @@
                 "language": {
                     "name": "C++"
                 },
-                "name": "foo",
-                "node": {
-                    "name": "host-foo"
-                }
+                "name": "foo"
             },
             "timestamp": {
                 "us": 1576500418000768

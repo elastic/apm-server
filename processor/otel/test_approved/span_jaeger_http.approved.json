@@ -16,8 +16,7 @@
                 "outcome": "failure"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "labels": {
                 "component": "foo",
@@ -37,10 +36,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "span": {
                 "destination": {
@@ -94,8 +90,7 @@
                 }
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -108,10 +103,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -135,8 +127,7 @@
                 }
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -149,10 +140,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -178,8 +166,7 @@
                 "grouping_key": "c9221918248f05433f6b81c46a666aee"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -192,10 +179,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -221,8 +205,7 @@
                 "grouping_key": "c9221918248f05433f6b81c46a666aee"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -235,10 +218,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -264,8 +244,7 @@
                 "grouping_key": "b0cf243ae3f66aa9e6bbed022417d274"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -278,10 +257,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -305,8 +281,7 @@
                 }
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -319,10 +294,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768

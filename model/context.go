@@ -24,8 +24,6 @@ import (
 	"strconv"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 // Context holds all information sent under key context
@@ -116,6 +114,7 @@ type Req struct {
 	Env     common.MapStr
 	Socket  *Socket
 	Cookies common.MapStr
+	Referer string
 }
 
 // Socket indicates whether an http request was encrypted and the initializers remote address
@@ -170,14 +169,6 @@ func (h *Http) Fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-// UserAgent parses User Agent information from attribute http.
-func (h *Http) UserAgent() string {
-	if h == nil || h.Request == nil {
-		return ""
-	}
-	return utility.UserAgentHeader(h.Request.Headers)
-}
-
 // Fields returns common.MapStr holding transformed data for attribute page.
 func (page *Page) Fields() common.MapStr {
 	if page == nil {
@@ -202,6 +193,7 @@ func (req *Req) fields() common.MapStr {
 	fields.maybeSetMapStr("env", req.Env)
 	fields.maybeSetString("method", req.Method)
 	fields.maybeSetMapStr("cookies", req.Cookies)
+	fields.maybeSetString("referrer", req.Referer)
 	if body := normalizeRequestBody(req.Body); body != nil {
 		fields.set("body", common.MapStr{"original": body})
 	}
