@@ -24,42 +24,26 @@ import (
 )
 
 type System struct {
-	DetectedHostname   string
+	// DetectedHostname holds the detected hostname.
+	//
+	// This will be written to the event as "host.hostname".
+	//
+	// TODO(axw) rename this to Hostname.
+	DetectedHostname string
+
+	// ConfiguredHostname holds the user-defined or detected hostname.
+	//
+	// If defined, this will be written to the event as "host.name".
+	//
+	// TODO(axw) rename this to Name.
 	ConfiguredHostname string
-	Architecture       string
-	Platform           string
-	IP                 net.IP
+
+	Architecture string
+	Platform     string
+	IP           net.IP
 
 	Container  Container
 	Kubernetes Kubernetes
-}
-
-func (s *System) name() string {
-	if s.ConfiguredHostname != "" {
-		return s.ConfiguredHostname
-	}
-	return s.Hostname()
-}
-
-// Hostname returns the value to store in `host.hostname`.
-func (s *System) Hostname() string {
-	if s == nil {
-		return ""
-	}
-
-	// if system.kubernetes.node.name is set in the metadata, set host.hostname in the event to its value
-	if s.Kubernetes.NodeName != "" {
-		return s.Kubernetes.NodeName
-	}
-
-	// If system.kubernetes.* is set, but system.kubernetes.node.name is not, then don't set host.hostname at all.
-	// some day this could be a hook to discover the right node name using these values
-	if s.Kubernetes.PodName != "" || s.Kubernetes.PodUID != "" || s.Kubernetes.Namespace != "" {
-		return ""
-	}
-
-	// Otherwise set host.hostname to system.hostname
-	return s.DetectedHostname
 }
 
 func (s *System) fields() common.MapStr {
@@ -67,8 +51,8 @@ func (s *System) fields() common.MapStr {
 		return nil
 	}
 	var system mapStr
-	system.maybeSetString("hostname", s.Hostname())
-	system.maybeSetString("name", s.name())
+	system.maybeSetString("hostname", s.DetectedHostname)
+	system.maybeSetString("name", s.ConfiguredHostname)
 	system.maybeSetString("architecture", s.Architecture)
 	if s.Platform != "" {
 		system.set("os", common.MapStr{"platform": s.Platform})
@@ -77,18 +61,4 @@ func (s *System) fields() common.MapStr {
 		system.set("ip", s.IP.String())
 	}
 	return common.MapStr(system)
-}
-
-func (s *System) containerFields() common.MapStr {
-	if s == nil {
-		return nil
-	}
-	return s.Container.fields()
-}
-
-func (s *System) kubernetesFields() common.MapStr {
-	if s == nil {
-		return nil
-	}
-	return s.Kubernetes.fields()
 }

@@ -15,22 +15,39 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modelprocessor
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"context"
+
+	"github.com/elastic/apm-server/model"
 )
 
-type User struct {
-	ID    string
-	Email string
-	Name  string
-}
-
-func (u *User) fields() common.MapStr {
-	var user mapStr
-	user.maybeSetString("id", u.ID)
-	user.maybeSetString("email", u.Email)
-	user.maybeSetString("name", u.Name)
-	return common.MapStr(user)
+func foreachEventMetadata(ctx context.Context, b *model.Batch, f func(ctx context.Context, meta *model.Metadata) error) error {
+	for _, event := range b.Transactions {
+		if err := f(ctx, &event.Metadata); err != nil {
+			return err
+		}
+	}
+	for _, event := range b.Spans {
+		if err := f(ctx, &event.Metadata); err != nil {
+			return err
+		}
+	}
+	for _, event := range b.Metricsets {
+		if err := f(ctx, &event.Metadata); err != nil {
+			return err
+		}
+	}
+	for _, event := range b.Errors {
+		if err := f(ctx, &event.Metadata); err != nil {
+			return err
+		}
+	}
+	for _, event := range b.Profiles {
+		if err := f(ctx, &event.Metadata); err != nil {
+			return err
+		}
+	}
+	return nil
 }

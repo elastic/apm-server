@@ -27,9 +27,6 @@ import (
 type Client struct {
 	// IP holds the client's IP address.
 	IP net.IP
-
-	// TODO(axw) add client.geo fields, when we have
-	// GeoIP lookup implemented in the server.
 }
 
 func (c *Client) fields() common.MapStr {
