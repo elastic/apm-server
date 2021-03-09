@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/processor/otel"
@@ -45,7 +46,7 @@ var (
 
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
-	log      *logp.Logger
+	logger   *logp.Logger
 	auth     authFunc
 	consumer consumer.TracesConsumer
 }
@@ -55,15 +56,11 @@ type grpcCollector struct {
 // The implementation of the protobuf contract is based on the open-telemetry implementation at
 // https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
 func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
-	gRPCCollectorMonitoringMap.inc(request.IDRequestCount)
-	defer gRPCCollectorMonitoringMap.inc(request.IDResponseCount)
-
-	if err := c.postSpans(ctx, r.Batch); err != nil {
-		gRPCCollectorMonitoringMap.inc(request.IDResponseErrorsCount)
-		c.log.With(logp.Error(err)).Error("error gRPC PostSpans")
+	logger := c.logger.With("grpc.method", "post spans")
+	wrap := func() error { return c.postSpans(ctx, r.Batch) }
+	if err := middleware.MetricsGRPC(gRPCCollectorMonitoringMap, middleware.LogGRPC(ctx, logger, wrap)); err != nil {
 		return nil, err
 	}
-	gRPCCollectorMonitoringMap.inc(request.IDResponseValidCount)
 	return &api_v2.PostSpansResponse{}, nil
 }
 

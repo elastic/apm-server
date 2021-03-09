@@ -107,7 +107,8 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 		}
 		RegisterGRPCServices(
 			srv.grpc.server,
-			authBuilder, cfg.JaegerConfig.GRPC.AuthTag,
+			authBuilder,
+			cfg.JaegerConfig.GRPC.AuthTag,
 			logger,
 			processor,
 			client, fetcher,
@@ -149,6 +150,8 @@ func RegisterGRPCServices(
 	if authTag != "" {
 		auth = makeAuthFunc(authTag, authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action))
 	}
+	// TODO(stn) Is this the naming we want?
+	logger = logger.Named("jaeger")
 	traceConsumer := &otel.Consumer{Processor: processor}
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{logger, auth, traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, kibanaClient, agentcfgFetcher})

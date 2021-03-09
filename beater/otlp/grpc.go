@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
 	"google.golang.org/grpc"
 
+	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
@@ -54,7 +55,8 @@ func init() {
 func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor, logger *logp.Logger) error {
 	consumer := &monitoredConsumer{
 		consumer: &otel.Consumer{Processor: processor},
-		logger:   logger,
+		// TODO(stn) Is this the naming we want?
+		logger: logger.Named("otlp"),
 	}
 
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
@@ -78,30 +80,20 @@ type monitoredConsumer struct {
 	logger   *logp.Logger
 }
 
-// ConsumeTraces consumes OpenTelemtry trace data.
+// ConsumeTraces implements consumer.TracesConsumer. It consumes OpenTelemetry
+// trace data.
 func (c *monitoredConsumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
-	gRPCTracesMonitoringMap[request.IDRequestCount].Inc()
-	defer gRPCTracesMonitoringMap[request.IDResponseCount].Inc()
-	if err := c.consumer.ConsumeTraces(ctx, traces); err != nil {
-		gRPCTracesMonitoringMap[request.IDResponseErrorsCount].Inc()
-		c.logger.With(logp.Error(err)).Error("ConsumeTraces returned an error")
-		return err
-	}
-	gRPCTracesMonitoringMap[request.IDResponseValidCount].Inc()
-	return nil
+	logger := c.logger.With("grpc.method", "consume traces")
+	wrap := func() error { return c.consumer.ConsumeTraces(ctx, traces) }
+	return middleware.MetricsGRPC(gRPCTracesMonitoringMap, middleware.LogGRPC(ctx, logger, wrap))
 }
 
-// ConsumeMetrics consumes OpenTelemtry metrics data.
+// ConsumeMetrics implements consumer.MetricsConsumer. It consumes OpenTelemetry
+// metrics data.
 func (c *monitoredConsumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
-	gRPCMetricsMonitoringMap[request.IDRequestCount].Inc()
-	defer gRPCMetricsMonitoringMap[request.IDResponseCount].Inc()
-	if err := c.consumer.ConsumeMetrics(ctx, metrics); err != nil {
-		gRPCMetricsMonitoringMap[request.IDResponseErrorsCount].Inc()
-		c.logger.With(logp.Error(err)).Error("ConsumeMetrics returned an error")
-		return err
-	}
-	gRPCMetricsMonitoringMap[request.IDResponseValidCount].Inc()
-	return nil
+	logger := c.logger.With("grpc.method", "consume metrics")
+	wrap := func() error { return c.consumer.ConsumeMetrics(ctx, metrics) }
+	return middleware.MetricsGRPC(gRPCMetricsMonitoringMap, middleware.LogGRPC(ctx, logger, wrap))
 }
 
 func (c *monitoredConsumer) collectMetricsMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
