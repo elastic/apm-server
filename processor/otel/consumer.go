@@ -413,8 +413,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		case pdata.AttributeValueINT:
 			switch kDots {
 			case "http.status_code":
-				code := int(v.IntVal())
-				http.StatusCode = &code
+				http.StatusCode = int(v.IntVal())
 				isHTTPSpan = true
 			case conventions.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
@@ -565,9 +564,9 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 
 	switch {
 	case isHTTPSpan:
-		if http.StatusCode != nil {
+		if http.StatusCode > 0 {
 			if event.Outcome == outcomeUnknown {
-				event.Outcome = clientHTTPStatusCodeOutcome(*http.StatusCode)
+				event.Outcome = clientHTTPStatusCodeOutcome(http.StatusCode)
 			}
 		}
 		event.Type = "external"
@@ -595,10 +594,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	}
 
 	if destAddr != "" {
-		event.Destination = &model.Destination{Address: destAddr}
-		if destPort > 0 {
-			event.Destination.Port = &destPort
-		}
+		event.Destination = &model.Destination{Address: destAddr, Port: destPort}
 	}
 	if destinationService != (model.DestinationService{}) {
 		if destinationService.Type == "" {

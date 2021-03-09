@@ -259,9 +259,9 @@ func TestEventFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			output := tc.Error.Transform(context.Background(), &transform.Config{
+			output := tc.Error.appendBeatEvents(context.Background(), &transform.Config{
 				RUM: transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
-			})
+			}, nil)
 			require.Len(t, output, 1)
 			fields := output[0].Fields["error"]
 			assert.Equal(t, tc.Output, fields)
@@ -299,12 +299,12 @@ func TestEvents(t *testing.T) {
 	mdWithContext.UserAgent.Original = userAgent
 
 	for name, tc := range map[string]struct {
-		Transformable transform.Transformable
-		Output        common.MapStr
-		Msg           string
+		Error  *Error
+		Output common.MapStr
+		Msg    string
 	}{
 		"valid": {
-			Transformable: &Error{Timestamp: timestamp, Metadata: md},
+			Error: &Error{Timestamp: timestamp, Metadata: md},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
 				"data_stream.dataset": "apm.error.myservice",
@@ -319,7 +319,7 @@ func TestEvents(t *testing.T) {
 			},
 		},
 		"notSampled": {
-			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionSampled: &sampledFalse},
+			Error: &Error{Timestamp: timestamp, Metadata: md, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
 				"data_stream.dataset": "apm.error.myservice",
@@ -335,7 +335,7 @@ func TestEvents(t *testing.T) {
 			},
 		},
 		"withMeta": {
-			Transformable: &Error{Timestamp: timestamp, Metadata: md, TransactionType: transactionType},
+			Error: &Error{Timestamp: timestamp, Metadata: md, TransactionType: transactionType},
 			Output: common.MapStr{
 				"data_stream.type":    "logs",
 				"data_stream.dataset": "apm.error.myservice",
@@ -351,7 +351,7 @@ func TestEvents(t *testing.T) {
 			},
 		},
 		"withContext": {
-			Transformable: &Error{
+			Error: &Error{
 				Timestamp: timestamp,
 				Metadata:  mdWithContext,
 				Log:       baseLog(),
@@ -411,10 +411,10 @@ func TestEvents(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			outputEvents := tc.Transformable.Transform(context.Background(), &transform.Config{
+			outputEvents := tc.Error.appendBeatEvents(context.Background(), &transform.Config{
 				DataStreams: true,
 				RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
-			})
+			}, nil)
 			require.Len(t, outputEvents, 1)
 			outputEvent := outputEvents[0]
 			assert.Equal(t, tc.Output, outputEvent.Fields)
@@ -574,7 +574,7 @@ func TestErrorTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Error.Transform(context.Background(), &transform.Config{})
+		output := test.Error.appendBeatEvents(context.Background(), &transform.Config{}, nil)
 		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

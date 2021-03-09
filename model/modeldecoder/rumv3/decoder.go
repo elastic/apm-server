@@ -449,8 +449,7 @@ func mapToResponseModel(from contextResponse, out *model.Resp) {
 		out.Headers = from.Headers.Val.Clone()
 	}
 	if from.StatusCode.IsSet() {
-		val := from.StatusCode.Val
-		out.StatusCode = &val
+		out.StatusCode = from.StatusCode.Val
 	}
 	if from.TransferSize.IsSet() {
 		val := from.TransferSize.Val
@@ -550,8 +549,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 			destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
-			val := from.Context.Destination.Port.Val
-			destination.Port = &val
+			destination.Port = from.Context.Destination.Port.Val
 		}
 		out.Destination = &destination
 	}
@@ -574,8 +572,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 			http.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
-			val := from.Context.HTTP.StatusCode.Val
-			http.StatusCode = &val
+			http.StatusCode = from.Context.HTTP.StatusCode.Val
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			http.URL = from.Context.HTTP.URL.Val

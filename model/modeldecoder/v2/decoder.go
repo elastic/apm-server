@@ -646,7 +646,7 @@ func mapToRequestURLModel(from contextRequestURL, out *model.URL) {
 		// should never result in an error, type is checked when decoding
 		port, err := strconv.Atoi(fmt.Sprint(from.Port.Val))
 		if err == nil {
-			out.Port = &port
+			out.Port = port
 		}
 	}
 }
@@ -664,8 +664,7 @@ func mapToResponseModel(from contextResponse, out *model.Resp) {
 		out.HeadersSent = &val
 	}
 	if from.StatusCode.IsSet() {
-		val := from.StatusCode.Val
-		out.StatusCode = &val
+		out.StatusCode = from.StatusCode.Val
 	}
 	if from.TransferSize.IsSet() {
 		val := from.TransferSize.Val
@@ -786,8 +785,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 			destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
-			val := from.Context.Destination.Port.Val
-			destination.Port = &val
+			destination.Port = from.Context.Destination.Port.Val
 		}
 		out.Destination = &destination
 	}
@@ -826,8 +824,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 				response.Headers = from.Context.HTTP.Response.Headers.Val.Clone()
 			}
 			if from.Context.HTTP.Response.StatusCode.IsSet() {
-				val := from.Context.HTTP.Response.StatusCode.Val
-				response.StatusCode = &val
+				response.StatusCode = from.Context.HTTP.Response.StatusCode.Val
 			}
 			if from.Context.HTTP.Response.TransferSize.IsSet() {
 				val := from.Context.HTTP.Response.TransferSize.Val
@@ -836,8 +833,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, con
 			http.Response = &response
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
-			val := from.Context.HTTP.StatusCode.Val
-			http.StatusCode = &val
+			http.StatusCode = from.Context.HTTP.StatusCode.Val
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			http.URL = from.Context.HTTP.URL.Val

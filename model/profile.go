@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -49,8 +48,9 @@ type PprofProfile struct {
 	Profile  *profile.Profile
 }
 
-// Transform transforms a Profile into a sequence of beat.Events: one per profile sample.
-func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+// appendBeatEvents transforms a Profile into a sequence of beat.Events (one per profile sample),
+// and appends them to events.
+func (pp PprofProfile) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
 	profileTimestamp := time.Unix(0, pp.Profile.TimeNanos)
@@ -77,9 +77,7 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 	// Profiles are stored in their own "metrics" data stream, with a data
 	// set per service. This enables managing retention of profiling data
 	// per-service, and indepedently of lower volume metrics.
-
-	samples := make([]beat.Event, len(pp.Profile.Sample))
-	for i, sample := range pp.Profile.Sample {
+	for _, sample := range pp.Profile.Sample {
 		profileFields := common.MapStr{}
 		if profileID != "" {
 			profileFields["id"] = profileID
@@ -141,12 +139,12 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 			}
 		}
 		pp.Metadata.set(&fields, profileLabels)
-		samples[i] = beat.Event{
+		events = append(events, beat.Event{
 			Timestamp: profileTimestamp,
 			Fields:    common.MapStr(fields),
-		}
+		})
 	}
-	return samples
+	return events
 }
 
 func normalizeUnit(unit string) string {

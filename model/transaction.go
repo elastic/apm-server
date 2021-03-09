@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -111,7 +110,7 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat.Event {
+func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
 	transactionTransformations.Inc()
 
 	fields := mapStr{
@@ -146,10 +145,10 @@ func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat
 	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return []beat.Event{{
+	return append(events, beat.Event{
 		Timestamp: e.Timestamp,
 		Fields:    common.MapStr(fields),
-	}}
+	})
 }
 
 type TransactionMarks map[string]TransactionMark
