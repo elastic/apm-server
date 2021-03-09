@@ -29,9 +29,24 @@ type System struct {
 	Architecture       string
 	Platform           string
 	IP                 net.IP
+	Container          Container
+	Kubernetes         Kubernetes
 
-	Container  Container
-	Kubernetes Kubernetes
+	// Memory holds the total system memory, in bytes.
+	//
+	// This may be recorded for short-lived operations,
+	// such as browser requests or serverless function
+	// invocations, where the amount of available memory
+	// may be pertinent to request performance.
+	Memory int
+
+	// CPUCores holds the total number of CPU cores.
+	//
+	// This may be recorded for short-lived operations,
+	// such as browser requests or serverless function
+	// invocations, where the number of CPUs may be
+	// pertinent to request performance.
+	CPUCores int
 }
 
 func (s *System) name() string {
@@ -75,6 +90,12 @@ func (s *System) fields() common.MapStr {
 	}
 	if s.IP != nil {
 		system.set("ip", s.IP.String())
+	}
+	if s.Memory > 0 {
+		system.set("memory.total", s.Memory)
+	}
+	if s.CPUCores > 0 {
+		system.set("cpu.cores", s.CPUCores)
 	}
 	return common.MapStr(system)
 }

@@ -394,6 +394,14 @@
             }
           }
         },
+        "cpus": {
+          "description": "CPUCores holds the number of CPU cores of the system on which the monitored service is running.",
+          "type": [
+            "null",
+            "integer"
+          ],
+          "minimum": 1
+        },
         "detected_hostname": {
           "description": "DetectedHostname is the hostname detected by the APM agent. It usually contains what the hostname command returns on the host machine. It will be used as the event's hostname if ConfiguredHostname is not present.",
           "type": [
@@ -466,6 +474,51 @@
                   "maxLength": 1024
                 }
               }
+            }
+          }
+        },
+        "memory": {
+          "description": "Memory holds the memory of the system on which the monitored service is running, in bytes.",
+          "type": [
+            "null",
+            "integer"
+          ],
+          "minimum": 1
+        },
+        "network": {
+          "description": "Network holds information about the network that the system is connected to. This is only relevant for browsers and mobile devices.  See https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation for more details on how these fields should be set and interpreted for browsers.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "downlink": {
+              "description": "Downlink holds the effective bandwidth estimate in megabits per second.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "effectivetype": {
+              "description": "EffectiveType describes the effective network type as one of a discrete set of network types, e.g. 'slow-2g', '2g', '3g', or '4g'.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "rtt": {
+              "description": "RTT holds the estimated effective round-trip time of the current connection, in milliseconds.",
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "savedata": {
+              "description": "SaveData reports whether or not reduced data usage has been enabled on the client device.",
+              "type": [
+                "null",
+                "boolean"
+              ]
             }
           }
         },

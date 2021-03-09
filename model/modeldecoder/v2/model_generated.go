@@ -467,7 +467,7 @@ func (val *metadataServiceRuntime) validate() error {
 }
 
 func (val *metadataSystem) IsSet() bool {
-	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet()
+	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet() || val.Memory.IsSet() || val.CPUCores.IsSet() || val.Network.IsSet()
 }
 
 func (val *metadataSystem) Reset() {
@@ -478,6 +478,9 @@ func (val *metadataSystem) Reset() {
 	val.DeprecatedHostname.Reset()
 	val.Kubernetes.Reset()
 	val.Platform.Reset()
+	val.Memory.Reset()
+	val.CPUCores.Reset()
+	val.Network.Reset()
 }
 
 func (val *metadataSystem) validate() error {
@@ -504,6 +507,15 @@ func (val *metadataSystem) validate() error {
 	}
 	if utf8.RuneCountInString(val.Platform.Val) > 1024 {
 		return fmt.Errorf("'platform': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Memory.Val < 1 {
+		return fmt.Errorf("'memory': validation rule 'min(1)' violated")
+	}
+	if val.CPUCores.Val < 1 {
+		return fmt.Errorf("'cpus': validation rule 'min(1)' violated")
+	}
+	if err := val.Network.validate(); err != nil {
+		return errors.Wrapf(err, "network")
 	}
 	return nil
 }
@@ -588,6 +600,24 @@ func (val *metadataSystemKubernetesPod) validate() error {
 	}
 	if utf8.RuneCountInString(val.UID.Val) > 1024 {
 		return fmt.Errorf("'uid': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataSystemNetwork) IsSet() bool {
+	return val.Downlink.IsSet() || val.EffectiveType.IsSet() || val.RTT.IsSet() || val.SaveData.IsSet()
+}
+
+func (val *metadataSystemNetwork) Reset() {
+	val.Downlink.Reset()
+	val.EffectiveType.Reset()
+	val.RTT.Reset()
+	val.SaveData.Reset()
+}
+
+func (val *metadataSystemNetwork) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }
