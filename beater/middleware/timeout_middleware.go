@@ -57,6 +57,7 @@ func TimeoutMiddleware() Middleware {
 			err := c.Request.Context().Err()
 			if errors.Is(err, context.Canceled) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 				c.Result.SetDefault(request.IDResponseErrorsTimeout)
 				c.Result.Err = tErr
 				c.Result.Body = tErr.Error()
@@ -66,6 +67,9 @@ func TimeoutMiddleware() Middleware {
 
 				c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, tErr.Error(), tErr)
 >>>>>>> 6c695c6d7... modify result via middleware
+=======
+				c.Result.SetDefault(request.IDResponseErrorsTimeout)
+>>>>>>> 7cf450d1a... Update beater/middleware/timeout_middleware.go
 			}
 		}, nil
 	}
