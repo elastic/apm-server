@@ -1,0 +1,235 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-30T18:53:41.364Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic"
+            },
+            "go": {
+                "memstats": {
+                    "heap": {
+                        "sys": {
+                            "bytes": 6520832
+                        }
+                    }
+                }
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
+            },
+            "metricset.name": "app",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:41.366Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
+            },
+            "metricset.name": "app",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "system": {
+                "process": {
+                    "cgroup": {
+                        "memory": {
+                            "mem": {
+                                "limit": {
+                                    "bytes": 2048
+                                },
+                                "usage": {
+                                    "bytes": 1024
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "byte_counter": 1,
+            "dotted": {
+                "float": {
+                    "gauge": 6.12
+                }
+            },
+            "double_gauge": 3.141592653589793,
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "ingested": "dynamic"
+            },
+            "float_gauge": 9.16,
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "integer_gauge": 42767,
+            "labels": {
+                "code": 200,
+                "some": "abc",
+                "success": true,
+                "tag1": "one",
+                "tag2": 2
+            },
+            "long_gauge": 3147483648,
+            "metricset.name": "span_breakdown",
+            "negative": {
+                "d": {
+                    "o": {
+                        "t": {
+                            "t": {
+                                "e": {
+                                    "d": -1022
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic",
+                "version_major": "dynamic"
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "short_counter": 227,
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": {
+                        "us": 633.288
+                    }
+                },
+                "subtype": "mysql",
+                "type": "db"
+            },
+            "transaction": {
+                "breakdown": {
+                    "count": 12
+                },
+                "duration": {
+                    "count": 2,
+                    "sum": {
+                        "us": 12
+                    }
+                },
+                "name": "GET /",
+                "self_time": {
+                    "count": 2,
+                    "sum": {
+                        "us": 10
+                    }
+                },
+                "type": "request"
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
+        }
+    ]
+}

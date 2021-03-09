@@ -400,6 +400,7 @@
                 "success": true
             },
             "long_gauge": 3147483648,
+            "metricset.name": "span_breakdown",
             "negative": {
                 "d": {
                     "o": {
