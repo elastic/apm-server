@@ -36,10 +36,7 @@ func TimeoutMiddleware() Middleware {
 
 			err := c.Request.Context().Err()
 			if errors.Is(err, context.Canceled) {
-				id := request.IDResponseErrorsTimeout
-				code := request.MapResultIDToStatus[id].Code
-
-				c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, tErr.Error(), tErr)
+				c.Result.SetDefault(request.IDResponseErrorsTimeout)
 			}
 		}, nil
 	}
