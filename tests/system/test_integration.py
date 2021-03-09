@@ -305,18 +305,6 @@ class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
 
 
 @integration_test
-class MetricsIntegrationTest(ElasticTest):
-    def test_metric_doc(self):
-        self.load_docs_with_template(self.get_metricset_payload_path(), self.intake_url, 'metric', 3)
-        mappings = self.es.indices.get_field_mapping(
-            index=index_metric, fields="system.process.cpu.total.norm.pct")
-        expected_type = "scaled_float"
-        doc = mappings[self.ilm_index(index_metric)]["mappings"]
-        actual_type = doc["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
-        assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
-
-
-@integration_test
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),

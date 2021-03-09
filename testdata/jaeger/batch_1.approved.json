@@ -12,8 +12,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_location": "728,326"
@@ -29,10 +28,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -61,8 +57,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T762465C"
@@ -78,10 +73,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -110,8 +102,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T762465C"
@@ -127,10 +118,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -159,8 +147,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T712515C"
@@ -176,10 +163,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -208,8 +192,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T752110C"
@@ -225,10 +208,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -257,8 +237,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T757670C"
@@ -274,10 +253,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -306,8 +282,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T781861C"
@@ -323,10 +298,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -355,8 +327,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T781861C"
@@ -372,10 +343,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -404,8 +372,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T705860C"
@@ -421,10 +388,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -453,8 +417,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T708771C"
@@ -470,10 +433,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -502,8 +462,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T710624C"
@@ -519,10 +478,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -551,8 +507,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T752547C"
@@ -568,10 +523,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -600,8 +552,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T752547C"
@@ -617,10 +568,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -649,8 +597,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "param_driverID": "T757338C"
@@ -666,10 +613,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "span": {
                 "duration": {
@@ -706,8 +650,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "parent": {
                 "id": "333295bfb438ea03"
@@ -720,10 +663,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "timestamp": {
                 "us": 1576827705006847
@@ -752,8 +692,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "parent": {
                 "id": "614811d6c498bfb0"
@@ -766,10 +705,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "timestamp": {
                 "us": 1576827705089372
@@ -798,8 +734,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "parent": {
                 "id": "0242ee3774d9eab1"
@@ -812,10 +747,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "redis"
             },
             "timestamp": {
                 "us": 1576827705172347

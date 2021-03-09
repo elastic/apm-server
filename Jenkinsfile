@@ -137,7 +137,7 @@ pipeline {
             withGithubNotify(context: 'Build - Linux') {
               deleteDir()
               unstash 'source'
-              golang(){
+              withMageEnv(){
                 dir(BASE_DIR){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
@@ -189,7 +189,7 @@ pipeline {
         Build on a mac environment.
         */
         stage('OSX build-test') {
-          agent { label 'macosx' }
+          agent { label 'macosx && x86_64' }
           options {
             skipDefaultCheckout()
             warnError('OSX execution failed')
@@ -377,7 +377,7 @@ pipeline {
             withGithubNotify(context: 'Benchmarking') {
               deleteDir()
               unstash 'source'
-              golang(){
+              withMageEnv(){
                 dir("${BASE_DIR}"){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
@@ -427,7 +427,7 @@ pipeline {
             withGithubNotify(context: 'Hey-Apm') {
               deleteDir()
               unstash 'source'
-              golang(){
+              withMageEnv(){
                 dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                 dir("${BASE_DIR}"){
                   sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
@@ -470,7 +470,7 @@ pipeline {
                 withGithubNotify(context: 'Package') {
                   deleteDir()
                   unstash 'source'
-                  golang(){
+                  withMageEnv(){
                     dir("${BASE_DIR}"){
                       sh(label: 'Build packages', script: './.ci/scripts/package.sh')
                       sh(label: 'Test packages install', script: './.ci/scripts/test-install-packages.sh')
@@ -552,17 +552,4 @@ pipeline {
       notifyBuildResult()
     }
   }
-}
-
-def golang(Closure body){
-  def golangDocker
-  retry(3) { // Retry in case there are any errors when building the docker images (to avoid temporary glitches)
-    sleep randomNumber(min: 2, max: 5)
-    golangDocker = docker.build('golang-mage', "--build-arg GO_VERSION=${GO_VERSION} -f  ${BASE_DIR}/.ci/docker/golang-mage/Dockerfile ${BASE_DIR}")
-  }
-  withEnv(["HOME=${WORKSPACE}", "GOPATH=${WORKSPACE}", "SHELL=/bin/bash"]) {
-     golangDocker.inside('-v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock'){
-       body()
-     }
-   }
 }

@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -111,7 +110,7 @@ func (e *Transaction) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat.Event {
+func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
 	transactionTransformations.Inc()
 
 	fields := mapStr{
@@ -139,26 +138,17 @@ func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat
 	fields.maybeSetMapStr("parent", common.MapStr(parent))
 	fields.maybeSetMapStr("trace", common.MapStr(trace))
 	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
-
 	fields.maybeSetMapStr("http", e.HTTP.Fields())
-	haveURL := fields.maybeSetMapStr("url", e.URL.Fields())
-	if e.Page != nil {
-		// TODO(axw) e.Page.Referer should be recorded in e.HTTP.Request.
-		common.MapStr(fields).Put("http.request.referrer", e.Page.Referer)
-		if !haveURL {
-			fields.maybeSetMapStr("url", e.Page.URL.Fields())
-		}
-	}
-
+	fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return []beat.Event{{
+	return append(events, beat.Event{
 		Timestamp: e.Timestamp,
 		Fields:    common.MapStr(fields),
-	}}
+	})
 }
 
 type TransactionMarks map[string]TransactionMark

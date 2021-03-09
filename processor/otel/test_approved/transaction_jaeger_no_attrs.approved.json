@@ -12,8 +12,7 @@
                 "outcome": "failure"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "processor": {
                 "event": "transaction",
@@ -23,10 +22,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768

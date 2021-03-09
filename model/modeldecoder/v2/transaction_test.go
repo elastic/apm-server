@@ -205,8 +205,18 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.Transaction
 		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
 		assert.Equal(t, "https://my.site.test:9201", out.Page.URL.Full)
-		assert.Equal(t, 9201, *out.Page.URL.Port)
+		assert.Equal(t, "https://my.site.test:9201", out.URL.Full)
+		assert.Equal(t, 9201, out.Page.URL.Port)
 		assert.Equal(t, "https", out.Page.URL.Scheme)
+	})
+
+	t.Run("page.referer", func(t *testing.T) {
+		var input transaction
+		input.Context.Page.Referer.Set("https://my.site.test:9201")
+		var out model.Transaction
+		mapToTransactionModel(&input, initializedMetadata(), time.Now(), modeldecoder.Config{Experimental: false}, &out)
+		assert.Equal(t, "https://my.site.test:9201", out.Page.Referer)
+		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referer)
 	})
 
 	t.Run("sample-rate", func(t *testing.T) {

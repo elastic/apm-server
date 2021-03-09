@@ -20,7 +20,7 @@
             },
             "host": {
                 "architecture": "amd64",
-                "hostname": "node-name",
+                "hostname": "8ec7ceb99074",
                 "ip": "192.0.0.1",
                 "name": "host1",
                 "os": {
@@ -196,14 +196,14 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "data_stream.dataset": "apm.1234_service_12a3",
+            "data_stream.dataset": "apm.opbeans_java_1",
             "data_stream.type": "traces",
             "event": {
                 "outcome": "success"
             },
             "host": {
                 "architecture": "amd64",
-                "hostname": "node-name",
+                "hostname": "8ec7ceb99074",
                 "ip": "192.0.0.1",
                 "name": "host1",
                 "os": {
@@ -354,7 +354,7 @@
             "float_gauge": 9.16,
             "host": {
                 "architecture": "amd64",
-                "hostname": "node-name",
+                "hostname": "8ec7ceb99074",
                 "ip": "192.0.0.1",
                 "name": "host1",
                 "os": {
@@ -599,7 +599,7 @@
             },
             "host": {
                 "architecture": "amd64",
-                "hostname": "node-name",
+                "hostname": "8ec7ceb99074",
                 "ip": "192.0.0.1",
                 "name": "host1",
                 "os": {

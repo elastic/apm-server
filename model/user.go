@@ -27,10 +27,7 @@ type User struct {
 	Name  string
 }
 
-func (u *User) Fields() common.MapStr {
-	if u == nil {
-		return nil
-	}
+func (u *User) fields() common.MapStr {
 	var user mapStr
 	user.maybeSetString("id", u.ID)
 	user.maybeSetString("email", u.Email)

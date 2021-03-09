@@ -25,11 +25,8 @@ type Container struct {
 	ID string
 }
 
-func (k *Container) fields() common.MapStr {
-	if k == nil {
-		return nil
-	}
+func (c *Container) fields() common.MapStr {
 	var container mapStr
-	container.maybeSetString("id", k.ID)
+	container.maybeSetString("id", c.ID)
 	return common.MapStr(container)
 }
