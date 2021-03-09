@@ -411,6 +411,8 @@ func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) R
 	processors := []model.BatchProcessor{
 		modelprocessor.SetSystemHostname{},
 		modelprocessor.SetServiceNodeName{},
+		// Set metricset.name for well-known agent metrics.
+		modelprocessor.SetMetricsetName{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
