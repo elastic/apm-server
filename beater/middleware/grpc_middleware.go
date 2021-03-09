@@ -21,10 +21,11 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/grpc/codes"
+
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
-	"google.golang.org/grpc/codes"
 )
 
 // LogGRPC wraps implementations of gRPC methods to handle logging processing.
