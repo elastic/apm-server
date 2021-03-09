@@ -108,14 +108,14 @@ func TestSpanTransform(t *testing.T) {
 				RUM:                 true,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				Labels:              common.MapStr{"label_a": 12},
-				HTTP:                &HTTP{Method: method, StatusCode: &statusCode, URL: url},
+				HTTP:                &HTTP{Method: method, StatusCode: statusCode, URL: url},
 				DB: &DB{
 					Instance:     instance,
 					Statement:    statement,
 					Type:         dbType,
 					UserName:     user,
 					RowsAffected: &rowsAffected},
-				Destination: &Destination{Address: address, Port: &port},
+				Destination: &Destination{Address: address, Port: port},
 				DestinationService: &DestinationService{
 					Type:     destServiceType,
 					Name:     destServiceName,
@@ -175,10 +175,10 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Span.Transform(context.Background(), &transform.Config{
+		output := test.Span.appendBeatEvents(context.Background(), &transform.Config{
 			DataStreams: true,
 			RUM:         transform.RUMConfig{SourcemapStore: &sourcemap.Store{}},
-		})
+		}, nil)
 		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields, test.Msg)
 	}

@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -126,14 +125,14 @@ func TestTransactionTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		output := test.Transaction.appendBeatEvents(&transform.Config{}, nil)
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
 func TestTransactionTransformOutcome(t *testing.T) {
 	tx := Transaction{Outcome: "success"}
-	events := tx.Transform(context.Background(), &transform.Config{})
+	events := tx.appendBeatEvents(&transform.Config{}, nil)
 	require.Len(t, events, 1)
 	assert.Equal(t, common.MapStr{"outcome": "success"}, events[0].Fields["event"])
 }
@@ -177,7 +176,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
 	}
-	events := txWithContext.Transform(context.Background(), &transform.Config{DataStreams: true})
+	events := txWithContext.appendBeatEvents(&transform.Config{DataStreams: true}, nil)
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"data_stream.type":    "traces",
@@ -229,7 +228,7 @@ func TestTransformTransactionHTTP(t *testing.T) {
 	tx := Transaction{
 		HTTP: &Http{Request: &request},
 	}
-	events := tx.Transform(context.Background(), &transform.Config{})
+	events := tx.appendBeatEvents(&transform.Config{}, nil)
 	require.Len(t, events, 1)
 	assert.Equal(t, common.MapStr{
 		"request": common.MapStr{
@@ -292,7 +291,7 @@ func TestTransactionTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		output := test.Transaction.appendBeatEvents(&transform.Config{}, nil)
 		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -321,7 +320,7 @@ func TestTransactionTransformMarks(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		output := test.Transaction.appendBeatEvents(&transform.Config{}, nil)
 		marks, _ := output[0].Fields.GetValue("transaction.marks")
 		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}

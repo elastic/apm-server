@@ -100,7 +100,7 @@ type Log struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (e *Error) appendBeatEvents(ctx context.Context, cfg *transform.Config, events []beat.Event) []beat.Event {
 	errorTransformations.Inc()
 
 	if e.Exception != nil {
@@ -159,10 +159,10 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 	fields.maybeSetMapStr("trace", common.MapStr(trace))
 	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 
-	return []beat.Event{{
+	return append(events, beat.Event{
 		Fields:    common.MapStr(fields),
 		Timestamp: e.Timestamp,
-	}}
+	})
 }
 
 func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr {
