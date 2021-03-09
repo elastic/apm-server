@@ -44,9 +44,8 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "node-name",
+                "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -91,9 +90,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "container-id"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -164,9 +160,8 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "node-name",
+                "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -211,9 +206,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "container-id"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -285,9 +277,8 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "node-name",
+                "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -335,9 +326,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "container-id"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -410,9 +398,8 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "node-name",
+                "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -457,9 +444,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "container-id"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -525,7 +509,7 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.backendspans",
+            "data_stream.dataset": "apm.service1",
             "data_stream.type": "traces",
             "destination": {
                 "address": "0:0::0:1",
@@ -537,9 +521,8 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "node-name",
+                "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -584,9 +567,6 @@
                     "version": "8"
                 },
                 "name": "service1",
-                "node": {
-                    "name": "container-id"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -740,9 +720,8 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "node-name",
+                "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -787,9 +766,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "container-id"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"

@@ -23,22 +23,27 @@ import (
 	"github.com/elastic/apm-server/model"
 )
 
-// SetDefaultServiceEnvironment is a transform.Processor that sets a default
-// service.environment value for events without one already set.
-type SetDefaultServiceEnvironment struct {
-	// DefaultServiceEnvironment is the default service.environment value
-	// to set for events without one already set.
-	DefaultServiceEnvironment string
+// SetServiceNodeName is a transform.Processor that sets the service
+// node name value for events without one already set.
+//
+// SetServiceNodeName should be called after SetSystemHostname, to
+// ensure ConfiguredHostname is set.
+type SetServiceNodeName struct{}
+
+// ProcessBatch sets a default service.node.name for events without one already set.
+func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *model.Batch) error {
+	return foreachEventMetadata(ctx, b, setServiceNodeName)
 }
 
-// ProcessBatch sets a default service.value for events without one already set.
-func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return foreachEventMetadata(ctx, b, s.setDefaultServiceEnvironment)
-}
-
-func (s *SetDefaultServiceEnvironment) setDefaultServiceEnvironment(ctx context.Context, meta *model.Metadata) error {
-	if meta.Service.Environment == "" {
-		meta.Service.Environment = s.DefaultServiceEnvironment
+func setServiceNodeName(ctx context.Context, meta *model.Metadata) error {
+	if meta.Service.Node.Name != "" {
+		// Already set.
+		return nil
 	}
+	nodeName := meta.System.Container.ID
+	if nodeName == "" {
+		nodeName = meta.System.ConfiguredHostname
+	}
+	meta.Service.Node.Name = nodeName
 	return nil
 }

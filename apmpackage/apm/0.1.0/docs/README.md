@@ -512,6 +512,7 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
     "tag1": "one",
     "tag2": 2
   },
+  "metricset.name": "app",
   "observer": {
     "ephemeral_id": "8785cbe1-7f89-4279-84c2-6c33979531fb",
     "hostname": "ix.lan",

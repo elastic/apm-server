@@ -15,7 +15,6 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "prod1.example.com",
                 "os": {
                     "platform": "darwin"
                 }
@@ -44,9 +43,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "prod1.example.com"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -92,7 +88,6 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "prod1.example.com",
                 "os": {
                     "platform": "darwin"
                 }
@@ -124,9 +119,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "prod1.example.com"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -171,7 +163,6 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "name": "prod1.example.com",
                 "os": {
                     "platform": "darwin"
                 }
@@ -201,9 +192,6 @@
                     "version": "8"
                 },
                 "name": "backendspans",
-                "node": {
-                    "name": "prod1.example.com"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"

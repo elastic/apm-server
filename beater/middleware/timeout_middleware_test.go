@@ -15,22 +15,38 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package middleware
 
 import (
-	"github.com/elastic/beats/v7/libbeat/common"
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/beater/request"
 )
 
-type User struct {
-	ID    string
-	Email string
-	Name  string
-}
+func TestTimeoutMiddleware(t *testing.T) {
+	var err error
+	m := TimeoutMiddleware()
+	h := request.Handler(func(c *request.Context) {
+		ctx := c.Request.Context()
+		ctx, cancel := context.WithCancel(ctx)
+		r := c.Request.WithContext(ctx)
+		c.Request = r
+		cancel()
+	})
 
-func (u *User) fields() common.MapStr {
-	var user mapStr
-	user.maybeSetString("id", u.ID)
-	user.maybeSetString("email", u.Email)
-	user.maybeSetString("name", u.Name)
-	return common.MapStr(user)
+	h, err = m(h)
+	assert.NoError(t, err)
+
+	c := request.NewContext()
+	r, err := http.NewRequest("GET", "/", nil)
+	assert.NoError(t, err)
+	c.Reset(httptest.NewRecorder(), r)
+	h(c)
+
+	assert.Equal(t, http.StatusServiceUnavailable, c.Result.StatusCode)
 }

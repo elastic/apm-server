@@ -348,7 +348,7 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 		serviceName:        tx.Metadata.Service.Name,
 		serviceVersion:     tx.Metadata.Service.Version,
 
-		hostname:          tx.Metadata.System.Hostname(),
+		hostname:          tx.Metadata.System.DetectedHostname,
 		containerID:       tx.Metadata.System.Container.ID,
 		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
 	}
