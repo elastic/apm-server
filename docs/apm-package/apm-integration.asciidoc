@@ -75,8 +75,11 @@ You must enroll a new {agent} to use the integration.
 [[apm-integration-terminology]]
 === Terminology
 
-{agent} vs. APM agents::
+Agents::
 
+// to do: add links to these docs
+{agent} and APM agents are different components:
++
 **{agent}** is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
 Behind the scenes, {agent} runs APM Server to listen for `apm` data.
 +
@@ -86,8 +89,12 @@ You install them into your service as you would install any other library.
 They instrument your code and collect performance data and errors at runtime.
 This data is sent to APM Server.
 
-Fleet central management vs APM agent central management::
+Central management/configuration::
 
+// to do: add links to these docs
+Fleet central management and APM agent central configuration are two different features
+that can be accessed in {kib}:
++
 **Fleet central management** serves as the communication channel with your {agent}s;
 agents check in for the latest updates on a regular basis.
 +
