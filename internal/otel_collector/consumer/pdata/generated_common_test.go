@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	otlpcommon "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/common/v1"
+	otlpcommon "go.opentelemetry.io/collector/internal/data/protogen/common/v1"
 )
 
 func TestInstrumentationLibrary_CopyTo(t *testing.T) {
@@ -151,11 +151,12 @@ func TestAnyValueArray_Append(t *testing.T) {
 
 	emptyVal := NewAttributeValue()
 	es.Append(emptyVal)
-	assert.EqualValues(t, *(es.At(7)).orig, *emptyVal.orig)
+	assert.EqualValues(t, emptyVal, es.At(7))
 
-	emptyVal2 := NewAttributeValue()
-	es.Append(emptyVal2)
-	assert.EqualValues(t, *(es.At(8)).orig, *emptyVal2.orig)
+	value := NewAttributeValue()
+	fillTestAttributeValue(value)
+	es.Append(value)
+	assert.EqualValues(t, value, es.At(8))
 
 	assert.Equal(t, 9, es.Len())
 }

@@ -30,9 +30,9 @@ import (
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
-	collectorlog "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/logs/v1"
-	collectormetrics "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/metrics/v1"
-	collectortrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
+	collectorlog "go.opentelemetry.io/collector/internal/data/protogen/collector/logs/v1"
+	collectormetrics "go.opentelemetry.io/collector/internal/data/protogen/collector/metrics/v1"
+	collectortrace "go.opentelemetry.io/collector/internal/data/protogen/collector/trace/v1"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/logs"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/metrics"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
@@ -168,17 +168,17 @@ func (r *otlpReceiver) Start(_ context.Context, host component.Host) error {
 }
 
 // Shutdown is a method to turn off receiving.
-func (r *otlpReceiver) Shutdown(context.Context) error {
+func (r *otlpReceiver) Shutdown(ctx context.Context) error {
 	var err error
 	r.stopOnce.Do(func() {
 		err = nil
 
 		if r.serverHTTP != nil {
-			err = r.serverHTTP.Close()
+			err = r.serverHTTP.Shutdown(ctx)
 		}
 
 		if r.serverGRPC != nil {
-			r.serverGRPC.Stop()
+			r.serverGRPC.GracefulStop()
 		}
 	})
 	return err
