@@ -35,24 +35,10 @@ func TestMetrics(t *testing.T) {
 	monitoringMap := request.MonitoringMapForRegistry(registry, MetricsMonitoringKeys)
 	methodName := "test_method_name"
 
-	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
-	// method name to its respective monitoring map.
 	testMap := map[string]map[request.ResultID]*monitoring.Int{
 		methodName: monitoringMap,
 	}
 	i := Metrics(testMap)
-	// return func(
-	// 	ctx context.Context,
-	// 	req interface{},
-	// 	info *grpc.UnaryServerInfo,
-	// 	handler grpc.UnaryHandler,
-	// ) (resp interface{}, err error) {
-
-	// map[request.ResultID]int64{
-	// 	request.IDRequestCount:           1,
-	// 	request.IDResponseCount:          1,
-	// 	request.IDResponseErrorsCount:    1,
-	// 	request.IDResponseErrorsInternal: 1}}
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{
