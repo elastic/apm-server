@@ -38,7 +38,6 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/beatertest"
-	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -82,8 +81,6 @@ type testGRPCCollector struct {
 	authError   error
 	consumerErr error
 	collector   *grpcCollector
-
-	monitoringInt map[request.ResultID]int64
 }
 
 func (tc *testGRPCCollector) setup(t *testing.T) {
