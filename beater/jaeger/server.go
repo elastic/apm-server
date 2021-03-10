@@ -158,7 +158,6 @@ func RegisterGRPCServices(
 	if authTag != "" {
 		auth = makeAuthFunc(authTag, authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action))
 	}
-	// TODO(stn) Is this the naming we want?
 	logger = logger.Named(logs.Jaeger)
 	traceConsumer := &otel.Consumer{Processor: processor}
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{logger, auth, traceConsumer})

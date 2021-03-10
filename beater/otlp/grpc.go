@@ -64,8 +64,7 @@ func init() {
 func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor, logger *logp.Logger) error {
 	consumer := &monitoredConsumer{
 		consumer: &otel.Consumer{Processor: processor},
-		// TODO(stn) Is this the naming we want?
-		logger: logger.Named(logs.Otel),
+		logger:   logger.Named(logs.Otel),
 	}
 
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
