@@ -36,7 +36,7 @@ func LogGRPC(ctx context.Context, logger *logp.Logger, f func() error) error {
 	)
 
 	defer func() {
-		logger = logger.With("@timestamp", start, "event.duration", time.Since(start))
+		logger = logger.With("event.duration", time.Since(start))
 		if err != nil {
 			// TODO: Is this the code we want?
 			logger.With("grpc.response.status_code", codes.Internal).Error(logp.Error(err))
