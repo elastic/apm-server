@@ -41,6 +41,18 @@ import (
 var (
 	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
 	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, monitoringKeys)
+
+	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
+	// method name to its respective monitoring map.
+	RegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
+		postSpansFullMethod:           gRPCCollectorMonitoringMap,
+		getSamplingStrategyFullMethod: gRPCSamplingMonitoringMap,
+	}
+)
+
+const (
+	postSpansFullMethod           = "/jaeger.api_v2.CollectorService/PostSpans"
+	getSamplingStrategyFullMethod = "/jaeger.api_v2.SamplingManager/GetSamplingStrategy"
 )
 
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
