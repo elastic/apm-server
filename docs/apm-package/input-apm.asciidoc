@@ -5,8 +5,6 @@
 
 experimental::[]
 
-IMPORTANT:
-
 To configure the APM integration, open {kib} and select:
 **Fleet** / **Integrations** / **Elastic APM** / **Add Elastic APM**.
 Expand the carrot to view all settings.

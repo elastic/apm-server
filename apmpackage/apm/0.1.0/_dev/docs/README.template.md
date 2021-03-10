@@ -37,7 +37,8 @@ This version is experimental and has some limitations, listed bellow:
 - You need to create specific API keys for sourcemaps and central configuration.
 - You can't use an Elastic Agent enrolled before 7.12.
 - Not all settings are supported.
-- Template, pipeline, and ILM settings must be configured through Elasticsearch or Kibana, not APM Server.
+- The `apm` templates, pipelines, and ILM settings that ship with this integration cannot be configured or changed with Fleet;
+changes must be made with Elasticsearch APIs or Kibana's Stack Management.
 
 See [APM integration limitations](https://ela.st/apm-integration-limitations) for more information.
 
