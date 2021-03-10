@@ -30,6 +30,7 @@ import (
 
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -56,7 +57,7 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	consumer := &monitoredConsumer{
 		consumer: &otel.Consumer{Processor: processor},
 		// TODO(stn) Is this the naming we want?
-		logger: logger.Named("otlp"),
+		logger: logger.Named(logs.Otel),
 	}
 
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running

@@ -36,6 +36,7 @@ import (
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 )
@@ -151,7 +152,7 @@ func RegisterGRPCServices(
 		auth = makeAuthFunc(authTag, authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action))
 	}
 	// TODO(stn) Is this the naming we want?
-	logger = logger.Named("jaeger")
+	logger = logger.Named(logs.Jaeger)
 	traceConsumer := &otel.Consumer{Processor: processor}
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{logger, auth, traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, kibanaClient, agentcfgFetcher})
