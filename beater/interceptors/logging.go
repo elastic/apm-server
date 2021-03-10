@@ -31,8 +31,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
-// Logging intercepts a gRPC request and provides logging processing. It
-// implements grpc.UnaryServerInterceptor.
+// Logging intercepts a gRPC request and provides logging processing. The
+// returned function implements grpc.UnaryServerInterceptor.
 func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,

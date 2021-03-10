@@ -34,7 +34,8 @@ var MetricsMonitoringKeys = []request.ResultID{
 
 // Metrics increments the counters in map m according to the passed in error,
 // the result of a gRPC method call. The monitoring registry map must be passed
-// into the request context during execution.
+// into the request context during execution. The returned function implements
+// grpc.UnaryServerInterceptor.
 func Metrics(
 	registries map[string]map[request.ResultID]*monitoring.Int,
 ) grpc.UnaryServerInterceptor {
