@@ -185,6 +185,7 @@ func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, 
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	return []middleware.Middleware{
 		middleware.LogMiddleware(),
+		middleware.TimeoutMiddleware(),
 		middleware.RecoverPanicMiddleware(),
 		middleware.MonitoringMiddleware(m),
 		middleware.RequestTimeMiddleware(),
