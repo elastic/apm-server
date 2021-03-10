@@ -44,7 +44,7 @@ func Metrics(
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (resp interface{}, err error) {
+	) (interface{}, error) {
 		m, prs := registries[info.FullMethod]
 		if !prs {
 			return handler(ctx, req)
@@ -53,7 +53,7 @@ func Metrics(
 		m[request.IDRequestCount].Inc()
 		defer m[request.IDResponseCount].Inc()
 
-		resp, err = handler(ctx, req)
+		resp, err := handler(ctx, req)
 
 		responseID := request.IDResponseValidCount
 		if err != nil {
@@ -62,6 +62,6 @@ func Metrics(
 
 		m[responseID].Inc()
 
-		return
+		return resp, err
 	}
 }

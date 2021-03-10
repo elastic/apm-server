@@ -39,7 +39,7 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (resp interface{}, err error) {
+	) (interface{}, error) {
 		start := time.Now()
 		if p, ok := peer.FromContext(ctx); ok {
 			logger = logger.With("source.address", p.Addr)
@@ -52,7 +52,7 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 			}
 		}
 
-		resp, err = handler(ctx, req)
+		resp, err := handler(ctx, req)
 		res, _ := status.FromError(err)
 		logger = logger.With(
 			"grpc.request.method", info.FullMethod,
@@ -63,6 +63,6 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 		if err != nil {
 			logger.With("error.message", res.Message()).Error(logp.Error(err))
 		}
-		return
+		return resp, err
 	}
 }
