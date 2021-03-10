@@ -21,6 +21,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Add `error.grouping_name` field to speed up error grouping aggregations {pull}4886[4886]
 * Add support for OpenTelemetry exception span events {pull}4876[4876]
 * Set metricset.name for breakdown metrics {pull}4910[4910]
+* Set log and http responses for server timeout {pull}4918[4918]
 
 [float]
 ==== Deprecated
