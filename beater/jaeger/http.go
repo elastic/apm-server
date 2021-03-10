@@ -43,7 +43,8 @@ const (
 
 var (
 	httpRegistry      = monitoring.Default.NewRegistry("apm-server.jaeger.http")
-	httpMonitoringMap = request.MonitoringMapForRegistry(httpRegistry, interceptors.MetricsMonitoringKeys)
+	monitoringKeys    = append(interceptors.MetricsMonitoringKeys, request.IDEventDroppedCount)
+	httpMonitoringMap = request.MonitoringMapForRegistry(httpRegistry, monitoringKeys)
 )
 
 // newHTTPMux returns a new http.ServeMux which accepts Thrift-encoded spans.
