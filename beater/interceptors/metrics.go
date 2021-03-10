@@ -26,6 +26,12 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
+// MetricsMonitoringKeys are the keys used when incrementing interceptor counters.
+var MetricsMonitoringKeys = []request.ResultID{
+	request.IDRequestCount, request.IDResponseCount, request.IDResponseErrorsCount,
+	request.IDResponseValidCount, request.IDEventReceivedCount, request.IDEventDroppedCount,
+}
+
 // Metrics increments the counters in map m according to the passed in error,
 // the result of a gRPC method call. The monitoring registry map must be passed
 // into the request context during execution.

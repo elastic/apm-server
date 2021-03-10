@@ -34,6 +34,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 
 	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 )
 
@@ -107,7 +108,7 @@ func testHTTPMux(t *testing.T, test httpMuxTest) {
 }
 
 func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual monitoringMap) {
-	for _, k := range monitoringKeys {
+	for _, k := range interceptors.MetricsMonitoringKeys {
 		if val, ok := expected[k]; ok {
 			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
 		} else {

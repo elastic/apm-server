@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
 	"google.golang.org/grpc"
 
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -37,14 +38,10 @@ import (
 )
 
 var (
-	monitoringKeys = []request.ResultID{
-		request.IDRequestCount, request.IDResponseCount, request.IDResponseErrorsCount, request.IDResponseValidCount,
-	}
-
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
-	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
+	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, interceptors.MetricsMonitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
-	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
+	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, interceptors.MetricsMonitoringKeys)
 
 	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
 	// method name to its respective monitoring map.

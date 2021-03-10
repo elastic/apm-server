@@ -32,6 +32,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
 )
@@ -42,7 +43,7 @@ const (
 
 var (
 	httpRegistry      = monitoring.Default.NewRegistry("apm-server.jaeger.http")
-	httpMonitoringMap = request.MonitoringMapForRegistry(httpRegistry, monitoringKeys)
+	httpMonitoringMap = request.MonitoringMapForRegistry(httpRegistry, interceptors.MetricsMonitoringKeys)
 )
 
 // newHTTPMux returns a new http.ServeMux which accepts Thrift-encoded spans.
