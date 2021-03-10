@@ -31,10 +31,13 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/interceptors"
+	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -89,9 +92,20 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 		if err != nil {
 			return nil, err
 		}
-		grpcOptions := []grpc.ServerOption{grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
-			apmgrpc.WithRecovery(),
-			apmgrpc.WithTracer(tracer))),
+		grpcOptions := []grpc.ServerOption{
+			grpc.ChainUnaryInterceptor(
+				apmgrpc.NewUnaryServerInterceptor(
+					apmgrpc.WithRecovery(),
+					apmgrpc.WithTracer(tracer),
+				),
+				interceptors.Logging(logger),
+				interceptors.Metrics(
+					map[string]map[request.ResultID]*monitoring.Int{
+						"/jaeger.api_v2.CollectorService/PostSpans":          gRPCCollectorMonitoringMap,
+						"/jaeger.api_v2.SamplingManager/GetSamplingStrategy": gRPCSamplingMonitoringMap,
+					},
+				),
+			),
 		}
 		if cfg.JaegerConfig.GRPC.TLS != nil {
 			creds := credentials.NewTLS(cfg.JaegerConfig.GRPC.TLS)

@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/processor/otel"
@@ -56,9 +55,7 @@ type grpcCollector struct {
 // The implementation of the protobuf contract is based on the open-telemetry implementation at
 // https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
 func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
-	logger := c.logger.With("grpc.method", "post spans")
-	wrap := func() error { return c.postSpans(ctx, r.Batch) }
-	if err := middleware.MetricsGRPC(gRPCCollectorMonitoringMap, middleware.LogGRPC(ctx, logger, wrap)); err != nil {
+	if err := c.postSpans(ctx, r.Batch); err != nil {
 		return nil, err
 	}
 	return &api_v2.PostSpansResponse{}, nil
@@ -92,25 +89,22 @@ func (s *grpcSampler) GetSamplingStrategy(
 	ctx context.Context,
 	params *api_v2.SamplingStrategyParameters) (*api_v2.SamplingStrategyResponse, error) {
 
-	gRPCSamplingMonitoringMap.inc(request.IDRequestCount)
-	defer gRPCSamplingMonitoringMap.inc(request.IDResponseCount)
 	if err := s.validateKibanaClient(ctx); err != nil {
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
 		// do not return full error details since this is part of an unprotected endpoint response
 		s.log.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
 		return nil, errors.New("agent remote configuration not supported, check server logs for more details")
 	}
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
 		// do not return full error details since this is part of an unprotected endpoint response
 		s.log.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
 		return nil, errors.New("no sampling rate available, check server logs for more details")
 	}
-	gRPCSamplingMonitoringMap.inc(request.IDResponseValidCount)
+
 	return &api_v2.SamplingStrategyResponse{
 		StrategyType:          api_v2.SamplingStrategyType_PROBABILISTIC,
-		ProbabilisticSampling: &api_v2.ProbabilisticSamplingStrategy{SamplingRate: samplingRate}}, nil
+		ProbabilisticSampling: &api_v2.ProbabilisticSamplingStrategy{SamplingRate: samplingRate},
+	}, nil
 }
 
 func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {

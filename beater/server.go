@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/kibana"
@@ -141,7 +142,14 @@ func newGRPCServer(
 	// NOTE(axw) even if TLS is enabled we should not use grpc.Creds, as TLS is handled by the net/http server.
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
 	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
-	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(apmInterceptor, authInterceptor))
+	srv := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			apmInterceptor,
+			authInterceptor,
+			interceptors.Logging(logger),
+			interceptors.Metrics(otlp.RegistryMonitoringMaps),
+		),
+	)
 
 	var kibanaClient kibana.Client
 	var agentcfgFetcher *agentcfg.Fetcher

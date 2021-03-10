@@ -32,6 +32,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -200,7 +201,9 @@ func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientCo
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptors.Metrics(otlp.RegistryMonitoringMaps)),
+	)
 	err = otlp.RegisterGRPCServices(srv, batchProcessor, logp.NewLogger("otlp_test"))
 	require.NoError(t, err)
 

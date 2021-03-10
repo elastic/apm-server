@@ -28,7 +28,6 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
 	"google.golang.org/grpc"
 
-	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
@@ -46,6 +45,18 @@ var (
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
 	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
+
+	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
+	// method name to its respective monitoring map.
+	RegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
+		metricsFullMethod: gRPCMetricsMonitoringMap,
+		tracesFullMethod:  gRPCTracesMonitoringMap,
+	}
+)
+
+const (
+	metricsFullMethod = "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export"
+	tracesFullMethod  = "/opentelemetry.proto.collector.trace.v1.TraceService/Export"
 )
 
 func init() {
@@ -84,17 +95,13 @@ type monitoredConsumer struct {
 // ConsumeTraces implements consumer.TracesConsumer. It consumes OpenTelemetry
 // trace data.
 func (c *monitoredConsumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
-	logger := c.logger.With("grpc.method", "consume traces")
-	wrap := func() error { return c.consumer.ConsumeTraces(ctx, traces) }
-	return middleware.MetricsGRPC(gRPCTracesMonitoringMap, middleware.LogGRPC(ctx, logger, wrap))
+	return c.consumer.ConsumeTraces(ctx, traces)
 }
 
 // ConsumeMetrics implements consumer.MetricsConsumer. It consumes OpenTelemetry
 // metrics data.
 func (c *monitoredConsumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
-	logger := c.logger.With("grpc.method", "consume metrics")
-	wrap := func() error { return c.consumer.ConsumeMetrics(ctx, metrics) }
-	return middleware.MetricsGRPC(gRPCMetricsMonitoringMap, middleware.LogGRPC(ctx, logger, wrap))
+	return c.consumer.ConsumeMetrics(ctx, metrics)
 }
 
 func (c *monitoredConsumer) collectMetricsMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
