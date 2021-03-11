@@ -32,7 +32,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
 )
@@ -43,7 +42,7 @@ const (
 
 var (
 	httpRegistry      = monitoring.Default.NewRegistry("apm-server.jaeger.http")
-	monitoringKeys    = append(interceptors.MetricsMonitoringKeys, request.IDEventDroppedCount)
+	monitoringKeys    = append(request.DefaultResultIDs, request.IDEventReceivedCount)
 	httpMonitoringMap = request.MonitoringMapForRegistry(httpRegistry, monitoringKeys)
 )
 

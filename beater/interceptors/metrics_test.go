@@ -32,7 +32,7 @@ import (
 
 func TestMetrics(t *testing.T) {
 	registry := monitoring.NewRegistry()
-	monitoringMap := request.MonitoringMapForRegistry(registry, MetricsMonitoringKeys)
+	monitoringMap := request.MonitoringMapForRegistry(registry, request.DefaultResultIDs)
 	methodName := "test_method_name"
 
 	testMap := map[string]map[request.ResultID]*monitoring.Int{
@@ -81,7 +81,7 @@ func TestMetrics(t *testing.T) {
 }
 
 func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual map[request.ResultID]*monitoring.Int) {
-	for _, k := range MetricsMonitoringKeys {
+	for _, k := range request.DefaultResultIDs {
 		if val, ok := expected[k]; ok {
 			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
 		} else {

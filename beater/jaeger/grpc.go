@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/processor/otel"
@@ -41,7 +40,7 @@ import (
 
 var (
 	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
-	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, interceptors.MetricsMonitoringKeys)
+	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, request.DefaultResultIDs)
 
 	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
 	// method name to its respective monitoring map.
@@ -83,7 +82,7 @@ func (c *grpcCollector) postSpans(ctx context.Context, batch model.Batch) error 
 
 var (
 	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling")
-	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCSamplingRegistry, interceptors.MetricsMonitoringKeys)
+	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCSamplingRegistry, monitoringKeys)
 
 	jaegerAgentPrefixes = []string{otel.AgentNameJaeger}
 )
