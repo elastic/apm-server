@@ -23,9 +23,6 @@ import (
 	"net"
 	"testing"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/logp/configure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
@@ -35,6 +32,10 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
+
+	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/logp/configure"
 )
 
 func TestLogging(t *testing.T) {
@@ -120,6 +121,7 @@ func TestLogging(t *testing.T) {
 
 		assert.Equal(t, hasErr, err != nil)
 		ok, err := logMap.HasKey("error.message")
+		assert.NoError(t, err)
 		assert.Equal(t, ok, hasErr)
 
 		if hasErr {
