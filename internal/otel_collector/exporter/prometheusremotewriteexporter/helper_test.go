@@ -22,8 +22,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
-	common "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/common/v1"
-	otlp "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1"
+	common "go.opentelemetry.io/collector/internal/data/protogen/common/v1"
+	otlp "go.opentelemetry.io/collector/internal/data/protogen/metrics/v1"
 )
 
 // Test_validateMetrics checks validateMetrics return true if a type and temporality combination is valid, false
@@ -287,7 +287,13 @@ func Test_getPromMetricName(t *testing.T) {
 			"total_suffix",
 			validMetrics1[validIntSum],
 			ns1,
-			"test_ns_" + validIntSum + delimeter + totalStr,
+			"test_ns_" + validIntSum + counterSuffix,
+		},
+		{
+			"already_has_total_suffix",
+			validMetrics1[suffixedCounter],
+			ns1,
+			"test_ns_" + suffixedCounter,
 		},
 		{
 			"dirty_string",

@@ -2,6 +2,98 @@
 
 ## Unreleased
 
+## v0.22.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Rename ServiceExtension to just Extension (#2581)
+- Remove `consumerdata.TraceData` (#2551)
+- Move `consumerdata.MetricsData` to `internaldata.MetricsData` (#2512)
+- Remove custom OpenCensus sematic conventions that have equivalent in otel (#2552)
+- Move ScrapeErrors and PartialScrapeError to `scrapererror` (#2580)
+- Remove support for deprecated unmarshaler `CustomUnmarshaler`, only `Unmarshal` is supported (#2591)
+- Remove deprecated componenterror.CombineErrors (#2598)
+- Rename `pdata.TimestampUnixNanos` to `pdata.Timestamp` (#2549)
+
+## 💡 Enhancements 💡
+
+- `prometheus` exporter: Re-implement on top of `github.com/prometheus/client_golang/prometheus` and add `metric_expiration` option
+- `logging` exporter: Add support for AttributeMap (#2609)
+- Add semantic conventions for instrumentation library (#2602)
+
+## 🧰 Bug fixes 🧰
+
+- `otlp` receiver: Fix `Shutdown()` bug (#2564)
+- `batch` processor: Fix Shutdown behavior (#2537)
+- `logging` exporter: Fix handling the loop for empty attributes (#2610)
+- `prometheusremotewrite` exporter: Fix counter name check (#2613)
+
+## v0.21.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Remove deprecated function `IsValid` from trace/span ID (#2522)
+- Remove accessors for deprecated status code (#2521)
+
+## 💡 Enhancements 💡
+
+- `otlphttp` exporter: Add `compression` option for gzip encoding of outgoing http requests (#2502)
+- Add `ScrapeErrors` struct to `consumererror` to simplify errors usage (#2414)
+- Add `cors_allowed_headers` option to `confighttp` (#2454)
+- Add SASL/SCRAM authentication mechanism on `kafka` receiver and exporter (#2503)
+
+## 🧰 Bug fixes 🧰
+
+- `otlp` receiver: Sets the correct deprecated status code before sending data to the pipeline (#2521)
+- Fix `IsPermanent` to account for wrapped errors (#2455)
+- `otlp` exporter: Preserve original error messages (#2459)
+
+## v0.20.0 Beta
+
+## 🛑 Breaking changes 🛑
+
+- Rename `samplingprocessor/probabilisticsamplerprocessor` to `probabilisticsamplerprocessor` (#2392)
+
+## 💡 Enhancements 💡
+
+- `hostmetrics` receiver: Refactor to use metrics metadata utilities (#2405, #2406, #2421)
+- Add k8s.node semantic conventions (#2425)
+
+## v0.19.0 Beta
+
+## 🛑 Breaking changes 🛑
+- Remove deprecated `queued_retry` processor
+- Remove deprecated configs from `resource` processor: `type` (set "opencensus.type" key in "attributes.upsert" map instead) and `labels` (use "attributes.upsert" instead).
+
+## 💡 Enhancements 💡
+
+- `hostmetrics` receiver: Refactor load metrics to use generated metrics (#2375)
+- Add uptime to the servicez debug page (#2385)
+- Add new semantic conventions for AWS (#2365)
+
+## 🧰 Bug fixes 🧰
+
+- `jaeger` exporter: Improve connection state logging (#2239)
+- `pdatagen`: Fix slice of values generated code (#2403)
+- `filterset` processor: Avoid returning always nil error in strict filterset (#2399)
+
+## v0.18.0 Beta
+
+## 🛑 Breaking changes 🛑
+- Rename host metrics according to metrics spec and rename `swap` scraper to `paging` (#2311)
+
+## 💡 Enhancements 💡
+
+- Add check for `NO_WINDOWS_SERVICE` environment variable to force interactive mode on Windows (#2272)
+- `hostmetrics` receiver: Add `disk/weighted_io_time` metric (Linux only) (#2312)
+- `opencensus` exporter: Add queue-retry (#2307)
+- `filter` processor: Filter metrics using resource attributes (#2251)
+
+## 🧰 Bug fixes 🧰
+
+- `fluentforward` receiver: Fix string conversions (#2314)
+- Fix zipkinv2 translation error tag handling (#2253)
+
 ## v0.17.0 Beta
 
 ## 💡 Enhancements 💡

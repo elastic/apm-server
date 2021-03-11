@@ -1,6 +1,7 @@
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
+:apm-package-dir: {docdir}/apm-package
 :libbeat-dir: {docdir}/copied-from-beats/docs
 :libbeat-outputs-dir: {docdir}/copied-from-beats/outputs
 :version: {apm_server_version}
@@ -78,5 +79,7 @@ include::./troubleshooting.asciidoc[]
 include::./upgrading.asciidoc[]
 
 include::./release-notes.asciidoc[]
+
+include::{apm-package-dir}/apm-integration.asciidoc[]
 
 include::./redirects.asciidoc[]
