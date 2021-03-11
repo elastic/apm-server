@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/elastic/apm-server/utility"
 
@@ -56,6 +57,33 @@ func TestExtractIP(t *testing.T) {
 
 	req.Header.Set(headerForwarded, "for=[2001:db8:cafe::17]:4711")
 	assert.Equal(t, "2001:db8:cafe::17", utility.ExtractIP(req).String())
+}
+
+func TestExtractIPFromGRPCMetadata(t *testing.T) {
+	for name, tc := range map[string]struct {
+		md metadata.MD
+		ip string
+	}{
+		"X-Real-IP": {
+			md: metadata.Pairs("X-Real-IP", "123.0.0.1"),
+			ip: "123.0.0.1",
+		},
+		"Forwarded": {
+			md: metadata.Pairs("Forwarded", "for=[2001:db8:cafe::17]:4711"),
+			ip: "2001:db8:cafe::17",
+		},
+		"X-Forwarded-For": {
+			md: metadata.Pairs("X-Forwarded-For", "123.0.0.1"),
+			ip: "123.0.0.1",
+		},
+	} {
+		t.Run("invalid "+name, func(t *testing.T) {
+			headers := http.Header(tc.md)
+			ip := utility.ExtractIPFromHeader(headers)
+			assert.NotNil(t, ip)
+			assert.Equal(t, tc.ip, ip.String())
+		})
+	}
 }
 
 func TestExtractIPFromHeader(t *testing.T) {
