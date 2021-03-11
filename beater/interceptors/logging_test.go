@@ -120,8 +120,7 @@ func TestLogging(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("%v", tc.statusCode), gotStatusCode)
 
 		assert.Equal(t, hasErr, err != nil)
-		ok, err := logMap.HasKey("error.message")
-		assert.NoError(t, err)
+		ok, _ := logMap.HasKey("error.message")
 		assert.Equal(t, ok, hasErr)
 
 		if hasErr {
