@@ -46,7 +46,7 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 		}
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			headers := http.Header(md)
-			// Account for `Forwarded`, `X-Real-IP`, `X-Forwarded-For` headers
+			// Account for `forwarded`, `x-real-ip`, `x-forwarded-for` headers
 			if ip := utility.ExtractIPFromHeader(headers); ip != nil {
 				logger = logger.With("source.address", ip)
 			}
