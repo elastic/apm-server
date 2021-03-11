@@ -108,6 +108,8 @@ func (bp *batchProcessor) Start(context.Context, component.Host) error {
 // Shutdown is invoked during service shutdown.
 func (bp *batchProcessor) Shutdown(context.Context) error {
 	bp.cancel()
+
+	// Wait until current batch is drained.
 	<-bp.done
 	return nil
 }
@@ -132,6 +134,7 @@ func (bp *batchProcessor) startProcessingCycle() {
 				// make it cancellable using the context that Shutdown gets as a parameter
 				bp.sendItems(statTimeoutTriggerSend)
 			}
+			// Indicate that we finished draining.
 			close(bp.done)
 			return
 		case item := <-bp.newItem:
@@ -154,6 +157,16 @@ func (bp *batchProcessor) processItem(item interface{}) {
 			itemCount := bp.batch.itemCount()
 			if itemCount+uint32(td.SpanCount()) > bp.sendBatchMaxSize {
 				tdRemainSize := splitTrace(int(bp.sendBatchSize-itemCount), td)
+				item = tdRemainSize
+				go func() {
+					bp.newItem <- td
+				}()
+			}
+		}
+		if td, ok := item.(pdata.Metrics); ok {
+			itemCount := bp.batch.itemCount()
+			if itemCount+uint32(td.MetricCount()) > bp.sendBatchMaxSize {
+				tdRemainSize := splitMetrics(int(bp.sendBatchSize-itemCount), td)
 				item = tdRemainSize
 				go func() {
 					bp.newItem <- td

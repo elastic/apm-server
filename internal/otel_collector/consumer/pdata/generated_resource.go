@@ -18,7 +18,7 @@
 package pdata
 
 import (
-	otlpresource "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/resource/v1"
+	otlpresource "go.opentelemetry.io/collector/internal/data/protogen/resource/v1"
 )
 
 // Resource information.
@@ -44,8 +44,6 @@ func NewResource() Resource {
 }
 
 // Attributes returns the Attributes associated with this Resource.
-//
-// Important: This causes a runtime error if IsNil() returns "true".
 func (ms Resource) Attributes() AttributeMap {
 	return newAttributeMap(&(*ms.orig).Attributes)
 }

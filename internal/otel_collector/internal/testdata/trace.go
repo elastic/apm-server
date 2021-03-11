@@ -17,20 +17,20 @@ package testdata
 import (
 	"time"
 
-	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1"
+	otlptrace "go.opentelemetry.io/collector/internal/data/protogen/trace/v1"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 )
 
 var (
 	TestSpanStartTime      = time.Date(2020, 2, 11, 20, 26, 12, 321, time.UTC)
-	TestSpanStartTimestamp = pdata.TimestampUnixNano(TestSpanStartTime.UnixNano())
+	TestSpanStartTimestamp = pdata.TimestampFromTime(TestSpanStartTime)
 
 	TestSpanEventTime      = time.Date(2020, 2, 11, 20, 26, 13, 123, time.UTC)
-	TestSpanEventTimestamp = pdata.TimestampUnixNano(TestSpanEventTime.UnixNano())
+	TestSpanEventTimestamp = pdata.TimestampFromTime(TestSpanEventTime)
 
 	TestSpanEndTime      = time.Date(2020, 2, 11, 20, 26, 13, 789, time.UTC)
-	TestSpanEndTimestamp = pdata.TimestampUnixNano(TestSpanEndTime.UnixNano())
+	TestSpanEndTimestamp = pdata.TimestampFromTime(TestSpanEndTime)
 )
 
 func GenerateTraceDataEmpty() pdata.Traces {
