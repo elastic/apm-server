@@ -142,6 +142,10 @@ func newGRPCServer(
 	// NOTE(axw) even if TLS is enabled we should not use grpc.Creds, as TLS is handled by the net/http server.
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
 	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
+
+	// TODO: The logger needs to be named here for the interceptor, but this
+	// server is shared between jaeger and otlp. What should we name it?
+	logger = logger.Named("grpc")
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			apmInterceptor,
@@ -158,7 +162,7 @@ func newGRPCServer(
 		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
 	}
 	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, kibanaClient, agentcfgFetcher)
-	if err := otlp.RegisterGRPCServices(srv, batchProcessor, logger); err != nil {
+	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
 	}
 	return srv, nil

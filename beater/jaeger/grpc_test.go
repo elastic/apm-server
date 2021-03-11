@@ -106,7 +106,7 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 		tc.request = &api_v2.PostSpansRequest{Batch: *batches[0]}
 	}
 
-	tc.collector = &grpcCollector{logp.NewLogger("gRPC"), authFunc(func(context.Context, model.Batch) error {
+	tc.collector = &grpcCollector{authFunc(func(context.Context, model.Batch) error {
 		return tc.authError
 	}), tracesConsumerFunc(func(ctx context.Context, td pdata.Traces) error {
 		return tc.consumerErr

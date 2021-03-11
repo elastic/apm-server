@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -204,7 +203,7 @@ func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientCo
 	srv := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptors.Metrics(otlp.RegistryMonitoringMaps)),
 	)
-	err = otlp.RegisterGRPCServices(srv, batchProcessor, logp.NewLogger("otlp_test"))
+	err = otlp.RegisterGRPCServices(srv, batchProcessor)
 	require.NoError(t, err)
 
 	go srv.Serve(lis)

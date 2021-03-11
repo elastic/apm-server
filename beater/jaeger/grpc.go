@@ -58,7 +58,6 @@ const (
 
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
-	logger   *logp.Logger
 	auth     authFunc
 	consumer consumer.TracesConsumer
 }
@@ -90,7 +89,7 @@ var (
 )
 
 type grpcSampler struct {
-	log     *logp.Logger
+	logger  *logp.Logger
 	client  kibana.Client
 	fetcher *agentcfg.Fetcher
 }
@@ -104,13 +103,13 @@ func (s *grpcSampler) GetSamplingStrategy(
 
 	if err := s.validateKibanaClient(ctx); err != nil {
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.log.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
+		s.logger.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
 		return nil, errors.New("agent remote configuration not supported, check server logs for more details")
 	}
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.log.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
+		s.logger.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
 		return nil, errors.New("no sampling rate available, check server logs for more details")
 	}
 

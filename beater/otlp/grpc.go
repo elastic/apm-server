@@ -30,10 +30,8 @@ import (
 
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/request"
-	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -61,10 +59,9 @@ func init() {
 }
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
-func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor, logger *logp.Logger) error {
+func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor) error {
 	consumer := &monitoredConsumer{
 		consumer: &otel.Consumer{Processor: processor},
-		logger:   logger.Named(logs.Otel),
 	}
 
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
@@ -85,7 +82,6 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 
 type monitoredConsumer struct {
 	consumer *otel.Consumer
-	logger   *logp.Logger
 }
 
 // ConsumeTraces implements consumer.TracesConsumer. It consumes OpenTelemetry

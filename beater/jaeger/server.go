@@ -90,6 +90,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 		if err != nil {
 			return nil, err
 		}
+		logger = logger.Named(logs.Jaeger)
 		grpcOptions := []grpc.ServerOption{
 			grpc.ChainUnaryInterceptor(
 				apmgrpc.NewUnaryServerInterceptor(
@@ -119,7 +120,8 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 			cfg.JaegerConfig.GRPC.AuthTag,
 			logger,
 			processor,
-			client, fetcher,
+			client,
+			fetcher,
 		)
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
@@ -158,9 +160,8 @@ func RegisterGRPCServices(
 	if authTag != "" {
 		auth = makeAuthFunc(authTag, authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action))
 	}
-	logger = logger.Named(logs.Jaeger)
 	traceConsumer := &otel.Consumer{Processor: processor}
-	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{logger, auth, traceConsumer})
+	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{auth, traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, kibanaClient, agentcfgFetcher})
 }
 
