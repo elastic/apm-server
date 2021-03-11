@@ -62,6 +62,8 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 
 		if err != nil {
 			logger.With("error.message", res.Message()).Error(logp.Error(err))
+		} else {
+			logger.Info(res.Message())
 		}
 		return resp, err
 	}
