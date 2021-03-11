@@ -22,7 +22,6 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/metrics"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
@@ -60,9 +59,7 @@ func init() {
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor) error {
-	consumer := &monitoredConsumer{
-		consumer: &otel.Consumer{Processor: processor},
-	}
+	consumer := &otel.Consumer{Processor: processor}
 
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are
@@ -80,38 +77,12 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	return nil
 }
 
-type monitoredConsumer struct {
-	consumer *otel.Consumer
-}
-
-// ConsumeTraces implements consumer.TracesConsumer. It consumes OpenTelemetry
-// trace data.
-func (c *monitoredConsumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
-	return c.consumer.ConsumeTraces(ctx, traces)
-}
-
-// ConsumeMetrics implements consumer.MetricsConsumer. It consumes OpenTelemetry
-// metrics data.
-func (c *monitoredConsumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
-	return c.consumer.ConsumeMetrics(ctx, metrics)
-}
-
-func (c *monitoredConsumer) collectMetricsMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
-	V.OnRegistryStart()
-	V.OnRegistryFinished()
-
-	stats := c.consumer.Stats()
-	monitoring.ReportNamespace(V, "consumer", func() {
-		monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
-	})
-}
-
 var (
 	currentMonitoredConsumerMu sync.RWMutex
-	currentMonitoredConsumer   *monitoredConsumer
+	currentMonitoredConsumer   *otel.Consumer
 )
 
-func setCurrentMonitoredConsumer(c *monitoredConsumer) {
+func setCurrentMonitoredConsumer(c *otel.Consumer) {
 	currentMonitoredConsumerMu.Lock()
 	defer currentMonitoredConsumerMu.Unlock()
 	currentMonitoredConsumer = c
@@ -121,7 +92,15 @@ func collectMetricsMonitoring(mode monitoring.Mode, V monitoring.Visitor) {
 	currentMonitoredConsumerMu.RLock()
 	c := currentMonitoredConsumer
 	currentMonitoredConsumerMu.RUnlock()
-	if c != nil {
-		c.collectMetricsMonitoring(mode, V)
+	if c == nil {
+		return
 	}
+
+	V.OnRegistryStart()
+	V.OnRegistryFinished()
+
+	stats := c.Stats()
+	monitoring.ReportNamespace(V, "consumer", func() {
+		monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
+	})
 }
