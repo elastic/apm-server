@@ -31,7 +31,7 @@ import (
 )
 
 func TestMetrics(t *testing.T) {
-	registry := monitoring.Default.NewRegistry("apm-server.test.grpc.metrics")
+	registry := monitoring.NewRegistry()
 	monitoringMap := request.MonitoringMapForRegistry(registry, MetricsMonitoringKeys)
 	methodName := "test_method_name"
 
