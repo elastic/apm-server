@@ -3,3 +3,4 @@
   changes:
     - description: initial release
       type: enhancement # can be one of: enhancement, bugfix, breaking-change
+      link: https://github.com/elastic/apm-server/
