@@ -23,6 +23,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -31,6 +32,7 @@ import (
 // into the request context during execution. The returned function implements
 // grpc.UnaryServerInterceptor.
 func Metrics(
+	logger *logp.Logger,
 	registries map[string]map[request.ResultID]*monitoring.Int,
 ) grpc.UnaryServerInterceptor {
 	return func(
@@ -41,6 +43,9 @@ func Metrics(
 	) (interface{}, error) {
 		m, prs := registries[info.FullMethod]
 		if !prs {
+			logger.With(
+				"metrics.error", "gRPC request method has no metrics registry",
+			).Error("metrics registry missing")
 			return handler(ctx, req)
 		}
 

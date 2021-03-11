@@ -98,7 +98,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 					apmgrpc.WithTracer(tracer),
 				),
 				interceptors.Logging(logger),
-				interceptors.Metrics(RegistryMonitoringMaps),
+				interceptors.Metrics(logger, RegistryMonitoringMaps),
 			),
 		}
 		if cfg.JaegerConfig.GRPC.TLS != nil {

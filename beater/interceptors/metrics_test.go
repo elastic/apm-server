@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -34,11 +35,12 @@ func TestMetrics(t *testing.T) {
 	registry := monitoring.NewRegistry()
 	monitoringMap := request.MonitoringMapForRegistry(registry, request.DefaultResultIDs)
 	methodName := "test_method_name"
+	logger := logp.NewLogger("interceptor.metrics.test")
 
 	testMap := map[string]map[request.ResultID]*monitoring.Int{
 		methodName: monitoringMap,
 	}
-	i := Metrics(testMap)
+	i := Metrics(logger, testMap)
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{

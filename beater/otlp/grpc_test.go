@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
@@ -199,9 +200,9 @@ func newExportMetricsServiceResponse() interface{} {
 func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-
+	logger := logp.NewLogger("otlp.grpc.test")
 	srv := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptors.Metrics(otlp.RegistryMonitoringMaps)),
+		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.RegistryMonitoringMaps)),
 	)
 	err = otlp.RegisterGRPCServices(srv, batchProcessor)
 	require.NoError(t, err)
