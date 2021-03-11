@@ -42,7 +42,6 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
-	"time"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
@@ -131,7 +130,7 @@ func (c *Consumer) convertSpan(
 ) {
 	logger := logp.NewLogger(logs.Otel)
 
-	root := !otelSpan.ParentSpanID().IsValid()
+	root := otelSpan.ParentSpanID().IsEmpty()
 
 	var parentID string
 	if !root {
@@ -141,8 +140,8 @@ func (c *Consumer) convertSpan(
 	traceID := otelSpan.TraceID().HexString()
 	spanID := otelSpan.SpanID().HexString()
 
-	startTime := pdata.UnixNanoToTime(otelSpan.StartTime())
-	endTime := pdata.UnixNanoToTime(otelSpan.EndTime())
+	startTime := otelSpan.StartTime().AsTime()
+	endTime := otelSpan.EndTime().AsTime()
 	var durationMillis float64
 	if endTime.After(startTime) {
 		durationMillis = endTime.Sub(startTime).Seconds() * 1000
@@ -675,7 +674,7 @@ func convertSpanEvent(
 			return
 		}
 		e = convertOpenTelemetryExceptionSpanEvent(
-			time.Unix(0, int64(event.Timestamp())).UTC(),
+			event.Timestamp().AsTime(),
 			exceptionType, exceptionMessage, exceptionStacktrace,
 			exceptionEscaped, metadata.Service.Language.Name,
 		)
@@ -733,7 +732,7 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event pdata.SpanEvent) *mo
 		return nil
 	}
 	e := &model.Error{
-		Timestamp: pdata.UnixNanoToTime(event.Timestamp()),
+		Timestamp: event.Timestamp().AsTime(),
 	}
 	if logMessage != "" {
 		e.Log = &model.Log{Message: logMessage}

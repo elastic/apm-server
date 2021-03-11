@@ -656,6 +656,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 		{
 			name: "jaeger_type_component",
 			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("component", "amqp"),
 				},
@@ -664,6 +665,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 		{
 			name: "jaeger_custom",
 			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("a.b", "foo"),
 				},
