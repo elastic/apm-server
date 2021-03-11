@@ -73,11 +73,6 @@ func (f *ExampleReceiverFactory) CreateDefaultConfig() configmodels.Receiver {
 	}
 }
 
-// CustomUnmarshaler implements the deprecated way to provide custom unmarshalers.
-func (f *ExampleReceiverFactory) CustomUnmarshaler() component.CustomUnmarshaler {
-	return nil
-}
-
 // CreateTraceReceiver creates a trace receiver based on this config.
 func (f *ExampleReceiverFactory) CreateTracesReceiver(
 	_ context.Context,
@@ -280,14 +275,12 @@ func (f *ExampleExporterFactory) CreateDefaultConfig() configmodels.Exporter {
 	}
 }
 
-// CustomUnmarshaler implements the deprecated way to provide custom unmarshalers.
-func (f *ExampleExporterFactory) CustomUnmarshaler() component.CustomUnmarshaler {
-	return func(componentViperSection *viper.Viper, intoCfg interface{}) error {
-		return componentViperSection.UnmarshalExact(intoCfg)
-	}
+// Unmarshal implements the custom unmarshalers.
+func (f *ExampleExporterFactory) Unmarshal(componentViperSection *viper.Viper, intoCfg interface{}) error {
+	return componentViperSection.UnmarshalExact(intoCfg)
 }
 
-// CreateTraceExporter creates a trace exporter based on this config.
+// CreateTracesExporter creates a trace exporter based on this config.
 func (f *ExampleExporterFactory) CreateTracesExporter(
 	_ context.Context,
 	_ component.ExporterCreateParams,
@@ -330,13 +323,13 @@ func (exp *ExampleExporterConsumer) Start(_ context.Context, _ component.Host) e
 	return nil
 }
 
-// ConsumeTraceData receives consumerdata.TraceData for processing by the TracesConsumer.
+// ConsumeTraces receives pdata.Traces for processing by the TracesConsumer.
 func (exp *ExampleExporterConsumer) ConsumeTraces(_ context.Context, td pdata.Traces) error {
 	exp.Traces = append(exp.Traces, td)
 	return nil
 }
 
-// ConsumeMetricsData receives consumerdata.MetricsData for processing by the MetricsConsumer.
+// ConsumeMetrics receives pdata.Metrics for processing by the MetricsConsumer.
 func (exp *ExampleExporterConsumer) ConsumeMetrics(_ context.Context, md pdata.Metrics) error {
 	exp.Metrics = append(exp.Metrics, md)
 	return nil
@@ -473,7 +466,7 @@ func (f *ExampleExtensionFactory) CreateDefaultConfig() configmodels.Extension {
 }
 
 // CreateExtension creates an Extension based on this config.
-func (f *ExampleExtensionFactory) CreateExtension(_ context.Context, _ component.ExtensionCreateParams, _ configmodels.Extension) (component.ServiceExtension, error) {
+func (f *ExampleExtensionFactory) CreateExtension(_ context.Context, _ component.ExtensionCreateParams, _ configmodels.Extension) (component.Extension, error) {
 	if f.FailCreation {
 		return nil, fmt.Errorf("cannot create %q extension type", f.Type())
 	}

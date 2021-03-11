@@ -37,11 +37,13 @@ type Component interface {
 	// Create a new context from the context.Background() for long-running operations.
 	Start(ctx context.Context, host Host) error
 
-	// Shutdown is invoked during service shutdown.
+	// Shutdown is invoked during service shutdown. After Shutdown() is called, if the component accept data in
+	// any way, it should not accept it anymore.
 	//
 	// If there are any background operations running by the component they must be aborted as soon as possible.
 	// Remember that if you started any long-running background operation from the Start() method that operation
-	// must be also cancelled.
+	// must be also cancelled. If there are any buffer in the component, it should be cleared and the data sent
+	// immediately to the next component.
 	Shutdown(ctx context.Context) error
 }
 
@@ -80,7 +82,7 @@ type Host interface {
 	// Typically is used to find an extension by type or by full config name. Both cases
 	// can be done by iterating the returned map. There are typically very few extensions
 	// so there there is no performance implications due to iteration.
-	GetExtensions() map[configmodels.Extension]ServiceExtension
+	GetExtensions() map[configmodels.NamedEntity]Extension
 
 	// Return map of exporters. Only enabled and created exporters will be returned.
 	// Typically is used to find exporters by type or by full config name. Both cases
@@ -90,7 +92,7 @@ type Host interface {
 	// Note that an exporter with the same name may be attached to multiple pipelines and
 	// thus we may have an instance of the exporter for multiple data types.
 	// This is an experimental function that may change or even be removed completely.
-	GetExporters() map[configmodels.DataType]map[configmodels.Exporter]Exporter
+	GetExporters() map[configmodels.DataType]map[configmodels.NamedEntity]Exporter
 }
 
 // Factory interface must be implemented by all component factories.
@@ -117,19 +119,3 @@ type ConfigUnmarshaler interface {
 // intoCfg interface{}
 //   An empty interface wrapping a pointer to the config struct to unmarshal into.
 type CustomUnmarshaler func(componentViperSection *viper.Viper, intoCfg interface{}) error
-
-// ApplicationStartInfo is the information that is logged at the application start and
-// passed into each component. This information can be overridden in custom builds.
-type ApplicationStartInfo struct {
-	// Executable file name, e.g. "otelcol".
-	ExeName string
-
-	// Long name, used e.g. in the logs.
-	LongName string
-
-	// Version string.
-	Version string
-
-	// Git hash of the source code.
-	GitHash string
-}

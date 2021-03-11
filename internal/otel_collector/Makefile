@@ -1,12 +1,14 @@
 include ./Makefile.Common
 
-# This is the code that we want to run checklicense, staticcheck, etc.
+# This is the code that we want to run lint, etc.
 ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './cmd/issuegenerator/*' \
 							-not -path './cmd/mdatagen/*' \
+							-not -path './cmd/schemagen/*' \
 							-not -path './internal/tools/*' \
 							-not -path './examples/demo/app/*' \
-							-not -path './internal/data/opentelemetry-proto-gen/*' \
+							-not -path './internal/data/protogen/*' \
+							-not -path './service/internal/zpages/tmplgen/*' \
 							-type f | sort)
 
 # ALL_PKGS is the list of all packages where ALL_SRC files reside.
@@ -24,15 +26,14 @@ TOOLS_MOD_DIR := ./internal/tools
 
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
+
+BUILD_INFO_IMPORT_PATH=go.opentelemetry.io/collector/internal/version
+GIT_SHA=$(shell git rev-parse --short HEAD)
+BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA)
+VERSION=$(shell git describe --match "v[0-9]*" HEAD)
+BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-
-GIT_SHA=$(shell git rev-parse --short HEAD)
-BUILD_INFO_IMPORT_PATH=go.opentelemetry.io/collector/internal/version
-BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA)
-ifdef VERSION
-BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
-endif
 BUILD_X3=-X $(BUILD_INFO_IMPORT_PATH).BuildType=$(BUILD_TYPE)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_X3}"
 
@@ -71,6 +72,22 @@ testbed-list-loadtest:
 .PHONY: testbed-list-correctness
 testbed-list-correctness:
 	RUN_TESTBED=1 $(GOTEST) -v ./testbed/correctness --test.list '.*'| grep "^Test"
+
+.PHONY: testbed-list-correctness-metrics
+testbed-list-correctness-metrics:
+	RUN_TESTBED=1 $(GOTEST) -v ./testbed/correctness/metrics --test.list '.*'| grep "^TestHarness_"
+
+.PHONY: testbed-correctness-metrics
+testbed-correctness-metrics: otelcol
+	cd ./testbed/correctness/metrics && ./runtests.sh
+
+.PHONY: gomoddownload
+gomoddownload:
+	@$(MAKE) for-all CMD="go mod download"
+
+.PHONY: gotestinstall
+gotestinstall:
+	@$(MAKE) for-all CMD="make test GOTEST_OPT=\"-i\""
 
 .PHONY: gotest
 gotest:
@@ -129,16 +146,14 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && go install github.com/mjibson/esc
 	cd $(TOOLS_MOD_DIR) && go install github.com/ory/go-acc
 	cd $(TOOLS_MOD_DIR) && go install github.com/pavius/impi/cmd/impi
-	cd $(TOOLS_MOD_DIR) && go install github.com/securego/gosec/v2/cmd/gosec
 	cd $(TOOLS_MOD_DIR) && go install github.com/tcnksm/ghr
 	cd $(TOOLS_MOD_DIR) && go install golang.org/x/tools/cmd/goimports
-	cd $(TOOLS_MOD_DIR) && go install honnef.co/go/tools/cmd/staticcheck
 	cd cmd/mdatagen && go install ./
 
 .PHONY: otelcol
 otelcol:
 	go generate ./...
-	GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	$(MAKE) build-binary-internal
 
 .PHONY: run
 run:
@@ -172,38 +187,58 @@ add-tag:
 	@[ "${TAG}" ] || ( echo ">> env var TAG is not set"; exit 1 )
 	@echo "Adding tag ${TAG}"
 	@git tag -a ${TAG} -s -m "Version ${TAG}"
+	@set -e; for dir in $(ALL_MODULES); do \
+	  (echo Adding tag "$${dir:2}/$${TAG}" && \
+	 	git tag -a "$${dir:2}/$${TAG}" -s -m "Version ${dir:2}/${TAG}" ); \
+	done
+
+.PHONY: push-tag
+push-tag:
+	@[ "${TAG}" ] || ( echo ">> env var TAG is not set"; exit 1 )
+	@echo "Pushing tag ${TAG}"
+	@git push upstream ${TAG}
+	@set -e; for dir in $(ALL_MODULES); do \
+	  (echo Pushing tag "$${dir:2}/$${TAG}" && \
+	 	git push upstream "$${dir:2}/$${TAG}"); \
+	done
 
 .PHONY: delete-tag
 delete-tag:
 	@[ "${TAG}" ] || ( echo ">> env var TAG is not set"; exit 1 )
 	@echo "Deleting tag ${TAG}"
 	@git tag -d ${TAG}
+	@set -e; for dir in $(ALL_MODULES); do \
+	  (echo Deleting tag "$${dir:2}/$${TAG}" && \
+	 	git tag -d "$${dir:2}/$${TAG}" ); \
+	done
 
 .PHONY: docker-otelcol
 docker-otelcol:
 	COMPONENT=otelcol $(MAKE) docker-component
-
-.PHONY: binaries
-binaries: otelcol
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
-	GOOS=darwin  GOARCH=amd64 $(MAKE) binaries
+	GOOS=darwin  GOARCH=amd64 $(MAKE) build-binary-internal
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) binaries
+	GOOS=linux   GOARCH=amd64 $(MAKE) build-binary-internal
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) binaries
+	GOOS=linux   GOARCH=arm64 $(MAKE) build-binary-internal
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) binaries
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) build-binary-internal
+
+.PHONY: build-binary-internal
+build-binary-internal:
+	GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+
 
 .PHONY: deb-rpm-package
 %-package: ARCH ?= amd64
@@ -216,6 +251,20 @@ binaries-windows_amd64:
 genmdata:
 	$(MAKE) for-all CMD="go generate ./..."
 
+DEPENDABOT_PATH=./.github/dependabot.yml
+.PHONY: gendependabot
+gendependabot:
+	@echo "Recreate dependabot.yml file"
+	@echo "# File generated by \"make gendependabot\"; DO NOT EDIT.\n" > ${DEPENDABOT_PATH}
+	@echo "version: 2" >> ${DEPENDABOT_PATH}
+	@echo "updates:" >> ${DEPENDABOT_PATH}
+	@echo "Add entry for \"/\""
+	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH}
+	@set -e; for dir in $(ALL_MODULES); do \
+		(echo "Add entry for \"$${dir:1}\"" && \
+		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
+	done
+
 # Definitions for ProtoBuf generation.
 
 # The source directory for OTLP ProtoBufs.
@@ -225,7 +274,7 @@ OPENTELEMETRY_PROTO_SRC_DIR=internal/data/opentelemetry-proto
 OPENTELEMETRY_PROTO_FILES := $(subst $(OPENTELEMETRY_PROTO_SRC_DIR)/,,$(wildcard $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/*/v1/*.proto $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/collector/*/v1/*.proto))
 
 # Target directory to write generated files to.
-PROTO_TARGET_GEN_DIR=internal/data/opentelemetry-proto-gen
+PROTO_TARGET_GEN_DIR=internal/data/protogen
 
 # Go package name to use for generated files.
 PROTO_PACKAGE=go.opentelemetry.io/collector/$(PROTO_TARGET_GEN_DIR)
@@ -233,7 +282,7 @@ PROTO_PACKAGE=go.opentelemetry.io/collector/$(PROTO_TARGET_GEN_DIR)
 # Intermediate directory used during generation.
 PROTO_INTERMEDIATE_DIR=internal/data/.patched-otlp-proto
 
-DOCKER_PROTOBUF ?= otel/build-protobuf:0.1.0
+DOCKER_PROTOBUF ?= otel/build-protobuf:0.2.1
 PROTOC := docker run --rm -u ${shell id -u} -v${PWD}:${PWD} -w${PWD}/$(PROTO_INTERMEDIATE_DIR) ${DOCKER_PROTOBUF} --proto_path=${PWD}
 PROTO_INCLUDES := -I/usr/include/github.com/gogo/protobuf -I./
 

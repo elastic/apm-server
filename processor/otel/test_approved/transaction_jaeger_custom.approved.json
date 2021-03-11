@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "0001-01-01T00:00:00.000Z",
+            "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
                 "version": "unknown"
@@ -30,6 +30,9 @@
                 "node": {
                     "name": "host-abc"
                 }
+            },
+            "timestamp": {
+                "us": 1576500418000768
             },
             "transaction": {
                 "duration": {
