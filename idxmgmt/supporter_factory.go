@@ -85,6 +85,16 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 		Template               *common.Config         `config:"setup.template"`
 		Output                 common.ConfigNamespace `config:"output"`
 	}
+
+	var setupTemplateSpecified bool
+	if configRoot != nil {
+		ok, err := configRoot.Has("setup.template", -1)
+		if err != nil {
+			return nil, err
+		}
+		setupTemplateSpecified = ok
+	}
+
 	configRoot, err := mergeDefaultConfig(configRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "merging config defaults failed")
@@ -121,7 +131,7 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 
 		unmanagedIdxCfg:                 unmanagedIdxCfg,
 		registerIngestPipelineSpecified: cfg.RegisterIngestPipeline != nil,
-		setupTemplateSpecified:          cfg.Template != nil,
+		setupTemplateSpecified:          setupTemplateSpecified,
 		ilmSpecified:                    cfg.ILM != nil,
 	}, nil
 }
@@ -169,7 +179,8 @@ setup.template.settings:
 	// NOTE(axw) it's important that we merge onto the root config,
 	// due to how config variable resolution works; variables are
 	// resolved using the root of the left-most config in the merge.
-	// We merge the user-defined config back over the defaults to
-	// ensure they take precedence.
+	//
+	// We merge the root config back over the defaults to ensure
+	// user-defined config takes precedence.
 	return common.MergeConfigs(configRoot, defaultConfig, configRoot)
 }
