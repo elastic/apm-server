@@ -239,7 +239,7 @@ check-package: $(ELASTICPACKAGE)
 format-package: $(ELASTICPACKAGE)
 	@for x in apmpackage/apm/*; do (cd $$x; echo "Formatting $$x"; $(CURDIR)/$(ELASTICPACKAGE) format); done
 build-package: $(ELASTICPACKAGE)
-	@for x in apmpackage/apm/*; do (cd $$x; echo "Formatting $$x"; $(CURDIR)/$(ELASTICPACKAGE) build); done
+	@for x in apmpackage/apm/*; do (cd $$x; echo "Building $$x"; $(CURDIR)/$(ELASTICPACKAGE) build); done
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8
