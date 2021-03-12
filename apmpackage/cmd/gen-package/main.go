@@ -54,6 +54,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+	// TODO(axw) rely on `elastic-package build` to build docs from a template, like in integrations.
 	generateDocs(inputFields, packageVersion)
 	log.Printf("Package fields and docs generated for version %s (stack %s)", packageVersion, stackVersion.String())
 }

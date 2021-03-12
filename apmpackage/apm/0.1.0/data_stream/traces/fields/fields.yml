@@ -191,8 +191,8 @@
   description: |
     Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
   multi_fields:
-  - name: text
-    type: text
+    - name: text
+      type: text
 - name: transaction.result
   type: keyword
   description: |
