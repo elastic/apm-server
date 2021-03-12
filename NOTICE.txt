@@ -955,11 +955,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.1.0/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-elasticsearch/v7
-Version: v7.5.1-0.20201007132508-ff965d99ba02
+Version: v7.11.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v7@v7.5.1-0.20201007132508-ff965d99ba02/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v7@v7.11.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5811,14 +5811,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/Masterminds/semver
-Version: v1.4.2
+Version: v1.5.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!masterminds/semver@v1.4.2/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/!masterminds/semver@v1.5.0/LICENSE.txt:
 
-The Masterminds
-Copyright (C) 2014-2015, Matt Butcher and Matt Farina
+Copyright (C) 2014-2019, Matt Butcher and Matt Farina
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -14186,11 +14185,11 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 --------------------------------------------------------------------------------
 Dependency : github.com/imdario/mergo
-Version: v0.3.6
+Version: v0.3.11
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/imdario/mergo@v0.3.6/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/imdario/mergo@v0.3.11/LICENSE:
 
 Copyright (c) 2013 Dario Castañé. All rights reserved.
 Copyright (c) 2012 The Go Authors. All rights reserved.
