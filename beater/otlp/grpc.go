@@ -96,10 +96,8 @@ func collectMetricsMonitoring(mode monitoring.Mode, V monitoring.Visitor) {
 	}
 
 	V.OnRegistryStart()
-	V.OnRegistryFinished()
+	defer V.OnRegistryFinished()
 
 	stats := c.Stats()
-	monitoring.ReportNamespace(V, "consumer", func() {
-		monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
-	})
+	monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
 }
