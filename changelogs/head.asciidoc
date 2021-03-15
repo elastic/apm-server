@@ -22,6 +22,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Add support for OpenTelemetry exception span events {pull}4876[4876]
 * Set metricset.name for breakdown metrics {pull}4910[4910]
 * Set log and http responses for server timeout {pull}4918[4918]
+* Improved coverage of translation of OpenTelemetry resource conventions {pull}4955[4955]
 
 [float]
 ==== Deprecated
