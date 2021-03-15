@@ -34,10 +34,11 @@ import (
 )
 
 var (
+	monitoringKeys           = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized)
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
-	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, request.DefaultResultIDs)
+	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
-	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, request.DefaultResultIDs)
+	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
 
 	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
 	// method name to its respective monitoring map.

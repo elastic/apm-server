@@ -40,7 +40,7 @@ import (
 
 var (
 	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
-	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, request.DefaultResultIDs)
+	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized))
 
 	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
 	// method name to its respective monitoring map.

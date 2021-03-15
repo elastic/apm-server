@@ -24,6 +24,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
@@ -31,9 +33,12 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
+var monitoringKeys = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized)
+
 func TestMetrics(t *testing.T) {
 	registry := monitoring.NewRegistry()
-	monitoringMap := request.MonitoringMapForRegistry(registry, request.DefaultResultIDs)
+
+	monitoringMap := request.MonitoringMapForRegistry(registry, monitoringKeys)
 	methodName := "test_method_name"
 	logger := logp.NewLogger("interceptor.metrics.test")
 
@@ -56,11 +61,25 @@ func TestMetrics(t *testing.T) {
 				return nil, errors.New("error")
 			},
 			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:           1,
-				request.IDResponseCount:          1,
-				request.IDResponseValidCount:     0,
-				request.IDResponseErrorsCount:    1,
-				request.IDResponseErrorsInternal: 1,
+				request.IDRequestCount:               1,
+				request.IDResponseCount:              1,
+				request.IDResponseValidCount:         0,
+				request.IDResponseErrorsCount:        1,
+				request.IDResponseErrorsInternal:     1,
+				request.IDResponseErrorsUnauthorized: 0,
+			},
+		},
+		{
+			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				return nil, status.Error(codes.Unauthenticated, ("error"))
+			},
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:               1,
+				request.IDResponseCount:              1,
+				request.IDResponseValidCount:         0,
+				request.IDResponseErrorsCount:        1,
+				request.IDResponseErrorsInternal:     0,
+				request.IDResponseErrorsUnauthorized: 1,
 			},
 		},
 		{
@@ -68,11 +87,12 @@ func TestMetrics(t *testing.T) {
 				return nil, nil
 			},
 			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:           1,
-				request.IDResponseCount:          1,
-				request.IDResponseValidCount:     1,
-				request.IDResponseErrorsCount:    0,
-				request.IDResponseErrorsInternal: 0,
+				request.IDRequestCount:               1,
+				request.IDResponseCount:              1,
+				request.IDResponseValidCount:         1,
+				request.IDResponseErrorsCount:        0,
+				request.IDResponseErrorsInternal:     0,
+				request.IDResponseErrorsUnauthorized: 0,
 			},
 		},
 	} {
@@ -83,7 +103,7 @@ func TestMetrics(t *testing.T) {
 }
 
 func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual map[request.ResultID]*monitoring.Int) {
-	for _, k := range request.DefaultResultIDs {
+	for _, k := range monitoringKeys {
 		if val, ok := expected[k]; ok {
 			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
 		} else {

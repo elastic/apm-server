@@ -21,16 +21,16 @@ import (
 	"context"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-// Metrics increments the counters in map m according to the passed in error,
-// the result of a gRPC method call. The monitoring registry map must be passed
-// into the request context during execution. The returned function implements
-// grpc.UnaryServerInterceptor.
+// Metrics returns a grpc.UnaryServerInterceptor that increments the metrics in
+// a supplied registry keyed to its gRPC full method name.
 func Metrics(
 	logger *logp.Logger,
 	registries map[string]map[request.ResultID]*monitoring.Int,
@@ -44,7 +44,7 @@ func Metrics(
 		m, prs := registries[info.FullMethod]
 		if !prs {
 			logger.With(
-				"metrics.error", "gRPC request method has no metrics registry",
+				"grpc.request.method", info.FullMethod,
 			).Error("metrics registry missing")
 			return handler(ctx, req)
 		}
@@ -57,6 +57,9 @@ func Metrics(
 		responseID := request.IDResponseValidCount
 		if err != nil {
 			responseID = request.IDResponseErrorsCount
+			if s, ok := status.FromError(err); ok && s.Code() == codes.Unauthenticated {
+				m[request.IDResponseErrorsUnauthorized].Inc()
+			}
 		}
 
 		m[responseID].Inc()
