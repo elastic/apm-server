@@ -97,6 +97,9 @@ func getHeader(header http.Header, key string) string {
 		return v
 	}
 
+	// header.Get() internally canonicalizes key names, but metadata.Pairs uses
+	// lowercase keys. Using the lowercase key name allows this function to be
+	// used for gRPC metadata.
 	if v, ok := header[strings.ToLower(key)]; ok && len(v) > 0 {
 		return v[0]
 	}

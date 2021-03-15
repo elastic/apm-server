@@ -60,30 +60,14 @@ func TestExtractIP(t *testing.T) {
 }
 
 func TestExtractIPFromGRPCMetadata(t *testing.T) {
-	for name, tc := range map[string]struct {
-		md metadata.MD
-		ip string
-	}{
-		"X-Real-IP": {
-			md: metadata.Pairs("X-Real-IP", "123.0.0.1"),
-			ip: "123.0.0.1",
-		},
-		"Forwarded": {
-			md: metadata.Pairs("Forwarded", "for=[2001:db8:cafe::17]:4711"),
-			ip: "2001:db8:cafe::17",
-		},
-		"X-Forwarded-For": {
-			md: metadata.Pairs("X-Forwarded-For", "123.0.0.1"),
-			ip: "123.0.0.1",
-		},
-	} {
-		t.Run("invalid "+name, func(t *testing.T) {
-			headers := http.Header(tc.md)
-			ip := utility.ExtractIPFromHeader(headers)
-			assert.NotNil(t, ip)
-			assert.Equal(t, tc.ip, ip.String())
-		})
-	}
+	ip := "123.0.0.1"
+	// metadata.Pairs stores keys as lowercase; we want to test that
+	// ExtractIPFromHeader is accounting for that.
+	md := metadata.Pairs("x-real-ip", ip)
+	headers := http.Header(md)
+	extractedIP := utility.ExtractIPFromHeader(headers)
+	assert.NotNil(t, ip)
+	assert.Equal(t, ip, extractedIP.String())
 }
 
 func TestExtractIPFromHeader(t *testing.T) {
