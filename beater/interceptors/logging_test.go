@@ -19,14 +19,12 @@ package interceptors
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -103,42 +101,22 @@ func TestLogging(t *testing.T) {
 		entries := logp.ObserverLogs().TakeAll()
 		assert.Len(t, entries, 1)
 		entry := entries[0]
-		logMap := newLogMap(entry)
-		hasErr := tc.statusCode != codes.OK
 
-		for _, k := range requiredKeys {
-			ok, err := logMap.HasKey(k)
-			assert.NoError(t, err)
-			assert.True(t, ok)
-		}
-
-		gotMethod, _ := logMap.GetValue("grpc.request.method")
-		assert.Equal(t, methodName, gotMethod)
-		gotAddr, _ := logMap.GetValue("source.address")
-		assert.Equal(t, wantAddr, gotAddr)
-		gotStatusCode, _ := logMap.GetValue("grpc.response.status_code")
-		assert.Equal(t, fmt.Sprintf("%v", tc.statusCode), gotStatusCode)
-
-		assert.Equal(t, hasErr, err != nil)
-		ok, _ := logMap.HasKey("error.message")
-		assert.Equal(t, ok, hasErr)
-
-		if hasErr {
-			assert.Equal(t, "error", entry.Entry.Level.String())
-			errMsg, _ := logMap.GetValue("error.message")
-			assert.Equal(t, "internal server error", errMsg)
+		fields := entry.ContextMap()
+		if tc.statusCode != codes.OK {
+			assert.Error(t, err)
+			assert.Equal(t, zapcore.ErrorLevel, entry.Entry.Level)
+			assert.Equal(t, "internal server error", fields["error.message"])
 		} else {
-			assert.Equal(t, "info", entry.Entry.Level.String())
+			assert.NoError(t, err)
+			assert.Equal(t, zapcore.InfoLevel, entry.Entry.Level)
+			assert.NotContains(t, fields, "error.message")
 		}
+		for _, k := range requiredKeys {
+			assert.Contains(t, fields, k)
+		}
+		assert.Equal(t, methodName, fields["grpc.request.method"])
+		assert.Equal(t, wantAddr, fields["source.address"])
+		assert.Equal(t, tc.statusCode.String(), fields["grpc.response.status_code"])
 	}
-}
-
-func newLogMap(entry observer.LoggedEntry) common.MapStr {
-	encoder := zapcore.NewMapObjectEncoder()
-	ec := common.MapStr{}
-	for _, f := range entry.Context {
-		f.AddTo(encoder)
-		ec.DeepUpdate(encoder.Fields)
-	}
-	return ec
 }
