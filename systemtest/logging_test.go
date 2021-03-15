@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,14 +26,60 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/apmtest"
 	"go.elastic.co/fastjson"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
 
+	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 )
+
+func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Jaeger = &apmservertest.JaegerConfig{
+		GRPCEnabled: true,
+		GRPCHost:    "localhost:0",
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+	addr := srv.JaegerGRPCAddr
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	require.NoError(t, err)
+	defer conn.Close()
+
+	client := api_v2.NewCollectorServiceClient(conn)
+	request, err := decodeJaegerPostSpansRequest("../testdata/jaeger/batch_0.json")
+	require.NoError(t, err)
+	_, err = client.PostSpans(context.Background(), request)
+	require.NoError(t, err)
+
+	err = sendOTLPTrace(context.Background(), srv, otlpgrpc.WithHeaders(map[string]string{"Authorization": "Bearer abc123"}))
+	require.NoError(t, err)
+
+	srv.Close()
+	var foundGRPC, foundJaeger bool
+	for _, entry := range srv.Logs.All() {
+		if entry.Logger == "beater.grpc" {
+			require.Equal(t, "/opentelemetry.proto.collector.trace.v1.TraceService/Export", entry.Fields["grpc.request.method"])
+			require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
+			foundGRPC = true
+		}
+		if entry.Logger == "beater.jaeger" {
+			require.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", entry.Fields["grpc.request.method"])
+			require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
+			foundJaeger = true
+		}
+	}
+
+	require.True(t, foundGRPC)
+	require.True(t, foundJaeger)
+}
 
 func TestAPMServerRequestLoggingValid(t *testing.T) {
 	srv := apmservertest.NewServer(t)
