@@ -143,8 +143,6 @@ func newGRPCServer(
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
 	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
 
-	// TODO: The logger needs to be named here for the interceptor, but this
-	// server is shared between jaeger and otlp. What should we name it?
 	logger = logger.Named("grpc")
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
