@@ -64,23 +64,21 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 
 	srv.Close()
 
-	otlpLogs := srv.Logs.FilterField(zapcore.Field{
-		Key:    "grpc.request.method",
-		Type:   zapcore.StringType,
-		String: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
-	}).All()
-	require.Len(t, otlpLogs, 1)
-	assert.Equal(t, "beater.grpc", otlpLogs[0].Logger)
-	assert.Equal(t, "OK", otlpLogs[0].Fields["grpc.response.status_code"])
-
-	jaegerLogs := srv.Logs.FilterField(zapcore.Field{
-		Key:    "grpc.request.method",
-		Type:   zapcore.StringType,
-		String: "/jaeger.api_v2.CollectorService/PostSpans",
-	}).All()
-	require.Len(t, jaegerLogs, 1)
-	assert.Equal(t, "beater.jaeger", jaegerLogs[0].Logger)
-	assert.Equal(t, "OK", jaegerLogs[0].Fields["grpc.response.status_code"])
+	var foundGRPC, foundJaeger bool
+	for _, entry := range srv.Logs.All() {
+		if entry.Logger == "beater.grpc" {
+			require.Equal(t, "/opentelemetry.proto.collector.trace.v1.TraceService/Export", entry.Fields["grpc.request.method"])
+			require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
+			foundGRPC = true
+		}
+		if entry.Logger == "beater.jaeger" {
+			require.Equal(t, "/jaeger.api_v2.CollectorService/PostSpans", entry.Fields["grpc.request.method"])
+			require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
+			foundJaeger = true
+		}
+	}
+	require.True(t, foundGRPC)
+	require.True(t, foundJaeger)
 }
 
 func TestAPMServerRequestLoggingValid(t *testing.T) {
