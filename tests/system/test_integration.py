@@ -83,7 +83,7 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for metricsets with new ones
-        metricset_docs = self.wait_for_events('metric', 3, index=index_metric)
+        metricset_docs = self.wait_for_events('metric', 4, index=index_metric)
         self.approve_docs('metricset', metricset_docs)
 
 
