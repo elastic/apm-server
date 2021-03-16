@@ -27,6 +27,11 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+<<<<<<< HEAD
+=======
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -35,14 +40,29 @@ import (
 )
 
 func TestLogging(t *testing.T) {
+<<<<<<< HEAD
 	ip1234 := net.ParseIP("1.2.3.4")
+=======
+	addr := &net.TCPAddr{
+		IP:   net.ParseIP("1.2.3.4"),
+		Port: 56837,
+	}
+	p := &peer.Peer{
+		Addr: addr,
+	}
+
+	ctx := peer.NewContext(context.Background(), p)
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 	methodName := "test_method_name"
 	info := &grpc.UnaryServerInfo{
 		FullMethod: methodName,
 	}
+<<<<<<< HEAD
 	ctx := ContextWithClientMetadata(context.Background(), ClientMetadataValues{
 		SourceIP: ip1234,
 	})
+=======
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 
 	requiredKeys := []string{
 		"source.address",
@@ -52,8 +72,14 @@ func TestLogging(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
+<<<<<<< HEAD
 		statusCode codes.Code
 		f          func(ctx context.Context, req interface{}) (interface{}, error)
+=======
+		alternateIP string
+		statusCode  codes.Code
+		f           func(ctx context.Context, req interface{}) (interface{}, error)
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 	}{
 		{
 			statusCode: codes.Internal,
@@ -67,6 +93,16 @@ func TestLogging(t *testing.T) {
 				return nil, nil
 			},
 		},
+<<<<<<< HEAD
+=======
+		{
+			alternateIP: "6.7.8.9",
+			statusCode:  codes.OK,
+			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				return nil, nil
+			},
+		},
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 	} {
 		configure.Logging(
 			"APM Server test",
@@ -75,6 +111,15 @@ func TestLogging(t *testing.T) {
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 		logger := logp.NewLogger("interceptor.logging.test")
 
+<<<<<<< HEAD
+=======
+		wantAddr := addr.String()
+		if tc.alternateIP != "" {
+			wantAddr = tc.alternateIP
+			ctx = metadata.NewIncomingContext(ctx, metadata.Pairs("X-Real-IP", tc.alternateIP))
+		}
+
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 		i := Logging(logger)
 		_, err := i(ctx, nil, info, tc.f)
 		entries := logp.ObserverLogs().TakeAll()
@@ -95,7 +140,11 @@ func TestLogging(t *testing.T) {
 			assert.Contains(t, fields, k)
 		}
 		assert.Equal(t, methodName, fields["grpc.request.method"])
+<<<<<<< HEAD
 		assert.Equal(t, ip1234.String(), fields["source.address"])
+=======
+		assert.Equal(t, wantAddr, fields["source.address"])
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 		assert.Equal(t, tc.statusCode.String(), fields["grpc.response.status_code"])
 	}
 }

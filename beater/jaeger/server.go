@@ -99,7 +99,10 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 				),
 				interceptors.Logging(logger),
 				interceptors.Metrics(logger, RegistryMonitoringMaps),
+<<<<<<< HEAD
 				interceptors.Timeout(),
+=======
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 			),
 		}
 		if cfg.JaegerConfig.GRPC.TLS != nil {

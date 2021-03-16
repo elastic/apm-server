@@ -34,10 +34,14 @@ import (
 )
 
 var (
+<<<<<<< HEAD
 	monitoringKeys = append(request.DefaultResultIDs,
 		request.IDResponseErrorsUnauthorized,
 		request.IDResponseErrorsTimeout,
 	)
+=======
+	monitoringKeys           = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized)
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")

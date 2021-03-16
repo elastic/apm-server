@@ -40,12 +40,16 @@ import (
 
 var (
 	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
+<<<<<<< HEAD
 	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
 		gRPCCollectorRegistry, append(request.DefaultResultIDs,
 			request.IDResponseErrorsUnauthorized,
 			request.IDResponseErrorsTimeout,
 		),
 	)
+=======
+	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized))
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 
 	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
 	// method name to its respective monitoring map.

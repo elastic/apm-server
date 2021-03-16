@@ -148,6 +148,7 @@ func newGRPCServer(
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			apmInterceptor,
+<<<<<<< HEAD
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
 			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps),
@@ -163,6 +164,13 @@ func newGRPCServer(
 			batchProcessor,
 		}
 	}
+=======
+			authInterceptor,
+			interceptors.Logging(logger),
+			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps),
+		),
+	)
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 
 	var kibanaClient kibana.Client
 	var agentcfgFetcher *agentcfg.Fetcher

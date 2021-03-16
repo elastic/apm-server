@@ -59,10 +59,14 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
+<<<<<<< HEAD
 	tracerProvider := newOTLPTracerProvider(newOTLPExporter(t, srv, otlpgrpc.WithHeaders(map[string]string{
 		"Authorization": "Bearer abc123",
 	})))
 	err = sendOTLPTrace(context.Background(), tracerProvider)
+=======
+	err = sendOTLPTrace(context.Background(), srv, otlpgrpc.WithHeaders(map[string]string{"Authorization": "Bearer abc123"}))
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 	require.NoError(t, err)
 
 	srv.Close()

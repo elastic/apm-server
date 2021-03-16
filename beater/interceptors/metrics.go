@@ -57,6 +57,7 @@ func Metrics(
 		responseID := request.IDResponseValidCount
 		if err != nil {
 			responseID = request.IDResponseErrorsCount
+<<<<<<< HEAD
 			if s, ok := status.FromError(err); ok {
 				switch s.Code() {
 				case codes.Unauthenticated:
@@ -64,6 +65,10 @@ func Metrics(
 				case codes.DeadlineExceeded:
 					m[request.IDResponseErrorsTimeout].Inc()
 				}
+=======
+			if s, ok := status.FromError(err); ok && s.Code() == codes.Unauthenticated {
+				m[request.IDResponseErrorsUnauthorized].Inc()
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 			}
 		}
 

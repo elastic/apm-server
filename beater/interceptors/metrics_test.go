@@ -33,7 +33,11 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
+<<<<<<< HEAD
 var monitoringKeys = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized, request.IDResponseErrorsTimeout)
+=======
+var monitoringKeys = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized)
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 
 func TestMetrics(t *testing.T) {
 	registry := monitoring.NewRegistry()
@@ -66,7 +70,10 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseValidCount:         0,
 				request.IDResponseErrorsCount:        1,
 				request.IDResponseErrorsInternal:     1,
+<<<<<<< HEAD
 				request.IDResponseErrorsTimeout:      0,
+=======
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 		},
@@ -80,12 +87,16 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseValidCount:         0,
 				request.IDResponseErrorsCount:        1,
 				request.IDResponseErrorsInternal:     0,
+<<<<<<< HEAD
 				request.IDResponseErrorsTimeout:      0,
+=======
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 				request.IDResponseErrorsUnauthorized: 1,
 			},
 		},
 		{
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+<<<<<<< HEAD
 				return nil, status.Error(codes.DeadlineExceeded, ("request timed out"))
 			},
 			monitoringInt: map[request.ResultID]int64{
@@ -100,6 +111,8 @@ func TestMetrics(t *testing.T) {
 		},
 		{
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+=======
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 				return nil, nil
 			},
 			monitoringInt: map[request.ResultID]int64{
@@ -108,7 +121,10 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseValidCount:         1,
 				request.IDResponseErrorsCount:        0,
 				request.IDResponseErrorsInternal:     0,
+<<<<<<< HEAD
 				request.IDResponseErrorsTimeout:      0,
+=======
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 		},

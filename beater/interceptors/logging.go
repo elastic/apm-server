@@ -19,19 +19,34 @@ package interceptors
 
 import (
 	"context"
+<<<<<<< HEAD
 	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 
+=======
+	"net/http"
+	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
+
+	"github.com/elastic/apm-server/utility"
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 // Logging intercepts a gRPC request and provides logging processing. The
 // returned function implements grpc.UnaryServerInterceptor.
+<<<<<<< HEAD
 //
 // Logging should be added after ClientMetadata to include `source.address`
 // in log records.
+=======
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -39,6 +54,7 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
+<<<<<<< HEAD
 		// Shadow the logger param to ensure we don't update the
 		// closure variable, and interfere with logging of other
 		// requests.
@@ -48,6 +64,17 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 		if metadata, ok := ClientMetadataFromContext(ctx); ok {
 			if metadata.SourceIP != nil {
 				logger = logger.With("source.address", metadata.SourceIP.String())
+=======
+		start := time.Now()
+		if p, ok := peer.FromContext(ctx); ok {
+			logger = logger.With("source.address", p.Addr)
+		}
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			headers := http.Header(md)
+			// Account for `forwarded`, `x-real-ip`, `x-forwarded-for` headers
+			if ip := utility.ExtractIPFromHeader(headers); ip != nil {
+				logger = logger.With("source.address", ip)
+>>>>>>> 17433dac9... add logging to jaeger and otlp gRPC calls (#4934)
 			}
 		}
 
