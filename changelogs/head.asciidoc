@@ -8,6 +8,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 
 [float]
 ==== Bug fixes
+* Fix `setup.template` config merging {pull}4950[4950]
 
 [float]
 ==== Intake API Changes

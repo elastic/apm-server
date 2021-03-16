@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/template"
 
 	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/idxmgmt/unmanaged"
@@ -156,4 +157,32 @@ func TestMakeDefaultSupporterDataStreamsWarnings(t *testing.T) {
 		"`apm-server.register.ingest.pipeline` specified, but will be ignored as data streams are enabled",
 		"`output.elasticsearch.{index,indices}` specified, but will be ignored as data streams are enabled",
 	}, warnings)
+}
+
+func TestNewIndexManagementConfig(t *testing.T) {
+	cfg := common.MustNewConfigFrom(map[string]interface{}{
+		"path.config":           "/dev/null",
+		"setup.template.fields": "${path.config}/fields.yml",
+	})
+	indexManagementConfig, err := NewIndexManagementConfig(beat.Info{}, cfg)
+	assert.NoError(t, err)
+	require.NotNil(t, indexManagementConfig)
+
+	templateConfig := template.DefaultConfig()
+	templateConfig.Fields = "/dev/null/fields.yml"
+	templateConfig.Settings = template.TemplateSettings{
+		Index: map[string]interface{}{
+			"codec": "best_compression",
+			"mapping": map[string]interface{}{
+				"total_fields": map[string]interface{}{
+					"limit": uint64(2000),
+				},
+			},
+			"number_of_shards": uint64(1),
+		},
+		Source: map[string]interface{}{
+			"enabled": true,
+		},
+	}
+	assert.Equal(t, templateConfig, indexManagementConfig.Template)
 }
