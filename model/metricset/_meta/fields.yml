@@ -829,12 +829,6 @@
               type: group
               description: Completely Fair Scheduler (CFS) cgroup metrics.
               fields:
-              # TODO: `shares` wasn't listed in the linked github issue, but it
-              # is still being reported by the agent. Was its omission an
-              # oversight?
-              - name: shares
-                type: long
-                description: Share of the CPU allocated.
               - name: period.us
                 type: long
                 description: CFS period in microseconds.

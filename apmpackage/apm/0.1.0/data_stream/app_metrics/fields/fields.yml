@@ -94,9 +94,6 @@
 - name: system.process.cgroup.cpu.cfs.quota.us
   type: long
   description: CFS quota in microseconds.
-- name: system.process.cgroup.cpu.cfs.shares
-  type: long
-  description: Share of the CPU allocated.
 - name: system.process.cgroup.cpu.id
   type: long
   description: ID for the current cgroup CPU.

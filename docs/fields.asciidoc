@@ -16460,15 +16460,6 @@ type: long
 Completely Fair Scheduler (CFS) cgroup metrics.
 
 
-*`system.process.cgroup.cpu.cfs.shares`*::
-+
---
-Share of the CPU allocated.
-
-type: long
-
---
-
 *`system.process.cgroup.cpu.cfs.period.us`*::
 +
 --

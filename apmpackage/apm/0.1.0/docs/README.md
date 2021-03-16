@@ -463,7 +463,6 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |system.memory.total|Total memory.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cgroup.cpu.cfs.period.us|CFS period in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cgroup.cpu.cfs.quota.us|CFS quota in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|system.process.cgroup.cpu.cfs.shares|Share of the CPU allocated.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cgroup.cpu.id|ID for the current cgroup CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cgroup.cpu.stats.periods|Number of periods seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cgroup.cpu.stats.throttled.ns|Nanoseconds spent throttled seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
