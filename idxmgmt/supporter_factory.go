@@ -85,14 +85,26 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 		Template               *common.Config         `config:"setup.template"`
 		Output                 common.ConfigNamespace `config:"output"`
 	}
+
+	var setupTemplateSpecified bool
 	if configRoot != nil {
-		if err := configRoot.Unpack(&cfg); err != nil {
+		ok, err := configRoot.Has("setup.template", -1)
+		if err != nil {
 			return nil, err
 		}
+		setupTemplateSpecified = ok
 	}
 
-	templateConfig, err := unpackTemplateConfig(cfg.Template)
+	configRoot, err := mergeDefaultConfig(configRoot)
 	if err != nil {
+		return nil, errors.Wrap(err, "merging config defaults failed")
+	}
+	if err := configRoot.Unpack(&cfg); err != nil {
+		return nil, err
+	}
+
+	templateConfig := template.DefaultConfig()
+	if err := cfg.Template.Unpack(&templateConfig); err != nil {
 		return nil, errors.Wrap(err, "unpacking template config failed")
 	}
 
@@ -119,7 +131,7 @@ func NewIndexManagementConfig(info beat.Info, configRoot *common.Config) (*Index
 
 		unmanagedIdxCfg:                 unmanagedIdxCfg,
 		registerIngestPipelineSpecified: cfg.RegisterIngestPipeline != nil,
-		setupTemplateSpecified:          cfg.Template != nil,
+		setupTemplateSpecified:          setupTemplateSpecified,
 		ilmSpecified:                    cfg.ILM != nil,
 	}, nil
 }
@@ -153,24 +165,22 @@ func (cfg *IndexManagementConfig) logWarnings(log *logp.Logger) {
 	}
 }
 
-// unpackTemplateConfig merges APM-specific template settings with (possibly nil)
-// user-defined config, unpacks it over template.DefaultConfig(), returning the result.
-func unpackTemplateConfig(userTemplateConfig *common.Config) (template.TemplateConfig, error) {
-	templateConfig := common.MustNewConfigFrom(`
-settings:
+func mergeDefaultConfig(configRoot *common.Config) (*common.Config, error) {
+	defaultConfig := common.MustNewConfigFrom(`
+setup.template.settings:
   index:
     codec: best_compression
     mapping.total_fields.limit: 2000
     number_of_shards: 1
   _source.enabled: true`)
-	if userTemplateConfig != nil {
-		if err := templateConfig.Merge(userTemplateConfig); err != nil {
-			return template.TemplateConfig{}, errors.Wrap(err, "merging failed")
-		}
+	if configRoot == nil {
+		return defaultConfig, nil
 	}
-	out := template.DefaultConfig()
-	if err := templateConfig.Unpack(&out); err != nil {
-		return template.TemplateConfig{}, err
-	}
-	return out, nil
+	// NOTE(axw) it's important that we merge onto the root config,
+	// due to how config variable resolution works; variables are
+	// resolved using the root of the left-most config in the merge.
+	//
+	// We merge the root config back over the defaults to ensure
+	// user-defined config takes precedence.
+	return common.MergeConfigs(configRoot, defaultConfig, configRoot)
 }
