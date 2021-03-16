@@ -68,7 +68,7 @@ func splitHost(in string) (host, port string) {
 }
 
 func parseForwardedHeader(header http.Header) string {
-	if fwd := header.Get("Forwarded"); fwd != "" {
+	if fwd := getHeader(header, "Forwarded"); fwd != "" {
 		forwarded := parseForwarded(fwd)
 		if forwarded.For != "" {
 			host, _ := splitHost(forwarded.For)
@@ -79,15 +79,29 @@ func parseForwardedHeader(header http.Header) string {
 }
 
 func parseXRealIP(header http.Header) string {
-	return header.Get("X-Real-Ip")
+	return getHeader(header, "X-Real-Ip")
 }
 
 func parseXForwardedFor(header http.Header) string {
-	if xff := header.Get("X-Forwarded-For"); xff != "" {
+	if xff := getHeader(header, "X-Forwarded-For"); xff != "" {
 		if sep := strings.IndexRune(xff, ','); sep > 0 {
 			xff = xff[:sep]
 		}
 		return strings.TrimSpace(xff)
+	}
+	return ""
+}
+
+func getHeader(header http.Header, key string) string {
+	if v := header.Get(key); v != "" {
+		return v
+	}
+
+	// header.Get() internally canonicalizes key names, but metadata.Pairs uses
+	// lowercase keys. Using the lowercase key name allows this function to be
+	// used for gRPC metadata.
+	if v, ok := header[strings.ToLower(key)]; ok && len(v) > 0 {
+		return v[0]
 	}
 	return ""
 }

@@ -106,6 +106,16 @@ func testHTTPMux(t *testing.T, test httpMuxTest) {
 	assertMonitoring(t, test.expectedMonitoringMap, httpMonitoringMap)
 }
 
+func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual monitoringMap) {
+	for _, k := range monitoringKeys {
+		if val, ok := expected[k]; ok {
+			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
+		} else {
+			assert.Zerof(t, actual[k].Get(), "%s mismatch", k)
+		}
+	}
+}
+
 func TestHTTPHandler_UnknownRoute(t *testing.T) {
 	c, recorder := newRequestContext("POST", "/foo", nil)
 	newHTTPHandler(nopConsumer())(c)

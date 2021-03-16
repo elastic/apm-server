@@ -102,6 +102,9 @@ var (
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
 		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
 	}
+
+	// DefaultResultIDs is a list of the default result IDs used by the package.
+	DefaultResultIDs = []ResultID{IDRequestCount, IDResponseCount, IDResponseErrorsCount, IDResponseValidCount}
 )
 
 // ResultID unique string identifying a requests Result
@@ -125,7 +128,7 @@ type Result struct {
 
 // DefaultMonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry.
 func DefaultMonitoringMapForRegistry(r *monitoring.Registry) map[ResultID]*monitoring.Int {
-	ids := []ResultID{IDUnset, IDRequestCount, IDResponseCount, IDResponseErrorsCount, IDResponseValidCount}
+	ids := append(DefaultResultIDs, IDUnset)
 	for id := range MapResultIDToStatus {
 		ids = append(ids, id)
 	}
