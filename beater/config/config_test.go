@@ -158,6 +158,9 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled: &truthy,
 					URL:     "/debug/vars",
 				},
+				Pprof: &PprofConfig{
+					Enabled: false,
+				},
 				RumConfig: &RumConfig{
 					Enabled: &truthy,
 					EventRate: &EventRate{
@@ -262,6 +265,9 @@ func TestUnpackConfig(t *testing.T) {
 					"enabled": true,
 					"url":     "/debug/vars",
 				},
+				"pprof": map[string]interface{}{
+					"enabled": true,
+				},
 				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
@@ -308,6 +314,9 @@ func TestUnpackConfig(t *testing.T) {
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					URL:     "/debug/vars",
+				},
+				Pprof: &PprofConfig{
+					Enabled: true,
 				},
 				RumConfig: &RumConfig{
 					Enabled: &truthy,
