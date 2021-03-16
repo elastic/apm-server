@@ -35,7 +35,9 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/kibana"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
 )
@@ -88,9 +90,16 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 		if err != nil {
 			return nil, err
 		}
-		grpcOptions := []grpc.ServerOption{grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
-			apmgrpc.WithRecovery(),
-			apmgrpc.WithTracer(tracer))),
+		logger = logger.Named(logs.Jaeger)
+		grpcOptions := []grpc.ServerOption{
+			grpc.ChainUnaryInterceptor(
+				apmgrpc.NewUnaryServerInterceptor(
+					apmgrpc.WithRecovery(),
+					apmgrpc.WithTracer(tracer),
+				),
+				interceptors.Logging(logger),
+				interceptors.Metrics(logger, RegistryMonitoringMaps),
+			),
 		}
 		if cfg.JaegerConfig.GRPC.TLS != nil {
 			creds := credentials.NewTLS(cfg.JaegerConfig.GRPC.TLS)
@@ -107,10 +116,12 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 		}
 		RegisterGRPCServices(
 			srv.grpc.server,
-			authBuilder, cfg.JaegerConfig.GRPC.AuthTag,
+			authBuilder,
+			cfg.JaegerConfig.GRPC.AuthTag,
 			logger,
 			processor,
-			client, fetcher,
+			client,
+			fetcher,
 		)
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
@@ -150,7 +161,7 @@ func RegisterGRPCServices(
 		auth = makeAuthFunc(authTag, authBuilder.ForPrivilege(authorization.PrivilegeEventWrite.Action))
 	}
 	traceConsumer := &otel.Consumer{Processor: processor}
-	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{logger, auth, traceConsumer})
+	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{auth, traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, kibanaClient, agentcfgFetcher})
 }
 
