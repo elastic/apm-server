@@ -38,7 +38,6 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/beatertest"
-	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -46,37 +45,13 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 	for name, tc := range map[string]testGRPCCollector{
 		"empty request": {
 			request: &api_v2.PostSpansRequest{},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:       1,
-				request.IDResponseCount:      1,
-				request.IDResponseValidCount: 1,
-			},
 		},
-		"successful request": {
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:       1,
-				request.IDResponseCount:      1,
-				request.IDResponseValidCount: 1,
-				request.IDEventReceivedCount: 2,
-			},
-		},
+		"successful request": {},
 		"failing request": {
 			consumerErr: errors.New("consumer failed"),
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:        1,
-				request.IDResponseCount:       1,
-				request.IDResponseErrorsCount: 1,
-				request.IDEventReceivedCount:  2,
-			},
 		},
 		"auth fails": {
 			authError: errors.New("oh noes"),
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsUnauthorized: 1,
-			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -97,7 +72,6 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 				require.NotNil(t, resp)
 				require.NoError(t, err)
 			}
-			assertMonitoring(t, tc.monitoringInt, gRPCCollectorMonitoringMap)
 		})
 	}
 }
@@ -107,8 +81,6 @@ type testGRPCCollector struct {
 	authError   error
 	consumerErr error
 	collector   *grpcCollector
-
-	monitoringInt map[request.ResultID]int64
 }
 
 func (tc *testGRPCCollector) setup(t *testing.T) {
@@ -134,21 +106,11 @@ func (tc *testGRPCCollector) setup(t *testing.T) {
 		tc.request = &api_v2.PostSpansRequest{Batch: *batches[0]}
 	}
 
-	tc.collector = &grpcCollector{logp.NewLogger("gRPC"), authFunc(func(context.Context, model.Batch) error {
+	tc.collector = &grpcCollector{authFunc(func(context.Context, model.Batch) error {
 		return tc.authError
 	}), tracesConsumerFunc(func(ctx context.Context, td pdata.Traces) error {
 		return tc.consumerErr
 	})}
-}
-
-func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual monitoringMap) {
-	for _, k := range monitoringKeys {
-		if val, ok := expected[k]; ok {
-			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
-		} else {
-			assert.Zerof(t, actual[k].Get(), "%s mismatch", k)
-		}
-	}
 }
 
 type tracesConsumerFunc func(ctx context.Context, td pdata.Traces) error
@@ -172,11 +134,7 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 					"settings": map[string]interface{}{}}},
 			expectedErrMsg: "no sampling rate available",
 			expectedLogMsg: "No valid sampling rate fetched",
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:           1,
-				request.IDResponseCount:          1,
-				request.IDResponseErrorsCount:    1,
-				request.IDResponseErrorsNotFound: 1}},
+		},
 		"invalidSamplingRate": {
 			kibanaBody: map[string]interface{}{
 				"_id": "1",
@@ -185,20 +143,12 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 						agentcfg.TransactionSamplingRateKey: "foo"}}},
 			expectedErrMsg: "no sampling rate available",
 			expectedLogMsg: "No valid sampling rate fetched",
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:           1,
-				request.IDResponseCount:          1,
-				request.IDResponseErrorsCount:    1,
-				request.IDResponseErrorsInternal: 1}},
+		},
 		"unsupportedVersion": {
 			kibanaVersion:  common.MustNewVersion("7.4.0"),
 			expectedErrMsg: "agent remote configuration not supported",
 			expectedLogMsg: "Kibana client does not support",
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:                     1,
-				request.IDResponseCount:                    1,
-				request.IDResponseErrorsCount:              1,
-				request.IDResponseErrorsServiceUnavailable: 1}},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
@@ -226,9 +176,6 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				assert.Nil(t, resp.OperationSampling)
 				assert.Nil(t, resp.RateLimitingSampling)
 			}
-
-			// assert monitoring counters
-			assertMonitoring(t, tc.monitoringInt, gRPCSamplingMonitoringMap)
 		})
 	}
 }
@@ -242,7 +189,6 @@ type testGRPCSampler struct {
 	expectedErrMsg       string
 	expectedLogMsg       string
 	expectedSamplingRate float64
-	monitoringInt        map[request.ResultID]int64
 }
 
 func (tc *testGRPCSampler) setup() {
@@ -266,11 +212,4 @@ func (tc *testGRPCSampler) setup() {
 	fetcher := agentcfg.NewFetcher(client, time.Second)
 	tc.sampler = &grpcSampler{logp.L(), client, fetcher}
 	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
-	if tc.monitoringInt == nil {
-		tc.monitoringInt = map[request.ResultID]int64{
-			request.IDRequestCount:       1,
-			request.IDResponseCount:      1,
-			request.IDResponseValidCount: 1,
-		}
-	}
 }
