@@ -221,6 +221,83 @@
                 "id": "axb123hg",
                 "name": "logged-in-user"
             }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:41.366Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.8.0"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
+            },
+            "metricset.name": "app",
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "1.2.3",
+                "version_major": 1
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "system": {
+                "process": {
+                    "cgroup": {
+                        "cpu": {
+                            "cfs": {
+                                "period": {
+                                    "us": 1024
+                                },
+                                "quota": {
+                                    "us": 2048
+                                }
+                            },
+                            "id": 2048,
+                            "stats": {
+                                "periods": 2048,
+                                "throttled": {
+                                    "ns": 2048,
+                                    "periods": 2048
+                                }
+                            }
+                        },
+                        "cpuacct": {
+                            "id": 2048,
+                            "total": {
+                                "ns": 2048
+                            }
+                        }
+                    }
+                }
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
         }
     ]
 }
