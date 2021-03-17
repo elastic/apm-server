@@ -1,0 +1,24 @@
+[[apm-integration-configure]]
+== Configure APM integration
+
+++++
+<titleabbrev>Configure</titleabbrev>
+++++
+
+experimental::[]
+
+Templates, pipelines, index lifecycle management, etc.,
+cannot be configured with APM Server or Fleet, and must instead be configured in {kib} or with
+{es} APIs.
+
+[[apm-integration-templates]]
+=== Templates
+
+[[apm-integration-pipelines]]
+=== Pipelines
+
+[[apm-integration-ilm]]
+=== Index lifecycle management (ILM)
+
+
+fleet-quick-start-traces.html
