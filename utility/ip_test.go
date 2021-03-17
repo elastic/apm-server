@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/elastic/apm-server/utility"
 
@@ -56,6 +57,17 @@ func TestExtractIP(t *testing.T) {
 
 	req.Header.Set(headerForwarded, "for=[2001:db8:cafe::17]:4711")
 	assert.Equal(t, "2001:db8:cafe::17", utility.ExtractIP(req).String())
+}
+
+func TestExtractIPFromGRPCMetadata(t *testing.T) {
+	ip := "123.0.0.1"
+	// metadata.Pairs stores keys as lowercase; we want to test that
+	// ExtractIPFromHeader is accounting for that.
+	md := metadata.Pairs("x-real-ip", ip)
+	headers := http.Header(md)
+	extractedIP := utility.ExtractIPFromHeader(headers)
+	assert.NotNil(t, ip)
+	assert.Equal(t, ip, extractedIP.String())
 }
 
 func TestExtractIPFromHeader(t *testing.T) {

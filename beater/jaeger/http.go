@@ -42,6 +42,7 @@ const (
 
 var (
 	httpRegistry      = monitoring.Default.NewRegistry("apm-server.jaeger.http")
+	monitoringKeys    = append(request.DefaultResultIDs, request.IDEventReceivedCount)
 	httpMonitoringMap = request.MonitoringMapForRegistry(httpRegistry, monitoringKeys)
 )
 
