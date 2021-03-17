@@ -3,10 +3,11 @@
 
 https://github.com/elastic/apm-server/compare/7.11\...7.12[View commits]
 
+[float]
 [[release-notes-7.12.0]]
 == APM Server version 7.12.0
 
-https://github.com/elastic/apm-server/compare/v7.11.1\...v7.12.0[View commits]
+https://github.com/elastic/apm-server/compare/v7.11.2\...v7.12.0[View commits]
 
 [float]
 ==== Breaking Changes
