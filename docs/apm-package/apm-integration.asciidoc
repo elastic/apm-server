@@ -19,11 +19,8 @@ When {agent} is assigned a policy with an APM input,
 
 Ready to jump in?
 Read through the <<apm-integration-limitations,APM integration limitations>>, then head over to the
-// Quick start guide: {fleet-guide}/getting-started-traces.html[Get application traces into the {stack}].
-// To do: this link will be uncommented when the other PR has been merged
+quick start guide: {fleet-guide}/getting-started-traces.html[Get application traces into the {stack}].
 
-// is there a better name for this section?
-// should I just group it into the limitations section?
 [discrete]
 [[apm-integration-architecture]]
 === Architecture
@@ -50,14 +47,14 @@ Onboarding::
 APM Server no longer writes an onboarding document when setting up.
 
 Incompatible with `apm_user` role::
-The built-in `apm_user` role is not compatible with the APM integration
+The built-in {kibana-ref}/built-in-roles.html[`apm_user`] role is not compatible with the APM integration
 as it only provides read access to `apm-*` indices.
 The new data stream naming scheme does not follow this pattern,
 so users with the `apm_user` role will not be able to view `apm` data.
-
-// to do: link to {kibana-ref}/apm-app-users.html[users and roles]
-// provide workaround for creating a new role that provides access to
-// logs-*-*, metrics-*-*, and traces-*-*
++
+To grant a user access to APM data in Kibana, provide read access to the relevant
+indices listed in <<data-streams>>. You may also wish to grant users
+{kibana-ref}/apm-app-users.html[additional privileges] for features like spaces and machine learning.
 
 Standalone mode::
 {fleet-guide}/run-elastic-agent-standalone.html[Standalone mode] is not currently supported.
@@ -77,13 +74,13 @@ You must enroll a new {agent} to use the integration.
 
 Agents::
 
-// to do: add links to these docs
 {agent} and APM agents are different components:
 +
-**{agent}** is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
+{fleet-guide}/fleet-overview.html[**{agent}**] is a single,
+unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
 Behind the scenes, {agent} runs APM Server to listen for `apm` data.
 +
-**APM agents** are open source libraries written in the same language as your service.
+{apm-overview-ref-v}/components.html[**APM agents**] are open source libraries written in the same language as your service.
 You may only need one, or you might use all of them.
 You install them into your service as you would install any other library.
 They instrument your code and collect performance data and errors at runtime.
