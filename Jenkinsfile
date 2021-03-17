@@ -29,7 +29,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package|arm)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package|^\\/arm)')
+    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package|arm)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package)')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -231,13 +231,9 @@ pipeline {
           }
           when {
             beforeAgent true
-            anyOf {
-              expression { return env.GITHUB_COMMENT?.contains('arm tests') || env.GITHUB_COMMENT?.contains('/arm')}
-              branch 'master'
-              allOf {
-                changeRequest()
-                expression { return params.arm_ci }
-              }
+            allOf {
+              expression { return params.arm_ci }
+              expression { return env.ONLY_DOCS == "false" }
             }
           }
           environment {
