@@ -53,7 +53,7 @@ The new data stream naming scheme does not follow this pattern,
 so users with the `apm_user` role will not be able to view `apm` data.
 +
 To grant a user access to APM data in Kibana, provide read access to the relevant
-indices listed in <<data-streams>>. You may also wish to grant users
+indices listed in <<apm-integration-data-streams>>. You may also wish to grant users
 {kibana-ref}/apm-app-users.html[additional privileges] for features like spaces and machine learning.
 
 Standalone mode::
