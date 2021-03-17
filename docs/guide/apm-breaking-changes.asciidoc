@@ -3,6 +3,7 @@
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
 
+* <<breaking-7.12.0>>
 * <<breaking-7.11.0>>
 * <<breaking-7.10.0>>
 * <<breaking-7.9.0>>
@@ -25,9 +26,45 @@ Also see {observability-guide}/whats-new.html[What's new in Observability {minor
 
 //NOTE: The notable-breaking-changes tagged regions are re-used in the
 //Installation and Upgrade Guide
-// Remove this tag in a future PR
+
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
+// tag::713-bc[]
+// end::713-bc[]
+
+[[breaking-7.12.0]]
+=== 7.12.0 APM Breaking changes
+
+// tag::712-bc[]
+There are three breaking changes to be aware of;
+these changes only impact users ingesting data with
+{apm-server-ref-v}/jaeger.html[Jaeger clients].
+
+* Leading 0s are no longer removed from Jaeger client trace/span ids.
++
+--
+This change ensures distributed tracing continues to work across platforms by creating
+consistent, full trace/span IDs from Jaeger clients, Elastic APM agents,
+and OpenTelemetry SDKs.
+--
+
+* Jaeger spans will now have a type of "app" where they previously were "custom".
++
+--
+If the Jaeger span type is not inferred, it will now be "app".
+This aligns with the OpenTelemetry Collector exporter
+and improves the functionality of the _time spent by span type_ charts in the APM app.
+--
+
+* Jaeger spans may now have a more accurate outcome of "unknown".
++
+--
+Previously, a "success" outcome was assumed when a span didn't fail.
+The new default assigns "unknown", and only sets an outcome of "success" or "failure" when
+the outcome is explicitly known.
+This change aligns with Elastic APM agents and the OpenTelemetry Collector exporter.
+--
+// end::712-bc[]
 
 // tag::712-bc[]
 // end::712-bc[]
