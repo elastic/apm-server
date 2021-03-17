@@ -191,6 +191,73 @@
                 "id": "axb123hg",
                 "name": "logged-in-user"
             }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:41.366Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm.app.1234_service_12a3",
+            "data_stream.type": "metrics",
+            "host": {
+                "ip": "192.0.0.1"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "system": {
+                "process": {
+                    "cgroup": {
+                        "cpu": {
+                            "cfs": {
+                                "period": {
+                                    "us": 1024
+                                },
+                                "quota": {
+                                    "us": 2048
+                                }
+                            },
+                            "id": 2048,
+                            "stats": {
+                                "periods": 2048,
+                                "throttled": {
+                                    "ns": 2048,
+                                    "periods": 2048
+                                }
+                            }
+                        },
+                        "cpuacct": {
+                            "id": 2048,
+                            "total": {
+                                "ns": 2048
+                            }
+                        }
+                    }
+                }
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
         }
     ]
 }
