@@ -35,9 +35,13 @@ import (
 func isUnmappedMetadataField(key string) bool {
 	switch key {
 	case
+<<<<<<< HEAD
 		"Client.Domain",
 		"Client.IP",
 		"Client.Port",
+=======
+		"Client.IP",
+>>>>>>> 1b1e79d4f... Translate more OpenTelemetry resource conventions (#4955)
 		"Process.CommandLine",
 		"Process.Executable",
 		"System.Container.Runtime",
