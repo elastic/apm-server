@@ -19,7 +19,7 @@ When {agent} is assigned a policy with an APM input,
 
 Ready to jump in?
 Read through the <<apm-integration-limitations,APM integration limitations>>, then head over to the
-quick start guide: {fleet-guide}/getting-started-traces.html[Get application traces into the {stack}].
+quick start guide: {fleet-guide}/fleet-quick-start-traces.html[Get application traces into the {stack}].
 
 [discrete]
 [[apm-integration-architecture]]
@@ -47,7 +47,7 @@ Onboarding::
 APM Server no longer writes an onboarding document when setting up.
 
 Incompatible with `apm_user` role::
-The built-in {kibana-ref}/built-in-roles.html[`apm_user`] role is not compatible with the APM integration
+The built-in {ref}/built-in-roles.html[`apm_user`] role is not compatible with the APM integration
 as it only provides read access to `apm-*` indices.
 The new data stream naming scheme does not follow this pattern,
 so users with the `apm_user` role will not be able to view `apm` data.
