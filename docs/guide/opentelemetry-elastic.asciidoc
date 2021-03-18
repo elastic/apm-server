@@ -19,7 +19,7 @@ of APIs, SDKs, tooling, and integrations that enable the capture and management 
 telemetry data from your services for greater observability. For more information about the
 OpenTelemetry project, see the {ot-spec}[spec].
 
-Elastic's OpenTelemetry integrations allow you to reuse your existing OpenTelemetry
+Elastic OpenTelemetry integrations allow you to reuse your existing OpenTelemetry
 instrumentation to quickly analyze distributed traces and metrics to help you monitor
 business KPIs and technical components with the {stack}.
 
@@ -31,9 +31,8 @@ There are two Elastic OpenTelemetry integrations available:
 [[open-telemetry-elastic-exporter]]
 ==== Elastic exporter on the OpenTelemetry collector
 
-The recommended OpenTelemetry integration is using the Elastic exporter on the OpenTelemetry collector.
-We have extended the "contrib" OpenTelemetry collector by adding an Elastic exporter so that you can drop this
-integration into your current OpenTelemetry setup.
+The is the recommended OpenTelemetry integration. We have extended the "contrib" OpenTelemetry collector by
+adding an Elastic exporter so that you can drop this integration into your current OpenTelemetry setup.
 
 The architecture consists of three main components.
 
@@ -41,15 +40,14 @@ image::images/open-telemetry-exporter-arch.png[OpenTelemetry Elastic exporter ar
 
 |=== 
 
-| *Agents* | The OpenTelemetry agents instrument the applications and exports the telemetry data to the OpenTelemetry collector.
+| *Agents* | The OpenTelemetry agents instrument the applications and export the telemetry data to the OpenTelemetry collector.
 
-| *OpenTelemetry collector* | Collects the telemetry data (https://opentelemetry.io/docs/collector/configuration/#a-namereceiversaimg-width35-srchttpsrawgithubcomopen-telemetryopentelemetryiomainiconography32x32receiverssvgimg-receivers[receivers])
-from the OpenTelemetry agent, defines optional transformations (https://opentelemetry.io/docs/collector/configuration/#a-nameprocessorsaimg-width35-srchttpsrawgithubcomopen-telemetryopentelemetryiomainiconography32x32processorssvgimg-processors[processors])
-between receiving and exporting the data (Elastic exporter).
+| *OpenTelemetry collector* | The https://opentelemetry.io/docs/collector/configuration/#a-namereceiversaimg-width35-srchttpsrawgithubcomopen-telemetryopentelemetryiomainiconography32x32receiverssvgimg-receivers[receiver]
+collects the telemetry data from the OpenTelemetry agent, and then the https://opentelemetry.io/docs/collector/configuration/#a-nameprocessorsaimg-width35-srchttpsrawgithubcomopen-telemetryopentelemetryiomainiconography32x32processorssvgimg-processors[processor]
+defines optional transformations on the data before it's exported using the Elastic exporter.
 
-| *Elastic exporter* | The exporter translates the OpenTelemetry trace data collected from your services
-and the metrics data collected from your applications and infrastructure to Elastic's protocol.
-By extending the OpenTelemetry collector, no changes are needed in your instrumented services to begin using the {stack}.
+| *Elastic exporter* | The exporter translates the OpenTelemetry data collected from your services, applications, and infrastructure to Elastic's protocol.
+The data includes trace data and metrics data. By extending the OpenTelemetry collector, no changes are needed in your instrumented services to begin using the {stack}.
 
 |===
 
@@ -57,7 +55,7 @@ By extending the OpenTelemetry collector, no changes are needed in your instrume
 [[open-telemetry-collector-config]]
 ===== Download and configure the collector
 
-OpenTelemetry Collectors can be run as an agent or as standalone collectors.
+OpenTelemetry Collectors can be run an agents or as standalone collectors.
 They can be deployed as often as necessary and scaled up or out. Deployment planning resources are available in
 OpenTelemetry's {ot-collector}[Getting Started] documentation and {ot-scaling}[Collector Performance] research.
 
@@ -215,7 +213,11 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
 
-| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key. Please note the required space between `Bearer` and `apm-secret-token`.
+| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=ApiKey api_key"`.
+
+For information on how to format an API key, see our {apm-server-ref-v}/api-key.html[API key] docs.
+
+Please note the required space between `Bearer` and `apm_secret_token`, and `APIKey` and `api_key`.
 
 | `OTEL_EXPORTER_OTLP_CERTIFICATE` | Certificate for TLS credentials of the gRPC client. (optional)
 
