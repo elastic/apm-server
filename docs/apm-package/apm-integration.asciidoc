@@ -119,6 +119,4 @@ include::./data-streams.asciidoc[]
 
 include::./input-apm.asciidoc[]
 
-// to do: include section on RUM source map uploading
-
-// to do: include section on updating templates, pipelines, and index lifecycle management
+include::./configure.asciidoc[]

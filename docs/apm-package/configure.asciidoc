@@ -45,3 +45,7 @@ select *Stack Management* / *Index Lifecycle Management*.
 Search for `apm`.
 
 See {ref}/getting-started-index-lifecycle-management.html[manage the index lifecycle] for more information.
+
+// to do
+// [[apm-integration-sourcemaps]]
+// === RUM Source maps
