@@ -107,91 +107,114 @@ func InitStructValues(i interface{}) {
 	SetStructValues(i, DefaultValues())
 }
 
+// SetStructValuesOption is the type of an option which may be passed into
+// SetStructValues to override the value to which a field is set. If the
+// option returns false, then the field will not be updated and no more options
+// will be invoked.
+type SetStructValuesOption func(key string, field, value reflect.Value) bool
+
 // SetStructValues iterates through the struct fields represented by
 // the given reflect.Value and initializes all fields with the provided values
-func SetStructValues(in interface{}, values *Values) {
+func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOption) {
 	IterateStruct(in, func(f reflect.Value, key string) {
+		fieldVal := f
 		switch fKind := f.Kind(); fKind {
+		case reflect.String:
+			fieldVal = reflect.ValueOf(values.Str)
+		case reflect.Int:
+			fieldVal = reflect.ValueOf(values.Int)
 		case reflect.Slice:
-			if f.IsNil() {
-				f.Set(reflect.MakeSlice(f.Type(), 0, values.N))
-			}
-			var newVal reflect.Value
+			var elemVal reflect.Value
 			switch v := f.Interface().(type) {
 			case []string:
-				newVal = reflect.ValueOf(values.Str)
+				elemVal = reflect.ValueOf(values.Str)
 			case []int:
-				newVal = reflect.ValueOf(values.Int)
+				elemVal = reflect.ValueOf(values.Int)
+			case net.IP:
+				fieldVal = reflect.ValueOf(values.IP)
 			default:
 				if f.Type().Elem().Kind() != reflect.Struct {
 					panic(fmt.Sprintf("unhandled type %s for key %s", v, key))
 				}
-				newVal = reflect.Zero(f.Type().Elem())
+				elemVal = reflect.Zero(f.Type().Elem())
 			}
-			for i := 0; i < values.N; i++ {
-				f.Set(reflect.Append(f, newVal))
+			if elemVal.IsValid() {
+				fieldVal = reflect.MakeSlice(f.Type(), 0, values.N)
+				for i := 0; i < values.N; i++ {
+					fieldVal = reflect.Append(fieldVal, elemVal)
+				}
 			}
 		case reflect.Map:
-			if f.IsNil() {
-				f.Set(reflect.MakeMapWithSize(f.Type(), values.N))
-			}
-			var newVal reflect.Value
+			fieldVal = reflect.MakeMapWithSize(f.Type(), values.N)
+			var elemVal reflect.Value
 			switch v := f.Interface().(type) {
 			case map[string]interface{}, common.MapStr:
-				newVal = reflect.ValueOf(values.Str)
+				elemVal = reflect.ValueOf(values.Str)
 			case map[string]float64:
-				newVal = reflect.ValueOf(values.Float)
+				elemVal = reflect.ValueOf(values.Float)
 			default:
 				if f.Type().Elem().Kind() != reflect.Struct {
 					panic(fmt.Sprintf("unhandled type %s for key %s", v, key))
 				}
-				newVal = reflect.Zero(f.Type().Elem())
+				elemVal = reflect.Zero(f.Type().Elem())
 			}
 			for i := 0; i < values.N; i++ {
-				f.SetMapIndex(reflect.ValueOf(fmt.Sprintf("%s%v", values.Str, i)), newVal)
+				fieldVal.SetMapIndex(reflect.ValueOf(fmt.Sprintf("%s%v", values.Str, i)), elemVal)
 			}
 		case reflect.Struct:
-			var newVal interface{}
 			switch v := f.Interface().(type) {
 			case nullable.String:
 				v.Set(values.Str)
-				newVal = v
+				fieldVal = reflect.ValueOf(v)
 			case nullable.Int:
 				v.Set(values.Int)
-				newVal = v
+				fieldVal = reflect.ValueOf(v)
 			case nullable.Interface:
 				if strings.Contains(key, "port") {
 					v.Set(values.Int)
 				} else {
 					v.Set(values.Str)
 				}
-				newVal = v
+				fieldVal = reflect.ValueOf(v)
 			case nullable.Bool:
 				v.Set(values.Bool)
-				newVal = v
+				fieldVal = reflect.ValueOf(v)
 			case nullable.Float64:
 				v.Set(values.Float)
-				newVal = v
+				fieldVal = reflect.ValueOf(v)
 			case nullable.TimeMicrosUnix:
 				v.Set(values.Time)
-				newVal = v
+				fieldVal = reflect.ValueOf(v)
 			case nullable.HTTPHeader:
 				v.Set(values.HTTPHeader.Clone())
-				newVal = v
+				fieldVal = reflect.ValueOf(v)
 			default:
 				if f.IsZero() {
-					f.Set(reflect.Zero(f.Type()))
+					fieldVal = reflect.Zero(f.Type())
+				} else {
+					return
 				}
-				return
 			}
-			f.Set(reflect.ValueOf(newVal))
 		case reflect.Ptr:
 			if f.IsNil() {
-				f.Set(reflect.Zero(f.Type()))
+				fieldVal = reflect.Zero(f.Type())
 			}
 			return
 		default:
 			panic(fmt.Sprintf("unhandled type %s for key %s", fKind, key))
+		}
+
+		// Run through options, giving an opportunity to disable
+		// setting the field, or change the value.
+		setField := true
+		for _, opt := range opts {
+			if !opt(key, f, fieldVal) {
+				setField = false
+				break
+			}
+		}
+		if setField {
+			f.Set(fieldVal)
 		}
 	})
 }

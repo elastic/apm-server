@@ -22,10 +22,12 @@ import (
 )
 
 type Process struct {
-	Pid   int
-	Ppid  *int
-	Title string
-	Argv  []string
+	Pid         int
+	Ppid        *int
+	Title       string
+	Argv        []string
+	CommandLine string
+	Executable  string
 }
 
 func (p *Process) fields() common.MapStr {
@@ -40,5 +42,7 @@ func (p *Process) fields() common.MapStr {
 		proc.set("args", p.Argv)
 	}
 	proc.maybeSetString("title", p.Title)
+	proc.maybeSetString("command_line", p.CommandLine)
+	proc.maybeSetString("executable", p.Executable)
 	return common.MapStr(proc)
 }

@@ -25,6 +25,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Set log and http responses for server timeout {pull}4918[4918]
 * Define ES fields for cgroup.cpu and cgroup.cpuacct metrics {pull}4956[4956]
 * Log gRPC tracing requests {pull}4934[4934]
+* Improved coverage of translation of OpenTelemetry resource conventions {pull}4955[4955]
 
 [float]
 ==== Deprecated
