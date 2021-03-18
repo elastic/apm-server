@@ -30,7 +30,7 @@ type SetSystemHostname struct{}
 
 // ProcessBatch sets or overrides the host.name and host.hostname fields for events.
 func (SetSystemHostname) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return foreachEventMetadata(ctx, b, setSystemHostname)
+	return MetadataProcessorFunc(setSystemHostname).ProcessBatch(ctx, b)
 }
 
 func setSystemHostname(ctx context.Context, meta *model.Metadata) error {
