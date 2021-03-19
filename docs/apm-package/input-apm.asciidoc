@@ -3,9 +3,13 @@
 [[input-apm]]
 == APM input settings
 
+++++
+<titleabbrev>Input settings</titleabbrev>
+++++
+
 experimental::[]
 
-To configure the APM integration, open {kib} and select:
+To edit the APM integration input settings, open {kib} and select:
 **Fleet** / **Integrations** / **Elastic APM** / **Add Elastic APM**.
 Expand the carrot to view all settings.
 
@@ -15,6 +19,7 @@ A limited number of settings are currently supported.
 ====
 Templates, pipelines, index lifecycle management, etc., cannot be configured
 with APM Server or Fleet, and must instead be configured with {kib} or {es}.
+<<apm-integration-configure,Learn more>>.
 // Configuration via the `apm-server.yml` file is no longer supported.
 ====
 
