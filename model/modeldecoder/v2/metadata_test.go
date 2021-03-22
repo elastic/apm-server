@@ -18,7 +18,7 @@
 package v2
 
 import (
-	"net"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -30,18 +30,47 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder/modeldecodertest"
 )
 
-// initializedMetadata returns a metadata model with
+// unmappedMetadataFields holds the list of model fields that have no equivalent
+// in the metadata input type.
+func isUnmappedMetadataField(key string) bool {
+	switch key {
+	case
+		"Client.IP",
+		"Process.CommandLine",
+		"Process.Executable",
+		"System.Container.Runtime",
+		"System.Container.ImageName",
+		"System.Container.ImageTag",
+		"System.Container.Name",
+		"System.FullPlatform",
+		"System.ID",
+		"System.IP",
+		"System.OSType",
+		"System.Type",
+		"UserAgent",
+		"UserAgent.Name",
+		"UserAgent.Original":
+		return true
+	}
+	return false
+}
+
 func initializedMetadata() *model.Metadata {
+	_, metadata := initializedInputMetadata(modeldecodertest.DefaultValues())
+	return &metadata
+}
+
+func initializedInputMetadata(values *modeldecodertest.Values) (metadata, model.Metadata) {
 	var input metadata
 	var out model.Metadata
-	modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+	modeldecodertest.SetStructValues(&input, values)
 	mapToMetadataModel(&input, &out)
-	// initialize values that are not set by input
-	out.UserAgent = model.UserAgent{Name: "init", Original: "init"}
-	out.Client.IP = net.ParseIP("127.0.0.1")
-	out.System.IP = net.ParseIP("127.0.0.1")
-	return &out
+	modeldecodertest.SetStructValues(&out, values, func(key string, field, value reflect.Value) bool {
+		return isUnmappedMetadataField(key)
+	})
+	return input, out
 }
+
 func TestResetMetadataOnRelease(t *testing.T) {
 	inp := `{"metadata":{"service":{"name":"service-a"}}}`
 	m := fetchMetadataRoot()
@@ -92,16 +121,13 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		// create initialized modeldecoder and empty model metadata
 		// map modeldecoder to model metadata and manually set
 		// enhanced data that are never set by the modeldecoder
-		var input metadata
-		var out model.Metadata
 		defaultVal := modeldecodertest.DefaultValues()
-		modeldecodertest.SetStructValues(&input, defaultVal)
-		out.System.IP, out.Client.IP = defaultVal.IP, defaultVal.IP
-		mapToMetadataModel(&input, &out)
+		input, out := initializedInputMetadata(defaultVal)
 
 		exceptions := func(key string) bool {
-			return strings.HasPrefix(key, "UserAgent")
+			return isUnmappedMetadataField(key)
 		}
+
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out, exceptions, defaultVal)
 
@@ -125,15 +151,12 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {
-		var input metadata
-		var out1, out2 model.Metadata
+		var out2 model.Metadata
 		defaultVal := modeldecodertest.DefaultValues()
-		modeldecodertest.SetStructValues(&input, defaultVal)
-		mapToMetadataModel(&input, &out1)
-		out1.System.IP, out1.Client.IP = defaultVal.IP, defaultVal.IP //not set by decoder
+		input, out1 := initializedInputMetadata(defaultVal)
 
 		exceptions := func(key string) bool {
-			return strings.HasPrefix(key, "UserAgent")
+			return isUnmappedMetadataField(key)
 		}
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out1, exceptions, defaultVal)

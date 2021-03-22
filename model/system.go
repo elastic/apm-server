@@ -38,8 +38,14 @@ type System struct {
 	// TODO(axw) rename this to Name.
 	ConfiguredHostname string
 
+	// ID holds a unique ID for the host.
+	ID string
+
 	Architecture string
 	Platform     string
+	FullPlatform string // Full operating system name, including version
+	OSType       string
+	Type         string // host type, e.g. cloud instance machine type
 	IP           net.IP
 
 	Container  Container
@@ -54,9 +60,14 @@ func (s *System) fields() common.MapStr {
 	system.maybeSetString("hostname", s.DetectedHostname)
 	system.maybeSetString("name", s.ConfiguredHostname)
 	system.maybeSetString("architecture", s.Architecture)
-	if s.Platform != "" {
-		system.set("os", common.MapStr{"platform": s.Platform})
-	}
+	system.maybeSetString("type", s.Type)
+
+	var os mapStr
+	os.maybeSetString("platform", s.Platform)
+	os.maybeSetString("full", s.FullPlatform)
+	os.maybeSetString("type", s.OSType)
+	system.maybeSetMapStr("os", common.MapStr(os))
+
 	if s.IP != nil {
 		system.set("ip", s.IP.String())
 	}

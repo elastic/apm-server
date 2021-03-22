@@ -154,7 +154,7 @@
           description: >
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
           overwrite: true
-          
+
         - name: duration
           type: group
           fields:
@@ -167,9 +167,9 @@
               fields:
                 - name: us
                   type: long
-                  overwrite: true 
+                  overwrite: true
                   description: Aggregated transaction duration, in microseconds.
- 
+
         - name: self_time
           type: group
           description: >
@@ -177,14 +177,14 @@
           fields:
             - name: count
               type: long
-              overwrite: true 
+              overwrite: true
               description: Number of aggregated transactions.
             - name: sum
               type: group
               fields:
                 - name: us
                   type: long
-                  overwrite: true 
+                  overwrite: true
                   description: >
                     Aggregated transaction duration, excluding the time periods where a
                     direct child was running, in microseconds.
@@ -194,7 +194,7 @@
           fields:
             - name: count
               type: long
-              overwrite: true 
+              overwrite: true
               description: >
                 Counter for collected breakdowns for the transaction
 
@@ -213,14 +213,14 @@
           count: 1
           description: >
             Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-          overwrite: true 
+          overwrite: true
 
         - name: subtype
           type: keyword
           count: 1
           description: >
             A further sub-division of the type (e.g. postgresql, elasticsearch)
-          overwrite: true 
+          overwrite: true
 
         - name: self_time
           type: group
@@ -229,14 +229,14 @@
           fields:
           - name: count
             type: long
-            overwrite: true 
+            overwrite: true
             description: Number of aggregated spans.
           - name: sum
             type: group
             fields:
               - name: us
                 type: long
-                overwrite: true 
+                overwrite: true
                 description: >
                   Aggregated span duration, excluding the time periods where a
                   direct child was running, in microseconds.
@@ -818,6 +818,42 @@
           type: group
           description: Metrics and limits for the cgroup, collected by APM agents on Linux.
           fields:
+          - name: cpu
+            type: group
+            description: CPU-specific cgroup metrics and limits.
+            fields:
+            - name: id
+              type: long
+              description: ID for the current cgroup CPU.
+            - name: cfs
+              type: group
+              description: Completely Fair Scheduler (CFS) cgroup metrics.
+              fields:
+              - name: period.us
+                type: long
+                description: CFS period in microseconds.
+              - name: quota.us
+                type: long
+                description: CFS quota in microseconds.
+            - name: stats.periods
+              type: long
+              description: Number of periods seen by the CPU.
+            - name: stats.throttled.periods
+              type: long
+              description: Number of throttled periods seen by the CPU.
+            - name: stats.throttled.ns
+              type: long
+              description: Nanoseconds spent throttled seen by the CPU.
+          - name: cpuacct
+            type: group
+            description: CPU Accounting-specific cgroup metrics and limits.
+            fields:
+            - name: id
+              type: long
+              description: ID for the current cgroup CPU.
+            - name: total.ns
+              type: long
+              description: Total CPU time for the current cgroup CPU in nanoseconds.
           - name: memory
             type: group
             description: Memory-specific cgroup metrics and limits.

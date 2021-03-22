@@ -238,7 +238,7 @@ Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user s
 It is recommend that you run the `setup` command before starting {beatname_uc}.
 
 The `setup` command sets up the initial environment, including the Elasticsearch index template,
-and ILM write alias. In Elasticsearch, {ref}/indices-templates.html[index templates]
+and ILM write alias. In Elasticsearch, {ref}/index-templates.html[index templates]
 are used to define field settings and mappings.
 
 IMPORTANT: The {kibana-ref}/xpack-apm.html[Kibana APM UI] relies on specific mappings.
