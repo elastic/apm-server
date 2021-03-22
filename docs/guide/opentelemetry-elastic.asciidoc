@@ -55,7 +55,7 @@ The data includes trace data and metrics data. By extending the OpenTelemetry co
 [[open-telemetry-collector-config]]
 ===== Download and configure the collector
 
-OpenTelemetry Collectors can be run an agents or as standalone collectors.
+OpenTelemetry Collectors can be run as agents or as standalone collectors.
 They can be deployed as often as necessary and scaled up or out. Deployment planning resources are available in
 OpenTelemetry's {ot-collector}[Getting Started] documentation and {ot-scaling}[Collector Performance] research.
 
@@ -150,7 +150,7 @@ and integrated visualizations to collect infrastructure metrics.
 ===== Instrument applications
 
 To export traces and metrics to the OpenTelemetry Collector, ensure that you have instrumented your services and applications
-with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to execute your Java app using the
+with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app using the
 https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java]. 
 
 By defining the following environment variables, you can customize the OTLP endpoint the agent will use to communicate with
@@ -158,7 +158,7 @@ APM Server.
 
 [source,bash]
 ----
-export OTEL_RESOURCE_ATTRIBUTES=service.name=frontend,service.version=1.0-SNAPSHOT,deployment.environment=staging
+export OTEL_RESOURCE_ATTRIBUTES=service.name=frontend,service.version=1.1-SNAPSHOT,deployment.environment=staging
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
 java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
      -jar target/frontend-1.1.jar
@@ -172,15 +172,15 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 
 |===
 
-You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verifying metrics>>,
-and <<open-telemetry-elastic-kibana,visualizing metrics>> in {kib}.
+You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
+and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
 
 [[open-telemetry-elastic-protocol]]
 ==== APM Server native support of OpenTelemetry protocol
 
 experimental::[This feature is experimental and may be changed in a future release. It is only available in a self-managed environment.]
 
-The APM Server native support of OpenTelemetry protocol integration allows you to send collected telemetry data directly from your applications to APM Server.
+The APM Server native support of the OpenTelemetry protocol allows you to send collected telemetry data directly from your applications to APM Server.
 Trace data collected from your services and the metrics data collected from your applications and infrastructure are sent using the
 OpenTelemetry protocol.
 
@@ -191,7 +191,7 @@ image::images/open-telemetry-protocol-arch.png[OpenTelemetry Elastic protocol ar
 ===== Instrument applications
 
 To export traces and metrics to APM Server, ensure that you have instrumented your services and applications
-with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to execute your Java app using the
+with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app using the
 https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java]. 
 
 By defining the following environment variables, you can customize the OTLP endpoint so that the OpenTelemetry agent communicates with
@@ -223,8 +223,8 @@ Please note the required space between `Bearer` and `apm_secret_token`, and `API
 
 |===
 
-You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verifying metrics>>,
-and <<open-telemetry-elastic-kibana,visualizing metrics>> in {kib}.
+You are now ready to collect <<open-telemetry-elastic-traces-metrics,traces and metrics>>, <<open-telemetry-elastic-verify,verify metrics>>,
+and <<open-telemetry-elastic-kibana,visualize metrics>> in {kib}.
 
 [float]
 [[open-telemetry-elastic-traces-metrics]]
