@@ -4,7 +4,7 @@
 :ot-spec:       https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md
 :ot-contrib:    https://github.com/open-telemetry/opentelemetry-collector-contrib
 :ot-repo:       https://github.com/open-telemetry/opentelemetry-collector
-:ot-pipelines:  https://opentelemetry.io/docs/collector/configuration/
+:ot-pipelines:  https://opentelemetry.io/docs/collector/configuration/#service
 :ot-extension:  {ot-repo}/blob/master/extension/README.md
 :ot-scaling:    {ot-repo}/blob/master/docs/performance.md
 
@@ -42,8 +42,8 @@ image::images/open-telemetry-exporter-arch.png[OpenTelemetry Elastic exporter ar
 
 | *Agents* | The OpenTelemetry agents instrument the applications and export the telemetry data to the OpenTelemetry collector.
 
-| *OpenTelemetry collector* | The https://opentelemetry.io/docs/collector/configuration/#a-namereceiversaimg-width35-srchttpsrawgithubcomopen-telemetryopentelemetryiomainiconography32x32receiverssvgimg-receivers[receiver]
-collects the telemetry data from the OpenTelemetry agent, and then the https://opentelemetry.io/docs/collector/configuration/#a-nameprocessorsaimg-width35-srchttpsrawgithubcomopen-telemetryopentelemetryiomainiconography32x32processorssvgimg-processors[processor]
+| *OpenTelemetry collector* | The https://opentelemetry.io/docs/collector/configuration/#receivers[receiver]
+collects the telemetry data from the OpenTelemetry agent, and then the https://opentelemetry.io/docs/collector/configuration/#processors[processor]
 defines optional transformations on the data before it's exported using the Elastic exporter.
 
 | *Elastic exporter* | The exporter translates the OpenTelemetry data collected from your services, applications, and infrastructure to Elastic's protocol.
