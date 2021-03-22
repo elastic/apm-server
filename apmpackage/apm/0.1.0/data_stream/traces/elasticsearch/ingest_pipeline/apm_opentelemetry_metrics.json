@@ -1,0 +1,41 @@
+{
+  "description": "Populate Elastic APM metric fields from well-known OpenTelemetry metric counterparts",
+  "processors": [
+    {
+      "set": {
+        "field": "jvm.memory.{{labels.area}}.{{labels.type}}",
+        "copy_from": "runtime.jvm.memory.area",
+        "if": "ctx.runtime?.jvm?.memory?.area != null && ctx.labels?.area != null && ctx.labels?.type != null"
+      }
+    },
+    {
+      "set": {
+        "field": "jvm.gc.time",
+        "copy_from": "runtime.jvm.gc.time",
+        "if": "ctx.runtime?.jvm?.gc?.time != null"
+      }
+    },
+    {
+      "set": {
+        "field": "jvm.gc.count",
+        "copy_from": "runtime.jvm.gc.count",
+        "if": "ctx.runtime?.jvm?.gc?.count != null"
+      }
+    },
+    {
+      "set": {
+        "field": "jvm.gc.time",
+        "copy_from": "runtime.jvm.gc.collection",
+        "if": "ctx.runtime?.jvm?.gc?.collection != null"
+      }
+    },
+    {
+      "set": {
+        "field": "labels.name",
+        "copy_from": "labels.gc",
+        "override": false,
+        "if": "ctx.labels?.gc != null"
+      }
+    }
+  ]
+}
