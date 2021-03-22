@@ -109,7 +109,9 @@ func TestDataStreamsEnabled(t *testing.T) {
 
 			// There should be no warnings or errors logged.
 			for _, record := range srv.Logs.All() {
-				assert.Condition(t, func() bool { return record.Level < zapcore.WarnLevel }, record.Level)
+				assert.Condition(t, func() bool {
+					return record.Level < zapcore.WarnLevel
+				}, "%s: %s", record.Level, record.Message)
 			}
 		})
 	}

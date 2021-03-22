@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -100,6 +101,15 @@ func NewCreator(args CreatorParams) beat.Creator {
 		}
 		if err := recordRootConfig(b.Info, bt.rawConfig); err != nil {
 			bt.logger.Errorf("Error recording telemetry data", err)
+		}
+
+		if bt.config.Pprof.IsEnabled() {
+			// Profiling rates should be set once, early on in the program.
+			runtime.SetBlockProfileRate(bt.config.Pprof.BlockProfileRate)
+			runtime.SetMutexProfileFraction(bt.config.Pprof.MutexProfileRate)
+			if bt.config.Pprof.MemProfileRate > 0 {
+				runtime.MemProfileRate = bt.config.Pprof.MemProfileRate
+			}
 		}
 
 		if !bt.config.DataStreams.Enabled {

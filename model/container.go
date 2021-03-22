@@ -22,11 +22,22 @@ import (
 )
 
 type Container struct {
-	ID string
+	ID        string
+	Name      string
+	Runtime   string
+	ImageName string
+	ImageTag  string
 }
 
 func (c *Container) fields() common.MapStr {
 	var container mapStr
+	container.maybeSetString("name", c.Name)
 	container.maybeSetString("id", c.ID)
+	container.maybeSetString("runtime", c.Runtime)
+
+	var image mapStr
+	image.maybeSetString("name", c.ImageName)
+	image.maybeSetString("tag", c.ImageTag)
+	container.maybeSetMapStr("image", common.MapStr(image))
 	return common.MapStr(container)
 }
