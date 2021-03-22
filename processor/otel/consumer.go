@@ -358,6 +358,8 @@ func translateTransaction(
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
 		parseSamplerAttributes(samplerType, samplerParam, &tx.RepresentativeCount, labels)
+	} else {
+		tx.RepresentativeCount = 1
 	}
 
 	if tx.Result == "" {
@@ -606,6 +608,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
 		parseSamplerAttributes(samplerType, samplerParam, &event.RepresentativeCount, labels)
+	} else {
+		event.RepresentativeCount = 1
 	}
 
 	event.Labels = labels
