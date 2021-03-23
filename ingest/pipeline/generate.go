@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Convert the document structure into the one expected by libbeat.
-	// e.g. cnvert {a: 1, b: 2, ...} to [{id: a, body: 1}, {id: b, body: 2}, ...]
+	// e.g. convert {a: 1, b: 2, ...} to [{id: a, body: 1}, {id: b, body: 2}, ...]
 	if n := len(doc.Content); n != 1 {
 		log.Fatalf("expected 1 document, got %d", n)
 	}
