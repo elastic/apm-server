@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -66,5 +67,5 @@ func NewTransport(t *testing.T, statusCode int, esBody map[string]interface{}) *
 
 // NewElasticsearchClient creates ES client using the given transport instance
 func NewElasticsearchClient(transport *Transport) (elasticsearch.Client, error) {
-	return elasticsearch.NewVersionedClient("", "", "", []string{}, nil, transport)
+	return elasticsearch.NewVersionedClient("", "", "", []string{}, nil, transport, 3, time.Second, time.Minute)
 }
