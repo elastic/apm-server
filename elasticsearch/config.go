@@ -42,6 +42,7 @@ var (
 	esConnectionTimeout = 5 * time.Second
 )
 
+// TODO: Do we want backoff.init and backoff.max here?
 // Config holds all configurable fields that are used to create a Client
 type Config struct {
 	Hosts        Hosts             `config:"hosts" validate:"required"`
@@ -55,11 +56,21 @@ type Config struct {
 	Password     string            `config:"password"`
 	APIKey       string            `config:"api_key"`
 	Headers      map[string]string `config:"headers"`
+	MaxRetries   int               `config:"max_retries"`
+	BackoffInit  time.Duration     `config:"backoff.init"`
+	BackoffMax   time.Duration     `config:"backoff.max"`
 }
 
 // DefaultConfig returns a default config.
 func DefaultConfig() *Config {
-	return &Config{Hosts: []string{"localhost:9200"}, Protocol: "http", Timeout: esConnectionTimeout}
+	return &Config{
+		Hosts:       []string{"localhost:9200"},
+		Protocol:    "http",
+		Timeout:     esConnectionTimeout,
+		MaxRetries:  1,
+		BackoffInit: time.Second,
+		BackoffMax:  time.Minute,
+	}
 }
 
 // Hosts is an array of host strings and needs to have at least one entry
