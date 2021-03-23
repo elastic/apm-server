@@ -234,39 +234,11 @@ type ConsoleOutputConfig struct {
 
 // ElasticsearchOutputConfig holds APM Server libbeat Elasticsearch output configuration.
 type ElasticsearchOutputConfig struct {
-	Enabled     bool          `json:"enabled"`
-	Hosts       []string      `json:"hosts,omitempty"`
-	Username    string        `json:"username,omitempty"`
-	Password    string        `json:"password,omitempty"`
-	APIKey      string        `json:"api_key,omitempty"`
-	MaxRetries  int           `json:"max_retries,omitempty"`
-	BackoffInit time.Duration `json:"backoff.init,omitempty"`
-	BackoffMax  time.Duration `json:"backoff.max,omitempty"`
-}
-
-func (e *ElasticsearchOutputConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Enabled     bool     `json:"enabled"`
-		Hosts       []string `json:"hosts,omitempty"`
-		Username    string   `json:"username,omitempty"`
-		Password    string   `json:"password,omitempty"`
-		APIKey      string   `json:"api_key,omitempty"`
-		MaxRetries  int      `json:"max_retries,omitempty"`
-		BackoffInit string   `json:"backoff.init,omitempty"`
-		BackoffMax  string   `json:"backoff.max,omitempty"`
-	}
-	return json.Marshal(config{
-		Enabled:     e.Enabled,
-		Hosts:       e.Hosts,
-		Username:    e.Username,
-		Password:    e.Password,
-		APIKey:      e.APIKey,
-		MaxRetries:  e.MaxRetries,
-		BackoffInit: durationString(e.BackoffInit),
-		BackoffMax:  durationString(e.BackoffMax),
-	})
+	Enabled  bool     `json:"enabled"`
+	Hosts    []string `json:"hosts,omitempty"`
+	Username string   `json:"username,omitempty"`
+	Password string   `json:"password,omitempty"`
+	APIKey   string   `json:"api_key,omitempty"`
 }
 
 // SetupConfig holds APM Server libbeat setup configuration.
