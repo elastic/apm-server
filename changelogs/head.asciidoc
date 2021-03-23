@@ -26,6 +26,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Define ES fields for cgroup.cpu and cgroup.cpuacct metrics {pull}4956[4956]
 * Log gRPC tracing requests {pull}4934[4934]
 * Improved coverage of translation of OpenTelemetry resource conventions {pull}4955[4955]
+* Set `client.ip` for events from the Elastic APM iOS agent {pull}4975[4975]
 
 [float]
 ==== Deprecated
