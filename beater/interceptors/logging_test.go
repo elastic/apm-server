@@ -27,8 +27,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -37,19 +35,14 @@ import (
 )
 
 func TestLogging(t *testing.T) {
-	addr := &net.TCPAddr{
-		IP:   net.ParseIP("1.2.3.4"),
-		Port: 56837,
-	}
-	p := &peer.Peer{
-		Addr: addr,
-	}
-
-	ctx := peer.NewContext(context.Background(), p)
+	ip1234 := net.ParseIP("1.2.3.4")
 	methodName := "test_method_name"
 	info := &grpc.UnaryServerInfo{
 		FullMethod: methodName,
 	}
+	ctx := ContextWithClientMetadata(context.Background(), ClientMetadataValues{
+		SourceIP: ip1234,
+	})
 
 	requiredKeys := []string{
 		"source.address",
@@ -59,9 +52,8 @@ func TestLogging(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
-		alternateIP string
-		statusCode  codes.Code
-		f           func(ctx context.Context, req interface{}) (interface{}, error)
+		statusCode codes.Code
+		f          func(ctx context.Context, req interface{}) (interface{}, error)
 	}{
 		{
 			statusCode: codes.Internal,
@@ -75,13 +67,6 @@ func TestLogging(t *testing.T) {
 				return nil, nil
 			},
 		},
-		{
-			alternateIP: "6.7.8.9",
-			statusCode:  codes.OK,
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, nil
-			},
-		},
 	} {
 		configure.Logging(
 			"APM Server test",
@@ -89,12 +74,6 @@ func TestLogging(t *testing.T) {
 		)
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 		logger := logp.NewLogger("interceptor.logging.test")
-
-		wantAddr := addr.String()
-		if tc.alternateIP != "" {
-			wantAddr = tc.alternateIP
-			ctx = metadata.NewIncomingContext(ctx, metadata.Pairs("X-Real-IP", tc.alternateIP))
-		}
 
 		i := Logging(logger)
 		_, err := i(ctx, nil, info, tc.f)
@@ -116,7 +95,7 @@ func TestLogging(t *testing.T) {
 			assert.Contains(t, fields, k)
 		}
 		assert.Equal(t, methodName, fields["grpc.request.method"])
-		assert.Equal(t, wantAddr, fields["source.address"])
+		assert.Equal(t, ip1234.String(), fields["source.address"])
 		assert.Equal(t, tc.statusCode.String(), fields["grpc.response.status_code"])
 	}
 }
