@@ -28,10 +28,12 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
@@ -63,7 +65,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	err := sendOTLPTrace(ctx, srv)
+	err := sendOTLPTrace(ctx, srv, sdktrace.Config{})
 	require.NoError(t, err)
 
 	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
@@ -108,18 +110,55 @@ func TestOTLPGRPCAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err = sendOTLPTrace(ctx, srv)
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{})
 	assert.Error(t, err)
 	assert.Equal(t, codes.Unauthenticated, status.Code(err))
 
-	err = sendOTLPTrace(ctx, srv, otlpgrpc.WithHeaders(map[string]string{"Authorization": "Bearer abc123"}))
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{}, otlpgrpc.WithHeaders(map[string]string{"Authorization": "Bearer abc123"}))
 	require.NoError(t, err)
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 }
 
-func sendOTLPTrace(ctx context.Context, srv *apmservertest.Server, options ...otlpgrpc.Option) error {
+func TestOTLPClientIP(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := sendOTLPTrace(ctx, srv, sdktrace.Config{})
+	assert.NoError(t, err)
+
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{
+		Resource: sdkresource.NewWithAttributes(label.String("service.name", "service1")),
+	})
+	require.NoError(t, err)
+
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{
+		Resource: sdkresource.NewWithAttributes(
+			label.String("service.name", "service2"),
+			label.String("telemetry.sdk.name", "iOS"),
+			label.String("telemetry.sdk.language", "swift"),
+		),
+	})
+	require.NoError(t, err)
+
+	// Non-iOS agent documents should have no client.ip field set.
+	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+		Field: "service.name", Value: "service1",
+	})
+	assert.False(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
+
+	// iOS agent documents should have a client.ip field set.
+	result = systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.TermQuery{
+		Field: "service.name", Value: "service2",
+	})
+	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
+}
+
+func sendOTLPTrace(ctx context.Context, srv *apmservertest.Server, config sdktrace.Config, options ...otlpgrpc.Option) error {
 	options = append(options, otlpgrpc.WithEndpoint(serverAddr(srv)), otlpgrpc.WithInsecure())
 	driver := otlpgrpc.NewDriver(options...)
 	exporter, err := otlp.NewExporter(context.Background(), driver)
@@ -127,23 +166,26 @@ func sendOTLPTrace(ctx context.Context, srv *apmservertest.Server, options ...ot
 		panic(err)
 	}
 
-	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithConfig(sdktrace.Config{
-			DefaultSampler: sdktrace.AlwaysSample(),
-			IDGenerator: &idGeneratorFuncs{
-				newIDs: func(context.Context) (trace.TraceID, trace.SpanID) {
-					traceID, err := trace.TraceIDFromHex("d2acbef8b37655e48548fd9d61ad6114")
-					if err != nil {
-						panic(err)
-					}
-					spanID, err := trace.SpanIDFromHex("b3ee9be3b687a611")
-					if err != nil {
-						panic(err)
-					}
-					return traceID, spanID
-				},
+	if config.DefaultSampler == nil {
+		config.DefaultSampler = sdktrace.AlwaysSample()
+	}
+	if config.IDGenerator == nil {
+		config.IDGenerator = &idGeneratorFuncs{
+			newIDs: func(context.Context) (trace.TraceID, trace.SpanID) {
+				traceID, err := trace.TraceIDFromHex("d2acbef8b37655e48548fd9d61ad6114")
+				if err != nil {
+					panic(err)
+				}
+				spanID, err := trace.SpanIDFromHex("b3ee9be3b687a611")
+				if err != nil {
+					panic(err)
+				}
+				return traceID, spanID
 			},
-		}),
+		}
+	}
+	tracerProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithConfig(config),
 		sdktrace.WithBatcher(exporter),
 	)
 

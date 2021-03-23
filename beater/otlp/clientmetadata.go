@@ -15,30 +15,34 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelprocessor
+package otlp
 
 import (
 	"context"
 
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/model"
 )
 
-// SetDefaultServiceEnvironment is a transform.Processor that sets a default
-// service.environment value for events without one already set.
-type SetDefaultServiceEnvironment struct {
-	// DefaultServiceEnvironment is the default service.environment value
-	// to set for events without one already set.
-	DefaultServiceEnvironment string
-}
-
-// ProcessBatch sets a default service.value for events without one already set.
-func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return MetadataProcessorFunc(s.setDefaultServiceEnvironment).ProcessBatch(ctx, b)
-}
-
-func (s *SetDefaultServiceEnvironment) setDefaultServiceEnvironment(ctx context.Context, meta *model.Metadata) error {
-	if meta.Service.Environment == "" {
-		meta.Service.Environment = s.DefaultServiceEnvironment
+// SetClientMetadata sets metadata relating to the gRPC client in metadata for
+// end-user events, which are assumed to have been sent to the server from the
+// user's device.
+//
+// Client metadata is extracted from ctx, injected by interceptors.ClientMetadata.
+func SetClientMetadata(ctx context.Context, meta *model.Metadata) error {
+	if meta.Service.Agent.Name != "iOS/swift" {
+		// This is not an event from an agent we would consider to be
+		// running on an end-user device.
+		//
+		// TODO(axw) use User-Agent in the check, when we know what we
+		// should be looking for?
+		return nil
+	}
+	clientMetadata, ok := interceptors.ClientMetadataFromContext(ctx)
+	if ok {
+		if meta.Client.IP == nil {
+			meta.Client.IP = clientMetadata.SourceIP
+		}
 	}
 	return nil
 }
