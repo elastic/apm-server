@@ -151,7 +151,10 @@ func newGRPCServer(
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
 			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps),
+<<<<<<< HEAD
 			interceptors.Timeout(),
+=======
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 			authInterceptor,
 		),
 	)

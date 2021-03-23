@@ -29,6 +29,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
 	export "go.opentelemetry.io/otel/sdk/export/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
@@ -67,7 +68,11 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+<<<<<<< HEAD
 	err := sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv)))
+=======
+	err := sendOTLPTrace(ctx, srv, sdktrace.Config{})
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 	require.NoError(t, err)
 
 	result := systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
@@ -120,6 +125,7 @@ func TestOTLPGRPCAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+<<<<<<< HEAD
 	err = sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv)))
 	assert.Error(t, err)
 	assert.Equal(t, codes.Unauthenticated, status.Code(err))
@@ -127,6 +133,13 @@ func TestOTLPGRPCAuth(t *testing.T) {
 	err = sendOTLPTrace(ctx, newOTLPTracerProvider(newOTLPExporter(t, srv, otlpgrpc.WithHeaders(map[string]string{
 		"Authorization": "Bearer abc123",
 	}))))
+=======
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{})
+	assert.Error(t, err)
+	assert.Equal(t, codes.Unauthenticated, status.Code(err))
+
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{}, otlpgrpc.WithHeaders(map[string]string{"Authorization": "Bearer abc123"}))
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 	require.NoError(t, err)
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
@@ -140,6 +153,7 @@ func TestOTLPClientIP(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+<<<<<<< HEAD
 	exporter := newOTLPExporter(t, srv)
 	err := sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
 	assert.NoError(t, err)
@@ -156,6 +170,23 @@ func TestOTLPClientIP(t *testing.T) {
 			attribute.String("telemetry.sdk.language", "swift"),
 		),
 	)))
+=======
+	err := sendOTLPTrace(ctx, srv, sdktrace.Config{})
+	assert.NoError(t, err)
+
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{
+		Resource: sdkresource.NewWithAttributes(label.String("service.name", "service1")),
+	})
+	require.NoError(t, err)
+
+	err = sendOTLPTrace(ctx, srv, sdktrace.Config{
+		Resource: sdkresource.NewWithAttributes(
+			label.String("service.name", "service2"),
+			label.String("telemetry.sdk.name", "iOS"),
+			label.String("telemetry.sdk.language", "swift"),
+		),
+	})
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 	require.NoError(t, err)
 
 	// Non-iOS agent documents should have no client.ip field set.
@@ -171,6 +202,7 @@ func TestOTLPClientIP(t *testing.T) {
 	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
 }
 
+<<<<<<< HEAD
 func TestOpenTelemetryJavaMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
@@ -227,6 +259,9 @@ func TestOpenTelemetryJavaMetrics(t *testing.T) {
 }
 
 func newOTLPExporter(t testing.TB, srv *apmservertest.Server, options ...otlpgrpc.Option) *otlp.Exporter {
+=======
+func sendOTLPTrace(ctx context.Context, srv *apmservertest.Server, config sdktrace.Config, options ...otlpgrpc.Option) error {
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 	options = append(options, otlpgrpc.WithEndpoint(serverAddr(srv)), otlpgrpc.WithInsecure())
 	driver := otlpgrpc.NewDriver(options...)
 	exporter, err := otlp.NewExporter(context.Background(), driver)
@@ -237,10 +272,18 @@ func newOTLPExporter(t testing.TB, srv *apmservertest.Server, options ...otlpgrp
 	return exporter
 }
 
+<<<<<<< HEAD
 func newOTLPTracerProvider(exporter *otlp.Exporter, options ...sdktrace.TracerProviderOption) *sdktrace.TracerProvider {
 	return sdktrace.NewTracerProvider(append([]sdktrace.TracerProviderOption{
 		sdktrace.WithSyncer(exporter),
 		sdktrace.WithIDGenerator(&idGeneratorFuncs{
+=======
+	if config.DefaultSampler == nil {
+		config.DefaultSampler = sdktrace.AlwaysSample()
+	}
+	if config.IDGenerator == nil {
+		config.IDGenerator = &idGeneratorFuncs{
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 			newIDs: func(context.Context) (trace.TraceID, trace.SpanID) {
 				traceID, err := trace.TraceIDFromHex("d2acbef8b37655e48548fd9d61ad6114")
 				if err != nil {
@@ -252,9 +295,18 @@ func newOTLPTracerProvider(exporter *otlp.Exporter, options ...sdktrace.TracerPr
 				}
 				return traceID, spanID
 			},
+<<<<<<< HEAD
 		}),
 	}, options...)...)
 }
+=======
+		}
+	}
+	tracerProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithConfig(config),
+		sdktrace.WithBatcher(exporter),
+	)
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 
 func sendOTLPTrace(ctx context.Context, tracerProvider *sdktrace.TracerProvider) error {
 	tracer := tracerProvider.Tracer("systemtest")

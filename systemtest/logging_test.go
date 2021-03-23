@@ -32,6 +32,7 @@ import (
 	"go.elastic.co/apm/apmtest"
 	"go.elastic.co/fastjson"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 
@@ -59,10 +60,14 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
+<<<<<<< HEAD
 	tracerProvider := newOTLPTracerProvider(newOTLPExporter(t, srv, otlpgrpc.WithHeaders(map[string]string{
 		"Authorization": "Bearer abc123",
 	})))
 	err = sendOTLPTrace(context.Background(), tracerProvider)
+=======
+	err = sendOTLPTrace(context.Background(), srv, sdktrace.Config{}, otlpgrpc.WithHeaders(map[string]string{"Authorization": "Bearer abc123"}))
+>>>>>>> 3f4379a70... Set client.ip for iOS agent (#4975)
 	require.NoError(t, err)
 
 	srv.Close()
