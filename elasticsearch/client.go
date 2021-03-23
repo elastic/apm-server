@@ -37,8 +37,6 @@ import (
 	esutilv8 "github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
-// TODO: Neither of these have a RetryBackoff option enabled, would be easy to write something
-
 // Client is an interface designed to abstract away version differences between elasticsearch clients
 type Client interface {
 	// NewBulkIndexer returns a new BulkIndexer using this client for making the requests.
