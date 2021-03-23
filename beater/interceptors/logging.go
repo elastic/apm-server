@@ -19,20 +19,19 @@ package interceptors
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 // Logging intercepts a gRPC request and provides logging processing. The
 // returned function implements grpc.UnaryServerInterceptor.
+//
+// Logging should be added after ClientMetadata to include `source.address`
+// in log records.
 func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -41,14 +40,9 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		start := time.Now()
-		if p, ok := peer.FromContext(ctx); ok {
-			logger = logger.With("source.address", p.Addr)
-		}
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			headers := http.Header(md)
-			// Account for `forwarded`, `x-real-ip`, `x-forwarded-for` headers
-			if ip := utility.ExtractIPFromHeader(headers); ip != nil {
-				logger = logger.With("source.address", ip)
+		if metadata, ok := ClientMetadataFromContext(ctx); ok {
+			if metadata.SourceIP != nil {
+				logger = logger.With("source.address", metadata.SourceIP.String())
 			}
 		}
 

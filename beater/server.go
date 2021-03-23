@@ -39,6 +39,7 @@ import (
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -147,11 +148,20 @@ func newGRPCServer(
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			apmInterceptor,
-			authInterceptor,
+			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
 			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps),
+			authInterceptor,
 		),
 	)
+
+	if cfg.AugmentEnabled {
+		// Add a model processor that sets `client.ip` for events from end-user devices.
+		batchProcessor = modelprocessor.Chained{
+			modelprocessor.MetadataProcessorFunc(otlp.SetClientMetadata),
+			batchProcessor,
+		}
+	}
 
 	var kibanaClient kibana.Client
 	var agentcfgFetcher *agentcfg.Fetcher
