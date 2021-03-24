@@ -86,8 +86,7 @@ func Client(pub Publisher, sub Subscriber) elasticsearch.Client {
 		nil,                         // headers
 		&channelClientRoundTripper{pub: pub, sub: sub},
 		3,
-		time.Second,
-		time.Minute,
+		elasticsearch.DefaultBackoff,
 	)
 	if err != nil {
 		panic(err)
