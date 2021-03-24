@@ -27,6 +27,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Log gRPC tracing requests {pull}4934[4934]
 * Improved coverage of translation of OpenTelemetry resource conventions {pull}4955[4955]
 * Set `client.ip` for events from the Elastic APM iOS agent {pull}4975[4975]
+* Calculate service destination metrics for OpenTelemetry spans {pull}4976[4976]
 
 [float]
 ==== Deprecated
