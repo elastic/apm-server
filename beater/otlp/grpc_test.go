@@ -33,8 +33,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/beater/otlp"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
@@ -47,10 +46,10 @@ var (
 )
 
 func TestConsumeTraces(t *testing.T) {
-	var events []transform.Transformable
+	var batches []*model.Batch
 	var reportError error
-	report := func(ctx context.Context, req publish.PendingReq) error {
-		events = append(events, req.Transformables...)
+	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		batches = append(batches, batch)
 		return reportError
 	}
 
@@ -76,13 +75,13 @@ func TestConsumeTraces(t *testing.T) {
 ]
 }`)
 
-	conn := newServer(t, report)
+	conn := newServer(t, batchProcessor)
 	err := conn.Invoke(
 		context.Background(), "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
 		cannedRequest, newExportTraceServiceResponse(),
 	)
 	assert.NoError(t, err)
-	assert.Len(t, events, 1)
+	require.Len(t, batches, 1)
 
 	reportError = errors.New("failed to publish events")
 	err = conn.Invoke(
@@ -92,7 +91,11 @@ func TestConsumeTraces(t *testing.T) {
 	assert.Error(t, err)
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
-	assert.Len(t, events, 2)
+	require.Len(t, batches, 2)
+
+	for _, batch := range batches {
+		assert.Equal(t, 1, batch.Len())
+	}
 
 	actual := map[string]interface{}{}
 	monitoring.GetRegistry("apm-server.otlp.grpc.traces").Do(monitoring.Full, func(key string, value interface{}) {
@@ -108,7 +111,7 @@ func TestConsumeTraces(t *testing.T) {
 
 func TestConsumeMetrics(t *testing.T) {
 	var reportError error
-	report := func(ctx context.Context, req publish.PendingReq) error {
+	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 		return reportError
 	}
 
@@ -132,7 +135,7 @@ func TestConsumeMetrics(t *testing.T) {
 ]
 }`)
 
-	conn := newServer(t, report)
+	conn := newServer(t, batchProcessor)
 	err := conn.Invoke(
 		context.Background(), "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
 		cannedRequest, newExportMetricsServiceResponse(),
@@ -193,12 +196,12 @@ func newExportMetricsServiceResponse() interface{} {
 	return reflect.New(exportMetricsServiceResponseType.Elem()).Interface()
 }
 
-func newServer(t *testing.T, report publish.Reporter) *grpc.ClientConn {
+func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 
 	srv := grpc.NewServer()
-	err = otlp.RegisterGRPCServices(srv, report, logp.NewLogger("otlp_test"))
+	err = otlp.RegisterGRPCServices(srv, batchProcessor, logp.NewLogger("otlp_test"))
 	require.NoError(t, err)
 
 	go srv.Serve(lis)

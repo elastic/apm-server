@@ -29,8 +29,8 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
@@ -51,9 +51,9 @@ func init() {
 }
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
-func RegisterGRPCServices(grpcServer *grpc.Server, reporter publish.Reporter, logger *logp.Logger) error {
+func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor, logger *logp.Logger) error {
 	consumer := &monitoredConsumer{
-		consumer: &otel.Consumer{Reporter: reporter},
+		consumer: &otel.Consumer{Processor: processor},
 		logger:   logger,
 	}
 

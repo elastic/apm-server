@@ -61,9 +61,7 @@ func TestPublisherStop(t *testing.T) {
 	// time has elapsed.
 	for {
 		err := publisher.Send(context.Background(), publish.PendingReq{
-			Transformables: []transform.Transformable{makeTransformable(
-				beat.Event{Fields: make(common.MapStr)},
-			)},
+			Transformable: makeTransformable(beat.Event{Fields: make(common.MapStr)}),
 		})
 		if err == publish.ErrFull {
 			break

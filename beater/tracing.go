@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -38,9 +39,12 @@ type tracerServer struct {
 
 func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer, error) {
 	requests := make(chan tracerServerRequest)
-	report := func(ctx context.Context, req publish.PendingReq) error {
+	nopReporter := func(ctx context.Context, _ publish.PendingReq) error {
+		return nil
+	}
+	processBatch := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 		result := make(chan error, 1)
-		request := tracerServerRequest{ctx: ctx, req: req, res: result}
+		request := tracerServerRequest{ctx: ctx, batch: batch, res: result}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -52,9 +56,9 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		case err := <-result:
 			return err
 		}
-	}
+	})
 	cfg := config.DefaultConfig()
-	mux, err := api.NewMux(beat.Info{}, cfg, report)
+	mux, err := api.NewMux(beat.Info{}, cfg, nopReporter, processBatch)
 	if err != nil {
 		return nil, err
 	}
@@ -82,21 +86,25 @@ func (s *tracerServer) Close() error {
 	return s.server.Shutdown(context.Background())
 }
 
-// serve serves event publication requests for the tracer server. This may be
-// called multiple times in series, but not concurrently.
-func (s *tracerServer) serve(ctx context.Context, report publish.Reporter) error {
+// serve serves batch processing requests for the tracer server.
+//
+// This may be called multiple times in series, but not concurrently.
+func (s *tracerServer) serve(ctx context.Context, batchProcessor model.BatchProcessor) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case req := <-s.requests:
-			req.res <- report(req.ctx, req.req)
+			// Disable tracing for requests that come through the
+			// tracer server, to avoid recursive tracing.
+			req.ctx = context.WithValue(req.ctx, disablePublisherTracingKey{}, true)
+			req.res <- batchProcessor.ProcessBatch(req.ctx, req.batch)
 		}
 	}
 }
 
 type tracerServerRequest struct {
-	ctx context.Context
-	req publish.PendingReq
-	res chan<- error
+	ctx   context.Context
+	batch *model.Batch
+	res   chan<- error
 }

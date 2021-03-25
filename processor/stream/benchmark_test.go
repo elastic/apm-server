@@ -29,7 +29,6 @@ import (
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
@@ -45,9 +44,8 @@ func BenchmarkRUMV3Processor(b *testing.B) {
 }
 
 func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string) {
-	report := func(ctx context.Context, p publish.PendingReq) error {
-		return nil
-	}
+	batchProcessor := nopBatchProcessor{}
+
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
 	rl := rate.NewLimiter(rate.Limit(math.MaxFloat64-1), math.MaxInt32)
 
@@ -65,7 +63,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 				b.StopTimer()
 				r.Reset(data)
 				b.StartTimer()
-				processor.HandleStream(context.Background(), rl, &model.Metadata{}, r, report)
+				processor.HandleStream(context.Background(), rl, &model.Metadata{}, r, batchProcessor)
 			}
 		}
 	}
