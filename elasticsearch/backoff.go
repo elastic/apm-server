@@ -20,7 +20,7 @@ package elasticsearch
 import (
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v4"
 
 	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 )
