@@ -298,7 +298,7 @@ func translateTransaction(
 			//
 			// TODO(axw) translate OpenTelemtry messaging conventions.
 			case "message_bus.destination":
-				message.QueueName = &stringval
+				message.QueueName = stringval
 				isMessaging = true
 
 			// miscellaneous
@@ -483,7 +483,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			//
 			// TODO(axw) translate OpenTelemtry messaging conventions.
 			case "message_bus.destination":
-				message.QueueName = &stringval
+				message.QueueName = stringval
 				isMessagingSpan = true
 
 			// miscellaneous
@@ -701,12 +701,9 @@ func convertSpanEvent(
 		e.Log = &model.Log{Message: logMessage}
 	}
 	if exMessage != "" || exType != "" {
-		e.Exception = &model.Exception{}
-		if exMessage != "" {
-			e.Exception.Message = &exMessage
-		}
-		if exType != "" {
-			e.Exception.Type = &exType
+		e.Exception = &model.Exception{
+			Message: exMessage,
+			Type:    exType,
 		}
 	}
 	if transaction != nil {
@@ -725,7 +722,7 @@ func addTransactionCtxToErr(transaction *model.Transaction, err *model.Error) {
 	err.ParentID = transaction.ID
 	err.HTTP = transaction.HTTP
 	err.URL = transaction.URL
-	err.TransactionType = &transaction.Type
+	err.TransactionType = transaction.Type
 }
 
 func addSpanCtxToErr(span *model.Span, hostname string, err *model.Error) {
