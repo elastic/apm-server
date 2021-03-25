@@ -259,12 +259,12 @@ For the lib/nodejs/lib/thrift/json_parse.js:
 
 
 --------------------------------------------------------------------------------
-Dependency : github.com/cenkalti/backoff
-Version: v2.2.1+incompatible
+Dependency : github.com/cenkalti/backoff/v4
+Version: v4.1.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cenkalti/backoff@v2.2.1+incompatible/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cenkalti/backoff/v4@v4.1.0/LICENSE:
 
 The MIT License (MIT)
 
