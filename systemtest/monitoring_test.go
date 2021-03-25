@@ -66,6 +66,7 @@ func TestAPMServerMonitoringBuiltinUser(t *testing.T) {
 		Enabled:     true,
 		StatePeriod: time.Duration(time.Second),
 		Elasticsearch: &apmservertest.ElasticsearchOutputConfig{
+			Enabled:  true,
 			Username: username,
 			Password: password,
 		},
