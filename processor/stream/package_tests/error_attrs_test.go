@@ -55,6 +55,7 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"view errors", "error id icon",
 		"host.ip", "transaction.name", "source.ip",
+		"error.grouping_name", // added by ingest node
 		tests.Group("event"),
 		tests.Group("observer"),
 		tests.Group("user"),
@@ -109,7 +110,8 @@ func errorCondRequiredKeys() map[string]tests.Condition {
 func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
 		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
-		"processor.event", "processor.name", "error.grouping_key",
+		"processor.event", "processor.name",
+		"error.grouping_key", "error.grouping_name",
 		"context.tags", "transaction.name",
 		"event.outcome", // not relevant
 		"view errors", "error id icon",
