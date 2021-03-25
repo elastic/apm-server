@@ -44,6 +44,8 @@ func exponentialBackoff(b elasticsearch.Backoff) backoffFunc {
 	retryBackoff := backoff.NewExponentialBackOff()
 	retryBackoff.InitialInterval = b.Init
 	retryBackoff.MaxInterval = b.Max
+	retryBackoff.Multiplier = 2
+	retryBackoff.RandomizationFactor = 0
 	return func(attempts int) time.Duration {
 		// Attempts starts at 1, after there's already been a failure.
 		// https://github.com/elastic/go-elasticsearch/blob/de2391/estransport/estransport.go#L339

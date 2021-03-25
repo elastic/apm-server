@@ -36,6 +36,13 @@ import (
 	esutilv8 "github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
+var retryableStatuses = []int{
+	http.StatusTooManyRequests,
+	http.StatusBadGateway,
+	http.StatusServiceUnavailable,
+	http.StatusGatewayTimeout,
+}
+
 // Client is an interface designed to abstract away version differences between elasticsearch clients
 type Client interface {
 	// NewBulkIndexer returns a new BulkIndexer using this client for making the requests.
@@ -165,7 +172,7 @@ func newV7Client(
 		Addresses:            addresses,
 		Transport:            transport,
 		Header:               headers,
-		RetryOnStatus:        []int{502, 503, 504, 429},
+		RetryOnStatus:        retryableStatuses,
 		EnableRetryOnTimeout: true,
 		RetryBackoff:         fn,
 		MaxRetries:           maxRetries,
@@ -187,7 +194,7 @@ func newV8Client(
 		Addresses:            addresses,
 		Transport:            transport,
 		Header:               headers,
-		RetryOnStatus:        []int{502, 503, 504, 429},
+		RetryOnStatus:        retryableStatuses,
 		EnableRetryOnTimeout: true,
 		RetryBackoff:         fn,
 		MaxRetries:           maxRetries,

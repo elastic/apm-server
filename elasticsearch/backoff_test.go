@@ -67,11 +67,11 @@ func TestBackoffCalled(t *testing.T) {
 
 func TestBackoffRetries(t *testing.T) {
 	var (
-		i       int
-		retries = 5
+		requests int
+		retries  = 5
 	)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		i++
+		requests++
 		w.WriteHeader(503)
 		w.Write([]byte("error"))
 	}))
@@ -90,5 +90,5 @@ func TestBackoffRetries(t *testing.T) {
 	assert.NoError(t, err)
 	c.Perform(req)
 
-	assert.Equal(t, retries, i)
+	assert.Equal(t, retries, requests)
 }
