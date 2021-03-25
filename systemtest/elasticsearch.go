@@ -135,11 +135,6 @@ func CleanupElasticsearch(t testing.TB) {
 		esapi.IndicesDeleteIndexTemplateRequest{Name: apmLogsPrefix},
 	)
 
-	// Refresh indices to ensure all recent changes are visible.
-	if err := doReq(esapi.IndicesRefreshRequest{}); err != nil {
-		t.Fatal(err)
-	}
-
 	// Delete index templates after deleting data streams.
 	if err := doReq(esapi.IndicesDeleteIndexTemplateRequest{Name: legacyPrefix}); err != nil {
 		t.Fatal(err)
