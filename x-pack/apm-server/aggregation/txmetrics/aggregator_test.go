@@ -113,6 +113,7 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 
 		m.Timestamp = time.Time{}
 		assert.Equal(t, &model.Metricset{
+			Name:     "transaction",
 			Metadata: model.Metadata{},
 			Transaction: model.MetricsetTransaction{
 				Name: "baz",
@@ -288,6 +289,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 
 		m.Timestamp = time.Time{}
 		assert.Equal(t, &model.Metricset{
+			Name:                 "transaction",
 			Metadata:             model.Metadata{},
 			TimeseriesInstanceID: ":foo:1db641f187113b17",
 			Transaction: model.MetricsetTransaction{
@@ -398,6 +400,7 @@ func TestAggregationFields(t *testing.T) {
 	var expected []model.Metricset
 	addExpectedCount := func(expectedCount int64) {
 		expected = append(expected, model.Metricset{
+			Name:     "transaction",
 			Metadata: input.Metadata,
 			Event: model.MetricsetEventCategorization{
 				Outcome: input.Outcome,
