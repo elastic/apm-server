@@ -171,9 +171,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"a": "b"},
-		Page:      &Page{URL: &URL{Original: &url}, Referer: &referer},
+		Page:      &Page{URL: &URL{Original: url}, Referer: referer},
 		HTTP:      &Http{Request: &request, Response: &response},
-		URL:       &URL{Original: &url},
+		URL:       &URL{Original: url},
 		Custom:    common.MapStr{"foo.bar": "baz"},
 		Message:   &Message{QueueName: "routeUser"},
 	}
@@ -224,6 +224,23 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	})
 }
 
+func TestTransformTransactionHTTP(t *testing.T) {
+	request := Req{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
+	tx := Transaction{
+		HTTP: &Http{Request: &request},
+	}
+	events := tx.Transform(context.Background(), &transform.Config{})
+	require.Len(t, events, 1)
+	assert.Equal(t, common.MapStr{
+		"request": common.MapStr{
+			"method": request.Method,
+			"body": common.MapStr{
+				"original": request.Body,
+			},
+		},
+	}, events[0].Fields["http"])
+}
+
 func TestTransactionTransformPage(t *testing.T) {
 	id := "123"
 	urlExample := "http://example.com/path"
@@ -239,8 +256,7 @@ func TestTransactionTransformPage(t *testing.T) {
 				Type:     "tx",
 				Duration: 65.98,
 				Page: &Page{
-					URL:     ParseURL(urlExample, "", ""),
-					Referer: nil,
+					URL: ParseURL(urlExample, "", ""),
 				},
 			},
 			Output: common.MapStr{
@@ -260,8 +276,7 @@ func TestTransactionTransformPage(t *testing.T) {
 				Duration:  65.98,
 				URL:       ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
-					URL:     ParseURL(urlExample, "", ""),
-					Referer: nil,
+					URL: ParseURL(urlExample, "", ""),
 				},
 			},
 			Output: common.MapStr{

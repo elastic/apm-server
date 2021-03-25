@@ -32,8 +32,7 @@ type Metadata struct {
 	Labels    common.MapStr
 }
 
-func (m *Metadata) Set(out common.MapStr, eventLabels common.MapStr) common.MapStr {
-	fields := (*mapStr)(&out)
+func (m *Metadata) set(fields *mapStr, eventLabels common.MapStr) {
 	fields.maybeSetMapStr("service", m.Service.Fields(m.System.Container.ID, m.System.name()))
 	fields.maybeSetMapStr("agent", m.Service.AgentFields())
 	fields.maybeSetMapStr("host", m.System.fields())
@@ -45,5 +44,4 @@ func (m *Metadata) Set(out common.MapStr, eventLabels common.MapStr) common.MapS
 	fields.maybeSetMapStr("kubernetes", m.System.kubernetesFields())
 	fields.maybeSetMapStr("cloud", m.Cloud.fields())
 	maybeSetLabels(fields, m.Labels, eventLabels)
-	return out
 }

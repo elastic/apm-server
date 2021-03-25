@@ -114,7 +114,7 @@ func (e *Transaction) fields() common.MapStr {
 func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat.Event {
 	transactionTransformations.Inc()
 
-	fields := common.MapStr{
+	fields := mapStr{
 		"processor":        transactionProcessorEntry,
 		transactionDocType: e.fields(),
 	}
@@ -127,27 +127,38 @@ func (e *Transaction) Transform(_ context.Context, cfg *transform.Config) []beat
 	}
 
 	// first set generic metadata (order is relevant)
-	e.Metadata.Set(fields, e.Labels)
-	utility.Set(fields, "source", fields["client"])
+	e.Metadata.set(&fields, e.Labels)
+	if client := fields["client"]; client != nil {
+		fields["source"] = client
+	}
 
 	// then merge event specific information
-	utility.AddID(fields, "parent", e.ParentID)
-	utility.AddID(fields, "trace", e.TraceID)
-	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	utility.Set(fields, "http", e.HTTP.Fields())
-	urlFields := e.URL.Fields()
-	if urlFields != nil {
-		utility.Set(fields, "url", e.URL.Fields())
-	}
+	var parent, trace mapStr
+	parent.maybeSetString("id", e.ParentID)
+	trace.maybeSetString("id", e.TraceID)
+	fields.maybeSetMapStr("parent", common.MapStr(parent))
+	fields.maybeSetMapStr("trace", common.MapStr(trace))
+	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
+
+	fields.maybeSetMapStr("http", e.HTTP.Fields())
+	haveURL := fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Page != nil {
-		utility.DeepUpdate(fields, "http.request.referrer", e.Page.Referer)
-		if urlFields == nil {
-			utility.Set(fields, "url", e.Page.URL.Fields())
+		// TODO(axw) e.Page.Referer should be recorded in e.HTTP.Request.
+		common.MapStr(fields).Put("http.request.referrer", e.Page.Referer)
+		if !haveURL {
+			fields.maybeSetMapStr("url", e.Page.URL.Fields())
 		}
 	}
-	utility.DeepUpdate(fields, "event.outcome", e.Outcome)
-	utility.Set(fields, "experimental", e.Experimental)
-	return []beat.Event{{Fields: fields, Timestamp: e.Timestamp}}
+
+	if e.Experimental != nil {
+		fields.set("experimental", e.Experimental)
+	}
+	common.MapStr(fields).Put("event.outcome", e.Outcome)
+
+	return []beat.Event{{
+		Timestamp: e.Timestamp,
+		Fields:    common.MapStr(fields),
+	}}
 }
 
 type TransactionMarks map[string]TransactionMark

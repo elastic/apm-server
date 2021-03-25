@@ -362,7 +362,7 @@ func TestEvents(t *testing.T) {
 				TransactionID:      trID,
 				TransactionSampled: &sampledTrue,
 				Labels:             labels,
-				Page:               &Page{URL: &URL{Original: &url}, Referer: &referer},
+				Page:               &Page{URL: &URL{Original: url}, Referer: referer},
 				Custom:             custom,
 				RUM:                true,
 			},
@@ -554,8 +554,7 @@ func TestErrorTransformPage(t *testing.T) {
 			Error: Error{
 				ID: id,
 				Page: &Page{
-					URL:     ParseURL(urlExample, "", ""),
-					Referer: nil,
+					URL: ParseURL(urlExample, "", ""),
 				},
 			},
 			Output: common.MapStr{
@@ -573,8 +572,7 @@ func TestErrorTransformPage(t *testing.T) {
 				Timestamp: time.Now(),
 				URL:       ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
-					URL:     ParseURL(urlExample, "", ""),
-					Referer: nil,
+					URL: ParseURL(urlExample, "", ""),
 				},
 			},
 			Output: common.MapStr{

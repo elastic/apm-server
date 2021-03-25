@@ -218,8 +218,7 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			out.HTTP = &model.Http{Request: &model.Req{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
-				val := from.Context.Request.HTTPVersion.Val
-				out.HTTP.Version = &val
+				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
 			}
 		}
 		if from.Context.Response.IsSet() {
@@ -431,8 +430,7 @@ func mapToPageModel(from contextPage, out *model.Page) {
 		out.URL = model.ParseURL(from.URL.Val, "", "")
 	}
 	if from.Referer.IsSet() {
-		referer := from.Referer.Val
-		out.Referer = &referer
+		out.Referer = from.Referer.Val
 	}
 }
 
@@ -520,20 +518,17 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 		typ := strings.Split(from.Type.Val, sep)
 		out.Type = typ[0]
 		if len(typ) > 1 {
-			out.Subtype = &typ[1]
+			out.Subtype = typ[1]
 			if len(typ) > 2 {
-				action := strings.Join(typ[2:], sep)
-				out.Action = &action
+				out.Action = strings.Join(typ[2:], sep)
 			}
 		}
 	} else {
 		if from.Action.IsSet() {
-			val := from.Action.Val
-			out.Action = &val
+			out.Action = from.Action.Val
 		}
 		if from.Subtype.IsSet() {
-			val := from.Subtype.Val
-			out.Subtype = &val
+			out.Subtype = from.Subtype.Val
 		}
 		if from.Type.IsSet() {
 			out.Type = from.Type.Val
@@ -542,8 +537,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 	if from.Context.Destination.Address.IsSet() || from.Context.Destination.Port.IsSet() {
 		destination := model.Destination{}
 		if from.Context.Destination.Address.IsSet() {
-			val := from.Context.Destination.Address.Val
-			destination.Address = &val
+			destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
 			val := from.Context.Destination.Port.Val
@@ -554,32 +548,27 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 	if from.Context.Destination.Service.IsSet() {
 		service := model.DestinationService{}
 		if from.Context.Destination.Service.Name.IsSet() {
-			val := from.Context.Destination.Service.Name.Val
-			service.Name = &val
+			service.Name = from.Context.Destination.Service.Name.Val
 		}
 		if from.Context.Destination.Service.Resource.IsSet() {
-			val := from.Context.Destination.Service.Resource.Val
-			service.Resource = &val
+			service.Resource = from.Context.Destination.Service.Resource.Val
 		}
 		if from.Context.Destination.Service.Type.IsSet() {
-			val := from.Context.Destination.Service.Type.Val
-			service.Type = &val
+			service.Type = from.Context.Destination.Service.Type.Val
 		}
 		out.DestinationService = &service
 	}
 	if from.Context.HTTP.IsSet() {
 		http := model.HTTP{}
 		if from.Context.HTTP.Method.IsSet() {
-			val := from.Context.HTTP.Method.Val
-			http.Method = &val
+			http.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
 			val := from.Context.HTTP.StatusCode.Val
 			http.StatusCode = &val
 		}
 		if from.Context.HTTP.URL.IsSet() {
-			val := from.Context.HTTP.URL.Val
-			http.URL = &val
+			http.URL = from.Context.HTTP.URL.Val
 		}
 		if from.Context.HTTP.Response.IsSet() {
 			http.Response = &model.MinimalResp{}
@@ -730,8 +719,7 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 			out.HTTP = &model.Http{Request: &model.Req{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
-				val := from.Context.Request.HTTPVersion.Val
-				out.HTTP.Version = &val
+				out.HTTP.Version = from.Context.Request.HTTPVersion.Val
 			}
 		}
 		if from.Context.Response.IsSet() {
