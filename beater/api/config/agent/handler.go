@@ -62,7 +62,7 @@ var (
 )
 
 // Handler returns a request.Handler for managing agent central configuration requests.
-func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
+func Handler(client kibana.Client, config *config.AgentConfig, defaultServiceEnvironment string) request.Handler {
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	fetcher := agentcfg.NewFetcher(client, config.Cache.Expiration)
 
@@ -87,6 +87,9 @@ func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
 			extractQueryError(c, queryErr, c.Authorization.IsAuthorizationConfigured())
 			c.Write()
 			return
+		}
+		if query.Service.Environment == "" {
+			query.Service.Environment = defaultServiceEnvironment
 		}
 
 		result, err := fetcher.Fetch(c.Request.Context(), query)

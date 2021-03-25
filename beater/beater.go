@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
@@ -352,6 +353,7 @@ func (s *serverRunner) run() error {
 		// behaviour into the processing/reporting pipeline.
 		runServer = s.wrapRunServer(runServer)
 	}
+	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
 	transformConfig, err := newTransformConfig(s.beat.Info, s.config)
 	if err != nil {
@@ -397,6 +399,16 @@ func (s *serverRunner) run() error {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
+}
+
+func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
+	var processors []transform.Processor
+	if s.config.DefaultServiceEnvironment != "" {
+		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
+			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
+		})
+	}
+	return WrapRunServerWithProcessors(runServer, processors...)
 }
 
 // checkConfig verifies the global configuration doesn't use unsupported settings
@@ -591,4 +603,27 @@ func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcema
 	}
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
 	return sourcemap.NewStore(esClient, index, cfg.Cache.Expiration)
+}
+
+// WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter
+// with a function that transformables are first passed through the given
+// processors in order.
+func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...transform.Processor) RunServerFunc {
+	if len(processors) == 0 {
+		return runServer
+	}
+	return func(ctx context.Context, args ServerParams) error {
+		origReporter := args.Reporter
+		args.Reporter = func(ctx context.Context, req publish.PendingReq) error {
+			var err error
+			for _, p := range processors {
+				req.Transformables, err = p.ProcessTransformables(ctx, req.Transformables)
+				if err != nil {
+					return err
+				}
+			}
+			return origReporter(ctx, req)
+		}
+		return runServer(ctx, args)
+	}
 }

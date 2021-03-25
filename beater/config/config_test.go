@@ -136,6 +136,7 @@ func TestUnpackConfig(t *testing.T) {
 						"max_groups": 456,
 					},
 				},
+				"default_service_environment": "overridden",
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -245,6 +246,7 @@ func TestUnpackConfig(t *testing.T) {
 						TTL:                   30 * time.Minute,
 					},
 				},
+				DefaultServiceEnvironment: "overridden",
 			},
 		},
 		"merge config with default": {

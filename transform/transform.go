@@ -26,6 +26,14 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 )
 
+// Processor can be used to process a set of Tramsformables, giving
+// the opportunity to add or remove by returning a new slice.
+type Processor interface {
+	ProcessTransformables(context.Context, []Transformable) ([]Transformable, error)
+}
+
+// Transformable is an interface implemented by all top-level model objects for
+// translating to beat.Events.
 type Transformable interface {
 	Transform(context.Context, *Config) []beat.Event
 }

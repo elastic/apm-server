@@ -35,6 +35,11 @@ apm-server:
   # or the IP and User Agent of the real user (RUM requests).
   #capture_personal_data: true
 
+  # If specified, APM Server will record this value in events which have no service environment
+  # defined, and add it to agent configuration queries to Kibana when none is specified in the
+  # request from the agent.
+  #default_service_environment:
+
   # Enable APM Server Golang expvar support (https://golang.org/pkg/expvar/).
   #expvar:
     #enabled: false
