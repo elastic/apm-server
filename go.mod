@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/akavel/rsrc v0.10.1 // indirect
 	github.com/apache/thrift v0.13.0
-	github.com/cenkalti/backoff/v4 v4.1.0
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b

@@ -101,17 +101,9 @@ func TestBackoffConfigured(t *testing.T) {
 	}
 	backoffFn := exponentialBackoff(backoffCfg)
 	assert.Equal(t, init, backoffFn(1))
-
-	// The argument to backoffFn is only used to set the initial backoff.
-	// Subsequent calls disregard the argument, and are only concerned with
-	// the number of times the underlying exponential backoff has been
-	// called.
 	assert.Equal(t, 4*time.Second, backoffFn(2))
-	assert.Equal(t, 8*time.Second, backoffFn(2))
-	assert.Equal(t, 16*time.Second, backoffFn(2))
-	assert.Equal(t, 32*time.Second, backoffFn(2))
-	for i := 0; i < 10; i++ {
-		backoffFn(2)
-	}
-	assert.Equal(t, time.Minute, backoffFn(2))
+	assert.Equal(t, 9*time.Second, backoffFn(3))
+	assert.Equal(t, 16*time.Second, backoffFn(4))
+	assert.Equal(t, 25*time.Second, backoffFn(5))
+	assert.Equal(t, time.Minute, backoffFn(20))
 }

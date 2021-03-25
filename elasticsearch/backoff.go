@@ -18,9 +18,8 @@
 package elasticsearch
 
 import (
+	"math"
 	"time"
-
-	"github.com/cenkalti/backoff/v4"
 
 	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 )
@@ -41,17 +40,17 @@ var (
 )
 
 func exponentialBackoff(b elasticsearch.Backoff) backoffFunc {
-	retryBackoff := backoff.NewExponentialBackOff()
-	retryBackoff.InitialInterval = b.Init
-	retryBackoff.MaxInterval = b.Max
-	retryBackoff.Multiplier = 2
-	retryBackoff.RandomizationFactor = 0
+	// Convert max from nanoseconds to seconds
+	maxSeconds := float64(b.Max / time.Second)
 	return func(attempts int) time.Duration {
 		// Attempts starts at 1, after there's already been a failure.
 		// https://github.com/elastic/go-elasticsearch/blob/de2391/estransport/estransport.go#L339
 		if attempts == 1 {
-			retryBackoff.Reset()
+			return b.Init
 		}
-		return retryBackoff.NextBackOff()
+		next := math.Pow(float64(attempts), 2)
+		// Make sure we don't exceed max
+		next = math.Min(next, maxSeconds)
+		return time.Duration(next) * time.Second
 	}
 }
