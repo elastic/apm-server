@@ -18,18 +18,18 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
-	otlpmetrics "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1"
+	otlpmetrics "go.opentelemetry.io/collector/internal/data/protogen/metrics/v1"
 )
 
 var (
 	TestMetricStartTime      = time.Date(2020, 2, 11, 20, 26, 12, 321, time.UTC)
-	TestMetricStartTimestamp = pdata.TimestampUnixNano(TestMetricStartTime.UnixNano())
+	TestMetricStartTimestamp = pdata.TimestampFromTime(TestMetricStartTime)
 
 	TestMetricExemplarTime      = time.Date(2020, 2, 11, 20, 26, 13, 123, time.UTC)
-	TestMetricExemplarTimestamp = pdata.TimestampUnixNano(TestMetricExemplarTime.UnixNano())
+	TestMetricExemplarTimestamp = pdata.TimestampFromTime(TestMetricExemplarTime)
 
 	TestMetricTime      = time.Date(2020, 2, 11, 20, 26, 13, 789, time.UTC)
-	TestMetricTimestamp = pdata.TimestampUnixNano(TestMetricTime.UnixNano())
+	TestMetricTimestamp = pdata.TimestampFromTime(TestMetricTime)
 )
 
 const (
@@ -442,7 +442,7 @@ func generateOtlpDoubleHistogramMetric() *otlpmetrics.Metric {
 				Sum:               15,
 				BucketCounts:      []uint64{0, 1},
 				ExplicitBounds:    []float64{1},
-				Exemplars: []*otlpmetrics.DoubleExemplar{
+				Exemplars: []otlpmetrics.DoubleExemplar{
 					{
 						FilteredLabels: generateOtlpMetricAttachment(),
 						TimeUnixNano:   uint64(TestMetricExemplarTimestamp),
@@ -500,7 +500,7 @@ func generateOtlpIntHistogramMetric() *otlpmetrics.Metric {
 				Sum:               15,
 				BucketCounts:      []uint64{0, 1},
 				ExplicitBounds:    []float64{1},
-				Exemplars: []*otlpmetrics.IntExemplar{
+				Exemplars: []otlpmetrics.IntExemplar{
 					{
 						FilteredLabels: generateOtlpMetricAttachment(),
 						TimeUnixNano:   uint64(TestMetricExemplarTimestamp),

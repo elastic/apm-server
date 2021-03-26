@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/obsreport"
+	"go.opentelemetry.io/collector/receiver/scrapererror"
 )
 
 // ScraperControllerSettings defines common settings for a scraper controller
@@ -165,7 +166,7 @@ func (sc *controller) Shutdown(ctx context.Context) error {
 			errs = append(errs, err)
 		}
 	}
-	return componenterror.CombineErrors(errs)
+	return consumererror.CombineErrors(errs)
 }
 
 // startScraping initiates a ticker that calls Scrape based on the configured
@@ -204,7 +205,7 @@ func (sc *controller) scrapeMetricsAndReport(ctx context.Context) {
 		if err != nil {
 			sc.logger.Error("Error scraping metrics", zap.Error(err))
 
-			if !consumererror.IsPartialScrapeError(err) {
+			if !scrapererror.IsPartialScrapeError(err) {
 				continue
 			}
 		}
@@ -249,7 +250,7 @@ func (mms *multiMetricScraper) Shutdown(ctx context.Context) error {
 			errs = append(errs, err)
 		}
 	}
-	return componenterror.CombineErrors(errs)
+	return consumererror.CombineErrors(errs)
 }
 
 func (mms *multiMetricScraper) Scrape(ctx context.Context, receiverName string) (pdata.ResourceMetricsSlice, error) {
@@ -260,17 +261,19 @@ func (mms *multiMetricScraper) Scrape(ctx context.Context, receiverName string) 
 	ilms.Resize(1)
 	ilm := ilms.At(0)
 
-	var errs []error
+	var errs scrapererror.ScrapeErrors
 	for _, scraper := range mms.scrapers {
 		metrics, err := scraper.Scrape(ctx, receiverName)
 		if err != nil {
-			errs = append(errs, err)
-			if !consumererror.IsPartialScrapeError(err) {
-				continue
+			partialErr, isPartial := err.(scrapererror.PartialScrapeError)
+			if isPartial {
+				errs.AddPartial(partialErr.Failed, partialErr)
 			}
+
+			continue
 		}
 
 		metrics.MoveAndAppendTo(ilm.Metrics())
 	}
-	return rms, CombineScrapeErrors(errs)
+	return rms, errs.Combine()
 }

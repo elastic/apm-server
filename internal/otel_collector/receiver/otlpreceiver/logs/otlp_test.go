@@ -16,6 +16,7 @@ package logs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"testing"
@@ -29,8 +30,8 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/internal"
 	"go.opentelemetry.io/collector/internal/data"
-	collectorlog "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/logs/v1"
-	otlplog "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/logs/v1"
+	collectorlog "go.opentelemetry.io/collector/internal/data/protogen/collector/logs/v1"
+	otlplog "go.opentelemetry.io/collector/internal/data/protogen/logs/v1"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/testutil"
 )
@@ -106,10 +107,7 @@ func TestExport_EmptyRequest(t *testing.T) {
 }
 
 func TestExport_ErrorConsumer(t *testing.T) {
-	logSink := new(consumertest.LogsSink)
-	logSink.SetConsumeError(fmt.Errorf("error"))
-
-	port, doneFn := otlpReceiverOnGRPCServer(t, logSink)
+	port, doneFn := otlpReceiverOnGRPCServer(t, consumertest.NewLogsErr(errors.New("my error")))
 	defer doneFn()
 
 	logClient, logClientDoneFn, err := makeLogsServiceClient(port)
@@ -133,7 +131,7 @@ func TestExport_ErrorConsumer(t *testing.T) {
 	}
 
 	resp, err := logClient.Export(context.Background(), req)
-	assert.EqualError(t, err, "rpc error: code = Unknown desc = error")
+	assert.EqualError(t, err, "rpc error: code = Unknown desc = my error")
 	assert.Nil(t, resp)
 }
 
