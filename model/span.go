@@ -102,7 +102,7 @@ type DB struct {
 // TODO(axw) combine this and "Http", which is used by transaction and error, into one type.
 type HTTP struct {
 	URL        string
-	StatusCode *int
+	StatusCode int
 	Method     string
 	Response   *MinimalResp
 }
@@ -110,7 +110,7 @@ type HTTP struct {
 // Destination contains contextual data about the destination of a span, such as address and port
 type Destination struct {
 	Address string
-	Port    *int
+	Port    int
 }
 
 // DestinationService contains information about the destination service of a span event
@@ -145,11 +145,11 @@ func (http *HTTP) fields() common.MapStr {
 		fields.set("url", common.MapStr(url))
 	}
 	response := http.Response.Fields()
-	if http.StatusCode != nil {
+	if http.StatusCode > 0 {
 		if response == nil {
-			response = common.MapStr{"status_code": *http.StatusCode}
-		} else if http.Response.StatusCode == nil {
-			response["status_code"] = *http.StatusCode
+			response = common.MapStr{"status_code": http.StatusCode}
+		} else if http.Response.StatusCode == 0 {
+			response["status_code"] = http.StatusCode
 		}
 	}
 	fields.maybeSetMapStr("response", response)
@@ -168,7 +168,9 @@ func (d *Destination) fields() common.MapStr {
 			fields.set("ip", d.Address)
 		}
 	}
-	fields.maybeSetIntptr("port", d.Port)
+	if d.Port > 0 {
+		fields.set("port", d.Port)
+	}
 	return common.MapStr(fields)
 }
 
