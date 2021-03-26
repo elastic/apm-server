@@ -66,6 +66,8 @@ const (
 	IDResponseErrorsValidate ResultID = "response.errors.validate"
 	// IDResponseErrorsRateLimit identifies responses for rate limited requests
 	IDResponseErrorsRateLimit ResultID = "response.errors.ratelimit"
+	// IDResponseErrorsTimeout identifies responses for timed out requests
+	IDResponseErrorsTimeout ResultID = "response.errors.timeout"
 	// IDResponseErrorsMethodNotAllowed identifies responses for requests using a forbidden method
 	IDResponseErrorsMethodNotAllowed ResultID = "response.errors.method"
 	// IDResponseErrorsFullQueue identifies responses when internal queue was full
@@ -94,6 +96,7 @@ var (
 		IDResponseErrorsValidate:           {Code: http.StatusBadRequest, Keyword: "data validation error"},
 		IDResponseErrorsMethodNotAllowed:   {Code: http.StatusMethodNotAllowed, Keyword: "method not supported"},
 		IDResponseErrorsRateLimit:          {Code: http.StatusTooManyRequests, Keyword: "too many requests"},
+		IDResponseErrorsTimeout:            {Code: http.StatusServiceUnavailable, Keyword: "request timed out"},
 		IDResponseErrorsFullQueue:          {Code: http.StatusServiceUnavailable, Keyword: "queue is full"},
 		IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
