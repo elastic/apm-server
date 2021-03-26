@@ -12,8 +12,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "labels": {
                 "as": "thrift",
@@ -31,10 +30,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "driver"
             },
             "timestamp": {
                 "us": 1576827704953864
@@ -72,8 +68,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -86,10 +81,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "driver"
             },
             "timestamp": {
                 "us": 1576827705007552
@@ -122,8 +114,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -136,10 +127,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "driver"
             },
             "timestamp": {
                 "us": 1576827705089431
@@ -172,8 +160,7 @@
             },
             "host": {
                 "hostname": "host01",
-                "ip": "10.0.0.13",
-                "name": "host01"
+                "ip": "10.0.0.13"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -186,10 +173,7 @@
                 "language": {
                     "name": "Go"
                 },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
+                "name": "driver"
             },
             "timestamp": {
                 "us": 1576827705172530

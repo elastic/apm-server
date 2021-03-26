@@ -97,7 +97,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -110,7 +110,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -123,7 +123,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -136,7 +136,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -224,8 +224,4 @@ func compareMetricsets(ms metricset, timestamp time.Time, labels []stringMapItem
 		}
 	}
 	return 0
-}
-
-func asTime(in pdata.TimestampUnixNano) time.Time {
-	return time.Unix(0, int64(in)).UTC()
 }

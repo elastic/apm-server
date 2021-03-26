@@ -44,8 +44,8 @@ import (
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
-	"go.opentelemetry.io/collector/service/builder"
 	"go.opentelemetry.io/collector/service/defaultcomponents"
+	"go.opentelemetry.io/collector/service/internal/builder"
 	"go.opentelemetry.io/collector/testutil"
 )
 
@@ -59,7 +59,7 @@ func TestApplication_Start(t *testing.T) {
 		return nil
 	}
 
-	app, err := New(Parameters{Factories: factories, ApplicationStartInfo: componenttest.TestApplicationStartInfo(), LoggingOptions: []zap.Option{zap.Hooks(hook)}})
+	app, err := New(Parameters{Factories: factories, ApplicationStartInfo: component.DefaultApplicationStartInfo(), LoggingOptions: []zap.Option{zap.Hooks(hook)}})
 	require.NoError(t, err)
 	assert.Equal(t, app.rootCmd, app.Command())
 
@@ -119,7 +119,7 @@ func TestApplication_ReportError(t *testing.T) {
 	factories, err := defaultcomponents.Components()
 	require.NoError(t, err)
 
-	app, err := New(Parameters{Factories: factories, ApplicationStartInfo: componenttest.TestApplicationStartInfo()})
+	app, err := New(Parameters{Factories: factories, ApplicationStartInfo: component.DefaultApplicationStartInfo()})
 	require.NoError(t, err)
 
 	app.rootCmd.SetArgs([]string{"--config=testdata/otelcol-config-minimal.yaml"})
@@ -143,7 +143,7 @@ func TestApplication_StartAsGoRoutine(t *testing.T) {
 	require.NoError(t, err)
 
 	params := Parameters{
-		ApplicationStartInfo: componenttest.TestApplicationStartInfo(),
+		ApplicationStartInfo: component.DefaultApplicationStartInfo(),
 		ConfigFactory: func(_ *viper.Viper, _ *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
 			return constructMimumalOpConfig(t, factories), nil
 		},
@@ -343,7 +343,7 @@ func (b badExtensionFactory) CreateDefaultConfig() configmodels.Extension {
 	return &configmodels.ExtensionSettings{}
 }
 
-func (b badExtensionFactory) CreateExtension(_ context.Context, _ component.ExtensionCreateParams, _ configmodels.Extension) (component.ServiceExtension, error) {
+func (b badExtensionFactory) CreateExtension(_ context.Context, _ component.ExtensionCreateParams, _ configmodels.Extension) (component.Extension, error) {
 	return nil, nil
 }
 
@@ -557,8 +557,8 @@ func TestSetFlag(t *testing.T) {
 		}
 		sort.Strings(processors)
 		// batch/foo is not added to the pipeline
-		assert.Equal(t, []string{"attributes", "batch", "batch/foo", "queued_retry"}, processors)
-		assert.Equal(t, []string{"attributes", "batch", "queued_retry"}, cfg.Service.Pipelines["traces"].Processors)
+		assert.Equal(t, []string{"attributes", "batch", "batch/foo"}, processors)
+		assert.Equal(t, []string{"attributes", "batch"}, cfg.Service.Pipelines["traces"].Processors)
 	})
 	t.Run("ok", func(t *testing.T) {
 		app, err := New(params)
@@ -581,7 +581,7 @@ func TestSetFlag(t *testing.T) {
 		err = config.ValidateConfig(cfg, zap.NewNop())
 		require.NoError(t, err)
 
-		assert.Equal(t, 3, len(cfg.Processors))
+		assert.Equal(t, 2, len(cfg.Processors))
 		batch := cfg.Processors["batch"].(*batchprocessor.Config)
 		assert.Equal(t, time.Second*2, batch.Timeout)
 		jaeger := cfg.Receivers["jaeger"].(*jaegerreceiver.Config)

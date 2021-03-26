@@ -37,26 +37,14 @@ func TestServiceTransform(t *testing.T) {
 	serviceName, serviceNodeName := "myService", "abc"
 
 	tests := []struct {
-		Service               Service
-		ContainerID, HostName string
-		Fields                common.MapStr
-		AgentFields           common.MapStr
+		Service     Service
+		Fields      common.MapStr
+		AgentFields common.MapStr
 	}{
 		{
 			Service:     Service{},
 			AgentFields: nil,
 			Fields:      nil,
-		}, {
-			Service:     Service{},
-			ContainerID: "foo",
-			HostName:    "bar",
-			AgentFields: nil,
-			Fields:      common.MapStr{"node": common.MapStr{"name": "foo"}},
-		}, {
-			Service:     Service{},
-			HostName:    "bar",
-			AgentFields: nil,
-			Fields:      common.MapStr{"node": common.MapStr{"name": "bar"}},
 		},
 		{
 			Service: Service{
@@ -81,8 +69,6 @@ func TestServiceTransform(t *testing.T) {
 				},
 				Node: ServiceNode{Name: serviceNodeName},
 			},
-			ContainerID: "foo",
-			HostName:    "bar",
 			AgentFields: common.MapStr{
 				"name":    "elastic-node",
 				"version": "1.0.0",
@@ -109,7 +95,7 @@ func TestServiceTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.Fields, test.Service.Fields(test.ContainerID, test.HostName))
-		assert.Equal(t, test.AgentFields, test.Service.AgentFields())
+		assert.Equal(t, test.Fields, test.Service.Fields())
+		assert.Equal(t, test.AgentFields, test.Service.Agent.fields())
 	}
 }
