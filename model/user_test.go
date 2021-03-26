@@ -53,7 +53,7 @@ func TestUserFields(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.User.Fields()
+		output := test.User.fields()
 		assert.Equal(t, test.Output, output)
 	}
 }

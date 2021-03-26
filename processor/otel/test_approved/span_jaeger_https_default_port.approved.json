@@ -16,8 +16,7 @@
                 "outcome": "unknown"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000058585858"
@@ -30,10 +29,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "span": {
                 "destination": {
