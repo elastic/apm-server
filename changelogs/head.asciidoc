@@ -28,6 +28,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Improved coverage of translation of OpenTelemetry resource conventions {pull}4955[4955]
 * Set `client.ip` for events from the Elastic APM iOS agent {pull}4975[4975]
 * Calculate service destination metrics for OpenTelemetry spans {pull}4976[4976]
+* Add exponential retries to api key and tail sampling requests{pull}4991[4991]
 
 [float]
 ==== Deprecated

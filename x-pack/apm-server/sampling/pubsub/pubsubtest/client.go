@@ -85,6 +85,8 @@ func Client(pub Publisher, sub Subscriber) elasticsearch.Client {
 		[]string{"testing.invalid"}, // addresses
 		nil,                         // headers
 		&channelClientRoundTripper{pub: pub, sub: sub},
+		3,
+		elasticsearch.DefaultBackoff,
 	)
 	if err != nil {
 		panic(err)
