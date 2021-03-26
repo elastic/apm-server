@@ -46,6 +46,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/translator/conventions"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -992,6 +993,23 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	return events.Spans[0]
 }
 
+func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (*model.Transaction, []*model.Error) {
+	traces, spans := newTracesSpans()
+	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		conventions.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
+	})
+	otelSpan := pdata.NewSpan()
+	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	for _, spanEvent := range spanEvents {
+		otelSpan.Events().Append(spanEvent)
+	}
+	spans.Spans().Append(otelSpan)
+	events := transformTraces(t, traces)
+	require.NotEmpty(t, events)
+	return events.Transactions[0], events.Errors
+}
+
 func transformTraces(t *testing.T, traces pdata.Traces) *model.Batch {
 	var processed *model.Batch
 	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
@@ -1015,5 +1033,9 @@ func newTracesSpans() (pdata.Traces, pdata.InstrumentationLibrarySpans) {
 }
 
 func newInt(v int) *int {
+	return &v
+}
+
+func newBool(v bool) *bool {
 	return &v
 }
