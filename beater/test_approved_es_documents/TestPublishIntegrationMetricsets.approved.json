@@ -29,6 +29,7 @@
                 "tag2": 2
             },
             "long_gauge": 3147483648,
+            "metricset.name": "span_breakdown",
             "negative": {
                 "d": {
                     "o": {
@@ -127,6 +128,7 @@
                 "tag1": "one",
                 "tag2": 2
             },
+            "metricset.name": "app",
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -173,6 +175,7 @@
                 "tag1": "one",
                 "tag2": 2
             },
+            "metricset.name": "app",
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
