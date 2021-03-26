@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -156,7 +155,7 @@ type MetricsetSpan struct {
 	DestinationService DestinationService
 }
 
-func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (me *Metricset) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
 	metricsetTransformations.Inc()
 	if me == nil {
 		return nil
@@ -219,10 +218,10 @@ func (me *Metricset) Transform(ctx context.Context, cfg *transform.Config) []bea
 		fields[datastreams.TypeField] = datastreams.MetricsType
 	}
 
-	return []beat.Event{{
+	return append(events, beat.Event{
 		Fields:    common.MapStr(fields),
 		Timestamp: me.Timestamp,
-	}}
+	})
 }
 
 func (e *MetricsetEventCategorization) fields() common.MapStr {

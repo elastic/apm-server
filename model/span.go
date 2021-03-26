@@ -183,7 +183,7 @@ func (d *DestinationService) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, events []beat.Event) []beat.Event {
 	spanTransformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		spanStacktraceCounter.Inc()
@@ -237,10 +237,10 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return []beat.Event{{
+	return append(events, beat.Event{
 		Fields:    common.MapStr(fields),
 		Timestamp: e.Timestamp,
-	}}
+	})
 }
 
 func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr {
