@@ -21,8 +21,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 	"github.com/pkg/errors"
+
+	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 type Error struct {
