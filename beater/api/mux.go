@@ -19,6 +19,7 @@ package api
 
 import (
 	"net/http"
+	"net/http/pprof"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -112,6 +113,15 @@ func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Repo
 		path := beaterConfig.Expvar.URL
 		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, http.HandlerFunc(debugVarsHandler))
+	}
+	if beaterConfig.Pprof.IsEnabled() {
+		const path = "/debug/pprof"
+		logger.Infof("Path %s added to request handler", path)
+		mux.Handle(path+"/", http.HandlerFunc(pprof.Index))
+		mux.Handle(path+"/cmdline", http.HandlerFunc(pprof.Cmdline))
+		mux.Handle(path+"/profile", http.HandlerFunc(pprof.Profile))
+		mux.Handle(path+"/symbol", http.HandlerFunc(pprof.Symbol))
+		mux.Handle(path+"/trace", http.HandlerFunc(pprof.Trace))
 	}
 	return mux, nil
 }
