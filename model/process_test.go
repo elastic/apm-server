@@ -29,6 +29,8 @@ import (
 
 func TestProcessTransform(t *testing.T) {
 	processTitle := "node"
+	commandLine := "node run.js"
+	executablePath := "/usr/bin/node"
 	argv := []string{
 		"node",
 		"server.js",
@@ -44,16 +46,20 @@ func TestProcessTransform(t *testing.T) {
 		},
 		{
 			Process: Process{
-				Pid:   123,
-				Ppid:  tests.IntPtr(456),
-				Title: processTitle,
-				Argv:  argv,
+				Pid:         123,
+				Ppid:        tests.IntPtr(456),
+				Title:       processTitle,
+				Argv:        argv,
+				CommandLine: commandLine,
+				Executable:  executablePath,
 			},
 			Output: common.MapStr{
-				"pid":   123,
-				"ppid":  456,
-				"title": processTitle,
-				"args":  argv,
+				"pid":          123,
+				"ppid":         456,
+				"title":        processTitle,
+				"args":         argv,
+				"command_line": commandLine,
+				"executable":   executablePath,
 			},
 		},
 	}

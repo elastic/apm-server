@@ -42,15 +42,19 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 	var exporterVersion string
 	resource.Attributes().ForEach(func(k string, v pdata.AttributeValue) {
 		switch k {
+		// service.*
 		case conventions.AttributeServiceName:
 			out.Service.Name = cleanServiceName(v.StringVal())
 		case conventions.AttributeServiceVersion:
 			out.Service.Version = truncate(v.StringVal())
 		case conventions.AttributeServiceInstance:
 			out.Service.Node.Name = truncate(v.StringVal())
+
+		// deployment.*
 		case conventions.AttributeDeploymentEnvironment:
 			out.Service.Environment = truncate(v.StringVal())
 
+		// telemetry.sdk.*
 		case conventions.AttributeTelemetrySDKName:
 			out.Service.Agent.Name = truncate(v.StringVal())
 		case conventions.AttributeTelemetrySDKLanguage:
@@ -58,19 +62,69 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 		case conventions.AttributeTelemetrySDKVersion:
 			out.Service.Agent.Version = truncate(v.StringVal())
 
+		// cloud.*
+		case conventions.AttributeCloudProvider:
+			out.Cloud.Provider = truncate(v.StringVal())
+		case conventions.AttributeCloudAccount:
+			out.Cloud.AccountID = truncate(v.StringVal())
+		case conventions.AttributeCloudRegion:
+			out.Cloud.Region = truncate(v.StringVal())
+		case conventions.AttributeCloudZone, "cloud.availability_zone":
+			out.Cloud.AvailabilityZone = truncate(v.StringVal())
+		case conventions.AttributeCloudInfrastructureService:
+			out.Cloud.ServiceName = truncate(v.StringVal())
+
+		// container.*
+		case conventions.AttributeContainerName:
+			out.System.Container.Name = truncate(v.StringVal())
+		case conventions.AttributeContainerID:
+			out.System.Container.ID = truncate(v.StringVal())
+		case conventions.AttributeContainerImage:
+			out.System.Container.ImageName = truncate(v.StringVal())
+		case conventions.AttributeContainerTag:
+			out.System.Container.ImageTag = truncate(v.StringVal())
+		case "container.runtime":
+			out.System.Container.Runtime = truncate(v.StringVal())
+
+		// k8s.*
 		case conventions.AttributeK8sNamespace:
 			out.System.Kubernetes.Namespace = truncate(v.StringVal())
+		case conventions.AttributeK8sNodeName:
+			out.System.Kubernetes.NodeName = truncate(v.StringVal())
 		case conventions.AttributeK8sPod:
 			out.System.Kubernetes.PodName = truncate(v.StringVal())
 		case conventions.AttributeK8sPodUID:
 			out.System.Kubernetes.PodUID = truncate(v.StringVal())
 
+		// host.*
 		case conventions.AttributeHostName:
 			out.System.DetectedHostname = truncate(v.StringVal())
+		case conventions.AttributeHostID:
+			out.System.ID = truncate(v.StringVal())
+		case conventions.AttributeHostType:
+			out.System.Type = truncate(v.StringVal())
+		case "host.arch":
+			out.System.Architecture = truncate(v.StringVal())
 
+		// process.*
 		case conventions.AttributeProcessID:
 			out.Process.Pid = int(v.IntVal())
+		case conventions.AttributeProcessCommandLine:
+			out.Process.CommandLine = truncate(v.StringVal())
+		case conventions.AttributeProcessExecutablePath:
+			out.Process.Executable = truncate(v.StringVal())
+		case "process.runtime.name":
+			out.Service.Runtime.Name = truncate(v.StringVal())
+		case "process.runtime.version":
+			out.Service.Runtime.Version = truncate(v.StringVal())
 
+		// os.*
+		case conventions.AttributeOSType:
+			out.System.Platform = strings.ToLower(truncate(v.StringVal()))
+		case conventions.AttributeOSDescription:
+			out.System.FullPlatform = truncate(v.StringVal())
+
+		// Legacy OpenCensus attributes.
 		case conventions.OCAttributeExporterVersion:
 			exporterVersion = v.StringVal()
 
@@ -81,6 +135,19 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 			out.Labels[replaceDots(k)] = ifaceAttributeValue(v)
 		}
 	})
+
+	// https://www.elastic.co/guide/en/ecs/current/ecs-os.html#field-os-type:
+	//
+	// "One of these following values should be used (lowercase): linux, macos, unix, windows.
+	// If the OS you’re dealing with is not in the list, the field should not be populated."
+	switch out.System.Platform {
+	case "windows", "linux":
+		out.System.OSType = out.System.Platform
+	case "darwin":
+		out.System.OSType = "macos"
+	case "aix", "hpux", "solaris":
+		out.System.OSType = "unix"
+	}
 
 	if strings.HasPrefix(exporterVersion, "Jaeger") {
 		// version is of format `Jaeger-<agentlanguage>-<version>`, e.g. `Jaeger-Go-2.20.0`

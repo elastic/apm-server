@@ -40,6 +40,22 @@ func TestContainerTransform(t *testing.T) {
 			Container: Container{ID: id},
 			Output:    common.MapStr{"id": id},
 		},
+		{
+			Container: Container{Name: "container_name"},
+			Output:    common.MapStr{"name": "container_name"},
+		},
+		{
+			Container: Container{Runtime: "container_runtime"},
+			Output:    common.MapStr{"runtime": "container_runtime"},
+		},
+		{
+			Container: Container{ImageName: "image_name"},
+			Output:    common.MapStr{"image": common.MapStr{"name": "image_name"}},
+		},
+		{
+			Container: Container{ImageTag: "image_tag"},
+			Output:    common.MapStr{"image": common.MapStr{"tag": "image_tag"}},
+		},
 	}
 
 	for _, test := range tests {

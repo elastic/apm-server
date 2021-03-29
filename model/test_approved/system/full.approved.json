@@ -4,6 +4,9 @@
     "ip": "127.0.0.1",
     "name": "custom hostname",
     "os": {
-        "platform": "osx"
-    }
+        "full": "Mac OS Mojave",
+        "platform": "osx",
+        "type": "macos"
+    },
+    "type": "t2.medium"
 }
