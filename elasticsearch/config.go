@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/transport"
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 )
 
 const (
@@ -55,11 +56,20 @@ type Config struct {
 	Password     string            `config:"password"`
 	APIKey       string            `config:"api_key"`
 	Headers      map[string]string `config:"headers"`
+	MaxRetries   int               `config:"max_retries"`
+
+	elasticsearch.Backoff `config:"backoff"`
 }
 
 // DefaultConfig returns a default config.
 func DefaultConfig() *Config {
-	return &Config{Hosts: []string{"localhost:9200"}, Protocol: "http", Timeout: esConnectionTimeout}
+	return &Config{
+		Hosts:      []string{"localhost:9200"},
+		Protocol:   "http",
+		Timeout:    esConnectionTimeout,
+		MaxRetries: 3,
+		Backoff:    DefaultBackoffConfig,
+	}
 }
 
 // Hosts is an array of host strings and needs to have at least one entry
