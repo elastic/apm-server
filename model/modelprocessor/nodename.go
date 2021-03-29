@@ -32,7 +32,7 @@ type SetServiceNodeName struct{}
 
 // ProcessBatch sets a default service.node.name for events without one already set.
 func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	return foreachEventMetadata(ctx, b, setServiceNodeName)
+	return MetadataProcessorFunc(setServiceNodeName).ProcessBatch(ctx, b)
 }
 
 func setServiceNodeName(ctx context.Context, meta *model.Metadata) error {
