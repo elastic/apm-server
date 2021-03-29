@@ -209,19 +209,24 @@ apm-server:
 
     #-- General RUM settings
 
+    # A list of service names to allow, to limit service-specific indices and data streams
+    # created for unauthenticated RUM events.
+    # If the list is empty, any service name is allowed.
+    #allow_service_names: []
+
     # A list of permitted origins for real user monitoring.
     # User-agents will send an origin header that will be validated against this list.
     # An origin is made of a protocol scheme, host and port, without the url path.
     # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)
     # If an item in the list is a single '*', everything will be allowed.
-    #allow_origins : ['*']
+    #allow_origins: ['*']
 
     # A list of Access-Control-Allow-Headers to allow RUM requests, in addition to "Content-Type",
     # "Content-Encoding", and "Accept"
-    #allow_headers : []
+    #allow_headers: []
 
     # Custom HTTP headers to add to RUM responses, e.g. for security policy compliance.
-    #response_headers :
+    #response_headers:
     #  X-My-Header: Contents of the header
 
     # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
