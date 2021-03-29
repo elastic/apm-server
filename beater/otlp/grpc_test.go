@@ -32,6 +32,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -102,10 +103,11 @@ func TestConsumeTraces(t *testing.T) {
 		actual[key] = value
 	})
 	assert.Equal(t, map[string]interface{}{
-		"request.count":         int64(2),
-		"response.count":        int64(2),
-		"response.errors.count": int64(1),
-		"response.valid.count":  int64(1),
+		"request.count":                int64(2),
+		"response.count":               int64(2),
+		"response.errors.count":        int64(1),
+		"response.valid.count":         int64(1),
+		"response.errors.unauthorized": int64(0),
 	}, actual)
 }
 
@@ -161,10 +163,11 @@ func TestConsumeMetrics(t *testing.T) {
 		// we treat them as unsupported metrics.
 		"consumer.unsupported_dropped": int64(2),
 
-		"request.count":         int64(2),
-		"response.count":        int64(2),
-		"response.errors.count": int64(1),
-		"response.valid.count":  int64(1),
+		"request.count":                int64(2),
+		"response.count":               int64(2),
+		"response.errors.count":        int64(1),
+		"response.valid.count":         int64(1),
+		"response.errors.unauthorized": int64(0),
 	}, actual)
 }
 
@@ -199,9 +202,11 @@ func newExportMetricsServiceResponse() interface{} {
 func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-
-	srv := grpc.NewServer()
-	err = otlp.RegisterGRPCServices(srv, batchProcessor, logp.NewLogger("otlp_test"))
+	logger := logp.NewLogger("otlp.grpc.test")
+	srv := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.RegistryMonitoringMaps)),
+	)
+	err = otlp.RegisterGRPCServices(srv, batchProcessor)
 	require.NoError(t, err)
 
 	go srv.Serve(lis)
