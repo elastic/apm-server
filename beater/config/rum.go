@@ -59,11 +59,13 @@ type EventRate struct {
 
 // SourceMapping holds sourecemap config information
 type SourceMapping struct {
-	Cache        *Cache                `config:"cache"`
-	Enabled      *bool                 `config:"enabled"`
-	IndexPattern string                `config:"index_pattern"`
-	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
-	esConfigured bool
+	Cache        *Cache `config:"cache"`
+	Enabled      *bool  `config:"enabled"`
+	IndexPattern string `config:"index_pattern"`
+	// TODO: uint? uint64? Or do we not care and just use an int?
+	MaxLineLength uint                  `config:"max_line_length"`
+	ESConfig      *elasticsearch.Config `config:"elasticsearch"`
+	esConfigured  bool
 }
 
 // IsEnabled indicates whether RUM endpoint is enabled or not
@@ -131,9 +133,10 @@ func (s *SourceMapping) Unpack(inp *common.Config) error {
 
 func defaultSourcemapping() *SourceMapping {
 	return &SourceMapping{
-		Cache:        &Cache{Expiration: defaultSourcemapCacheExpiration},
-		IndexPattern: defaultSourcemapIndexPattern,
-		ESConfig:     elasticsearch.DefaultConfig(),
+		Cache:         &Cache{Expiration: defaultSourcemapCacheExpiration},
+		IndexPattern:  defaultSourcemapIndexPattern,
+		ESConfig:      elasticsearch.DefaultConfig(),
+		MaxLineLength: 0,
 	}
 }
 

@@ -22,8 +22,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/elastic/apm-server/sourcemap/test"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -32,17 +30,17 @@ import (
 
 func TestMapNilConsumer(t *testing.T) {
 	// no sourcemapConsumer
-	_, _, _, _, _, _, _, ok := Map(nil, 0, 0)
+	_, _, _, _, _, _, _, ok := Map(nil, 0, 0, 0)
 	assert.False(t, ok)
 }
 
 func TestMapNoMatch(t *testing.T) {
 	m, err := sourcemap.Parse("", []byte(test.ValidSourcemap))
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	// nothing found for lineno and colno
-	file, fc, line, col, ctxLine, _, _, ok := Map(m, 0, 0)
-	require.False(t, ok)
+	file, fc, line, col, ctxLine, _, _, ok := Map(m, 0, 0, 0)
+	assert.False(t, ok)
 	assert.Zero(t, file)
 	assert.Zero(t, fc)
 	assert.Zero(t, line)
@@ -56,7 +54,7 @@ func TestMapMatch(t *testing.T) {
 	// Re-encode the sourcemap, adding carriage returns to the
 	// line endings in the source content.
 	decoded := make(map[string]interface{})
-	require.NoError(t, json.Unmarshal([]byte(validSourcemap), &decoded))
+	assert.NoError(t, json.Unmarshal([]byte(validSourcemap), &decoded))
 	sourceContent := decoded["sourcesContent"].([]interface{})
 	for i := range sourceContent {
 		sourceContentFile := sourceContent[i].(string)
@@ -64,14 +62,14 @@ func TestMapMatch(t *testing.T) {
 		sourceContent[i] = sourceContentFile
 	}
 	crlfSourcemap, err := json.Marshal(decoded)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	// mapping found in minified sourcemap
 	test := func(t *testing.T, source []byte) {
 		m, err := sourcemap.Parse("", source)
-		require.NoError(t, err)
-		file, fc, line, col, ctxLine, preCtx, postCtx, ok := Map(m, 1, 7)
-		require.True(t, ok)
+		assert.NoError(t, err)
+		file, fc, line, col, ctxLine, preCtx, postCtx, ok := Map(m, 1, 7, 0)
+		assert.True(t, ok)
 		assert.Equal(t, "webpack:///bundle.js", file)
 		assert.Equal(t, "", fc)
 		assert.Equal(t, 1, line)
@@ -82,4 +80,21 @@ func TestMapMatch(t *testing.T) {
 	}
 	t.Run("unix_endings", func(t *testing.T) { test(t, []byte(validSourcemap)) })
 	t.Run("windows_endings", func(t *testing.T) { test(t, crlfSourcemap) })
+}
+
+func TestMapMaxLineLength(t *testing.T) {
+	source := []byte(test.ValidSourcemap)
+
+	// mapping found in minified sourcemap
+	m, err := sourcemap.Parse("", source)
+	assert.NoError(t, err)
+	file, fc, line, col, ctxLine, preCtx, postCtx, ok := Map(m, 1, 7, 16)
+	assert.True(t, ok)
+	assert.Equal(t, "webpack:///bundle.js", file)
+	assert.Equal(t, "", fc)
+	assert.Equal(t, 1, line)
+	assert.Equal(t, 9, col)
+	assert.Equal(t, "/******/ (func..", ctxLine)
+	assert.Empty(t, preCtx)
+	assert.NotZero(t, postCtx)
 }

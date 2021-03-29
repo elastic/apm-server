@@ -39,7 +39,6 @@ func TestIsRumEnabled(t *testing.T) {
 		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, enabled: true},
 	} {
 		assert.Equal(t, td.enabled, td.c.RumConfig.IsEnabled())
-
 	}
 }
 
@@ -62,4 +61,18 @@ func TestRumSetup(t *testing.T) {
 func TestDefaultRum(t *testing.T) {
 	c := DefaultConfig()
 	assert.Equal(t, defaultRum(), c.RumConfig)
+}
+
+func TestSourceMapMaxLineLength(t *testing.T) {
+	maxLen := uint(512)
+	srcMapping := defaultSourcemapping()
+	srcMapping.MaxLineLength = maxLen
+
+	parsedSrcMapping := new(SourceMapping)
+
+	parsedSrcMapping.Unpack(common.MustNewConfigFrom(map[string]interface{}{
+		"max_line_length": maxLen,
+	}))
+
+	assert.Equal(t, srcMapping.MaxLineLength, parsedSrcMapping.MaxLineLength)
 }

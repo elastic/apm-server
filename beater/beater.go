@@ -603,6 +603,7 @@ func newTransformConfig(beatInfo beat.Info, cfg *config.Config) (*transform.Conf
 		RUM: transform.RUMConfig{
 			LibraryPattern:      regexp.MustCompile(cfg.RumConfig.LibraryPattern),
 			ExcludeFromGrouping: regexp.MustCompile(cfg.RumConfig.ExcludeFromGrouping),
+			MaxLineLength:       cfg.RumConfig.SourceMapping.MaxLineLength,
 		},
 	}
 

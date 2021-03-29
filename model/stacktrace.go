@@ -63,7 +63,7 @@ func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum 
 	logger := logp.NewLogger(logs.Stacktrace)
 	fct := "<anonymous>"
 	return st.transformFrames(cfg, rum, func(frame *StacktraceFrame) {
-		fct, errMsg = frame.applySourcemap(ctx, cfg.RUM.SourcemapStore, service, fct)
+		fct, errMsg = frame.applySourcemap(ctx, cfg.RUM.SourcemapStore, service, fct, cfg.RUM.MaxLineLength)
 		if errMsg == "" || !logger.IsDebug() {
 			return
 		}

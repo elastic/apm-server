@@ -19,23 +19,38 @@ package sourcemap
 
 import (
 	"bufio"
+	"bytes"
 	"strings"
 
 	"github.com/go-sourcemap/sourcemap"
 )
 
-const sourcemapContentSnippetSize = 5
+const (
+	sourcemapContentSnippetSize = 5
+	// TODO: What value do we want here?
+	minMaxLineLength = 16
+)
 
 // Map sourcemapping for given line and column and return values after sourcemapping
-func Map(mapper *sourcemap.Consumer, lineno, colno int) (
-	file string, function string, line int, col int,
-	contextLine string, preContext []string, postContext []string, ok bool) {
-
+func Map(mapper *sourcemap.Consumer, lineno, colno int, maxLineLength uint) (
+	file, function string,
+	line, col int,
+	contextLine string,
+	preContext, postContext []string,
+	ok bool,
+) {
 	if mapper == nil {
 		return
 	}
+
 	file, function, line, col, ok = mapper.Source(lineno, colno)
 	scanner := bufio.NewScanner(strings.NewReader(mapper.SourceContent(file)))
+	if maxLineLength > 0 {
+		if maxLineLength < minMaxLineLength {
+			maxLineLength = minMaxLineLength
+		}
+		scanner.Split(limitScanLines(int(maxLineLength)))
+	}
 
 	var currentLine int
 	for scanner.Scan() {
@@ -65,4 +80,41 @@ func abs(n int) int {
 		return -n
 	}
 	return n
+}
+
+// limitScanLines is a modified form of bufio.ScanLines. It truncates any lines
+// longer than the supplied `max` value.
+func limitScanLines(max int) func([]byte, bool) (int, []byte, error) {
+	return func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+
+		if i := bytes.IndexByte(data, '\n'); i >= 0 {
+			if i > max {
+				for j := max; j > 0 && j >= max-2; j-- {
+					data[j] = '.'
+				}
+				return i + 1, data[0:max], nil
+			}
+			// We have a full newline-terminated line that is smaller than `max`.
+			return i + 1, dropCR(data[0:i]), nil
+		}
+
+		// If we're at EOF, we have a final, non-terminated line.
+		if atEOF {
+			return len(data), dropCR(data), nil
+		}
+
+		// Request more data.
+		return 0, nil, nil
+	}
+}
+
+func dropCR(data []byte) []byte {
+	if len(data) > 0 && data[len(data)-1] == '\r' {
+		return data[0 : len(data)-1]
+	}
+
+	return data
 }

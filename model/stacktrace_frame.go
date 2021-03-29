@@ -143,7 +143,13 @@ func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.LibraryFrame = &libraryFrame
 }
 
-func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.Store, service *Service, prevFunction string) (function string, errMsg string) {
+func (s *StacktraceFrame) applySourcemap(
+	ctx context.Context,
+	store *sourcemap.Store,
+	service *Service,
+	prevFunction string,
+	maxLineLength uint,
+) (function, errMsg string) {
 	function = prevFunction
 
 	var valid bool
@@ -167,7 +173,7 @@ func (s *StacktraceFrame) applySourcemap(ctx context.Context, store *sourcemap.S
 		return
 	}
 
-	file, fct, line, col, ctxLine, preCtx, postCtx, ok := sourcemap.Map(mapper, *s.Original.Lineno, *s.Original.Colno)
+	file, fct, line, col, ctxLine, preCtx, postCtx, ok := sourcemap.Map(mapper, *s.Original.Lineno, *s.Original.Colno, maxLineLength)
 	if !ok {
 		errMsg = fmt.Sprintf("No Sourcemap found for Lineno %v, Colno %v", *s.Original.Lineno, *s.Original.Colno)
 		s.updateError(errMsg)

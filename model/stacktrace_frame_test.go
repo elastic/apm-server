@@ -131,7 +131,7 @@ func TestSourcemap_Apply(t *testing.T) {
 			},
 		} {
 			t.Run(name, func(t *testing.T) {
-				function, msg := tc.frame.applySourcemap(context.Background(), &sourcemap.Store{}, validService(), "foo")
+				function, msg := tc.frame.applySourcemap(context.Background(), &sourcemap.Store{}, validService(), "foo", 0)
 				assert.Equal(t, "foo", function)
 				assert.Contains(t, msg, tc.expectedErrorMsg)
 				assert.Equal(t, new(bool), tc.frame.SourcemapUpdated)
@@ -155,7 +155,7 @@ func TestSourcemap_Apply(t *testing.T) {
 		} {
 			t.Run(name, func(t *testing.T) {
 				frame := validFrame()
-				function, msg := frame.applySourcemap(context.Background(), tc.store, validService(), "xyz")
+				function, msg := frame.applySourcemap(context.Background(), tc.store, validService(), "xyz", 0)
 				assert.Equal(t, "xyz", function)
 				require.Contains(t, msg, tc.expectedErrorMsg)
 				assert.NotZero(t, frame.SourcemapError)
@@ -178,7 +178,7 @@ func TestSourcemap_Apply(t *testing.T) {
 		} {
 			t.Run(name, func(t *testing.T) {
 				frame := validFrame()
-				function, msg := frame.applySourcemap(context.Background(), tc.store, validService(), "xyz")
+				function, msg := frame.applySourcemap(context.Background(), tc.store, validService(), "xyz", 0)
 				assert.Equal(t, "xyz", function)
 				require.Contains(t, msg, tc.expectedErrorMsg)
 				assert.NotZero(t, msg)
@@ -218,7 +218,7 @@ func TestSourcemap_Apply(t *testing.T) {
 				frame := &StacktraceFrame{Colno: &tc.origCol, Lineno: &tc.origLine, AbsPath: tc.origPath}
 
 				prevFunction := "xyz"
-				function, msg := frame.applySourcemap(context.Background(), testSourcemapStore(t, test.ESClientWithValidSourcemap(t)), validService(), prevFunction)
+				function, msg := frame.applySourcemap(context.Background(), testSourcemapStore(t, test.ESClientWithValidSourcemap(t)), validService(), prevFunction, 0)
 				require.Empty(t, msg)
 				assert.Zero(t, frame.SourcemapError)
 				updated := true

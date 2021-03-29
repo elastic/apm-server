@@ -46,4 +46,5 @@ type RUMConfig struct {
 	LibraryPattern      *regexp.Regexp
 	ExcludeFromGrouping *regexp.Regexp
 	SourcemapStore      *sourcemap.Store
+	MaxLineLength       uint
 }
