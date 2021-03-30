@@ -87,6 +87,12 @@ apm_opentelemetry_metrics:
       copy_from: runtime.jvm.memory.area
       if: ctx.runtime?.jvm?.memory?.area != null && ctx.labels?.area != null && ctx.labels?.type != null
   - set:
+      # Copy `runtime.jvm.gc.collection` (OpenTelemetry) to `jvm.gc.time` (Elastic APM).
+      # Both are defined in milliseconds. This is the old name for `runtime.jvm.gc.time`.
+      field: jvm.gc.time
+      copy_from: runtime.jvm.gc.collection
+      if: ctx.runtime?.jvm?.gc?.collection != null
+  - set:
       # Copy `runtime.jvm.gc.time` (OpenTelemetry) to `jvm.gc.time` (Elastic APM).
       # Both are defined in milliseconds.
       field: jvm.gc.time
@@ -98,14 +104,8 @@ apm_opentelemetry_metrics:
       copy_from: runtime.jvm.gc.count
       if: ctx.runtime?.jvm?.gc?.count != null
   - set:
-      # Copy `runtime.jvm.gc.collection` (OpenTelemetry) to `jvm.gc.time` (Elastic APM).
-      # Both are defined in milliseconds. This is the old name for `runtime.jvm.gc.time`.
-      field: jvm.gc.time
-      copy_from: runtime.jvm.gc.collection
-      if: ctx.runtime?.jvm?.gc?.collection != null
-  - set:
       # Copy `labels.gc` (OpenTelemetry) to `labels.name` (Elastic APM), for jvm.gc.{time,count}.
       field: labels.name
       copy_from: labels.gc
       override: false # don't replace existing labels.name field, if any
-      if: ctx.labels?.gc != null
+      if: ctx.labels?.gc != null && ctx.runtime?.jvm?.gc != null
