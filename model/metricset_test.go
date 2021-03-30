@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -71,6 +70,21 @@ func TestTransform(t *testing.T) {
 				},
 			},
 			Msg: "Payload with empty metric.",
+		},
+		{
+			Metricset: &Metricset{Timestamp: timestamp, Metadata: metadata, Name: "raj"},
+			Output: []common.MapStr{
+				{
+					"data_stream.type":    "metrics",
+					"data_stream.dataset": "apm.app.myservice",
+					"processor":           common.MapStr{"event": "metric", "name": "metric"},
+					"metricset.name":      "raj",
+					"service": common.MapStr{
+						"name": "myservice",
+					},
+				},
+			},
+			Msg: "Payload with metricset name.",
 		},
 		{
 			Metricset: &Metricset{
@@ -181,7 +195,7 @@ func TestTransform(t *testing.T) {
 				Timestamp: timestamp,
 				Metadata:  metadata,
 				Span: MetricsetSpan{Type: spType, Subtype: spSubtype, DestinationService: DestinationService{
-					Resource: &resource,
+					Resource: resource,
 				}},
 				Samples: []Sample{
 					{
@@ -215,7 +229,7 @@ func TestTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Metricset.Transform(context.Background(), &transform.Config{DataStreams: true})
+		outputEvents := test.Metricset.appendBeatEvents(&transform.Config{DataStreams: true}, nil)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))

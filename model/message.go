@@ -21,16 +21,14 @@ import (
 	"net/http"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 // Message holds information about a recorded message, such as the message body and meta information
 type Message struct {
-	Body      *string
+	Body      string
 	Headers   http.Header
 	AgeMillis *int
-	QueueName *string
+	QueueName string
 }
 
 // Fields returns a MapStr holding the transformed message information
@@ -38,14 +36,16 @@ func (m *Message) Fields() common.MapStr {
 	if m == nil {
 		return nil
 	}
-	fields := common.MapStr{}
-	if m.QueueName != nil {
-		utility.Set(fields, "queue", common.MapStr{"name": m.QueueName})
+	var fields mapStr
+	if m.QueueName != "" {
+		fields.set("queue", common.MapStr{"name": m.QueueName})
 	}
 	if m.AgeMillis != nil {
-		utility.Set(fields, "age", common.MapStr{"ms": m.AgeMillis})
+		fields.set("age", common.MapStr{"ms": *m.AgeMillis})
 	}
-	utility.Set(fields, "body", m.Body)
-	utility.Set(fields, "headers", m.Headers)
-	return fields
+	fields.maybeSetString("body", m.Body)
+	if len(m.Headers) > 0 {
+		fields.set("headers", m.Headers)
+	}
+	return common.MapStr(fields)
 }

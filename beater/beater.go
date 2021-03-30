@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -46,6 +47,8 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/sampling"
 	"github.com/elastic/apm-server/sourcemap"
@@ -98,6 +101,15 @@ func NewCreator(args CreatorParams) beat.Creator {
 		}
 		if err := recordRootConfig(b.Info, bt.rawConfig); err != nil {
 			bt.logger.Errorf("Error recording telemetry data", err)
+		}
+
+		if bt.config.Pprof.IsEnabled() {
+			// Profiling rates should be set once, early on in the program.
+			runtime.SetBlockProfileRate(bt.config.Pprof.BlockProfileRate)
+			runtime.SetMutexProfileFraction(bt.config.Pprof.MutexProfileRate)
+			if bt.config.Pprof.MemProfileRate > 0 {
+				runtime.MemProfileRate = bt.config.Pprof.MemProfileRate
+			}
 		}
 
 		if !bt.config.DataStreams.Enabled {
@@ -343,16 +355,6 @@ func (s *serverRunner) run() error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	runServer := runServer
-	if s.tracerServer != nil {
-		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
-	}
-	if s.wrapRunServer != nil {
-		// Wrap runServer function, enabling injection of
-		// behaviour into the processing/reporting pipeline.
-		runServer = s.wrapRunServer(runServer)
-	}
-
 	transformConfig, err := newTransformConfig(s.beat.Info, s.config)
 	if err != nil {
 		return err
@@ -377,26 +379,57 @@ func (s *serverRunner) run() error {
 	}
 	defer publisher.Stop(s.backgroundContext)
 
+	// Create the runServer function. We start with newBaseRunServer, and then
+	// wrap depending on the configuration in order to inject behaviour.
 	reporter := publisher.Send
+	runServer := newBaseRunServer(reporter)
+	if s.tracerServer != nil {
+		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
+	}
+	if s.wrapRunServer != nil {
+		// Wrap runServer function, enabling injection of
+		// behaviour into the processing/reporting pipeline.
+		runServer = s.wrapRunServer(runServer)
+	}
+	runServer = s.wrapRunServerWithPreprocessors(runServer)
+
+	var batchProcessor model.BatchProcessor = &reporterBatchProcessor{reporter}
 	if !s.config.Sampling.KeepUnsampled {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
 		// the publisher to avoid affecting aggregations.
-		reporter = sampling.NewDiscardUnsampledReporter(reporter)
+		batchProcessor = modelprocessor.Chained{
+			sampling.NewDiscardUnsampledBatchProcessor(), batchProcessor,
+		}
 	}
 
 	if err := runServer(s.runServerContext, ServerParams{
-		Info:      s.beat.Info,
-		Config:    s.config,
-		Managed:   s.beat.Manager != nil && s.beat.Manager.Enabled(),
-		Namespace: s.namespace,
-		Logger:    s.logger,
-		Tracer:    s.tracer,
-		Reporter:  reporter,
+		Info:           s.beat.Info,
+		Config:         s.config,
+		Managed:        s.beat.Manager != nil && s.beat.Manager.Enabled(),
+		Namespace:      s.namespace,
+		Logger:         s.logger,
+		Tracer:         s.tracer,
+		BatchProcessor: batchProcessor,
 	}); err != nil {
 		return err
 	}
 	return publisher.Stop(s.backgroundContext)
+}
+
+func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
+	processors := []model.BatchProcessor{
+		modelprocessor.SetSystemHostname{},
+		modelprocessor.SetServiceNodeName{},
+		// Set metricset.name for well-known agent metrics.
+		modelprocessor.SetMetricsetName{},
+	}
+	if s.config.DefaultServiceEnvironment != "" {
+		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
+			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
+		})
+	}
+	return WrapRunServerWithProcessors(runServer, processors...)
 }
 
 // checkConfig verifies the global configuration doesn't use unsupported settings
@@ -555,7 +588,7 @@ func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServ
 	return func(ctx context.Context, args ServerParams) error {
 		g, ctx := errgroup.WithContext(ctx)
 		g.Go(func() error {
-			return tracerServer.serve(ctx, args.Reporter)
+			return tracerServer.serve(ctx, args.BatchProcessor)
 		})
 		g.Go(func() error {
 			return runServer(ctx, args)
@@ -591,4 +624,29 @@ func newSourcemapStore(beatInfo beat.Info, cfg *config.SourceMapping) (*sourcema
 	}
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
 	return sourcemap.NewStore(esClient, index, cfg.Cache.Expiration)
+}
+
+// WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter
+// with a function that event batches are first passed through the given processors
+// in order.
+func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.BatchProcessor) RunServerFunc {
+	if len(processors) == 0 {
+		return runServer
+	}
+	return func(ctx context.Context, args ServerParams) error {
+		processors = append(processors, args.BatchProcessor)
+		args.BatchProcessor = modelprocessor.Chained(processors)
+		return runServer(ctx, args)
+	}
+}
+
+type disablePublisherTracingKey struct{}
+
+type reporterBatchProcessor struct {
+	reporter publish.Reporter
+}
+
+func (p *reporterBatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+	disableTracing, _ := ctx.Value(disablePublisherTracingKey{}).(bool)
+	return p.reporter(ctx, publish.PendingReq{Transformable: batch, Trace: !disableTracing})
 }

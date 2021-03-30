@@ -22,8 +22,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 )
 
 const (
@@ -42,6 +40,8 @@ const (
 	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
 	// "too many groups" log messages are logged.
 	tooManyGroupsLoggerRateLimit = time.Minute
+
+	metricsetName = "transaction"
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
@@ -64,8 +64,8 @@ type aggregatorMetrics struct {
 
 // AggregatorConfig holds configuration for creating an Aggregator.
 type AggregatorConfig struct {
-	// Report is a publish.Reporter for reporting metrics documents.
-	Report publish.Reporter
+	// BatchProcessor is a model.BatchProcessor for asynchronously processing metrics documents.
+	BatchProcessor model.BatchProcessor
 
 	// Logger is the logger for logging histogram aggregation/publishing.
 	//
@@ -91,8 +91,8 @@ type AggregatorConfig struct {
 
 // Validate validates the aggregator config.
 func (config AggregatorConfig) Validate() error {
-	if config.Report == nil {
-		return errors.New("Report unspecified")
+	if config.BatchProcessor == nil {
+		return errors.New("BatchProcessor unspecified")
 	}
 	if config.MaxTransactionGroups <= 0 {
 		return errors.New("MaxTransactionGroups unspecified or negative")
@@ -216,7 +216,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	// the specific time period (date_range) on the metrics documents.
 
 	now := time.Now()
-	metricsets := make([]transform.Transformable, 0, a.inactive.entries)
+	metricsets := make([]*model.Metricset, 0, a.inactive.entries)
 	for hash, entries := range a.inactive.m {
 		for _, entry := range entries {
 			counts, values := entry.transactionMetrics.histogramBuckets()
@@ -228,29 +228,22 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	a.inactive.entries = 0
 
 	a.config.Logger.Debugf("publishing %d metricsets", len(metricsets))
-	return a.config.Report(ctx, publish.PendingReq{
-		Transformables: metricsets,
-		Trace:          true,
-	})
+	return a.config.BatchProcessor.ProcessBatch(ctx, &model.Batch{Metricsets: metricsets})
 }
 
-// ProcessTransformables aggregates all transactions contained in
-// "in", returning the input with any metricsets requiring immediate
-// publication appended.
+// ProcessBatch aggregates all transactions contained in "b", adding to it any
+// metricsets requiring immediate publication appended.
 //
-// This method is expected to be used immediately prior to publishing
-// the events, so that the metricsets requiring immediate publication
-// can be included in the same batch.
-func (a *Aggregator) ProcessTransformables(ctx context.Context, in []transform.Transformable) ([]transform.Transformable, error) {
-	out := in
-	for _, tf := range in {
-		if tx, ok := tf.(*model.Transaction); ok {
-			if metricset := a.AggregateTransaction(tx); metricset != nil {
-				out = append(out, metricset)
-			}
+// This method is expected to be used immediately prior to publishing the
+// events, so that the metricsets requiring immediate publication can be
+// included in the same batch.
+func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
+	for _, tx := range b.Transactions {
+		if metricset := a.AggregateTransaction(tx); metricset != nil {
+			b.Metricsets = append(b.Metricsets, metricset)
 		}
 	}
-	return out, nil
+	return nil
 }
 
 // AggregateTransaction aggregates transaction metrics.
@@ -355,7 +348,7 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 		serviceName:        tx.Metadata.Service.Name,
 		serviceVersion:     tx.Metadata.Service.Version,
 
-		hostname:          tx.Metadata.System.Hostname(),
+		hostname:          tx.Metadata.System.DetectedHostname,
 		containerID:       tx.Metadata.System.Container.ID,
 		kubernetesPodName: tx.Metadata.System.Kubernetes.PodName,
 	}
@@ -365,6 +358,7 @@ func (a *Aggregator) makeTransactionAggregationKey(tx *model.Transaction) transa
 func makeMetricset(key transactionAggregationKey, hash uint64, ts time.Time, counts []int64, values []float64) model.Metricset {
 	out := model.Metricset{
 		Timestamp: ts,
+		Name:      metricsetName,
 		Metadata: model.Metadata{
 			Service: model.Service{
 				Name:        key.serviceName,

@@ -17,14 +17,14 @@ package internal
 var metricsFile = &File{
 	Name: "metrics",
 	imports: []string{
-		`otlpmetrics "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1"`,
+		`otlpmetrics "go.opentelemetry.io/collector/internal/data/protogen/metrics/v1"`,
 	},
 	testImports: []string{
 		`"testing"`,
 		``,
 		`"github.com/stretchr/testify/assert"`,
 		``,
-		`otlpmetrics "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1"`,
+		`otlpmetrics "go.opentelemetry.io/collector/internal/data/protogen/metrics/v1"`,
 	},
 	structs: []baseStruct{
 		resourceMetricsSlice,
@@ -105,7 +105,7 @@ var metricSlice = &sliceOfPtrs{
 var metric = &messageValueStruct{
 	structName: "Metric",
 	description: "// Metric represents one metric as a collection of datapoints.\n" +
-		"// See Metric definition in OTLP: https://github.com/open-telemetry/opentelemetry-proto/blob/master/opentelemetry/proto/metrics/v1/metrics.proto",
+		"// See Metric definition in OTLP: https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/metrics/v1/metrics.proto",
 	originFullName: "otlpmetrics.Metric",
 	fields: []baseField{
 		nameField,
@@ -340,7 +340,7 @@ var quantileValues = &messageValueStruct{
 	},
 }
 
-var intExemplarSlice = &sliceOfPtrs{
+var intExemplarSlice = &sliceOfValues{
 	structName: "IntExemplarSlice",
 	element:    intExemplar,
 }
@@ -363,7 +363,7 @@ var intExemplar = &messageValueStruct{
 	},
 }
 
-var doubleExemplarSlice = &sliceOfPtrs{
+var doubleExemplarSlice = &sliceOfValues{
 	structName: "DoubleExemplarSlice",
 	element:    doubleExemplar,
 }

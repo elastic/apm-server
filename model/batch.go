@@ -18,14 +18,36 @@
 package model
 
 import (
+	"context"
+
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/beats/v7/libbeat/beat"
 )
+
+// BatchProcessor can be used to process a batch of events, giving the
+// opportunity to update, add or remove events.
+type BatchProcessor interface {
+	// ProcessBatch is called with a batch of events for processing.
+	//
+	// Processing may involve anything, e.g. modifying, adding, removing,
+	// aggregating, or publishing events.
+	ProcessBatch(context.Context, *Batch) error
+}
+
+// ProcessBatchFunc is a function type that implements BatchProcessor.
+type ProcessBatchFunc func(context.Context, *Batch) error
+
+// ProcessBatch calls f(ctx, b)
+func (f ProcessBatchFunc) ProcessBatch(ctx context.Context, b *Batch) error {
+	return f(ctx, b)
+}
 
 type Batch struct {
 	Transactions []*Transaction
 	Spans        []*Span
 	Metricsets   []*Metricset
 	Errors       []*Error
+	Profiles     []*PprofProfile
 }
 
 // Reset resets the batch to be empty, but it retains the underlying storage.
@@ -34,28 +56,32 @@ func (b *Batch) Reset() {
 	b.Spans = b.Spans[:0]
 	b.Metricsets = b.Metricsets[:0]
 	b.Errors = b.Errors[:0]
+	b.Profiles = b.Profiles[:0]
 }
 
 func (b *Batch) Len() int {
 	if b == nil {
 		return 0
 	}
-	return len(b.Transactions) + len(b.Spans) + len(b.Metricsets) + len(b.Errors)
+	return len(b.Transactions) + len(b.Spans) + len(b.Metricsets) + len(b.Errors) + len(b.Profiles)
 }
 
-func (b *Batch) Transformables() []transform.Transformable {
-	transformables := make([]transform.Transformable, 0, b.Len())
-	for _, tx := range b.Transactions {
-		transformables = append(transformables, tx)
+func (b *Batch) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+	events := make([]beat.Event, 0, b.Len())
+	for _, event := range b.Transactions {
+		events = event.appendBeatEvents(cfg, events)
 	}
-	for _, span := range b.Spans {
-		transformables = append(transformables, span)
+	for _, event := range b.Spans {
+		events = event.appendBeatEvents(ctx, cfg, events)
 	}
-	for _, metricset := range b.Metricsets {
-		transformables = append(transformables, metricset)
+	for _, event := range b.Metricsets {
+		events = event.appendBeatEvents(cfg, events)
 	}
-	for _, err := range b.Errors {
-		transformables = append(transformables, err)
+	for _, event := range b.Errors {
+		events = event.appendBeatEvents(ctx, cfg, events)
 	}
-	return transformables
+	for _, event := range b.Profiles {
+		events = event.appendBeatEvents(cfg, events)
+	}
+	return events
 }

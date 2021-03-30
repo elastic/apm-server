@@ -1,63 +1,46 @@
 # APM Integration
 
-The APM integration installs Elasticsearch templates and Ingest Node pipelines for APM data.
+The APM integration installs Elasticsearch templates and ingest node pipelines for APM data.
+
+### Quick start
+
+Ready to jump in? Read the [APM quick start](https://ela.st/quick-start-apm).
 
 ### How to use this integration
 
-When you add an APM integration to a policy, that policy will contain an `apm` input.
-If a policy contains an `apm` input, any Elastic Agent(s) set up with that policy will run locally an APM Server binary.
-You must configure your APM Agents to communicate with that APM Server.
-Make sure to configure the APM Server `host` if it needs to be accessed from outside (eg. when running in Docker).
+Add the APM integration to an Elastic Agent policy to create an `apm` input.
+Any Elastic Agents set up with this policy will run an APM Server binary locally.
+Don't forget to configure the APM Server `host` if it needs to be accessed from outside, like when running in Docker.
+Then, configure your APM agents to communicate with APM Server.
 
-If you have RUM enabled, you must run APM Server centrally. Otherwise, you can run it at the edge machines.
-To do so, download and enroll an Elastic Agent in the same machines where your instrumented services run.
+If you have Real User Monitoring (RUM) enabled, you must run Elastic Agent centrally.
+Otherwise, you can run it on edge machines by downloading and installing Elastic Agent
+on the same machines that your instrumented services run.
 
-If you want to change the default APM Server configuration, you need to edit the `elastic-agent.yml` policy file manually.
-Find the input with `type:apm` and add any settings under `apm-server`.
-For instance:
+#### Data Streams
 
-```yaml
-inputs:
-  - id: ba928403-d7b8-4c09-adcb-d670c5eac89c
-    name: apm-1
-    revision: 1
-    type: apm
-    use_output: default
-    meta:
-      package:
-        name: apm
-        version: 0.1.0
-    data_stream:
-      namespace: default
-    apm-server:
-      rum:
-        enabled: true
-        event_rate.limit: 100
-      secret_token: changeme
-```
+When using the APM integration, apm events are indexed into data streams. Data stream names contain the event type,
+service name, and a user-configurable namespace.
 
-Note that template, pipeline and ILM settings cannot be configured through this file - Templates and pipelines are installed by the integration,
-and ILM policies must be created externally. If you need additional pipelines, they must also be created externally.
+There is no specific recommendation for what to use as a namespace; it is intentionally flexible.
+You might use the environment, like `production`, `testing`, or `development`,
+or you could namespace data by business unit. It is your choice.
 
-#### Namespace
-
-When you create a policy in the Fleet UI, under "Advanced Settings" you can choose a Namespace.
-In future versions, data streams created by the APM integration will include the service name,
-and you will be recommended to use the environment as namespace.
-
-This version doesn't automatically use the service name, so the recommendation instead is to use
-both the service name and the environment as the namespace.
+See [APM data streams](https://ela.st/apm-data-streams) for more information.
 
 ## Compatibility and limitations
 
-The APM integration requires Kibana 7.11 and Elasticsearch with basic license.
+The APM integration requires Kibana v7.12 and Elasticsearch with at least the basic license.
 This version is experimental and has some limitations, listed bellow:
 
-You must update the policy with any changes you need and restart the APM Server process.
-- Sourcemap enrichment is not yet supported.
-- There is no default ILM policy for traces (spans and transactions).
-- You can't use an Elastic Agent enrolled before 7.11 with an APM integration.
-- Only a handful of configuration options are supported yet. 
+- Sourcemaps need to be uploaded to Elasticsearch directly.
+- You need to create specific API keys for sourcemaps and central configuration.
+- You can't use an Elastic Agent enrolled before 7.12.
+- Not all settings are supported.
+- The `apm` templates, pipelines, and ILM settings that ship with this integration cannot be configured or changed with Fleet;
+changes must be made with Elasticsearch APIs or Kibana's Stack Management.
+
+See [APM integration limitations](https://ela.st/apm-integration-limitations) for more information.
 
 IMPORTANT: If you run APM Server with Elastic Agent manually in standalone mode, you must install the APM integration before ingestion starts.
 
@@ -411,7 +394,7 @@ Traces are written to `traces-apm.*` indices.
 ## Metrics
 
 Metrics include application-based metrics and some basic system metrics.
-Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-apm.profiling.*` indices.
+Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metrics-apm.profiling.*` indices.
 
 **Exported Fields**
 
@@ -451,6 +434,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |kubernetes.pod.name|Kubernetes pod name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |kubernetes.pod.uid|Kubernetes Pod UID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |labels|A flat mapping of user-defined labels with string, boolean or number values.|object|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|metricset.name|Name of the set of metrics.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |metricset.period|Current data collection period for this event in milliseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |observer.hostname|Hostname of the APM Server.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |observer.listening|Address the server is listening on.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -477,6 +461,14 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
 |system.cpu.total.norm.pct|The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.memory.actual.free|Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to \`system.memory.free\`.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.memory.total|Total memory.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpu.cfs.period.us|CFS period in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpu.cfs.quota.us|CFS quota in microseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpu.id|ID for the current cgroup CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpu.stats.periods|Number of periods seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpu.stats.throttled.ns|Nanoseconds spent throttled seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpu.stats.throttled.periods|Number of throttled periods seen by the CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpuacct.id|ID for the current cgroup CPU.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|system.process.cgroup.cpuacct.total.ns|Total CPU time for the current cgroup CPU in nanoseconds.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cgroup.memory.mem.limit.bytes|Memory limit for the current cgroup slice.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cgroup.memory.mem.usage.bytes|Memory usage by the current cgroup slice.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.process.cpu.total.norm.pct|The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -529,6 +521,7 @@ Metrics are written to `metrics-apm.*`, `metrics-apm.internal.*` and `metrics-ap
     "tag1": "one",
     "tag2": 2
   },
+  "metricset.name": "app",
   "observer": {
     "ephemeral_id": "8785cbe1-7f89-4279-84c2-6c33979531fb",
     "hostname": "ix.lan",
@@ -599,7 +592,8 @@ Logs are written to `logs-apm.error.*` indices.
 |error.exception.message|The original error message.|text|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.module|The module namespace of the original error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.exception.type|The type of the original error, e.g. the Java exception class name.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
-|error.grouping\_key|GroupingKey of the logged error for use in grouping.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|error.grouping\_key|Hash of select properties of the logged error for grouping purposes.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|error.grouping\_name|Name to associate with an error group. Errors belonging to the same group (same grouping\_key) may have differing values for grouping\_name. Consumers may choose one arbitrarily.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.id|The ID of the error.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |error.log.level|The severity of the record.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |error.log.logger\_name|The name of the logger instance used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -691,6 +685,7 @@ Logs are written to `logs-apm.error.*` indices.
   },
   "error": {
     "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+    "grouping_name": "Cannot read property 'baz' of undefined",
     "id": "0f0e9d67c1854d21a6f44673ed561ec8",
     "log": {
       "level": "custom log level",

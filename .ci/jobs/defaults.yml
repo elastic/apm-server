@@ -12,7 +12,7 @@
     logrotate:
       numToKeep: 100
     node: linux
-    periodic-folder-trigger: 1d
+    periodic-folder-trigger: 1w
     prune-dead-branches: true
     publishers:
     - email:

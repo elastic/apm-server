@@ -24,6 +24,10 @@
   type: keyword
   description: |
     Kubernetes Pod UID
+- name: metricset.name
+  type: keyword
+  description: |
+    Name of the set of metrics.
 - name: metricset.period
   type: long
   description: Current data collection period for this event in milliseconds.
@@ -105,6 +109,30 @@
   format: bytes
   description: |
     Total memory.
+- name: system.process.cgroup.cpu.cfs.period.us
+  type: long
+  description: CFS period in microseconds.
+- name: system.process.cgroup.cpu.cfs.quota.us
+  type: long
+  description: CFS quota in microseconds.
+- name: system.process.cgroup.cpu.id
+  type: long
+  description: ID for the current cgroup CPU.
+- name: system.process.cgroup.cpu.stats.periods
+  type: long
+  description: Number of periods seen by the CPU.
+- name: system.process.cgroup.cpu.stats.throttled.ns
+  type: long
+  description: Nanoseconds spent throttled seen by the CPU.
+- name: system.process.cgroup.cpu.stats.throttled.periods
+  type: long
+  description: Number of throttled periods seen by the CPU.
+- name: system.process.cgroup.cpuacct.id
+  type: long
+  description: ID for the current cgroup CPU.
+- name: system.process.cgroup.cpuacct.total.ns
+  type: long
+  description: Total CPU time for the current cgroup CPU in nanoseconds.
 - name: system.process.cgroup.memory.mem.limit.bytes
   type: long
   format: bytes
@@ -151,8 +179,8 @@
   description: |
     Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
   multi_fields:
-  - name: text
-    type: text
+    - name: text
+      type: text
 - name: transaction.root
   type: boolean
   description: |

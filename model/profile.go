@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -28,7 +27,6 @@ import (
 
 	"github.com/elastic/apm-server/datastreams"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -50,8 +48,9 @@ type PprofProfile struct {
 	Profile  *profile.Profile
 }
 
-// Transform transforms a Profile into a sequence of beat.Events: one per profile sample.
-func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+// appendBeatEvents transforms a Profile into a sequence of beat.Events (one per profile sample),
+// and appends them to events.
+func (pp PprofProfile) appendBeatEvents(cfg *transform.Config, events []beat.Event) []beat.Event {
 	// Precompute value field names for use in each event.
 	// TODO(axw) limit to well-known value names?
 	profileTimestamp := time.Unix(0, pp.Profile.TimeNanos)
@@ -78,9 +77,7 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 	// Profiles are stored in their own "metrics" data stream, with a data
 	// set per service. This enables managing retention of profiling data
 	// per-service, and indepedently of lower volume metrics.
-
-	samples := make([]beat.Event, len(pp.Profile.Sample))
-	for i, sample := range pp.Profile.Sample {
+	for _, sample := range pp.Profile.Sample {
 		profileFields := common.MapStr{}
 		if profileID != "" {
 			profileFields["id"] = profileID
@@ -108,35 +105,31 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 				//     hash.Write(buf[:])
 
 				hash.WriteString(line.Function.Name)
-				fields := common.MapStr{
+				fields := mapStr{
 					"id":       fmt.Sprintf("%x", hash.Sum(nil)),
 					"function": line.Function.Name,
 				}
-				if line.Function.Filename != "" {
-					utility.Set(fields, "filename", line.Function.Filename)
+				if fields.maybeSetString("filename", line.Function.Filename) {
 					if line.Line > 0 {
-						utility.Set(fields, "line", line.Line)
+						fields.set("line", line.Line)
 					}
 				}
-				stack[i] = fields
+				stack[i] = common.MapStr(fields)
 			}
-			utility.Set(profileFields, "stack", stack)
-			utility.Set(profileFields, "top", stack[0])
+			profileFields["stack"] = stack
+			profileFields["top"] = stack[0]
 		}
 		for i, v := range sample.Value {
-			utility.Set(profileFields, valueFieldNames[i], v)
+			profileFields[valueFieldNames[i]] = v
 		}
-		event := beat.Event{
-			Timestamp: profileTimestamp,
-			Fields: common.MapStr{
-				"processor":    profileProcessorEntry,
-				profileDocType: profileFields,
-			},
+		fields := mapStr{
+			"processor":    profileProcessorEntry,
+			profileDocType: profileFields,
 		}
 		if cfg.DataStreams {
-			event.Fields[datastreams.TypeField] = datastreams.MetricsType
+			fields[datastreams.TypeField] = datastreams.MetricsType
 			dataset := fmt.Sprintf("%s.%s", ProfilesDataset, datastreams.NormalizeServiceName(pp.Metadata.Service.Name))
-			event.Fields[datastreams.DatasetField] = dataset
+			fields[datastreams.DatasetField] = dataset
 		}
 		var profileLabels common.MapStr
 		if len(sample.Label) > 0 {
@@ -145,10 +138,13 @@ func (pp PprofProfile) Transform(ctx context.Context, cfg *transform.Config) []b
 				profileLabels[k] = v
 			}
 		}
-		pp.Metadata.Set(event.Fields, profileLabels)
-		samples[i] = event
+		pp.Metadata.set(&fields, profileLabels)
+		events = append(events, beat.Event{
+			Timestamp: profileTimestamp,
+			Fields:    common.MapStr(fields),
+		})
 	}
-	return samples
+	return events
 }
 
 func normalizeUnit(unit string) string {

@@ -1,0 +1,70 @@
+:input-type: apm
+
+[[input-apm]]
+== APM input settings
+
+++++
+<titleabbrev>Input settings</titleabbrev>
+++++
+
+experimental::[]
+
+To edit the APM integration input settings, open {kib} and select:
+**Fleet** / **Integrations** / **Elastic APM** / **Add Elastic APM**.
+Expand the carrot to view all settings.
+
+A limited number of settings are currently supported.
+
+[NOTE]
+====
+Templates, pipelines, index lifecycle management, etc., cannot be configured
+with APM Server or Fleet, and must instead be configured with {kib} or {es}.
+<<apm-integration-configure,Learn more>>.
+// Configuration via the `apm-server.yml` file is no longer supported.
+====
+
+[float]
+[[apm-input-general-settings]]
+=== General settings
+
+[cols="2*<a"]
+|===
+
+include::./apm-input-settings.asciidoc[tag=host-setting]
+include::./apm-input-settings.asciidoc[tag=secret_token-setting]
+include::./apm-input-settings.asciidoc[tag=max_event_bytes-setting]
+include::./apm-input-settings.asciidoc[tag=default_service_environment-setting]
+include::./apm-input-settings.asciidoc[tag=capture_personal_data-setting]
+
+|===
+
+[float]
+[[apm-input-rum-settings]]
+=== Real User Monitoring (RUM) settings
+
+[cols="2*<a"]
+|===
+
+include::./apm-input-settings.asciidoc[tag=enable_rum-setting]
+include::./apm-input-settings.asciidoc[tag=rum_allow_origins-setting]
+include::./apm-input-settings.asciidoc[tag=rum_allow_headers-setting]
+include::./apm-input-settings.asciidoc[tag=rum_response_headers-setting]
+include::./apm-input-settings.asciidoc[tag=rum_event_rate_limit-setting]
+include::./apm-input-settings.asciidoc[tag=rum_event_rate_lru_size-setting]
+
+|===
+
+[float]
+=== API key settings
+
+[cols="2*<a"]
+|===
+
+include::./apm-input-settings.asciidoc[tag=api_key_enabled-setting]
+include::./apm-input-settings.asciidoc[tag=api_key_limit-setting]
+include::./apm-input-settings.asciidoc[tag=sourcemap_api_key-setting]
+include::./apm-input-settings.asciidoc[tag=kibana_api_key-setting]
+
+|===
+
+:input-type!:

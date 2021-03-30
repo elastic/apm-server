@@ -19,6 +19,7 @@ GOLINT=$(GOOSBUILD)/golint
 MAGE=$(GOOSBUILD)/mage
 REVIEWDOG=$(GOOSBUILD)/reviewdog
 STATICCHECK=$(GOOSBUILD)/staticcheck
+ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
 
 PYTHON_ENV?=.
 PYTHON_BIN:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)/bin
@@ -78,12 +79,8 @@ check-approvals: $(APPROVALS)
 	@$(APPROVALS)
 
 .PHONY: check
-check: $(MAGE) check-fmt check-headers
+check: $(MAGE) check-fmt check-headers check-package
 	@$(MAGE) check
-
-.PHONY: gen-package
-gen-package: $(GENPACKAGE)
-	@$(GENPACKAGE)
 
 .PHONY: bench
 bench:
@@ -122,6 +119,11 @@ fields_sources=\
   $(shell find model -name fields.yml) \
   $(shell find x-pack/apm-server/fields -name fields.yml)
 
+.PHONY: gen-package gen-package-only
+gen-package: gen-package-only format-package build-package
+gen-package-only: $(GENPACKAGE)
+	@$(GENPACKAGE)
+
 fields: include/fields.go x-pack/apm-server/include/fields.go
 include/fields.go x-pack/apm-server/include/fields.go: $(MAGE) magefile.go $(fields_sources)
 	@$(MAGE) fields
@@ -132,7 +134,7 @@ apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
 
 .PHONY: go-generate
 go-generate:
-	@$(GO) generate
+	@$(GO) generate . ./ingest/pipeline
 
 notice: NOTICE.txt
 NOTICE.txt: $(PYTHON) go.mod
@@ -231,6 +233,13 @@ ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -d -exclude build -license Elastic x-pack
 endif
 
+.PHONY: check-package format-package build-package
+check-package: $(ELASTICPACKAGE)
+	@for x in apmpackage/apm/*; do (cd $$x; echo "Checking $$x"; $(CURDIR)/$(ELASTICPACKAGE) check); done
+format-package: $(ELASTICPACKAGE)
+	@for x in apmpackage/apm/*; do (cd $$x; echo "Formatting $$x"; $(CURDIR)/$(ELASTICPACKAGE) format); done
+build-package: $(ELASTICPACKAGE)
+	@for x in apmpackage/apm/*; do (cd $$x; echo "Building $$x"; $(CURDIR)/$(ELASTICPACKAGE) build); done
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
 check-fmt: check-gofmt check-autopep8
@@ -279,6 +288,9 @@ $(GOLICENSER): go.mod
 
 $(REVIEWDOG): go.mod
 	$(GO) build -o $@ github.com/reviewdog/reviewdog/cmd/reviewdog
+
+$(ELASTICPACKAGE): go.mod
+	$(GO) build -o $@ github.com/elastic/elastic-package
 
 $(PYTHON): $(PYTHON_BIN)
 $(PYTHON_BIN): $(PYTHON_BIN)/activate

@@ -18,7 +18,6 @@
 package model
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -30,7 +29,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -127,14 +125,14 @@ func TestTransactionTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		output := test.Transaction.appendBeatEvents(&transform.Config{}, nil)
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
 func TestTransactionTransformOutcome(t *testing.T) {
 	tx := Transaction{Outcome: "success"}
-	events := tx.Transform(context.Background(), &transform.Config{})
+	events := tx.appendBeatEvents(&transform.Config{}, nil)
 	require.Len(t, events, 1)
 	assert.Equal(t, common.MapStr{"outcome": "success"}, events[0].Fields["event"])
 }
@@ -166,19 +164,19 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Labels:    common.MapStr{"a": true},
 	}
 
-	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}}
+	request := Req{Method: "post", Socket: &Socket{}, Headers: http.Header{}, Referer: referer}
 	response := Resp{Finished: new(bool), MinimalResp: MinimalResp{Headers: http.Header{"content-type": []string{"text/html"}}}}
 	txWithContext := Transaction{
 		Metadata:  eventMetadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"a": "b"},
-		Page:      &Page{URL: &URL{Original: &url}, Referer: &referer},
+		Page:      &Page{URL: &URL{Original: url}, Referer: referer},
 		HTTP:      &Http{Request: &request, Response: &response},
-		URL:       &URL{Original: &url},
+		URL:       &URL{Original: url},
 		Custom:    common.MapStr{"foo.bar": "baz"},
-		Message:   &Message{QueueName: tests.StringPtr("routeUser")},
+		Message:   &Message{QueueName: "routeUser"},
 	}
-	events := txWithContext.Transform(context.Background(), &transform.Config{DataStreams: true})
+	events := txWithContext.appendBeatEvents(&transform.Config{DataStreams: true}, nil)
 	require.Len(t, events, 1)
 	assert.Equal(t, events[0].Fields, common.MapStr{
 		"data_stream.type":    "traces",
@@ -225,6 +223,23 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	})
 }
 
+func TestTransformTransactionHTTP(t *testing.T) {
+	request := Req{Method: "post", Body: "<html><marquee>hello world</marquee></html>"}
+	tx := Transaction{
+		HTTP: &Http{Request: &request},
+	}
+	events := tx.appendBeatEvents(&transform.Config{}, nil)
+	require.Len(t, events, 1)
+	assert.Equal(t, common.MapStr{
+		"request": common.MapStr{
+			"method": request.Method,
+			"body": common.MapStr{
+				"original": request.Body,
+			},
+		},
+	}, events[0].Fields["http"])
+}
+
 func TestTransactionTransformPage(t *testing.T) {
 	id := "123"
 	urlExample := "http://example.com/path"
@@ -236,33 +251,13 @@ func TestTransactionTransformPage(t *testing.T) {
 	}{
 		{
 			Transaction: Transaction{
-				ID:       id,
-				Type:     "tx",
-				Duration: 65.98,
-				Page: &Page{
-					URL:     ParseURL(urlExample, "", ""),
-					Referer: nil,
-				},
-			},
-			Output: common.MapStr{
-				"domain":   "example.com",
-				"full":     "http://example.com/path",
-				"original": "http://example.com/path",
-				"path":     "/path",
-				"scheme":   "http",
-			},
-			Msg: "With page URL",
-		},
-		{
-			Transaction: Transaction{
 				ID:        id,
 				Type:      "tx",
 				Timestamp: time.Now(),
 				Duration:  65.98,
 				URL:       ParseURL("https://localhost:8200/", "", ""),
 				Page: &Page{
-					URL:     ParseURL(urlExample, "", ""),
-					Referer: nil,
+					URL: ParseURL(urlExample, "", ""),
 				},
 			},
 			Output: common.MapStr{
@@ -278,7 +273,7 @@ func TestTransactionTransformPage(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		output := test.Transaction.appendBeatEvents(&transform.Config{}, nil)
 		assert.Equal(t, test.Output, output[0].Fields["url"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -307,7 +302,7 @@ func TestTransactionTransformMarks(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Transaction.Transform(context.Background(), &transform.Config{})
+		output := test.Transaction.appendBeatEvents(&transform.Config{}, nil)
 		marks, _ := output[0].Fields.GetValue("transaction.marks")
 		assert.Equal(t, test.Output, marks, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}

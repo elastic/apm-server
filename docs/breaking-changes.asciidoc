@@ -4,6 +4,38 @@ APM Server is built on top of {beats-ref}/index.html[libbeat].
 As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
+=== 7.12
+
+There are three breaking changes to be aware of;
+these changes only impact users ingesting data with
+{apm-server-ref-v}/jaeger.html[Jaeger clients].
+
+* Leading 0s are no longer removed from Jaeger client trace/span ids.
++
+--
+This change ensures distributed tracing continues to work across platforms by creating
+consistent, full trace/span IDs from Jaeger clients, Elastic APM agents,
+and OpenTelemetry SDKs.
+--
+
+* Jaeger spans will now have a type of "app" where they previously were "custom".
++
+--
+If the Jaeger span type is not inferred, it will now be "app".
+This aligns with the OpenTelemetry Collector exporter
+and improves the functionality of the _time spent by span type_ charts in the APM app.
+--
+
+* Jaeger spans may now have a more accurate outcome of "unknown".
++
+--
+Previously, a "success" outcome was assumed when a span didn't fail.
+The new default assigns "unknown", and only sets an outcome of "success" or "failure" when
+the outcome is explicitly known.
+This change aligns with Elastic APM agents and the OpenTelemetry Collector exporter.
+--
+
+[float]
 === 7.11
 There are no breaking changes in APM Server.
 

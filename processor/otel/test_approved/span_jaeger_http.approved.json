@@ -16,8 +16,7 @@
                 "outcome": "failure"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
+                "hostname": "host-abc"
             },
             "labels": {
                 "component": "foo",
@@ -37,10 +36,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "span": {
                 "destination": {
@@ -94,16 +90,7 @@
                 }
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
-            },
-            "http": {
-                "request": {
-                    "method": "get"
-                },
-                "response": {
-                    "status_code": 400
-                }
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -116,23 +103,13 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            },
-            "url": {
-                "domain": "foo.bar.com",
-                "full": "http://foo.bar.com?a=12",
-                "original": "http://foo.bar.com?a=12",
-                "query": "a=12",
-                "scheme": "http"
             }
         },
         {
@@ -150,16 +127,7 @@
                 }
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
-            },
-            "http": {
-                "request": {
-                    "method": "get"
-                },
-                "response": {
-                    "status_code": 400
-                }
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -172,23 +140,13 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            },
-            "url": {
-                "domain": "foo.bar.com",
-                "full": "http://foo.bar.com?a=12",
-                "original": "http://foo.bar.com?a=12",
-                "query": "a=12",
-                "scheme": "http"
             }
         },
         {
@@ -208,16 +166,7 @@
                 "grouping_key": "c9221918248f05433f6b81c46a666aee"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
-            },
-            "http": {
-                "request": {
-                    "method": "get"
-                },
-                "response": {
-                    "status_code": 400
-                }
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -230,23 +179,13 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            },
-            "url": {
-                "domain": "foo.bar.com",
-                "full": "http://foo.bar.com?a=12",
-                "original": "http://foo.bar.com?a=12",
-                "query": "a=12",
-                "scheme": "http"
             }
         },
         {
@@ -266,16 +205,7 @@
                 "grouping_key": "c9221918248f05433f6b81c46a666aee"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
-            },
-            "http": {
-                "request": {
-                    "method": "get"
-                },
-                "response": {
-                    "status_code": 400
-                }
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -288,23 +218,13 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            },
-            "url": {
-                "domain": "foo.bar.com",
-                "full": "http://foo.bar.com?a=12",
-                "original": "http://foo.bar.com?a=12",
-                "query": "a=12",
-                "scheme": "http"
             }
         },
         {
@@ -324,16 +244,7 @@
                 "grouping_key": "b0cf243ae3f66aa9e6bbed022417d274"
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
-            },
-            "http": {
-                "request": {
-                    "method": "get"
-                },
-                "response": {
-                    "status_code": 400
-                }
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -346,23 +257,13 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            },
-            "url": {
-                "domain": "foo.bar.com",
-                "full": "http://foo.bar.com?a=12",
-                "original": "http://foo.bar.com?a=12",
-                "query": "a=12",
-                "scheme": "http"
             }
         },
         {
@@ -380,16 +281,7 @@
                 }
             },
             "host": {
-                "hostname": "host-abc",
-                "name": "host-abc"
-            },
-            "http": {
-                "request": {
-                    "method": "get"
-                },
-                "response": {
-                    "status_code": 400
-                }
+                "hostname": "host-abc"
             },
             "parent": {
                 "id": "0000000041414646"
@@ -402,23 +294,13 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "node": {
-                    "name": "host-abc"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
-            },
-            "url": {
-                "domain": "foo.bar.com",
-                "full": "http://foo.bar.com?a=12",
-                "original": "http://foo.bar.com?a=12",
-                "query": "a=12",
-                "scheme": "http"
             }
         }
     ]

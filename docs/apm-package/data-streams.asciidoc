@@ -1,0 +1,64 @@
+[[apm-integration-data-streams]]
+== Data streams
+
+experimental::[]
+
+{agent} uses data streams to store append-only time series data across multiple indices
+while giving users a single named resource for requests.
+If you're new to data streams, see the {fleet-guide}/data-streams.html[Fleet user guide] to learn more.
+
+`apm` input data is divided into three types:
+
+Traces::
+
+Traces are comprised of {apm-overview-ref-v}/apm-data-model.html[spans and transactions].
+Traces are stored in the following data stream:
+
+- Application traces: `traces-apm.<service.name>-<namespace>`
+
+Metrics::
+
+Metrics include application-based metrics and basic system metrics.
+Metrics are stored in the following data streams:
+
+- Application defined metrics: `metrics-apm.<service.name>-<namespace>`
+- APM internal metrics: `metrics-apm.internal.<service.name>-<namespace>`
+- APM profiling metrics: `metrics-apm.profiling.<service.name>-<namespace>`
+
+Logs::
+
+Logs include application error events and application logs.
+Logs are stored in the following data streams:
+
+- Application logs: `logs-<service.name>-<namespace>`
+- APM error/exception logging: `logs-apm.error.<service.name>-<namespace>`
+
+[discrete]
+[[apm-integration-service-name]]
+=== Service names
+
+The APM integration maps an instrumented service's name–defined in each APM agent's
+configuration–to the index that its data is stored in {es}.
+This process provides more granular security and retentions policies,
+and simplifies the overall APM experience.
+Service names therefore must follow index naming rules:
+
+* Service names are case-insensitive and must be unique.
+For example, you cannot have a service named `Foo` and another named `foo`.
+* Special characters will be removed from service names and replaced with underscores (`_`).
+Special characters include:
++
+[source,text]
+----
+'\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#', ':', '-'
+----
+
+[discrete]
+[[apm-integration-namespace]]
+=== Namespace
+
+There is no recommendation for what to use as your namespace;
+it's intentionally flexible which allows greater control over how your data is indexed.
+For example, you might create namespaces for each of your environments,
+like `dev`, `prod`, `production`, etc.
+Or, you might create namespaces that correspond to strategic business units within your organization.

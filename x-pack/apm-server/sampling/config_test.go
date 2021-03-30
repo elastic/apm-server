@@ -5,14 +5,13 @@
 package sampling_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/elasticsearch"
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 )
 
@@ -28,8 +27,8 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	assertInvalidConfigError("BeatID unspecified")
 	config.BeatID = "beat"
 
-	assertInvalidConfigError("Reporter unspecified")
-	config.Reporter = func(ctx context.Context, req publish.PendingReq) error { return nil }
+	assertInvalidConfigError("BatchProcessor unspecified")
+	config.BatchProcessor = struct{ model.BatchProcessor }{}
 
 	assertInvalidConfigError("invalid local sampling config: FlushInterval unspecified or negative")
 	config.FlushInterval = 1

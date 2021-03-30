@@ -32,9 +32,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/otlp"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
@@ -47,10 +47,10 @@ var (
 )
 
 func TestConsumeTraces(t *testing.T) {
-	var events []transform.Transformable
+	var batches []*model.Batch
 	var reportError error
-	report := func(ctx context.Context, req publish.PendingReq) error {
-		events = append(events, req.Transformables...)
+	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		batches = append(batches, batch)
 		return reportError
 	}
 
@@ -76,13 +76,13 @@ func TestConsumeTraces(t *testing.T) {
 ]
 }`)
 
-	conn := newServer(t, report)
+	conn := newServer(t, batchProcessor)
 	err := conn.Invoke(
 		context.Background(), "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
 		cannedRequest, newExportTraceServiceResponse(),
 	)
 	assert.NoError(t, err)
-	assert.Len(t, events, 1)
+	require.Len(t, batches, 1)
 
 	reportError = errors.New("failed to publish events")
 	err = conn.Invoke(
@@ -92,23 +92,28 @@ func TestConsumeTraces(t *testing.T) {
 	assert.Error(t, err)
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
-	assert.Len(t, events, 2)
+	require.Len(t, batches, 2)
+
+	for _, batch := range batches {
+		assert.Equal(t, 1, batch.Len())
+	}
 
 	actual := map[string]interface{}{}
 	monitoring.GetRegistry("apm-server.otlp.grpc.traces").Do(monitoring.Full, func(key string, value interface{}) {
 		actual[key] = value
 	})
 	assert.Equal(t, map[string]interface{}{
-		"request.count":         int64(2),
-		"response.count":        int64(2),
-		"response.errors.count": int64(1),
-		"response.valid.count":  int64(1),
+		"request.count":                int64(2),
+		"response.count":               int64(2),
+		"response.errors.count":        int64(1),
+		"response.valid.count":         int64(1),
+		"response.errors.unauthorized": int64(0),
 	}, actual)
 }
 
 func TestConsumeMetrics(t *testing.T) {
 	var reportError error
-	report := func(ctx context.Context, req publish.PendingReq) error {
+	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 		return reportError
 	}
 
@@ -132,7 +137,7 @@ func TestConsumeMetrics(t *testing.T) {
 ]
 }`)
 
-	conn := newServer(t, report)
+	conn := newServer(t, batchProcessor)
 	err := conn.Invoke(
 		context.Background(), "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
 		cannedRequest, newExportMetricsServiceResponse(),
@@ -158,10 +163,11 @@ func TestConsumeMetrics(t *testing.T) {
 		// we treat them as unsupported metrics.
 		"consumer.unsupported_dropped": int64(2),
 
-		"request.count":         int64(2),
-		"response.count":        int64(2),
-		"response.errors.count": int64(1),
-		"response.valid.count":  int64(1),
+		"request.count":                int64(2),
+		"response.count":               int64(2),
+		"response.errors.count":        int64(1),
+		"response.valid.count":         int64(1),
+		"response.errors.unauthorized": int64(0),
 	}, actual)
 }
 
@@ -193,12 +199,14 @@ func newExportMetricsServiceResponse() interface{} {
 	return reflect.New(exportMetricsServiceResponseType.Elem()).Interface()
 }
 
-func newServer(t *testing.T, report publish.Reporter) *grpc.ClientConn {
+func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-
-	srv := grpc.NewServer()
-	err = otlp.RegisterGRPCServices(srv, report, logp.NewLogger("otlp_test"))
+	logger := logp.NewLogger("otlp.grpc.test")
+	srv := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptors.Metrics(logger, otlp.RegistryMonitoringMaps)),
+	)
+	err = otlp.RegisterGRPCServices(srv, batchProcessor)
 	require.NoError(t, err)
 
 	go srv.Serve(lis)

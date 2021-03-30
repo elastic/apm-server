@@ -44,7 +44,6 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/v7/libbeat/common"
 )
 
@@ -52,10 +51,7 @@ import (
 // the Elastic APM metrics model and sending to the reporter.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
 	batch := c.convertMetrics(metrics)
-	return c.Reporter(ctx, publish.PendingReq{
-		Transformables: batch.Transformables(),
-		Trace:          true,
-	})
+	return c.Processor.ProcessBatch(ctx, batch)
 }
 
 func (c *Consumer) convertMetrics(metrics pdata.Metrics) *model.Batch {
@@ -101,7 +97,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -114,7 +110,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -127,7 +123,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -140,7 +136,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				asTime(dp.Timestamp()), dp.LabelsMap(),
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -228,8 +224,4 @@ func compareMetricsets(ms metricset, timestamp time.Time, labels []stringMapItem
 		}
 	}
 	return 0
-}
-
-func asTime(in pdata.TimestampUnixNano) time.Time {
-	return time.Unix(0, int64(in)).UTC()
 }

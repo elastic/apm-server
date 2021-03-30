@@ -1190,7 +1190,17 @@ type: keyword
 *`error.grouping_key`*::
 +
 --
-GroupingKey of the logged error for use in grouping.
+Hash of select properties of the logged error for grouping purposes.
+
+
+type: keyword
+
+--
+
+*`error.grouping_name`*::
++
+--
+Name to associate with an error group. Errors belonging to the same group (same grouping_key) may have differing values for grouping_name. Consumers may choose one arbitrarily.
 
 
 type: keyword
@@ -4854,6 +4864,19 @@ A flat mapping of user-defined labels with string, boolean or number values.
 type: object
 
 {yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`metricset.name`*::
++
+--
+Name of the set of metrics.
+
+
+type: keyword
+
+example: transaction
 
 --
 
@@ -16415,6 +16438,96 @@ format: bytes
 
 Metrics and limits for the cgroup, collected by APM agents on Linux.
 
+
+[float]
+=== cpu
+
+CPU-specific cgroup metrics and limits.
+
+
+*`system.process.cgroup.cpu.id`*::
++
+--
+ID for the current cgroup CPU.
+
+type: long
+
+--
+
+[float]
+=== cfs
+
+Completely Fair Scheduler (CFS) cgroup metrics.
+
+
+*`system.process.cgroup.cpu.cfs.period.us`*::
++
+--
+CFS period in microseconds.
+
+type: long
+
+--
+
+*`system.process.cgroup.cpu.cfs.quota.us`*::
++
+--
+CFS quota in microseconds.
+
+type: long
+
+--
+
+*`system.process.cgroup.cpu.stats.periods`*::
++
+--
+Number of periods seen by the CPU.
+
+type: long
+
+--
+
+*`system.process.cgroup.cpu.stats.throttled.periods`*::
++
+--
+Number of throttled periods seen by the CPU.
+
+type: long
+
+--
+
+*`system.process.cgroup.cpu.stats.throttled.ns`*::
++
+--
+Nanoseconds spent throttled seen by the CPU.
+
+type: long
+
+--
+
+[float]
+=== cpuacct
+
+CPU Accounting-specific cgroup metrics and limits.
+
+
+*`system.process.cgroup.cpuacct.id`*::
++
+--
+ID for the current cgroup CPU.
+
+type: long
+
+--
+
+*`system.process.cgroup.cpuacct.total.ns`*::
++
+--
+Total CPU time for the current cgroup CPU in nanoseconds.
+
+type: long
+
+--
 
 [float]
 === memory

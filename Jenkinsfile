@@ -29,10 +29,11 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package)')
+    issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:(hey-apm|package|arm)\\W+)?tests(?:\\W+please)?.*|^\\/test|^\\/hey-apm|^\\/package)')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+    booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'osx_ci', defaultValue: true, description: 'Enable OSX CI')
     booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
@@ -136,7 +137,7 @@ pipeline {
             withGithubNotify(context: 'Build - Linux') {
               deleteDir()
               unstash 'source'
-              golang(){
+              withMageEnv(){
                 dir(BASE_DIR){
                   retry(2) { // Retry in case there are any errors to avoid temporary glitches
                     sleep randomNumber(min: 5, max: 10)
@@ -188,7 +189,7 @@ pipeline {
         Build on a mac environment.
         */
         stage('OSX build-test') {
-          agent { label 'macosx' }
+          agent { label 'macosx && x86_64' }
           options {
             skipDefaultCheckout()
             warnError('OSX execution failed')
@@ -219,6 +220,42 @@ pipeline {
           post {
             always {
               junit(allowEmptyResults: true, keepLongStdio: true, testResults: "${BASE_DIR}/build/junit-*.xml")
+            }
+          }
+        }
+        stage('ARM build-test') {
+          agent { label 'arm' }
+          options {
+            skipDefaultCheckout()
+            warnError('ARM execution failed')
+          }
+          when {
+            beforeAgent true
+            allOf {
+              expression { return params.arm_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
+          }
+          environment {
+            HOME = "${env.WORKSPACE}"
+          }
+          steps {
+            withGithubNotify(context: 'Build-Test - ARM') {
+              deleteDir()
+              unstash 'source'
+              withGoEnv(version: "${env.GO_VERSION}"){
+                dir("${BASE_DIR}"){
+                  sh(label: 'ARM build', script: '.ci/scripts/build.sh')
+                  sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
+                }
+              }
+            }
+          }
+          post {
+            always {
+              dir("${BASE_DIR}/build"){
+                junit(allowEmptyResults: true, keepLongStdio: true, testResults: "junit-*.xml")
+              }
             }
           }
         }
@@ -336,7 +373,7 @@ pipeline {
             withGithubNotify(context: 'Benchmarking') {
               deleteDir()
               unstash 'source'
-              golang(){
+              withMageEnv(){
                 dir("${BASE_DIR}"){
                   sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
                 }
@@ -386,7 +423,7 @@ pipeline {
             withGithubNotify(context: 'Hey-Apm') {
               deleteDir()
               unstash 'source'
-              golang(){
+              withMageEnv(){
                 dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
                 dir("${BASE_DIR}"){
                   sh(label: 'Package & Push', script: "./.ci/scripts/package-docker-snapshot.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_IMAGE}")
@@ -429,7 +466,7 @@ pipeline {
                 withGithubNotify(context: 'Package') {
                   deleteDir()
                   unstash 'source'
-                  golang(){
+                  withMageEnv(){
                     dir("${BASE_DIR}"){
                       sh(label: 'Build packages', script: './.ci/scripts/package.sh')
                       sh(label: 'Test packages install', script: './.ci/scripts/test-install-packages.sh')
@@ -511,17 +548,4 @@ pipeline {
       notifyBuildResult()
     }
   }
-}
-
-def golang(Closure body){
-  def golangDocker
-  retry(3) { // Retry in case there are any errors when building the docker images (to avoid temporary glitches)
-    sleep randomNumber(min: 2, max: 5)
-    golangDocker = docker.build('golang-mage', "--build-arg GO_VERSION=${GO_VERSION} -f  ${BASE_DIR}/.ci/docker/golang-mage/Dockerfile ${BASE_DIR}")
-  }
-  withEnv(["HOME=${WORKSPACE}", "GOPATH=${WORKSPACE}", "SHELL=/bin/bash"]) {
-     golangDocker.inside('-v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock'){
-       body()
-     }
-   }
 }

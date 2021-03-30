@@ -1,103 +1,141 @@
 [
-{
-  "id": "apm",
-  "body": {
-    "description" : "Default enrichment for APM events",
-    "processors" : [
-      {
-        "pipeline": {
-          "name": "apm_user_agent"
+  {
+    "id": "apm",
+    "body": {
+      "description": "Default enrichment for APM events",
+      "processors": [
+        {
+          "pipeline": {
+            "name": "apm_user_agent"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_user_geo"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_ingest_timestamp"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_remove_span_metadata"
+          }
+        },
+        {
+          "pipeline": {
+            "name": "apm_error_grouping_name",
+            "if": "ctx.processor?.event == 'error'"
+          }
         }
-      },
-      {
-        "pipeline": {
-          "name": "apm_user_geo"
+      ]
+    }
+  },
+  {
+    "id": "apm_user_agent",
+    "body": {
+      "description": "Add user agent information for APM events",
+      "processors": [
+        {
+          "user_agent": {
+            "field": "user_agent.original",
+            "target_field": "user_agent",
+            "ignore_missing": true,
+            "ignore_failure": true
+          }
         }
-      },
-      {
-        "pipeline": {
-          "name": "apm_ingest_timestamp"
-        }
-      },
-      {
-        "pipeline": {
-          "name": "apm_remove_span_metadata"
-        }
-      }
-    ]
-  }
-},
-{
-  "id": "apm_user_agent",
-  "body": {
-    "description" : "Add user agent information for APM events",
-    "processors" : [
-      {
-        "user_agent" : {
-          "field": "user_agent.original",
-          "target_field": "user_agent",
-          "ignore_missing": true,
-          "ignore_failure": true
-        }
-      }
-    ]
-  }
-},
-{
-  "id": "apm_user_geo",
-  "body": {
-    "description" : "Add user geo information for APM events",
-    "processors" : [
-      {
-        "geoip" : {
-          "database_file": "GeoLite2-City.mmdb",
-          "field": "client.ip",
-          "target_field": "client.geo",
-          "ignore_missing": true,
-          "on_failure": [
-            {
-              "remove": {
+      ]
+    }
+  },
+  {
+    "id": "apm_user_geo",
+    "body": {
+      "description": "Add user geo information for APM events",
+      "processors": [
+        {
+          "geoip": {
+            "database_file": "GeoLite2-City.mmdb",
+            "field": "client.ip",
+            "target_field": "client.geo",
+            "ignore_missing": true,
+            "on_failure": [
+              {
+                "remove": {
                   "field": "client.ip",
                   "ignore_missing": true,
                   "ignore_failure": true
+                }
               }
-            }
-          ]
+            ]
+          }
         }
-      }
-    ]
-  }
-},
-{
-  "id": "apm_ingest_timestamp",
-  "body": {
-    "description": "Add an ingest timestamp for APM events",
-    "processors": [
-      {
-        "set": {
-          "if": "ctx.processor?.event != 'span'",
-          "field": "event.ingested",
-          "value": "{{_ingest.timestamp}}"
+      ]
+    }
+  },
+  {
+    "id": "apm_ingest_timestamp",
+    "body": {
+      "description": "Add an ingest timestamp for APM events",
+      "processors": [
+        {
+          "set": {
+            "if": "ctx.processor?.event != 'span'",
+            "field": "event.ingested",
+            "value": "{{_ingest.timestamp}}"
+          }
         }
-      }
-    ]
-  }
-},
-{
-  "id": "apm_remove_span_metadata",
-  "body": {
-    "description": "Removes metadata fields available already on the parent transaction, to save storage",
-    "processors": [
-      {
-        "remove": {
-          "if": "ctx.processor?.event == 'span'",
-          "field": ["host", "process", "user", "user_agent", "container", "kubernetes", 
-          "service.node", "service.version", "service.language", "service.runtime", "service.framework"],
-          "ignore_missing": true,
-          "ignore_failure": true
+      ]
+    }
+  },
+  {
+    "id": "apm_remove_span_metadata",
+    "body": {
+      "description": "Removes metadata fields available already on the parent transaction, to save storage",
+      "processors": [
+        {
+          "remove": {
+            "if": "ctx.processor?.event == 'span'",
+            "field": [
+              "host",
+              "process",
+              "user",
+              "user_agent",
+              "container",
+              "kubernetes",
+              "service.node",
+              "service.version",
+              "service.language",
+              "service.runtime",
+              "service.framework"
+            ],
+            "ignore_missing": true,
+            "ignore_failure": true
+          }
         }
-      }
-    ]
+      ]
+    }
+  },
+  {
+    "id": "apm_error_grouping_name",
+    "body": {
+      "description": "Set error.grouping_name for APM error events",
+      "processors": [
+        {
+          "script": {
+            "source": "ctx.error.grouping_name = ctx.error.exception[0].message",
+            "if": "ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0"
+          }
+        },
+        {
+          "set": {
+            "field": "error.grouping_name",
+            "copy_from": "error.log.message",
+            "if": "ctx.error?.log?.message != null"
+          }
+        }
+      ]
+    }
   }
-}
 ]

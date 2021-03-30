@@ -20,23 +20,23 @@ package main
 import "path/filepath"
 
 func docsTemplateFilePath(version string) string {
-	return filepath.Join("apmpackage/apm/", version, "/_dev/docs/README.template.md")
+	return filepath.Join("apmpackage", "apm", version, "README.template.md")
 }
 
 func docsFilePath(version string) string {
-	return filepath.Join("apmpackage/apm/", version, "/docs/README.md")
+	return filepath.Join("apmpackage", "apm", version, "docs/README.md")
 }
 
 func pipelinesPath(version, dataStream string) string {
-	return filepath.Join("apmpackage/apm/", version, "/data_stream/", dataStream, "/elasticsearch/ingest_pipeline/")
+	return filepath.Join("apmpackage", "apm", version, "data_stream", dataStream, "elasticsearch", "ingest_pipeline")
 }
 
 func dataStreamPath(version string) string {
-	return filepath.Join("apmpackage/apm/", version, "/data_stream/")
+	return filepath.Join("apmpackage", "apm", version, "data_stream")
 }
 
 func fieldsPath(version, dataStream string) string {
-	return filepath.Join(dataStreamPath(version), dataStream, "fields/")
+	return filepath.Join(dataStreamPath(version), dataStream, "fields")
 }
 
 func ecsFilePath(version, dataStream string) string {

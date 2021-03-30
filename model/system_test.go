@@ -26,8 +26,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/elastic/apm-server/approvaltest"
 )
 
@@ -37,32 +35,26 @@ func TestSystemTransformation(t *testing.T) {
 	nodename, podname, podUID := "a.node", "a.pod", "b.podID"
 
 	for name, system := range map[string]System{
-		"hostname":                               System{DetectedHostname: detected},
-		"ignored hostname":                       System{ConfiguredHostname: configured},
-		"full hostname info":                     System{DetectedHostname: detected, ConfiguredHostname: configured},
-		"k8s nodename with hostname":             System{Kubernetes: Kubernetes{NodeName: nodename}, DetectedHostname: detected},
-		"k8s nodename with configured hostname":  System{Kubernetes: Kubernetes{NodeName: nodename}, ConfiguredHostname: configured},
-		"k8s podname":                            System{Kubernetes: Kubernetes{PodName: podname}, DetectedHostname: detected},
-		"k8s podUID":                             System{Kubernetes: Kubernetes{PodUID: podUID}, DetectedHostname: detected},
-		"k8s namespace":                          System{Kubernetes: Kubernetes{Namespace: namespace}, DetectedHostname: detected},
-		"k8s podname with configured hostname":   System{Kubernetes: Kubernetes{PodName: podname}, DetectedHostname: detected, ConfiguredHostname: configured},
-		"k8s podUID with configured hostname":    System{Kubernetes: Kubernetes{PodUID: podUID}, DetectedHostname: detected, ConfiguredHostname: configured},
-		"k8s namespace with configured hostname": System{Kubernetes: Kubernetes{Namespace: namespace}, DetectedHostname: detected, ConfiguredHostname: configured},
-		"k8s empty":                              System{Kubernetes: Kubernetes{}, DetectedHostname: detected, ConfiguredHostname: configured},
+		"hostname":           System{DetectedHostname: detected},
+		"ignored hostname":   System{ConfiguredHostname: configured},
+		"full hostname info": System{DetectedHostname: detected, ConfiguredHostname: configured},
 		"full": System{
 			DetectedHostname:   detected,
 			ConfiguredHostname: configured,
 			Architecture:       "amd",
 			Platform:           "osx",
+			FullPlatform:       "Mac OS Mojave",
+			OSType:             "macos",
+			Type:               "t2.medium",
 			IP:                 net.ParseIP("127.0.0.1"),
 			Container:          Container{ID: "1234"},
 			Kubernetes:         Kubernetes{Namespace: namespace, NodeName: nodename, PodName: podname, PodUID: podUID},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			fields := make(common.MapStr)
+			var fields mapStr
 			metadata := &Metadata{System: system}
-			metadata.Set(fields, nil)
+			metadata.set(&fields, nil)
 			resultJSON, err := json.Marshal(fields["host"])
 			require.NoError(t, err)
 			name := filepath.Join("test_approved", "system", strings.ReplaceAll(name, " ", "_"))

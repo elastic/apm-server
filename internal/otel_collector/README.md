@@ -4,7 +4,7 @@
   <strong>
     <a href="https://opentelemetry.io/docs/collector/getting-started/">Getting Started<a/>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://github.com/open-telemetry/community#special-interest-groups">Getting Involved<a/>
+    <a href="CONTRIBUTING.md">Getting Involved<a/>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="https://gitter.im/open-telemetry/opentelemetry-service">Getting In Touch<a/>
   </strong>
@@ -17,7 +17,7 @@
   <a href="https://circleci.com/gh/open-telemetry/opentelemetry-collector">
     <img alt="Build Status" src="https://img.shields.io/circleci/build/github/open-telemetry/opentelemetry-collector?style=for-the-badge">
   </a>
-  <a href="https://codecov.io/gh/open-telemetry/opentelemetry-collector/branch/master/">
+  <a href="https://codecov.io/gh/open-telemetry/opentelemetry-collector/branch/main/">
     <img alt="Codecov Status" src="https://img.shields.io/codecov/c/github/open-telemetry/opentelemetry-collector?style=for-the-badge">
   </a>
   <a href="https://github.com/open-telemetry/opentelemetry-collector/releases">
@@ -28,8 +28,6 @@
 
 <p align="center">
   <strong>
-    <a href="CONTRIBUTING.md">Contributing<a/>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/vision.md">Vision<a/>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/design.md">Design<a/>
@@ -37,6 +35,8 @@
     <a href="docs/monitoring.md">Monitoring<a/>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/performance.md">Performance<a/>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="docs/security.md">Security<a/>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/roadmap.md">Roadmap<a/>
   </strong>
@@ -73,6 +73,7 @@ Approvers ([@open-telemetry/collector-approvers](https://github.com/orgs/open-te
 - [Dmitrii Anoshin](https://github.com/dmitryax), Splunk
 - [James Bebbington](https://github.com/james-bebbington), Google
 - [Jay Camp](https://github.com/jrcamp), Splunk
+- [Juraci Paixão Kröhling](https://github.com/jpkrohling), Red Hat
 - [Nail Islamov](https://github.com/nilebox), Google
 - [Owais Lone](https://github.com/owais), Splunk
 
@@ -81,7 +82,7 @@ Maintainers ([@open-telemetry/collector-maintainers](https://github.com/orgs/ope
 - [Bogdan Drutu](https://github.com/BogdanDrutu), Splunk
 - [Tigran Najaryan](https://github.com/tigrannajaryan), Splunk
 
-Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md).
+Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md).
 
 Thanks to all the people who already contributed!
 

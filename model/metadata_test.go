@@ -31,6 +31,7 @@ import (
 func TestMetadata_Set(t *testing.T) {
 	pid := 1234
 	host := "host"
+	hostname := "hostname"
 	containerID := "container-123"
 	serviceName, serviceNodeName := "myservice", "serviceABC"
 	uid := "12321"
@@ -39,8 +40,8 @@ func TestMetadata_Set(t *testing.T) {
 
 	for _, test := range []struct {
 		input  Metadata
-		fields common.MapStr
-		output common.MapStr
+		fields mapStr
+		output mapStr
 	}{
 		{
 			input: Metadata{
@@ -52,21 +53,24 @@ func TestMetadata_Set(t *testing.T) {
 						Version: agentVersion,
 					},
 				},
-				System:  System{DetectedHostname: host, Container: Container{ID: containerID}},
+				System: System{
+					ConfiguredHostname: host,
+					DetectedHostname:   hostname,
+					Container:          Container{ID: containerID}},
 				Process: Process{Pid: pid},
 				User:    User{ID: uid, Email: mail},
 			},
-			fields: common.MapStr{
+			fields: mapStr{
 				"foo": "bar",
 				"user": common.MapStr{
 					"email": "override@email.com",
 				},
 			},
-			output: common.MapStr{
+			output: mapStr{
 				"foo":       "bar",
 				"agent":     common.MapStr{"version": "1.0.0", "name": "elastic-node"},
 				"container": common.MapStr{"id": containerID},
-				"host":      common.MapStr{"hostname": host, "name": host},
+				"host":      common.MapStr{"hostname": hostname, "name": host},
 				"process":   common.MapStr{"pid": pid},
 				"service": common.MapStr{
 					"name": "myservice",
@@ -75,29 +79,9 @@ func TestMetadata_Set(t *testing.T) {
 				"user": common.MapStr{"id": "12321", "email": "user@email.com"},
 			},
 		},
-		{
-			input: Metadata{
-				Service: Service{},
-				System:  System{DetectedHostname: host, Container: Container{ID: containerID}},
-			},
-			fields: common.MapStr{},
-			output: common.MapStr{
-				"host":      common.MapStr{"hostname": host, "name": host},
-				"container": common.MapStr{"id": containerID},
-				"service":   common.MapStr{"node": common.MapStr{"name": containerID}}},
-		},
-		{
-			input: Metadata{
-				Service: Service{},
-				System:  System{DetectedHostname: host},
-			},
-			fields: common.MapStr{},
-			output: common.MapStr{
-				"host":    common.MapStr{"hostname": host, "name": host},
-				"service": common.MapStr{"node": common.MapStr{"name": host}}},
-		},
 	} {
-		assert.Equal(t, test.output, test.input.Set(test.fields, nil))
+		test.input.set(&test.fields, nil)
+		assert.Equal(t, test.output, test.fields)
 	}
 }
 
@@ -107,9 +91,9 @@ func BenchmarkMetadataSet(b *testing.B) {
 			b.ReportAllocs()
 			b.ResetTimer()
 
-			out := make(common.MapStr)
+			var out mapStr
 			for i := 0; i < b.N; i++ {
-				input.Set(out, nil)
+				input.set(&out, nil)
 				for k := range out {
 					delete(out, k)
 				}
