@@ -26,6 +26,7 @@ import (
 
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMapNilConsumer(t *testing.T) {
@@ -36,11 +37,11 @@ func TestMapNilConsumer(t *testing.T) {
 
 func TestMapNoMatch(t *testing.T) {
 	m, err := sourcemap.Parse("", []byte(test.ValidSourcemap))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// nothing found for lineno and colno
 	file, fc, line, col, ctxLine, _, _, ok := Map(m, 0, 0, 0)
-	assert.False(t, ok)
+	require.False(t, ok)
 	assert.Zero(t, file)
 	assert.Zero(t, fc)
 	assert.Zero(t, line)
@@ -54,7 +55,7 @@ func TestMapMatch(t *testing.T) {
 	// Re-encode the sourcemap, adding carriage returns to the
 	// line endings in the source content.
 	decoded := make(map[string]interface{})
-	assert.NoError(t, json.Unmarshal([]byte(validSourcemap), &decoded))
+	require.NoError(t, json.Unmarshal([]byte(validSourcemap), &decoded))
 	sourceContent := decoded["sourcesContent"].([]interface{})
 	for i := range sourceContent {
 		sourceContentFile := sourceContent[i].(string)
@@ -62,14 +63,14 @@ func TestMapMatch(t *testing.T) {
 		sourceContent[i] = sourceContentFile
 	}
 	crlfSourcemap, err := json.Marshal(decoded)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// mapping found in minified sourcemap
 	test := func(t *testing.T, source []byte) {
 		m, err := sourcemap.Parse("", source)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		file, fc, line, col, ctxLine, preCtx, postCtx, ok := Map(m, 1, 7, 0)
-		assert.True(t, ok)
+		require.True(t, ok)
 		assert.Equal(t, "webpack:///bundle.js", file)
 		assert.Equal(t, "", fc)
 		assert.Equal(t, 1, line)
@@ -87,9 +88,9 @@ func TestMapMaxLineLength(t *testing.T) {
 
 	// mapping found in minified sourcemap
 	m, err := sourcemap.Parse("", source)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	file, fc, line, col, ctxLine, preCtx, postCtx, ok := Map(m, 1, 7, 16)
-	assert.True(t, ok)
+	require.True(t, ok)
 	assert.Equal(t, "webpack:///bundle.js", file)
 	assert.Equal(t, "", fc)
 	assert.Equal(t, 1, line)

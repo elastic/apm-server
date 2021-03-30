@@ -59,12 +59,12 @@ type EventRate struct {
 
 // SourceMapping holds sourecemap config information
 type SourceMapping struct {
-	Cache        *Cache `config:"cache"`
-	Enabled      *bool  `config:"enabled"`
-	IndexPattern string `config:"index_pattern"`
-	// TODO: uint? uint64? Or do we not care and just use an int?
-	MaxLineLength uint                  `config:"max_line_length"`
-	ESConfig      *elasticsearch.Config `config:"elasticsearch"`
+	Cache        *Cache                `config:"cache"`
+	Enabled      *bool                 `config:"enabled"`
+	IndexPattern string                `config:"index_pattern"`
+	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
+	// MaxLineLength of 0 indicates no maximum length.
+	MaxLineLength int `config:"max_line_length"`
 	esConfigured  bool
 }
 

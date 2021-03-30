@@ -19,20 +19,15 @@ package sourcemap
 
 import (
 	"bufio"
-	"bytes"
 	"strings"
 
 	"github.com/go-sourcemap/sourcemap"
 )
 
-const (
-	sourcemapContentSnippetSize = 5
-	// TODO: What value do we want here?
-	minMaxLineLength = 16
-)
+const sourcemapContentSnippetSize = 5
 
 // Map sourcemapping for given line and column and return values after sourcemapping
-func Map(mapper *sourcemap.Consumer, lineno, colno int, maxLineLength uint) (
+func Map(mapper *sourcemap.Consumer, lineno, colno int, maxLineLength int) (
 	file, function string,
 	line, col int,
 	contextLine string,
@@ -45,23 +40,23 @@ func Map(mapper *sourcemap.Consumer, lineno, colno int, maxLineLength uint) (
 
 	file, function, line, col, ok = mapper.Source(lineno, colno)
 	scanner := bufio.NewScanner(strings.NewReader(mapper.SourceContent(file)))
-	if maxLineLength > 0 {
-		if maxLineLength < minMaxLineLength {
-			maxLineLength = minMaxLineLength
-		}
-		scanner.Split(limitScanLines(int(maxLineLength)))
-	}
 
 	var currentLine int
 	for scanner.Scan() {
 		currentLine++
+
+		token := scanner.Text()
+		if maxLineLength > 0 && len(token) > maxLineLength {
+			token = truncate(token, maxLineLength)
+		}
+
 		if currentLine == line {
-			contextLine = scanner.Text()
+			contextLine = token
 		} else if abs(line-currentLine) <= sourcemapContentSnippetSize {
 			if currentLine < line {
-				preContext = append(preContext, scanner.Text())
+				preContext = append(preContext, token)
 			} else {
-				postContext = append(postContext, scanner.Text())
+				postContext = append(postContext, token)
 			}
 		} else if currentLine > line {
 			// More than sourcemapContentSnippetSize lines past, we're done.
@@ -82,39 +77,17 @@ func abs(n int) int {
 	return n
 }
 
-// limitScanLines is a modified form of bufio.ScanLines. It truncates any lines
-// longer than the supplied `max` value.
-func limitScanLines(max int) func([]byte, bool) (int, []byte, error) {
-	return func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		if atEOF && len(data) == 0 {
-			return 0, nil, nil
-		}
-
-		if i := bytes.IndexByte(data, '\n'); i >= 0 {
-			if i > max {
-				for j := max; j > 0 && j >= max-2; j-- {
-					data[j] = '.'
-				}
-				return i + 1, data[0:max], nil
+// truncate sourcemap lines by runes
+func truncate(s string, length int) string {
+	var j int
+	for i := range s {
+		if j == length {
+			if length > 2 {
+				return s[:i-2] + ".."
 			}
-			// We have a full newline-terminated line that is smaller than `max`.
-			return i + 1, dropCR(data[0:i]), nil
+			return s[:i]
 		}
-
-		// If we're at EOF, we have a final, non-terminated line.
-		if atEOF {
-			return len(data), dropCR(data), nil
-		}
-
-		// Request more data.
-		return 0, nil, nil
+		j++
 	}
-}
-
-func dropCR(data []byte) []byte {
-	if len(data) > 0 && data[len(data)-1] == '\r' {
-		return data[0 : len(data)-1]
-	}
-
-	return data
+	return s
 }

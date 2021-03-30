@@ -64,7 +64,7 @@ func TestDefaultRum(t *testing.T) {
 }
 
 func TestSourceMapMaxLineLength(t *testing.T) {
-	maxLen := uint(512)
+	maxLen := 512
 	srcMapping := defaultSourcemapping()
 	srcMapping.MaxLineLength = maxLen
 

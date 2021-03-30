@@ -240,6 +240,10 @@ apm-server:
       # Sourcemapping is enabled by default.
       #enabled: true
 
+      # Maximum allowed line length in characters. Default maximum line length
+      # is unlimited, indicated by `0`. Minimum allowed value is 16.
+      #max_line_length: 0
+
       # Source maps are always fetched from Elasticsearch, by default using the output.elasticsearch configuration.
       # A different instance must be configured when using any other output.
       # This setting only affects sourcemap reads - the output determines where sourcemaps are written.

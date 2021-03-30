@@ -148,7 +148,7 @@ func (s *StacktraceFrame) applySourcemap(
 	store *sourcemap.Store,
 	service *Service,
 	prevFunction string,
-	maxLineLength uint,
+	maxLineLength int,
 ) (function, errMsg string) {
 	function = prevFunction
 
