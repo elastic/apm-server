@@ -193,7 +193,6 @@ update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
 	diff -u .go-version $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version \
 		|| { code=$$?; echo ".go-version out of sync with Beats"; exit $$code; }
-	rsync -crv --delete $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/testing/environments testing/
 
 ##############################################################################
 # Kibana synchronisation.
