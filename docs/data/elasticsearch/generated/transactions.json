@@ -497,8 +497,7 @@
         },
         "user_agent": {
             "device": {
-                "name": "Other",
-                "type": "Other"
+                "name": "Other"
             },
             "name": "Other",
             "original": "Mozilla Chrome Edge"
