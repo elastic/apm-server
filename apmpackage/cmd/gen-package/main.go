@@ -31,8 +31,13 @@ import (
 var versionMapping = map[string]string{
 	"7.11": "0.1.0",
 	"7.12": "0.1.0",
+<<<<<<< HEAD
 	"7.13": "0.1.0",
 	"8.0":  "0.1.0",
+=======
+	"7.13": "0.2.0",
+	"8.0":  "0.2.0",
+>>>>>>> fd8383a88... apmpackage: bump version to 0.2.0 (#5031)
 }
 
 // Some data streams may not have a counterpart template
