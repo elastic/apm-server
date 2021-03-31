@@ -78,6 +78,13 @@ policy_templates:
             description: Default service environment to record in events which have no service environment defined.
             required: false
             show_user: false
+          - name: rum_allow_service_names
+            type: text
+            title: RUM - Allowed Service Names
+            description: Allowed service names for events sent by RUM agents.
+            multi: true
+            required: false
+            show_user: false
           - name: rum_allow_origins
             type: text
             title: RUM - Origin Headers

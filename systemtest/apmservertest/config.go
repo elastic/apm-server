@@ -150,6 +150,10 @@ type TailSamplingPolicy struct {
 type RUMConfig struct {
 	Enabled bool `json:"enabled"`
 
+	// AllowServiceNames holds a list of exclusively allowed service names for
+	// RUM events.
+	AllowServiceNames []string `json:"allow_service_names,omitempty"`
+
 	// ResponseHeaders holds headers to add to all APM Server RUM HTTP responses.
 	ResponseHeaders http.Header `json:"response_headers,omitempty"`
 }

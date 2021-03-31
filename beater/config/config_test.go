@@ -98,8 +98,9 @@ func TestUnpackConfig(t *testing.T) {
 						"limit":    7200,
 						"lru_size": 2000,
 					},
-					"allow_origins": []string{"example*"},
-					"allow_headers": []string{"Authorization"},
+					"allow_service_names": []string{"opbeans-rum"},
+					"allow_origins":       []string{"example*"},
+					"allow_headers":       []string{"Authorization"},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 8 * time.Minute,
@@ -171,8 +172,9 @@ func TestUnpackConfig(t *testing.T) {
 						Limit:   7200,
 						LruSize: 2000,
 					},
-					AllowOrigins: []string{"example*"},
-					AllowHeaders: []string{"Authorization"},
+					AllowServiceNames: []string{"opbeans-rum"},
+					AllowOrigins:      []string{"example*"},
+					AllowHeaders:      []string{"Authorization"},
 					SourceMapping: &SourceMapping{
 						Cache:        &Cache{Expiration: 8 * time.Minute},
 						IndexPattern: "apm-test*",
