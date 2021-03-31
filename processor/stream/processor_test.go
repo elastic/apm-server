@@ -36,6 +36,7 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
@@ -155,7 +156,7 @@ func TestIntegrationRum(t *testing.T) {
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
-			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024})
+			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
 			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
@@ -184,10 +185,45 @@ func TestRUMV3(t *testing.T) {
 				UserAgent: model.UserAgent{Original: "rum-2.0"},
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
-			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024})
+			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
 			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
+	}
+}
+
+func TestRUMAllowedServiceNames(t *testing.T) {
+	for _, test := range []struct {
+		AllowServiceNames []string
+		ExpectedResult    *Result
+	}{{
+		AllowServiceNames: nil,
+		ExpectedResult: &Result{
+			Accepted: 2,
+		},
+	}, {
+		AllowServiceNames: []string{"apm-agent-js"}, // matches what's in test data
+		ExpectedResult: &Result{
+			Accepted: 2,
+		},
+	}, {
+		AllowServiceNames: []string{"reject_everything"},
+		ExpectedResult: &Result{
+			Accepted: 0,
+			Errors:   []*Error{{Type: InvalidInputErrType, Message: "service name is not allowed"}},
+		},
+	}} {
+		p := RUMV2Processor(&config.Config{
+			MaxEventSize: 100 * 1024,
+			RumConfig:    &config.RumConfig{AllowServiceNames: test.AllowServiceNames},
+		})
+
+		b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/transactions_spans_rum.ndjson"))
+		require.NoError(t, err)
+		bodyReader := bytes.NewBuffer(b)
+
+		result := p.HandleStream(context.Background(), nil, &model.Metadata{}, bodyReader, modelprocessor.Nop{})
+		assert.Equal(t, test.ExpectedResult, result)
 	}
 }
 

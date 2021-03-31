@@ -56,6 +56,14 @@ Sites with many concurrent clients should consider increasing this limit.
 Defaults to 1000.
 
 [float]
+[[rum-allow-service-names]]
+==== `allow_service_names`
+A list of permitted service names for RUM support.
+This can be set to restrict RUM events to those with one of a set of known service names,
+in order to limit the number of service-specific indices or data streams created.
+By default this is not set, allowing any service name.
+
+[float]
 [[rum-allow-origins]]
 ==== `allow_origins`
 A list of permitted origins for RUM support.

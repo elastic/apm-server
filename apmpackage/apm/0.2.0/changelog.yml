@@ -1,7 +1,10 @@
 # newer versions go on top
 - version: "0.2.0"
   changes:
-    - description: Introduce a configurable default service environment
+    - description: added support for apm-server.rum.allow_service_names
+      type: enhancement # can be one of: enhancement, bugfix, breaking-change
+      link: https://github.com/elastic/apm-server/pull/5030
+    - description: introduce a configurable default service environment
       type: enhancement # can be one of: enhancement, bugfix, breaking-change
       link: https://github.com/elastic/apm-server/pull/4861
 - version: "0.1.0"
