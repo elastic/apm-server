@@ -72,7 +72,7 @@ SYSTEM_TEST_TARGET?=./tests/system
 PYTEST_OPTIONS?=--timeout=90 --durations=20 --junit-xml=build/TEST-system.xml
 
 .PHONY: check-full
-check-full: update check golint staticcheck
+check-full: update check golint staticcheck check-docker-compose
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)
@@ -193,7 +193,6 @@ update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
 	diff -u .go-version $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version \
 		|| { code=$$?; echo ".go-version out of sync with Beats"; exit $$code; }
-	rsync -crv --delete $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/testing/environments testing/
 
 ##############################################################################
 # Kibana synchronisation.
@@ -232,6 +231,10 @@ ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector
 	@$(GOLICENSER) -d -exclude build -license Elastic x-pack
 endif
+
+.PHONY: check-docker-compose
+check-docker-compose: $(PYTHON_BIN)
+	@PATH=$(PYTHON_BIN):$(PATH) ./script/check_docker_compose.sh $(BEATS_VERSION)
 
 .PHONY: check-package format-package build-package
 check-package: $(ELASTICPACKAGE)
