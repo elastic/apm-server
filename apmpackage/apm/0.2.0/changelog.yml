@@ -1,0 +1,11 @@
+# newer versions go on top
+- version: "0.2.0"
+  changes:
+    - description: Introduce a configurable default service environment
+      type: enhancement # can be one of: enhancement, bugfix, breaking-change
+      link: https://github.com/elastic/apm-server/pull/4861
+- version: "0.1.0"
+  changes:
+    - description: initial release
+      type: enhancement # can be one of: enhancement, bugfix, breaking-change
+      link: https://github.com/elastic/apm-server/
