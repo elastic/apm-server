@@ -61,7 +61,7 @@ class Kibana(object):
             }
         )
         assert resp.status_code == 200, resp.status_code
-        return resp.json()
+        return resp.json()['configurations']
 
     def delete_agent_config(self, service, env=None):
         data = {
