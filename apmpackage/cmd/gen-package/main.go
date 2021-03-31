@@ -30,7 +30,9 @@ import (
 
 var versionMapping = map[string]string{
 	"7.11": "0.1.0",
-	"8.0":  "0.1.0",
+	"7.12": "0.1.0",
+	"7.13": "0.2.0",
+	"8.0":  "0.2.0",
 }
 
 // Some data streams may not have a counterpart template

@@ -32,12 +32,18 @@ services:
       kibana: { condition: service_healthy }
 
   elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
     ports:
       - 9200:9200
-    extends:
-      file: ./testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
-      service: elasticsearch
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=500ms"]
+      retries: 300
+      interval: 1s
     environment:
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "network.host="
+      - "transport.host=127.0.0.1"
+      - "http.host=0.0.0.0"
       - "cluster.routing.allocation.disk.threshold_enabled=false"
       - "discovery.type=single-node"
       - "xpack.security.authc.anonymous.roles=remote_monitoring_collector"
@@ -54,11 +60,13 @@ services:
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
 
   kibana:
+    image: docker.elastic.co/kibana/kibana:8.0.0-SNAPSHOT
     ports:
       - 5601:5601
-    extends:
-      file: ./testing/environments/${TESTING_ENVIRONMENT:-snapshot}.yml
-      service: kibana
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'Looking good'"]
+      retries: 300
+      interval: 1s
     environment:
       STATUS_ALLOWANONYMOUS: "true"
       ELASTICSEARCH_URL: elasticsearch:9200
@@ -72,6 +80,7 @@ services:
       XPACK_FLEET_AGENTS_TLSCHECKDISABLED: "true"
       XPACK_FLEET_REGISTRYURL: "http://package-registry:8080"
     depends_on:
+      elasticsearch: { condition: service_healthy }
       package-registry: { condition: service_healthy }
 
   package-registry:
