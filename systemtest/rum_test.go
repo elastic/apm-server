@@ -119,6 +119,33 @@ func TestRUMAuth(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+func TestRUMAllowServiceNames(t *testing.T) {
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled:           true,
+		AllowServiceNames: []string{"allowed"},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	// Send a RUM transaction where the service name in metadata is allowed,
+	// but is overridden in the transaction event's context with a disallowed
+	// service name.
+	reqBody := strings.NewReader(`
+{"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"rum-js","version":"0.0.0"}}}}
+{"transaction":{"trace_id":"x","id":"y","type":"z","duration":0,"span_count":{"started":1},"context":{"service":{"name":"disallowed"}}}}
+`[1:])
+	req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/rum/events", reqBody)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, string(respBody))
+	assert.Equal(t, `{"accepted":0,"errors":[{"message":"service name is not allowed"}]}`+"\n", string(respBody))
+}
+
 func sendRUMEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
 	t.Helper()
 

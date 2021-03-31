@@ -43,6 +43,7 @@ const (
 type RumConfig struct {
 	Enabled             *bool               `config:"enabled"`
 	EventRate           *EventRate          `config:"event_rate"`
+	AllowServiceNames   []string            `config:"allow_service_names"`
 	AllowOrigins        []string            `config:"allow_origins"`
 	AllowHeaders        []string            `config:"allow_headers"`
 	ResponseHeaders     map[string][]string `config:"response_headers"`
