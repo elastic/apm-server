@@ -39,6 +39,11 @@ func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
+		// Shadow the logger param to ensure we don't update the
+		// closure variable, and interfere with logging of other
+		// requests.
+		logger := logger
+
 		start := time.Now()
 		if metadata, ok := ClientMetadataFromContext(ctx); ok {
 			if metadata.SourceIP != nil {
