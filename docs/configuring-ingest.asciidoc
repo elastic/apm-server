@@ -35,6 +35,17 @@ that are already available on the parent transaction.
 In previous versions of APM Server, this functionality was hardcoded internally.
 Switching metadata cleanup from an internal process to a processor allows you to keep any span metadata that is important in your architecture.
 
+`apm_error_grouping_name`::
+added:[7.13]
+Adds `error.grouping_name` to error documents for use in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
+
+`apm_opentelemetry_metrics`::
+added:[7.13]
+Copies well-known OpenTelemetry metrics to their Elastic APM counterparts, for vizualisation in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
+For example, the OpenTelemetry metric field `runtime.jvm.gc.time` is copied to the Elastic APM metric field `jvm.gc.time`.
+
+Metrics are duplicated so you can refer to them by either the OpenTelemetry or Elastic APM metric name.
+
 See the complete pipeline definition by navigating to the APM Server's home directory,
 and then viewing `ingest/pipeline/definition.json`.
 
