@@ -46,11 +46,19 @@ Adds `error.grouping_name` to error documents for use in the {kibana-ref}/xpack-
 added:[7.13]
 Copies well-known OpenTelemetry metrics to their Elastic APM counterparts, for vizualisation in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
 For example, the OpenTelemetry metric field `runtime.jvm.gc.time` is copied to the Elastic APM metric field `jvm.gc.time`.
+<<<<<<< HEAD
 +
 Metrics are duplicated so you can refer to them by either the OpenTelemetry or Elastic APM metric name.
 
 See the complete pipeline definition by navigating to the APM Server's home directory
 and viewing `ingest/pipeline/definition.json`.
+=======
+
+Metrics are duplicated so you can refer to them by either the OpenTelemetry or Elastic APM metric name.
+
+See the complete pipeline definition by navigating to the APM Server's home directory,
+and then viewing `ingest/pipeline/definition.json`.
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 
 To disable this, or any other pipeline, set `output.elasticsearch.pipeline: _none`.
 

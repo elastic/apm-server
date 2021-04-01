@@ -34,6 +34,7 @@ https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 * Add exponential retries to api key and tail sampling requests{pull}4991[4991]
 * Add `apm-server.rum.allow_service_names` config {pull}5030[5030]
 * Ingest pipeline for translating OpenTelemetry Java metrics to Elastic APM fields {pull}4986[4986]
+<<<<<<< HEAD:changelogs/7.13.asciidoc
 * Set `event.ingested` first in the ingest pipeline {pull}5048[5048]
 * The server now responds with a reason for some 401 Unauthorized requests {pull}5053[5053]
 * Add `session.id` and `session.sequence` fields for RUM session tracking {pull}5056[5056]
@@ -42,3 +43,8 @@ https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 * API Key auth is no longer considered experimental {pull}5091[5091]
 * Set gRPC status code to `DEADLINE_EXCEEDED` on request timeout {pull}5089[5089]
 * Add support for OpenTelemetry RPC semantic conventions {pull}5074[5074]
+=======
+
+[float]
+==== Deprecated
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986):changelogs/head.asciidoc

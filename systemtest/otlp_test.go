@@ -31,7 +31,10 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.opentelemetry.io/otel/metric"
 	export "go.opentelemetry.io/otel/sdk/export/metric"
+<<<<<<< HEAD
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
+=======
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
@@ -89,8 +92,13 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+<<<<<<< HEAD
 	aggregator := simple.NewWithHistogramDistribution(histogram.WithExplicitBoundaries([]float64{1, 100, 1000, 10000}))
 	err = sendOTLPMetrics(t, ctx, srv, aggregator, func(meter metric.MeterMust) {
+=======
+	aggregator := simple.NewWithHistogramDistribution([]float64{1, 100, 1000, 10000})
+	err = sendOTLPMetrics(ctx, srv, aggregator, func(meter metric.MeterMust) {
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 		float64Counter := meter.NewFloat64Counter("float64_counter")
 		float64Counter.Add(context.Background(), 1)
 
@@ -178,17 +186,30 @@ func TestOpenTelemetryJavaMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	aggregator := simple.NewWithExactDistribution()
+<<<<<<< HEAD
 	err = sendOTLPMetrics(t, context.Background(), srv, aggregator, func(meter metric.MeterMust) {
+=======
+	err = sendOTLPMetrics(context.Background(), srv, aggregator, func(meter metric.MeterMust) {
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 		// Record well-known JVM runtime metrics, to test that they are
 		// copied to their Elastic APM equivalents during ingest.
 		jvmGCTime := meter.NewInt64Counter("runtime.jvm.gc.time")
 		jvmGCCount := meter.NewInt64Counter("runtime.jvm.gc.count")
+<<<<<<< HEAD
 		jvmGCTime.Bind(attribute.String("gc", "G1 Young Generation")).Add(context.Background(), 123)
 		jvmGCCount.Bind(attribute.String("gc", "G1 Young Generation")).Add(context.Background(), 1)
 		jvmMemoryArea := meter.NewInt64UpDownCounter("runtime.jvm.memory.area")
 		jvmMemoryArea.Bind(
 			attribute.String("area", "heap"),
 			attribute.String("type", "used"),
+=======
+		jvmGCTime.Bind(label.String("gc", "G1 Young Generation")).Add(context.Background(), 123)
+		jvmGCCount.Bind(label.String("gc", "G1 Young Generation")).Add(context.Background(), 1)
+		jvmMemoryArea := meter.NewInt64UpDownCounter("runtime.jvm.memory.area")
+		jvmMemoryArea.Bind(
+			label.String("area", "heap"),
+			label.String("type", "used"),
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 		).Add(context.Background(), 42)
 	})
 	require.NoError(t, err)
@@ -226,7 +247,11 @@ func TestOpenTelemetryJavaMetrics(t *testing.T) {
 	assert.Equal(t, 42.0, gjson.GetBytes(memoryAreaHit.RawSource, "jvm.memory.heap.used").Value())
 }
 
+<<<<<<< HEAD
 func newOTLPExporter(t testing.TB, srv *apmservertest.Server, options ...otlpgrpc.Option) *otlp.Exporter {
+=======
+func sendOTLPTrace(ctx context.Context, srv *apmservertest.Server, config sdktrace.Config, options ...otlpgrpc.Option) error {
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 	options = append(options, otlpgrpc.WithEndpoint(serverAddr(srv)), otlpgrpc.WithInsecure())
 	driver := otlpgrpc.NewDriver(options...)
 	exporter, err := otlp.NewExporter(context.Background(), driver)
@@ -274,16 +299,31 @@ func sendOTLPTrace(ctx context.Context, tracerProvider *sdktrace.TracerProvider)
 }
 
 func sendOTLPMetrics(
+<<<<<<< HEAD
 	t testing.TB,
+=======
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 	ctx context.Context,
 	srv *apmservertest.Server,
 	aggregator export.AggregatorSelector,
 	recordMetrics func(metric.MeterMust),
 ) error {
+<<<<<<< HEAD
 	exporter := newOTLPExporter(t, srv)
 	controller := controller.New(
 		processor.New(aggregator, exporter),
 		controller.WithExporter(exporter),
+=======
+	driver := otlpgrpc.NewDriver(otlpgrpc.WithEndpoint(serverAddr(srv)), otlpgrpc.WithInsecure())
+	exporter, err := otlp.NewExporter(context.Background(), driver)
+	if err != nil {
+		panic(err)
+	}
+
+	controller := controller.New(
+		processor.New(aggregator, exporter),
+		controller.WithPusher(exporter),
+>>>>>>> 264d15147... ingest: translate known OpenTelemetry JVM metrics (#4986)
 		controller.WithCollectPeriod(time.Minute),
 	)
 	if err := controller.Start(context.Background()); err != nil {
