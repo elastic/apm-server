@@ -27,6 +27,7 @@
             "tag1": "one",
             "tag2": 2
         },
+        "metricset.name": "app",
         "observer": {
             "ephemeral_id": "8785cbe1-7f89-4279-84c2-6c33979531fb",
             "hostname": "ix.lan",
@@ -76,6 +77,7 @@
             "tag1": "one",
             "tag2": 2
         },
+        "metricset.name": "app",
         "observer": {
             "ephemeral_id": "2f30050f-81e6-491a-a54f-e7d94eec17b5",
             "hostname": "simmac.net",
@@ -123,6 +125,86 @@
         }
     },
     {
+        "@timestamp": "2017-05-30T18:53:41.366Z",
+        "agent": {
+            "name": "elastic-node",
+            "version": "3.14.0"
+        },
+        "ecs": {
+            "version": "1.8.0"
+        },
+        "event": {
+            "ingested": "2020-09-08T15:57:10.396695Z"
+        },
+        "host": {
+            "ip": "127.0.0.1"
+        },
+        "labels": {
+            "tag1": "one",
+            "tag2": 2
+        },
+        "metricset.name": "app",
+        "observer": {
+            "ephemeral_id": "2f30050f-81e6-491a-a54f-e7d94eec17b5",
+            "hostname": "simmac.net",
+            "id": "02f6cb38-c1ce-4382-9478-4c8b4cdbda9c",
+            "type": "apm-server",
+            "version": "8.0.0",
+            "version_major": 8
+        },
+        "process": {
+            "pid": 1234
+        },
+        "processor": {
+            "event": "metric",
+            "name": "metric"
+        },
+        "service": {
+            "language": {
+                "name": "ecmascript"
+            },
+            "name": "1234_service-12a3",
+            "node": {
+                "name": "node-1"
+            }
+        },
+        "system": {
+            "process": {
+                "cgroup": {
+                    "cpu": {
+                        "cfs": {
+                            "period": {
+                                "us": 1024
+                            },
+                            "quota": {
+                                "us": 2048
+                            }
+                        },
+                        "id": 2048,
+                        "stats": {
+                            "periods": 2048,
+                            "throttled": {
+                                "ns": 2048,
+                                "periods": 2048
+                            }
+                        }
+                    },
+                    "cpuacct": {
+                        "id": 2048,
+                        "total": {
+                            "ns": 2048
+                        }
+                    }
+                }
+            }
+        },
+        "user": {
+            "email": "user@mail.com",
+            "id": "axb123hg",
+            "name": "logged-in-user"
+        }
+    },
+    {
         "@timestamp": "2017-05-30T18:53:42.281Z",
         "agent": {
             "name": "elastic-node",
@@ -154,6 +236,7 @@
             "tag2": 2
         },
         "long_gauge": 3147483648.0,
+        "metricset.name": "span_breakdown",
         "negative": {
             "d": {
                 "o": {

@@ -33,15 +33,15 @@ type Metadata struct {
 }
 
 func (m *Metadata) set(fields *mapStr, eventLabels common.MapStr) {
-	fields.maybeSetMapStr("service", m.Service.Fields(m.System.Container.ID, m.System.name()))
-	fields.maybeSetMapStr("agent", m.Service.AgentFields())
+	fields.maybeSetMapStr("service", m.Service.Fields())
+	fields.maybeSetMapStr("agent", m.Service.Agent.fields())
 	fields.maybeSetMapStr("host", m.System.fields())
 	fields.maybeSetMapStr("process", m.Process.fields())
-	fields.maybeSetMapStr("user", m.User.Fields())
+	fields.maybeSetMapStr("user", m.User.fields())
 	fields.maybeSetMapStr("client", m.Client.fields())
 	fields.maybeSetMapStr("user_agent", m.UserAgent.fields())
-	fields.maybeSetMapStr("container", m.System.containerFields())
-	fields.maybeSetMapStr("kubernetes", m.System.kubernetesFields())
+	fields.maybeSetMapStr("container", m.System.Container.fields())
+	fields.maybeSetMapStr("kubernetes", m.System.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", m.Cloud.fields())
 	maybeSetLabels(fields, m.Labels, eventLabels)
 }

@@ -22,7 +22,6 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/metrics"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/trace"
@@ -31,19 +30,27 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/otel"
-	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
 var (
-	monitoringKeys = []request.ResultID{
-		request.IDRequestCount, request.IDResponseCount, request.IDResponseErrorsCount, request.IDResponseValidCount,
-	}
-
+	monitoringKeys           = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized)
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
 	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
+
+	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
+	// method name to its respective monitoring map.
+	RegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
+		metricsFullMethod: gRPCMetricsMonitoringMap,
+		tracesFullMethod:  gRPCTracesMonitoringMap,
+	}
+)
+
+const (
+	metricsFullMethod = "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export"
+	tracesFullMethod  = "/opentelemetry.proto.collector.trace.v1.TraceService/Export"
 )
 
 func init() {
@@ -51,11 +58,8 @@ func init() {
 }
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
-func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor, logger *logp.Logger) error {
-	consumer := &monitoredConsumer{
-		consumer: &otel.Consumer{Processor: processor},
-		logger:   logger,
-	}
+func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor) error {
+	consumer := &otel.Consumer{Processor: processor}
 
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are
@@ -73,53 +77,12 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	return nil
 }
 
-type monitoredConsumer struct {
-	consumer *otel.Consumer
-	logger   *logp.Logger
-}
-
-// ConsumeTraces consumes OpenTelemtry trace data.
-func (c *monitoredConsumer) ConsumeTraces(ctx context.Context, traces pdata.Traces) error {
-	gRPCTracesMonitoringMap[request.IDRequestCount].Inc()
-	defer gRPCTracesMonitoringMap[request.IDResponseCount].Inc()
-	if err := c.consumer.ConsumeTraces(ctx, traces); err != nil {
-		gRPCTracesMonitoringMap[request.IDResponseErrorsCount].Inc()
-		c.logger.With(logp.Error(err)).Error("ConsumeTraces returned an error")
-		return err
-	}
-	gRPCTracesMonitoringMap[request.IDResponseValidCount].Inc()
-	return nil
-}
-
-// ConsumeMetrics consumes OpenTelemtry metrics data.
-func (c *monitoredConsumer) ConsumeMetrics(ctx context.Context, metrics pdata.Metrics) error {
-	gRPCMetricsMonitoringMap[request.IDRequestCount].Inc()
-	defer gRPCMetricsMonitoringMap[request.IDResponseCount].Inc()
-	if err := c.consumer.ConsumeMetrics(ctx, metrics); err != nil {
-		gRPCMetricsMonitoringMap[request.IDResponseErrorsCount].Inc()
-		c.logger.With(logp.Error(err)).Error("ConsumeMetrics returned an error")
-		return err
-	}
-	gRPCMetricsMonitoringMap[request.IDResponseValidCount].Inc()
-	return nil
-}
-
-func (c *monitoredConsumer) collectMetricsMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
-	V.OnRegistryStart()
-	V.OnRegistryFinished()
-
-	stats := c.consumer.Stats()
-	monitoring.ReportNamespace(V, "consumer", func() {
-		monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
-	})
-}
-
 var (
 	currentMonitoredConsumerMu sync.RWMutex
-	currentMonitoredConsumer   *monitoredConsumer
+	currentMonitoredConsumer   *otel.Consumer
 )
 
-func setCurrentMonitoredConsumer(c *monitoredConsumer) {
+func setCurrentMonitoredConsumer(c *otel.Consumer) {
 	currentMonitoredConsumerMu.Lock()
 	defer currentMonitoredConsumerMu.Unlock()
 	currentMonitoredConsumer = c
@@ -129,7 +92,13 @@ func collectMetricsMonitoring(mode monitoring.Mode, V monitoring.Visitor) {
 	currentMonitoredConsumerMu.RLock()
 	c := currentMonitoredConsumer
 	currentMonitoredConsumerMu.RUnlock()
-	if c != nil {
-		c.collectMetricsMonitoring(mode, V)
+	if c == nil {
+		return
 	}
+
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
+	stats := c.Stats()
+	monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
 }

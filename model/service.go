@@ -63,7 +63,7 @@ type ServiceNode struct {
 }
 
 //Fields transforms a service instance into a common.MapStr
-func (s *Service) Fields(containerID, hostName string) common.MapStr {
+func (s *Service) Fields() common.MapStr {
 	if s == nil {
 		return nil
 	}
@@ -72,7 +72,7 @@ func (s *Service) Fields(containerID, hostName string) common.MapStr {
 	svc.maybeSetString("name", s.Name)
 	svc.maybeSetString("version", s.Version)
 	svc.maybeSetString("environment", s.Environment)
-	if node := s.Node.fields(containerID, hostName); node != nil {
+	if node := s.Node.fields(); node != nil {
 		svc.set("node", node)
 	}
 
@@ -100,23 +100,9 @@ func (s *Service) Fields(containerID, hostName string) common.MapStr {
 	return common.MapStr(svc)
 }
 
-//AgentFields transforms all agent related information of a service into a common.MapStr
-func (s *Service) AgentFields() common.MapStr {
-	if s == nil {
-		return nil
-	}
-	return s.Agent.fields()
-}
-
-func (n *ServiceNode) fields(containerID, hostName string) common.MapStr {
+func (n *ServiceNode) fields() common.MapStr {
 	if n.Name != "" {
 		return common.MapStr{"name": n.Name}
-	}
-	if containerID != "" {
-		return common.MapStr{"name": containerID}
-	}
-	if hostName != "" {
-		return common.MapStr{"name": hostName}
 	}
 	return nil
 }

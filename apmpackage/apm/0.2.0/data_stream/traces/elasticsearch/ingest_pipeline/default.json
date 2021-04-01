@@ -1,0 +1,31 @@
+{
+  "description": "Default enrichment for APM events",
+  "processors": [
+    {
+      "pipeline": {
+        "name": "traces-apm-0.2.0-apm_user_agent"
+      }
+    },
+    {
+      "pipeline": {
+        "name": "traces-apm-0.2.0-apm_user_geo"
+      }
+    },
+    {
+      "pipeline": {
+        "name": "traces-apm-0.2.0-apm_ingest_timestamp"
+      }
+    },
+    {
+      "pipeline": {
+        "name": "traces-apm-0.2.0-apm_remove_span_metadata"
+      }
+    },
+    {
+      "pipeline": {
+        "name": "traces-apm-0.2.0-apm_error_grouping_name",
+        "if": "ctx.processor?.event == 'error'"
+      }
+    }
+  ]
+}

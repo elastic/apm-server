@@ -40,12 +40,23 @@ import (
 
 var (
 	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
-	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, monitoringKeys)
+	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(gRPCCollectorRegistry, append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized))
+
+	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
+	// method name to its respective monitoring map.
+	RegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
+		postSpansFullMethod:           gRPCCollectorMonitoringMap,
+		getSamplingStrategyFullMethod: gRPCSamplingMonitoringMap,
+	}
+)
+
+const (
+	postSpansFullMethod           = "/jaeger.api_v2.CollectorService/PostSpans"
+	getSamplingStrategyFullMethod = "/jaeger.api_v2.SamplingManager/GetSamplingStrategy"
 )
 
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
-	log      *logp.Logger
 	auth     authFunc
 	consumer consumer.TracesConsumer
 }
@@ -55,15 +66,9 @@ type grpcCollector struct {
 // The implementation of the protobuf contract is based on the open-telemetry implementation at
 // https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
 func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
-	gRPCCollectorMonitoringMap.inc(request.IDRequestCount)
-	defer gRPCCollectorMonitoringMap.inc(request.IDResponseCount)
-
 	if err := c.postSpans(ctx, r.Batch); err != nil {
-		gRPCCollectorMonitoringMap.inc(request.IDResponseErrorsCount)
-		c.log.With(logp.Error(err)).Error("error gRPC PostSpans")
 		return nil, err
 	}
-	gRPCCollectorMonitoringMap.inc(request.IDResponseValidCount)
 	return &api_v2.PostSpansResponse{}, nil
 }
 
@@ -83,7 +88,7 @@ var (
 )
 
 type grpcSampler struct {
-	log     *logp.Logger
+	logger  *logp.Logger
 	client  kibana.Client
 	fetcher *agentcfg.Fetcher
 }
@@ -95,25 +100,22 @@ func (s *grpcSampler) GetSamplingStrategy(
 	ctx context.Context,
 	params *api_v2.SamplingStrategyParameters) (*api_v2.SamplingStrategyResponse, error) {
 
-	gRPCSamplingMonitoringMap.inc(request.IDRequestCount)
-	defer gRPCSamplingMonitoringMap.inc(request.IDResponseCount)
 	if err := s.validateKibanaClient(ctx); err != nil {
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.log.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
+		s.logger.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
 		return nil, errors.New("agent remote configuration not supported, check server logs for more details")
 	}
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsCount)
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.log.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
+		s.logger.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
 		return nil, errors.New("no sampling rate available, check server logs for more details")
 	}
-	gRPCSamplingMonitoringMap.inc(request.IDResponseValidCount)
+
 	return &api_v2.SamplingStrategyResponse{
 		StrategyType:          api_v2.SamplingStrategyType_PROBABILISTIC,
-		ProbabilisticSampling: &api_v2.ProbabilisticSamplingStrategy{SamplingRate: samplingRate}}, nil
+		ProbabilisticSampling: &api_v2.ProbabilisticSamplingStrategy{SamplingRate: samplingRate},
+	}, nil
 }
 
 func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {

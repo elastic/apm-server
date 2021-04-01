@@ -75,6 +75,7 @@ type Config struct {
 	MaxConnections            int                     `config:"max_connections"`
 	ResponseHeaders           map[string][]string     `config:"response_headers"`
 	Expvar                    *ExpvarConfig           `config:"expvar"`
+	Pprof                     *PprofConfig            `config:"pprof"`
 	AugmentEnabled            bool                    `config:"capture_personal_data"`
 	SelfInstrumentation       *InstrumentationConfig  `config:"instrumentation"`
 	RumConfig                 *RumConfig              `config:"rum"`
@@ -97,6 +98,14 @@ type Config struct {
 type ExpvarConfig struct {
 	Enabled *bool  `config:"enabled"`
 	URL     string `config:"url"`
+}
+
+// PprofConfig holds config information about exposing pprof
+type PprofConfig struct {
+	Enabled          bool `config:"enabled"`
+	BlockProfileRate int  `config:"block_profile_rate"`
+	MemProfileRate   int  `config:"mem_profile_rate"`
+	MutexProfileRate int  `config:"mutex_profile_rate"`
 }
 
 // AgentConfig holds remote agent config information
@@ -167,6 +176,11 @@ func (c *ExpvarConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
+// IsEnabled indicates whether pprof is enabled or not
+func (c *PprofConfig) IsEnabled() bool {
+	return c != nil && c.Enabled
+}
+
 // DefaultConfig returns a config with default settings for `apm-server` config options.
 func DefaultConfig() *Config {
 	return &Config{
@@ -183,6 +197,7 @@ func DefaultConfig() *Config {
 			Enabled: new(bool),
 			URL:     "/debug/vars",
 		},
+		Pprof:        &PprofConfig{Enabled: false},
 		RumConfig:    defaultRum(),
 		Register:     defaultRegisterConfig(true),
 		Mode:         ModeProduction,

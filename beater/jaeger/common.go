@@ -31,14 +31,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-var (
-	monitoringKeys = []request.ResultID{
-		request.IDRequestCount, request.IDResponseCount, request.IDResponseErrorsCount,
-		request.IDResponseValidCount, request.IDEventReceivedCount, request.IDEventDroppedCount,
-	}
-
-	errNotAuthorized = errors.New("not authorized")
-)
+var errNotAuthorized = errors.New("not authorized")
 
 type monitoringMap map[request.ResultID]*monitoring.Int
 

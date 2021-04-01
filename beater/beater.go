@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -100,6 +101,15 @@ func NewCreator(args CreatorParams) beat.Creator {
 		}
 		if err := recordRootConfig(b.Info, bt.rawConfig); err != nil {
 			bt.logger.Errorf("Error recording telemetry data", err)
+		}
+
+		if bt.config.Pprof.IsEnabled() {
+			// Profiling rates should be set once, early on in the program.
+			runtime.SetBlockProfileRate(bt.config.Pprof.BlockProfileRate)
+			runtime.SetMutexProfileFraction(bt.config.Pprof.MutexProfileRate)
+			if bt.config.Pprof.MemProfileRate > 0 {
+				runtime.MemProfileRate = bt.config.Pprof.MemProfileRate
+			}
 		}
 
 		if !bt.config.DataStreams.Enabled {
@@ -388,9 +398,9 @@ func (s *serverRunner) run() error {
 		// The server has been configured to discard unsampled
 		// transactions. Make sure this is done just before calling
 		// the publisher to avoid affecting aggregations.
-		batchProcessor = chainBatchProcessors(
+		batchProcessor = modelprocessor.Chained{
 			sampling.NewDiscardUnsampledBatchProcessor(), batchProcessor,
-		)
+		}
 	}
 
 	if err := runServer(s.runServerContext, ServerParams{
@@ -408,7 +418,12 @@ func (s *serverRunner) run() error {
 }
 
 func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
-	var processors []model.BatchProcessor
+	processors := []model.BatchProcessor{
+		modelprocessor.SetSystemHostname{},
+		modelprocessor.SetServiceNodeName{},
+		// Set metricset.name for well-known agent metrics.
+		modelprocessor.SetMetricsetName{},
+	}
 	if s.config.DefaultServiceEnvironment != "" {
 		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
 			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
@@ -620,20 +635,9 @@ func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.Ba
 	}
 	return func(ctx context.Context, args ServerParams) error {
 		processors = append(processors, args.BatchProcessor)
-		args.BatchProcessor = chainBatchProcessors(processors...)
+		args.BatchProcessor = modelprocessor.Chained(processors)
 		return runServer(ctx, args)
 	}
-}
-
-func chainBatchProcessors(processors ...model.BatchProcessor) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		for _, p := range processors {
-			if err := p.ProcessBatch(ctx, batch); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
 }
 
 type disablePublisherTracingKey struct{}

@@ -34,10 +34,12 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -141,7 +143,25 @@ func newGRPCServer(
 	// NOTE(axw) even if TLS is enabled we should not use grpc.Creds, as TLS is handled by the net/http server.
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
 	authInterceptor := newAuthUnaryServerInterceptor(authBuilder)
-	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(apmInterceptor, authInterceptor))
+
+	logger = logger.Named("grpc")
+	srv := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			apmInterceptor,
+			interceptors.ClientMetadata(),
+			interceptors.Logging(logger),
+			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps),
+			authInterceptor,
+		),
+	)
+
+	if cfg.AugmentEnabled {
+		// Add a model processor that sets `client.ip` for events from end-user devices.
+		batchProcessor = modelprocessor.Chained{
+			modelprocessor.MetadataProcessorFunc(otlp.SetClientMetadata),
+			batchProcessor,
+		}
+	}
 
 	var kibanaClient kibana.Client
 	var agentcfgFetcher *agentcfg.Fetcher
@@ -150,7 +170,7 @@ func newGRPCServer(
 		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
 	}
 	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, kibanaClient, agentcfgFetcher)
-	if err := otlp.RegisterGRPCServices(srv, batchProcessor, logger); err != nil {
+	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
 	}
 	return srv, nil

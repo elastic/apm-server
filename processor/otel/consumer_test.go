@@ -101,6 +101,26 @@ func TestOutcome(t *testing.T) {
 	test(t, "failure", "Error", pdata.StatusCodeError)
 }
 
+func TestRepresentativeCount(t *testing.T) {
+	traces, spans := newTracesSpans()
+	otelSpan1 := pdata.NewSpan()
+	otelSpan1.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelSpan1.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelSpan2 := pdata.NewSpan()
+	otelSpan2.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelSpan2.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelSpan2.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
+
+	spans.Spans().Append(otelSpan1)
+	spans.Spans().Append(otelSpan2)
+	batch := transformTraces(t, traces)
+	require.Len(t, batch.Transactions, 1)
+	require.Len(t, batch.Spans, 1)
+
+	assert.Equal(t, 1.0, batch.Transactions[0].RepresentativeCount)
+	assert.Equal(t, 1.0, batch.Spans[0].RepresentativeCount)
+}
+
 func TestHTTPTransactionURL(t *testing.T) {
 	test := func(t *testing.T, expected *model.URL, attrs map[string]pdata.AttributeValue) {
 		t.Helper()
@@ -656,6 +676,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 		{
 			name: "jaeger_type_component",
 			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("component", "amqp"),
 				},
@@ -664,6 +685,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 		{
 			name: "jaeger_custom",
 			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("a.b", "foo"),
 				},

@@ -87,7 +87,7 @@
           }
         }
       ]
-    }     
+    }
   },
   {
     "id": "apm_remove_span_metadata",
@@ -120,16 +120,16 @@
   {
     "id": "apm_error_grouping_name",
     "body": {
-      "description" : "Set error.grouping_name for APM error events",
-      "processors" : [
+      "description": "Set error.grouping_name for APM error events",
+      "processors": [
         {
-          "script" : {
+          "script": {
             "source": "ctx.error.grouping_name = ctx.error.exception[0].message",
             "if": "ctx.error?.exception?.length != null && ctx.error?.exception?.length > 0"
           }
         },
         {
-          "set" : {
+          "set": {
             "field": "error.grouping_name",
             "copy_from": "error.log.message",
             "if": "ctx.error?.log?.message != null"

@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
@@ -30,9 +31,20 @@ import (
 
 func TestSetDefaultServiceEnvironment(t *testing.T) {
 	nonEmptyMetadata := model.Metadata{Service: model.Service{Environment: "nonempty"}}
+	defaultMetadata := model.Metadata{Service: model.Service{Environment: "default"}}
 
-	// Check that the model.Batch fields have not changed since this test was
-	// last updated, to ensure we process all model types.
+	processor := modelprocessor.SetDefaultServiceEnvironment{
+		DefaultServiceEnvironment: "default",
+	}
+	testProcessBatchMetadata(t, &processor, nonEmptyMetadata, nonEmptyMetadata)
+	testProcessBatchMetadata(t, &processor, model.Metadata{}, defaultMetadata)
+}
+
+func testProcessBatchMetadata(t *testing.T, processor model.BatchProcessor, in, out model.Metadata) {
+	t.Helper()
+
+	// Check that the model.Batch fields have not changed since this
+	// test was last updated, to ensure we process all model types.
 	var batchFields []string
 	typ := reflect.TypeOf(model.Batch{})
 	for i := 0; i < typ.NumField(); i++ {
@@ -48,54 +60,40 @@ func TestSetDefaultServiceEnvironment(t *testing.T) {
 
 	batch := &model.Batch{
 		Transactions: []*model.Transaction{
-			{Metadata: nonEmptyMetadata},
-			{},
+			{Metadata: in},
 		},
 		Spans: []*model.Span{
-			{Metadata: nonEmptyMetadata},
-			{},
+			{Metadata: in},
 		},
 		Metricsets: []*model.Metricset{
-			{Metadata: nonEmptyMetadata},
-			{},
+			{Metadata: in},
 		},
 		Errors: []*model.Error{
-			{Metadata: nonEmptyMetadata},
-			{},
+			{Metadata: in},
 		},
 		Profiles: []*model.PprofProfile{
-			{Metadata: nonEmptyMetadata},
-			{},
+			{Metadata: in},
 		},
-	}
-
-	processor := modelprocessor.SetDefaultServiceEnvironment{
-		DefaultServiceEnvironment: "default",
 	}
 	err := processor.ProcessBatch(context.Background(), batch)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	defaultMetadata := model.Metadata{Service: model.Service{Environment: "default"}}
-	assert.Equal(t, &model.Batch{
+	expected := &model.Batch{
 		Transactions: []*model.Transaction{
-			{Metadata: nonEmptyMetadata},
-			{Metadata: defaultMetadata},
+			{Metadata: out},
 		},
 		Spans: []*model.Span{
-			{Metadata: nonEmptyMetadata},
-			{Metadata: defaultMetadata},
+			{Metadata: out},
 		},
 		Metricsets: []*model.Metricset{
-			{Metadata: nonEmptyMetadata},
-			{Metadata: defaultMetadata},
+			{Metadata: out},
 		},
 		Errors: []*model.Error{
-			{Metadata: nonEmptyMetadata},
-			{Metadata: defaultMetadata},
+			{Metadata: out},
 		},
 		Profiles: []*model.PprofProfile{
-			{Metadata: nonEmptyMetadata},
-			{Metadata: defaultMetadata},
+			{Metadata: out},
 		},
-	}, batch)
+	}
+	assert.Equal(t, expected, batch)
 }

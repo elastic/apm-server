@@ -13,6 +13,7 @@
                 "ingested": "dynamic"
             },
             "float64_counter": 1,
+            "metricset.name": "app",
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
