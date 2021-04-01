@@ -31,6 +31,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Add exponential retries to api key and tail sampling requests{pull}4991[4991]
 * Add `apm-server.rum.allow_service_names` config {pull}5030[5030]
 * Ingest pipeline for translating OpenTelemetry Java metrics to Elastic APM fields {pull}4986[4986]
+* Set `event.ingested` first in the ingest pipeline {pull}5048[5048]
 
 [float]
 ==== Deprecated
