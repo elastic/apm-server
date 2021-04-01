@@ -46,6 +46,14 @@ var (
 
 const (
 	batchSize = 10
+
+	errorEventType            = "error"
+	metricsetEventType        = "metricset"
+	spanEventType             = "span"
+	transactionEventType      = "transaction"
+	rumv3ErrorEventType       = "e"
+	rumv3TransactionEventType = "x"
+	rumv3MetricsetEventType   = "me"
 )
 
 type decodeMetadataFunc func(decoder.Decoder, *model.Metadata) error
@@ -110,23 +118,33 @@ func (p *Processor) readMetadata(reader *streamReader, metadata *model.Metadata)
 // IdentifyEventType takes a reader and reads ahead the first key of the
 // underlying json input. This method makes some assumptions met by the
 // input format:
-// - the input is in json format
+// - the input is in JSON format
 // - every valid ndjson line only has one root key
-func (p *Processor) IdentifyEventType(body []byte, result *Result) string {
+// - the bytes that we must match on are ASCII
+//
+// NOTE(axw) this method really should not be exported, but it has to be
+// for package_test. When we migrate that code to system tests, unexport
+// this method.
+func (p *Processor) IdentifyEventType(body []byte) []byte {
 	// find event type, trim spaces and account for single and double quotes
-	body = bytes.TrimLeft(body, `{ "'`)
-	end := bytes.Index(body, []byte(`"`))
-	if end == -1 {
-		end = bytes.Index(body, []byte(`'`))
+	var quote byte
+	var key []byte
+	for i, r := range body {
+		if r == '"' || r == '\'' {
+			quote = r
+			key = body[i+1:]
+			break
+		}
 	}
+	end := bytes.IndexByte(key, quote)
 	if end == -1 {
-		return ""
+		return nil
 	}
-	return string(body[0:end])
+	return key[:end]
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream,
-// returning a slice of Transformables and a boolean indicating that there
+// adding events to batch and returning a boolean indicating that there
 // might be more to read.
 func (p *Processor) readBatch(
 	ctx context.Context,
@@ -171,14 +189,13 @@ func (p *Processor) readBatch(
 			// required for backwards compatibility - sending empty lines was permitted in previous versions
 			continue
 		}
-		eventType := p.IdentifyEventType(body, response)
 		input := modeldecoder.Input{
 			RequestTime: requestTime,
 			Metadata:    *streamMetadata,
 			Config:      p.Mconfig,
 		}
-		switch eventType {
-		case "error":
+		switch eventType := p.IdentifyEventType(body); string(eventType) {
+		case errorEventType:
 			var event model.Error
 			err := v2.DecodeNestedError(reader, &input, &event)
 			if handleDecodeErr(err, reader, response) {
@@ -186,14 +203,14 @@ func (p *Processor) readBatch(
 			}
 			event.RUM = p.isRUM
 			batch.Errors = append(batch.Errors, &event)
-		case "metricset":
+		case metricsetEventType:
 			var event model.Metricset
 			err := v2.DecodeNestedMetricset(reader, &input, &event)
 			if handleDecodeErr(err, reader, response) {
 				continue
 			}
 			batch.Metricsets = append(batch.Metricsets, &event)
-		case "span":
+		case spanEventType:
 			var event model.Span
 			err := v2.DecodeNestedSpan(reader, &input, &event)
 			if handleDecodeErr(err, reader, response) {
@@ -201,14 +218,14 @@ func (p *Processor) readBatch(
 			}
 			event.RUM = p.isRUM
 			batch.Spans = append(batch.Spans, &event)
-		case "transaction":
+		case transactionEventType:
 			var event model.Transaction
 			err := v2.DecodeNestedTransaction(reader, &input, &event)
 			if handleDecodeErr(err, reader, response) {
 				continue
 			}
 			batch.Transactions = append(batch.Transactions, &event)
-		case "e":
+		case rumv3ErrorEventType:
 			var event model.Error
 			err := rumv3.DecodeNestedError(reader, &input, &event)
 			if handleDecodeErr(err, reader, response) {
@@ -216,14 +233,14 @@ func (p *Processor) readBatch(
 			}
 			event.RUM = p.isRUM
 			batch.Errors = append(batch.Errors, &event)
-		case "me":
+		case rumv3MetricsetEventType:
 			var event model.Metricset
 			err := rumv3.DecodeNestedMetricset(reader, &input, &event)
 			if handleDecodeErr(err, reader, response) {
 				continue
 			}
 			batch.Metricsets = append(batch.Metricsets, &event)
-		case "x":
+		case rumv3TransactionEventType:
 			var event rumv3.Transaction
 			err := rumv3.DecodeNestedTransaction(reader, &input, &event)
 			if handleDecodeErr(err, reader, response) {
@@ -238,7 +255,7 @@ func (p *Processor) readBatch(
 		default:
 			response.LimitedAdd(&Error{
 				Type:     InvalidInputErrType,
-				Message:  errors.Wrap(ErrUnrecognizedObject, eventType).Error(),
+				Message:  errors.Wrap(ErrUnrecognizedObject, string(eventType)).Error(),
 				Document: string(reader.LatestLine()),
 			})
 			continue
@@ -264,7 +281,7 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 }
 
 // HandleStream processes a stream of events
-func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, report publish.Reporter) *Result {
+func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, processor model.BatchProcessor) *Result {
 	res := &Result{}
 
 	sr := p.getStreamReader(reader)
@@ -283,21 +300,19 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	var batch model.Batch
 	var done bool
 	for !done {
+		var batch model.Batch
 		done = p.readBatch(ctx, ipRateLimiter, requestTime, meta, batchSize, &batch, sr, res)
 		if batch.Len() == 0 {
 			continue
 		}
-		// NOTE(axw) `report` takes ownership of transformables, which
-		// means we cannot reuse the slice memory. We should investigate
-		// alternative interfaces between the processor and publisher
-		// which would enable better memory reuse.
-		if err := report(ctx, publish.PendingReq{
-			Transformables: batch.Transformables(),
-			Trace:          !sp.Dropped(),
-		}); err != nil {
+		// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
+		// the slice memory. We should investigate alternative interfaces between the
+		// processor and publisher which would enable better memory reuse, e.g. by using
+		// a sync.Pool for creating batches, and having the publisher (terminal processor)
+		// release batches back into the pool.
+		if err := processor.ProcessBatch(ctx, &batch); err != nil {
 			switch err {
 			case publish.ErrChannelClosed:
 				res.Add(&Error{
@@ -315,7 +330,6 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 			return res
 		}
 		res.AddAccepted(batch.Len())
-		batch.Reset()
 	}
 	return res
 }

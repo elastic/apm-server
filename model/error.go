@@ -100,7 +100,7 @@ type Log struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (e *Error) appendBeatEvents(ctx context.Context, cfg *transform.Config, events []beat.Event) []beat.Event {
 	errorTransformations.Inc()
 
 	if e.Exception != nil {
@@ -132,14 +132,7 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 
 	// then add event specific information
 	fields.maybeSetMapStr("http", e.HTTP.Fields())
-	haveURL := fields.maybeSetMapStr("url", e.URL.Fields())
-	if e.Page != nil {
-		// TODO(axw) e.Page.Referer should be recorded in e.HTTP.Request.
-		common.MapStr(fields).Put("http.request.referrer", e.Page.Referer)
-		if !haveURL {
-			fields.maybeSetMapStr("url", e.Page.URL.Fields())
-		}
-	}
+	fields.maybeSetMapStr("url", e.URL.Fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
@@ -159,10 +152,10 @@ func (e *Error) Transform(ctx context.Context, cfg *transform.Config) []beat.Eve
 	fields.maybeSetMapStr("trace", common.MapStr(trace))
 	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 
-	return []beat.Event{{
+	return append(events, beat.Event{
 		Fields:    common.MapStr(fields),
 		Timestamp: e.Timestamp,
-	}}
+	})
 }
 
 func (e *Error) fields(ctx context.Context, cfg *transform.Config) common.MapStr {

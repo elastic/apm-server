@@ -32,7 +32,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otel
+package otel_test
 
 import (
 	"context"
@@ -46,6 +46,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/translator/conventions"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -54,17 +55,17 @@ import (
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/transform"
 )
 
 func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
-	reporter := func(ctx context.Context, p publish.PendingReq) error {
-		assert.Empty(t, p.Transformables)
+	var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		assert.Empty(t, batch)
 		return nil
 	}
 
-	consumer := Consumer{Reporter: reporter}
+	consumer := otel.Consumer{Processor: processor}
 	traces := pdata.NewTraces()
 	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 }
@@ -86,19 +87,38 @@ func TestOutcome(t *testing.T) {
 
 		spans.Spans().Append(otelSpan1)
 		spans.Spans().Append(otelSpan2)
-		events := transformTraces(t, traces)
-		require.Len(t, events, 2)
+		batch := transformTraces(t, traces)
+		require.Len(t, batch.Transactions, 1)
+		require.Len(t, batch.Spans, 1)
 
-		tx := events[0].(*model.Transaction)
-		span := events[1].(*model.Span)
-		assert.Equal(t, expectedOutcome, tx.Outcome)
-		assert.Equal(t, expectedResult, tx.Result)
-		assert.Equal(t, expectedOutcome, span.Outcome)
+		assert.Equal(t, expectedOutcome, batch.Transactions[0].Outcome)
+		assert.Equal(t, expectedResult, batch.Transactions[0].Result)
+		assert.Equal(t, expectedOutcome, batch.Spans[0].Outcome)
 	}
 
 	test(t, "unknown", "", pdata.StatusCodeUnset)
 	test(t, "success", "Success", pdata.StatusCodeOk)
 	test(t, "failure", "Error", pdata.StatusCodeError)
+}
+
+func TestRepresentativeCount(t *testing.T) {
+	traces, spans := newTracesSpans()
+	otelSpan1 := pdata.NewSpan()
+	otelSpan1.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelSpan1.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelSpan2 := pdata.NewSpan()
+	otelSpan2.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelSpan2.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	otelSpan2.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
+
+	spans.Spans().Append(otelSpan1)
+	spans.Spans().Append(otelSpan2)
+	batch := transformTraces(t, traces)
+	require.Len(t, batch.Transactions, 1)
+	require.Len(t, batch.Spans, 1)
+
+	assert.Equal(t, 1.0, batch.Transactions[0].RepresentativeCount)
+	assert.Equal(t, 1.0, batch.Spans[0].RepresentativeCount)
 }
 
 func TestHTTPTransactionURL(t *testing.T) {
@@ -116,7 +136,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.scheme": pdata.NewAttributeValueString("https"),
 			"http.host":   pdata.NewAttributeValueString("testing.invalid:80"),
@@ -131,7 +151,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.scheme":      pdata.NewAttributeValueString("https"),
 			"http.server_name": pdata.NewAttributeValueString("testing.invalid"),
@@ -147,7 +167,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.scheme":   pdata.NewAttributeValueString("https"),
 			"net.host.name": pdata.NewAttributeValueString("testing.invalid"),
@@ -163,7 +183,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Path:     "/foo",
 			Query:    "bar",
 			Domain:   "testing.invalid",
-			Port:     newInt(80),
+			Port:     80,
 		}, map[string]pdata.AttributeValue{
 			"http.url": pdata.NewAttributeValueString("https://testing.invalid:80/foo?bar"),
 		})
@@ -267,7 +287,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("url_default_port_specified", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(443),
+			Port:    443,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid",
@@ -279,7 +299,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("url_port_scheme", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(443),
+			Port:    443,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid",
@@ -291,7 +311,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("url_non_default_port", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(444),
+			Port:    444,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid:444",
@@ -303,7 +323,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("scheme_host_target", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "testing.invalid",
-			Port:    newInt(444),
+			Port:    444,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid:444",
@@ -317,7 +337,7 @@ func TestHTTPSpanDestination(t *testing.T) {
 	t.Run("scheme_netpeername_nethostport_target", func(t *testing.T) {
 		test(t, &model.Destination{
 			Address: "::1",
-			Port:    newInt(444),
+			Port:    444,
 		}, &model.DestinationService{
 			Type:     "external",
 			Name:     "https://[::1]:444",
@@ -393,7 +413,7 @@ func TestHTTPTransactionStatusCode(t *testing.T) {
 	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"http.status_code": pdata.NewAttributeValueInt(200),
 	})
-	assert.Equal(t, newInt(200), tx.HTTP.Response.StatusCode)
+	assert.Equal(t, 200, tx.HTTP.Response.StatusCode)
 }
 
 func TestDatabaseSpan(t *testing.T) {
@@ -429,7 +449,7 @@ func TestDatabaseSpan(t *testing.T) {
 
 	assert.Equal(t, &model.Destination{
 		Address: "shopdb.example.com",
-		Port:    newInt(3306),
+		Port:    3306,
 	}, span.Destination)
 
 	assert.Equal(t, &model.DestinationService{
@@ -448,8 +468,7 @@ func TestInstrumentationLibrary(t *testing.T) {
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
-	require.Len(t, events, 1)
-	tx := events[0].(*model.Transaction)
+	tx := events.Transactions[0]
 
 	assert.Equal(t, "library-name", tx.Metadata.Service.Framework.Name)
 	assert.Equal(t, "1.2.3", tx.Metadata.Service.Framework.Version)
@@ -491,28 +510,17 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 		}),
 	}} {
 		t.Run(tc.name, func(t *testing.T) {
-			reporter := func(ctx context.Context, req publish.PendingReq) error {
-				require.Len(t, req.Transformables, 1)
-				events := transformAll(ctx, req)
-				approveEvents(t, "metadata_"+tc.name, events)
-				return nil
-			}
+			var events []beat.Event
+			recorder := eventRecorderBatchProcessor(&events)
 			jaegerBatch.Process = tc.process
 			traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+			require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
+			approveEvents(t, "metadata_"+tc.name, events)
 		})
 	}
 }
 
 func TestConsumer_JaegerSampleRate(t *testing.T) {
-	var transformables []transform.Transformable
-	reporter := func(ctx context.Context, req publish.PendingReq) error {
-		transformables = append(transformables, req.Transformables...)
-		events := transformAll(ctx, req)
-		approveEvents(t, "jaeger_sampling_rate", events)
-		return nil
-	}
-
 	jaegerBatch := jaegermodel.Batch{
 		Process: jaegermodel.NewProcess("", jaegerKeyValues(
 			"jaeger.version", "unknown",
@@ -551,23 +559,27 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 		}},
 	}
 	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
-	require.Len(t, transformables, 3)
-	tx1 := transformables[0].(*model.Transaction)
-	tx2 := transformables[1].(*model.Transaction)
-	span := transformables[2].(*model.Span)
+	var batches []*model.Batch
+	recorder := batchRecorderBatchProcessor(&batches)
+	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
+	require.Len(t, batches, 1)
+	batch := batches[0]
+
+	events := transformBatch(context.Background(), batches...)
+	approveEvents(t, "jaeger_sampling_rate", events)
+
+	tx1 := batch.Transactions[0]
+	tx2 := batch.Transactions[1]
+	span := batch.Spans[0]
 	assert.Equal(t, 1.25 /* 1/0.8 */, tx1.RepresentativeCount)
 	assert.Equal(t, 2.5 /* 1/0.4 */, span.RepresentativeCount)
 	assert.Zero(t, tx2.RepresentativeCount) // not set for non-probabilistic
 }
 
 func TestConsumer_JaegerTraceID(t *testing.T) {
-	var transformables []transform.Transformable
-	reporter := func(ctx context.Context, req publish.PendingReq) error {
-		transformables = append(transformables, req.Transformables...)
-		return nil
-	}
+	var batches []*model.Batch
+	recorder := batchRecorderBatchProcessor(&batches)
 
 	jaegerBatch := jaegermodel.Batch{
 		Process: jaegermodel.NewProcess("", jaegerKeyValues("jaeger.version", "unknown")),
@@ -580,11 +592,10 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 		}},
 	}
 	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
 
-	require.Len(t, transformables, 2)
-	assert.Equal(t, "00000000000000000000000046467830", transformables[0].(*model.Transaction).TraceID)
-	assert.Equal(t, "00000000464678300000000046467830", transformables[1].(*model.Transaction).TraceID)
+	assert.Equal(t, "00000000000000000000000046467830", batches[0].Transactions[0].TraceID)
+	assert.Equal(t, "00000000464678300000000046467830", batches[0].Transactions[1].TraceID)
 }
 
 func TestConsumer_JaegerTransaction(t *testing.T) {
@@ -665,6 +676,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 		{
 			name: "jaeger_type_component",
 			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("component", "amqp"),
 				},
@@ -673,6 +685,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 		{
 			name: "jaeger_custom",
 			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
 				Tags: []jaegermodel.KeyValue{
 					jaegerKeyValue("a.b", "foo"),
 				},
@@ -701,13 +714,10 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 			}
 			traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
 
-			reporter := func(ctx context.Context, req publish.PendingReq) error {
-				require.True(t, len(req.Transformables) >= 1)
-				events := transformAll(ctx, req)
-				approveEvents(t, "transaction_"+tc.name, events)
-				return nil
-			}
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+			var events []beat.Event
+			recorder := eventRecorderBatchProcessor(&events)
+			require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
+			approveEvents(t, "transaction_"+tc.name, events)
 		})
 	}
 }
@@ -817,24 +827,15 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 			}
 			traces := jaegertranslator.ProtoBatchToInternalTraces(batch)
 
-			reporter := func(ctx context.Context, req publish.PendingReq) error {
-				require.True(t, len(req.Transformables) >= 1)
-				events := transformAll(ctx, req)
-				approveEvents(t, "span_"+tc.name, events)
-				return nil
-			}
-			require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
+			var events []beat.Event
+			recorder := eventRecorderBatchProcessor(&events)
+			require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
+			approveEvents(t, "span_"+tc.name, events)
 		})
 	}
 }
 
 func TestJaegerServiceVersion(t *testing.T) {
-	var transformables []transform.Transformable
-	reporter := func(ctx context.Context, req publish.PendingReq) error {
-		transformables = append(transformables, req.Transformables...)
-		return nil
-	}
-
 	jaegerBatch := jaegermodel.Batch{
 		Process: jaegermodel.NewProcess("", jaegerKeyValues(
 			"jaeger.version", "unknown",
@@ -852,11 +853,13 @@ func TestJaegerServiceVersion(t *testing.T) {
 		}},
 	}
 	traces := jaegertranslator.ProtoBatchToInternalTraces(jaegerBatch)
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
 
-	require.Len(t, transformables, 2)
-	assert.Equal(t, "process_tag_value", transformables[0].(*model.Transaction).Metadata.Service.Version)
-	assert.Equal(t, "span_tag_value", transformables[1].(*model.Transaction).Metadata.Service.Version)
+	var batches []*model.Batch
+	recorder := batchRecorderBatchProcessor(&batches)
+	require.NoError(t, (&otel.Consumer{Processor: recorder}).ConsumeTraces(context.Background(), traces))
+
+	assert.Equal(t, "process_tag_value", batches[0].Transactions[0].Metadata.Service.Version)
+	assert.Equal(t, "span_tag_value", batches[0].Transactions[1].Metadata.Service.Version)
 }
 
 func testJaegerLogs() []jaegermodel.Log {
@@ -927,12 +930,26 @@ func testDuration() time.Duration {
 	return 79 * time.Second
 }
 
-func transformAll(ctx context.Context, p publish.PendingReq) []beat.Event {
-	var events []beat.Event
-	for _, transformable := range p.Transformables {
-		events = append(events, transformable.Transform(ctx, &transform.Config{DataStreams: true})...)
+func batchRecorderBatchProcessor(out *[]*model.Batch) model.BatchProcessor {
+	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		*out = append(*out, batch)
+		return nil
+	})
+}
+
+func eventRecorderBatchProcessor(out *[]beat.Event) model.BatchProcessor {
+	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		*out = append(*out, transformBatch(ctx, batch)...)
+		return nil
+	})
+}
+
+func transformBatch(ctx context.Context, batches ...*model.Batch) []beat.Event {
+	var out []beat.Event
+	for _, batch := range batches {
+		out = append(out, batch.Transform(ctx, &transform.Config{DataStreams: true})...)
 	}
-	return events
+	return out
 }
 
 func approveEvents(t testing.TB, name string, events []beat.Event) {
@@ -983,8 +1000,7 @@ func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.Att
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
-	require.Len(t, events, 1)
-	return events[0].(*model.Transaction)
+	return events.Transactions[0]
 }
 
 func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue) *model.Span {
@@ -996,18 +1012,37 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeV
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)
-	require.Len(t, events, 1)
-	return events[0].(*model.Span)
+	return events.Spans[0]
 }
 
-func transformTraces(t *testing.T, traces pdata.Traces) []transform.Transformable {
-	var events []transform.Transformable
-	reporter := func(ctx context.Context, req publish.PendingReq) error {
-		events = append(events, req.Transformables...)
-		return nil
+func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...pdata.SpanEvent) (*model.Transaction, []*model.Error) {
+	traces, spans := newTracesSpans()
+	traces.ResourceSpans().At(0).Resource().Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		conventions.AttributeTelemetrySDKLanguage: pdata.NewAttributeValueString(language),
+	})
+	otelSpan := pdata.NewSpan()
+	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
+	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
+	for _, spanEvent := range spanEvents {
+		otelSpan.Events().Append(spanEvent)
 	}
-	require.NoError(t, (&Consumer{Reporter: reporter}).ConsumeTraces(context.Background(), traces))
-	return events
+	spans.Spans().Append(otelSpan)
+	events := transformTraces(t, traces)
+	require.NotEmpty(t, events)
+	return events.Transactions[0], events.Errors
+}
+
+func transformTraces(t *testing.T, traces pdata.Traces) *model.Batch {
+	var processed *model.Batch
+	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		if processed != nil {
+			panic("already processes batch")
+		}
+		processed = batch
+		return nil
+	})
+	require.NoError(t, (&otel.Consumer{Processor: processor}).ConsumeTraces(context.Background(), traces))
+	return processed
 }
 
 func newTracesSpans() (pdata.Traces, pdata.InstrumentationLibrarySpans) {
@@ -1020,5 +1055,9 @@ func newTracesSpans() (pdata.Traces, pdata.InstrumentationLibrarySpans) {
 }
 
 func newInt(v int) *int {
+	return &v
+}
+
+func newBool(v bool) *bool {
 	return &v
 }

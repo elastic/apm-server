@@ -52,16 +52,14 @@ As a result, Elasticsearch must be configured to allow {ref}/docs-index_.html#in
 [float]
 === HTTP 400: Data decoding error / Data validation error
 
-The most likely cause for this is that you are using incompatible versions of agent and APM Server.
-For instance, APM Server 6.2 and 6.5 changed the Intake API spec and require a minimum version of each agent.
-
-View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
+The most likely cause for this error is using incompatible versions of APM agent and APM Server.
+See the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
 
 [[event-too-large]]
 [float]
 === HTTP 400: Event too large
 
-APM Agents communicate with the APM server by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. If events are too large, you should consider increasing the <<max_event_size,`max_event_size`>>
+APM agents communicate with the APM server by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. If events are too large, you should consider increasing the <<max_event_size,`max_event_size`>>
 setting in the APM Server, and adjusting relevant settings in the agent.
 
 [[unauthorized]]
@@ -90,8 +88,8 @@ APM Server has an internal queue that helps to:
 When the queue has reached the maximum size,
 APM Server returns an HTTP 503 status with the message "Queue is full".
 
-A full queue generally means that the agents collect more data than APM server is able to process.
-This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster,
+A full queue generally means that the agents collect more data than APM server can process.
+This might happen when APM Server is not configured properly for your Elasticsearch cluster size,
 or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
 
 The queue can also fill up if Elasticsearch runs out of disk space.
@@ -125,7 +123,7 @@ To alleviate this problem, you can try to:
 
 The target host running might be unreachable or the certificate may not be valid. To resolve your issue:
 
-* Make sure that server process on the target host is running and you can connect to it.
+* Make sure that the APM Server process on the target host is running and you can connect to it.
 First, try to ping the target host to verify that you can reach it from the host running {beatname_uc}.
 Then use either `nc` or `telnet` to make sure that the port is available. For example:
 +
@@ -159,8 +157,8 @@ This happens because your certificate is only valid for the hostname present in 
 
 To resolve this problem, try one of these solutions:
 
-* Create a DNS entry for the hostname mapping it to the server's IP.
-* Create an entry in `/etc/hosts` for the hostname. Or on Windows add an entry to
+* Create a DNS entry for the hostname, mapping it to the server's IP.
+* Create an entry in `/etc/hosts` for the hostname. Or, on Windows, add an entry to
 `C:\Windows\System32\drivers\etc\hosts`.
 * Re-create the server certificate and add a SubjectAltName (SAN) for the IP address of the server. This makes the
 server's certificate valid for both the hostname and the IP address.
@@ -213,6 +211,7 @@ you won't see a sign of failures as the APM server asynchronously sends the data
 However,
 the APM server and Elasticsearch log a warning like this:
 
+[source,logs]
 ----
 {\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in index [apm-7.0.0-transaction-2017.05.30] has been exceeded\"}
 ----
@@ -226,12 +225,13 @@ especially when using a load balancer.
 
 You may see an error like the one below in the agent logs, and/or a similar error on the APM Server side:
 
+[source,logs]
 ----------------------------------------------------------------------
 [ElasticAPM] APM Server responded with an error:
 "read tcp 123.34.22.313:8200->123.34.22.40:41602: i/o timeout"
 ----------------------------------------------------------------------
 
-To fix this, ensure timeouts are incrementing from the {apm-agents-ref}[APM Agent],
+To fix this, ensure timeouts are incrementing from the {apm-agents-ref}[APM agent],
 through your load balancer, to the <<read_timeout,APM Server>>.
 
 By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 30 seconds.
@@ -239,8 +239,9 @@ Your load balancer should be set somewhere between these numbers.
 
 For example:
 
+[source,txt]
 ----------------------------------------------------------------------
-APM Agent --> Load Balancer  --> APM Server
+APM agent --> Load Balancer  --> APM Server
    10s            15s               30s
 ----------------------------------------------------------------------
 
@@ -260,19 +261,20 @@ and data will be lost.
 
 Some agents have internal queues or buffers that will temporarily store data if the APM Server goes down.
 As a general rule of thumb, queues fill up quickly. Assume data will be lost if APM Server goes down.
-Adjusting these queues/buffers can increase the overhead of the agent, so use caution when updating default values.
+Adjusting these queues/buffers can increase the agent's overhead, so use caution when updating default values.
 
-* **Go Agent** - Circular buffer with configurable size:
+* **Go agent** - Circular buffer with configurable size:
 {apm-go-ref}/configuration.html#config-api-buffer-size[`ELASTIC_APM_BUFFER_SIZE`].
-* **Java Agent** - Internal buffer with configurable size:
+* **Java agent** - Internal buffer with configurable size:
 {apm-java-ref}/config-reporter.html#config-max-queue-size[`max_queue_size`].
-* **Node.js Agent** - No internal queue. Data is lost.
-* **Python Agent** - Internal {apm-py-ref}/tuning-and-overhead.html#tuning-queue[Transaction queue]
+* **Node.js agent** - No internal queue. Data is lost.
+* **PHP agent** - No internal queue. Data is lost.
+* **Python agent** - Internal {apm-py-ref}/tuning-and-overhead.html#tuning-queue[Transaction queue]
 with configurable size and time between flushes.
-* **Ruby Agent** - Internal queue with configurable size:
+* **Ruby agent** - Internal queue with configurable size:
 {apm-ruby-ref}/configuration.html#config-api-buffer-size[`api_buffer_size`].
-* **RUM Agent** - No internal queue. Data is lost.
-* **.NET Agent** - No internal queue. Data is lost.
+* **RUM agent** - No internal queue. Data is lost.
+* **.NET agent** - No internal queue. Data is lost.
 
 [[server-resource-exists-not-alias]]
 [float]

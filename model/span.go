@@ -59,7 +59,6 @@ type Span struct {
 	Outcome    string
 	Start      *float64
 	Duration   float64
-	Service    *Service
 	Stacktrace Stacktrace
 	Sync       *bool
 	Labels     common.MapStr
@@ -102,7 +101,7 @@ type DB struct {
 // TODO(axw) combine this and "Http", which is used by transaction and error, into one type.
 type HTTP struct {
 	URL        string
-	StatusCode *int
+	StatusCode int
 	Method     string
 	Response   *MinimalResp
 }
@@ -110,7 +109,7 @@ type HTTP struct {
 // Destination contains contextual data about the destination of a span, such as address and port
 type Destination struct {
 	Address string
-	Port    *int
+	Port    int
 }
 
 // DestinationService contains information about the destination service of a span event
@@ -145,11 +144,11 @@ func (http *HTTP) fields() common.MapStr {
 		fields.set("url", common.MapStr(url))
 	}
 	response := http.Response.Fields()
-	if http.StatusCode != nil {
+	if http.StatusCode > 0 {
 		if response == nil {
-			response = common.MapStr{"status_code": *http.StatusCode}
-		} else if http.Response.StatusCode == nil {
-			response["status_code"] = *http.StatusCode
+			response = common.MapStr{"status_code": http.StatusCode}
+		} else if http.Response.StatusCode == 0 {
+			response["status_code"] = http.StatusCode
 		}
 	}
 	fields.maybeSetMapStr("response", response)
@@ -168,7 +167,9 @@ func (d *Destination) fields() common.MapStr {
 			fields.set("ip", d.Address)
 		}
 	}
-	fields.maybeSetIntptr("port", d.Port)
+	if d.Port > 0 {
+		fields.set("port", d.Port)
+	}
 	return common.MapStr(fields)
 }
 
@@ -183,7 +184,7 @@ func (d *DestinationService) fields() common.MapStr {
 	return common.MapStr(fields)
 }
 
-func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Event {
+func (e *Span) appendBeatEvents(ctx context.Context, cfg *transform.Config, events []beat.Event) []beat.Event {
 	spanTransformations.Inc()
 	if frames := len(e.Stacktrace); frames > 0 {
 		spanStacktraceCounter.Inc()
@@ -227,20 +228,12 @@ func (e *Span) Transform(ctx context.Context, cfg *transform.Config) []beat.Even
 	}
 	fields.maybeSetMapStr("destination", e.Destination.fields())
 
-	// TODO(axw) instead of having separate Service/Agent fields on the model
-	// object, have the decoder merge into the relevant Metadata fields.
-	if serviceFields := e.Service.Fields("", ""); len(serviceFields) > 0 {
-		common.MapStr(fields).DeepUpdate(common.MapStr{"service": e.Service.Fields("", "")})
-	}
-	if agentFields := e.Service.AgentFields(); len(agentFields) > 0 {
-		common.MapStr(fields).DeepUpdate(common.MapStr{"agent": e.Service.AgentFields()})
-	}
 	common.MapStr(fields).Put("event.outcome", e.Outcome)
 
-	return []beat.Event{{
+	return append(events, beat.Event{
 		Fields:    common.MapStr(fields),
 		Timestamp: e.Timestamp,
-	}}
+	})
 }
 
 func (e *Span) fields(ctx context.Context, cfg *transform.Config) common.MapStr {

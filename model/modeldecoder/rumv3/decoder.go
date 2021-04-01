@@ -210,10 +210,6 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 		if len(from.Context.Tags) > 0 {
 			out.Labels = from.Context.Tags.Clone()
 		}
-		if from.Context.Page.IsSet() {
-			out.Page = &model.Page{}
-			mapToPageModel(from.Context.Page, out.Page)
-		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.Http{Request: &model.Req{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
@@ -227,6 +223,20 @@ func mapToErrorModel(from *errorEvent, metadata *model.Metadata, reqTime time.Ti
 			}
 			out.HTTP.Response = &model.Resp{}
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+		}
+		if from.Context.Page.IsSet() {
+			out.Page = &model.Page{}
+			mapToPageModel(from.Context.Page, out.Page)
+			out.URL = out.Page.URL
+			if out.Page.Referer != "" {
+				if out.HTTP == nil {
+					out.HTTP = &model.Http{}
+				}
+				if out.HTTP.Request == nil {
+					out.HTTP.Request = &model.Req{}
+				}
+				out.HTTP.Request.Referer = out.Page.Referer
+			}
 		}
 		if len(from.Context.Custom) > 0 {
 			out.Custom = from.Context.Custom.Clone()
@@ -439,8 +449,7 @@ func mapToResponseModel(from contextResponse, out *model.Resp) {
 		out.Headers = from.Headers.Val.Clone()
 	}
 	if from.StatusCode.IsSet() {
-		val := from.StatusCode.Val
-		out.StatusCode = &val
+		out.StatusCode = from.StatusCode.Val
 	}
 	if from.TransferSize.IsSet() {
 		val := from.TransferSize.Val
@@ -540,8 +549,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 			destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
-			val := from.Context.Destination.Port.Val
-			destination.Port = &val
+			destination.Port = from.Context.Destination.Port.Val
 		}
 		out.Destination = &destination
 	}
@@ -564,8 +572,7 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 			http.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
-			val := from.Context.HTTP.StatusCode.Val
-			http.StatusCode = &val
+			http.StatusCode = from.Context.HTTP.StatusCode.Val
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			http.URL = from.Context.HTTP.URL.Val
@@ -588,15 +595,14 @@ func mapToSpanModel(from *span, metadata *model.Metadata, reqTime time.Time, out
 		out.HTTP = &http
 	}
 	if from.Context.Service.IsSet() {
-		out.Service = &model.Service{}
 		if from.Context.Service.Agent.Name.IsSet() {
-			out.Service.Agent.Name = from.Context.Service.Agent.Name.Val
+			out.Metadata.Service.Agent.Name = from.Context.Service.Agent.Name.Val
 		}
 		if from.Context.Service.Agent.Version.IsSet() {
-			out.Service.Agent.Version = from.Context.Service.Agent.Version.Val
+			out.Metadata.Service.Agent.Version = from.Context.Service.Agent.Version.Val
 		}
 		if from.Context.Service.Name.IsSet() {
-			out.Service.Name = from.Context.Service.Name.Val
+			out.Metadata.Service.Name = from.Context.Service.Name.Val
 		}
 	}
 	if len(from.Context.Tags) > 0 {
@@ -711,10 +717,6 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 		if len(from.Context.Tags) > 0 {
 			out.Labels = from.Context.Tags.Clone()
 		}
-		if from.Context.Page.IsSet() {
-			out.Page = &model.Page{}
-			mapToPageModel(from.Context.Page, out.Page)
-		}
 		if from.Context.Request.IsSet() {
 			out.HTTP = &model.Http{Request: &model.Req{}}
 			mapToRequestModel(from.Context.Request, out.HTTP.Request)
@@ -728,6 +730,20 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 			}
 			out.HTTP.Response = &model.Resp{}
 			mapToResponseModel(from.Context.Response, out.HTTP.Response)
+		}
+		if from.Context.Page.IsSet() {
+			out.Page = &model.Page{}
+			mapToPageModel(from.Context.Page, out.Page)
+			out.URL = out.Page.URL
+			if out.Page.Referer != "" {
+				if out.HTTP == nil {
+					out.HTTP = &model.Http{}
+				}
+				if out.HTTP.Request == nil {
+					out.HTTP.Request = &model.Req{}
+				}
+				out.HTTP.Request.Referer = out.Page.Referer
+			}
 		}
 	}
 	if from.Duration.IsSet() {

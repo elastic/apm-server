@@ -192,7 +192,7 @@ func TestResult_Failure(t *testing.T) {
 func TestDefaultMonitoringMapForRegistry(t *testing.T) {
 	mockRegistry := monitoring.Default.NewRegistry("mock-default")
 	m := DefaultMonitoringMapForRegistry(mockRegistry)
-	assert.Equal(t, 21, len(m))
+	assert.Equal(t, 22, len(m))
 	for id := range m {
 		assert.Equal(t, int64(0), m[id].Get())
 	}

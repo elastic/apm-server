@@ -24,16 +24,19 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/proto"
 
+	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.opentelemetry.io/collector/internal/middleware"
 )
 
 type exporterImp struct {
@@ -65,6 +68,14 @@ func newExporter(cfg configmodels.Exporter, logger *zap.Logger) (*exporterImp, e
 	client, err := oCfg.HTTPClientSettings.ToClient()
 	if err != nil {
 		return nil, err
+	}
+
+	if oCfg.Compression != "" {
+		if strings.ToLower(oCfg.Compression) == configgrpc.CompressionGzip {
+			client.Transport = middleware.NewCompressRoundTripper(client.Transport)
+		} else {
+			return nil, fmt.Errorf("unsupported compression type %q", oCfg.Compression)
+		}
 	}
 
 	return &exporterImp{
@@ -155,7 +166,7 @@ func (e *exporterImp) export(ctx context.Context, url string, request []byte) er
 	}
 
 	// Check if the server is overwhelmed.
-	// See spec https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/protocol/otlp.md#throttling-1
+	// See spec https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#throttling-1
 	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
 		// Fallback to 0 if the Retry-After header is not present. This will trigger the
 		// default backoff policy by our caller (retry handler).
@@ -193,7 +204,7 @@ func readResponse(resp *http.Response) *status.Status {
 		respBytes := make([]byte, maxRead)
 		n, err := io.ReadFull(resp.Body, respBytes)
 		if err == nil && n > 0 {
-			// Decode it as Status struct. See https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/protocol/otlp.md#failures
+			// Decode it as Status struct. See https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#failures
 			respStatus = &status.Status{}
 			err = proto.Unmarshal(respBytes, respStatus)
 			if err != nil {

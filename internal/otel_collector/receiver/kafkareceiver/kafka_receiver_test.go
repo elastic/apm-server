@@ -16,6 +16,7 @@ package kafkareceiver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -34,7 +35,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter"
-	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
+	otlptrace "go.opentelemetry.io/collector/internal/data/protogen/collector/trace/v1"
 )
 
 func TestNewReceiver_version_err(t *testing.T) {
@@ -200,14 +201,12 @@ func TestConsumerGroupHandler_error_unmarshall(t *testing.T) {
 }
 
 func TestConsumerGroupHandler_error_nextConsumer(t *testing.T) {
-	nextConsumer := new(consumertest.TracesSink)
-	consumerError := fmt.Errorf("failed to consumer")
-	nextConsumer.SetConsumeError(consumerError)
+	consumerError := errors.New("failed to consumer")
 	c := consumerGroupHandler{
 		unmarshaller: &otlpProtoUnmarshaller{},
 		logger:       zap.NewNop(),
 		ready:        make(chan bool),
-		nextConsumer: nextConsumer,
+		nextConsumer: consumertest.NewTracesErr(consumerError),
 	}
 
 	wg := sync.WaitGroup{}

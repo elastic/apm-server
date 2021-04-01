@@ -77,6 +77,10 @@ func TestUnpackConfig(t *testing.T) {
 				"shutdown_timeout":      9 * time.Second,
 				"capture_personal_data": true,
 				"secret_token":          "1234random",
+				"output": map[string]interface{}{
+					"backoff.init": time.Second,
+					"backoff.max":  time.Minute,
+				},
 				"ssl": map[string]interface{}{
 					"enabled":                 true,
 					"key":                     "../../testdata/tls/key.pem",
@@ -127,7 +131,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
-						"enabled":                          true,
+						"enabled":                          false,
 						"interval":                         "1s",
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
@@ -158,6 +162,9 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled: &truthy,
 					URL:     "/debug/vars",
 				},
+				Pprof: &PprofConfig{
+					Enabled: false,
+				},
 				RumConfig: &RumConfig{
 					Enabled: &truthy,
 					EventRate: &EventRate{
@@ -170,9 +177,12 @@ func TestUnpackConfig(t *testing.T) {
 						Cache:        &Cache{Expiration: 8 * time.Minute},
 						IndexPattern: "apm-test*",
 						ESConfig: &elasticsearch.Config{
-							Hosts:    elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
-							Protocol: "http",
-							Timeout:  5 * time.Second},
+							Hosts:      elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
+							Protocol:   "http",
+							Timeout:    5 * time.Second,
+							MaxRetries: 3,
+							Backoff:    elasticsearch.DefaultBackoffConfig,
+						},
 						esConfigured: true,
 					},
 					LibraryPattern:      "^custom",
@@ -216,14 +226,17 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled:     true,
 					LimitPerMin: 200,
 					ESConfig: &elasticsearch.Config{
-						Hosts:    elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
-						Protocol: "http",
-						Timeout:  5 * time.Second},
+						Hosts:      elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
+						Protocol:   "http",
+						Timeout:    5 * time.Second,
+						MaxRetries: 3,
+						Backoff:    elasticsearch.DefaultBackoffConfig,
+					},
 					esConfigured: true,
 				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Enabled:                        true,
+						Enabled:                        false,
 						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
@@ -262,6 +275,9 @@ func TestUnpackConfig(t *testing.T) {
 					"enabled": true,
 					"url":     "/debug/vars",
 				},
+				"pprof": map[string]interface{}{
+					"enabled": true,
+				},
 				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
@@ -280,7 +296,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				"jaeger.grpc.enabled":                      true,
 				"api_key.enabled":                          true,
-				"aggregation.transactions.enabled":         true,
+				"aggregation.transactions.enabled":         false,
 				"aggregation.service_destinations.enabled": false,
 				"sampling.keep_unsampled":                  false,
 				"sampling.tail": map[string]interface{}{
@@ -308,6 +324,9 @@ func TestUnpackConfig(t *testing.T) {
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					URL:     "/debug/vars",
+				},
+				Pprof: &PprofConfig{
+					Enabled: true,
 				},
 				RumConfig: &RumConfig{
 					Enabled: &truthy,
@@ -359,7 +378,7 @@ func TestUnpackConfig(t *testing.T) {
 				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitPerMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Enabled:                        true,
+						Enabled:                        false,
 						Interval:                       time.Minute,
 						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,

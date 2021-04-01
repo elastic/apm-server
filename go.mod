@@ -15,8 +15,9 @@ require (
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210218165332-1ec04e2cbfd8
 	github.com/elastic/ecs v1.8.0
+	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
 	github.com/elastic/gmux v0.1.0
-	github.com/elastic/go-elasticsearch/v7 v7.5.1-0.20201007132508-ff965d99ba02
+	github.com/elastic/go-elasticsearch/v7 v7.11.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
@@ -25,13 +26,12 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/googleapis v1.3.1-0.20190914144012-b8d18e97a9a1 // indirect
-	github.com/gogo/protobuf v1.3.1
-	github.com/google/pprof v0.0.0-20201007051231-1066cbb265c7
+	github.com/gogo/protobuf v1.3.2
+	github.com/google/pprof v0.0.0-20210208152844-1612e9be7af6
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
-	github.com/ianlancetaylor/demangle v0.0.0-20200715173712-053cf528c12f // indirect
-	github.com/jaegertracing/jaeger v1.21.0
+	github.com/jaegertracing/jaeger v1.22.0
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
 	github.com/json-iterator/go v1.1.10
 	github.com/jstemmer/go-junit-report v0.9.1
@@ -44,14 +44,14 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/reviewdog/reviewdog v0.9.17
 	github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/tidwall/gjson v1.6.0
 	github.com/tidwall/sjson v1.1.1
 	github.com/urso/magetools v0.0.0-20200125210132-c2e338f92f3a // indirect
-	github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56
+	github.com/xeipuuv/gojsonschema v1.2.0
 	go.elastic.co/apm v1.11.0
 	go.elastic.co/apm/module/apmelasticsearch v1.7.2
 	go.elastic.co/apm/module/apmgrpc v1.7.0
@@ -59,18 +59,18 @@ require (
 	go.elastic.co/ecszap v1.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0
 	go.elastic.co/go-licence-detector v0.5.0
-	go.opentelemetry.io/collector v0.17.0
+	go.opentelemetry.io/collector v0.22.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210218145215-b8e89b74b9df // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/sys v0.0.0-20210218155724-8ebf48af031b // indirect
+	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
 	golang.org/x/text v0.3.5 // indirect
-	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
+	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	golang.org/x/tools v0.1.0
-	google.golang.org/grpc v1.34.0
+	google.golang.org/grpc v1.36.0
 	gopkg.in/yaml.v2 v2.4.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 	k8s.io/client-go v12.0.0+incompatible // indirect

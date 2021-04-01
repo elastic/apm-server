@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -74,7 +73,7 @@ func Handler(report publish.Reporter) request.Handler {
 			return
 		}
 
-		req := publish.PendingReq{Transformables: []transform.Transformable{&smap}}
+		req := publish.PendingReq{Transformable: &smap}
 		span, ctx := apm.StartSpan(c.Request.Context(), "Send", "Reporter")
 		defer span.End()
 		req.Trace = !span.Dropped()

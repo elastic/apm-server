@@ -33,8 +33,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
-
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
@@ -83,10 +81,7 @@ func TestAssetHandler(t *testing.T) {
 				return string(b)
 			}(),
 			reporter: func(ctx context.Context, p publish.PendingReq) error {
-				var events []beat.Event
-				for _, transformable := range p.Transformables {
-					events = append(events, transformable.Transform(ctx, &transform.Config{})...)
-				}
+				events := p.Transformable.Transform(ctx, &transform.Config{})
 				docs := beatertest.EncodeEventDocs(events...)
 				name := filepath.Join("test_approved", "TestProcessSourcemap")
 				approvaltest.ApproveEventDocs(t, name, docs, "@timestamp")
@@ -157,7 +152,7 @@ func (tc *testcaseT) setup() error {
 	}
 
 	if tc.reporter == nil {
-		tc.reporter = beatertest.NilReporter
+		tc.reporter = func(context.Context, publish.PendingReq) error { return nil }
 	}
 	c := request.NewContext()
 	c.Reset(tc.w, tc.r)
