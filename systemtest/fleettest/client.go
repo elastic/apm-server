@@ -165,7 +165,7 @@ func (c *Client) CreateAgentPolicy(name, namespace, description string) (*AgentP
 }
 
 func (c *Client) getAgentPolicyEnrollmentAPIKey(policyID string) (*EnrollmentAPIKey, error) {
-	keys, err := c.enrollmentAPIKeys("fleet-enrollment-api-keys.policy_id:" + policyID)
+	keys, err := c.enrollmentAPIKeys("policy_id:" + policyID)
 	if err != nil {
 		return nil, err
 	}
