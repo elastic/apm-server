@@ -32,6 +32,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Add `apm-server.rum.allow_service_names` config {pull}5030[5030]
 * Ingest pipeline for translating OpenTelemetry Java metrics to Elastic APM fields {pull}4986[4986]
 * Set `event.ingested` first in the ingest pipeline {pull}5048[5048]
+* The server now responds with a reason for some 401 Unauthorized requests {pull}5053[5053]
 
 [float]
 ==== Deprecated

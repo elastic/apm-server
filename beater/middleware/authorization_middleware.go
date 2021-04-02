@@ -24,20 +24,34 @@ import (
 )
 
 // AuthorizationMiddleware returns a Middleware to only let authorized requests pass through
-func AuthorizationMiddleware(auth *authorization.Handler, apply bool) Middleware {
+func AuthorizationMiddleware(auth *authorization.Handler, required bool) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			header := c.Request.Header.Get(headers.Authorization)
-			c.Authorization = auth.AuthorizationFor(authorization.ParseAuthorizationHeader(header))
+			auth := auth.AuthorizationFor(authorization.ParseAuthorizationHeader(header))
 
-			if apply {
-				authorized, err := c.Authorization.AuthorizedFor(c.Request.Context(), authorization.ResourceInternal)
-				if !authorized {
-					c.Result.SetDeniedAuthorization(err)
-					c.Write()
-					return
+			result, err := auth.AuthorizedFor(c.Request.Context(), authorization.ResourceInternal)
+			if err != nil {
+				c.Result.Err = err
+				return
+			} else if required && !result.Authorized {
+				id := request.IDResponseErrorsUnauthorized
+				if err != nil {
+					id = request.IDResponseErrorsServiceUnavailable
 				}
+
+				var body interface{}
+				status := request.MapResultIDToStatus[id]
+				if err != nil {
+					body = status.Keyword
+				} else if result.Reason != "" {
+					status.Keyword = result.Reason
+				}
+				c.Result.Set(id, status.Code, status.Keyword, body, err)
+				c.Write()
+				return
 			}
+			c.AuthResult = result
 
 			h(c)
 		}, nil
