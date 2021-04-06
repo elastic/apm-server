@@ -32,13 +32,13 @@ import (
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
-	processor := BackendProcessor(&config.Config{MaxEventSize: 300 * 1024})
+	processor := BackendProcessor(config.DefaultConfig())
 	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
 func BenchmarkRUMV3Processor(b *testing.B) {
-	processor := RUMV3Processor(&config.Config{MaxEventSize: 300 * 1024})
+	processor := RUMV3Processor(config.DefaultConfig())
 	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v3/rum_*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
