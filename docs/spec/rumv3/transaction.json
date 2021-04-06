@@ -605,6 +605,30 @@
       ],
       "maxLength": 1024
     },
+    "ses": {
+      "description": "Session holds optional transaction session information for RUM.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID holds a session ID for grouping a set of related transactions.",
+          "type": "string"
+        },
+        "seq": {
+          "description": "Sequence holds an optional sequence number for a transaction within a session. It is not meaningful to compare sequences across two different sessions.",
+          "type": [
+            "null",
+            "integer"
+          ],
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
     "sm": {
       "description": "Sampled indicates whether or not the full information for a transaction is captured. If a transaction is unsampled no spans and less context information will be reported.",
       "type": [

@@ -516,6 +516,8 @@ type transaction struct {
 	// was recorded. Allowed values are [0..1]. A SampleRate <1 indicates that
 	// not all spans are recorded.
 	SampleRate nullable.Float64 `json:"sr"`
+	// Session holds optional transaction session information for RUM.
+	Session transactionSession `json:"ses"`
 	// SpanCount counts correlated spans.
 	SpanCount transactionSpanCount `json:"yc" validate:"required"`
 	// Spans is a collection of spans related to this transaction.
@@ -528,6 +530,16 @@ type transaction struct {
 	// UserExperience holds metrics for measuring real user experience.
 	// This information is only sent by RUM agents.
 	UserExperience transactionUserExperience `json:"exp"`
+}
+
+type transactionSession struct {
+	// ID holds a session ID for grouping a set of related transactions.
+	ID nullable.String `json:"id" validate:"required"`
+
+	// Sequence holds an optional sequence number for a transaction within
+	// a session. It is not meaningful to compare sequences across two
+	// different sessions.
+	Sequence nullable.Int `json:"seq" validate:"min=1"`
 }
 
 type transactionMarks struct {
