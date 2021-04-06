@@ -1,0 +1,156 @@
+[[data-security]]
+=== Data security
+
+When setting up Elastic APM, you should review all captured data carefully to ensure it does not contain sensitive information.
+Trace data may contain sensitive information about your users that you wish to filter out.
+
+Most agents sanitize the list of HTTP headers by default—to filter out sensitive data like passwords, credit card numbers, etc.
+This filtered data never leaves the monitored service.
+
+==== Common types of data to sanitize
+
+* Errors thrown in user’s browser (RUM agent): <<sanitize-disable-instrumentation>>
+//  (node.js only?)
+* Errors raised by the server side process: <<sanitize-capture-exceptions>>
+* Navigation and click recording: <<sanitize-disable-instrumentation>>
+* Static resources and HTTP API calls: <<sanitize-disable-instrumentation>>
+* HTTP request bodies or headers: <<sanitize-http>>
+* User agent (browser) name and version: <<sanitize-ingest-pipeline>>
+* User IP address (`client.ip`, `source,ip`, etc.): <<sanitize-ingest-pipeline>>
+
+*  Sanitize sensitive data Java agent
+   * Use [sanitize_field_names](https://www.elastic.co/guide/en/apm/agent/java/current/config-core.html#config-sanitize-field-names)
+*   Container and Pod specific information (Node.js)
+*   Network information (RUM - Not currently, but work is on progress)
+
+==== Data sanitization methods
+
+[[sanitize-disable-instrumentation]]
+===== Disable instrumentation
+
+Individual RUM instrumentations can be disabled in the RUM agent with the
+{apm-rum-ref-v}/configuration.html#disable-instrumentations[`disableInstrumentations`] configuration variable.
+
+[[sanitize-http]]
+===== HTTP
+
+GO
+https://www.elastic.co/guide/en/apm/agent/go/current/configuration.html#config-capture-body
+https://www.elastic.co/guide/en/apm/agent/go/current/configuration.html#config-capture-headers
+
+JAVA
+
+.NET
+https://www.elastic.co/guide/en/apm/agent/dotnet/current/config-http.html#config-capture-body
+https://www.elastic.co/guide/en/apm/agent/dotnet/current/config-http.html#config-capture-headers
+
+NODE.JS
+https://www.elastic.co/guide/en/apm/agent/nodejs/current/configuration.html#capture-body
+https://www.elastic.co/guide/en/apm/agent/nodejs/current/configuration.html#capture-headers
+
+PYTHON
+https://www.elastic.co/guide/en/apm/agent/python/current/configuration.html#config-capture-body
+https://www.elastic.co/guide/en/apm/agent/python/current/configuration.html#config-capture-headers
+
+RUBY
+
+[[sanitize-ingest-pipeline]]
+===== Ingest pipeline
+
+https://www.elastic.co/guide/en/apm/server/master/configuring-ingest-node.html#default-pipeline
+
+And ingest node pipeline is the most flexible way to sanitize Elastic APM data.
+Using an ingest node pipeline cleans data on ingestion, inflicts no performance overhead on the monitored application.
+
+TIP: See {apm-server-ref-v}/configuring-ingest-node.html[parse data using ingest node pipelines]
+to learn more.
+
+**Tutorial**
+
+Say you're sending an email and password in `http.request.body.original`:
+
+[source,json]
+----
+{
+  "email": "test@abc.com",
+  "password": "hunter2"
+}
+----
+
+Because `request.body` is captured by the agent as a string, there is no option to parse in the agent.
+You can instead use an ingest node pipeline (with the {ref}/json-processor.html[JSON processor]) to sanitize this field.
+
+[source,json]
+----
+{
+  "pipeline": {
+    "description": "redact http.request.body.original.password", <1>
+    "processors": [ <2>
+      {
+        "json": { <3>
+          "field": "http.request.body.original",
+          "target_field": "http.request.body.original_json",
+          "ignore_failure": true
+        }
+      },
+      {
+        "remove": { <4>
+          "field": "http.request.body.original",
+          "if": "ctx?.http?.request?.body?.original_json != null",
+          "ignore_failure": true
+        }
+      },
+      {
+        "set": { <5>
+          "field": "http.request.body.original_json.password",
+          "value": "[redacted]",
+          "if": "ctx?.http?.request?.body?.original_json != null"
+        }
+      }
+    ]
+  }
+----
+<1> A generic description of the pipeline.
+<2> A series of processors that work on the data.
+<3> The {ref}/json-processor.html[JSON processor] converts the `body.original`
+field into a structured JSON object and saves it as `body.original_json`.
+<4> The {ref}/remove-processor.html[remove processor] removes the original `body.original` field
+if the new `body.original_json` field exists.
+<5> The {ref}/set-processor.html[set processor] sets the value of `body.original_json.password` to `[redacted]`
+if the new `body.original_json` field exists.
+
+[[sanitize-capture-exceptions]]
+===== Capture exceptions
+
+Node.js only?
+https://www.elastic.co/guide/en/apm/agent/nodejs/current/configuration.html#capture-exceptions
+
+===== Agent filters
+
+.NET
+- Filter API: [https://www.elastic.co/guide/en/apm/agent/dotnet/current/public-api.html#filter-api](https://www.elastic.co/guide/en/apm/agent/dotnet/current/public-api.html#filter-api)
+
+
+NODE.JS
+- filterHttpHeaders
+    [https://www.elastic.co/guide/en/apm/agent/nodejs/master/configuration.html#filter-http-headers](https://www.elastic.co/guide/en/apm/agent/nodejs/master/configuration.html#filter-http-headers)
+
+- addFilter [https://www.elastic.co/guide/en/apm/agent/nodejs/master/agent-api.html#apm-add-filter](https://www.elastic.co/guide/en/apm/agent/nodejs/master/agent-api.html#apm-add-filter)
+    - Note that not all agents have the concept of agent-level filtering (none in the Java agent for example)
+
+===== Sanitize field names
+
+By default, most Elastic APM agents sanitize HTTP headers, including cookies, and `application/x-www-form-urlencoded` data (POST form fields).
+Query string and captured request bodies, like `applicaiton/json` data is not sanitized.
+
+The following list is provided, and can be customized to your data
+
+`password, passwd, pwd, secret, *key, *token*, *session*, *credit*, *card*, authorization, set-cookie`
+
+* Go: {apm-go-ref-v}/configuration.html#config-sanitize-field-names[`ELASTIC_APM_SANITIZE_FIELD_NAMES`]
+* Java: {apm-java-ref-v}/config-core.html#config-sanitize-field-names[`sanitize_field_names`]
+* .NET: {apm-dotnet-ref-v}/config-core.html#config-sanitize-field-names[`sanitizeFieldNames`]
+* Node.js: {apm-node-ref-v}/configuration.html#sanitize-field-names[`sanitizeFieldNames`]
+// * PHP: {apm-php-ref-v}[``]
+* Python: {apm-py-ref-v}/configuration.html#config-sanitize-field-names[`sanitize_field_names`]
+* Ruby: {apm-ruby-ref-v}/configuration.html#config-sanitize-field-names[`sanitize_field_names`]
