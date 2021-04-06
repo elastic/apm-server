@@ -3,17 +3,17 @@
   "processors": [
     {
       "pipeline": {
+        "name": "logs-apm.error-0.2.0-apm_ingest_timestamp"
+      }
+    },
+    {
+      "pipeline": {
         "name": "logs-apm.error-0.2.0-apm_user_agent"
       }
     },
     {
       "pipeline": {
         "name": "logs-apm.error-0.2.0-apm_user_geo"
-      }
-    },
-    {
-      "pipeline": {
-        "name": "logs-apm.error-0.2.0-apm_ingest_timestamp"
       }
     },
     {
