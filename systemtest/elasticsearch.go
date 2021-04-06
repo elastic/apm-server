@@ -118,7 +118,9 @@ func CleanupElasticsearch(t testing.TB) {
 	}
 
 	// Delete indices, data streams, and ingest pipelines.
-	doReq(esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}})
+	if err := doReq(esapi.IndicesDeleteRequest{Index: []string{legacyPrefix}}); err != nil {
+		t.Fatal(err)
+	}
 	doParallel(
 		esapi.IndicesDeleteDataStreamRequest{Name: legacyPrefix},
 		esapi.IndicesDeleteDataStreamRequest{Name: apmTracesPrefix},
