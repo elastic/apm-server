@@ -15,6 +15,7 @@ pull_request_rules:
             ```
   - name: backport patches to 7.x branch
     conditions:
+      - merged
       - base=master
       - label=v7.13.0
     actions:
@@ -23,6 +24,7 @@ pull_request_rules:
           - "7.x"
   - name: backport patches to 7.12 branch
     conditions:
+      - merged
       - base=master
       - label=v7.12.0
     actions:
