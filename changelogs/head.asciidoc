@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 [float]
 ==== Bug fixes
 * Fix `setup.template` config merging {pull}4950[4950]
+* The server now responds with 503 instead of 401 when failure is unrelated to API Key validity, e.g. if Elasticsearch is inaccessible {pull}5053[5053]
 
 [float]
 ==== Intake API Changes

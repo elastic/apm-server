@@ -23,8 +23,14 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
+// AuthorizationHandler provides an interface for obtaining an authorization.Authorization
+// for a given auth kind and value.
+type AuthorizationHandler interface {
+	AuthorizationFor(kind, value string) authorization.Authorization
+}
+
 // AuthorizationMiddleware returns a Middleware to only let authorized requests pass through
-func AuthorizationMiddleware(auth *authorization.Handler, required bool) Middleware {
+func AuthorizationMiddleware(auth AuthorizationHandler, required bool) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			header := c.Request.Header.Get(headers.Authorization)
@@ -32,22 +38,17 @@ func AuthorizationMiddleware(auth *authorization.Handler, required bool) Middlew
 
 			result, err := auth.AuthorizedFor(c.Request.Context(), authorization.ResourceInternal)
 			if err != nil {
+				c.Result.SetDefault(request.IDResponseErrorsServiceUnavailable)
 				c.Result.Err = err
+				c.Write()
 				return
 			} else if required && !result.Authorized {
 				id := request.IDResponseErrorsUnauthorized
-				if err != nil {
-					id = request.IDResponseErrorsServiceUnavailable
-				}
-
-				var body interface{}
 				status := request.MapResultIDToStatus[id]
-				if err != nil {
-					body = status.Keyword
-				} else if result.Reason != "" {
+				if result.Reason != "" {
 					status.Keyword = result.Reason
 				}
-				c.Result.Set(id, status.Code, status.Keyword, body, err)
+				c.Result.Set(id, status.Code, status.Keyword, nil, nil)
 				c.Write()
 				return
 			}
