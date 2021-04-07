@@ -3,17 +3,17 @@
   "processors": [
     {
       "pipeline": {
+        "name": "traces-apm-0.2.0-apm_ingest_timestamp"
+      }
+    },
+    {
+      "pipeline": {
         "name": "traces-apm-0.2.0-apm_user_agent"
       }
     },
     {
       "pipeline": {
         "name": "traces-apm-0.2.0-apm_user_geo"
-      }
-    },
-    {
-      "pipeline": {
-        "name": "traces-apm-0.2.0-apm_ingest_timestamp"
       }
     },
     {
