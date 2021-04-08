@@ -593,10 +593,11 @@ func (val *metadataSystemKubernetesPod) validate() error {
 }
 
 func (val *user) IsSet() bool {
-	return val.ID.IsSet() || val.Email.IsSet() || val.Name.IsSet()
+	return val.Domain.IsSet() || val.ID.IsSet() || val.Email.IsSet() || val.Name.IsSet()
 }
 
 func (val *user) Reset() {
+	val.Domain.Reset()
 	val.ID.Reset()
 	val.Email.Reset()
 	val.Name.Reset()
@@ -605,6 +606,9 @@ func (val *user) Reset() {
 func (val *user) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	if utf8.RuneCountInString(val.Domain.Val) > 1024 {
+		return fmt.Errorf("'domain': validation rule 'maxLength(1024)' violated")
 	}
 	switch t := val.ID.Val.(type) {
 	case string:

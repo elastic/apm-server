@@ -347,6 +347,7 @@
                 "scheme": "https"
             },
             "user": {
+                "domain": "ldap://abc",
                 "id": "99",
                 "name": "foo"
             },
