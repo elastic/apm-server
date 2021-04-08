@@ -35,6 +35,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Set `event.ingested` first in the ingest pipeline {pull}5048[5048]
 * The server now responds with a reason for some 401 Unauthorized requests {pull}5053[5053]
 * Add `session.id` and `session.sequence` fields for RUM session tracking {pull}5056[5056]
+* Add support for OpenTelemetry RPC semantic conventions {pull}5074[5074]
 
 [float]
 ==== Deprecated

@@ -45,6 +45,7 @@ import (
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
+	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -198,6 +199,7 @@ func translateTransaction(
 		netHostName string
 		netHostPort int
 		netPeerIP   string
+		netPeerName string
 		netPeerPort int
 	)
 
@@ -232,6 +234,8 @@ func translateTransaction(
 				netPeerPort = int(v.IntVal())
 			case conventions.AttributeNetHostPort:
 				netHostPort = int(v.IntVal())
+			case "rpc.grpc.status_code":
+				tx.Result = codes.Code(v.IntVal()).String()
 			default:
 				labels[k] = v.IntVal()
 			}
@@ -287,6 +291,8 @@ func translateTransaction(
 			// net.*
 			case conventions.AttributeNetPeerIP:
 				netPeerIP = stringval
+			case conventions.AttributeNetPeerName:
+				netPeerName = stringval
 			case conventions.AttributeNetHostName:
 				netHostName = stringval
 
@@ -296,6 +302,16 @@ func translateTransaction(
 			case "message_bus.destination":
 				message.QueueName = stringval
 				isMessaging = true
+
+			// rpc.*
+			//
+			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
+			// attributes, and rely on the operation name like we do with
+			// Elastic APM agents.
+			case conventions.AttributeRPCSystem:
+				tx.Type = "request"
+			case conventions.AttributeRPCService:
+			case conventions.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
@@ -355,6 +371,12 @@ func translateTransaction(
 		tx.Message = &message
 	}
 
+	if netPeerIP != "" {
+		tx.Metadata.Client.IP = net.ParseIP(netPeerIP)
+	}
+	tx.Metadata.Client.Port = netPeerPort
+	tx.Metadata.Client.Domain = netPeerName
+
 	if samplerType != (pdata.AttributeValue{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
 		parseSamplerAttributes(samplerType, samplerParam, &tx.RepresentativeCount, labels)
@@ -390,8 +412,9 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	var message model.Message
 	var db model.DB
 	var destinationService model.DestinationService
-	var isDBSpan, isHTTPSpan, isMessagingSpan bool
+	var isDBSpan, isHTTPSpan, isMessagingSpan, isRPCSpan bool
 	var component string
+	var rpcSystem string
 	var samplerType, samplerParam pdata.AttributeValue
 	span.Attributes().ForEach(func(kDots string, v pdata.AttributeValue) {
 		if isJaeger {
@@ -418,6 +441,8 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				isHTTPSpan = true
 			case conventions.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.IntVal())
+			case "rpc.grpc.status_code":
+				// Ignored for spans.
 			default:
 				labels[k] = v.IntVal()
 			}
@@ -481,6 +506,17 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			case "message_bus.destination":
 				message.QueueName = stringval
 				isMessagingSpan = true
+
+			// rpc.*
+			//
+			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
+			// attributes, and rely on the operation name and span type/subtype
+			// like we do with Elastic APM agents.
+			case conventions.AttributeRPCSystem:
+				rpcSystem = stringval
+				isRPCSpan = true
+			case conventions.AttributeRPCService:
+			case conventions.AttributeRPCMethod:
 
 			// miscellaneous
 			case "span.kind": // filter out
@@ -563,6 +599,15 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		}
 	}
 
+	if isRPCSpan {
+		// Set destination.service.* from the peer address, unless peer.service was specified.
+		if destinationService.Name == "" {
+			destHostPort := net.JoinHostPort(destAddr, strconv.Itoa(destPort))
+			destinationService.Name = destHostPort
+			destinationService.Resource = destHostPort
+		}
+	}
+
 	switch {
 	case isHTTPSpan:
 		if http.StatusCode > 0 {
@@ -589,6 +634,9 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 	case isMessagingSpan:
 		event.Type = "messaging"
 		event.Message = &message
+	case isRPCSpan:
+		event.Type = "external"
+		event.Subtype = rpcSystem
 	default:
 		event.Type = "app"
 		event.Subtype = component

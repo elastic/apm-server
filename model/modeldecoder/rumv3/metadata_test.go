@@ -40,7 +40,9 @@ func initializedMetadata() *model.Metadata {
 	mapToMetadataModel(&input, &out)
 	// initialize values that are not set by input
 	out.UserAgent = model.UserAgent{Name: "init", Original: "init"}
+	out.Client.Domain = "init"
 	out.Client.IP = net.ParseIP("127.0.0.1")
+	out.Client.Port = 1
 	return &out
 }
 
@@ -108,7 +110,11 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 			// these values are not set from http headers and
 			// are not expected change with updated input data
 			UserAgent: model.UserAgent{Original: "init", Name: "init"},
-			Client:    model.Client{IP: net.ParseIP("127.0.0.1")},
+			Client: model.Client{
+				Domain: "init",
+				IP:     net.ParseIP("127.0.0.1"),
+				Port:   1,
+			},
 		}
 	}
 
@@ -146,7 +152,9 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		mapToMetadataModel(&input, &out1)
 		// initialize values that are not set by input
 		out1.UserAgent = model.UserAgent{Name: "init", Original: "init"}
+		out1.Client.Domain = "init"
 		out1.Client.IP = net.ParseIP("127.0.0.1")
+		out1.Client.Port = 1
 		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
 
 		// overwrite model metadata with specified Values
@@ -156,7 +164,9 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.UserAgent = model.UserAgent{Name: "init", Original: "init"}
+		out2.Client.Domain = "init"
 		out2.Client.IP = net.ParseIP("127.0.0.1")
+		out2.Client.Port = 1
 		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), &out2)
 		assert.Equal(t, expected(defaultVal.Str, defaultVal.IP, defaultVal.N), &out1)
 	})

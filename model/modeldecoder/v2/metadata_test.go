@@ -35,7 +35,9 @@ import (
 func isUnmappedMetadataField(key string) bool {
 	switch key {
 	case
+		"Client.Domain",
 		"Client.IP",
+		"Client.Port",
 		"Process.CommandLine",
 		"Process.Executable",
 		"System.Container.Runtime",
