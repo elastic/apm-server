@@ -34,7 +34,10 @@ import (
 )
 
 var (
-	monitoringKeys           = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized)
+	monitoringKeys = append(request.DefaultResultIDs,
+		request.IDResponseErrorsUnauthorized,
+		request.IDResponseErrorsTimeout,
+	)
 	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
 	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
 	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
