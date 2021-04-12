@@ -322,6 +322,14 @@
               ],
               "maxLength": 1024
             },
+            "ud": {
+              "description": "Domain of the user",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
             "un": {
               "description": "Name of the user.",
               "type": [

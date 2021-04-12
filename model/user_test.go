@@ -26,6 +26,7 @@ import (
 )
 
 func TestUserFields(t *testing.T) {
+	domain := "ldap://abc"
 	id := "1234"
 	email := "test@mail.co"
 	name := "user123"
@@ -40,14 +41,16 @@ func TestUserFields(t *testing.T) {
 		},
 		{
 			User: User{
-				ID:    id,
-				Email: email,
-				Name:  name,
+				Domain: domain,
+				ID:     id,
+				Email:  email,
+				Name:   name,
 			},
 			Output: common.MapStr{
-				"id":    "1234",
-				"email": "test@mail.co",
-				"name":  "user123",
+				"domain": "ldap://abc",
+				"id":     "1234",
+				"email":  "test@mail.co",
+				"name":   "user123",
 			},
 		},
 	}
