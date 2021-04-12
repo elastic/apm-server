@@ -164,8 +164,8 @@ but quickly notice that sensitive information is being collected in the
 ----
 
 To obfuscate the passwords stored in the request body,
-you can use a series of ingest {ref}/processors.html[processors].
-Create a pipeline with a simple description and an empty array of processors:
+you can use a series of {ref}/processors.html[ingest processors].
+To start, create a pipeline with a simple description and an empty array of processors:
 
 [source,json]
 ----
@@ -180,8 +180,8 @@ Create a pipeline with a simple description and an empty array of processors:
 
 Add the first processor to the processors array.
 Because the agent captures the request body as a string, you must use the
-{ref}/json-processor.html[JSON processor] to convert the field value into a structured JSON object.
-We'll save this JSON object in a new field:
+{ref}/json-processor.html[JSON processor] to convert the original field value into a structured JSON object.
+Save this JSON object in a new field:
 
 [source,json]
 ----
@@ -208,8 +208,8 @@ if the new `body.original_json` field was created:
 }
 ----
 
-Finally, {ref}/set-processor.html[set] the value of the new `body.original_json` field to `"redacted"`
-if the new `body.original_json` field was created:
+Finally, {ref}/set-processor.html[set] the value of the new `body.original_json` field to `"redacted"`–again,
+only if the new `body.original_json` field was created:
 
 [source,json]
 ----
@@ -222,8 +222,9 @@ if the new `body.original_json` field was created:
 }
 ----
 
-Use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in Elasticsearch.
-We'll call this processor `apm_redacted_body_password`:
+With the pipeline defined,
+use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
+Name the pipeline `apm_redacted_body_password`:
 
 [source,console]
 ----
@@ -256,10 +257,11 @@ PUT _ingest/pipeline/apm_redacted_body_password
 }
 ----
 
-To make sure the new `apm_redacted_body_password` pipeline works correctly,
-test it with the {ref}/simulate-pipeline-api.html[simulate pipeline] API.
+To make sure the `apm_redacted_body_password` pipeline works correctly,
+test it with the {ref}/simulate-pipeline-api.html[simulate pipeline API].
+This API allows you to run multiple documents through a pipeline to ensure it is working correctly.
 
-The request below simulates three different documents:
+The request below simulates running three different documents through the pipeline:
 
 [source,console]
 ----
@@ -297,7 +299,7 @@ POST _ingest/pipeline/apm_redacted_body_password/_simulate
 }
 ----
 <1> This document features the same sensitive data from the original example above
-<2> This document only contains unrelated fields
+<2> This document only contains an unrelated field
 <3> This document contains invalid JSON
 
 The API response should be similar to this:
@@ -346,11 +348,11 @@ The API response should be similar to this:
 }
 ----
 
-As you can see, only the first simulation was successful as it was the only document with
-a valid `password` field in the original HTTP body text. All other documents are unaffected.
+As you can see, only the first simulated document has a redacted password field.
+As expected, all other documents are unaffected.
 
 The final step in this process is to add the newly created `apm_redacted_body_password` pipeline
-to the default `apm` pipeline. This ensures all APM data ingested into {es} will run through the processor.
+to the default `apm` pipeline. This ensures that all APM data ingested into {es} runs through the pipeline.
 
 Get the current list of `apm` pipelines:
 
