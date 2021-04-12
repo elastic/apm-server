@@ -699,6 +699,31 @@
         "boolean"
       ]
     },
+    "session": {
+      "description": "Session holds optional transaction session information for RUM.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID holds a session ID for grouping a set of related transactions.",
+          "type": "string",
+          "maxLength": 1024
+        },
+        "sequence": {
+          "description": "Sequence holds an optional sequence number for a transaction within a session. It is not meaningful to compare sequences across two different sessions.",
+          "type": [
+            "null",
+            "integer"
+          ],
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
     "span_count": {
       "description": "SpanCount counts correlated spans.",
       "type": "object",

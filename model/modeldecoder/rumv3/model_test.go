@@ -365,6 +365,7 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 		"y.st.f":       nil, //spans.*.stacktrace.*.filename
 		"yc":           nil, //span_count
 		"yc.sd":        nil, //span_count.started
+		"ses.id":       nil, //session.id
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)

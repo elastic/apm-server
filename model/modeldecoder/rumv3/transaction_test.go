@@ -349,4 +349,21 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "https://my.site.test:9201", tr.HTTP.Request.Referer)
 	})
 
+	t.Run("session", func(t *testing.T) {
+		var input transaction
+		var out model.Transaction
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+		input.Session.ID.Reset()
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, model.TransactionSession{}, out.Session)
+
+		input.Session.ID.Set("session_id")
+		input.Session.Sequence.Set(123)
+		mapToTransactionModel(&input, &model.Metadata{}, time.Now(), &out)
+		assert.Equal(t, model.TransactionSession{
+			ID:       "session_id",
+			Sequence: 123,
+		}, out.Session)
+	})
+
 }
