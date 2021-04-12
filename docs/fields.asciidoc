@@ -747,6 +747,18 @@ type: keyword
 
 --
 
+*`user.domain`*::
++
+--
+Domain of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`user.id`*::
 +
 --
@@ -2949,6 +2961,18 @@ type: keyword
 
 --
 
+*`user.domain`*::
++
+--
+Domain of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`user.id`*::
 +
 --
@@ -4400,6 +4424,18 @@ type: keyword
 
 --
 
+
+*`user.domain`*::
++
+--
+The domain of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`user.name`*::
 +
