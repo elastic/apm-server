@@ -478,6 +478,12 @@
       dynamic: false
       fields:
 
+      - name: domain
+        type: keyword
+        description: >
+          The domain of the logged in user.
+        overwrite: true
+
       - name: name
         type: keyword
         description: >

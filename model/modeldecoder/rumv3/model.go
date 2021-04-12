@@ -641,6 +641,8 @@ type longtaskMetrics struct {
 }
 
 type user struct {
+	// Domain of the user
+	Domain nullable.String `json:"ud" validate:"maxLength=1024"`
 	// ID identifies the logged in user, e.g. can be the primary key of the user
 	ID nullable.Interface `json:"id" validate:"maxLength=1024,inputTypes=string;int"`
 	// Email of the user.

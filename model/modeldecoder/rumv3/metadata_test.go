@@ -105,7 +105,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 				Language:  model.Language{Name: s, Version: s},
 				Runtime:   model.Runtime{Name: s, Version: s},
 				Framework: model.Framework{Name: s, Version: s}},
-			User:   model.User{Name: s, Email: s, ID: s},
+			User:   model.User{Name: s, Email: s, Domain: s, ID: s},
 			Labels: labels,
 			// these values are not set from http headers and
 			// are not expected change with updated input data

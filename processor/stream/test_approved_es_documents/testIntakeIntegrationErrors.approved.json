@@ -343,6 +343,7 @@
                 "scheme": "https"
             },
             "user": {
+                "domain": "ldap://abc",
                 "id": "99",
                 "name": "foo"
             },
@@ -454,6 +455,7 @@
                 "us": 1533826745999000
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "bar@example.com",
                 "id": "123",
                 "name": "bar"
@@ -559,6 +561,7 @@
                 "us": 1533826745999000
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "bar@example.com",
                 "id": "123",
                 "name": "bar"
@@ -670,6 +673,7 @@
                 "id": "0123456789abcdeffedcba0123456789"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "bar@example.com",
                 "id": "123",
                 "name": "bar"
@@ -785,6 +789,7 @@
                 "type": "request"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "bar@example.com",
                 "id": "123",
                 "name": "bar"

@@ -364,6 +364,12 @@
           The username of the logged in user.
         overwrite: true
 
+      - name: domain
+        type: keyword
+        description: >
+          Domain of the logged in user.
+        overwrite: true
+
       - name: id
         type: keyword
         description: >
