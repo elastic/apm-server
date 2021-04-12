@@ -30,23 +30,14 @@ type bearerBuilder struct {
 
 type bearerAuth struct {
 	authorized bool
-	configured bool
 }
 
 func (b bearerBuilder) forToken(token string) *bearerAuth {
-	if b.required == "" {
-		return &bearerAuth{authorized: true, configured: false}
-	}
 	return &bearerAuth{
 		authorized: subtle.ConstantTimeCompare([]byte(b.required), []byte(token)) == 1,
-		configured: true}
+	}
 }
 
-func (b *bearerAuth) AuthorizedFor(context.Context, elasticsearch.Resource) (bool, error) {
-	return b.authorized, nil
-}
-
-// IsAuthorizationConfigured will return true if a non-empty token is required.
-func (b bearerAuth) IsAuthorizationConfigured() bool {
-	return b.configured
+func (b *bearerAuth) AuthorizedFor(context.Context, elasticsearch.Resource) (Result, error) {
+	return Result{Authorized: b.authorized}, nil
 }

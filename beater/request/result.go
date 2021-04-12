@@ -178,16 +178,6 @@ func (r *Result) SetWithBody(id ResultID, body interface{}) {
 	r.set(id, body, nil)
 }
 
-// SetDeniedAuthorization sets the result when authorization is denied
-func (r *Result) SetDeniedAuthorization(err error) {
-	if err != nil {
-		id := IDResponseErrorsServiceUnavailable
-		status := MapResultIDToStatus[id]
-		r.Set(id, status.Code, status.Keyword, status.Keyword, err)
-	}
-	r.SetDefault(IDResponseErrorsUnauthorized)
-}
-
 // Set allows for the most flexibility in setting a result's properties.
 // The error and body information are derived from the given parameters.
 func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface{}, err error) {
