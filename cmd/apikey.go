@@ -425,15 +425,15 @@ func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, creden
 		if err != nil {
 			return err
 		}
-		authorized, err := builder.
+		result, err := builder.
 			ForPrivilege(privilege).
 			AuthorizationFor(headers.APIKey, credentials).
 			AuthorizedFor(context.Background(), auth.ResourceInternal)
 		if err != nil {
 			return err
 		}
-		perms[privilege] = authorized
-		printText("Authorized for %s...: %s", humanPrivilege(privilege), humanBool(authorized))
+		perms[privilege] = result.Authorized
+		printText("Authorized for %s...: %s", humanPrivilege(privilege), humanBool(result.Authorized))
 	}
 	printJSON(perms)
 	return nil

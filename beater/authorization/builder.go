@@ -19,6 +19,7 @@ package authorization
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/elastic/apm-server/beater/config"
@@ -28,9 +29,8 @@ import (
 
 // Builder creates an authorization Handler depending on configuration options
 type Builder struct {
-	apikey   *apikeyBuilder
-	bearer   *bearerBuilder
-	fallback Authorization
+	apikey *apikeyBuilder
+	bearer *bearerBuilder
 }
 
 // Handler returns the authorization method according to provided information
@@ -38,8 +38,17 @@ type Handler Builder
 
 // Authorization interface to be implemented by different auth types
 type Authorization interface {
-	AuthorizedFor(context.Context, elasticsearch.Resource) (bool, error)
-	IsAuthorizationConfigured() bool
+	AuthorizedFor(context.Context, elasticsearch.Resource) (Result, error)
+}
+
+// Result holds a result of calling Authorization.AuthorizedFor.
+type Result struct {
+	// Authorized indicates whether or not the authorization
+	// attempt was successful.
+	Authorized bool
+
+	// Reason holds an optional reason for unauthorized results.
+	Reason string
 }
 
 const (
@@ -51,7 +60,6 @@ const (
 // based on the request Authorization header
 func NewBuilder(cfg *config.Config) (*Builder, error) {
 	b := Builder{}
-	b.fallback = AllowAuth{}
 	if cfg.APIKeyConfig.IsEnabled() {
 		// do not use username+password for API Key requests
 		cfg.APIKeyConfig.ESConfig.Username = ""
@@ -64,11 +72,9 @@ func NewBuilder(cfg *config.Config) (*Builder, error) {
 
 		cache := newPrivilegesCache(cacheTimeoutMinute, cfg.APIKeyConfig.LimitPerMin)
 		b.apikey = newApikeyBuilder(client, cache, []elasticsearch.PrivilegeAction{})
-		b.fallback = DenyAuth{}
 	}
 	if cfg.SecretToken != "" {
 		b.bearer = &bearerBuilder{cfg.SecretToken}
-		b.fallback = DenyAuth{}
 	}
 	return &b, nil
 }
@@ -80,7 +86,7 @@ func (b *Builder) ForPrivilege(privilege elasticsearch.PrivilegeAction) *Handler
 
 // ForAnyOfPrivileges creates an authorization Handler checking for any of the provided privileges
 func (b *Builder) ForAnyOfPrivileges(privileges ...elasticsearch.PrivilegeAction) *Handler {
-	handler := Handler{bearer: b.bearer, fallback: b.fallback}
+	handler := Handler{bearer: b.bearer}
 	if b.apikey != nil {
 		handler.apikey = newApikeyBuilder(b.apikey.esClient, b.apikey.cache, privileges)
 	}
@@ -89,18 +95,24 @@ func (b *Builder) ForAnyOfPrivileges(privileges ...elasticsearch.PrivilegeAction
 
 // AuthorizationFor returns proper authorization implementation depending on the given kind, configured with the token.
 func (h *Handler) AuthorizationFor(kind string, token string) Authorization {
+	if h.apikey == nil && h.bearer == nil {
+		return allowAuth{}
+	}
 	switch kind {
 	case headers.APIKey:
-		if h.apikey == nil {
-			return h.fallback
+		if h.apikey != nil {
+			return h.apikey.forKey(token)
 		}
-		return h.apikey.forKey(token)
 	case headers.Bearer:
-		if h.bearer == nil {
-			return h.fallback
+		if h.bearer != nil {
+			return h.bearer.forToken(token)
 		}
-		return h.bearer.forToken(token)
 	default:
-		return h.fallback
+		expected := "expected 'Authorization: Bearer secret_token' or 'Authorization: ApiKey base64(API key ID:API key)'"
+		if kind == "" {
+			return denyAuth{reason: "missing or improperly formatted Authorization header: " + expected}
+		}
+		return denyAuth{reason: fmt.Sprintf("unknown Authorization kind %s: %s", kind, expected)}
 	}
+	return denyAuth{}
 }

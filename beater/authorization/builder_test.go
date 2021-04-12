@@ -32,12 +32,11 @@ func TestBuilder(t *testing.T) {
 	for name, tc := range map[string]struct {
 		withBearer, withApikey bool
 		bearer                 *bearerBuilder
-		fallback               Authorization
 	}{
-		"no auth": {fallback: AllowAuth{}},
-		"bearer":  {withBearer: true, fallback: DenyAuth{}, bearer: &bearerBuilder{"xvz"}},
-		"apikey":  {withApikey: true, fallback: DenyAuth{}},
-		"all":     {withApikey: true, withBearer: true, fallback: DenyAuth{}, bearer: &bearerBuilder{"xvz"}},
+		"no auth": {},
+		"bearer":  {withBearer: true, bearer: &bearerBuilder{"xvz"}},
+		"apikey":  {withApikey: true},
+		"all":     {withApikey: true, withBearer: true, bearer: &bearerBuilder{"xvz"}},
 	} {
 
 		setup := func() *Builder {
@@ -57,7 +56,6 @@ func TestBuilder(t *testing.T) {
 		}
 		t.Run("NewBuilder"+name, func(t *testing.T) {
 			builder := setup()
-			assert.Equal(t, tc.fallback, builder.fallback)
 			assert.Equal(t, tc.bearer, builder.bearer)
 			if tc.withApikey {
 				assert.NotNil(t, builder.apikey)
@@ -70,7 +68,6 @@ func TestBuilder(t *testing.T) {
 			builder := setup()
 			h := builder.ForPrivilege(PrivilegeSourcemapWrite.Action)
 			assert.Equal(t, builder.bearer, h.bearer)
-			assert.Equal(t, builder.fallback, h.fallback)
 			if tc.withApikey {
 				assert.Equal(t, []elasticsearch.PrivilegeAction{}, builder.apikey.anyOfPrivileges)
 				assert.Equal(t, []elasticsearch.PrivilegeAction{PrivilegeSourcemapWrite.Action}, h.apikey.anyOfPrivileges)
@@ -85,19 +82,34 @@ func TestBuilder(t *testing.T) {
 			auth := h.AuthorizationFor("ApiKey", "")
 			if tc.withApikey {
 				assert.IsType(t, &apikeyAuth{}, auth)
+			} else if tc.withBearer {
+				assert.Equal(t, denyAuth{}, auth)
 			} else {
-				assert.Equal(t, h.fallback, auth)
+				assert.Equal(t, allowAuth{}, auth)
 			}
 
 			auth = h.AuthorizationFor("Bearer", "")
 			if tc.withBearer {
 				assert.IsType(t, &bearerAuth{}, auth)
+			} else if tc.withApikey {
+				assert.Equal(t, denyAuth{}, auth)
 			} else {
-				assert.Equal(t, h.fallback, auth)
+				assert.Equal(t, allowAuth{}, auth)
 			}
 
 			auth = h.AuthorizationFor("Anything", "")
-			assert.Equal(t, h.fallback, auth)
+			if tc.withBearer || tc.withApikey {
+				assert.Equal(t, denyAuth{reason: `unknown Authorization kind Anything: expected 'Authorization: Bearer secret_token' or 'Authorization: ApiKey base64(API key ID:API key)'`}, auth)
+			} else {
+				assert.Equal(t, allowAuth{}, auth)
+			}
+
+			auth = h.AuthorizationFor("", "Value")
+			if tc.withBearer || tc.withApikey {
+				assert.Equal(t, denyAuth{reason: `missing or improperly formatted Authorization header: expected 'Authorization: Bearer secret_token' or 'Authorization: ApiKey base64(API key ID:API key)'`}, auth)
+			} else {
+				assert.Equal(t, allowAuth{}, auth)
+			}
 		})
 	}
 
