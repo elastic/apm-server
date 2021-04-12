@@ -78,11 +78,13 @@ func makeAuthFunc(authTag string, authHandler *authorization.Handler) authFunc {
 			break
 		}
 		auth := authHandler.AuthorizationFor(kind, token)
-		authorized, err := auth.AuthorizedFor(ctx, authorization.ResourceInternal)
-		if !authorized {
+		result, err := auth.AuthorizedFor(ctx, authorization.ResourceInternal)
+		if !result.Authorized {
 			if err != nil {
 				return errors.Wrap(err, errNotAuthorized.Error())
 			}
+			// NOTE(axw) for now at least, we do not return result.Reason in the error message,
+			// as it refers to the "Authorization header" which is incorrect for Jaeger.
 			return errNotAuthorized
 		}
 		return nil

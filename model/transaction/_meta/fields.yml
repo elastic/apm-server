@@ -221,6 +221,20 @@
               Version of the framework used.
             overwrite: true
 
+    - name: session
+      type: group
+      dynamic: false
+      fields:
+        - name: id
+          type: keyword
+          ignore_above: 1024
+          description: >
+             The ID of the session to which the event belongs.
+        - name: sequence
+          type: long
+          description: >
+             The sequence number of the event within the session to which the event belongs.
+
     - name: transaction
       type: group
       dynamic: false

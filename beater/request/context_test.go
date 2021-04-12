@@ -57,8 +57,8 @@ func TestContext_Reset(t *testing.T) {
 		switch cType.Field(i).Name {
 		case "Request":
 			assert.Equal(t, r2, cVal.Field(i).Interface())
-		case "Authorization":
-			assert.Equal(t, &authorization.AllowAuth{}, cVal.Field(i).Interface())
+		case "AuthResult":
+			assert.Equal(t, authorization.Result{}, cVal.Field(i).Interface())
 		case "w":
 			assert.Equal(t, w2, c.w)
 		case "writeAttempts":

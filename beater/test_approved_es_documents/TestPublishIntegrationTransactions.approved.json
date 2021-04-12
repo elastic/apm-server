@@ -617,6 +617,10 @@
                 },
                 "version": "5.1.3"
             },
+            "session": {
+                "id": "sunday",
+                "sequence": 123
+            },
             "timestamp": {
                 "us": 1547070053000000
             },

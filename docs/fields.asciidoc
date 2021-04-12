@@ -3953,6 +3953,27 @@ type: keyword
 --
 
 
+*`session.id`*::
++
+--
+The ID of the session to which the event belongs.
+
+
+type: keyword
+
+--
+
+*`session.sequence`*::
++
+--
+The sequence number of the event within the session to which the event belongs.
+
+
+type: long
+
+--
+
+
 
 *`transaction.duration.us`*::
 +

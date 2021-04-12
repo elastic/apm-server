@@ -109,23 +109,20 @@ class TestAPIKeyCache(APIKeyBaseTest):
         key1 = self.create_api_key_header([self.privilege_event], self.resource_any)
         key2 = self.create_api_key_header([self.privilege_event], self.resource_any)
 
-        def assert_intake(api_key, authorized):
+        def assert_intake(api_key, expected_status=202):
             resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(api_key))
-            if authorized:
-                assert resp.status_code != 401, "token: {}, status_code: {}".format(api_key, resp.status_code)
-            else:
-                assert resp.status_code == 401, "token: {}, status_code: {}".format(api_key, resp.status_code)
+            assert resp.status_code == expected_status, "token: {}, status_code: {}".format(api_key, resp.status_code)
 
         # fill cache up until one spot
         for i in range(4):
-            assert_intake("ApiKey xyz{}".format(i), authorized=False)
+            assert_intake("ApiKey xyz{}".format(i), 401)
 
         # allow for authorized api key
-        assert_intake(key1, True)
+        assert_intake(key1)
         # hit cache size
-        assert_intake(key2, False)
+        assert_intake(key2, 503)
         # still allow already cached api key
-        assert_intake(key1, True)
+        assert_intake(key1)
 
 
 @integration_test
@@ -142,7 +139,7 @@ class TestAPIKeyWithInvalidESConfig(APIKeyBaseTest):
         name = "system_test_invalid_es"
         key = self.create_api_key_header([self.privilege_event], self.resource_any)
         resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
-        assert resp.status_code == 401,  "token: {}, status_code: {}".format(key, resp.status_code)
+        assert resp.status_code == 503,  "token: {}, status_code: {}".format(key, resp.status_code)
 
 
 @integration_test

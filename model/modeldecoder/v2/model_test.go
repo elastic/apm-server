@@ -550,6 +550,7 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 		"experience.longtask.count": nil,
 		"experience.longtask.sum":   nil,
 		"experience.longtask.max":   nil,
+		"session.id":                nil,
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)

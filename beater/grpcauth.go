@@ -61,12 +61,16 @@ func verifyGRPCAuthorization(ctx context.Context, authHandler *authorization.Han
 		}
 	}
 	auth := authHandler.AuthorizationFor(authorization.ParseAuthorizationHeader(authHeader))
-	authorized, err := auth.AuthorizedFor(ctx, authorization.ResourceInternal)
+	result, err := auth.AuthorizedFor(ctx, authorization.ResourceInternal)
 	if err != nil {
 		return err
 	}
-	if !authorized {
-		return status.Error(codes.Unauthenticated, "unauthorized")
+	if !result.Authorized {
+		message := "unauthorized"
+		if result.Reason != "" {
+			message = result.Reason
+		}
+		return status.Error(codes.Unauthenticated, message)
 	}
 	return nil
 }

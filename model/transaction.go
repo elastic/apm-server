@@ -66,6 +66,7 @@ type Transaction struct {
 	Labels         common.MapStr
 	Custom         common.MapStr
 	UserExperience *UserExperience
+	Session        TransactionSession
 
 	Experimental interface{}
 
@@ -74,6 +75,16 @@ type Transaction struct {
 	//
 	// This may be used for scaling metrics; it is not indexed.
 	RepresentativeCount float64
+}
+
+type TransactionSession struct {
+	// ID holds a session ID for grouping a set of related transactions.
+	ID string
+
+	// Sequence holds an optional sequence number for a transaction
+	// within a session. Sequence is ignored if it is zero or if
+	// ID is empty.
+	Sequence int
 }
 
 type SpanCount struct {
@@ -140,6 +151,7 @@ func (e *Transaction) appendBeatEvents(cfg *transform.Config, events []beat.Even
 	fields.maybeSetMapStr("timestamp", utility.TimeAsMicros(e.Timestamp))
 	fields.maybeSetMapStr("http", e.HTTP.Fields())
 	fields.maybeSetMapStr("url", e.URL.Fields())
+	fields.maybeSetMapStr("session", e.Session.fields())
 	if e.Experimental != nil {
 		fields.set("experimental", e.Experimental)
 	}
@@ -173,6 +185,17 @@ func (m TransactionMark) fields() common.MapStr {
 	out := make(common.MapStr, len(m))
 	for k, v := range m {
 		out[sanitizeLabelKey(k)] = common.Float(v)
+	}
+	return out
+}
+
+func (s *TransactionSession) fields() common.MapStr {
+	if s.ID == "" {
+		return nil
+	}
+	out := common.MapStr{"id": s.ID}
+	if s.Sequence > 0 {
+		out["sequence"] = s.Sequence
 	}
 	return out
 }
