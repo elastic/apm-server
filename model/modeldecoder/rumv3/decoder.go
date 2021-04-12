@@ -377,6 +377,9 @@ func mapToMetadataModel(m *metadata, out *model.Metadata) {
 	}
 
 	// User
+	if m.User.Domain.IsSet() {
+		out.User.Domain = fmt.Sprint(m.User.Domain.Val)
+	}
 	if m.User.ID.IsSet() {
 		out.User.ID = fmt.Sprint(m.User.ID.Val)
 	}
@@ -854,10 +857,13 @@ func overwriteUserInMetadataModel(from user, out *model.Metadata) {
 	// overwrite User specific values if set
 	// either populate all User fields or none to avoid mixing
 	// different user data
-	if !from.ID.IsSet() && !from.Email.IsSet() && !from.Name.IsSet() {
+	if !from.Domain.IsSet() && !from.ID.IsSet() && !from.Email.IsSet() && !from.Name.IsSet() {
 		return
 	}
 	out.User = model.User{}
+	if from.Domain.IsSet() {
+		out.User.Domain = fmt.Sprint(from.Domain.Val)
+	}
 	if from.ID.IsSet() {
 		out.User.ID = fmt.Sprint(from.ID.Val)
 	}

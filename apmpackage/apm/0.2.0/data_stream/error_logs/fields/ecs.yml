@@ -213,6 +213,10 @@
   type: keyword
   description: |
     The protocol of the request, e.g. "https:".
+- name: user.domain
+  type: keyword
+  description: |
+    Domain of the logged in user.
 - name: user.email
   type: keyword
   description: |

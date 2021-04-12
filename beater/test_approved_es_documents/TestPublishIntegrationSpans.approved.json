@@ -129,6 +129,7 @@
                 "id": "01af25874dec69dd"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "s@test.com",
                 "id": "123",
                 "name": "john"
@@ -259,6 +260,7 @@
                 "id": "ab45781d265894fe"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "s@test.com",
                 "id": "123",
                 "name": "john"
@@ -393,6 +395,7 @@
                 "id": "ab23456a89012345"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "s@test.com",
                 "id": "123",
                 "name": "john"
@@ -523,6 +526,7 @@
                 "id": "abcdef0123456789abcdef9876543210"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "s@test.com",
                 "id": "123",
                 "name": "john"
@@ -737,6 +741,7 @@
                 "id": "abcdef0123456789abcdef9876543210"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "s@test.com",
                 "id": "123",
                 "name": "john"
@@ -878,6 +883,7 @@
                 "id": "01af25874dec69dd"
             },
             "user": {
+                "domain": "ldap://abc",
                 "email": "s@test.com",
                 "id": "123",
                 "name": "john"
