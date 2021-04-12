@@ -185,7 +185,7 @@ def createPRDescription(commit) {
     def gitLog = sh(script: """
       git log --pretty=format:'* https://github.com/${env.ORG_NAME}/${env.REPO_NAME}/commit/%h %s' \
           ${commit}...HEAD \
-          --follow -- spec \
+          --follow -- docs/spec \
       | sed 's/#\\([0-9]\\+\\)/https:\\/\\/github.com\\/${env.ORG_NAME}\\/${env.REPO_NAME}\\/pull\\/\\1/g' || true""", returnStdout: true)
     message += "*Changeset*\n${gitLog}"
   }

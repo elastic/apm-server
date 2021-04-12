@@ -137,6 +137,7 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("url"),
 			tests.Group("context.tags"),
 			tests.Group("transaction"),
+			tests.Group("session"),
 			tests.Group("span"),
 			tests.Group("parent"),
 			tests.Group("trace"),

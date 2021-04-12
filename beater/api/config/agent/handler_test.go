@@ -38,7 +38,6 @@ import (
 	libkibana "github.com/elastic/beats/v7/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -181,14 +180,14 @@ func TestAgentConfigHandler(t *testing.T) {
 
 	for name, tc := range testcases {
 
-		runTest := func(t *testing.T, expectedBody map[string]string, auth authorization.Authorization) {
+		runTest := func(t *testing.T, expectedBody map[string]string, authorized bool) {
 			h := Handler(tc.kbClient, &cfg, "")
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
 			}
 			ctx, w := newRequestContext(r)
-			ctx.Authorization = auth
+			ctx.AuthResult.Authorized = authorized
 			h(ctx)
 
 			require.Equal(t, tc.respStatus, w.Code)
@@ -202,11 +201,11 @@ func TestAgentConfigHandler(t *testing.T) {
 		}
 
 		t.Run(name+"NoSecretToken", func(t *testing.T) {
-			runTest(t, tc.respBody, authorization.AllowAuth{})
+			runTest(t, tc.respBody, false)
 		})
 
 		t.Run(name+"WithSecretToken", func(t *testing.T) {
-			runTest(t, tc.respBodyToken, authorization.DenyAuth{})
+			runTest(t, tc.respBodyToken, true)
 		})
 	}
 }

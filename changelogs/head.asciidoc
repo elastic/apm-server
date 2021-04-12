@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 [float]
 ==== Bug fixes
 * Fix `setup.template` config merging {pull}4950[4950]
+* The server now responds with 503 instead of 401 when failure is unrelated to API Key validity, e.g. if Elasticsearch is inaccessible {pull}5053[5053]
 
 [float]
 ==== Intake API Changes
@@ -31,6 +32,10 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Add exponential retries to api key and tail sampling requests{pull}4991[4991]
 * Add `apm-server.rum.allow_service_names` config {pull}5030[5030]
 * Ingest pipeline for translating OpenTelemetry Java metrics to Elastic APM fields {pull}4986[4986]
+* Set `event.ingested` first in the ingest pipeline {pull}5048[5048]
+* The server now responds with a reason for some 401 Unauthorized requests {pull}5053[5053]
+* Add `session.id` and `session.sequence` fields for RUM session tracking {pull}5056[5056]
+* Support for ingesting `user.domain` {pull}5067[5067]
 
 [float]
 ==== Deprecated

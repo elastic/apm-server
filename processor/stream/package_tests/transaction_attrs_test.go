@@ -86,6 +86,7 @@ func transactionRequiredKeys() *tests.Set {
 		"transaction.experience.longtask.count",
 		"transaction.experience.longtask.sum",
 		"transaction.experience.longtask.max",
+		"transaction.session.id",
 	)
 }
 

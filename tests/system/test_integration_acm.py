@@ -22,8 +22,7 @@ class AgentConfigurationTest(ElasticTest):
         return self.kibana.create_agent_config(name, settings, agent=agent, env=env)
 
     def update_service_config(self, settings, name, env=None):
-        res = self.kibana.create_or_update_agent_config(name, settings, env=env)
-        assert res.json()["result"] == "updated"
+        self.kibana.create_or_update_agent_config(name, settings, env=env)
 
 
 @integration_test

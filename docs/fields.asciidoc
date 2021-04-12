@@ -747,6 +747,18 @@ type: keyword
 
 --
 
+*`user.domain`*::
++
+--
+Domain of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`user.id`*::
 +
 --
@@ -2949,6 +2961,18 @@ type: keyword
 
 --
 
+*`user.domain`*::
++
+--
+Domain of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`user.id`*::
 +
 --
@@ -3929,6 +3953,27 @@ type: keyword
 --
 
 
+*`session.id`*::
++
+--
+The ID of the session to which the event belongs.
+
+
+type: keyword
+
+--
+
+*`session.sequence`*::
++
+--
+The sequence number of the event within the session to which the event belongs.
+
+
+type: long
+
+--
+
+
 
 *`transaction.duration.us`*::
 +
@@ -4379,6 +4424,18 @@ type: keyword
 
 --
 
+
+*`user.domain`*::
++
+--
+The domain of the logged in user.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`user.name`*::
 +

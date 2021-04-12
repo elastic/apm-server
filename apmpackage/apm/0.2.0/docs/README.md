@@ -118,6 +118,8 @@ Traces are written to `traces-apm.*` indices.
 |service.runtime.name|Name of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.runtime.version|Version of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|session.id|The ID of the session to which the event belongs.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|session.sequence|The sequence number of the event within the session to which the event belongs.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |span.action|The specific kind of event within the sub-type represented by the span (e.g. query, connect)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.db.link|Database link.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -160,6 +162,7 @@ Traces are written to `traces-apm.*` indices.
 |url.port|The port of the request, e.g. 443.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.query|The query string of the request, e.g. "q=elasticsearch".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.scheme|The protocol of the request, e.g. "https:".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.domain|Domain of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -653,6 +656,7 @@ Logs are written to `logs-apm.error.*` indices.
 |url.port|The port of the request, e.g. 443.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.query|The query string of the request, e.g. "q=elasticsearch".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |url.scheme|The protocol of the request, e.g. "https:".|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|user.domain|Domain of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.email|Email of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.id|Identifier of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |user.name|The username of the logged in user.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |

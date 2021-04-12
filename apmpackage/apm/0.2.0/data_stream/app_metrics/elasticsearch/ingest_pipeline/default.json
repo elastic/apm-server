@@ -3,17 +3,17 @@
   "processors": [
     {
       "pipeline": {
+        "name": "metrics-apm.app-0.2.0-apm_ingest_timestamp"
+      }
+    },
+    {
+      "pipeline": {
         "name": "metrics-apm.app-0.2.0-apm_user_agent"
       }
     },
     {
       "pipeline": {
         "name": "metrics-apm.app-0.2.0-apm_user_geo"
-      }
-    },
-    {
-      "pipeline": {
-        "name": "metrics-apm.app-0.2.0-apm_ingest_timestamp"
       }
     },
     {

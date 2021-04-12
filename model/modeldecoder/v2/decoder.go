@@ -528,6 +528,9 @@ func mapToMetadataModel(from *metadata, out *model.Metadata) {
 	}
 
 	// User
+	if from.User.Domain.IsSet() {
+		out.User.Domain = fmt.Sprint(from.User.Domain.Val)
+	}
 	if from.User.ID.IsSet() {
 		out.User.ID = fmt.Sprint(from.User.ID.Val)
 	}
@@ -1099,6 +1102,10 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 	} else {
 		out.RepresentativeCount = 1
 	}
+	if from.Session.ID.IsSet() {
+		out.Session.ID = from.Session.ID.Val
+		out.Session.Sequence = from.Session.Sequence.Val
+	}
 	if from.SpanCount.Dropped.IsSet() {
 		dropped := from.SpanCount.Dropped.Val
 		out.SpanCount.Dropped = &dropped
@@ -1158,10 +1165,13 @@ func overwriteUserInMetadataModel(from user, out *model.Metadata) {
 	// overwrite User specific values if set
 	// either populate all User fields or none to avoid mixing
 	// different user data
-	if !from.ID.IsSet() && !from.Email.IsSet() && !from.Name.IsSet() {
+	if !from.Domain.IsSet() && !from.ID.IsSet() && !from.Email.IsSet() && !from.Name.IsSet() {
 		return
 	}
 	out.User = model.User{}
+	if from.Domain.IsSet() {
+		out.User.Domain = fmt.Sprint(from.Domain.Val)
+	}
 	if from.ID.IsSet() {
 		out.User.ID = fmt.Sprint(from.ID.Val)
 	}
