@@ -69,10 +69,10 @@ if val.%s.Val != ""{
 
 func nstringRuleMinMax(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
-if utf8.RuneCountInString(val.%s.Val) %s %s{
+if val.%s.IsSet() && utf8.RuneCountInString(val.%s.Val) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
-`[1:], f.Name(), ruleMinMaxOperator(rule.name), rule.value, jsonName(f), rule.name, rule.value)
+`[1:], f.Name(), f.Name(), ruleMinMaxOperator(rule.name), rule.value, jsonName(f), rule.name, rule.value)
 }
 
 func nstringRulePattern(w io.Writer, f structField, rule validationRule) {
