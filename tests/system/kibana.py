@@ -9,16 +9,10 @@ class Kibana(object):
         self.url = url
 
     def create_agent_config(self, service, settings, agent=None, env=None):
-        resp = self._upsert_agent_config(service, settings, agent=agent, env=env)
-        result = resp.json()["result"]
-        assert result == "created", result
-        return resp
+        return self._upsert_agent_config(service, settings, agent=agent, env=env)
 
     def create_or_update_agent_config(self, service, settings, agent=None, env=None):
-        resp = self._upsert_agent_config(service, settings, agent=agent, env=env, overwrite=True)
-        result = resp.json()["result"]
-        assert result in ("created", "updated"), result
-        return resp
+        return self._upsert_agent_config(service, settings, agent=agent, env=env, overwrite=True)
 
     def _upsert_agent_config(self, service, settings, agent=None, env=None, overwrite=False):
         data = {
