@@ -34,6 +34,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * Ingest pipeline for translating OpenTelemetry Java metrics to Elastic APM fields {pull}4986[4986]
 * Set `event.ingested` first in the ingest pipeline {pull}5048[5048]
 * The server now responds with a reason for some 401 Unauthorized requests {pull}5053[5053]
+* Add `session.id` and `session.sequence` fields for RUM session tracking {pull}5056[5056]
 
 [float]
 ==== Deprecated

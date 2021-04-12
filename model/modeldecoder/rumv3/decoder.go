@@ -796,6 +796,10 @@ func mapToTransactionModel(from *transaction, metadata *model.Metadata, reqTime 
 	} else {
 		out.RepresentativeCount = 1
 	}
+	if from.Session.ID.IsSet() {
+		out.Session.ID = from.Session.ID.Val
+		out.Session.Sequence = from.Session.Sequence.Val
+	}
 	if from.SpanCount.Dropped.IsSet() {
 		dropped := from.SpanCount.Dropped.Val
 		out.SpanCount.Dropped = &dropped

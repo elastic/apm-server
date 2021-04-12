@@ -86,6 +86,15 @@
   type: keyword
   description: |
     Version of the runtime used.
+- name: session.id
+  type: keyword
+  description: |
+    The ID of the session to which the event belongs.
+  ignore_above: 1024
+- name: session.sequence
+  type: long
+  description: |
+    The sequence number of the event within the session to which the event belongs.
 - name: span.action
   type: keyword
   description: |
