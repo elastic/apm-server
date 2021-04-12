@@ -83,6 +83,7 @@ if __name__ == "__main__":
 
     # copy over the package and replace version in manifest and pipeline names
     shutil.copytree(src, dst)
+    subprocess.check_call('rm -rf {0}'.format(os.path.join(dst, 'README.template.md')), shell=True)
     cmd = 'find {0} -not -name "*.png" -type f -print0 | xargs -0 sed -i "" "s/{1}/{2}/g"'.format(
         dst, original_version, next_version)
 

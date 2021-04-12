@@ -44,8 +44,8 @@ func generateNullableIntValidation(w io.Writer, fields []structField, f structFi
 
 func nintRuleMinMax(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
-if val.%s.Val %s %s {
+if val.%s.IsSet() && val.%s.Val %s %s {
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
-`[1:], f.Name(), ruleMinMaxOperator(rule.name), rule.value, jsonName(f), rule.name, rule.value)
+`[1:], f.Name(), f.Name(), ruleMinMaxOperator(rule.name), rule.value, jsonName(f), rule.name, rule.value)
 }
