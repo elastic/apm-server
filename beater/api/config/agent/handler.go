@@ -77,14 +77,14 @@ func Handler(client kibana.Client, config *config.AgentConfig, defaultServiceEnv
 			return
 		}
 
-		if valid := validateClient(c, client, c.Authorization.IsAuthorizationConfigured()); !valid {
+		if valid := validateClient(c, client, c.AuthResult.Authorized); !valid {
 			c.Write()
 			return
 		}
 
 		query, queryErr := buildQuery(c)
 		if queryErr != nil {
-			extractQueryError(c, queryErr, c.Authorization.IsAuthorizationConfigured())
+			extractQueryError(c, queryErr, c.AuthResult.Authorized)
 			c.Write()
 			return
 		}
@@ -95,7 +95,7 @@ func Handler(client kibana.Client, config *config.AgentConfig, defaultServiceEnv
 		result, err := fetcher.Fetch(c.Request.Context(), query)
 		if err != nil {
 			apm.CaptureError(c.Request.Context(), err).Send()
-			extractInternalError(c, err, c.Authorization.IsAuthorizationConfigured())
+			extractInternalError(c, err, c.AuthResult.Authorized)
 			c.Write()
 			return
 		}
