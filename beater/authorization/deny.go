@@ -23,15 +23,12 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 )
 
-// DenyAuth implements the Authorization interface. It denies all authorization requests.
-type DenyAuth struct{}
-
-// AuthorizedFor always returns false
-func (DenyAuth) AuthorizedFor(context.Context, elasticsearch.Resource) (bool, error) {
-	return false, nil
+// denyAuth implements the Authorization interface. It denies all authorization requests.
+type denyAuth struct {
+	reason string
 }
 
-// IsAuthorizationConfigured always returns true.
-func (DenyAuth) IsAuthorizationConfigured() bool {
-	return true
+// AuthorizedFor always returns false
+func (d denyAuth) AuthorizedFor(context.Context, elasticsearch.Resource) (Result, error) {
+	return Result{Authorized: false, Reason: d.reason}, nil
 }

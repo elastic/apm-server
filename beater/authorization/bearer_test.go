@@ -26,22 +26,21 @@ import (
 
 func TestBearerAuth(t *testing.T) {
 	for name, tc := range map[string]struct {
-		builder                bearerBuilder
-		token                  string
-		authorized, configured bool
+		builder    bearerBuilder
+		token      string
+		authorized bool
 	}{
-		"empty":           {builder: bearerBuilder{}, authorized: true, configured: false},
-		"empty for token": {builder: bearerBuilder{}, authorized: true, configured: false, token: "1"},
-		"no token":        {builder: bearerBuilder{"123"}, authorized: false, configured: true},
-		"invalid token":   {builder: bearerBuilder{"123"}, authorized: false, configured: true, token: "1"},
-		"valid token":     {builder: bearerBuilder{"123"}, authorized: true, configured: true, token: "123"},
+		"empty":           {builder: bearerBuilder{}, authorized: true},
+		"empty for token": {builder: bearerBuilder{}, authorized: false, token: "1"},
+		"no token":        {builder: bearerBuilder{"123"}, authorized: false},
+		"invalid token":   {builder: bearerBuilder{"123"}, authorized: false, token: "1"},
+		"valid token":     {builder: bearerBuilder{"123"}, authorized: true, token: "123"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			bearer := tc.builder.forToken(tc.token)
-			authorized, err := bearer.AuthorizedFor(context.Background(), "")
+			result, err := bearer.AuthorizedFor(context.Background(), "")
 			assert.NoError(t, err)
-			assert.Equal(t, tc.authorized, authorized)
-			assert.Equal(t, tc.configured, bearer.IsAuthorizationConfigured())
+			assert.Equal(t, Result{Authorized: tc.authorized}, result)
 		})
 	}
 }

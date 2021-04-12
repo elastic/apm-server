@@ -51,19 +51,13 @@ func TestApikeyBuilder(t *testing.T) {
 	tc.cache.add(id(key, resource), privilegesValid)
 
 	// check that cache is actually shared between apiKeyHandlers
-	allowed, err := handler1.AuthorizedFor(context.Background(), resource)
+	result, err := handler1.AuthorizedFor(context.Background(), resource)
 	assert.NoError(t, err)
-	assert.True(t, allowed)
+	assert.Equal(t, Result{Authorized: true}, result)
 
-	allowed, err = handler2.AuthorizedFor(context.Background(), resource)
+	result, err = handler2.AuthorizedFor(context.Background(), resource)
 	assert.NoError(t, err)
-	assert.True(t, allowed)
-}
-
-func TestApikeyAuth_IsAuthorizationConfigured(t *testing.T) {
-	tc := &apikeyTestcase{}
-	tc.setup(t)
-	assert.True(t, tc.builder.forKey("xyz").IsAuthorizationConfigured())
+	assert.Equal(t, Result{Authorized: true}, result)
 }
 
 func TestAPIKey_AuthorizedFor(t *testing.T) {
@@ -72,13 +66,13 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.setup(t)
 		handler := tc.builder.forKey("")
 
-		authorized, err := handler.AuthorizedFor(context.Background(), "data:ingest")
-		assert.False(t, authorized)
+		result, err := handler.AuthorizedFor(context.Background(), "data:ingest")
+		assert.Equal(t, Result{Authorized: false}, result)
 		assert.NoError(t, err)
 
-		authorized, err = handler.AuthorizedFor(context.Background(), "apm:read")
+		result, err = handler.AuthorizedFor(context.Background(), "apm:read")
 		assert.Error(t, err)
-		assert.False(t, authorized)
+		assert.Equal(t, Result{Authorized: false}, result)
 	})
 
 	t.Run("from cache", func(t *testing.T) {
@@ -94,17 +88,17 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.cache.add(id(key, resourceValid), elasticsearch.Permissions{tc.anyOfPrivileges[0]: true})
 		tc.cache.add(id(key, resourceInvalid), elasticsearch.Permissions{tc.anyOfPrivileges[0]: false})
 
-		valid, err := handler.AuthorizedFor(context.Background(), resourceValid)
+		result, err := handler.AuthorizedFor(context.Background(), resourceValid)
 		require.NoError(t, err)
-		assert.True(t, valid)
+		assert.Equal(t, Result{Authorized: true}, result)
 
-		valid, err = handler.AuthorizedFor(context.Background(), resourceInvalid)
+		result, err = handler.AuthorizedFor(context.Background(), resourceInvalid)
 		require.NoError(t, err)
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 
-		valid, err = handler.AuthorizedFor(context.Background(), resourceMissing)
+		result, err = handler.AuthorizedFor(context.Background(), resourceMissing)
 		require.Error(t, err)
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 	})
 
 	t.Run("from ES", func(t *testing.T) {
@@ -112,17 +106,17 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.setup(t)
 		handler := tc.builder.forKey("key")
 
-		valid, err := handler.AuthorizedFor(context.Background(), "foo")
+		result, err := handler.AuthorizedFor(context.Background(), "foo")
 		require.NoError(t, err)
-		assert.True(t, valid)
+		assert.Equal(t, Result{Authorized: true}, result)
 
-		valid, err = handler.AuthorizedFor(context.Background(), "bar")
+		result, err = handler.AuthorizedFor(context.Background(), "bar")
 		require.NoError(t, err)
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 
-		valid, err = handler.AuthorizedFor(context.Background(), "missing")
+		result, err = handler.AuthorizedFor(context.Background(), "missing")
 		require.NoError(t, err)
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Equal(t, 3, tc.cache.cache.ItemCount())
 	})
 
@@ -132,10 +126,10 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.setup(t)
 		handler := tc.builder.forKey("12a3")
 
-		valid, err := handler.AuthorizedFor(context.Background(), "xyz")
+		result, err := handler.AuthorizedFor(context.Background(), "xyz")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "client error")
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Zero(t, tc.cache.cache.ItemCount())
 	})
 
@@ -144,9 +138,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.setup(t)
 		handler := tc.builder.forKey("12a3")
 
-		valid, err := handler.AuthorizedFor(context.Background(), "xyz")
+		result, err := handler.AuthorizedFor(context.Background(), "xyz")
 		require.NoError(t, err)
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Equal(t, 1, tc.cache.cache.ItemCount()) // unauthorized responses are cached
 	})
 
@@ -155,9 +149,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.setup(t)
 		handler := tc.builder.forKey("12a3")
 
-		valid, err := handler.AuthorizedFor(context.Background(), "xyz")
+		result, err := handler.AuthorizedFor(context.Background(), "xyz")
 		require.Error(t, err)
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Equal(t, 0, tc.cache.cache.ItemCount())
 	})
 
@@ -165,9 +159,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc := &apikeyTestcase{transport: estest.NewTransport(t, http.StatusOK, nil)}
 		tc.setup(t)
 		handler := tc.builder.forKey("123")
-		valid, err := handler.AuthorizedFor(context.Background(), "foo")
+		result, err := handler.AuthorizedFor(context.Background(), "foo")
 		require.Error(t, err)
-		assert.False(t, valid)
+		assert.Equal(t, Result{Authorized: false}, result)
 		assert.Zero(t, tc.cache.cache.ItemCount())
 	})
 }

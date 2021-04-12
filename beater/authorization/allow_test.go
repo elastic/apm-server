@@ -25,15 +25,9 @@ import (
 )
 
 func TestAllowAuth(t *testing.T) {
-	handler := AllowAuth{}
+	handler := allowAuth{}
 
-	t.Run("IsAuthorizationConfigured", func(t *testing.T) {
-		assert.False(t, handler.IsAuthorizationConfigured())
-	})
-
-	t.Run("AuthorizedFor", func(t *testing.T) {
-		authorized, err := handler.AuthorizedFor(context.Background(), "")
-		assert.True(t, authorized)
-		assert.NoError(t, err)
-	})
+	result, err := handler.AuthorizedFor(context.Background(), "")
+	assert.NoError(t, err)
+	assert.Equal(t, Result{Authorized: true}, result)
 }
