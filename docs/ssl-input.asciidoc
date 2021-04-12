@@ -43,6 +43,7 @@ When the APM server uses a certificate that is not chained to a publicly-trusted
 * *Go agent*: certificate pinning through {apm-go-ref}/configuration.html#config-server-cert[`ELASTIC_APM_SERVER_CERT`]
 * *Python agent*: certificate pinning through {apm-py-ref}/configuration.html#config-server-cert[`server_cert`]
 * *Ruby agent*: certificate pinning through {apm-ruby-ref}/configuration.html#config-ssl-ca-cert[`server_ca_cert`]
+* *.NET agent*: {apm-dotnet-ref}/config-reporter.html#config-server-cert[`ServerCert`]
 * *NodeJS agent*: custom CA setting through {apm-node-ref}/configuration.html#server-ca-cert-file[`serverCaCertFile`]
 * *Java agent*: adding the certificate to the JVM `trustStore`.
 See {apm-java-ref}/ssl-configuration.html#ssl-server-authentication[APM Server authentication] for more details.
