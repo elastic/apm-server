@@ -130,7 +130,10 @@ Traces are written to `traces-apm.*` indices.
 |service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |session.id|The ID of the session to which the event belongs.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |session.sequence|The sequence number of the event within the session to which the event belongs.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+<<<<<<< HEAD
 |source.domain|Source domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+=======
+>>>>>>> 299924e71... Introduce session.{id,sequence} for transactions (#5056)
 |source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |source.port|Port of the source.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |span.action|The specific kind of event within the sub-type represented by the span (e.g. query, connect)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
