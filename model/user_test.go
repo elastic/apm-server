@@ -42,9 +42,9 @@ func TestUserFields(t *testing.T) {
 		{
 			User: User{
 				Domain: domain,
-				ID:    id,
-				Email: email,
-				Name:  name,
+				ID:     id,
+				Email:  email,
+				Name:   name,
 			},
 			Output: common.MapStr{
 				"domain": "ldap://abc",
