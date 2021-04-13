@@ -136,7 +136,7 @@ Disable with {apm-node-ref-v}/configuration.html#capture-exceptions[captureExcep
 [[custom-filters]]
 === Custom filters
 
-There are two ways to filter or obfuscate other types APM data:
+There are two ways to filter or obfuscate other types of APM data:
 
 * <<filter-ingest-pipeline>>
 * <<filter-in-agent>>
@@ -164,7 +164,7 @@ but quickly notice that sensitive information is being collected in the
 ----
 
 To obfuscate the passwords stored in the request body,
-you can use a series of {ref}/processors.html[ingest processors].
+use a series of {ref}/processors.html[ingest processors].
 To start, create a pipeline with a simple description and an empty array of processors:
 
 [source,json]
@@ -179,7 +179,7 @@ To start, create a pipeline with a simple description and an empty array of proc
 <1> The processors defined below will go in this array
 
 Add the first processor to the processors array.
-Because the agent captures the request body as a string, you must use the
+Because the agent captures the request body as a string, use the
 {ref}/json-processor.html[JSON processor] to convert the original field value into a structured JSON object.
 Save this JSON object in a new field:
 
@@ -194,8 +194,21 @@ Save this JSON object in a new field:
 }
 ----
 
-Next, use the {ref}/remove-processor.html[remove processor] to remove the `body.original` field
-if the new `body.original_json` field was created:
+If `body.original_json` is not `null`, redact the `password` with the {ref}/set-processor.html[set processor],
+by setting the value of `body.original_json.password` to `"redacted"`:
+
+[source,json]
+----
+  {
+    "set": {
+      "field": "http.request.body.original_json.password",
+      "value": "redacted",
+      "if": "ctx?.http?.request?.body?.original_json != null"
+    }
+  }
+----
+
+Use the set processor again to replace the value of `body.original` with the value of `body.original_json`:
 
 [source,json]
 ----
@@ -208,21 +221,20 @@ if the new `body.original_json` field was created:
 }
 ----
 
-Finally, {ref}/set-processor.html[set] the value of the new `body.original_json` field to `"redacted"`–again,
-only if the new `body.original_json` field was created:
+Finally, use the {ref}/remove-processor.html[remove processor] to remove the `body.original_json` field:
 
 [source,json]
 ----
 {
-  "set": {
-    "field": "http.request.body.original_json.password",
-    "value": "redacted",
-    "if": "ctx?.http?.request?.body?.original_json != null"
+  "remove": {
+    "field": "http.request.body.original",
+    "if": "ctx?.http?.request?.body?.original_json != null",
+    "ignore_failure": true
   }
 }
 ----
 
-With the pipeline defined,
+Now that the pipeline has been defined,
 use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
 Name the pipeline `apm_redacted_body_password`:
 
@@ -240,17 +252,25 @@ PUT _ingest/pipeline/apm_redacted_body_password
       }
     },
     {
-      "remove": {
+      "set": {
+        "field": "http.request.body.original_json.password",
+        "value": "redacted",
+        "if": "ctx?.http?.request?.body?.original_json != null"
+      }
+    },
+    {
+      "set": {
         "field": "http.request.body.original",
+        "copy_from": "http.request.body.original_json",
         "if": "ctx?.http?.request?.body?.original_json != null",
         "ignore_failure": true
       }
     },
     {
-      "set": {
-        "field": "http.request.body.original_json.password",
-        "value": "redacted",
-        "if": "ctx?.http?.request?.body?.original_json != null"
+      "remove": {
+        "field": "http.request.body.original_json",
+        "if": "ctx?.http?.request?.body?.original_json != null",
+        "ignore_failure": true
       }
     }
   ]
@@ -314,7 +334,7 @@ The API response should be similar to this:
           "http" : {
             "request" : {
               "body" : {
-                "original_json" : {
+                "original" : {
                   "password" : "redacted",
                   "email" : "test@abc.com"
                 }
