@@ -3,18 +3,19 @@ module github.com/elastic/apm-server
 go 1.13
 
 require (
-	github.com/akavel/rsrc v0.10.1 // indirect
-	github.com/apache/thrift v0.13.0
+	github.com/akavel/rsrc v0.10.2 // indirect
+	github.com/apache/thrift v0.13.1-0.20200603211036-eac4d0c79a5f
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/dop251/goja v0.0.0-20210216182323-60bc6ebb9fc1 // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20201222133159-1629e8d0b836 // indirect
+	github.com/dop251/goja v0.0.0-20210406175830-1b11a6af686d // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210218165332-1ec04e2cbfd8
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210413112843-18f4e405ad11
 	github.com/elastic/ecs v1.8.0
+	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
 	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
 	github.com/elastic/gmux v0.1.0
 	github.com/elastic/go-elasticsearch/v7 v7.11.0
@@ -29,7 +30,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/pprof v0.0.0-20210208152844-1612e9be7af6
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.0
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jaegertracing/jaeger v1.22.0
 	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
@@ -63,14 +64,14 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20210218145215-b8e89b74b9df // indirect
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
+	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
-	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/sys v0.0.0-20210412220455-f1c623a9e750 // indirect
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	golang.org/x/tools v0.1.0
-	google.golang.org/grpc v1.36.0
+	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46 // indirect
+	google.golang.org/grpc v1.37.0
 	gopkg.in/yaml.v2 v2.4.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect
 	k8s.io/client-go v12.0.0+incompatible // indirect
