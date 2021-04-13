@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -62,9 +63,19 @@ func TestFleetIntegration(t *testing.T) {
 	err = fleet.CreatePackagePolicy(packagePolicy)
 	require.NoError(t, err)
 
+	// Bootstrap fleet-server.
+	fleetServer, err := systemtest.NewUnstartedElasticAgentContainer()
+	require.NoError(t, err)
+	fleetServer.FleetServer = true
+	defer fleetServer.Close()
+	err = fleetServer.Start()
+	require.NoError(t, err)
+
+	// Enroll another elastic-agent to run the APM integration.
 	agent, err := systemtest.NewUnstartedElasticAgentContainer()
 	require.NoError(t, err)
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
+	agent.FleetServerURL = fleetServer.FleetServerURL
 	defer agent.Close()
 
 	defer func() {
@@ -101,9 +112,7 @@ func TestFleetIntegration(t *testing.T) {
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service
 	// healthcheck requests to port 8200.
 	agent.ExposedPorts = []string{"8200"}
-	waitFor := wait.ForHTTP("/")
-	waitFor.Port = "8200/tcp"
-	agent.WaitingFor = waitFor
+	agent.WaitingFor = wait.ForHTTP("/").WithPort("8200/tcp").WithStartupTimeout(5 * time.Minute)
 	err = agent.Start()
 	require.NoError(t, err)
 
