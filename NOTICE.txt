@@ -11,11 +11,11 @@ Third party libraries used by the Elastic APM Server project:
 
 --------------------------------------------------------------------------------
 Dependency : github.com/apache/thrift
-Version: v0.13.0
+Version: v0.13.1-0.20200603211036-eac4d0c79a5f
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/apache/thrift@v0.13.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/apache/thrift@v0.13.1-0.20200603211036-eac4d0c79a5f/LICENSE:
 
 
                                  Apache License
@@ -255,7 +255,74 @@ For the lib/nodejs/lib/thrift/json_parse.js:
 
 */
 (By Douglas Crockford <douglas@crockford.com>)
+
 --------------------------------------------------
+For lib/cpp/src/thrift/windows/SocketPair.cpp
+
+/* socketpair.c
+ * Copyright 2007 by Nathan C. Myers <ncm@cantrip.org>; some rights reserved.
+ * This code is Free Software.  It may be copied freely, in original or
+ * modified form, subject only to the restrictions that (1) the author is
+ * relieved from all responsibilities for any use for any purpose, and (2)
+ * this copyright notice must be retained, unchanged, in its entirety.  If
+ * for any reason the author might be held responsible for any consequences
+ * of copying or use, license is withheld.
+ */
+
+
+--------------------------------------------------
+For lib/py/compat/win32/stdint.h
+
+// ISO C9x  compliant stdint.h for Microsoft Visual Studio
+// Based on ISO/IEC 9899:TC2 Committee draft (May 6, 2005) WG14/N1124
+//
+//  Copyright (c) 2006-2008 Alexander Chemeris
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//   1. Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//   2. Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//   3. The name of the author may be used to endorse or promote products
+//      derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+--------------------------------------------------
+Codegen template in t_html_generator.h
+
+* Bootstrap v2.0.3
+*
+* Copyright 2012 Twitter, Inc
+* Licensed under the Apache License v2.0
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Designed and built with all the love in the world @twitter by @mdo and @fat.
+
+---------------------------------------------------
+For t_cl_generator.cc
+
+ * Copyright (c) 2008- Patrick Collison <patrick@collison.ie>
+ * Copyright (c) 2006- Facebook
+
+---------------------------------------------------
 
 
 --------------------------------------------------------------------------------
@@ -509,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210309205547-21d02a3ab3b8
+Version: v7.0.0-alpha2.0.20210413031307-abd6a93bf275
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210309205547-21d02a3ab3b8/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210413031307-abd6a93bf275/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -1942,11 +2009,11 @@ Contents of probable licence file $GOMODCACHE/github.com/google/pprof@v0.0.0-202
 
 --------------------------------------------------------------------------------
 Dependency : github.com/hashicorp/go-multierror
-Version: v1.1.0
+Version: v1.1.1
 Licence type (autodetected): MPL-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-multierror@v1.1.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-multierror@v1.1.1/LICENSE:
 
 Mozilla Public License, version 2.0
 
@@ -4592,11 +4659,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20210226172049-e18ecbb05110
+Version: v0.0.0-20210410081132-afb366fc7cd1
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210226172049-e18ecbb05110/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210410081132-afb366fc7cd1/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -4703,11 +4770,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.36.0
+Version: v1.37.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.36.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.37.0/LICENSE:
 
 
                                  Apache License
@@ -8248,11 +8315,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.0.0-20200709172729-d43b7ad5833a
+Version: v7.0.0-20210407144825-cc1c33cfa1d0
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20200709172729-d43b7ad5833a/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20210407144825-cc1c33cfa1d0/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -9773,11 +9840,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-windows@v1.0
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/gosigar
-Version: v0.14.0
+Version: v0.14.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/gosigar@v0.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/gosigar@v0.14.1/LICENSE:
 
                               Apache License
                         Version 2.0, January 2004
@@ -10714,11 +10781,11 @@ third-party archives.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/golang/protobuf
-Version: v1.4.3
+Version: v1.5.2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/golang/protobuf@v1.4.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/golang/protobuf@v1.5.2/LICENSE:
 
 Copyright 2010 The Go Authors.  All rights reserved.
 
@@ -10976,11 +11043,11 @@ Contents of probable licence file $GOMODCACHE/github.com/gomodule/redigo@v1.8.3/
 
 --------------------------------------------------------------------------------
 Dependency : github.com/google/go-cmp
-Version: v0.5.4
+Version: v0.5.5
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/google/go-cmp@v0.5.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/google/go-cmp@v0.5.5/LICENSE:
 
 Copyright (c) 2017 The Go Authors. All rights reserved.
 
@@ -17845,11 +17912,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20210220033148-5ea612d1eb83
+Version: v0.0.0-20210322153248-0c34fe9e7dc2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210220033148-5ea612d1eb83/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210322153248-0c34fe9e7dc2/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -17919,11 +17986,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20210309074719-68d13333faf2
+Version: v0.0.0-20210412220455-f1c623a9e750
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210309074719-68d13333faf2/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210412220455-f1c623a9e750/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -17993,11 +18060,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/text
-Version: v0.3.5
+Version: v0.3.6
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.3.5/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.3.6/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18030,11 +18097,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20210302174412-5ede27ff9881
+Version: v0.0.0-20210406143921-e86de6bf7a46
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210302174412-5ede27ff9881/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210406143921-e86de6bf7a46/LICENSE:
 
 
                                  Apache License
@@ -18242,11 +18309,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/protobuf
-Version: v1.25.0
+Version: v1.26.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/protobuf@v1.25.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/protobuf@v1.26.0/LICENSE:
 
 Copyright (c) 2018 The Go Authors. All rights reserved.
 

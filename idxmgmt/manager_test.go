@@ -253,7 +253,7 @@ func TestManager_SetupILM(t *testing.T) {
 				"apm-server.ilm.setup.policies":  []common.MapStr{policyRollover1Day},
 			},
 			loadMode:            libidxmgmt.LoadModeEnabled,
-			templatesILMEnabled: 5, policiesLoaded: 2, aliasesLoaded: 4,
+			templatesILMEnabled: 5, policiesLoaded: 2, aliasesLoaded: 5,
 		},
 		"LoadModeOverwrite": {
 			loadMode:            libidxmgmt.LoadModeOverwrite,
@@ -416,8 +416,8 @@ func TestManager_SetupILM(t *testing.T) {
 				m := defaultSupporter(t, tc.cfg).Manager(clientHandler, libidxmgmt.BeatsAssets(fields))
 				indexManager := m.(*manager)
 				require.NoError(t, indexManager.Setup(libidxmgmt.LoadModeDisabled, tc.loadMode))
-				assert.Equal(t, tc.policiesLoaded, len(clientHandler.policies), "policies")
-				assert.Equal(t, tc.aliasesLoaded, len(clientHandler.aliases), "aliases")
+				assert.Len(t, clientHandler.policies, tc.policiesLoaded)
+				assert.Len(t, clientHandler.aliases, tc.aliasesLoaded)
 				require.Equal(t, tc.templatesILMEnabled, clientHandler.templatesILMEnabled, "ILM enabled templates")
 				require.Equal(t, tc.templatesILMDisabled, clientHandler.templates, "ILM disabled templates")
 			})
@@ -495,6 +495,12 @@ func (h *mockClientHandler) HasAlias(name string) (bool, error) {
 
 func (h *mockClientHandler) CreateAlias(alias libilm.Alias) error {
 	h.aliases = append(h.aliases, alias.Name)
+	if alias.Name == existingILMAlias {
+		return reasonedError{
+			error:  errors.New("CreateAlias failed"),
+			reason: libilm.ErrAliasAlreadyExists,
+		}
+	}
 	return nil
 }
 
@@ -505,4 +511,13 @@ func (h *mockClientHandler) HasILMPolicy(name string) (bool, error) {
 func (h *mockClientHandler) CreateILMPolicy(policy libilm.Policy) error {
 	h.policies = append(h.policies, policy.Name)
 	return nil
+}
+
+type reasonedError struct {
+	error
+	reason error
+}
+
+func (e reasonedError) Reason() error {
+	return e.reason
 }
