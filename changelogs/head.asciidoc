@@ -36,6 +36,7 @@ https://github.com/elastic/apm-server/compare/7.12\...master[View commits]
 * The server now responds with a reason for some 401 Unauthorized requests {pull}5053[5053]
 * Add `session.id` and `session.sequence` fields for RUM session tracking {pull}5056[5056]
 * Support for ingesting `user.domain` {pull}5067[5067]
+* Add `"application": "apm"` metadata to API Keys created with `apm-server apikey create` {pull}5090[5090]
 * Add support for OpenTelemetry RPC semantic conventions {pull}5074[5074]
 
 [float]
