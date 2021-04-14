@@ -39,6 +39,12 @@ https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 * Add `session.id` and `session.sequence` fields for RUM session tracking {pull}5056[5056]
 * Support for ingesting `user.domain` {pull}5067[5067]
 * Add `"application": "apm"` metadata to API Keys created with `apm-server apikey create` {pull}5090[5090]
+<<<<<<< HEAD:changelogs/7.13.asciidoc
 * API Key auth is no longer considered experimental {pull}5091[5091]
 * Set gRPC status code to `DEADLINE_EXCEEDED` on request timeout {pull}5089[5089]
 * Add support for OpenTelemetry RPC semantic conventions {pull}5074[5074]
+=======
+
+[float]
+==== Deprecated
+>>>>>>> 90d05c30b... Add metadata to API Keys created by server (#5090):changelogs/head.asciidoc
