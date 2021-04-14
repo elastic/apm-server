@@ -200,22 +200,24 @@ by setting the value of `body.original_json.password` to `"redacted"`:
 
 [source,json]
 ----
-  {
-    "set": {
-      "field": "http.request.body.original_json.password",
-      "value": "redacted",
-      "if": "ctx?.http?.request?.body?.original_json != null"
-    }
+{
+  "set": {
+    "field": "http.request.body.original_json.password",
+    "value": "redacted",
+    "if": "ctx?.http?.request?.body?.original_json != null"
   }
+}
 ----
 
-Use the set processor again to replace the value of `body.original` with the value of `body.original_json`:
+Use the {ref}/convert-processor.html[convert processor] to convert the JSON value of `body.original_json` to a string and set it as the `body.original` value:
 
 [source,json]
 ----
 {
-  "remove": {
-    "field": "http.request.body.original",
+  "convert": {
+    "field": "http.request.body.original_json",
+    "target_field": "http.request.body.original",
+    "type": "string",
     "if": "ctx?.http?.request?.body?.original_json != null",
     "ignore_failure": true
   }
@@ -260,9 +262,10 @@ PUT _ingest/pipeline/apm_redacted_body_password
       }
     },
     {
-      "set": {
-        "field": "http.request.body.original",
-        "copy_from": "http.request.body.original_json",
+      "convert": {
+        "field": "http.request.body.original_json",
+        "target_field": "http.request.body.original",
+        "type": "string",
         "if": "ctx?.http?.request?.body?.original_json != null",
         "ignore_failure": true
       }
