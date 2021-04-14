@@ -108,6 +108,7 @@ Disabled instrumentations produce no spans or transactions.
 |Page load metrics including static resources |`page-load`
 |JavaScript errors on the browser |`error`
 |User click events including URLs visited, mouse clicks, and navigation events |`eventtarget`
+|Single page application route changes |`history`
 |====
 
 [discrete]
