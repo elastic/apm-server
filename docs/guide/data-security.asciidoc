@@ -116,7 +116,15 @@ Disabled instrumentations produce no spans or transactions.
 ==== Database statements
 
 For SQL databases, APM agents do not capture the parameters of prepared statements.
+Note that Elastic APM currently does not make an effort to strip parameters of regular statements.
+Not using prepared statements makes your code vulnerable to SQL injection attacks,
+so be sure to use prepared statements.
+
+For non-SQL data stores, such as Elasticsearch or MongoDB,
+Elastic APM captures the full statement for queries.
+For inserts or updates, the full document is not stored.
 To filter or obfuscate data in non-SQL database statements,
+or to remove the statement entirely,
 you can set up an ingest node pipeline.
 
 [discrete]
