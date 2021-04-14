@@ -104,9 +104,9 @@ Disabled instrumentations produce no spans or transactions.
 [options="header"]
 |====
 |Disable |Configuration value
-|HTTP requests |`fetch` and `xmlhttprequest
+|HTTP requests |`fetch` and `xmlhttprequest`
 |Page load metrics including static resources |`page-load`
-|User browser errors |`error`
+|JavaScript errors on the browser |`error`
 |User click events including URLs visited, mouse clicks, and navigation events |`eventtarget`
 |====
 
