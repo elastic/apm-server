@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -76,6 +77,21 @@ func TestAPIKeyCreate(t *testing.T) {
 
 	es := systemtest.NewElasticsearchClientWithAPIKey(attrs["credentials"].(string))
 	assertAuthenticateSucceeds(t, es)
+
+	// Check that the API Key has expected metadata.
+	type apiKey struct {
+		ID       string                 `json:"id"`
+		Metadata map[string]interface{} `json:"metadata"`
+	}
+	var resp struct {
+		APIKeys []apiKey `json:"api_keys"`
+	}
+	_, err = systemtest.Elasticsearch.Do(context.Background(), &esapi.SecurityGetAPIKeyRequest{
+		ID: attrs["id"].(string),
+	}, &resp)
+	require.NoError(t, err)
+	require.Len(t, resp.APIKeys, 1)
+	assert.Equal(t, map[string]interface{}{"application": "apm"}, resp.APIKeys[0].Metadata)
 }
 
 func TestAPIKeyCreateExpiration(t *testing.T) {
