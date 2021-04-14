@@ -20,6 +20,7 @@ package ilm
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -111,6 +112,7 @@ func TestConfig_RequirePolicy(t *testing.T) {
 }
 
 func TestConfig_Valid(t *testing.T) {
+	now := time.Now()
 	for _, tc := range []struct {
 		name string
 		cfg  string
@@ -118,12 +120,12 @@ func TestConfig_Valid(t *testing.T) {
 		expected Config
 	}{
 		{name: "new policy and index suffix",
-			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","index_suffix":"ProdUCtion"},{"event_type":"error","index_suffix":"%{[observer.name]}"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
+			cfg: `{"setup":{"mapping":[{"event_type":"span","policy_name":"spanPolicy"},{"event_type":"metric","index_suffix":"ProdUCtion"},{"event_type":"error","index_suffix":"%{[observer.name]}-%{+yyyy-MM-dd}"}],"policies":[{"name":"spanPolicy","policy":{"phases":{"foo":{}}}}]}}`,
 			expected: Config{Mode: libilm.ModeAuto,
 				Setup: Setup{Enabled: true, Overwrite: false, RequirePolicy: true,
 					Mappings: map[string]Mapping{
 						"error": {EventType: "error", PolicyName: defaultPolicyName,
-							Index: "apm-9.9.9-error-mockapm", IndexSuffix: "%{[observer.name]}"},
+							Index: fmt.Sprintf("apm-9.9.9-error-mockapm-%d-%02d-%02d", now.Year(), now.Month(), now.Day()), IndexSuffix: "%{[observer.name]}-%{+yyyy-MM-dd}"},
 						"span": {EventType: "span", PolicyName: "spanPolicy",
 							Index: "apm-9.9.9-span"},
 						"transaction": {EventType: "transaction", PolicyName: defaultPolicyName,
