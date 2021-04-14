@@ -320,6 +320,7 @@ PUT /_security/role/my_role {
 				},
 			},
 		},
+		Metadata: map[string]interface{}{"application": "apm"},
 	}
 	if expiry != "" {
 		apikeyRequest.Expiration = &expiry

@@ -67,9 +67,10 @@ func HasPrivileges(ctx context.Context, client Client, privileges HasPrivilegesR
 }
 
 type CreateAPIKeyRequest struct {
-	Name            string         `json:"name"`
-	Expiration      *string        `json:"expiration,omitempty"`
-	RoleDescriptors RoleDescriptor `json:"role_descriptors"`
+	Name            string                 `json:"name"`
+	Expiration      *string                `json:"expiration,omitempty"`
+	RoleDescriptors RoleDescriptor         `json:"role_descriptors"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type CreateAPIKeyResponse struct {
@@ -119,9 +120,10 @@ type Application struct {
 
 type APIKeyResponse struct {
 	APIKey
-	Creation    int64  `json:"creation"`
-	Invalidated bool   `json:"invalidated"`
-	Username    string `json:"username"`
+	Creation    int64                  `json:"creation"`
+	Invalidated bool                   `json:"invalidated"`
+	Username    string                 `json:"username"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type APIKeyQuery struct {
