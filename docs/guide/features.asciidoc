@@ -5,6 +5,7 @@
 <titleabbrev>Features</titleabbrev>
 ++++
 
+* <<data-security>>
 * <<distributed-tracing>>
 * <<rum>>
 * <<trace-sampling>>
@@ -12,6 +13,8 @@
 * <<open-telemetry-elastic>>
 * <<observability-integrations>>
 * <<apm-cross-cluster-search>>
+
+include::./data-security.asciidoc[]
 
 include::./distributed-tracing.asciidoc[]
 
