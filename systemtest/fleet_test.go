@@ -223,7 +223,7 @@ func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
 		err = fleet.DeleteAgentPolicy(p.ID)
 		var fleetError *fleettest.Error
 		if errors.As(err, &fleetError) {
-			assert.Equal(t, http.StatusNotFound, fleetError.StatusCode)
+			assert.Equal(t, http.StatusNotFound, fleetError.StatusCode, fleetError.Message)
 		}
 	}
 }
