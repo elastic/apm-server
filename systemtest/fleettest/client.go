@@ -70,13 +70,13 @@ func (c *Client) Agents() ([]Agent, error) {
 }
 
 // BulkUnenrollAgents bulk-unenrolls agents.
-func (c *Client) BulkUnenrollAgents(force bool, agentIDs ...string) error {
+func (c *Client) BulkUnenrollAgents(revoke bool, agentIDs ...string) error {
 	var body bytes.Buffer
 	type bulkUnenroll struct {
 		Agents []string `json:"agents"`
-		Force  bool     `json:"force"`
+		Revoke bool     `json:"revoke"`
 	}
-	if err := json.NewEncoder(&body).Encode(bulkUnenroll{agentIDs, force}); err != nil {
+	if err := json.NewEncoder(&body).Encode(bulkUnenroll{agentIDs, revoke}); err != nil {
 		return err
 	}
 	req := c.newFleetRequest("POST", "/agents/bulk_unenroll", &body)

@@ -24,6 +24,7 @@ pull_request_rules:
           - "{{ author }}"
         branches:
           - "7.x"
+        title: "[7.x] {{ title }} (backport #{{ number }})"
   - name: backport patches to 7.12 branch
     conditions:
       - merged
@@ -35,3 +36,4 @@ pull_request_rules:
           - "{{ author }}"
         branches:
           - "7.12"
+        title: "[7.12] {{ title }} (backport #{{ number }})"
