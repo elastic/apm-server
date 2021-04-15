@@ -95,7 +95,7 @@ func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
 		if err != nil {
 			return Config{}, errors.Wrap(err, "variable part of index suffix cannot be resolved")
 		}
-		m.Index = idx
+		m.Index = strings.ToLower(idx)
 		config.Setup.Mappings[et] = m
 		if config.Setup.RequirePolicy {
 			continue
@@ -133,7 +133,7 @@ func (m *Mappings) Unpack(cfg *libcommon.Config) error {
 			mapping.Index = existing.Index
 		}
 		if mapping.IndexSuffix != "" {
-			mapping.Index = fmt.Sprintf("%s-%s", mapping.Index, strings.ToLower(mapping.IndexSuffix))
+			mapping.Index = fmt.Sprintf("%s-%s", mapping.Index, mapping.IndexSuffix)
 		}
 		(*m)[mapping.EventType] = mapping
 	}

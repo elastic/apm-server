@@ -30,8 +30,6 @@ include::./ssl-input.asciidoc[]
 [[api-key]]
 === API keys
 
-experimental::[]
-
 You can configure API keys to authorize requests to the APM Server.
 
 NOTE: API keys are sent as plain-text,
