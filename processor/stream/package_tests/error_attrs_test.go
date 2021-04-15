@@ -60,6 +60,7 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("observer"),
 		tests.Group("user"),
 		tests.Group("client"),
+		tests.Group("source"),
 		tests.Group("destination"),
 		tests.Group("http"),
 		tests.Group("url"),
@@ -129,6 +130,8 @@ func errorKeywordExceptionKeys() *tests.Set {
 		tests.Group("user"),
 		tests.Group("span"),
 		tests.Group("cloud"),
+		tests.Group("client"),
+		tests.Group("source"),
 	)
 }
 
