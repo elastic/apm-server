@@ -19,56 +19,30 @@ package interceptors
 
 import (
 	"context"
+	"errors"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/beats/v7/libbeat/logp"
-	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-// Metrics returns a grpc.UnaryServerInterceptor that increments the metrics in
-// a supplied registry keyed to its gRPC full method name.
-func Metrics(
-	logger *logp.Logger,
-	registries map[string]map[request.ResultID]*monitoring.Int,
-) grpc.UnaryServerInterceptor {
+// Timeout returns a grpc.UnaryServerInterceptor that intercepts
+// context.Canceled and context.DeadlineExceeded errors, and
+// updates the response to indicate that the request timed out.
+// This could be caused by either a client timeout or server timeout.
+func Timeout() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		m, prs := registries[info.FullMethod]
-		if !prs {
-			logger.With(
-				"grpc.request.method", info.FullMethod,
-			).Error("metrics registry missing")
-			return handler(ctx, req)
-		}
-
-		m[request.IDRequestCount].Inc()
-		defer m[request.IDResponseCount].Inc()
-
 		resp, err := handler(ctx, req)
-
-		responseID := request.IDResponseValidCount
-		if err != nil {
-			responseID = request.IDResponseErrorsCount
-			if s, ok := status.FromError(err); ok {
-				switch s.Code() {
-				case codes.Unauthenticated:
-					m[request.IDResponseErrorsUnauthorized].Inc()
-				case codes.DeadlineExceeded:
-					m[request.IDResponseErrorsTimeout].Inc()
-				}
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			if s, ok := status.FromError(err); !ok || s.Code() == codes.OK {
+				err = status.Error(codes.DeadlineExceeded, "request timed out")
 			}
 		}
-
-		m[responseID].Inc()
-
 		return resp, err
 	}
 }

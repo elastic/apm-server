@@ -107,6 +107,7 @@ func TestConsumeTraces(t *testing.T) {
 		"response.count":               int64(2),
 		"response.errors.count":        int64(1),
 		"response.valid.count":         int64(1),
+		"response.errors.timeout":      int64(0),
 		"response.errors.unauthorized": int64(0),
 	}, actual)
 }
@@ -167,6 +168,7 @@ func TestConsumeMetrics(t *testing.T) {
 		"response.count":               int64(2),
 		"response.errors.count":        int64(1),
 		"response.valid.count":         int64(1),
+		"response.errors.timeout":      int64(0),
 		"response.errors.unauthorized": int64(0),
 	}, actual)
 }
