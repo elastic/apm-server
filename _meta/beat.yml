@@ -107,7 +107,6 @@ apm-server:
   # Enable API key authorization by setting enabled to true. By default API key support is disabled.
   # Agents include a valid API key in the following format: Authorization: ApiKey <token>.
   # The key must be the base64 encoded representation of the API key's "id:key".
-  # This is an experimental feature, use with care.
   #api_key:
     #enabled: false
 

@@ -453,7 +453,7 @@ func defaultOutputConfig() OutputConfig {
 			Enabled: true,
 			Hosts: []string{net.JoinHostPort(
 				getenvDefault("ES_HOST", defaultElasticsearchHost),
-				getenvDefault("ES_PORT", defaultElasticsearchPort),
+				ElasticsearchPort(),
 			)},
 			Username: getenvDefault("ES_USER", defaultElasticsearchUser),
 			Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
@@ -468,6 +468,13 @@ func defaultOutputConfig() OutputConfig {
 // KIBANA_PORT, or otherwise returning the default of 5601.
 func KibanaPort() string {
 	return getenvDefault("KIBANA_PORT", defaultKibanaPort)
+}
+
+// ElasticsearchPort returns the Elasticsearch REST API port,
+// configured using ES_PORT, or otherwise returning the default
+// of 9200.
+func ElasticsearchPort() string {
+	return getenvDefault("ES_PORT", defaultElasticsearchPort)
 }
 
 func getenvDefault(k, defaultv string) string {
