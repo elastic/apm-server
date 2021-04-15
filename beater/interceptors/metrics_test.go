@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-var monitoringKeys = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized)
+var monitoringKeys = append(request.DefaultResultIDs, request.IDResponseErrorsUnauthorized, request.IDResponseErrorsTimeout)
 
 func TestMetrics(t *testing.T) {
 	registry := monitoring.NewRegistry()
@@ -66,6 +66,7 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseValidCount:         0,
 				request.IDResponseErrorsCount:        1,
 				request.IDResponseErrorsInternal:     1,
+				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 		},
@@ -79,7 +80,22 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseValidCount:         0,
 				request.IDResponseErrorsCount:        1,
 				request.IDResponseErrorsInternal:     0,
+				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 1,
+			},
+		},
+		{
+			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				return nil, status.Error(codes.DeadlineExceeded, ("request timed out"))
+			},
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:               1,
+				request.IDResponseCount:              1,
+				request.IDResponseValidCount:         0,
+				request.IDResponseErrorsCount:        1,
+				request.IDResponseErrorsInternal:     0,
+				request.IDResponseErrorsTimeout:      1,
+				request.IDResponseErrorsUnauthorized: 0,
 			},
 		},
 		{
@@ -92,6 +108,7 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseValidCount:         1,
 				request.IDResponseErrorsCount:        0,
 				request.IDResponseErrorsInternal:     0,
+				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 		},

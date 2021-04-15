@@ -151,6 +151,7 @@ func newGRPCServer(
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
 			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps),
+			interceptors.Timeout(),
 			authInterceptor,
 		),
 	)
