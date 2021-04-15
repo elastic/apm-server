@@ -5,16 +5,19 @@
 == Parse data using ingest node pipelines
 
 You can configure APM Server to use an {ref}/ingest.html[ingest node]
-to pre-process documents before indexing them in Elasticsearch.
-A pipeline definition specifies the series of processors that will transform each document in a specific way.
+to pre-process documents before indexing them in {es}.
+A pipeline definition specifies the series of pipelines or processors that will transform each document in a specific way.
 For example, a pipeline might define one processor that removes a field, followed by another that renames a field.
+
+Pipelines can be used to ensure data security by removing or obfuscating sensitive information.
+See {apm-overview-ref-v}/data-security.html[data security] for an example.
 
 [[default-pipeline]]
 [float]
 === Default ingest pipeline
 
-By default, APM Server registers the `apm` pipeline definition to Elasticsearch on startup.
-The `apm` pipeline definition defines the following processors:
+By default, APM Server registers the `apm` pipeline definition to {es} on startup.
+The `apm` pipeline defines the following inner pipelines:
 
 [horizontal]
 `apm_user_agent`::
@@ -35,8 +38,24 @@ that are already available on the parent transaction.
 In previous versions of APM Server, this functionality was hardcoded internally.
 Switching metadata cleanup from an internal process to a processor allows you to keep any span metadata that is important in your architecture.
 
+<<<<<<< HEAD
 See the complete pipeline definition by navigating to the APM Server's home directory,
 and then viewing `ingest/pipeline/definition.json`.
+=======
+`apm_error_grouping_name`::
+added:[7.13]
+Adds `error.grouping_name` to error documents for use in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
+
+`apm_opentelemetry_metrics`::
+added:[7.13]
+Copies well-known OpenTelemetry metrics to their Elastic APM counterparts, for vizualisation in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
+For example, the OpenTelemetry metric field `runtime.jvm.gc.time` is copied to the Elastic APM metric field `jvm.gc.time`.
++
+Metrics are duplicated so you can refer to them by either the OpenTelemetry or Elastic APM metric name.
+
+See the complete pipeline definition by navigating to the APM Server's home directory
+and viewing `ingest/pipeline/definition.json`.
+>>>>>>> 48e1daa4b... docs: data security, filtering, and obfuscation (#5068)
 
 To disable this, or any other pipeline, set `output.elasticsearch.pipeline: _none`.
 
