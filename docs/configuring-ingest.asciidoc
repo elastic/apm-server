@@ -5,16 +5,19 @@
 == Parse data using ingest node pipelines
 
 You can configure APM Server to use an {ref}/ingest.html[ingest node]
-to pre-process documents before indexing them in Elasticsearch.
-A pipeline definition specifies the series of processors that will transform each document in a specific way.
+to pre-process documents before indexing them in {es}.
+A pipeline definition specifies the series of pipelines or processors that will transform each document in a specific way.
 For example, a pipeline might define one processor that removes a field, followed by another that renames a field.
+
+Pipelines can be used to ensure data security by removing or obfuscating sensitive information.
+See {apm-overview-ref-v}/data-security.html[data security] for an example.
 
 [[default-pipeline]]
 [float]
 === Default ingest pipeline
 
-By default, APM Server registers the `apm` pipeline definition to Elasticsearch on startup.
-The `apm` pipeline definition defines the following processors:
+By default, APM Server registers the `apm` pipeline definition to {es} on startup.
+The `apm` pipeline defines the following inner pipelines:
 
 [horizontal]
 `apm_user_agent`::
