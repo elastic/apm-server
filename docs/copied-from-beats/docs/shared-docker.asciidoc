@@ -244,6 +244,7 @@ ifeval::["{beatname_lc}"=="apm-server"]
 ["source", "sh", subs="attributes"]
 --------------------------------------------
 docker run -d \
+  -p 8200:8200 \
   --name={beatname_lc} \
   --user={beatname_lc} \
   --volume="$(pwd)/{beatname_lc}.docker.yml:/usr/share/{beatname_lc}/{beatname_lc}.yml:ro" \
