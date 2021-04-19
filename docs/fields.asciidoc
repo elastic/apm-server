@@ -784,6 +784,18 @@ type: keyword
 --
 
 
+*`client.domain`*::
++
+--
+Client domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`client.ip`*::
 +
 --
@@ -796,6 +808,30 @@ type: ip
 
 --
 
+*`client.port`*::
++
+--
+Port of the client.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.domain`*::
++
+--
+Source domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`source.ip`*::
 +
@@ -804,6 +840,18 @@ IP address of the source of a recorded event. This is typically obtained from a 
 
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`source.port`*::
++
+--
+Port of the source.
+
+
+type: long
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -1808,6 +1856,18 @@ type: keyword
 --
 
 
+*`client.domain`*::
++
+--
+Client domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`client.ip`*::
 +
 --
@@ -1820,6 +1880,30 @@ type: ip
 
 --
 
+*`client.port`*::
++
+--
+Port of the client.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.domain`*::
++
+--
+Source domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`source.ip`*::
 +
@@ -1828,6 +1912,18 @@ IP address of the source of a recorded event. This is typically obtained from a 
 
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`source.port`*::
++
+--
+Port of the source.
+
+
+type: long
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -2998,6 +3094,18 @@ type: keyword
 --
 
 
+*`client.domain`*::
++
+--
+Client domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`client.ip`*::
 +
 --
@@ -3010,6 +3118,30 @@ type: ip
 
 --
 
+*`client.port`*::
++
+--
+Port of the client.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.domain`*::
++
+--
+Source domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`source.ip`*::
 +
@@ -3018,6 +3150,18 @@ IP address of the source of a recorded event. This is typically obtained from a 
 
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`source.port`*::
++
+--
+Port of the source.
+
+
+type: long
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -4474,6 +4618,18 @@ type: keyword
 --
 
 
+*`client.domain`*::
++
+--
+Client domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`client.ip`*::
 +
 --
@@ -4486,6 +4642,30 @@ type: ip
 
 --
 
+*`client.port`*::
++
+--
+Port of the client.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.domain`*::
++
+--
+Source domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`source.ip`*::
 +
@@ -4494,6 +4674,18 @@ IP address of the source of a recorded event. This is typically obtained from a 
 
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`source.port`*::
++
+--
+Port of the source.
+
+
+type: long
 
 {yes-icon} {ecs-ref}[ECS] field.
 
@@ -5549,6 +5741,18 @@ type: keyword
 --
 
 
+*`client.domain`*::
++
+--
+Client domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
 *`client.ip`*::
 +
 --
@@ -5561,6 +5765,30 @@ type: ip
 
 --
 
+*`client.port`*::
++
+--
+Port of the client.
+
+
+type: long
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+
+*`source.domain`*::
++
+--
+Source domain.
+
+
+type: keyword
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
 
 *`source.ip`*::
 +
@@ -5569,6 +5797,18 @@ IP address of the source of a recorded event. This is typically obtained from a 
 
 
 type: ip
+
+{yes-icon} {ecs-ref}[ECS] field.
+
+--
+
+*`source.port`*::
++
+--
+Port of the source.
+
+
+type: long
 
 {yes-icon} {ecs-ref}[ECS] field.
 

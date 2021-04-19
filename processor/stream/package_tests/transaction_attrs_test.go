@@ -58,10 +58,10 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"host.name",
 		"transaction.duration.count",
 		"transaction.marks.*.*",
-		"source.ip",
 		tests.Group("observer"),
 		tests.Group("user"),
 		tests.Group("client"),
+		tests.Group("source"),
 		tests.Group("destination"),
 		tests.Group("url"),
 		tests.Group("http"),
@@ -100,6 +100,8 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		tests.Group("observer"),
 		tests.Group("url"),
 		tests.Group("http"),
+		tests.Group("client"),
+		tests.Group("source"),
 		tests.Group("destination"),
 
 		// metadata fields

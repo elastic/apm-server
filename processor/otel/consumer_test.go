@@ -48,6 +48,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
+	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common"
@@ -472,6 +473,49 @@ func TestInstrumentationLibrary(t *testing.T) {
 
 	assert.Equal(t, "library-name", tx.Metadata.Service.Framework.Name)
 	assert.Equal(t, "1.2.3", tx.Metadata.Service.Framework.Version)
+}
+
+func TestRPCTransaction(t *testing.T) {
+	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
+		"rpc.system":           pdata.NewAttributeValueString("grpc"),
+		"rpc.service":          pdata.NewAttributeValueString("myservice.EchoService"),
+		"rpc.method":           pdata.NewAttributeValueString("exampleMethod"),
+		"rpc.grpc.status_code": pdata.NewAttributeValueInt(int64(codes.Unavailable)),
+		"net.peer.name":        pdata.NewAttributeValueString("peer_name"),
+		"net.peer.ip":          pdata.NewAttributeValueString("10.20.30.40"),
+		"net.peer.port":        pdata.NewAttributeValueInt(123),
+	})
+	assert.Equal(t, "request", tx.Type)
+	assert.Equal(t, "Unavailable", tx.Result)
+	assert.Empty(t, tx.Labels)
+	assert.Equal(t, model.Client{
+		Domain: "peer_name",
+		IP:     net.ParseIP("10.20.30.40"),
+		Port:   123,
+	}, tx.Metadata.Client)
+}
+
+func TestRPCSpan(t *testing.T) {
+	span := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
+		"rpc.system":           pdata.NewAttributeValueString("grpc"),
+		"rpc.service":          pdata.NewAttributeValueString("myservice.EchoService"),
+		"rpc.method":           pdata.NewAttributeValueString("exampleMethod"),
+		"rpc.grpc.status_code": pdata.NewAttributeValueInt(int64(codes.Unavailable)),
+		"net.peer.ip":          pdata.NewAttributeValueString("10.20.30.40"),
+		"net.peer.port":        pdata.NewAttributeValueInt(123),
+	})
+	assert.Equal(t, "external", span.Type)
+	assert.Equal(t, "grpc", span.Subtype)
+	assert.Empty(t, span.Labels)
+	assert.Equal(t, &model.Destination{
+		Address: "10.20.30.40",
+		Port:    123,
+	}, span.Destination)
+	assert.Equal(t, &model.DestinationService{
+		Type:     "external",
+		Name:     "10.20.30.40:123",
+		Resource: "10.20.30.40:123",
+	}, span.DestinationService)
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {

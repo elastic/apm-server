@@ -69,7 +69,9 @@ Traces are written to `traces-apm.*` indices.
 |agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |child.id|The ID(s) of the child event(s).|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|client.domain|Client domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |client.ip|IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|client.port|Port of the client.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.account.id|Cloud account ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.account.name|Cloud account name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.availability\_zone|Cloud availability zone name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -128,7 +130,9 @@ Traces are written to `traces-apm.*` indices.
 |service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |session.id|The ID of the session to which the event belongs.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |session.sequence|The sequence number of the event within the session to which the event belongs.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
+|source.domain|Source domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|source.port|Port of the source.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |span.action|The specific kind of event within the sub-type represented by the span (e.g. query, connect)|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.db.link|Database link.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |span.db.rows\_affected|Number of rows affected by the database statement.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -418,7 +422,9 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|client.domain|Client domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |client.ip|IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|client.port|Port of the client.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.account.id|Cloud account ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.account.name|Cloud account name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.availability\_zone|Cloud availability zone name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -468,7 +474,9 @@ Metrics are written to `metrics-apm.app.*`, `metrics-apm.internal.*`, and `metri
 |service.runtime.name|Name of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.runtime.version|Version of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|source.domain|Source domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|source.port|Port of the source.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |system.cpu.total.norm.pct|The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.|scaled\_float|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.memory.actual.free|Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to \`system.memory.free\`.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |system.memory.total|Total memory.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
@@ -581,7 +589,9 @@ Logs are written to `logs-apm.error.*` indices.
 |agent.ephemeral\_id|The Ephemeral ID identifies a running process.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.name|Name of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |agent.version|Version of the agent used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|client.domain|Client domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |client.ip|IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|client.port|Port of the client.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.account.id|Cloud account ID|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.account.name|Cloud account name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |cloud.availability\_zone|Cloud availability zone name|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
@@ -650,7 +660,9 @@ Logs are written to `logs-apm.error.*` indices.
 |service.runtime.name|Name of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.runtime.version|Version of the runtime used.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |service.version|Version of the service emitting this event.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|source.domain|Source domain.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |source.ip|IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.|ip|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
+|source.port|Port of the source.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |timestamp.us|Timestamp of the event in microseconds since Unix epoch.|long|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-no.png)  |
 |trace.id|The ID of the trace to which the event belongs to.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
 |transaction.id|The transaction ID.|keyword|  ![](https://doc-icons.s3.us-east-2.amazonaws.com/icon-yes.png)  |
