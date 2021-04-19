@@ -10,10 +10,19 @@
   type: keyword
   description: |
     Version of the agent used.
+- name: client.domain
+  type: keyword
+  description: |
+    Client domain.
+  ignore_above: 1024
 - name: client.ip
   type: ip
   description: |
     IP address of the client of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+- name: client.port
+  type: long
+  description: |
+    Port of the client.
 - name: cloud.account.id
   level: extended
   type: keyword
@@ -153,10 +162,19 @@
   type: keyword
   description: |
     Version of the service emitting this event.
+- name: source.domain
+  type: keyword
+  description: |
+    Source domain.
+  ignore_above: 1024
 - name: source.ip
   type: ip
   description: |
     IP address of the source of a recorded event. This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+- name: source.port
+  type: long
+  description: |
+    Port of the source.
 - name: user.email
   type: keyword
   description: |
