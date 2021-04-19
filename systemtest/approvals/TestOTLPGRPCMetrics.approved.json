@@ -3,8 +3,8 @@
         {
             "@timestamp": "dynamic",
             "agent": {
-                "name": "otlp",
-                "version": "unknown"
+                "name": "opentelemetry/go",
+                "version": "0.19.0"
             },
             "ecs": {
                 "version": "dynamic"
@@ -28,9 +28,9 @@
             },
             "service": {
                 "language": {
-                    "name": "unknown"
+                    "name": "go"
                 },
-                "name": "unknown"
+                "name": "unknown_service_systemtest_test"
             }
         }
     ]
