@@ -8,9 +8,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"time"
 
 	"github.com/elastic/apm-server/elasticsearch"
@@ -101,85 +103,161 @@ type channelClientRoundTripper struct {
 }
 
 func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	type traceIDDocument struct {
-		Observer struct {
-			ID string `json:"id"`
-		} `json:"observer"`
-
-		Trace struct {
-			ID string `json:"id"`
-		} `json:"trace"`
-	}
-	type traceIDDocumentHit struct {
-		SeqNo       int64           `json:"_seq_no,omitempty"`
-		PrimaryTerm int64           `json:"_primary_term,omitempty"`
-		Source      traceIDDocument `json:"_source"`
-	}
-
-	recorder := httptest.NewRecorder()
+	var handler func(*http.Request, *httptest.ResponseRecorder) error
 	switch r.Method {
+	case "DELETE":
+		if strings.HasSuffix(r.URL.Path, "/_pit") {
+			handler = rt.roundTripClosePIT
+		}
 	case "GET":
-		// Subscribe
-		var result struct {
-			Hits struct {
-				Hits []traceIDDocumentHit
-			}
+		if strings.HasSuffix(r.URL.Path, "/_stats") {
+			handler = rt.roundTripStats
+		} else if strings.HasSuffix(r.URL.Path, "/_search") {
+			handler = rt.roundTripSearch
 		}
-		if rt.sub != nil {
-			ctx, cancel := context.WithTimeout(r.Context(), 50*time.Millisecond)
-			defer cancel()
-			for {
-				var traceID string
-				err := ctx.Err()
-				if err == nil {
-					traceID, err = rt.sub.Subscribe(ctx)
-				}
-				if err == context.DeadlineExceeded {
-					break
-				} else if err != nil {
-					return nil, err
-				}
-				rt.seqno++
-				hit := traceIDDocumentHit{SeqNo: rt.seqno, PrimaryTerm: 1}
-				hit.Source.Trace.ID = traceID
-				hit.Source.Observer.ID = "👀"
-				result.Hits.Hits = append(result.Hits.Hits, hit)
-			}
-		}
-		if err := json.NewEncoder(recorder).Encode(result); err != nil {
-			return nil, err
-		}
-		recorder.Flush()
 	case "POST":
-		// Publish
-		var results []map[string]elasticsearch.BulkIndexerResponseItem
-		dec := json.NewDecoder(r.Body)
-		for {
-			var m map[string]interface{}
-			if err := dec.Decode(&m); err != nil {
-				if err == io.EOF {
-					break
-				}
-				return nil, err
-			}
-			var action string
-			for action = range m {
-			}
-			var doc traceIDDocument
-			if err := dec.Decode(&doc); err != nil {
-				return nil, err
-			}
-			if rt.pub != nil {
-				if err := rt.pub.Publish(r.Context(), doc.Trace.ID); err != nil {
-					return nil, err
-				}
-			}
-			result := elasticsearch.BulkIndexerResponseItem{Status: 200}
-			results = append(results, map[string]elasticsearch.BulkIndexerResponseItem{action: result})
+		if strings.HasSuffix(r.URL.Path, "/_pit") {
+			handler = rt.roundTripOpenPIT
+		} else if strings.HasSuffix(r.URL.Path, "/_bulk") {
+			handler = rt.roundTripBulk
 		}
-		if err := json.NewEncoder(recorder).Encode(results); err != nil {
-			return nil, err
-		}
+	}
+	if handler == nil {
+		fmt.Println(r.URL.Path)
+		panic(fmt.Errorf("unhandled path %q", r.URL.Path))
+	}
+	recorder := httptest.NewRecorder()
+	if err := handler(r, recorder); err != nil {
+		return nil, err
 	}
 	return recorder.Result(), nil
+}
+
+func (rt *channelClientRoundTripper) roundTripStats(r *http.Request, recorder *httptest.ResponseRecorder) error {
+	type shardRouting struct {
+		Primary bool `json:"primary"`
+	}
+	type shardSeqNo struct {
+		GlobalCheckpoint int64 `json:"global_checkpoint"`
+	}
+	type shardStats struct {
+		Routing shardRouting `json:"routing"`
+		SeqNo   shardSeqNo   `json:"seq_no"`
+	}
+	type indexStats struct {
+		Shards map[string][]shardStats `json:"shards"`
+	}
+	var result struct {
+		Indices map[string]indexStats `json:"indices"`
+	}
+	result.Indices = map[string]indexStats{
+		"index_name": {
+			Shards: map[string][]shardStats{
+				"0": []shardStats{{
+					Routing: shardRouting{Primary: true},
+					SeqNo:   shardSeqNo{GlobalCheckpoint: 1<<63 - 1},
+				}},
+			},
+		},
+	}
+	if err := json.NewEncoder(recorder).Encode(result); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rt *channelClientRoundTripper) roundTripOpenPIT(r *http.Request, recorder *httptest.ResponseRecorder) error {
+	var result struct {
+		PIT string `json:"pit"`
+	}
+	result.PIT = "pit_id"
+	if err := json.NewEncoder(recorder).Encode(result); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rt *channelClientRoundTripper) roundTripClosePIT(r *http.Request, recorder *httptest.ResponseRecorder) error {
+	return nil
+}
+
+func (rt *channelClientRoundTripper) roundTripSearch(r *http.Request, recorder *httptest.ResponseRecorder) error {
+	var result struct {
+		Hits struct {
+			Hits []traceIDDocumentHit
+		}
+	}
+	if rt.sub != nil {
+		ctx, cancel := context.WithTimeout(r.Context(), 50*time.Millisecond)
+		defer cancel()
+		for {
+			var traceID string
+			err := ctx.Err()
+			if err == nil {
+				traceID, err = rt.sub.Subscribe(ctx)
+			}
+			if err == context.DeadlineExceeded {
+				break
+			} else if err != nil {
+				return err
+			}
+			rt.seqno++
+			hit := traceIDDocumentHit{SeqNo: rt.seqno}
+			hit.Source.Trace.ID = traceID
+			hit.Source.Observer.ID = "👀"
+			result.Hits.Hits = append(result.Hits.Hits, hit)
+		}
+	}
+	if err := json.NewEncoder(recorder).Encode(result); err != nil {
+		return err
+	}
+	recorder.Flush()
+	return nil
+}
+
+func (rt *channelClientRoundTripper) roundTripBulk(r *http.Request, recorder *httptest.ResponseRecorder) error {
+	var results []map[string]elasticsearch.BulkIndexerResponseItem
+	dec := json.NewDecoder(r.Body)
+	for {
+		var m map[string]interface{}
+		if err := dec.Decode(&m); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		var action string
+		for action = range m {
+		}
+		var doc traceIDDocument
+		if err := dec.Decode(&doc); err != nil {
+			return err
+		}
+		if rt.pub != nil {
+			if err := rt.pub.Publish(r.Context(), doc.Trace.ID); err != nil {
+				return err
+			}
+		}
+		result := elasticsearch.BulkIndexerResponseItem{Status: 200}
+		results = append(results, map[string]elasticsearch.BulkIndexerResponseItem{action: result})
+	}
+	if err := json.NewEncoder(recorder).Encode(results); err != nil {
+		return err
+	}
+	return nil
+}
+
+type traceIDDocument struct {
+	Observer struct {
+		ID string `json:"id"`
+	} `json:"observer"`
+
+	Trace struct {
+		ID string `json:"id"`
+	} `json:"trace"`
+}
+
+type traceIDDocumentHit struct {
+	SeqNo  int64           `json:"_seq_no,omitempty"`
+	Source traceIDDocument `json:"_source"`
 }

@@ -9,12 +9,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/fastjson"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -23,6 +25,8 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 	logs "github.com/elastic/apm-server/log"
 )
+
+var errIndexNotFound = errors.New("index not found")
 
 // Pubsub provides a means of publishing and subscribing to sampled trace IDs,
 // using Elasticsearch for temporary storage.
@@ -56,7 +60,10 @@ func New(config Config) (*Pubsub, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Pubsub{config: config, indexer: indexer}, nil
+	return &Pubsub{
+		config:  config,
+		indexer: indexer,
+	}, nil
 }
 
 // PublishSampledTraceIDs bulk indexes traceIDs into Elasticsearch.
@@ -86,49 +93,114 @@ func (p *Pubsub) SubscribeSampledTraceIDs(ctx context.Context, traceIDs chan<- s
 	ticker := time.NewTicker(p.config.SearchInterval)
 	defer ticker.Stop()
 
-	// NOTE(axw) we should use the Changes API when it is implemented:
-	// https://github.com/elastic/elasticsearch/issues/1242
-
-	var lastSeqNo int64 = 0
-	var lastPrimaryTerm int64 = -1
+	observedSeqnos := make(map[string]int64)
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
 		}
-		for {
-			// Keep searching until there are no more new trace IDs.
-			n, err := p.searchTraceIDs(ctx, traceIDs, &lastSeqNo, &lastPrimaryTerm)
-			if err != nil {
-				// Errors may occur due to rate limiting, or while the index is
-				// still being created, so just log and continue.
-				p.config.Logger.With(logp.Error(err)).Debug("error searching for trace IDs")
-				break
-			}
-			if n == 0 {
-				// No more results, go back to sleep.
-				break
-			}
+		if err := p.searchTraceIDs(ctx, traceIDs, observedSeqnos); err != nil {
+			// Errors may occur due to rate limiting, or while the index is
+			// still being created, so just log and continue.
+			p.config.Logger.With(logp.Error(err)).Debug("error searching for trace IDs")
 		}
 	}
 }
 
-// searchTraceIDs searches for new sampled trace IDs (after lastPrimaryTerm and lastSeqNo),
-// sending them to the out channel and returning the number of trace IDs sent.
-func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, lastSeqNo, lastPrimaryTerm *int64) (int, error) {
+// searchTraceIDs searches the configured data stream for new sampled trace IDs, sending them to the out channel.
+//
+// searchTraceIDs works by fetching the global checkpoint for each index backing the data stream, and comparing
+// this to the most recently observed sequence number for the indices. If the global checkpoint is greater, then
+// we search through every document with a sequence number greater than the most recently observed, and less than
+// or equal to the global checkpoint.
+//
+// Searches may not return everything up to the global checkpoint, depending on whether the index has been
+// refreshed since the global checkpoint was last updated. As such, we will only progress the locally observed
+// sequence number to the greatest _seq_no returned in the search, and we will search for the remaining documents
+// in the next period. We intentionally do not force-refresh as this is expensive, and our latency requirements
+// are not that strict, and we want to limit required privileges.
+func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observedSeqnos map[string]int64) error {
+	globalCheckpoints, err := getGlobalCheckpoints(ctx, p.config.Client, p.config.DataStream.String())
+	if err != nil {
+		return err
+	}
+
+	// Remove old indices from the observed _seq_no map.
+	for index := range observedSeqnos {
+		if _, ok := globalCheckpoints[index]; !ok {
+			delete(observedSeqnos, index)
+		}
+	}
+
+	g, ctx := errgroup.WithContext(ctx)
+	for index, globalCheckpoint := range globalCheckpoints {
+		observedSeqno, ok := observedSeqnos[index]
+		if !ok {
+			observedSeqno = -1
+		} else if globalCheckpoint <= observedSeqno {
+			continue
+		}
+		index, globalCheckpoint := index, globalCheckpoint // copy for closure
+		g.Go(func() error {
+			maxSeqno, err := p.searchIndexTraceIDs(ctx, out, index, observedSeqno, globalCheckpoint)
+			if err != nil {
+				return err
+			}
+			if maxSeqno > observedSeqno {
+				observedSeqno = maxSeqno
+			}
+			observedSeqnos[index] = observedSeqno
+			return nil
+		})
+	}
+	return g.Wait()
+}
+
+// searchIndexTraceIDs searches index sampled trace IDs, whose documents have a _seq_no
+// greater than minSeqno and less than or equal to maxSeqno, and returns the greatest
+// observed _seq_no. Sampled trace IDs are sent to out.
+func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, index string, minSeqno, maxSeqno int64) (int64, error) {
+	keepAlive := "1m"
+	pitID, err := p.openPIT(ctx, index, keepAlive)
+	if err != nil {
+		if err == errIndexNotFound {
+			// Index not found, nothing to do.
+			return -1, nil
+		}
+		return -1, err
+	}
+	defer p.closePIT(ctx, pitID)
+
+	// Include only documents after the old global checkpoint,
+	// and up to and including the new global checkpoint.
+	filters := []map[string]interface{}{{
+		"range": map[string]interface{}{
+			"_seq_no": map[string]interface{}{
+				"lte": maxSeqno,
+			},
+		},
+	}}
+	if minSeqno >= 0 {
+		filters = append(filters, map[string]interface{}{
+			"range": map[string]interface{}{
+				"_seq_no": map[string]interface{}{
+					"gt": minSeqno,
+				},
+			},
+		})
+	}
+
+	pit := map[string]interface{}{"id": pitID, "keep_alive": keepAlive}
 	searchBody := map[string]interface{}{
+		"pit":                 pit,
 		"size":                1000,
+		"sort":                []interface{}{map[string]interface{}{"_seq_no": "asc"}},
 		"seq_no_primary_term": true,
-
-		// Search from the most recently observed sequence number,
-		// in case _primary_term has increased and _seq_no is reused.
-		"sort":         []interface{}{map[string]interface{}{"_seq_no": "asc"}},
-		"search_after": []interface{}{*lastSeqNo - 1},
-
+		"track_total_hits":    false,
 		"query": map[string]interface{}{
-			// Filter out local observations.
 			"bool": map[string]interface{}{
+				// Filter out local observations.
 				"must_not": map[string]interface{}{
 					"term": map[string]interface{}{
 						"observer.id": map[string]interface{}{
@@ -136,64 +208,105 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, lastSeqN
 						},
 					},
 				},
+				"filter": filters,
 			},
 		},
 	}
 
-	req := esapi.SearchRequest{
-		Index: []string{p.config.DataStream.String()},
-		Body:  esutil.NewJSONReader(searchBody),
+	var maxObservedSeqno int64 = -1
+	for maxObservedSeqno < maxSeqno {
+		var result struct {
+			PITID string `json:"pit_id"`
+			Hits  struct {
+				Hits []struct {
+					Seqno  int64           `json:"_seq_no"`
+					Source traceIDDocument `json:"_source"`
+					Sort   []interface{}   `json:"sort"`
+				}
+			}
+		}
+		if err := p.doSearchRequest(ctx, esutil.NewJSONReader(searchBody), &result); err != nil {
+			return -1, err
+		}
+		if len(result.Hits.Hits) == 0 {
+			break
+		}
+		for _, hit := range result.Hits.Hits {
+			select {
+			case <-ctx.Done():
+				return -1, ctx.Err()
+			case out <- hit.Source.Trace.ID:
+			}
+		}
+		// Update search_after and PIT for the next request.
+		n := len(result.Hits.Hits)
+		maxObservedSeqno = result.Hits.Hits[n-1].Seqno
+		searchBody["search_after"] = result.Hits.Hits[n-1].Sort
+		pit["id"] = result.PITID
 	}
-	resp, err := req.Do(ctx, p.config.Client)
+	return maxObservedSeqno, nil
+}
+
+func (p *Pubsub) doSearchRequest(ctx context.Context, body io.Reader, out interface{}) error {
+	resp, err := esapi.SearchRequest{Body: body}.Do(ctx, p.config.Client)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
-		switch resp.StatusCode {
-		case http.StatusNotFound:
-			return 0, nil
+		message, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("search request failed: %s", message)
+	}
+	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+// openPIT opens a point-in-time for index, returning its ID.
+//
+// openPIT returns errIndexNotFound if the index does not exist.
+func (p *Pubsub) openPIT(ctx context.Context, index, keepAlive string) (string, error) {
+	resp, err := esapi.OpenPointInTimeRequest{
+		Index:     []string{index},
+		KeepAlive: keepAlive,
+	}.Do(ctx, p.config.Client)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.IsError() {
+		if resp.StatusCode == http.StatusNotFound {
+			// Index may have been deleted by ILM.
+			return "", errIndexNotFound
 		}
 		message, _ := ioutil.ReadAll(resp.Body)
-		return 0, fmt.Errorf("search request failed: %s", message)
+		return "", fmt.Errorf("opening PIT failed: %s", message)
 	}
+	var pit struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&pit); err != nil {
+		return "", err
+	}
+	return pit.ID, nil
+}
 
-	var result struct {
-		Hits struct {
-			Hits []struct {
-				SeqNo       int64           `json:"_seq_no,omitempty"`
-				PrimaryTerm int64           `json:"_primary_term,omitempty"`
-				Source      traceIDDocument `json:"_source"`
-			}
-		}
+// closePIT closes the point-in-time with id.
+func (p *Pubsub) closePIT(ctx context.Context, id string) error {
+	type closePITBody struct {
+		ID string `json:"id"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, err
+	resp, err := esapi.ClosePointInTimeRequest{
+		Body: esutil.NewJSONReader(closePITBody{ID: id}),
+	}.Do(ctx, p.config.Client)
+	if err != nil {
+		return err
 	}
-	if len(result.Hits.Hits) == 0 {
-		return 0, nil
+	defer resp.Body.Close()
+	if resp.IsError() {
+		message, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("closing PIT failed: %s", message)
 	}
-
-	var n int
-	maxPrimaryTerm := *lastPrimaryTerm
-	for _, hit := range result.Hits.Hits {
-		if hit.SeqNo < *lastSeqNo || (hit.SeqNo == *lastSeqNo && hit.PrimaryTerm <= *lastPrimaryTerm) {
-			continue
-		}
-		select {
-		case <-ctx.Done():
-			return n, ctx.Err()
-		case out <- hit.Source.Trace.ID:
-			n++
-		}
-		if hit.PrimaryTerm > maxPrimaryTerm {
-			maxPrimaryTerm = hit.PrimaryTerm
-		}
-	}
-	// we sort by hit.SeqNo, but not _primary_term (you can't?)
-	*lastSeqNo = result.Hits.Hits[len(result.Hits.Hits)-1].SeqNo
-	*lastPrimaryTerm = maxPrimaryTerm
-	return n, nil
+	return nil
 }
 
 func (p *Pubsub) marshalTraceIDDocument(w *fastjson.Writer, traceID string, timestamp time.Time, dataStream DataStreamConfig) {
@@ -228,17 +341,3 @@ type traceIDDocument struct {
 		ID string `json:"id"`
 	} `json:"trace"`
 }
-
-/*
-func (d *traceIDDocument) MarshalFastJSON(w *fastjson.Writer) error {
-	w.RawString(`{"@timestamp":"`)
-	w.Time(d.Timestamp, time.RFC3339Nano)
-	w.RawString(`","observer":{"id":`)
-	w.String(d.Observer.ID)
-	w.RawString(`},`)
-	w.RawString(`"trace":{"id":`)
-	w.String(d.Trace.ID)
-	w.RawString(`}}`)
-	return nil
-}
-*/
