@@ -28,15 +28,23 @@ import (
 
 func TestClientFields(t *testing.T) {
 	for name, tc := range map[string]struct {
-		ip  string
-		out common.MapStr
+		domain string
+		ip     net.IP
+		port   int
+		out    common.MapStr
 	}{
-		"Empty": {ip: "", out: nil},
-		"IPv4":  {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
-		"IPv6":  {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
+		"Empty":  {out: nil},
+		"IPv4":   {ip: net.ParseIP("192.0.0.1"), out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv6":   {ip: net.ParseIP("2001:db8::68"), out: common.MapStr{"ip": "2001:db8::68"}},
+		"Port":   {port: 123, out: common.MapStr{"port": 123}},
+		"Domain": {domain: "testing.invalid", out: common.MapStr{"domain": "testing.invalid"}},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c := Client{IP: net.ParseIP(tc.ip)}
+			c := Client{
+				Domain: tc.domain,
+				IP:     tc.ip,
+				Port:   tc.port,
+			}
 			assert.Equal(t, tc.out, c.fields())
 		})
 	}
