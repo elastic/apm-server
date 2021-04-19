@@ -42,3 +42,9 @@ https://github.com/elastic/apm-server/compare/v7.12.1\...v7.13.0[View commits]
 * API Key auth is no longer considered experimental {pull}5091[5091]
 * Set gRPC status code to `DEADLINE_EXCEEDED` on request timeout {pull}5089[5089]
 * Add support for OpenTelemetry RPC semantic conventions {pull}5074[5074]
+<<<<<<< HEAD:changelogs/7.13.asciidoc
+=======
+
+[float]
+==== Deprecated
+>>>>>>> a32bb6291... processor/otel: add support for rpc conventions (#5074):changelogs/head.asciidoc
