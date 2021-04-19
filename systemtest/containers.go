@@ -43,7 +43,11 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
-const startContainersTimeout = 5 * time.Minute
+const (
+	startContainersTimeout = 5 * time.Minute
+
+	defaultFleetServerPort = "8220"
+)
 
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
 //
@@ -91,9 +95,7 @@ func NewUnstartedElasticsearchContainer() (*ElasticsearchContainer, error) {
 		Image:      container.Image,
 		AutoRemove: true,
 	}
-	waitFor := wait.ForHTTP("/")
-	waitFor.Port = "9200/tcp"
-	req.WaitingFor = waitFor
+	req.WaitingFor = wait.ForHTTP("/").WithPort("9200/tcp")
 
 	for port := range containerDetails.Config.ExposedPorts {
 		req.ExposedPorts = append(req.ExposedPorts, string(port))
@@ -252,30 +254,30 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 	defer docker.Close()
 
-	kibanaContainer, err := stackContainerInfo(context.Background(), docker, "kibana")
+	esContainer, err := stackContainerInfo(context.Background(), docker, "elasticsearch")
 	if err != nil {
 		return nil, err
 	}
-	kibanaContainerDetails, err := docker.ContainerInspect(context.Background(), kibanaContainer.ID)
+	esContainerDetails, err := docker.ContainerInspect(context.Background(), esContainer.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	var kibanaIPAddress string
+	var esIPAddress string
 	var networks []string
-	for network, settings := range kibanaContainerDetails.NetworkSettings.Networks {
+	for network, settings := range esContainerDetails.NetworkSettings.Networks {
 		networks = append(networks, network)
-		if kibanaIPAddress == "" && settings.IPAddress != "" {
-			kibanaIPAddress = settings.IPAddress
+		if esIPAddress == "" && settings.IPAddress != "" {
+			esIPAddress = settings.IPAddress
 		}
 	}
-	kibanaURL := &url.URL{
+	esURL := &url.URL{
 		Scheme: "http",
-		Host:   net.JoinHostPort(kibanaIPAddress, apmservertest.KibanaPort()),
+		Host:   net.JoinHostPort(esIPAddress, apmservertest.ElasticsearchPort()),
 	}
 
-	// Use the same stack version as used for Kibana.
-	agentImageVersion := kibanaContainer.Image[strings.LastIndex(kibanaContainer.Image, ":")+1:]
+	// Use the same stack version as used for Elasticsearch.
+	agentImageVersion := esContainer.Image[strings.LastIndex(esContainer.Image, ":")+1:]
 	agentImage := "docker.elastic.co/beats/elastic-agent:" + agentImageVersion
 	if err := pullDockerImage(context.Background(), docker, agentImage); err != nil {
 		return nil, err
@@ -293,11 +295,6 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		AutoRemove: true,
 		Networks:   networks,
 		Env: map[string]string{
-			"KIBANA_HOST": kibanaURL.String(),
-
-			// TODO(axw) remove once https://github.com/elastic/elastic-agent-client/issues/20 is fixed
-			"GODEBUG": "x509ignoreCN=0",
-
 			// NOTE(axw) because we bind-mount the apm-server artifacts in, they end up owned by the
 			// current user rather than root. Disable Beats's strict permission checks to avoid resulting
 			// complaints, as they're irrelevant to these system tests.
@@ -307,6 +304,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	return &ElasticAgentContainer{
 		request:          req,
 		installDir:       agentInstallDir,
+		elasticsearchURL: esURL.String(),
 		StackVersion:     agentImageVersion,
 		BindMountInstall: make(map[string]string),
 	}, nil
@@ -314,8 +312,9 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 
 // ElasticAgentContainer represents an ephemeral Elastic Agent container.
 type ElasticAgentContainer struct {
-	container testcontainers.Container
-	request   testcontainers.ContainerRequest
+	container        testcontainers.Container
+	request          testcontainers.ContainerRequest
+	elasticsearchURL string // used by Fleet Server only
 
 	// installDir holds the location of the "install" directory inside
 	// the Elastic Agent container.
@@ -324,6 +323,10 @@ type ElasticAgentContainer struct {
 	// and can be used to anticipate the location into which artifacts
 	// can be bind-mounted.
 	installDir string
+
+	// FleetServer controls whether this Elastic Agent bootstraps
+	// Fleet Server.
+	FleetServer bool
 
 	// StackVersion holds the stack version of the container image,
 	// e.g. 8.0.0-SNAPSHOT.
@@ -334,6 +337,12 @@ type ElasticAgentContainer struct {
 
 	// WaitingFor holds an optional wait strategy.
 	WaitingFor wait.Strategy
+
+	// FleetServerURL holds the Fleet Server URL to enroll into.
+	//
+	// This will be populated by Start if FleetServer is true, using
+	// one of the container's network aliases.
+	FleetServerURL string
 
 	// Addrs holds the "host:port" address for each exposed port.
 	// This will be populated by Start.
@@ -361,14 +370,27 @@ func (c *ElasticAgentContainer) Start() error {
 	defer cancel()
 
 	// Update request from user-definable fields.
-	if c.FleetEnrollmentToken != "" {
+	if c.FleetServer {
+		c.request.Env["FLEET_SERVER_ENABLE"] = "1"
+		c.request.Env["FLEET_SERVER_HOST"] = "0.0.0.0"
+		c.request.Env["FLEET_SERVER_PORT"] = defaultFleetServerPort
+		c.request.Env["FLEET_SERVER_INSECURE_HTTP"] = "1" // expose Fleet Server over HTTP
+		c.request.Env["FLEET_SERVER_ELASTICSEARCH_HOST"] = c.elasticsearchURL
+		c.request.Env["FLEET_SERVER_ELASTICSEARCH_USERNAME"] = adminElasticsearchUser
+		c.request.Env["FLEET_SERVER_ELASTICSEARCH_PASSWORD"] = adminElasticsearchPass
+
+		c.request.WaitingFor = wait.ForHTTP("/api/status").WithPort(defaultFleetServerPort + "/tcp")
+		c.request.ExposedPorts = []string{defaultFleetServerPort}
+	} else if c.FleetEnrollmentToken != "" {
 		c.request.Env["FLEET_ENROLL"] = "1"
 		c.request.Env["FLEET_ENROLLMENT_TOKEN"] = c.FleetEnrollmentToken
 		c.request.Env["FLEET_INSECURE"] = "1"
-		c.request.Env["FLEET_URL"] = "http://kibana:5601"
+		c.request.Env["FLEET_URL"] = c.FleetServerURL
 	}
-	c.request.ExposedPorts = c.ExposedPorts
-	c.request.WaitingFor = c.WaitingFor
+	c.request.ExposedPorts = append(c.request.ExposedPorts, c.ExposedPorts...)
+	if c.WaitingFor != nil {
+		c.request.WaitingFor = c.WaitingFor
+	}
 	c.request.BindMounts = map[string]string{}
 	for source, target := range c.BindMountInstall {
 		c.request.BindMounts[source] = path.Join(c.installDir, target)
@@ -390,15 +412,33 @@ func (c *ElasticAgentContainer) Start() error {
 		return err
 	}
 	if len(ports) > 0 {
-		ip, err := container.Host(ctx)
+		hostIP, err := container.Host(ctx)
 		if err != nil {
 			return err
 		}
 		for _, portbindings := range ports {
 			for _, pb := range portbindings {
-				c.Addrs = append(c.Addrs, net.JoinHostPort(ip, pb.HostPort))
+				c.Addrs = append(c.Addrs, net.JoinHostPort(hostIP, pb.HostPort))
 			}
 		}
+	}
+	if c.FleetServer {
+		networkAliases, err := container.NetworkAliases(ctx)
+		if err != nil {
+			return err
+		}
+		var networkAlias string
+		for _, networkAliases := range networkAliases {
+			if len(networkAliases) > 0 {
+				networkAlias = networkAliases[0]
+				break
+			}
+		}
+		if networkAlias == "" {
+			return errors.New("no network alias found")
+		}
+		fleetServerURL := &url.URL{Scheme: "http", Host: net.JoinHostPort(networkAlias, defaultFleetServerPort)}
+		c.FleetServerURL = fleetServerURL.String()
 	}
 
 	c.container = container
