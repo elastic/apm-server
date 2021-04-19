@@ -142,6 +142,8 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("parent"),
 			tests.Group("trace"),
 			tests.Group("user_agent"),
+			tests.Group("client"),
+			tests.Group("source"),
 			tests.Group("destination"),
 		),
 		[]tests.FieldTemplateMapping{

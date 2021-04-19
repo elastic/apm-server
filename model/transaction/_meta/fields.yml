@@ -506,6 +506,14 @@
       dynamic: false
       type: group
       fields:
+
+      - name: domain
+        type: keyword
+        ignore_above: 1024
+        description: >
+          Client domain.
+        overwrite: true
+
       - name: ip
         type: ip
         description: >
@@ -513,15 +521,35 @@
           This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
         overwrite: true
 
+      - name: port
+        type: long
+        description: >
+          Port of the client.
+        overwrite: true
+
     - name: source
       dynamic: false
       type: group
       fields:
+
+      - name: domain
+        type: keyword
+        ignore_above: 1024
+        description: >
+          Source domain.
+        overwrite: true
+
       - name: ip
         type: ip
         description: >
           IP address of the source of a recorded event.
           This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+        overwrite: true
+
+      - name: port
+        type: long
+        description: >
+          Port of the source.
         overwrite: true
 
     - name: destination
