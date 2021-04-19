@@ -77,7 +77,6 @@ services:
       XPACK_SECURITY_ENCRYPTIONKEY: "fhjskloppd678ehkdfdlliverpoolfcr"
       XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "fhjskloppd678ehkdfdlliverpoolfcr"
       XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST: "http://elasticsearch:9200"
-      XPACK_FLEET_AGENTS_KIBANA_HOST: "http://kibana:5601"
       XPACK_FLEET_AGENTS_TLSCHECKDISABLED: "true"
       XPACK_FLEET_REGISTRYURL: "http://package-registry:8080"
     depends_on:
