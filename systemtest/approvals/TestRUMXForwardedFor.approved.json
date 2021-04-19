@@ -65,8 +65,7 @@
             },
             "user_agent": {
                 "device": {
-                    "name": "Other",
-                    "type": "Other"
+                    "name": "Other"
                 },
                 "name": "Go-http-client",
                 "original": "Go-http-client/1.1",
