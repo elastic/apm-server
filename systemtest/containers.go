@@ -19,6 +19,7 @@ package systemtest
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -372,14 +373,15 @@ func (c *ElasticAgentContainer) Start() error {
 	// Update request from user-definable fields.
 	if c.FleetServer {
 		c.request.Env["FLEET_SERVER_ENABLE"] = "1"
-		c.request.Env["FLEET_SERVER_HOST"] = "0.0.0.0"
-		c.request.Env["FLEET_SERVER_PORT"] = defaultFleetServerPort
-		c.request.Env["FLEET_SERVER_INSECURE_HTTP"] = "1" // expose Fleet Server over HTTP
 		c.request.Env["FLEET_SERVER_ELASTICSEARCH_HOST"] = c.elasticsearchURL
 		c.request.Env["FLEET_SERVER_ELASTICSEARCH_USERNAME"] = adminElasticsearchUser
 		c.request.Env["FLEET_SERVER_ELASTICSEARCH_PASSWORD"] = adminElasticsearchPass
 
-		c.request.WaitingFor = wait.ForHTTP("/api/status").WithPort(defaultFleetServerPort + "/tcp")
+		// Wait for API status to report healthy.
+		c.request.WaitingFor = wait.ForHTTP("/api/status").
+			WithPort(defaultFleetServerPort + "/tcp").
+			WithTLS(true).WithAllowInsecure(true).
+			WithResponseMatcher(matchFleetServerAPIStatusHealthy)
 		c.request.ExposedPorts = []string{defaultFleetServerPort}
 	} else if c.FleetEnrollmentToken != "" {
 		c.request.Env["FLEET_ENROLL"] = "1"
@@ -437,7 +439,7 @@ func (c *ElasticAgentContainer) Start() error {
 		if networkAlias == "" {
 			return errors.New("no network alias found")
 		}
-		fleetServerURL := &url.URL{Scheme: "http", Host: net.JoinHostPort(networkAlias, defaultFleetServerPort)}
+		fleetServerURL := &url.URL{Scheme: "https", Host: net.JoinHostPort(networkAlias, defaultFleetServerPort)}
 		c.FleetServerURL = fleetServerURL.String()
 	}
 
@@ -471,4 +473,16 @@ func pullDockerImage(ctx context.Context, docker *client.Client, imageRef string
 	defer rc.Close()
 	_, err = io.Copy(ioutil.Discard, rc)
 	return err
+}
+
+func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
+	var status struct {
+		Name    string `json:"name"`
+		Version string `json:"version"`
+		Status  string `json:"status"`
+	}
+	if err := json.NewDecoder(r).Decode(&status); err != nil {
+		return false
+	}
+	return status.Status == "HEALTHY"
 }
