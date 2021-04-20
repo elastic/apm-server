@@ -3,6 +3,19 @@
 
 https://github.com/elastic/apm-server/compare/7.11\...7.12[View commits]
 
+* <<release-notes-7.12.1>>
+* <<release-notes-7.12.0>>
+
+[float]
+[[release-notes-7.12.1]]
+=== APM Server version 7.12.1
+
+https://github.com/elastic/apm-server/compare/v7.12.0\...v7.12.1[View commits]
+
+[float]
+==== Added
+* Upgrade Go to 1.15.9 {pull}5100[5100]
+
 [float]
 [[release-notes-7.12.0]]
 == APM Server version 7.12.0
