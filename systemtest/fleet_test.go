@@ -109,10 +109,9 @@ func TestFleetIntegration(t *testing.T) {
 
 	// Elastic Agent has started apm-server. Connect to apm-server and send some data,
 	// and make sure it gets indexed into a data stream.
-	require.Len(t, agent.Addrs, 1)
 	transport, err := transport.NewHTTPTransport()
 	require.NoError(t, err)
-	transport.SetServerURL(&url.URL{Scheme: "http", Host: agent.Addrs[0]})
+	transport.SetServerURL(&url.URL{Scheme: "http", Host: agent.Addrs["8200"]})
 	tracer, err := apm.NewTracerOptions(apm.TracerOptions{Transport: transport})
 	require.NoError(t, err)
 	defer tracer.Close()
