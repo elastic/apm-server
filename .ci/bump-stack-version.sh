@@ -23,7 +23,7 @@ ${SED} -E -e "s#(image: docker\.elastic\.co/.*):[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]
 echo "Commit changes"
 git config user.email
 git checkout -b "update-stack-version-$(date "+%Y%m%d%H%M%S")"
-git add testing/environments/snapshot-oss.yml testing/environments/snapshot.yml
+git add docker-compose.yml
 git commit -m "bump stack version ${VERSION}"
 git --no-pager log -1
 
