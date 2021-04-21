@@ -37,3 +37,12 @@ pull_request_rules:
         branches:
           - "7.12"
         title: "[7.12] {{ title }} (backport #{{ number }})"
+  - name: Automatic squash and merge with success checks and the file docker-compose.yml is modified.
+    conditions:
+      - check-success=apm-ci/pr-merge
+      - label=automation
+      - files=docker-compose.yml
+    actions:
+      merge:
+        method: squash
+        strict: smart+fasttrack
