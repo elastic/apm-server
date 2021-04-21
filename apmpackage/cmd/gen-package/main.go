@@ -32,6 +32,7 @@ var versionMapping = map[string]string{
 	"7.11": "0.1.0",
 	"7.12": "0.1.0",
 	"7.13": "0.2.0",
+	"7.14": "0.2.0",
 	"8.0":  "0.2.0",
 }
 
@@ -47,7 +48,7 @@ func main() {
 	shortVersion := fmt.Sprintf("%d.%d", stackVersion.Major, stackVersion.Minor)
 	packageVersion, ok := versionMapping[shortVersion]
 	if !ok {
-		panic(errors.New("package can't be generated for current apm-server version"))
+		panic(errors.New("integration package can't be generated for current apm-server version"))
 	}
 	clear(packageVersion)
 	inputFields := generateFields(packageVersion)
