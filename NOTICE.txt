@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20210413112843-18f4e405ad11
+Version: v7.0.0-alpha2.0.20210420221234-c52c43963ca8
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210413112843-18f4e405ad11/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210420221234-c52c43963ca8/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -4659,11 +4659,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20210410081132-afb366fc7cd1
+Version: v0.0.0-20210420210106-798c2154c571
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210410081132-afb366fc7cd1/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210420210106-798c2154c571/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -8994,11 +8994,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-seccomp-bpf@
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-structform
-Version: v0.0.7
+Version: v0.0.8
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-structform@v0.0.7/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-structform@v0.0.8/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17912,11 +17912,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20210322153248-0c34fe9e7dc2
+Version: v0.0.0-20210415154028-4f45737414dc
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210322153248-0c34fe9e7dc2/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210415154028-4f45737414dc/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -17986,11 +17986,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20210412220455-f1c623a9e750
+Version: v0.0.0-20210420205809-ac73e9fd8988
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210412220455-f1c623a9e750/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210420205809-ac73e9fd8988/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18097,11 +18097,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20210406143921-e86de6bf7a46
+Version: v0.0.0-20210420162539-3c870d7478d2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210406143921-e86de6bf7a46/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210420162539-3c870d7478d2/LICENSE:
 
 
                                  Apache License
