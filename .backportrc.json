@@ -1,6 +1,6 @@
 {
   "upstream": "elastic/apm-server",
-  "branches": [{ "name": "7.x", "checked": true }, "7.12", "7.11", "7.10", "7.9", "6.8"],
+  "branches": [{ "name": "7.x", "checked": true }, "7.13", "7.12", "7.11", "7.10", "7.9", "6.8"],
   "labels": ["backport"],
   "autoMerge": true,
   "autoMergeMethod": "squash"
