@@ -34,7 +34,7 @@ else
 	echo "Branch creation disabled."
 fi
 git add docker-compose.yml
-git commit -m "bump stack version ${VERSION}"
+git diff --staged --quiet || git commit -m "bump stack version ${VERSION}"
 git --no-pager log -1
 
 echo "You can now push and create a Pull Request"
