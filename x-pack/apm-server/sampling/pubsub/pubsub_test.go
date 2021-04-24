@@ -131,11 +131,9 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	    }
 	  }
 	}`)
-	expectRequest(t, requests, "/index_name/_pit", "").Write(`{"id": "pit_id_1"}`)
 
-	// _search: we respond with some results, returning a new PIT ID.
-	expectRequest(t, requests, "/_search", `{"pit":{"id":"pit_id_1","keep_alive":"1m"},"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
-	  "pit_id": "pit_id_2",
+	// _search: we respond with some results.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
           "hits": {
 	    "hits": [
 	      {
@@ -157,7 +155,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	// The previous _search responded non-empty, and the greatest _seq_no was not equal
 	// to the global checkpoint: _search again after _seq_no 2.
-	expectRequest(t, requests, "/_search", `{"pit":{"id":"pit_id_2","keep_alive":"1m"},"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"search_after":[2],"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
 	  "pit_id": "pit_id_2",
           "hits": {
 	    "hits": [
@@ -181,11 +179,10 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	// Again the previous _search responded non-empty, and the greatest _seq_no was not equal
 	// to the global checkpoint: _search again after _seq_no 98. This time we respond with no
 	// hits, so the subscriber goes back to sleep.
-	expectRequest(t, requests, "/_search", `{"pit":{"id":"pit_id_2","keep_alive":"1m"},"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"search_after":[98],"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(
 		`{"hits":{"hits":[]}}`,
 	)
 	expectNone(t, ids)
-	expectRequest(t, requests, "/_pit", `{"id":"pit_id_1"}`).Write("{}") // close PIT
 
 	// _stats: respond with the same global checkpoint as before
 	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").Write(`{
@@ -204,13 +201,11 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	    }
 	  }
 	}`)
-	expectRequest(t, requests, "/index_name/_pit", "").Write(`{"id": "pit_id_3"}`)
 
 	// The search now has an exclusive lower bound of the previously observed maximum _seq_no.
 	// When the global checkpoint is observed, the server stops issuing search requests and
 	// goes back to sleep.
-	expectRequest(t, requests, "/_search", `{"pit":{"id":"pit_id_3","keep_alive":"1m"},"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":98}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
-	  "pit_id": "pit_id_3",
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":98}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
           "hits": {
 	    "hits": [
 	      {
@@ -222,7 +217,6 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	  }
 	}`)
 	assert.Equal(t, "trace_99", expectValue(t, ids))
-	expectRequest(t, requests, "/_pit", `{"id":"pit_id_3"}`).Write("{}") // close PIT
 }
 
 func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
@@ -245,7 +239,7 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	    }
 	  }
 	}`)
-	expectRequest(t, requests, "/index_name/_pit", "").WriteStatus(404, "not found")
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).WriteStatus(404, "")
 	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").WriteStatus(500, "")
 	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").WriteStatus(500, "") // errors are not fatal
 }

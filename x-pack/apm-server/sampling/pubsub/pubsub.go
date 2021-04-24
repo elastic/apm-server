@@ -161,63 +161,49 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observed
 // greater than minSeqno and less than or equal to maxSeqno, and returns the greatest
 // observed _seq_no. Sampled trace IDs are sent to out.
 func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, index string, minSeqno, maxSeqno int64) (int64, error) {
-	keepAlive := "1m"
-	pitID, err := p.openPIT(ctx, index, keepAlive)
-	if err != nil {
-		if err == errIndexNotFound {
-			// Index not found, nothing to do.
-			return -1, nil
-		}
-		return -1, err
-	}
-	defer p.closePIT(ctx, pitID)
-
-	// Include only documents after the old global checkpoint,
-	// and up to and including the new global checkpoint.
-	filters := []map[string]interface{}{{
-		"range": map[string]interface{}{
-			"_seq_no": map[string]interface{}{
-				"lte": maxSeqno,
-			},
-		},
-	}}
-	if minSeqno >= 0 {
-		filters = append(filters, map[string]interface{}{
-			"range": map[string]interface{}{
-				"_seq_no": map[string]interface{}{
-					"gt": minSeqno,
-				},
-			},
-		})
-	}
-
-	pit := map[string]interface{}{"id": pitID, "keep_alive": keepAlive}
-	searchBody := map[string]interface{}{
-		"pit":                 pit,
-		"size":                1000,
-		"sort":                []interface{}{map[string]interface{}{"_seq_no": "asc"}},
-		"seq_no_primary_term": true,
-		"track_total_hits":    false,
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				// Filter out local observations.
-				"must_not": map[string]interface{}{
-					"term": map[string]interface{}{
-						"observer.id": map[string]interface{}{
-							"value": p.config.BeatID,
-						},
-					},
-				},
-				"filter": filters,
-			},
-		},
-	}
-
 	var maxObservedSeqno int64 = -1
 	for maxObservedSeqno < maxSeqno {
+		// Include only documents after the old global checkpoint,
+		// and up to and including the new global checkpoint.
+		filters := []map[string]interface{}{{
+			"range": map[string]interface{}{
+				"_seq_no": map[string]interface{}{
+					"lte": maxSeqno,
+				},
+			},
+		}}
+		if minSeqno >= 0 {
+			filters = append(filters, map[string]interface{}{
+				"range": map[string]interface{}{
+					"_seq_no": map[string]interface{}{
+						"gt": minSeqno,
+					},
+				},
+			})
+		}
+
+		searchBody := map[string]interface{}{
+			"size":                1000,
+			"sort":                []interface{}{map[string]interface{}{"_seq_no": "asc"}},
+			"seq_no_primary_term": true,
+			"track_total_hits":    false,
+			"query": map[string]interface{}{
+				"bool": map[string]interface{}{
+					// Filter out local observations.
+					"must_not": map[string]interface{}{
+						"term": map[string]interface{}{
+							"observer.id": map[string]interface{}{
+								"value": p.config.BeatID,
+							},
+						},
+					},
+					"filter": filters,
+				},
+			},
+		}
+
 		var result struct {
-			PITID string `json:"pit_id"`
-			Hits  struct {
+			Hits struct {
 				Hits []struct {
 					Seqno  int64           `json:"_seq_no"`
 					Source traceIDDocument `json:"_source"`
@@ -225,7 +211,11 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 				}
 			}
 		}
-		if err := p.doSearchRequest(ctx, esutil.NewJSONReader(searchBody), &result); err != nil {
+		if err := p.doSearchRequest(ctx, index, esutil.NewJSONReader(searchBody), &result); err != nil {
+			if err == errIndexNotFound {
+				// Index was deleted.
+				break
+			}
 			return -1, err
 		}
 		if len(result.Hits.Hits) == 0 {
@@ -238,75 +228,28 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 			case out <- hit.Source.Trace.ID:
 			}
 		}
-		// Update search_after and PIT for the next request.
-		n := len(result.Hits.Hits)
-		maxObservedSeqno = result.Hits.Hits[n-1].Seqno
-		searchBody["search_after"] = result.Hits.Hits[n-1].Sort
-		pit["id"] = result.PITID
+		maxObservedSeqno = result.Hits.Hits[len(result.Hits.Hits)-1].Seqno
 	}
 	return maxObservedSeqno, nil
 }
 
-func (p *Pubsub) doSearchRequest(ctx context.Context, body io.Reader, out interface{}) error {
-	resp, err := esapi.SearchRequest{Body: body}.Do(ctx, p.config.Client)
+func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Reader, out interface{}) error {
+	resp, err := esapi.SearchRequest{
+		Index: []string{index},
+		Body:  body,
+	}.Do(ctx, p.config.Client)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
+		if resp.StatusCode == http.StatusNotFound {
+			return errIndexNotFound
+		}
 		message, _ := ioutil.ReadAll(resp.Body)
 		return fmt.Errorf("search request failed: %s", message)
 	}
 	return json.NewDecoder(resp.Body).Decode(out)
-}
-
-// openPIT opens a point-in-time for index, returning its ID.
-//
-// openPIT returns errIndexNotFound if the index does not exist.
-func (p *Pubsub) openPIT(ctx context.Context, index, keepAlive string) (string, error) {
-	resp, err := esapi.OpenPointInTimeRequest{
-		Index:     []string{index},
-		KeepAlive: keepAlive,
-	}.Do(ctx, p.config.Client)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		if resp.StatusCode == http.StatusNotFound {
-			// Index may have been deleted by ILM.
-			return "", errIndexNotFound
-		}
-		message, _ := ioutil.ReadAll(resp.Body)
-		return "", fmt.Errorf("opening PIT failed: %s", message)
-	}
-	var pit struct {
-		ID string `json:"id"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&pit); err != nil {
-		return "", err
-	}
-	return pit.ID, nil
-}
-
-// closePIT closes the point-in-time with id.
-func (p *Pubsub) closePIT(ctx context.Context, id string) error {
-	type closePITBody struct {
-		ID string `json:"id"`
-	}
-	resp, err := esapi.ClosePointInTimeRequest{
-		Body: esutil.NewJSONReader(closePITBody{ID: id}),
-	}.Do(ctx, p.config.Client)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.IsError() {
-		message, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("closing PIT failed: %s", message)
-	}
-	return nil
 }
 
 func (p *Pubsub) marshalTraceIDDocument(w *fastjson.Writer, traceID string, timestamp time.Time, dataStream DataStreamConfig) {
