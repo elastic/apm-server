@@ -35,7 +35,7 @@ else
 	echo "Branch creation disabled."
 fi
 git add docker-compose.yml
-git commit -m "bump stack version ${VERSION}"
+git commit -m "[Automation] Update elastic stack version to ${VERSION} for testing"
 git --no-pager log -1
 
 echo "You can now push and create a Pull Request"

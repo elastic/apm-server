@@ -58,3 +58,11 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart+fasttrack
+  - name: delete upstream branch after merging changes on docker-compose.yml
+    conditions:
+      - merged
+      - label=automation
+      - base~=^update-stack-version
+      - files=docker-compose.yml
+    actions:
+      delete_head_branch:
