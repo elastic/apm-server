@@ -28,14 +28,13 @@ echo "Update stack with version ${VERSION}"
 ${SED} -E -e "s#(image: docker\.elastic\.co/.*):[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]{8})?#\1:${VERSION}#g" docker-compose.yml
 
 echo "Commit changes"
-git config user.email
 if [ "$CREATE_BRANCH" = "true" ]; then
 	git checkout -b "update-stack-version-$(date "+%Y%m%d%H%M%S")"
 else
 	echo "Branch creation disabled."
 fi
 git add docker-compose.yml
-git commit -m "[Automation] Update elastic stack version to ${VERSION} for testing"
+git diff --staged --quiet || git commit -m "[Automation] Update elastic stack version to ${VERSION} for testing"
 git --no-pager log -1
 
 echo "You can now push and create a Pull Request"
