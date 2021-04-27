@@ -61,6 +61,92 @@ var (
 	rumAgents = []string{"rum-js", "js-base"}
 )
 
+// DirectConfigurationHandler returns a request.Handler for replying to agent
+// central configuration requests. The handler parses the incoming request and
+// responds with the config matching the service.name/service.environment pair.
+//
+// TODO: What if no matching service.name/service.environment pair is found?
+func DirectConfigurationHandler(serviceConfigs []config.ServiceConfig, config *config.AgentConfig, defaultServiceEnvironment string) request.Handler {
+	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+
+	return func(c *request.Context) {
+		// error handling
+		c.Header().Set(headers.CacheControl, errCacheControl)
+
+		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
+		if !ok {
+			c.Result.SetDefault(request.IDResponseErrorsRateLimit)
+			c.Write()
+			return
+		}
+
+		// We aren't forwarding the query any more, but the agents are
+		// sending the same request, so we can re-use `buildQuery` to
+		// extract the name/environment pair.
+		query, queryErr := buildQuery(c)
+		if queryErr != nil {
+			extractQueryError(c, queryErr, c.AuthResult.Authorized)
+			c.Write()
+			return
+		}
+		if query.Service.Environment == "" {
+			query.Service.Environment = defaultServiceEnvironment
+		}
+
+		conf, err := findMatchingServiceConfig(serviceConfigs, query)
+		if err != nil {
+			apm.CaptureError(c.Request.Context(), err).Send()
+			extractInternalError(c, err, c.AuthResult.Authorized)
+			c.Write()
+			return
+		}
+
+		// configuration successfully fetched
+		c.Header().Set(headers.CacheControl, cacheControl)
+		c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", conf.Etag))
+		c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
+
+		if conf.Etag == ifNoneMatch(c) {
+			c.Result.SetDefault(request.IDResponseValidNotModified)
+		} else {
+			c.Result.SetWithBody(request.IDResponseValidOK, conf.Settings)
+		}
+		c.Write()
+	}
+}
+
+func findMatchingServiceConfig(scs []config.ServiceConfig, query agentcfg.Query) (*agentcfg.Source, error) {
+	name, env := query.Service.Name, query.Service.Environment
+	var nameConf, envConf *config.ServiceConfig
+
+	for _, cfg := range scs {
+		if cfg.Service.Name == name {
+			nameConf = &cfg
+		}
+		if cfg.Service.Environment == env {
+			envConf = &cfg
+		}
+	}
+
+	if nameConf == nil {
+		return nil, fmt.Errorf("no config found for %s", name)
+	}
+
+	if envConf == nil {
+		// Nothing to merge, just return nameConf
+		return &agentcfg.Source{
+			Settings: nameConf.Config,
+			Etag:     nameConf.Etag,
+			Agent:    name,
+		}, nil
+	}
+
+	// TODO: Merge envConf.Config with nameConf.Config
+	// Probably have nameConf take precedence.
+
+	return nil, nil
+}
+
 // Handler returns a request.Handler for managing agent central configuration requests.
 func Handler(client kibana.Client, config *config.AgentConfig, defaultServiceEnvironment string) request.Handler {
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())

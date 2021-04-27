@@ -179,17 +179,30 @@ func (r *routeBuilder) rumAgentConfigHandler() (request.Handler, error) {
 type middlewareFunc func(*config.Config, *authorization.Handler, map[request.ResultID]*monitoring.Int) []middleware.Middleware
 
 func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, middlewareFunc middlewareFunc) (request.Handler, error) {
-	var client kibana.Client
-	if cfg.Kibana.Enabled {
-		client = kibana.NewConnectingClient(&cfg.Kibana)
+	var h request.Handler
+	mw := middlewareFunc(cfg, authHandler, agent.MonitoringMap)
+	if cfg.AgentConfigs != nil {
+		// Direct agent configuration is present, disable communication
+		// with kibana.
+		h = agent.DirectConfigurationHandler(
+			cfg.AgentConfigs,
+			cfg.AgentConfig,
+			cfg.DefaultServiceEnvironment,
+		)
+	} else {
+		var client kibana.Client
+		if cfg.Kibana.Enabled {
+			client = kibana.NewConnectingClient(&cfg.Kibana)
+		}
+		h = agent.Handler(client, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
+
+		msg := "Agent remote configuration is disabled. " +
+			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
+			"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
+			"If you are not using remote configuration, you can safely ignore this error."
+		mw = append(mw, middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg))
 	}
-	h := agent.Handler(client, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
-	msg := "Agent remote configuration is disabled. " +
-		"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
-		"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
-		"If you are not using remote configuration, you can safely ignore this error."
-	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg)
-	return middleware.Wrap(h, append(middlewareFunc(cfg, authHandler, agent.MonitoringMap), ks)...)
+	return middleware.Wrap(h, mw...)
 }
 
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
