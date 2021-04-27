@@ -84,7 +84,7 @@ services:
       package-registry: { condition: service_healthy }
 
   fleet-server:
-    image: docker.elastic.co/beats/elastic-agent:8.0.0-SNAPSHOT
+    image: docker.elastic.co/beats/elastic-agent:7.13.0-SNAPSHOT
     ports:
       - 8220:8220
     healthcheck:
