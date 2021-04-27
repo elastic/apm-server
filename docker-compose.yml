@@ -83,6 +83,26 @@ services:
       elasticsearch: { condition: service_healthy }
       package-registry: { condition: service_healthy }
 
+  fleet-server:
+    image: docker.elastic.co/beats/elastic-agent:8.0.0-SNAPSHOT
+    ports:
+      - 8220:8220
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -k https://localhost:8220/api/status | grep -q 'HEALTHY'"]
+      retries: 300
+      interval: 1s
+    environment:
+      FLEET_SERVER_ENABLE: "1"
+      FLEET_SERVER_ELASTICSEARCH_HOST: http://elasticsearch:9200
+      FLEET_SERVER_ELASTICSEARCH_USERNAME: "${ES_SUPERUSER_USER:-admin}"
+      FLEET_SERVER_ELASTICSEARCH_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
+      KIBANA_FLEET_SETUP: "true"
+      KIBANA_HOST: "http://kibana:5601"
+      KIBANA_USERNAME: "${ES_SUPERUSER_USER:-admin}"
+      KIBANA_PASSWORD: "${ES_SUPERUSER_PASS:-changeme}"
+    depends_on:
+      elasticsearch: { condition: service_healthy }
+
   package-registry:
     image: docker.elastic.co/package-registry/distribution:snapshot
     ports:
