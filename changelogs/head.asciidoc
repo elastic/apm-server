@@ -8,6 +8,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Bug fixes
+* Fixed tail-based sampling pubsub to use _seq_no correctly {pull}5126[5126]
 
 [float]
 ==== Intake API Changes
