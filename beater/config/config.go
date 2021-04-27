@@ -18,6 +18,9 @@
 package config
 
 import (
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -37,6 +40,11 @@ const (
 	DefaultPort = "8200"
 
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
+)
+
+var (
+	errInvalidAgentConfigServiceName   = errors.New("agent_config: either service.name or service.environment must be set")
+	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
 )
 
 type KibanaConfig struct {
@@ -92,6 +100,55 @@ type Config struct {
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 
 	Pipeline string
+
+	// TODO: wat is with this naming
+	AgentConfigs []ServiceConfig `config:"agent_config"`
+}
+
+// ServiceConfig defines configuration for agents.
+type ServiceConfig struct {
+	*Service `config:"service"`
+	Etag     string `config:"etag"`
+	Config   map[string]string
+}
+
+func (s *ServiceConfig) setup(c *Config) error {
+	if s.Service == nil {
+		return errInvalidAgentConfigServiceName
+	}
+	if !s.Service.isValid() {
+		return errInvalidAgentConfigServiceName
+	}
+	if s.Config == nil {
+		return errInvalidAgentConfigMissingConfig
+	}
+
+	if s.Etag == "" {
+		m, err := json.Marshal(s)
+		if err != nil {
+			return fmt.Errorf("error generating etag for %s: %v", s.Service, err)
+		}
+		s.Etag = fmt.Sprintf("%x", md5.Sum(m))
+	}
+	return nil
+}
+
+// Service defines a unique way of identifying a running agent.
+type Service struct {
+	Name        string `config:"name"`
+	Environment string `config:"environment"`
+}
+
+// String implements the Stringer interface.
+func (s *Service) String() string {
+	if s.Name != "" {
+		return "service." + s.Name
+	}
+	return "service." + s.Environment
+}
+
+func (s *Service) isValid() bool {
+	return s.Name != "" || s.Environment != ""
 }
 
 // ExpvarConfig holds config information about exposing expvar
@@ -128,6 +185,12 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 
 	if float64(int(c.AgentConfig.Cache.Expiration.Seconds())) != c.AgentConfig.Cache.Expiration.Seconds() {
 		return nil, errors.New(msgInvalidConfigAgentCfg)
+	}
+
+	for _, serviceConfig := range c.AgentConfigs {
+		if err := serviceConfig.setup(c); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
