@@ -29,6 +29,9 @@ func getGlobalCheckpoints(
 	resp, err := esapi.IndicesStatsRequest{
 		Index: []string{dataStream},
 		Level: "shards",
+		// By default all metrics are returned; query just the "get" metric,
+		// which is very cheap.
+		Metric: []string{"get"},
 	}.Do(ctx, client)
 	if err != nil {
 		return nil, errors.New("index stats request failed")

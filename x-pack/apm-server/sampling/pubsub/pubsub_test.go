@@ -115,7 +115,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	srv, requests := newRequestResponseWriterServer(t)
 	ids, _ := newSubscriber(t, srv)
 
-	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").Write(`{
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
 	    "index_name": {
               "shards": {
@@ -185,7 +185,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	expectNone(t, ids)
 
 	// _stats: respond with the same global checkpoint as before
-	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").Write(`{
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
 	    "index_name": {
               "shards": {
@@ -223,7 +223,7 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	srv, requests := newRequestResponseWriterServer(t)
 	newSubscriber(t, srv)
 
-	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").Write(`{
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
 	    "index_name": {
               "shards": {
@@ -240,8 +240,8 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	  }
 	}`)
 	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).WriteStatus(404, "")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").WriteStatus(500, "")
-	expectRequest(t, requests, "/traces-sampled-testing/_stats", "").WriteStatus(500, "") // errors are not fatal
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "")
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "") // errors are not fatal
 }
 
 func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, context.CancelFunc) {
