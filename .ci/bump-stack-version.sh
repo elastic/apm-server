@@ -29,7 +29,8 @@ ${SED} -E -e "s#(image: docker\.elastic\.co/.*):[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]
 
 echo "Commit changes"
 if [ "$CREATE_BRANCH" = "true" ]; then
-	git checkout -b "update-stack-version-$(date "+%Y%m%d%H%M%S")"
+	base=$(git rev-parse --abbrev-ref HEAD | sed 's#/#-#g')
+	git checkout -b "update-stack-version-$(date "+%Y%m%d%H%M%S")-${branch}"
 else
 	echo "Branch creation disabled."
 fi
