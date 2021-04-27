@@ -132,6 +132,9 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	  }
 	}`)
 
+	// _refresh
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+
 	// _search: we respond with some results.
 	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
           "hits": {
@@ -202,6 +205,9 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	  }
 	}`)
 
+	// _refresh
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+
 	// The search now has an exclusive lower bound of the previously observed maximum _seq_no.
 	// When the global checkpoint is observed, the server stops issuing search requests and
 	// goes back to sleep.
@@ -239,6 +245,7 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	    }
 	  }
 	}`)
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
 	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).WriteStatus(404, "")
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "")
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "") // errors are not fatal

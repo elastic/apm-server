@@ -105,19 +105,15 @@ type channelClientRoundTripper struct {
 func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	var handler func(*http.Request, *httptest.ResponseRecorder) error
 	switch r.Method {
-	case "DELETE":
-		if strings.HasSuffix(r.URL.Path, "/_pit") {
-			handler = rt.roundTripClosePIT
-		}
 	case "GET":
-		if strings.HasSuffix(r.URL.Path, "/_stats") {
+		if strings.HasSuffix(r.URL.Path, "/_stats/get") {
 			handler = rt.roundTripStats
 		} else if strings.HasSuffix(r.URL.Path, "/_search") {
 			handler = rt.roundTripSearch
 		}
 	case "POST":
-		if strings.HasSuffix(r.URL.Path, "/_pit") {
-			handler = rt.roundTripOpenPIT
+		if strings.HasSuffix(r.URL.Path, "/_refresh") {
+			handler = rt.roundTripRefreshIndices
 		} else if strings.HasSuffix(r.URL.Path, "/_bulk") {
 			handler = rt.roundTripBulk
 		}
@@ -166,18 +162,7 @@ func (rt *channelClientRoundTripper) roundTripStats(r *http.Request, recorder *h
 	return nil
 }
 
-func (rt *channelClientRoundTripper) roundTripOpenPIT(r *http.Request, recorder *httptest.ResponseRecorder) error {
-	var result struct {
-		PIT string `json:"pit"`
-	}
-	result.PIT = "pit_id"
-	if err := json.NewEncoder(recorder).Encode(result); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (rt *channelClientRoundTripper) roundTripClosePIT(r *http.Request, recorder *httptest.ResponseRecorder) error {
+func (rt *channelClientRoundTripper) roundTripRefreshIndices(r *http.Request, recorder *httptest.ResponseRecorder) error {
 	return nil
 }
 

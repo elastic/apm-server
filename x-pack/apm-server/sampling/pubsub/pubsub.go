@@ -115,11 +115,8 @@ func (p *Pubsub) SubscribeSampledTraceIDs(ctx context.Context, traceIDs chan<- s
 // we search through every document with a sequence number greater than the most recently observed, and less than
 // or equal to the global checkpoint.
 //
-// Searches may not return everything up to the global checkpoint, depending on whether the index has been
-// refreshed since the global checkpoint was last updated. As such, we will only progress the locally observed
-// sequence number to the greatest _seq_no returned in the search, and we will search for the remaining documents
-// in the next period. We intentionally do not force-refresh as this is expensive, and our latency requirements
-// are not that strict, and we want to limit required privileges.
+// Immediately after observing an updated global checkpoint we will force-refresh indices to ensure all documents
+// up to the global checkpoint are visible in proceeding searches.
 func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observedSeqnos map[string]int64) error {
 	globalCheckpoints, err := getGlobalCheckpoints(ctx, p.config.Client, p.config.DataStream.String())
 	if err != nil {
@@ -133,15 +130,28 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observed
 		}
 	}
 
-	g, ctx := errgroup.WithContext(ctx)
+	// Force-refresh the indices with updated global checkpoints.
+	indices := make([]string, 0, len(globalCheckpoints))
 	for index, globalCheckpoint := range globalCheckpoints {
+		observedSeqno, ok := observedSeqnos[index]
+		if ok && globalCheckpoint <= observedSeqno {
+			delete(globalCheckpoints, index)
+			continue
+		}
+		indices = append(indices, index)
+	}
+	if err := p.refreshIndices(ctx, indices); err != nil {
+		return err
+	}
+
+	g, ctx := errgroup.WithContext(ctx)
+	for _, index := range indices {
+		globalCheckpoint := globalCheckpoints[index]
 		observedSeqno, ok := observedSeqnos[index]
 		if !ok {
 			observedSeqno = -1
-		} else if globalCheckpoint <= observedSeqno {
-			continue
 		}
-		index, globalCheckpoint := index, globalCheckpoint // copy for closure
+		index := index // copy for closure
 		g.Go(func() error {
 			maxSeqno, err := p.searchIndexTraceIDs(ctx, out, index, observedSeqno, globalCheckpoint)
 			if err != nil {
@@ -155,6 +165,26 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observed
 		})
 	}
 	return g.Wait()
+}
+
+func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
+	if len(indices) == 0 {
+		return nil
+	}
+	ignoreUnavailable := true
+	resp, err := esapi.IndicesRefreshRequest{
+		Index:             indices,
+		IgnoreUnavailable: &ignoreUnavailable,
+	}.Do(ctx, p.config.Client)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.IsError() {
+		message, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("index refresh request failed: %s", message)
+	}
+	return nil
 }
 
 // searchIndexTraceIDs searches index sampled trace IDs, whose documents have a _seq_no
