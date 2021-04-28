@@ -336,21 +336,9 @@ type ElasticAgentContainer struct {
 	// WaitingFor holds an optional wait strategy.
 	WaitingFor wait.Strategy
 
-<<<<<<< HEAD
-	// Addrs holds the "host:port" address for each exposed port.
-	// This will be populated by Start.
-	Addrs []string
-=======
-	// FleetServerURL holds the Fleet Server URL to enroll into.
-	//
-	// This will be populated by Start if FleetServer is true, using
-	// one of the container's network aliases.
-	FleetServerURL string
-
 	// Addrs holds the "host:port" address for each exposed port, mapped
 	// by exposed port. This will be populated by Start.
 	Addrs map[string]string
->>>>>>> fe9f37018... systemtest: fix exposed port mapping (#5132)
 
 	// BindMountInstall holds a map of files to bind mount into the
 	// container, mapping from the host location to target paths relative
@@ -397,20 +385,6 @@ func (c *ElasticAgentContainer) Start() error {
 	if err := container.Start(ctx); err != nil {
 		return err
 	}
-<<<<<<< HEAD
-	ports, err := container.Ports(ctx)
-	if err != nil {
-		return err
-	}
-	if len(ports) > 0 {
-		ip, err := container.Host(ctx)
-		if err != nil {
-			return err
-		}
-		for _, portbindings := range ports {
-			for _, pb := range portbindings {
-				c.Addrs = append(c.Addrs, net.JoinHostPort(ip, pb.HostPort))
-=======
 	if len(c.request.ExposedPorts) > 0 {
 		hostIP, err := container.Host(ctx)
 		if err != nil {
@@ -421,7 +395,6 @@ func (c *ElasticAgentContainer) Start() error {
 			mappedPort, err := container.MappedPort(ctx, nat.Port(exposedPort))
 			if err != nil {
 				return err
->>>>>>> fe9f37018... systemtest: fix exposed port mapping (#5132)
 			}
 			c.Addrs[exposedPort] = net.JoinHostPort(hostIP, mappedPort.Port())
 		}
