@@ -35,6 +35,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 
@@ -335,9 +336,9 @@ type ElasticAgentContainer struct {
 	// WaitingFor holds an optional wait strategy.
 	WaitingFor wait.Strategy
 
-	// Addrs holds the "host:port" address for each exposed port.
-	// This will be populated by Start.
-	Addrs []string
+	// Addrs holds the "host:port" address for each exposed port, mapped
+	// by exposed port. This will be populated by Start.
+	Addrs map[string]string
 
 	// BindMountInstall holds a map of files to bind mount into the
 	// container, mapping from the host location to target paths relative
@@ -384,19 +385,18 @@ func (c *ElasticAgentContainer) Start() error {
 	if err := container.Start(ctx); err != nil {
 		return err
 	}
-	ports, err := container.Ports(ctx)
-	if err != nil {
-		return err
-	}
-	if len(ports) > 0 {
-		ip, err := container.Host(ctx)
+	if len(c.request.ExposedPorts) > 0 {
+		hostIP, err := container.Host(ctx)
 		if err != nil {
 			return err
 		}
-		for _, portbindings := range ports {
-			for _, pb := range portbindings {
-				c.Addrs = append(c.Addrs, net.JoinHostPort(ip, pb.HostPort))
+		c.Addrs = make(map[string]string)
+		for _, exposedPort := range c.request.ExposedPorts {
+			mappedPort, err := container.MappedPort(ctx, nat.Port(exposedPort))
+			if err != nil {
+				return err
 			}
+			c.Addrs[exposedPort] = net.JoinHostPort(hostIP, mappedPort.Port())
 		}
 	}
 
