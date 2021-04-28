@@ -131,7 +131,7 @@ func findMatchingServiceConfig(scs []config.ServiceConfig, query agentcfg.Query)
 	}
 
 	if nameConf == nil {
-		return nil, fmt.Errorf("no config found for %s", name)
+		return nil, fmt.Errorf("no config found for service.name=%s", name)
 	}
 
 	if envConf == nil {
@@ -142,7 +142,7 @@ func findMatchingServiceConfig(scs []config.ServiceConfig, query agentcfg.Query)
 			Agent:    name,
 		}, nil
 	}
-	merged := merge(envConf.Config, nameConf.Config)
+	merged := merge(nameConf.Config, envConf.Config)
 	m, err := json.Marshal(merged)
 	if err != nil {
 		return nil, err
@@ -163,17 +163,14 @@ func findMatchingServiceConfig(scs []config.ServiceConfig, query agentcfg.Query)
 	}, nil
 }
 
-// merge m2 into m1, preferring m2 if duplicate keys are found. A new map is
+// merge m2 into m1, preferring m1 if duplicate keys are found. A new map is
 // allocated and returned, leaving the original maps unchanged.
 func merge(m1, m2 map[string]string) map[string]string {
 	merged := make(map[string]string)
+	for k, v := range m2 {
+		merged[k] = v
+	}
 	for k, v := range m1 {
-		if v2, ok := m2[k]; ok {
-			// If m2 doesn't have the key, add it to m2.
-			// Otherwise, leave m2 unchanged.
-			merged[k] = v2
-			continue
-		}
 		merged[k] = v
 	}
 	return merged

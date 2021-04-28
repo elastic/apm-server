@@ -414,6 +414,31 @@ func TestFindMatchingServiceConfig(t *testing.T) {
 			},
 			serviceConfigs: []config.ServiceConfig{
 				{
+					Service: &config.Service{Name: "service1", Environment: ""},
+					Config:  map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:    "abc123",
+				},
+				{
+					Service: &config.Service{Name: "", Environment: "production"},
+					Config:  map[string]string{"key3": "val3"},
+					Etag:    "def456",
+				},
+			},
+			expectedSettings: map[string]string{
+				"key1": "val1",
+				"key2": "val2",
+				"key3": "val3",
+			},
+		},
+		{
+			query: agentcfg.Query{
+				Service: agentcfg.Service{
+					Name:        "service1",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
 					Service: &config.Service{Name: "not-found", Environment: ""},
 					Config:  map[string]string{"key1": "val1"},
 					Etag:    "abc123",
