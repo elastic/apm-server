@@ -18,6 +18,8 @@
 package agent
 
 import (
+	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -119,12 +121,12 @@ func findMatchingServiceConfig(scs []config.ServiceConfig, query agentcfg.Query)
 	name, env := query.Service.Name, query.Service.Environment
 	var nameConf, envConf *config.ServiceConfig
 
-	for _, cfg := range scs {
+	for i, cfg := range scs {
 		if cfg.Service.Name == name {
-			nameConf = &cfg
+			nameConf = &scs[i]
 		}
 		if cfg.Service.Environment == env {
-			envConf = &cfg
+			envConf = &scs[i]
 		}
 	}
 
@@ -140,11 +142,41 @@ func findMatchingServiceConfig(scs []config.ServiceConfig, query agentcfg.Query)
 			Agent:    name,
 		}, nil
 	}
+	merged := merge(envConf.Config, nameConf.Config)
+	m, err := json.Marshal(merged)
+	if err != nil {
+		return nil, err
+	}
 
-	// TODO: Merge envConf.Config with nameConf.Config
-	// Probably have nameConf take precedence.
+	hash := md5.New()
+	hash.Write([]byte(name))
+	hash.Write([]byte(env))
+	hash.Write(m)
+	etag := fmt.Sprintf("%x", hash.Sum(nil))
 
-	return nil, nil
+	return &agentcfg.Source{
+		// Merge envConf into nameConf, preferring nameConf if there is
+		// a collision.
+		Settings: merged,
+		Etag:     etag,
+		Agent:    name,
+	}, nil
+}
+
+// merge m2 into m1, preferring m2 if duplicate keys are found. A new map is
+// allocated and returned, leaving the original maps unchanged.
+func merge(m1, m2 map[string]string) map[string]string {
+	merged := make(map[string]string)
+	for k, v := range m1 {
+		if v2, ok := m2[k]; ok {
+			// If m2 doesn't have the key, add it to m2.
+			// Otherwise, leave m2 unchanged.
+			merged[k] = v2
+			continue
+		}
+		merged[k] = v
+	}
+	return merged
 }
 
 // Handler returns a request.Handler for managing agent central configuration requests.

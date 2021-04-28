@@ -112,7 +112,7 @@ type ServiceConfig struct {
 	Config   map[string]string
 }
 
-func (s *ServiceConfig) setup(c *Config) error {
+func (s *ServiceConfig) setup() error {
 	if s.Service == nil {
 		return errInvalidAgentConfigServiceName
 	}
@@ -188,7 +188,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 	}
 
 	for _, serviceConfig := range c.AgentConfigs {
-		if err := serviceConfig.setup(c); err != nil {
+		if err := serviceConfig.setup(); err != nil {
 			return nil, err
 		}
 	}
