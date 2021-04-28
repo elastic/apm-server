@@ -46,16 +46,6 @@ See {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM polic
 Onboarding::
 APM Server no longer writes an onboarding document when setting up.
 
-Incompatible with `apm_user` role::
-The built-in {ref}/built-in-roles.html[`apm_user`] role is not compatible with the APM integration
-as it only provides read access to `apm-*` indices.
-The new data stream naming scheme does not follow this pattern,
-so users with the `apm_user` role will not be able to view `apm` data.
-+
-To grant a user access to APM data in Kibana, provide read access to the relevant
-indices listed in <<apm-integration-data-streams>>. You may also wish to grant users
-{kibana-ref}/apm-app-users.html[additional privileges] for features like spaces and machine learning.
-
 Standalone mode::
 {fleet-guide}/run-elastic-agent-standalone.html[Standalone mode] is not currently supported.
 An {agent} with the APM integration enabled must be managed by fleet.
