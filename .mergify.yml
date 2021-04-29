@@ -24,7 +24,7 @@ pull_request_rules:
           - "{{ author }}"
         branches:
           - "7.x"
-        title: "[7.x] {{ title }} (backport #{{ number }})"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: backport patches to 7.13 branch
     conditions:
       - merged
@@ -36,7 +36,7 @@ pull_request_rules:
           - "{{ author }}"
         branches:
           - "7.13"
-        title: "[7.13] {{ title }} (backport #{{ number }})"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: backport patches to 7.12 branch
     conditions:
       - merged
@@ -48,7 +48,7 @@ pull_request_rules:
           - "{{ author }}"
         branches:
           - "7.12"
-        title: "[7.12] {{ title }} (backport #{{ number }})"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: Automatic squash and merge with success checks and the file docker-compose.yml is modified.
     conditions:
       - check-success=apm-ci/pr-merge
