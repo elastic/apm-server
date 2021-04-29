@@ -18,7 +18,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 	"net/http/pprof"
 
@@ -179,12 +178,6 @@ func (r *routeBuilder) rumAgentConfigHandler() (request.Handler, error) {
 }
 
 type middlewareFunc func(*config.Config, *authorization.Handler, map[request.ResultID]*monitoring.Int) []middleware.Middleware
-
-type fetcherFunc func(context.Context, agentcfg.Query) (*agentcfg.Result, error)
-
-func (f fetcherFunc) Fetch(ctx context.Context, query agentcfg.Query) (*agentcfg.Result, error) {
-	return f(ctx, query)
-}
 
 func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, middlewareFunc middlewareFunc) (request.Handler, error) {
 	var h request.Handler
