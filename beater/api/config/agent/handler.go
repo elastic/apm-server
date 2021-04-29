@@ -188,13 +188,6 @@ func extractInternalError(c *request.Context, err error, withAuth bool) {
 		body = authErrMsg(fullMsg, agentcfg.ErrUnauthorized, withAuth)
 		keyword = agentcfg.ErrUnauthorized
 
-	case strings.Contains(msg, agentcfg.ErrUnauthorized):
-		fullMsg := "APM Server is not authorized to query Kibana. " +
-			"Please configure apm-server.kibana.username and apm-server.kibana.password, " +
-			"and ensure the user has the necessary privileges."
-		body = authErrMsg(fullMsg, agentcfg.ErrUnauthorized, withAuth)
-		keyword = agentcfg.ErrUnauthorized
-
 	default:
 		body = authErrMsg(msg, msgServiceUnavailable, withAuth)
 		keyword = msgServiceUnavailable
