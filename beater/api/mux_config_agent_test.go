@@ -43,8 +43,9 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
 		cfg.SecretToken = "1234"
-		h := map[string]string{headers.Authorization: "Bearer 1234"}
-		rec, err := requestToMuxerWithHeader(cfg, AgentConfigPath, http.MethodGet, h)
+		header := map[string]string{headers.Authorization: "Bearer 1234"}
+		queryString := map[string]string{"service.name": "service1"}
+		rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, header, queryString)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
 		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
@@ -61,11 +62,32 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 	})
 
 	t.Run("On", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(configEnabledConfigAgent(), AgentConfigPath)
+		header := map[string]string{headers.Authorization: "Bearer 1234"}
+		queryString := map[string]string{"service.name": "service1"}
+		rec, err := requestToMuxerWithHeaderAndQueryString(configEnabledConfigAgent(), AgentConfigPath, http.MethodGet, header, queryString)
 		require.NoError(t, err)
 		require.NotEqual(t, http.StatusForbidden, rec.Code)
 		approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 	})
+}
+
+func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
+	cfg := config.DefaultConfig()
+	cfg.AgentConfigs = []config.ServiceConfig{
+		{
+			Service: &config.Service{Name: "service1", Environment: "production"},
+			Config:  map[string]string{"key1": "val1"},
+			Etag:    "abc123",
+		},
+	}
+
+	header := map[string]string{headers.Authorization: "Bearer 1234"}
+	queryString := map[string]string{"service.name": "service1"}
+	rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, header, queryString)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, rec.Code)
+	approvaltest.ApproveJSON(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+
 }
 
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {

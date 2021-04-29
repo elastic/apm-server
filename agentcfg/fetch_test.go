@@ -29,6 +29,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/tests"
 )
@@ -37,7 +38,7 @@ type m map[string]interface{}
 
 var (
 	testExpiration = time.Nanosecond
-	mockVersion    = *common.MustNewVersion("7.3.0")
+	mockVersion    = *common.MustNewVersion("7.5.0")
 )
 
 func TestFetcher_Fetch(t *testing.T) {
@@ -53,7 +54,7 @@ func TestFetcher_Fetch(t *testing.T) {
 		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
 		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
-		assert.Equal(t, zeroResult(), result)
+		assert.Equal(t, zeroResult(), *result)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -63,7 +64,7 @@ func TestFetcher_Fetch(t *testing.T) {
 		require.NoError(t, err)
 		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
-		assert.Equal(t, expectedResult, result)
+		assert.Equal(t, expectedResult, *result)
 	})
 
 	t.Run("FetchFromCache", func(t *testing.T) {
@@ -82,7 +83,7 @@ func TestFetcher_Fetch(t *testing.T) {
 
 			result, err := f.Fetch(context.Background(), query(t.Name()))
 			require.NoError(t, err)
-			assert.Equal(t, expectedResult, result)
+			assert.Equal(t, expectedResult, *result)
 		}
 
 		fetcher := NewFetcher(nil, time.Minute)
@@ -105,10 +106,12 @@ func TestSanitize(t *testing.T) {
 		Agent:    "python",
 		Settings: Settings{"transaction_sample_rate": "0.1", "capture_body": "false"}}}
 	// full result as not requested for an insecure agent
-	assert.Equal(t, input, sanitize([]string{}, input))
+	res := sanitize([]string{}, input)
+	assert.Equal(t, input, *res)
 
 	// no result for insecure agent
-	assert.Equal(t, zeroResult(), sanitize([]string{"rum-js"}, input))
+	res = sanitize([]string{"rum-js"}, input)
+	assert.Equal(t, zeroResult(), *res)
 
 	// limited result for insecure agent
 	insecureAgents := []string{"rum-js"}
@@ -123,7 +126,8 @@ func TestSanitize(t *testing.T) {
 	// no result for insecure agent prefix
 	insecureAgents = []string{"Python"}
 	input.Source.Agent = "Jaeger/Python"
-	assert.Equal(t, zeroResult(), sanitize(insecureAgents, input))
+	res = sanitize(insecureAgents, input)
+	assert.Equal(t, zeroResult(), *res)
 }
 
 func TestCustomJSON(t *testing.T) {
@@ -149,5 +153,135 @@ func mockDoc(sampleRate float64) m {
 			"etag":       "123",
 			"agent_name": "rum-js",
 		},
+	}
+}
+
+func TestDirectConfigurationPrecedence(t *testing.T) {
+	for _, tc := range []struct {
+		query            Query
+		serviceConfigs   []config.ServiceConfig
+		expectedSettings map[string]string
+		hasErr           bool
+	}{
+		{
+			query: Query{
+				Service: Service{
+					Name:        "service1",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
+					Service: &config.Service{Name: "", Environment: "production"},
+					Config:  map[string]string{"key1": "val2", "key2": "val2"},
+					Etag:    "def456",
+				},
+				{
+					Service: &config.Service{Name: "service1", Environment: "production"},
+					Config:  map[string]string{"key1": "val1"},
+					Etag:    "abc123",
+				},
+			},
+			expectedSettings: map[string]string{
+				"key1": "val1",
+			},
+		},
+		{
+			query: Query{
+				Service: Service{
+					Name:        "service1",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
+					Service: &config.Service{Name: "service1", Environment: ""},
+					Config:  map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:    "abc123",
+				},
+				{
+					Service: &config.Service{Name: "", Environment: "production"},
+					Config:  map[string]string{"key3": "val3"},
+					Etag:    "def456",
+				},
+			},
+			expectedSettings: map[string]string{
+				"key1": "val1",
+				"key2": "val2",
+			},
+		},
+		{
+			query: Query{
+				Service: Service{
+					Name:        "service1",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
+					Service: &config.Service{Name: "service2", Environment: ""},
+					Config:  map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:    "abc123",
+				},
+				{
+					Service: &config.Service{Name: "", Environment: "production"},
+					Config:  map[string]string{"key3": "val3"},
+					Etag:    "def456",
+				},
+			},
+			expectedSettings: map[string]string{
+				"key3": "val3",
+			},
+		},
+		{
+			query: Query{
+				Service: Service{
+					Name:        "service1",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
+					Service: &config.Service{Name: "not-found", Environment: ""},
+					Config:  map[string]string{"key1": "val1"},
+					Etag:    "abc123",
+				},
+			},
+			hasErr: true,
+		},
+		{
+			query: Query{
+				Service: Service{
+					Name:        "service2",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
+					Service: &config.Service{Name: "service1", Environment: ""},
+					Config:  map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:    "abc123",
+				},
+				{
+					Service: &config.Service{Name: "service2", Environment: ""},
+					Config:  map[string]string{"key1": "val4", "key2": "val5"},
+					Etag:    "abc123",
+				},
+			},
+			expectedSettings: map[string]string{
+				"key1": "val4",
+				"key2": "val5",
+			},
+		},
+	} {
+		f := NewDirectFetcher(tc.serviceConfigs)
+		result, err := f.Fetch(context.Background(), tc.query)
+		if tc.hasErr {
+			require.Error(t, err)
+			continue
+		}
+		require.NoError(t, err)
+
+		assert.Equal(t, Settings(tc.expectedSettings), result.Source.Settings)
 	}
 }

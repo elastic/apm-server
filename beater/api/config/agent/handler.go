@@ -18,8 +18,7 @@
 package agent
 
 import (
-	"crypto/md5"
-	"encoding/json"
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -36,18 +35,15 @@ import (
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
-	"github.com/elastic/apm-server/kibana"
 )
 
 const (
 	errMaxAgeDuration = 5 * time.Minute
 
-	msgInvalidQuery               = "invalid query"
-	msgKibanaDisabled             = "disabled Kibana configuration"
-	msgKibanaVersionNotCompatible = "not a compatible Kibana version"
-	msgMethodUnsupported          = "method not supported"
-	msgNoKibanaConnection         = "unable to retrieve connection to Kibana"
-	msgServiceUnavailable         = "service unavailable"
+	msgInvalidQuery       = "invalid query"
+	msgMethodUnsupported  = "method not supported"
+	msgNoKibanaConnection = "unable to retrieve connection to Kibana"
+	msgServiceUnavailable = "service unavailable"
 )
 
 var (
@@ -55,213 +51,93 @@ var (
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
 	registry      = monitoring.Default.NewRegistry("apm-server.acm")
 
-	errMsgKibanaDisabled     = errors.New(msgKibanaDisabled)
-	errMsgNoKibanaConnection = errors.New(msgNoKibanaConnection)
-	errCacheControl          = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
+	errCacheControl = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
 	// rumAgents keywords (new and old)
 	rumAgents = []string{"rum-js", "js-base"}
 )
 
-// DirectConfigurationHandler returns a request.Handler for replying to agent
-// central configuration requests. The handler parses the incoming request and
-// responds with the config matching the service.name/service.environment pair.
-//
-// TODO: What if no matching service.name/service.environment pair is found?
-func DirectConfigurationHandler(serviceConfigs []config.ServiceConfig, config *config.AgentConfig, defaultServiceEnvironment string) request.Handler {
-	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+type handler struct {
+	f fetcher
 
-	return func(c *request.Context) {
-		// error handling
-		c.Header().Set(headers.CacheControl, errCacheControl)
-
-		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
-		if !ok {
-			c.Result.SetDefault(request.IDResponseErrorsRateLimit)
-			c.Write()
-			return
-		}
-
-		// We aren't forwarding the query any more, but the agents are
-		// sending the same request, so we can re-use `buildQuery` to
-		// extract the name/environment pair.
-		query, queryErr := buildQuery(c)
-		if queryErr != nil {
-			extractQueryError(c, queryErr, c.AuthResult.Authorized)
-			c.Write()
-			return
-		}
-		if query.Service.Environment == "" {
-			query.Service.Environment = defaultServiceEnvironment
-		}
-
-		conf, err := findMatchingServiceConfig(serviceConfigs, query)
-		if err != nil {
-			apm.CaptureError(c.Request.Context(), err).Send()
-			extractInternalError(c, err, c.AuthResult.Authorized)
-			c.Write()
-			return
-		}
-
-		// configuration successfully fetched
-		c.Header().Set(headers.CacheControl, cacheControl)
-		c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", conf.Etag))
-		c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
-
-		if conf.Etag == ifNoneMatch(c) {
-			c.Result.SetDefault(request.IDResponseValidNotModified)
-		} else {
-			c.Result.SetWithBody(request.IDResponseValidOK, conf.Settings)
-		}
-		c.Write()
-	}
+	cacheControl, defaultServiceEnvironment string
 }
 
-func findMatchingServiceConfig(scs []config.ServiceConfig, query agentcfg.Query) (*agentcfg.Source, error) {
-	name, env := query.Service.Name, query.Service.Environment
-	var nameConf, envConf *config.ServiceConfig
-
-	for i, cfg := range scs {
-		if cfg.Service.Name == name {
-			nameConf = &scs[i]
-		}
-		if cfg.Service.Environment == env {
-			envConf = &scs[i]
-		}
+func NewHandler(f fetcher, config *config.AgentConfig, defaultServiceEnvironment string) request.Handler {
+	if f == nil {
+		panic("fetcher must not be nil")
+	}
+	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+	h := &handler{
+		f:                         f,
+		cacheControl:              cacheControl,
+		defaultServiceEnvironment: defaultServiceEnvironment,
 	}
 
-	if nameConf == nil {
-		return nil, fmt.Errorf("no config found for service.name=%s", name)
+	return h.Handle
+}
+
+type fetcher interface {
+	Fetch(context.Context, agentcfg.Query) (*agentcfg.Result, error)
+}
+
+// Handler implements request.Handler for managing agent central configuration
+// requests.
+func (h *handler) Handle(c *request.Context) {
+	// error handling
+	c.Header().Set(headers.CacheControl, errCacheControl)
+
+	ok := c.RateLimiter == nil || c.RateLimiter.Allow()
+	if !ok {
+		c.Result.SetDefault(request.IDResponseErrorsRateLimit)
+		c.Write()
+		return
 	}
 
-	if envConf == nil {
-		// Nothing to merge, just return nameConf
-		return &agentcfg.Source{
-			Settings: nameConf.Config,
-			Etag:     nameConf.Etag,
-			Agent:    name,
-		}, nil
+	query, queryErr := buildQuery(c)
+	if queryErr != nil {
+		extractQueryError(c, queryErr, c.AuthResult.Authorized)
+		c.Write()
+		return
 	}
-	merged := merge(nameConf.Config, envConf.Config)
-	m, err := json.Marshal(merged)
+	if query.Service.Environment == "" {
+		query.Service.Environment = h.defaultServiceEnvironment
+	}
+
+	result, err := h.f.Fetch(c.Request.Context(), query)
 	if err != nil {
-		return nil, err
-	}
-
-	hash := md5.New()
-	hash.Write([]byte(name))
-	hash.Write([]byte(env))
-	hash.Write(m)
-	etag := fmt.Sprintf("%x", hash.Sum(nil))
-
-	return &agentcfg.Source{
-		// Merge envConf into nameConf, preferring nameConf if there is
-		// a collision.
-		Settings: merged,
-		Etag:     etag,
-		Agent:    name,
-	}, nil
-}
-
-// merge m2 into m1, preferring m1 if duplicate keys are found. A new map is
-// allocated and returned, leaving the original maps unchanged.
-func merge(m1, m2 map[string]string) map[string]string {
-	merged := make(map[string]string)
-	for k, v := range m2 {
-		merged[k] = v
-	}
-	for k, v := range m1 {
-		merged[k] = v
-	}
-	return merged
-}
-
-// Handler returns a request.Handler for managing agent central configuration requests.
-func Handler(client kibana.Client, config *config.AgentConfig, defaultServiceEnvironment string) request.Handler {
-	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
-	fetcher := agentcfg.NewFetcher(client, config.Cache.Expiration)
-
-	return func(c *request.Context) {
-		// error handling
-		c.Header().Set(headers.CacheControl, errCacheControl)
-
-		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
-		if !ok {
-			c.Result.SetDefault(request.IDResponseErrorsRateLimit)
-			c.Write()
-			return
-		}
-
-		if valid := validateClient(c, client, c.AuthResult.Authorized); !valid {
-			c.Write()
-			return
-		}
-
-		query, queryErr := buildQuery(c)
-		if queryErr != nil {
-			extractQueryError(c, queryErr, c.AuthResult.Authorized)
-			c.Write()
-			return
-		}
-		if query.Service.Environment == "" {
-			query.Service.Environment = defaultServiceEnvironment
-		}
-
-		result, err := fetcher.Fetch(c.Request.Context(), query)
-		if err != nil {
+		var verr *agentcfg.ValidationError
+		if errors.As(err, &verr) {
+			body := verr.Body()
+			if strings.HasPrefix(body, agentcfg.ErrMsgKibanaVersionNotCompatible) {
+				body = authErrMsg(body, agentcfg.ErrMsgKibanaVersionNotCompatible, c.AuthResult.Authorized)
+			}
+			c.Result.Set(
+				request.IDResponseErrorsServiceUnavailable,
+				http.StatusServiceUnavailable,
+				verr.Keyword(),
+				body,
+				verr,
+			)
+		} else {
 			apm.CaptureError(c.Request.Context(), err).Send()
 			extractInternalError(c, err, c.AuthResult.Authorized)
-			c.Write()
-			return
-		}
-
-		// configuration successfully fetched
-		c.Header().Set(headers.CacheControl, cacheControl)
-		c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
-		c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
-
-		if result.Source.Etag == ifNoneMatch(c) {
-			c.Result.SetDefault(request.IDResponseValidNotModified)
-		} else {
-			c.Result.SetWithBody(request.IDResponseValidOK, result.Source.Settings)
 		}
 		c.Write()
-	}
-}
-
-func validateClient(c *request.Context, client kibana.Client, withAuth bool) bool {
-	if client == nil {
-		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
-			http.StatusServiceUnavailable,
-			msgKibanaDisabled,
-			msgKibanaDisabled,
-			errMsgKibanaDisabled)
-		return false
+		return
 	}
 
-	if supported, err := client.SupportsVersion(c.Request.Context(), agentcfg.KibanaMinVersion, true); !supported {
-		if err != nil {
-			c.Result.Set(request.IDResponseErrorsServiceUnavailable,
-				http.StatusServiceUnavailable,
-				msgNoKibanaConnection,
-				msgNoKibanaConnection,
-				errMsgNoKibanaConnection)
-			return false
-		}
+	// configuration successfully fetched
+	c.Header().Set(headers.CacheControl, h.cacheControl)
+	c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
+	c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
 
-		version, _ := client.GetVersion(c.Request.Context())
-
-		errMsg := fmt.Sprintf("%s: min version %+v, configured version %+v",
-			msgKibanaVersionNotCompatible, agentcfg.KibanaMinVersion, version.String())
-		body := authErrMsg(errMsg, msgKibanaVersionNotCompatible, withAuth)
-		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
-			http.StatusServiceUnavailable,
-			msgKibanaVersionNotCompatible,
-			body,
-			errors.New(errMsg))
-		return false
+	if result.Source.Etag == ifNoneMatch(c) {
+		c.Result.SetDefault(request.IDResponseValidNotModified)
+	} else {
+		c.Result.SetWithBody(request.IDResponseValidOK, result.Source.Settings)
 	}
-	return true
+	c.Write()
 }
 
 func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
@@ -304,6 +180,13 @@ func extractInternalError(c *request.Context, err error, withAuth bool) {
 	case strings.Contains(msg, agentcfg.ErrMsgReadKibanaResponse):
 		body = authErrMsg(msg, agentcfg.ErrMsgReadKibanaResponse, withAuth)
 		keyword = agentcfg.ErrMsgReadKibanaResponse
+
+	case strings.Contains(msg, agentcfg.ErrUnauthorized):
+		fullMsg := "APM Server is not authorized to query Kibana. " +
+			"Please configure apm-server.kibana.username and apm-server.kibana.password, " +
+			"and ensure the user has the necessary privileges."
+		body = authErrMsg(fullMsg, agentcfg.ErrUnauthorized, withAuth)
+		keyword = agentcfg.ErrUnauthorized
 
 	case strings.Contains(msg, agentcfg.ErrUnauthorized):
 		fullMsg := "APM Server is not authorized to query Kibana. " +

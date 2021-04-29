@@ -18,6 +18,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"net/http/pprof"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
@@ -178,23 +180,28 @@ func (r *routeBuilder) rumAgentConfigHandler() (request.Handler, error) {
 
 type middlewareFunc func(*config.Config, *authorization.Handler, map[request.ResultID]*monitoring.Int) []middleware.Middleware
 
+type fetcherFunc func(context.Context, agentcfg.Query) (*agentcfg.Result, error)
+
+func (f fetcherFunc) Fetch(ctx context.Context, query agentcfg.Query) (*agentcfg.Result, error) {
+	return f(ctx, query)
+}
+
 func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, middlewareFunc middlewareFunc) (request.Handler, error) {
 	var h request.Handler
 	mw := middlewareFunc(cfg, authHandler, agent.MonitoringMap)
 	if cfg.AgentConfigs != nil {
 		// Direct agent configuration is present, disable communication
 		// with kibana.
-		h = agent.DirectConfigurationHandler(
-			cfg.AgentConfigs,
-			cfg.AgentConfig,
-			cfg.DefaultServiceEnvironment,
-		)
+		f := agentcfg.NewDirectFetcher(cfg.AgentConfigs)
+		h = agent.NewHandler(f, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
 	} else {
 		var client kibana.Client
 		if cfg.Kibana.Enabled {
 			client = kibana.NewConnectingClient(&cfg.Kibana)
 		}
-		h = agent.Handler(client, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
+
+		f := agentcfg.NewFetcher(client, cfg.AgentConfig.Cache.Expiration)
+		h = agent.NewHandler(f, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
 
 		msg := "Agent remote configuration is disabled. " +
 			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +

@@ -141,10 +141,14 @@ type Service struct {
 
 // String implements the Stringer interface.
 func (s *Service) String() string {
+	var name, env string
 	if s.Name != "" {
-		return "service." + s.Name
+		name = "service.name=" + s.Name
 	}
-	return "service." + s.Environment
+	if s.Environment != "" {
+		env = "service.environment=" + s.Environment
+	}
+	return strings.Join([]string{name, env}, " ")
 }
 
 func (s *Service) isValid() bool {

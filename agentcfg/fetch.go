@@ -19,6 +19,7 @@ package agentcfg
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -30,16 +31,25 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
 )
 
 // Error Messages used to signal fetching errors
 const (
-	ErrMsgSendToKibanaFailed   = "sending request to kibana failed"
-	ErrMsgReadKibanaResponse   = "unable to read Kibana response body"
-	ErrUnauthorized            = "Unauthorized"
-	TransactionSamplingRateKey = "transaction_sample_rate"
+	ErrMsgKibanaDisabled             = "disabled Kibana configuration"
+	ErrMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
+	ErrMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
+	ErrMsgReadKibanaResponse         = "unable to read Kibana response body"
+	ErrMsgSendToKibanaFailed         = "sending request to kibana failed"
+	ErrUnauthorized                  = "Unauthorized"
+	TransactionSamplingRateKey       = "transaction_sample_rate"
+)
+
+var (
+	errMsgKibanaDisabled     = errors.New(ErrMsgKibanaDisabled)
+	errMsgNoKibanaConnection = errors.New(ErrMsgNoKibanaConnection)
 )
 
 // KibanaMinVersion specifies the minimal required version of Kibana
@@ -66,8 +76,59 @@ func NewFetcher(client kibana.Client, cacheExpiration time.Duration) *Fetcher {
 	}
 }
 
+// ValidationError encapsulates a validation error from the Fetcher.
+// ValidationError implements the error interface.
+type ValidationError struct {
+	keyword, body string
+	err           error
+}
+
+// Keyword returns the keyword for the ValidationError.
+func (v *ValidationError) Keyword() string { return v.keyword }
+
+// Body returns the body for the ValidationError.
+func (v *ValidationError) Body() string { return v.body }
+
+// Error() implements the error interface.
+func (v *ValidationError) Error() string { return v.err.Error() }
+
+// Validate validates the currently configured Fetcher.
+func (f *Fetcher) validate(ctx context.Context) *ValidationError {
+	if f.client == nil {
+		return &ValidationError{
+			keyword: ErrMsgKibanaDisabled,
+			body:    ErrMsgKibanaDisabled,
+			err:     errMsgKibanaDisabled,
+		}
+	}
+	if supported, err := f.client.SupportsVersion(ctx, KibanaMinVersion, true); !supported {
+		if err != nil {
+			return &ValidationError{
+				keyword: ErrMsgNoKibanaConnection,
+				body:    ErrMsgNoKibanaConnection,
+				err:     errMsgNoKibanaConnection,
+			}
+		}
+
+		version, _ := f.client.GetVersion(ctx)
+		errMsg := fmt.Sprintf(
+			"%s: min version %+v, configured version %+v",
+			ErrMsgKibanaVersionNotCompatible, KibanaMinVersion, version.String(),
+		)
+		return &ValidationError{
+			keyword: ErrMsgKibanaVersionNotCompatible,
+			body:    errMsg,
+			err:     errors.New(errMsg),
+		}
+	}
+	return nil
+}
+
 // Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
-func (f *Fetcher) Fetch(ctx context.Context, query Query) (Result, error) {
+func (f *Fetcher) Fetch(ctx context.Context, query Query) (*Result, error) {
+	if err := f.validate(ctx); err != nil {
+		return nil, err
+	}
 	req := func() (Result, error) {
 		return newResult(f.request(ctx, convert.ToReader(query)))
 	}
@@ -96,13 +157,14 @@ func (f *Fetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
 	return result, nil
 }
 
-func sanitize(insecureAgents []string, result Result) Result {
+func sanitize(insecureAgents []string, result Result) *Result {
 	if len(insecureAgents) == 0 {
-		return result
+		return &result
 	}
 	hasDataForAgent := containsAnyPrefix(result.Source.Agent, insecureAgents) || result.Source.Agent == ""
 	if !hasDataForAgent {
-		return zeroResult()
+		r := zeroResult()
+		return &r
 	}
 	settings := Settings{}
 	for k, v := range result.Source.Settings {
@@ -110,7 +172,7 @@ func sanitize(insecureAgents []string, result Result) Result {
 			settings[k] = v
 		}
 	}
-	return Result{Source: Source{Etag: result.Source.Etag, Settings: settings}}
+	return &Result{Source: Source{Etag: result.Source.Etag, Settings: settings}}
 }
 
 func containsAnyPrefix(s string, prefixes []string) bool {
@@ -120,4 +182,57 @@ func containsAnyPrefix(s string, prefixes []string) bool {
 		}
 	}
 	return false
+}
+
+type DirectFetcher struct {
+	scs []config.ServiceConfig
+}
+
+func NewDirectFetcher(scs []config.ServiceConfig) *DirectFetcher {
+	return &DirectFetcher{scs}
+}
+
+// Fetch finds a matching ServiceConfig based on the received Query. Order of precedence:
+// - Both service.name and service.environment match a ServiceConfig
+// - Only service.name matches a ServiceConfig
+// - Only service.environment matches a ServiceConfig
+func (f *DirectFetcher) Fetch(_ context.Context, query Query) (*Result, error) {
+	name, env := query.Service.Name, query.Service.Environment
+	var nameConf, envConf *config.ServiceConfig
+
+	for i, cfg := range f.scs {
+		if cfg.Service.Name == name {
+			if cfg.Service.Environment == env {
+				// Both name and environment match, return this config block.
+				return &Result{Source{
+					Settings: cfg.Config,
+					Etag:     cfg.Etag,
+					Agent:    name,
+				}}, nil
+			}
+			nameConf = &f.scs[i]
+		}
+		if cfg.Service.Environment == env {
+			envConf = &f.scs[i]
+		}
+	}
+
+	if nameConf != nil {
+		return &Result{Source{
+			Settings: nameConf.Config,
+			Etag:     nameConf.Etag,
+			Agent:    name,
+		}}, nil
+	}
+
+	if envConf != nil {
+		return &Result{Source{
+			Settings: envConf.Config,
+			Etag:     envConf.Etag,
+			Agent:    name,
+		}}, nil
+	}
+
+	s := &config.Service{Name: name, Environment: env}
+	return nil, fmt.Errorf("no matching config found for %s", s)
 }
