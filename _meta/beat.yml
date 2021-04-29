@@ -278,17 +278,17 @@ apm-server:
   # TODO: Provide a link to documentation? or list all options?
   # agent_config:
   # - service.name: ten_percent
+  #   service.environment: production
   #   etag: abc123 # optional, computed by APM Server if not specified
   #   config:
-  #     transaction_sample_rate: 0.1
   #     capture_body: off
   #     capture_body: true
   #     log_level: info
   #     recording: true
-  # - service.environment: production
-  #   etag: abc123 # optional, computed by APM Server if not specified
-  #   config:
   #     transaction_sample_rate: 0.5
+  # - service.environment: dev
+  #   config:
+  #     transaction_sample_rate: 0.1
 
   # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
   # Specify cache key expiration via this setting. Default is 30 seconds.
