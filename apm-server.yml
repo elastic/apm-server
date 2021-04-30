@@ -283,7 +283,6 @@ apm-server:
   # agent_config:
   # - service.name: ten_percent
   #   service.environment: production
-  #   etag: abc123 # optional, computed by APM Server if not specified
   #   config:
   #     capture_body: off
   #     capture_body: true
