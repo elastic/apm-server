@@ -107,9 +107,10 @@ type Config struct {
 
 // ServiceConfig defines configuration for agents.
 type ServiceConfig struct {
-	Service Service `config:"service"`
-	Etag    string  `config:"etag"`
-	Config  map[string]string
+	Service   Service `config:"service"`
+	AgentName string  `config:"agent.name"`
+	Etag      string  `config:"etag"`
+	Config    map[string]string
 }
 
 func (s *ServiceConfig) setup() error {

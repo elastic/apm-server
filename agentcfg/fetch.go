@@ -198,15 +198,13 @@ func NewDirectFetcher(scs []config.ServiceConfig) *DirectFetcher {
 // Return an empty result if no matching result is found.
 func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 	name, env := query.Service.Name, query.Service.Environment
+	result := zeroResult()
 	var nameConf, envConf *config.ServiceConfig
 
 	for i, cfg := range f.scs {
 		if cfg.Service.Name == name && cfg.Service.Environment == env {
-			return Result{Source{
-				Settings: cfg.Config,
-				Etag:     cfg.Etag,
-				Agent:    name,
-			}}, nil
+			nameConf = &f.scs[i]
+			break
 		} else if cfg.Service.Name == name && cfg.Service.Environment == "" {
 			nameConf = &f.scs[i]
 		} else if cfg.Service.Name == "" && cfg.Service.Environment == env {
@@ -215,20 +213,18 @@ func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 	}
 
 	if nameConf != nil {
-		return Result{Source{
+		result = Result{Source{
 			Settings: nameConf.Config,
 			Etag:     nameConf.Etag,
-			Agent:    name,
-		}}, nil
-	}
-
-	if envConf != nil {
-		return Result{Source{
+			Agent:    nameConf.AgentName,
+		}}
+	} else if envConf != nil {
+		result = Result{Source{
 			Settings: envConf.Config,
 			Etag:     envConf.Etag,
-			Agent:    name,
-		}}, nil
+			Agent:    envConf.AgentName,
+		}}
 	}
 
-	return zeroResult(), nil
+	return sanitize(query.InsecureAgents, result), nil
 }

@@ -211,6 +211,53 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 		},
 		{
 			query: Query{
+				InsecureAgents: []string{"Jaeger"},
+				Service: Service{
+					Name:        "service1",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
+					Service: config.Service{Name: "", Environment: "production"},
+					Config:  map[string]string{"key3": "val3"},
+					Etag:    "def456",
+				},
+				{
+					Service: config.Service{Name: "service1", Environment: ""},
+					Config:  map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:    "abc123",
+				},
+			},
+			expectedSettings: map[string]string{},
+		},
+		{
+			query: Query{
+				InsecureAgents: []string{"Jaeger"},
+				Service: Service{
+					Name:        "service1",
+					Environment: "production",
+				},
+			},
+			serviceConfigs: []config.ServiceConfig{
+				{
+					Service: config.Service{Name: "", Environment: "production"},
+					Config:  map[string]string{"key3": "val3"},
+					Etag:    "def456",
+				},
+				{
+					Service:   config.Service{Name: "service1", Environment: ""},
+					AgentName: "Jaeger/Python",
+					Config:    map[string]string{"key1": "val1", "key2": "val2", "transaction_sample_rate": "0.1"},
+					Etag:      "abc123",
+				},
+			},
+			expectedSettings: map[string]string{
+				"transaction_sample_rate": "0.1",
+			},
+		},
+		{
+			query: Query{
 				Service: Service{
 					Name:        "service1",
 					Environment: "production",
