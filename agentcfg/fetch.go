@@ -192,27 +192,24 @@ func NewDirectFetcher(scs []config.ServiceConfig) *DirectFetcher {
 }
 
 // Fetch finds a matching ServiceConfig based on the received Query. Order of precedence:
-// - Both service.name and service.environment match a ServiceConfig
-// - Only service.name matches a ServiceConfig
-// - Only service.environment matches a ServiceConfig
+// - service.name and service.environment match a ServiceConfig
+// - service.name matches a ServiceConfig, service.environment == ""
+// - service.environment matches a ServiceConfig, service.name == ""
 // Return an empty result if no matching result is found.
 func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 	name, env := query.Service.Name, query.Service.Environment
 	var nameConf, envConf *config.ServiceConfig
 
 	for i, cfg := range f.scs {
-		if cfg.Service.Name == name {
-			if cfg.Service.Environment == env {
-				// Both name and environment match, return this config block.
-				return Result{Source{
-					Settings: cfg.Config,
-					Etag:     cfg.Etag,
-					Agent:    name,
-				}}, nil
-			}
+		if cfg.Service.Name == name && cfg.Service.Environment == env {
+			return Result{Source{
+				Settings: cfg.Config,
+				Etag:     cfg.Etag,
+				Agent:    name,
+			}}, nil
+		} else if cfg.Service.Name == name && cfg.Service.Environment == "" {
 			nameConf = &f.scs[i]
-		}
-		if cfg.Service.Environment == env {
+		} else if cfg.Service.Name == "" && cfg.Service.Environment == env {
 			envConf = &f.scs[i]
 		}
 	}
