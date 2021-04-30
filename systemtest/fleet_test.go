@@ -19,10 +19,8 @@ package systemtest_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"path"
 	"path/filepath"
@@ -63,19 +61,10 @@ func TestFleetIntegration(t *testing.T) {
 	err = fleet.CreatePackagePolicy(packagePolicy)
 	require.NoError(t, err)
 
-	// Bootstrap fleet-server.
-	fleetServer, err := systemtest.NewUnstartedElasticAgentContainer()
-	require.NoError(t, err)
-	fleetServer.FleetServer = true
-	defer fleetServer.Close()
-	err = fleetServer.Start()
-	require.NoError(t, err)
-
-	// Enroll another elastic-agent to run the APM integration.
+	// Enroll an elastic-agent to run the APM integration.
 	agent, err := systemtest.NewUnstartedElasticAgentContainer()
 	require.NoError(t, err)
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
-	agent.FleetServerURL = fleetServer.FleetServerURL
 	defer agent.Close()
 
 	defer func() {
@@ -217,12 +206,7 @@ func cleanupFleet(t testing.TB, fleet *fleettest.Client) {
 			}
 			require.NoError(t, fleet.BulkUnenrollAgents(true, agentIDs...))
 		}
-		// BUG(axw) the Fleet API is returning 404 when deleting agent policies
-		// in some circumstances: https://github.com/elastic/kibana/issues/90544
-		err = fleet.DeleteAgentPolicy(p.ID)
-		var fleetError *fleettest.Error
-		if errors.As(err, &fleetError) {
-			assert.Equal(t, http.StatusNotFound, fleetError.StatusCode, fleetError.Message)
-		}
+		err := fleet.DeleteAgentPolicy(p.ID)
+		require.NoError(t, err)
 	}
 }
