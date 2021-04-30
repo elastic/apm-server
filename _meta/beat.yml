@@ -288,8 +288,9 @@ apm-server:
   #     capture_body: true
   #     log_level: info
   #     recording: true
-  #     transaction_sample_rate: 0.5
-  # - service.environment: dev
+  #     transaction_sample_rate: 0.1
+  # - service.name: frontend
+  #   agent.name: rum-js
   #   config:
   #     transaction_sample_rate: 0.1
 
