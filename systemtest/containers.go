@@ -39,8 +39,8 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/go-elasticsearch/v7"
 )
@@ -48,7 +48,7 @@ import (
 const (
 	startContainersTimeout = 5 * time.Minute
 
-	defaultFleetServerPort = "8220"
+	fleetServerPort = "8220"
 )
 
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
@@ -58,7 +58,7 @@ const (
 func StartStackContainers() error {
 	cmd := exec.Command(
 		"docker-compose", "-f", "../docker-compose.yml",
-		"up", "-d", "elasticsearch", "kibana",
+		"up", "-d", "elasticsearch", "kibana", "fleet-server",
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -66,11 +66,14 @@ func StartStackContainers() error {
 		return err
 	}
 
-	// Wait for up to 5 minutes for Kibana to become healthy,
+	// Wait for up to 5 minutes for Kibana and Fleet Server to become healthy,
 	// which implies Elasticsearch is healthy too.
 	ctx, cancel := context.WithTimeout(context.Background(), startContainersTimeout)
 	defer cancel()
-	return waitKibanaContainerHealthy(ctx)
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error { return waitContainerHealthy(ctx, "kibana") })
+	g.Go(func() error { return waitContainerHealthy(ctx, "fleet-server") })
+	return g.Wait()
 }
 
 // NewUnstartedElasticsearchContainer returns a new ElasticsearchContainer.
@@ -119,14 +122,14 @@ func NewUnstartedElasticsearchContainer() (*ElasticsearchContainer, error) {
 	return &ElasticsearchContainer{request: req, Env: env}, nil
 }
 
-func waitKibanaContainerHealthy(ctx context.Context) error {
+func waitContainerHealthy(ctx context.Context, serviceName string) error {
 	docker, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return err
 	}
 	defer docker.Close()
 
-	container, err := stackContainerInfo(ctx, docker, "kibana")
+	container, err := stackContainerInfo(ctx, docker, serviceName)
 	if err != nil {
 		return err
 	}
@@ -141,7 +144,7 @@ func waitKibanaContainerHealthy(ctx context.Context) error {
 			break
 		}
 		if first {
-			log.Printf("Waiting for Kibana container (%s) to become healthy", container.ID)
+			log.Printf("Waiting for %s container (%s) to become healthy", serviceName, container.ID)
 			first = false
 		}
 		time.Sleep(5 * time.Second)
@@ -256,30 +259,30 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	}
 	defer docker.Close()
 
-	esContainer, err := stackContainerInfo(context.Background(), docker, "elasticsearch")
+	fleetServerContainer, err := stackContainerInfo(context.Background(), docker, "fleet-server")
 	if err != nil {
 		return nil, err
 	}
-	esContainerDetails, err := docker.ContainerInspect(context.Background(), esContainer.ID)
+	fleetServerContainerDetails, err := docker.ContainerInspect(context.Background(), fleetServerContainer.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	var esIPAddress string
+	var fleetServerIPAddress string
 	var networks []string
-	for network, settings := range esContainerDetails.NetworkSettings.Networks {
+	for network, settings := range fleetServerContainerDetails.NetworkSettings.Networks {
 		networks = append(networks, network)
-		if esIPAddress == "" && settings.IPAddress != "" {
-			esIPAddress = settings.IPAddress
+		if fleetServerIPAddress == "" && settings.IPAddress != "" {
+			fleetServerIPAddress = settings.IPAddress
 		}
 	}
-	esURL := &url.URL{
-		Scheme: "http",
-		Host:   net.JoinHostPort(esIPAddress, apmservertest.ElasticsearchPort()),
+	fleetServerURL := &url.URL{
+		Scheme: "https",
+		Host:   net.JoinHostPort(fleetServerIPAddress, fleetServerPort),
 	}
 
-	// Use the same stack version as used for Elasticsearch.
-	agentImageVersion := esContainer.Image[strings.LastIndex(esContainer.Image, ":")+1:]
+	// Use the same stack version as used for fleet-server.
+	agentImageVersion := fleetServerContainer.Image[strings.LastIndex(fleetServerContainer.Image, ":")+1:]
 	agentImage := "docker.elastic.co/beats/elastic-agent:" + agentImageVersion
 	if err := pullDockerImage(context.Background(), docker, agentImage); err != nil {
 		return nil, err
@@ -306,7 +309,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	return &ElasticAgentContainer{
 		request:          req,
 		installDir:       agentInstallDir,
-		elasticsearchURL: esURL.String(),
+		fleetServerURL:   fleetServerURL.String(),
 		StackVersion:     agentImageVersion,
 		BindMountInstall: make(map[string]string),
 	}, nil
@@ -314,9 +317,9 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 
 // ElasticAgentContainer represents an ephemeral Elastic Agent container.
 type ElasticAgentContainer struct {
-	container        testcontainers.Container
-	request          testcontainers.ContainerRequest
-	elasticsearchURL string // used by Fleet Server only
+	container      testcontainers.Container
+	request        testcontainers.ContainerRequest
+	fleetServerURL string
 
 	// installDir holds the location of the "install" directory inside
 	// the Elastic Agent container.
@@ -325,10 +328,6 @@ type ElasticAgentContainer struct {
 	// and can be used to anticipate the location into which artifacts
 	// can be bind-mounted.
 	installDir string
-
-	// FleetServer controls whether this Elastic Agent bootstraps
-	// Fleet Server.
-	FleetServer bool
 
 	// StackVersion holds the stack version of the container image,
 	// e.g. 8.0.0-SNAPSHOT.
@@ -339,12 +338,6 @@ type ElasticAgentContainer struct {
 
 	// WaitingFor holds an optional wait strategy.
 	WaitingFor wait.Strategy
-
-	// FleetServerURL holds the Fleet Server URL to enroll into.
-	//
-	// This will be populated by Start if FleetServer is true, using
-	// one of the container's network aliases.
-	FleetServerURL string
 
 	// Addrs holds the "host:port" address for each exposed port, mapped
 	// by exposed port. This will be populated by Start.
@@ -372,28 +365,15 @@ func (c *ElasticAgentContainer) Start() error {
 	defer cancel()
 
 	// Update request from user-definable fields.
-	if c.FleetServer {
-		c.request.Env["FLEET_SERVER_ENABLE"] = "1"
-		c.request.Env["FLEET_SERVER_ELASTICSEARCH_HOST"] = c.elasticsearchURL
-		c.request.Env["FLEET_SERVER_ELASTICSEARCH_USERNAME"] = adminElasticsearchUser
-		c.request.Env["FLEET_SERVER_ELASTICSEARCH_PASSWORD"] = adminElasticsearchPass
-
-		// Wait for API status to report healthy.
-		c.request.WaitingFor = wait.ForHTTP("/api/status").
-			WithPort(defaultFleetServerPort + "/tcp").
-			WithTLS(true).WithAllowInsecure(true).
-			WithResponseMatcher(matchFleetServerAPIStatusHealthy)
-		c.request.ExposedPorts = []string{defaultFleetServerPort}
-	} else if c.FleetEnrollmentToken != "" {
+	c.request.Env["FLEET_INSECURE"] = "1"
+	c.request.Env["FLEET_URL"] = c.fleetServerURL
+	if c.FleetEnrollmentToken != "" {
 		c.request.Env["FLEET_ENROLL"] = "1"
 		c.request.Env["FLEET_ENROLLMENT_TOKEN"] = c.FleetEnrollmentToken
-		c.request.Env["FLEET_INSECURE"] = "1"
-		c.request.Env["FLEET_URL"] = c.FleetServerURL
 	}
-	c.request.ExposedPorts = append(c.request.ExposedPorts, c.ExposedPorts...)
-	if c.WaitingFor != nil {
-		c.request.WaitingFor = c.WaitingFor
-	}
+
+	c.request.ExposedPorts = c.ExposedPorts
+	c.request.WaitingFor = c.WaitingFor
 	c.request.BindMounts = map[string]string{}
 	for source, target := range c.BindMountInstall {
 		c.request.BindMounts[source] = path.Join(c.installDir, target)
@@ -423,24 +403,6 @@ func (c *ElasticAgentContainer) Start() error {
 			}
 			c.Addrs[exposedPort] = net.JoinHostPort(hostIP, mappedPort.Port())
 		}
-	}
-	if c.FleetServer {
-		networkAliases, err := container.NetworkAliases(ctx)
-		if err != nil {
-			return err
-		}
-		var networkAlias string
-		for _, networkAliases := range networkAliases {
-			if len(networkAliases) > 0 {
-				networkAlias = networkAliases[0]
-				break
-			}
-		}
-		if networkAlias == "" {
-			return errors.New("no network alias found")
-		}
-		fleetServerURL := &url.URL{Scheme: "https", Host: net.JoinHostPort(networkAlias, defaultFleetServerPort)}
-		c.FleetServerURL = fleetServerURL.String()
 	}
 
 	c.container = container
