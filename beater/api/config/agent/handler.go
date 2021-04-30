@@ -78,7 +78,7 @@ func NewHandler(f fetcher, config *config.AgentConfig, defaultServiceEnvironment
 }
 
 type fetcher interface {
-	Fetch(context.Context, agentcfg.Query) (*agentcfg.Result, error)
+	Fetch(context.Context, agentcfg.Query) (agentcfg.Result, error)
 }
 
 // Handler implements request.Handler for managing agent central configuration

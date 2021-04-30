@@ -75,7 +75,7 @@ func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.AgentConfigs = []config.ServiceConfig{
 		{
-			Service: &config.Service{Name: "service1", Environment: "production"},
+			Service: config.Service{Name: "service1", Environment: "production"},
 			Config:  map[string]string{"key1": "val1"},
 			Etag:    "abc123",
 		},
