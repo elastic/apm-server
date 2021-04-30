@@ -14,7 +14,10 @@ LATEST_SNAPSHOT_VERSION=$($SDIR/latest_snapshot_version.py $BRANCH)
 # Ignore any images that don't end with "-SNAPSHOT", such as package-registry.
 IMAGES=$(grep 'image: docker.elastic.co.*-SNAPSHOT' $SDIR/../docker-compose.yml | sed 's/.*image: \(.*\)/\1/')
 for IMAGE in $IMAGES; do
-    IMAGE_TAG=$(echo "$IMAGE" | cut -d: -f2)
+    # When using pinned snapshot versions the format is <MAJOR>.<MINOR>.<PATCH>-<BUILD_ID>-SNAPSHOT
+    # therefore disregard the "-<BUILD_ID>"
+    IMAGE_TAG=$(echo "$IMAGE" | cut -d: -f2 | sed 's#\(.*\)-\(.*\)-\(SNAPSHOT\)#\1-\3#')
+
     if [ "$IMAGE_TAG" = "$LATEST_SNAPSHOT_VERSION" ]; then
         printf "docker-compose.yml: image %s up to date (latest '%s' snapshot version %s)\n" "$IMAGE" "$BRANCH" "$LATEST_SNAPSHOT_VERSION"
     else
