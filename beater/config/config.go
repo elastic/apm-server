@@ -90,7 +90,7 @@ type Config struct {
 	Register                  *RegisterConfig         `config:"register"`
 	Mode                      Mode                    `config:"mode"`
 	Kibana                    KibanaConfig            `config:"kibana"`
-	AgentConfig               *AgentConfig            `config:"agent.config"`
+	KibanaAgentConfig         *KibanaAgentConfig      `config:"agent.config"`
 	SecretToken               string                  `config:"secret_token"`
 	APIKeyConfig              *APIKeyConfig           `config:"api_key"`
 	JaegerConfig              JaegerConfig            `config:"jaeger"`
@@ -102,18 +102,18 @@ type Config struct {
 	Pipeline string
 
 	// TODO: wat is with this naming
-	AgentConfigs []ServiceConfig `config:"agent_config"`
+	AgentConfigs []AgentConfig `config:"agent_config"`
 }
 
-// ServiceConfig defines configuration for agents.
-type ServiceConfig struct {
+// AgentConfig defines configuration for agents.
+type AgentConfig struct {
 	Service   Service `config:"service"`
 	AgentName string  `config:"agent.name"`
 	Etag      string  `config:"etag"`
 	Config    map[string]string
 }
 
-func (s *ServiceConfig) setup() error {
+func (s *AgentConfig) setup() error {
 	if !s.Service.isValid() {
 		return errInvalidAgentConfigServiceName
 	}
@@ -167,8 +167,8 @@ type PprofConfig struct {
 	MutexProfileRate int  `config:"mutex_profile_rate"`
 }
 
-// AgentConfig holds remote agent config information
-type AgentConfig struct {
+// KibanaAgentConfig holds remote agent config information
+type KibanaAgentConfig struct {
 	Cache *Cache `config:"cache"`
 }
 
@@ -185,7 +185,7 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
-	if float64(int(c.AgentConfig.Cache.Expiration.Seconds())) != c.AgentConfig.Cache.Expiration.Seconds() {
+	if float64(int(c.KibanaAgentConfig.Cache.Expiration.Seconds())) != c.KibanaAgentConfig.Cache.Expiration.Seconds() {
 		return nil, errors.New(msgInvalidConfigAgentCfg)
 	}
 
@@ -262,17 +262,17 @@ func DefaultConfig() *Config {
 			Enabled: new(bool),
 			URL:     "/debug/vars",
 		},
-		Pprof:        &PprofConfig{Enabled: false},
-		RumConfig:    defaultRum(),
-		Register:     defaultRegisterConfig(true),
-		Mode:         ModeProduction,
-		Kibana:       defaultKibanaConfig(),
-		AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-		Pipeline:     defaultAPMPipeline,
-		APIKeyConfig: defaultAPIKeyConfig(),
-		JaegerConfig: defaultJaeger(),
-		Aggregation:  defaultAggregationConfig(),
-		Sampling:     defaultSamplingConfig(),
-		DataStreams:  defaultDataStreamsConfig(),
+		Pprof:             &PprofConfig{Enabled: false},
+		RumConfig:         defaultRum(),
+		Register:          defaultRegisterConfig(true),
+		Mode:              ModeProduction,
+		Kibana:            defaultKibanaConfig(),
+		KibanaAgentConfig: &KibanaAgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+		Pipeline:          defaultAPMPipeline,
+		APIKeyConfig:      defaultAPIKeyConfig(),
+		JaegerConfig:      defaultJaeger(),
+		Aggregation:       defaultAggregationConfig(),
+		Sampling:          defaultSamplingConfig(),
+		DataStreams:       defaultDataStreamsConfig(),
 	}
 }

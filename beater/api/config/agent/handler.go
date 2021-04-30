@@ -63,7 +63,7 @@ type handler struct {
 	cacheControl, defaultServiceEnvironment string
 }
 
-func NewHandler(f fetcher, config *config.AgentConfig, defaultServiceEnvironment string) request.Handler {
+func NewHandler(f fetcher, config *config.KibanaAgentConfig, defaultServiceEnvironment string) request.Handler {
 	if f == nil {
 		panic("fetcher must not be nil")
 	}

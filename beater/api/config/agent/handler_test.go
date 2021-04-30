@@ -178,7 +178,7 @@ var (
 )
 
 func TestAgentConfigHandler(t *testing.T) {
-	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: 4 * time.Second}}
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 4 * time.Second}}
 
 	for name, tc := range testcases {
 
@@ -214,7 +214,7 @@ func TestAgentConfigHandler(t *testing.T) {
 }
 
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
-	cfg := config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewFetcher(nil, cfg.Cache.Expiration)
 	h := NewHandler(f, &cfg, "")
 
@@ -233,7 +233,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 		},
 	}, mockVersion, true)
 
-	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, &cfg, "")
 
@@ -254,7 +254,7 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 		}, mockVersion, true),
 	}
 
-	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, &cfg, "default")
 
@@ -342,7 +342,7 @@ func getHandler(agent string) request.Handler {
 			"agent_name": agent,
 		},
 	}, mockVersion, true)
-	cfg := config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewFetcher(kb, cfg.Cache.Expiration)
 	return NewHandler(f, &cfg, "")
 }
@@ -368,7 +368,7 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	kibanaCfg := config.KibanaConfig{Enabled: true, ClientConfig: libkibana.DefaultClientConfig()}
 	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
-	cfg := &config.AgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}
+	cfg := &config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}
 	f := agentcfg.NewFetcher(client, cfg.Cache.Expiration)
 	handler := NewHandler(f, cfg, "default")
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {

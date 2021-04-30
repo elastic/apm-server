@@ -186,15 +186,15 @@ func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, 
 		// Direct agent configuration is present, disable communication
 		// with kibana.
 		f := agentcfg.NewDirectFetcher(cfg.AgentConfigs)
-		h = agent.NewHandler(f, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
+		h = agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment)
 	} else {
 		var client kibana.Client
 		if cfg.Kibana.Enabled {
 			client = kibana.NewConnectingClient(&cfg.Kibana)
 		}
 
-		f := agentcfg.NewFetcher(client, cfg.AgentConfig.Cache.Expiration)
-		h = agent.NewHandler(f, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
+		f := agentcfg.NewFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
+		h = agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment)
 
 		msg := "Agent remote configuration is disabled. " +
 			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +

@@ -113,7 +113,7 @@ func NewServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, proc
 		var fetcher *agentcfg.Fetcher
 		if cfg.Kibana.Enabled {
 			client = kibana.NewConnectingClient(&cfg.Kibana)
-			fetcher = agentcfg.NewFetcher(client, cfg.AgentConfig.Cache.Expiration)
+			fetcher = agentcfg.NewFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
 		}
 		RegisterGRPCServices(
 			srv.grpc.server,

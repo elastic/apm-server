@@ -184,31 +184,31 @@ func containsAnyPrefix(s string, prefixes []string) bool {
 }
 
 type DirectFetcher struct {
-	scs []config.ServiceConfig
+	cfgs []config.AgentConfig
 }
 
-func NewDirectFetcher(scs []config.ServiceConfig) *DirectFetcher {
-	return &DirectFetcher{scs}
+func NewDirectFetcher(cfgs []config.AgentConfig) *DirectFetcher {
+	return &DirectFetcher{cfgs}
 }
 
-// Fetch finds a matching ServiceConfig based on the received Query. Order of precedence:
-// - service.name and service.environment match a ServiceConfig
-// - service.name matches a ServiceConfig, service.environment == ""
-// - service.environment matches a ServiceConfig, service.name == ""
+// Fetch finds a matching AgentConfig based on the received Query. Order of precedence:
+// - service.name and service.environment match a AgentConfig
+// - service.name matches a AgentConfig, service.environment == ""
+// - service.environment matches a AgentConfig, service.name == ""
 // Return an empty result if no matching result is found.
 func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 	name, env := query.Service.Name, query.Service.Environment
 	result := zeroResult()
-	var nameConf, envConf *config.ServiceConfig
+	var nameConf, envConf *config.AgentConfig
 
-	for i, cfg := range f.scs {
+	for i, cfg := range f.cfgs {
 		if cfg.Service.Name == name && cfg.Service.Environment == env {
-			nameConf = &f.scs[i]
+			nameConf = &f.cfgs[i]
 			break
 		} else if cfg.Service.Name == name && cfg.Service.Environment == "" {
-			nameConf = &f.scs[i]
+			nameConf = &f.cfgs[i]
 		} else if cfg.Service.Name == "" && cfg.Service.Environment == env {
-			envConf = &f.scs[i]
+			envConf = &f.cfgs[i]
 		}
 	}
 

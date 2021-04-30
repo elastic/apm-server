@@ -159,7 +159,7 @@ func mockDoc(sampleRate float64) m {
 func TestDirectConfigurationPrecedence(t *testing.T) {
 	for _, tc := range []struct {
 		query            Query
-		serviceConfigs   []config.ServiceConfig
+		agentConfigs     []config.AgentConfig
 		expectedSettings map[string]string
 	}{
 		{
@@ -169,7 +169,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			serviceConfigs: []config.ServiceConfig{
+			agentConfigs: []config.AgentConfig{
 				{
 					Service: config.Service{Name: "", Environment: "production"},
 					Config:  map[string]string{"key1": "val2", "key2": "val2"},
@@ -192,7 +192,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			serviceConfigs: []config.ServiceConfig{
+			agentConfigs: []config.AgentConfig{
 				{
 					Service: config.Service{Name: "", Environment: "production"},
 					Config:  map[string]string{"key3": "val3"},
@@ -217,7 +217,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			serviceConfigs: []config.ServiceConfig{
+			agentConfigs: []config.AgentConfig{
 				{
 					Service: config.Service{Name: "", Environment: "production"},
 					Config:  map[string]string{"key3": "val3"},
@@ -239,7 +239,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			serviceConfigs: []config.ServiceConfig{
+			agentConfigs: []config.AgentConfig{
 				{
 					Service: config.Service{Name: "", Environment: "production"},
 					Config:  map[string]string{"key3": "val3"},
@@ -263,7 +263,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			serviceConfigs: []config.ServiceConfig{
+			agentConfigs: []config.AgentConfig{
 				{
 					Service: config.Service{Name: "service2", Environment: ""},
 					Config:  map[string]string{"key1": "val1", "key2": "val2"},
@@ -286,7 +286,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			serviceConfigs: []config.ServiceConfig{
+			agentConfigs: []config.AgentConfig{
 				{
 					Service: config.Service{Name: "not-found", Environment: ""},
 					Config:  map[string]string{"key1": "val1"},
@@ -302,7 +302,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Environment: "production",
 				},
 			},
-			serviceConfigs: []config.ServiceConfig{
+			agentConfigs: []config.AgentConfig{
 				{
 					Service: config.Service{Name: "service1", Environment: ""},
 					Config:  map[string]string{"key1": "val1", "key2": "val2"},
@@ -320,7 +320,7 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 			},
 		},
 	} {
-		f := NewDirectFetcher(tc.serviceConfigs)
+		f := NewDirectFetcher(tc.agentConfigs)
 		result, err := f.Fetch(context.Background(), tc.query)
 		require.NoError(t, err)
 
