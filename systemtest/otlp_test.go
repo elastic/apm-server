@@ -79,11 +79,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 func TestOTLPGRPCMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
-		Enabled:       true,
-		MetricsPeriod: time.Duration(time.Second),
-		StatePeriod:   time.Duration(time.Second),
-	}
+	srv.Config.Monitoring = newFastMonitoringConfig()
 	err := srv.Start()
 	require.NoError(t, err)
 
