@@ -851,7 +851,7 @@
             description: CPU-specific cgroup metrics and limits.
             fields:
             - name: id
-              type: long
+              type: keyword
               description: ID for the current cgroup CPU.
             - name: cfs
               type: group
@@ -877,7 +877,7 @@
             description: CPU Accounting-specific cgroup metrics and limits.
             fields:
             - name: id
-              type: long
+              type: keyword
               description: ID for the current cgroup CPU.
             - name: total.ns
               type: long
