@@ -95,7 +95,7 @@
   type: long
   description: CFS quota in microseconds.
 - name: system.process.cgroup.cpu.id
-  type: long
+  type: keyword
   description: ID for the current cgroup CPU.
 - name: system.process.cgroup.cpu.stats.periods
   type: long
@@ -107,7 +107,7 @@
   type: long
   description: Number of throttled periods seen by the CPU.
 - name: system.process.cgroup.cpuacct.id
-  type: long
+  type: keyword
   description: ID for the current cgroup CPU.
 - name: system.process.cgroup.cpuacct.total.ns
   type: long
