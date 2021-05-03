@@ -17269,7 +17269,7 @@ CPU-specific cgroup metrics and limits.
 --
 ID for the current cgroup CPU.
 
-type: long
+type: keyword
 
 --
 
@@ -17335,7 +17335,7 @@ CPU Accounting-specific cgroup metrics and limits.
 --
 ID for the current cgroup CPU.
 
-type: long
+type: keyword
 
 --
 
