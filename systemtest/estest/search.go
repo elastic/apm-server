@@ -30,6 +30,7 @@ import (
 //
 // ExpectDocs is equivalent to calling ExpectMinDocs with a minimum of 1.
 func (es *Client) ExpectDocs(t testing.TB, index string, query interface{}, opts ...RequestOption) SearchResult {
+	t.Helper()
 	return es.ExpectMinDocs(t, 1, index, query, opts...)
 }
 
@@ -46,7 +47,7 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 		req = req.WithQuery(query)
 	}
 	if _, err := req.Do(context.Background(), &result, opts...); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	return result
 }

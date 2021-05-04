@@ -39,7 +39,10 @@ func (es *Client) Do(
 	opts ...RequestOption,
 ) (*esapi.Response, error) {
 	requestOptions := requestOptions{
-		timeout:  10 * time.Second,
+		// Set the timeout to something high to account for Elasticsearch
+		// cluster and index/shard initialisation. Under normal conditions
+		// this timeout should never be reached.
+		timeout:  time.Minute,
 		interval: 100 * time.Millisecond,
 	}
 	for _, opt := range opts {
