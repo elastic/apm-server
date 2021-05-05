@@ -150,7 +150,7 @@ func newGRPCServer(
 			apmInterceptor,
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
-			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps),
+			interceptors.Metrics(logger, otlp.RegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
 			interceptors.Timeout(),
 			authInterceptor,
 		),
