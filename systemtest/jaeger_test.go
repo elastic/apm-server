@@ -28,6 +28,7 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -45,6 +46,7 @@ func TestJaegerGRPC(t *testing.T) {
 		GRPCEnabled: true,
 		GRPCHost:    "localhost:0",
 	}
+	srv.Config.Monitoring = newFastMonitoringConfig()
 	err := srv.Start()
 	require.NoError(t, err)
 	testJaegerGRPC(t, srv, srv.JaegerGRPCAddr, grpc.WithInsecure())
@@ -52,13 +54,16 @@ func TestJaegerGRPC(t *testing.T) {
 
 func TestJaegerGRPCMuxed(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Monitoring = newFastMonitoringConfig()
+	require.NoError(t, srv.Start())
 	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithInsecure())
 }
 
 func TestJaegerGRPCMuxedTLS(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServer(t)
+	srv.Config.Monitoring = newFastMonitoringConfig()
 	require.NoError(t, srv.StartTLS())
 	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithTransportCredentials(credentials.NewTLS(srv.TLS)))
 }
@@ -73,6 +78,9 @@ func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string, dialOp
 	require.NoError(t, err)
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
+
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	assert.Equal(t, int64(1), gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count").Int())
 
 	systemtest.Elasticsearch.ExpectDocs(t, "apm-*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},

@@ -124,7 +124,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 			// a timeout if we were to wait that long. The server
 			// should flush metrics on shutdown without waiting for
 			// the configured interval.
-			Interval: time.Minute,
+			Interval: 30 * time.Minute,
 		},
 	}
 	err := srv.Start()
@@ -136,6 +136,13 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	tx.Duration = time.Second
 	tx.End()
 	tracer.Flush(nil)
+
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectDocs(t, "apm-*",
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
 
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())

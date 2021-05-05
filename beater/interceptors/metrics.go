@@ -29,20 +29,29 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 )
 
-// Metrics returns a grpc.UnaryServerInterceptor that increments the metrics in
-// a supplied registry keyed to its gRPC full method name.
+// Metrics returns a grpc.UnaryServerInterceptor that increments metrics
+// for gRPC method calls. The full gRPC method name will be used to look
+// up a monitoring map in any of the given maps; the last one wins.
 func Metrics(
 	logger *logp.Logger,
-	registries map[string]map[request.ResultID]*monitoring.Int,
+	methodMetrics ...map[string]map[request.ResultID]*monitoring.Int,
 ) grpc.UnaryServerInterceptor {
+
+	allMethodMetrics := make(map[string]map[request.ResultID]*monitoring.Int)
+	for _, methodMetrics := range methodMetrics {
+		for method, metrics := range methodMetrics {
+			allMethodMetrics[method] = metrics
+		}
+	}
+
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		m, prs := registries[info.FullMethod]
-		if !prs {
+		m, ok := allMethodMetrics[info.FullMethod]
+		if !ok {
 			logger.With(
 				"grpc.request.method", info.FullMethod,
 			).Error("metrics registry missing")
