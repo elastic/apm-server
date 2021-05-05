@@ -91,6 +91,8 @@ func (c *Consumer) convertInstrumentationLibraryMetrics(in pdata.Instrumentation
 }
 
 func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
+	// TODO(axw) support units
+
 	switch metric.DataType() {
 	case pdata.MetricDataTypeIntGauge:
 		dps := metric.IntGauge().DataPoints()
@@ -100,6 +102,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
+					Type:  model.MetricTypeGauge,
 					Value: float64(dp.Value()),
 				},
 			)
@@ -113,6 +116,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
+					Type:  model.MetricTypeGauge,
 					Value: float64(dp.Value()),
 				},
 			)
@@ -126,6 +130,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
+					Type:  model.MetricTypeCounter,
 					Value: float64(dp.Value()),
 				},
 			)
@@ -139,15 +144,32 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 				dp.Timestamp().AsTime(), dp.LabelsMap(),
 				model.Sample{
 					Name:  metric.Name(),
+					Type:  model.MetricTypeCounter,
 					Value: float64(dp.Value()),
 				},
 			)
 		}
 		return true
 	case pdata.MetricDataTypeIntHistogram:
-		// TODO(axw) https://github.com/elastic/apm-server/issues/3195
+		dps := metric.IntHistogram().DataPoints()
+		for i := 0; i < dps.Len(); i++ {
+			dp := dps.At(i)
+			ms.upsert(
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
+				histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()),
+			)
+		}
+		return true
 	case pdata.MetricDataTypeDoubleHistogram:
-		// TODO(axw) https://github.com/elastic/apm-server/issues/3195
+		dps := metric.DoubleHistogram().DataPoints()
+		for i := 0; i < dps.Len(); i++ {
+			dp := dps.At(i)
+			ms.upsert(
+				dp.Timestamp().AsTime(), dp.LabelsMap(),
+				histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()),
+			)
+		}
+		return true
 	case pdata.MetricDataTypeDoubleSummary:
 		// TODO(axw) https://github.com/elastic/apm-server/issues/3195
 		// (Not quite the same issue, but the solution would also enable
@@ -155,6 +177,23 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 	}
 	// Unsupported metric: report that it has been dropped.
 	return false
+}
+
+func histogramSample(metricName string, bucketCounts []uint64, explicitBounds []float64) model.Sample {
+	values := make([]float64, 0, len(explicitBounds))
+	counts := make([]int64, 0, len(bucketCounts))
+	for i, count := range bucketCounts {
+		if count > 0 {
+			counts = append(counts, int64(count))
+			values = append(values, explicitBounds[i])
+		}
+	}
+	return model.Sample{
+		Name:   metricName,
+		Type:   model.MetricTypeHistogram,
+		Counts: counts,
+		Values: values,
+	}
 }
 
 type metricsets []metricset
