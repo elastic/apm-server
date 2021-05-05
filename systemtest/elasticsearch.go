@@ -37,7 +37,7 @@ import (
 const (
 	adminElasticsearchUser  = "admin"
 	adminElasticsearchPass  = "changeme"
-	maxElasticsearchBackoff = time.Second
+	maxElasticsearchBackoff = 10 * time.Second
 )
 
 var (
@@ -75,9 +75,10 @@ func newElasticsearchConfig() elasticsearch.Config {
 		addresses = append(addresses, u.String())
 	}
 	return elasticsearch.Config{
-		Addresses: addresses,
+		Addresses:  addresses,
+		MaxRetries: 5,
 		RetryBackoff: func(attempt int) time.Duration {
-			backoff := time.Duration(attempt*100) * time.Millisecond
+			backoff := (500 * time.Millisecond) * (1 << (attempt - 1))
 			if backoff > maxElasticsearchBackoff {
 				backoff = maxElasticsearchBackoff
 			}
