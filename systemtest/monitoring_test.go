@@ -34,11 +34,7 @@ import (
 
 func TestAPMServerMonitoring(t *testing.T) {
 	srv := apmservertest.NewUnstartedServer(t)
-	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
-		Enabled:       true,
-		MetricsPeriod: time.Duration(time.Second),
-		StatePeriod:   time.Duration(time.Second),
-	}
+	srv.Config.Monitoring = newFastMonitoringConfig()
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -122,4 +118,12 @@ type BeatsState struct {
 
 type BeatsStats struct {
 	Metrics map[string]interface{} `json:"metrics"`
+}
+
+func newFastMonitoringConfig() *apmservertest.MonitoringConfig {
+	return &apmservertest.MonitoringConfig{
+		Enabled:       true,
+		MetricsPeriod: 100 * time.Millisecond,
+		StatePeriod:   100 * time.Millisecond,
+	}
 }
