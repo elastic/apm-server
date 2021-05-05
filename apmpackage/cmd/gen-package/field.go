@@ -36,6 +36,8 @@ type field struct {
 	IgnoreAbove      *int                   `yaml:"ignore_above,omitempty"`
 	MultiFields      []multiFieldDefinition `yaml:"multi_fields,omitempty"`
 	Fields           []field                `yaml:"fields,omitempty"`
+	MetricType       string                 `yaml:"metric_type,omitempty"`
+	Unit             string                 `yaml:"unit,omitempty"`
 	IsECS            bool                   `yaml:"-"`
 	HasECS           bool                   `yaml:"-"`
 	HasNonECS        bool                   `yaml:"-"`

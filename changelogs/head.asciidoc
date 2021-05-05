@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Added
 * Support setting agent configuration from apm-server.yml {pull}5177[5177]
+* Add metric_type and unit to field metadata of system metrics {pull}5230[5230]
 
 [float]
 ==== Deprecated
