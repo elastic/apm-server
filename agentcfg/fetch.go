@@ -82,11 +82,6 @@ func NewFetcher(cfg *config.Config) Fetcher {
 	return NewKibanaFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
 }
 
-// NoopFetcher implements Fetcher. Its Fetch method is a no-op.
-type NoopFetcher struct{}
-
-func (f *NoopFetcher) Fetch(context.Context, Query) (Result, error) { return zeroResult(), nil }
-
 // KibanaFetcher holds static information and information shared between requests.
 // It implements the Fetch method to retrieve agent configuration information.
 type KibanaFetcher struct {
