@@ -176,6 +176,11 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Etag:    "def456",
 				},
 				{
+					Service: config.Service{Name: "service1", Environment: ""},
+					Config:  map[string]string{"key3": "val3"},
+					Etag:    "abc123",
+				},
+				{
 					Service: config.Service{Name: "service1", Environment: "production"},
 					Config:  map[string]string{"key1": "val1"},
 					Etag:    "abc123",

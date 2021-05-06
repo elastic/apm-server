@@ -101,7 +101,6 @@ type Config struct {
 
 	Pipeline string
 
-	// TODO: wat is with this naming
 	AgentConfigs []AgentConfig `config:"agent_config"`
 }
 
