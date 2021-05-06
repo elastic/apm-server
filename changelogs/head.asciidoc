@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Added
 * Add metric_type and unit to field metadata of system metrics {pull}5230[5230]
+* Add support for dynamic histogram metrics {pull}5239[5239]
 
 [float]
 ==== Deprecated
