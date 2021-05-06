@@ -18,6 +18,9 @@ apm:
   - pipeline:
       name: apm_opentelemetry_metrics
       if: ctx.processor?.event == 'metric'
+  - pipeline:
+      name: apm_metrics_dynamic_template
+      if: ctx.processor?.event == 'metric'
 
 apm_user_agent:
   description: Add user agent information for APM events
@@ -112,3 +115,23 @@ apm_opentelemetry_metrics:
       copy_from: labels.gc
       override: false # don't replace existing labels.name field, if any
       if: ctx.labels?.gc != null && ctx.runtime?.jvm?.gc != null
+
+# TODO(axw) handle unit in metric descriptions.
+# See https://github.com/elastic/elasticsearch/issues/72536
+apm_metrics_dynamic_template:
+  description: Set dynamic_templates for application metrics
+  processors:
+  - script:
+      if: ctx._metric_descriptions != null
+      source: |
+        Map dynamic_templates = new HashMap();
+        for (entry in ctx._metric_descriptions.entrySet()) {
+          String name = entry.getKey();
+          Map description = entry.getValue();
+          String metric_type = description.type;
+          if (metric_type == "histogram") {
+            dynamic_templates[name] = "histogram";
+          }
+        }
+        ctx._dynamic_templates = dynamic_templates;
+        ctx.remove("_metric_descriptions");

@@ -32,6 +32,12 @@
         "name": "metrics-apm.profiling-0.2.0-apm_opentelemetry_metrics",
         "if": "ctx.processor?.event == 'metric'"
       }
+    },
+    {
+      "pipeline": {
+        "name": "metrics-apm.profiling-0.2.0-apm_metrics_dynamic_template",
+        "if": "ctx.processor?.event == 'metric'"
+      }
     }
   ]
 }
