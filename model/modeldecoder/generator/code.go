@@ -161,26 +161,35 @@ func (val *%s) IsSet() bool {
 	if key != "" {
 		key += "."
 	}
-	prefix := ``
+	prefix := ` `
 	for i := 0; i < len(structTyp.fields); i++ {
 		f := structTyp.fields[i]
 		if !f.Exported() {
 			continue
 		}
-		switch t := f.Type().Underlying().(type) {
-		case *types.Slice, *types.Map:
-			fmt.Fprintf(&g.buf, `%s len(val.%s) > 0`, prefix, f.Name())
-		case *types.Struct:
-			fmt.Fprintf(&g.buf, `%s val.%s.IsSet()`, prefix, f.Name())
-		default:
-			return fmt.Errorf("unhandled type %T for IsSet() for '%s%s'", t, key, jsonName(f))
+		g.buf.WriteString(prefix)
+		if err := generateIsSet(&g.buf, f, "val."); err != nil {
+			return errors.Wrapf(err, "error generating IsSet() for '%s%s'", key, jsonName(f))
 		}
-		prefix = ` ||`
+		prefix = ` || `
 	}
 	fmt.Fprint(&g.buf, `
 }
 `)
 	return nil
+}
+
+func generateIsSet(w io.Writer, field structField, fieldSelectorPrefix string) error {
+	switch typ := field.Type().Underlying(); typ.(type) {
+	case *types.Slice, *types.Map:
+		fmt.Fprintf(w, "(len(%s%s) > 0)", fieldSelectorPrefix, field.Name())
+		return nil
+	case *types.Struct:
+		fmt.Fprintf(w, "%s%s.IsSet()", fieldSelectorPrefix, field.Name())
+		return nil
+	default:
+		return fmt.Errorf("unhandled type %T generating IsSet() for '%s'", typ, jsonName(field))
+	}
 }
 
 // generateReset creates `Reset` methods for struct fields setting them to
