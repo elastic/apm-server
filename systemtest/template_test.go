@@ -98,6 +98,7 @@ func TestIndexTemplateCoverage(t *testing.T) {
 		"double_gauge",
 		"byte_counter",
 		"short_counter",
+		"latency_distribution",
 	}
 
 	for index, indexMappings := range indexMappings {

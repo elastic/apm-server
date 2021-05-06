@@ -56,6 +56,19 @@ func TestApprovedMetrics(t *testing.T) {
 		Value: "metric",
 	})
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+
+	// Check dynamic mapping of histograms.
+	mappings := getFieldMappings(t, []string{"apm-*"}, []string{"latency_distribution"})
+	assert.Equal(t, map[string]interface{}{
+		"latency_distribution": map[string]interface{}{
+			"full_name": "latency_distribution",
+			"mapping": map[string]interface{}{
+				"latency_distribution": map[string]interface{}{
+					"type": "histogram",
+				},
+			},
+		},
+	}, mappings)
 }
 
 func TestBreakdownMetrics(t *testing.T) {
@@ -139,23 +152,7 @@ func TestApplicationMetrics(t *testing.T) {
 
 	// Check that the index mapping has been updated for the custom
 	// metrics, with the expected dynamically mapped field types.
-	var allMappings map[string]struct {
-		Mappings map[string]interface{}
-	}
-	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.IndicesGetFieldMappingRequest{
-		Index:  []string{"apm-*"},
-		Fields: []string{"a.b.c", "x.y.z"},
-	}, &allMappings)
-	require.NoError(t, err)
-
-	var mappings map[string]interface{}
-	for _, index := range allMappings {
-		if len(index.Mappings) != 0 {
-			mappings = index.Mappings
-			break
-		}
-	}
-	require.NotEmpty(t, mappings)
+	mappings := getFieldMappings(t, []string{"apm-*"}, []string{"a.b.c", "x.y.z"})
 	assert.Equal(t, map[string]interface{}{
 		"a.b.c": map[string]interface{}{
 			"full_name": "a.b.c",
@@ -174,6 +171,26 @@ func TestApplicationMetrics(t *testing.T) {
 			},
 		},
 	}, mappings)
+}
+
+func getFieldMappings(t testing.TB, index []string, fields []string) map[string]interface{} {
+	var allMappings map[string]struct {
+		Mappings map[string]interface{}
+	}
+	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.IndicesGetFieldMappingRequest{
+		Index:  index,
+		Fields: fields,
+	}, &allMappings)
+	require.NoError(t, err)
+
+	mappings := make(map[string]interface{})
+	for _, index := range allMappings {
+		for k, v := range index.Mappings {
+			assert.NotContains(t, mappings, k, "field %q exists in multiple indices", k)
+			mappings[k] = v
+		}
+	}
+	return mappings
 }
 
 type metricsetTransaction struct {
