@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
@@ -37,6 +38,8 @@ type tracerServer struct {
 	requests <-chan tracerServerRequest
 }
 
+// TODO: Figure out how to send a Fetcher into here (if we need to use a single
+// shared Fetcher everywhere)
 func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer, error) {
 	requests := make(chan tracerServerRequest)
 	nopReporter := func(ctx context.Context, _ publish.PendingReq) error {
@@ -58,7 +61,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		}
 	})
 	cfg := config.DefaultConfig()
-	mux, err := api.NewMux(beat.Info{}, cfg, nopReporter, processBatch)
+	mux, err := api.NewMux(beat.Info{}, cfg, nopReporter, processBatch, agentcfg.NewFetcher(cfg))
 	if err != nil {
 		return nil, err
 	}

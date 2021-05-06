@@ -37,7 +37,6 @@ import (
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
-	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
@@ -110,15 +109,16 @@ type server struct {
 }
 
 func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor) (server, error) {
-	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor)
+	fetcher := agentcfg.NewFetcher(cfg)
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetcher)
 	if err != nil {
 		return server{}, err
 	}
-	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig)
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetcher)
 	if err != nil {
 		return server{}, err
 	}
-	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor)
+	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, fetcher)
 	if err != nil {
 		return server{}, err
 	}
@@ -132,7 +132,12 @@ func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *
 }
 
 func newGRPCServer(
-	logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, batchProcessor model.BatchProcessor, tlsConfig *tls.Config,
+	logger *logp.Logger,
+	cfg *config.Config,
+	tracer *apm.Tracer,
+	batchProcessor model.BatchProcessor,
+	tlsConfig *tls.Config,
+	fetcher agentcfg.Fetcher,
 ) (*grpc.Server, error) {
 	// TODO(axw) share auth builder with beater/api.
 	authBuilder, err := authorization.NewBuilder(cfg)
@@ -164,13 +169,7 @@ func newGRPCServer(
 		}
 	}
 
-	var kibanaClient kibana.Client
-	var agentcfgFetcher *agentcfg.Fetcher
-	if cfg.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(&cfg.Kibana)
-		agentcfgFetcher = agentcfg.NewFetcher(kibanaClient, cfg.KibanaAgentConfig.Cache.Expiration)
-	}
-	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, kibanaClient, agentcfgFetcher)
+	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, fetcher)
 	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
 	}

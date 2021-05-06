@@ -176,6 +176,15 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
+// DefaultKibanaAgentConfig holds the default KibanaAgentConfig
+func DefaultKibanaAgentConfig() *KibanaAgentConfig {
+	return &KibanaAgentConfig{
+		Cache: &Cache{
+			Expiration: 30 * time.Second,
+		},
+	}
+}
+
 // NewConfig creates a Config struct based on the default config and the given input params
 func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
@@ -266,7 +275,7 @@ func DefaultConfig() *Config {
 		Register:          defaultRegisterConfig(true),
 		Mode:              ModeProduction,
 		Kibana:            defaultKibanaConfig(),
-		KibanaAgentConfig: &KibanaAgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+		KibanaAgentConfig: DefaultKibanaAgentConfig(),
 		Pipeline:          defaultAPMPipeline,
 		APIKeyConfig:      defaultAPIKeyConfig(),
 		JaegerConfig:      defaultJaeger(),

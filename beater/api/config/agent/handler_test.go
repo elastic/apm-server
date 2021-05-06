@@ -183,7 +183,7 @@ func TestAgentConfigHandler(t *testing.T) {
 	for name, tc := range testcases {
 
 		runTest := func(t *testing.T, expectedBody map[string]string, authorized bool) {
-			f := agentcfg.NewFetcher(tc.kbClient, cfg.Cache.Expiration)
+			f := agentcfg.NewKibanaFetcher(tc.kbClient, cfg.Cache.Expiration)
 			h := NewHandler(f, &cfg, "")
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
@@ -215,7 +215,7 @@ func TestAgentConfigHandler(t *testing.T) {
 
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	f := agentcfg.NewFetcher(nil, cfg.Cache.Expiration)
+	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
 	h := NewHandler(f, &cfg, "")
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
@@ -234,7 +234,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 	}, mockVersion, true)
 
 	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	f := agentcfg.NewFetcher(kb, cfg.Cache.Expiration)
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, &cfg, "")
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
@@ -255,7 +255,7 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	}
 
 	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	f := agentcfg.NewFetcher(kb, cfg.Cache.Expiration)
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, &cfg, "default")
 
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
@@ -343,7 +343,7 @@ func getHandler(agent string) request.Handler {
 		},
 	}, mockVersion, true)
 	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	f := agentcfg.NewFetcher(kb, cfg.Cache.Expiration)
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	return NewHandler(f, &cfg, "")
 }
 
@@ -369,7 +369,7 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
 	cfg := &config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}
-	f := agentcfg.NewFetcher(client, cfg.Cache.Expiration)
+	f := agentcfg.NewKibanaFetcher(client, cfg.Cache.Expiration)
 	handler := NewHandler(f, cfg, "default")
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
 		// When the handler is called with a context containing

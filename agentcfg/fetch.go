@@ -58,25 +58,54 @@ var KibanaMinVersion = common.MustNewVersion("7.5.0")
 
 const endpoint = "/api/apm/settings/agent-configuration/search"
 
-// Fetcher holds static information and information shared between requests.
+// Fetcher defines a common interface to retrieving agent config.
+type Fetcher interface {
+	Fetch(context.Context, Query) (Result, error)
+}
+
+// NewFetcher returns a new Fetcher based on the provided config.
+func NewFetcher(cfg *config.Config) Fetcher {
+	if cfg.AgentConfigs != nil {
+		// Direct agent configuration is present, disable communication
+		// with kibana.
+		return NewDirectFetcher(cfg.AgentConfigs)
+	}
+	var client kibana.Client
+	if cfg.Kibana.Enabled {
+		client = kibana.NewConnectingClient(&cfg.Kibana)
+	}
+
+	if cfg.KibanaAgentConfig == nil {
+		cfg.KibanaAgentConfig = config.DefaultKibanaAgentConfig()
+	}
+
+	return NewKibanaFetcher(client, cfg.KibanaAgentConfig.Cache.Expiration)
+}
+
+// NoopFetcher implements Fetcher. Its Fetch method is a no-op.
+type NoopFetcher struct{}
+
+func (f *NoopFetcher) Fetch(context.Context, Query) (Result, error) { return zeroResult(), nil }
+
+// KibanaFetcher holds static information and information shared between requests.
 // It implements the Fetch method to retrieve agent configuration information.
-type Fetcher struct {
+type KibanaFetcher struct {
 	*cache
 	logger *logp.Logger
 	client kibana.Client
 }
 
-// NewFetcher returns a Fetcher instance.
-func NewFetcher(client kibana.Client, cacheExpiration time.Duration) *Fetcher {
+// NewKibanaFetcher returns a KibanaFetcher instance.
+func NewKibanaFetcher(client kibana.Client, cacheExpiration time.Duration) *KibanaFetcher {
 	logger := logp.NewLogger("agentcfg")
-	return &Fetcher{
+	return &KibanaFetcher{
 		client: client,
 		logger: logger,
 		cache:  newCache(logger, cacheExpiration),
 	}
 }
 
-// ValidationError encapsulates a validation error from the Fetcher.
+// ValidationError encapsulates a validation error from the KibanaFetcher.
 // ValidationError implements the error interface.
 type ValidationError struct {
 	keyword, body string
@@ -92,8 +121,8 @@ func (v *ValidationError) Body() string { return v.body }
 // Error() implements the error interface.
 func (v *ValidationError) Error() string { return v.err.Error() }
 
-// Validate validates the currently configured Fetcher.
-func (f *Fetcher) validate(ctx context.Context) *ValidationError {
+// Validate validates the currently configured KibanaFetcher.
+func (f *KibanaFetcher) validate(ctx context.Context) *ValidationError {
 	if f.client == nil {
 		return &ValidationError{
 			keyword: ErrMsgKibanaDisabled,
@@ -125,7 +154,7 @@ func (f *Fetcher) validate(ctx context.Context) *ValidationError {
 }
 
 // Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
-func (f *Fetcher) Fetch(ctx context.Context, query Query) (Result, error) {
+func (f *KibanaFetcher) Fetch(ctx context.Context, query Query) (Result, error) {
 	if err := f.validate(ctx); err != nil {
 		return zeroResult(), err
 	}
@@ -136,7 +165,7 @@ func (f *Fetcher) Fetch(ctx context.Context, query Query) (Result, error) {
 	return sanitize(query.InsecureAgents, result), err
 }
 
-func (f *Fetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
+func (f *KibanaFetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
 	resp, err := f.client.Send(ctx, http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrMsgSendToKibanaFailed)

@@ -45,14 +45,14 @@ func TestFetcher_Fetch(t *testing.T) {
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
-		_, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
+		_, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
-		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
+		result, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, zeroResult(), result)
 	})
@@ -62,14 +62,14 @@ func TestFetcher_Fetch(t *testing.T) {
 		b, err := json.Marshal(mockDoc(0.5))
 		expectedResult, err := newResult(b, err)
 		require.NoError(t, err)
-		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
+		result, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("FetchFromCache", func(t *testing.T) {
 
-		fetch := func(f *Fetcher, kibanaSamplingRate, expectedSamplingRate float64) {
+		fetch := func(f *KibanaFetcher, kibanaSamplingRate, expectedSamplingRate float64) {
 
 			client := func(samplingRate float64) kibana.Client {
 				return tests.MockKibana(http.StatusOK, mockDoc(samplingRate), mockVersion, true)
@@ -86,7 +86,7 @@ func TestFetcher_Fetch(t *testing.T) {
 			assert.Equal(t, expectedResult, result)
 		}
 
-		fetcher := NewFetcher(nil, time.Minute)
+		fetcher := NewKibanaFetcher(nil, time.Minute)
 
 		// nothing cached yet
 		fetch(fetcher, 0.5, 0.5)

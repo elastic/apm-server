@@ -18,7 +18,6 @@
 package agent
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -58,12 +57,12 @@ var (
 )
 
 type handler struct {
-	f fetcher
+	f agentcfg.Fetcher
 
 	cacheControl, defaultServiceEnvironment string
 }
 
-func NewHandler(f fetcher, config *config.KibanaAgentConfig, defaultServiceEnvironment string) request.Handler {
+func NewHandler(f agentcfg.Fetcher, config *config.KibanaAgentConfig, defaultServiceEnvironment string) request.Handler {
 	if f == nil {
 		panic("fetcher must not be nil")
 	}
@@ -75,10 +74,6 @@ func NewHandler(f fetcher, config *config.KibanaAgentConfig, defaultServiceEnvir
 	}
 
 	return h.Handle
-}
-
-type fetcher interface {
-	Fetch(context.Context, agentcfg.Query) (agentcfg.Result, error)
 }
 
 // Handler implements request.Handler for managing agent central configuration
