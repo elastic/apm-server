@@ -38,8 +38,6 @@ type tracerServer struct {
 	requests <-chan tracerServerRequest
 }
 
-// TODO: Figure out how to send a Fetcher into here (if we need to use a single
-// shared Fetcher everywhere)
 func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer, error) {
 	requests := make(chan tracerServerRequest)
 	nopReporter := func(ctx context.Context, _ publish.PendingReq) error {
