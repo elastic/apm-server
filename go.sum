@@ -343,8 +343,8 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7joQ8SYLhZwfeOo6Ts=
 github.com/eclipse/paho.mqtt.golang v1.2.1-0.20200121105743-0d940dd29fd2/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7joQ8SYLhZwfeOo6Ts=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210511162525-3e1772dd8926 h1:viaDHTYN2eO30HFElX953KH5zxzHSPwx/hL3TwhMsoc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210511162525-3e1772dd8926/go.mod h1:MGnzsdXrYi5U6zMRwehClOFMJz+sTfwujyqqp+ztBQs=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210512112448-5a06097845b0 h1:nOsK5P1SgIMEO0029YUGwgTIj+mCwswgCH8i3bW675Q=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210512112448-5a06097845b0/go.mod h1:MGnzsdXrYi5U6zMRwehClOFMJz+sTfwujyqqp+ztBQs=
 github.com/elastic/ecs v1.8.0 h1:wa61IDQsQcZyJa6hwbhqGO+631H+kGHhe0J4V7tMPZY=
 github.com/elastic/ecs v1.8.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20210308165121-7dd05ee2b5a5/go.mod h1:uh/Gj9a0XEbYoM4NYz4LvaBVARz3QXLmlNjsrKY9fTc=
