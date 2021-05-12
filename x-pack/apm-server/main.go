@@ -102,7 +102,8 @@ func licensePlatinumCovered(client *eslegclient.Connection) error {
 	}
 	if licenser.IsExpired(license) {
 		log.Errorf("%s license is expired", license.Type)
-		return errors.New("Elasticsearch license is not active, please check Elasticsearch's licensing information at https://www.elastic.co/subscriptions.")
+		const errorMessage = "Elasticsearch license is not active, please check Elasticsearch's licensing information at https://www.elastic.co/subscriptions."
+		return errors.New(errorMessage)
 	}
 	licenseToCover := licenser.Platinum
 	log.Infof("Checking license for tail-based sampling covers %s", licenseToCover)
