@@ -576,19 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-<<<<<<< HEAD
-Version: v7.0.0-alpha2.0.20210503155503-8551a8144fb4
+Version: v7.0.0-alpha2.0.20210511162525-3e1772dd8926
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210503155503-8551a8144fb4/LICENSE.txt:
-=======
-Version: v7.0.0-alpha2.0.20210511154745-72eb4cde17ba
-Licence type (autodetected): Elastic
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210511154745-72eb4cde17ba/LICENSE.txt:
->>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20210511162525-3e1772dd8926/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -4667,19 +4659,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-<<<<<<< HEAD
-Version: v0.0.0-20210503060351-7fd8e65b6420
-Licence type (autodetected): BSD-3-Clause
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210503060351-7fd8e65b6420/LICENSE:
-=======
 Version: v0.0.0-20210510120150-4163338589ed
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20210510120150-4163338589ed/LICENSE:
->>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -4786,11 +4770,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.37.0
+Version: v1.37.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.37.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.37.1/LICENSE:
 
 
                                  Apache License
@@ -18310,19 +18294,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-<<<<<<< HEAD
-Version: v0.0.0-20210421170649-83a5a9bb288b
-Licence type (autodetected): BSD-3-Clause
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210421170649-83a5a9bb288b/LICENSE:
-=======
 Version: v0.0.0-20210506145944-38f3c27a63bf
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20210506145944-38f3c27a63bf/LICENSE:
->>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18392,19 +18368,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-<<<<<<< HEAD
-Version: v0.0.0-20210503080704-8803ae5d1324
-Licence type (autodetected): BSD-3-Clause
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210503080704-8803ae5d1324/LICENSE:
-=======
 Version: v0.0.0-20210511113859-b0526f3d8744
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20210511113859-b0526f3d8744/LICENSE:
->>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18511,19 +18479,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-<<<<<<< HEAD
-Version: v0.0.0-20210429181445-86c259c2b4ab
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210429181445-86c259c2b4ab/LICENSE:
-=======
 Version: v0.0.0-20210510173355-fb37daa5cd7a
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20210510173355-fb37daa5cd7a/LICENSE:
->>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
 
 
                                  Apache License
