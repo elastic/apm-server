@@ -1,4 +1,4 @@
-Dockerfile FROM golang:1.15.12
+FROM golang:1.15.9
 MAINTAINER Nicolas Ruflin <ruflin@elastic.co>
 
 RUN set -x && \
