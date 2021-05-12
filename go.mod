@@ -13,7 +13,11 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
+<<<<<<< HEAD
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210503155503-8551a8144fb4
+=======
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20210511154745-72eb4cde17ba
+>>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
 	github.com/elastic/ecs v1.8.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20210407144825-cc1c33cfa1d0 // indirect
 	github.com/elastic/elastic-package v0.0.0-20210310173719-3b8f76516ae3
@@ -22,7 +26,6 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20201007143536-4b4020669208
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-licenser v0.3.1
-	github.com/elastic/go-sysinfo v1.7.0 // indirect
 	github.com/elastic/go-ucfg v0.8.4-0.20200415140258-1232bd4774a6
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -63,8 +66,9 @@ require (
 	go.elastic.co/go-licence-detector v0.5.0
 	go.opentelemetry.io/collector v0.22.0
 	go.uber.org/atomic v1.7.0
-	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.16.0
+<<<<<<< HEAD
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/net v0.0.0-20210503060351-7fd8e65b6420
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
@@ -72,6 +76,15 @@ require (
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	golang.org/x/tools v0.1.0
 	google.golang.org/genproto v0.0.0-20210429181445-86c259c2b4ab // indirect
+=======
+	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf // indirect
+	golang.org/x/net v0.0.0-20210510120150-4163338589ed
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
+	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
+	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
+	golang.org/x/tools v0.1.1
+	google.golang.org/genproto v0.0.0-20210510173355-fb37daa5cd7a // indirect
+>>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
 	google.golang.org/grpc v1.37.0
 	gopkg.in/yaml.v2 v2.4.0
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect

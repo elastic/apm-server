@@ -1,6 +1,11 @@
 // doc-branch can be: master, 8.0, 8.1, etc.
+<<<<<<< HEAD
 :doc-branch: 7.x
 :go-version: 1.15.9
+=======
+:doc-branch: master
+:go-version: 1.15.12
+>>>>>>> 21d6cab9c... Update beats, go version and license check for tail-based sampling (#5252)
 :python: 3.7
 :docker: 1.12
 :docker-compose: 1.11
