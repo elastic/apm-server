@@ -8,7 +8,7 @@ RUN apt-get clean
 ARG UID=1000
 RUN useradd -m -u $UID apm-server
 USER $UID
-ENV HOME=/home/apm-serverÍ
+ENV HOME=/home/apm-server
 ENV GOPATH=/go
 
 # Install the Python venv separately from the host, as otherwise the
