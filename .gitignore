@@ -35,3 +35,4 @@ html_docs
 /docker-compose.override.yml
 /config.mk
 /systemtest/logs
+docker-compose.yml.bck

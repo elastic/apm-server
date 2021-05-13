@@ -78,63 +78,89 @@
   format: percent
   description: |
     The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+  metric_type: gauge
+  unit: percent
 - name: system.memory.actual.free
   type: long
   format: bytes
   description: |
     Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
+  metric_type: gauge
+  unit: byte
 - name: system.memory.total
   type: long
   format: bytes
   description: |
     Total memory.
+  metric_type: gauge
+  unit: byte
 - name: system.process.cgroup.cpu.cfs.period.us
   type: long
   description: CFS period in microseconds.
+  metric_type: gauge
+  unit: micros
 - name: system.process.cgroup.cpu.cfs.quota.us
   type: long
   description: CFS quota in microseconds.
+  metric_type: gauge
+  unit: micros
 - name: system.process.cgroup.cpu.id
-  type: long
+  type: keyword
   description: ID for the current cgroup CPU.
 - name: system.process.cgroup.cpu.stats.periods
   type: long
   description: Number of periods seen by the CPU.
+  metric_type: counter
 - name: system.process.cgroup.cpu.stats.throttled.ns
   type: long
   description: Nanoseconds spent throttled seen by the CPU.
+  metric_type: counter
+  unit: nanos
 - name: system.process.cgroup.cpu.stats.throttled.periods
   type: long
   description: Number of throttled periods seen by the CPU.
+  metric_type: counter
 - name: system.process.cgroup.cpuacct.id
-  type: long
+  type: keyword
   description: ID for the current cgroup CPU.
 - name: system.process.cgroup.cpuacct.total.ns
   type: long
   description: Total CPU time for the current cgroup CPU in nanoseconds.
+  metric_type: counter
+  unit: nanos
 - name: system.process.cgroup.memory.mem.limit.bytes
   type: long
   format: bytes
   description: Memory limit for the current cgroup slice.
+  metric_type: gauge
+  unit: byte
 - name: system.process.cgroup.memory.mem.usage.bytes
   type: long
   format: bytes
   description: Memory usage by the current cgroup slice.
+  metric_type: gauge
+  unit: byte
 - name: system.process.cpu.total.norm.pct
   type: scaled_float
   format: percent
   description: |
     The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
+  metric_type: gauge
+  unit: percent
 - name: system.process.memory.rss.bytes
   type: long
   format: bytes
   description: |
     The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
+  metric_type: gauge
+  unit: byte
 - name: system.process.memory.size
   type: long
   format: bytes
   description: |
     The total virtual memory the process has.
+  metric_type: gauge
+  unit: byte
 - name: timestamp.us
   type: long
   description: |
