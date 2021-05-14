@@ -201,7 +201,7 @@ APM Server.
 ----
 export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1,deployment.environment=production
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer apm_secret_token"
+export OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer apm_secret_token"
 java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
      -classpath lib/*:classes/ \
      com.mycompany.checkout.CheckoutServiceServer
