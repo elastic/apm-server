@@ -67,7 +67,6 @@ func TestManager_VerifySetup(t *testing.T) {
 		"ILMEnabledButUnsupported": {
 			version:    "6.2.0",
 			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
-			warn: msgErrIlmDisabledES,
 		},
 		"ILMAutoButUnsupported": {
 			version: "6.2.0",
@@ -97,7 +96,7 @@ func TestManager_VerifySetup(t *testing.T) {
 			esCfg: common.MapStr{
 				"output.elasticsearch.enabled": false,
 				"output.logstash.enabled":      true},
-			warn: "automatically disabled ILM",
+			warn: "Automatically disabled ILM",
 		},
 		"EverythingEnabled": {
 			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
@@ -200,6 +199,7 @@ func TestManager_SetupTemplate(t *testing.T) {
 		}
 	}
 }
+
 func TestManager_SetupILM(t *testing.T) {
 	fields := []byte("apm-server fields")
 
@@ -207,6 +207,7 @@ func TestManager_SetupILM(t *testing.T) {
 		cfg      common.MapStr
 		loadMode libidxmgmt.LoadMode
 
+		err                                       string
 		templatesILMEnabled, templatesILMDisabled int
 		policiesLoaded, aliasesLoaded             int
 		version                                   string
@@ -323,6 +324,7 @@ func TestManager_SetupILM(t *testing.T) {
 			loadMode:             libidxmgmt.LoadModeEnabled,
 			version:              "6.2.0",
 			templatesILMDisabled: 4,
+			err:                  "ILM not supported",
 		},
 		"Default ES Unsupported ILM setup disabled": {
 			cfg:      common.MapStr{"apm-server.ilm.setup.enabled": false},
@@ -333,6 +335,7 @@ func TestManager_SetupILM(t *testing.T) {
 			cfg:      common.MapStr{"apm-server.ilm.setup.enabled": false, "apm-server.ilm.enabled": true},
 			loadMode: libidxmgmt.LoadModeEnabled,
 			version:  "6.2.0",
+			err:      "ILM not supported",
 		},
 	}
 	var testCasesILMNotSupportedByIndexSettings = map[string]testCase{
@@ -415,11 +418,16 @@ func TestManager_SetupILM(t *testing.T) {
 				clientHandler := newMockClientHandler(version)
 				m := defaultSupporter(t, tc.cfg).Manager(clientHandler, libidxmgmt.BeatsAssets(fields))
 				indexManager := m.(*manager)
-				require.NoError(t, indexManager.Setup(libidxmgmt.LoadModeDisabled, tc.loadMode))
-				assert.Len(t, clientHandler.policies, tc.policiesLoaded)
-				assert.Len(t, clientHandler.aliases, tc.aliasesLoaded)
-				require.Equal(t, tc.templatesILMEnabled, clientHandler.templatesILMEnabled, "ILM enabled templates")
-				require.Equal(t, tc.templatesILMDisabled, clientHandler.templates, "ILM disabled templates")
+				err := indexManager.Setup(libidxmgmt.LoadModeDisabled, tc.loadMode)
+				if tc.err != "" {
+					require.EqualError(t, err, tc.err)
+				} else {
+					require.NoError(t, err)
+					assert.Len(t, clientHandler.policies, tc.policiesLoaded)
+					assert.Len(t, clientHandler.aliases, tc.aliasesLoaded)
+					require.Equal(t, tc.templatesILMEnabled, clientHandler.templatesILMEnabled, "ILM enabled templates")
+					require.Equal(t, tc.templatesILMDisabled, clientHandler.templates, "ILM disabled templates")
+				}
 			})
 		}
 	}

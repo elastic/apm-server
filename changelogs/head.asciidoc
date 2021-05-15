@@ -8,6 +8,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Bug fixes
+* Don't auto-disable ILM due to a failure to communicate with Elasticsearch {pull}5264[5264]
 
 [float]
 ==== Intake API Changes

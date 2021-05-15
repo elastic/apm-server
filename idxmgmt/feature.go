@@ -22,14 +22,10 @@ import (
 )
 
 type feature struct {
-	enabled, overwrite, load, supported bool
-
-	warn string
-	info string
-	err  error
+	enabled, overwrite, load bool
 }
 
-func newFeature(enabled, overwrite, load, supported bool, mode libidxmgmt.LoadMode) feature {
+func newFeature(enabled, overwrite, load bool, mode libidxmgmt.LoadMode) feature {
 	if mode == libidxmgmt.LoadModeUnset {
 		mode = libidxmgmt.LoadModeDisabled
 	}
@@ -39,25 +35,10 @@ func newFeature(enabled, overwrite, load, supported bool, mode libidxmgmt.LoadMo
 	if mode == libidxmgmt.LoadModeForce {
 		load = true
 	}
-	if !supported {
-		enabled = false
-	}
 	load = load && mode.Enabled()
 	return feature{
 		enabled:   enabled,
 		overwrite: overwrite,
 		load:      load,
-		supported: supported}
-}
-
-func (f *feature) warning() string {
-	return f.warn
-}
-
-func (f *feature) information() string {
-	return f.info
-}
-
-func (f *feature) error() error {
-	return f.err
+	}
 }
