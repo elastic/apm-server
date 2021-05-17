@@ -73,23 +73,6 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 	)
 }
 
-func transactionRequiredKeys() *tests.Set {
-	return tests.NewSet(
-		"transaction",
-		"transaction.span_count",
-		"transaction.span_count.started",
-		"transaction.trace_id",
-		"transaction.id",
-		"transaction.duration",
-		"transaction.type",
-		"transaction.context.request.method",
-		"transaction.experience.longtask.count",
-		"transaction.experience.longtask.sum",
-		"transaction.experience.longtask.max",
-		"transaction.session.id",
-	)
-}
-
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
 		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
@@ -121,10 +104,6 @@ func TestTransactionPayloadMatchFields(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchFields(t,
 		transactionPayloadAttrsNotInFields(),
 		transactionFieldsNotInPayloadAttrs())
-}
-
-func TestAttrsPresenceInTransaction(t *testing.T) {
-	transactionProcSetup().AttrsPresence(t, transactionRequiredKeys(), nil)
 }
 
 func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {

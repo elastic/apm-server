@@ -78,44 +78,6 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 
 }
 
-func spanRequiredKeys() *tests.Set {
-	return tests.NewSet(
-		"span",
-		"span.name",
-		"span.trace_id",
-		"span.parent_id",
-		"span.id",
-		"span.duration",
-		"span.type",
-		"span.start",
-		"span.timestamp",
-		"span.stacktrace.filename",
-		"span.context.destination.service.resource",
-		"span.context.destination.service.name",
-		"span.context.destination.service.type",
-	)
-}
-
-func spanCondRequiredKeys() map[string]tests.Condition {
-	return map[string]tests.Condition{
-		"span.start":     {Absence: []string{"span.timestamp"}},
-		"span.timestamp": {Absence: []string{"span.start"}},
-
-		"span.context.destination.service.type": {Existence: map[string]interface{}{
-			"span.context.destination.service.name":     "postgresql",
-			"span.context.destination.service.resource": "postgresql",
-		}},
-		"span.context.destination.service.name": {Existence: map[string]interface{}{
-			"span.context.destination.service.type":     "db",
-			"span.context.destination.service.resource": "postgresql",
-		}},
-		"span.context.destination.service.resource": {Existence: map[string]interface{}{
-			"span.context.destination.service.type": "db",
-			"span.context.destination.service.name": "postgresql",
-		}},
-	}
-}
-
 func transactionContext() *tests.Set {
 	return tests.NewSet(
 		tests.Group("context.user"),
@@ -155,10 +117,6 @@ func TestSpanPayloadMatchFields(t *testing.T) {
 		spanPayloadAttrsNotInFields(),
 		spanFieldsNotInPayloadAttrs())
 
-}
-
-func TestAttrsPresenceInSpan(t *testing.T) {
-	spanProcSetup().AttrsPresence(t, spanRequiredKeys(), spanCondRequiredKeys())
 }
 
 func TestKeywordLimitationOnSpanAttrs(t *testing.T) {

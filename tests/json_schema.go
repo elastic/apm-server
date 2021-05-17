@@ -68,65 +68,6 @@ var (
 	Str1025        = createStr(1025, "")
 )
 
-// Test that payloads missing `required `attributes fail validation.
-// - `required`: ensure required keys must not be missing or nil
-// - `conditionally required`: prepare payload according to conditions, then
-//   ensure required keys must not be missing
-func (ps *ProcessorSetup) AttrsPresence(t *testing.T, required *Set, condRequiredKeys map[string]Condition) {
-	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
-	require.NoError(t, err)
-
-	payloadKeys := NewSet()
-	flattenJsonKeys(payload, "", payloadKeys)
-
-	for _, k := range payloadKeys.Array() {
-		key := k.(string)
-		_, keyLast := splitKey(key)
-
-		//test sending nil value for key
-		ps.changePayload(t, key, nil, Condition{}, upsertFn,
-			func(k string) (bool, []string) {
-				errMsgs := []string{keyLast, "did not recognize object type", "requires at least one of the fields", "required"}
-				return !required.ContainsStrPattern(k), errMsgs
-			},
-		)
-
-		//test removing key from payload
-		cond := condRequiredKeys[key]
-		ps.changePayload(t, key, nil, cond, deleteFn,
-			func(k string) (bool, []string) {
-				validationErr := "validation error:"
-				keyParts := strings.Split(key, ".")
-				prefix := " "
-				for i := 0; i < len(keyParts); i++ {
-					if i == len(keyParts)-1 {
-						validationErr = fmt.Sprintf("%s%s'%s'", validationErr, prefix, keyParts[i])
-						continue
-					}
-					validationErr = fmt.Sprintf("%s%s%s", validationErr, prefix, keyParts[i])
-					prefix = ": "
-				}
-				errMsgs := []string{
-					fmt.Sprintf("missing properties: \"%s\"", keyLast),
-					fmt.Sprintf("'%s'", key),
-					"did not recognize object type",
-					validationErr,
-					"requires at least one of the fields",
-					"required",
-				}
-
-				if required.ContainsStrPattern(k) {
-					return false, errMsgs
-				}
-				if _, ok := condRequiredKeys[k]; ok {
-					return false, errMsgs
-				}
-				return true, []string{}
-			},
-		)
-	}
-}
-
 // Test that field names indexed as `keywords` in Elasticsearch, have the same
 // length limitation on the Intake API.
 // APM Server has set all keyword restrictions to length 1024.

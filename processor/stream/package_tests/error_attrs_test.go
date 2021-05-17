@@ -72,42 +72,6 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 	)
 }
 
-func errorRequiredKeys() *tests.Set {
-	return tests.NewSet(
-		"error",
-		"error.id",
-		"error.log",
-		"error.exception",
-		"error.exception.type",
-		"error.exception.message",
-		"error.log.message",
-		"error.exception.stacktrace.filename",
-		"error.log.stacktrace.filename",
-		"error.context.request.method",
-		"error.trace_id",
-		"error.parent_id",
-	)
-}
-
-type val = []interface{}
-type obj = map[string]interface{}
-
-func errorCondRequiredKeys() map[string]tests.Condition {
-	return map[string]tests.Condition{
-		"error.exception":                      {Absence: []string{"error.log"}},
-		"error.exception.message":              {Absence: []string{"error.exception.type"}},
-		"error.exception.type":                 {Absence: []string{"error.exception.message"}},
-		"error.exception.stacktrace.filename":  {Absence: []string{"error.exception.stacktrace.classname"}},
-		"error.exception.stacktrace.classname": {Absence: []string{"error.exception.stacktrace.filename"}},
-		"error.log":                            {Absence: []string{"error.exception"}},
-		"error.log.stacktrace.filename":        {Absence: []string{"error.log.stacktrace.classname"}},
-		"error.log.stacktrace.classname":       {Absence: []string{"error.log.stacktrace.filename"}},
-
-		"error.trace_id":  {Existence: obj{"error.parent_id": "abc123"}},
-		"error.parent_id": {Existence: obj{"error.trace_id": "abc123"}},
-	}
-}
-
 func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
 		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
@@ -139,10 +103,6 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchFields(t,
 		errorPayloadAttrsNotInFields(),
 		errorFieldsNotInPayloadAttrs())
-}
-
-func TestErrorAttrsPresenceInError(t *testing.T) {
-	errorProcSetup().AttrsPresence(t, errorRequiredKeys(), errorCondRequiredKeys())
 }
 
 func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
