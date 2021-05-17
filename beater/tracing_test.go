@@ -29,16 +29,15 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/tests"
 )
 
 // transactions from testdata/intake-v2/transactions.ndjson used to trigger tracing
-var testTransactionIds = tests.NewSet(
-	"945254c567a5417e",
-	"4340a8e0df1906ecbfa9",
-	"cdef4340a8e0df19",
-	"00xxxxFFaaaa1234",
-)
+var testTransactionIds = map[string]bool{
+	"945254c567a5417e":     true,
+	"4340a8e0df1906ecbfa9": true,
+	"cdef4340a8e0df19":     true,
+	"00xxxxFFaaaa1234":     true,
+}
 
 func TestServerTracingEnabled(t *testing.T) {
 	events, teardown := setupTestServerInstrumentation(t, true)
@@ -49,7 +48,7 @@ func TestServerTracingEnabled(t *testing.T) {
 	for len(selfTransactions) < 2 {
 		select {
 		case e := <-txEvents:
-			if testTransactionIds.Contains(eventTransactionId(e)) {
+			if testTransactionIds[eventTransactionId(e)] {
 				continue
 			}
 
@@ -85,7 +84,7 @@ func TestServerTracingDisabled(t *testing.T) {
 	for {
 		select {
 		case e := <-txEvents:
-			assert.True(t, testTransactionIds.Contains(eventTransactionId(e)))
+			assert.Contains(t, testTransactionIds, eventTransactionId(e))
 		case <-time.After(time.Second):
 			return
 		}

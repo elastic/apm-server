@@ -18,22 +18,145 @@
 package systemtest_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/systemtest"
-	"github.com/elastic/apm-server/systemtest/apmservertest"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/systemtest"
+	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 func TestIndexTemplateKeywords(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServer(t)
 
-	indexTemplateName := "apm-" + srv.Version
+	indexTemplate := getIndexTemplate(t, srv.Version)
+	flattenedFields := make(map[string]interface{})
+	mappings := indexTemplate["mappings"].(map[string]interface{})
+	getFlattenedFields(mappings["properties"].(map[string]interface{}), "", flattenedFields)
+
+	// Check that all keyword fields (ECS and non-ECS) have ignore_above set.
+	//
+	// ignoreAboveExceptions holds the expected "ignore_above" value for keyword
+	// fields, for fields which do not have the standard value of 1024.
+	var standardIgnoreAbove float64 = 1024
+	ignoreAboveExceptions := map[string]float64{"file.drive_letter": 1}
+	for field, mapping := range flattenedFields {
+		mapping := mapping.(map[string]interface{})
+		if mapping["type"] != "keyword" {
+			continue
+		}
+		expect, ok := ignoreAboveExceptions[field]
+		if !ok {
+			expect = standardIgnoreAbove
+		}
+		assert.Equal(t, expect, mapping["ignore_above"])
+	}
+}
+
+func TestIndexTemplateCoverage(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServer(t)
+
+	// Index each supported event type.
+	var totalEvents int
+	for _, payloadFile := range []string{
+		"../testdata/intake-v2/errors.ndjson",
+		"../testdata/intake-v2/metricsets.ndjson",
+		"../testdata/intake-v2/spans.ndjson",
+		"../testdata/intake-v2/transactions.ndjson",
+	} {
+		data, err := ioutil.ReadFile(payloadFile)
+		require.NoError(t, err)
+		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events?verbose=true", bytes.NewReader(data))
+		req.Header.Set("Content-Type", "application/x-ndjson")
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+
+		var result struct {
+			Accepted int
+		}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		require.NoError(t, err)
+		assert.NotZero(t, result.Accepted)
+		totalEvents += result.Accepted
+	}
+
+	// Wait for events to be indexed.
+	systemtest.Elasticsearch.ExpectMinDocs(t, totalEvents, "apm-*", estest.BoolQuery{
+		MustNot: []interface{}{estest.TermQuery{Field: "processor.event", Value: "onboarding"}},
+	})
+
+	// Check index mappings are covered by the template with the exception of known dynamic fields (e.g. labels).
+	var indexMappings map[string]struct {
+		Mappings map[string]interface{}
+	}
+	_, err := systemtest.Elasticsearch.Do(context.Background(),
+		&esapi.IndicesGetMappingRequest{Index: []string{"apm-*"}},
+		&indexMappings,
+	)
+	require.NoError(t, err)
+
+	indexTemplate := getIndexTemplate(t, srv.Version)
+	indexTemplateFlattenedFields := make(map[string]interface{})
+	indexTemplateMappings := indexTemplate["mappings"].(map[string]interface{})
+	getFlattenedFields(indexTemplateMappings["properties"].(map[string]interface{}), "", indexTemplateFlattenedFields)
+
+	knownMetrics := []string{
+		"negative", // negative.d.o.t.t.e.d
+		"dotted",   // dotted.float.gauge
+		"go",       // go.memstats.heap.sys
+		"short_gauge",
+		"integer_gauge",
+		"long_gauge",
+		"float_gauge",
+		"double_gauge",
+		"byte_counter",
+		"short_counter",
+	}
+
+	for index, indexMappings := range indexMappings {
+		metricIndex := strings.Contains(index, "-metric-")
+		indexFlattenedFields := make(map[string]interface{})
+		getFlattenedFields(indexMappings.Mappings["properties"].(map[string]interface{}), "", indexFlattenedFields)
+		for field := range indexFlattenedFields {
+			if strings.HasPrefix(field, "labels.") || strings.HasPrefix(field, "transaction.marks.") {
+				// Labels and RUM page marks are dynamically indexed.
+				continue
+			}
+			_, ok := indexTemplateFlattenedFields[field]
+			if !ok && metricIndex {
+				var isKnownMetric bool
+				for _, knownMetric := range knownMetrics {
+					if strings.HasPrefix(field, knownMetric) {
+						isKnownMetric = true
+						break
+					}
+				}
+				if isKnownMetric {
+					continue
+				}
+			}
+			assert.True(t, ok, "%s: field %s not defined in index template", index, field)
+		}
+	}
+}
+
+func getIndexTemplate(t testing.TB, serverVersion string) map[string]interface{} {
+	indexTemplateName := "apm-" + serverVersion
 	indexTemplates := make(map[string]interface{})
 
 	// Wait for the index template to be created.
@@ -57,36 +180,15 @@ func TestIndexTemplateKeywords(t *testing.T) {
 	require.Len(t, indexTemplates, 1)
 	require.Contains(t, indexTemplates, indexTemplateName)
 	indexTemplate := indexTemplates[indexTemplateName].(map[string]interface{})
-
-	keywordFields := make(map[string]interface{})
-	mappings := indexTemplate["mappings"].(map[string]interface{})
-	getFlattenedKeywords(mappings["properties"].(map[string]interface{}), "", keywordFields)
-
-	// Check that all keyword fields (ECS and non-ECS) have ignore_above set.
-	//
-	// ignoreAboveExceptions holds the expected "ignore_above" value for keyword
-	// fields, for fields which do not have the standard value of 1024.
-	var standardIgnoreAbove float64 = 1024
-	ignoreAboveExceptions := map[string]float64{"file.drive_letter": 1}
-	for field, mapping := range keywordFields {
-		mapping := mapping.(map[string]interface{})
-		expect, ok := ignoreAboveExceptions[field]
-		if !ok {
-			expect = standardIgnoreAbove
-		}
-		assert.Equal(t, expect, mapping["ignore_above"])
-	}
+	return indexTemplate
 }
 
-func getFlattenedKeywords(properties map[string]interface{}, prefix string, out map[string]interface{}) {
+func getFlattenedFields(properties map[string]interface{}, prefix string, out map[string]interface{}) {
 	for field, mapping := range properties {
 		mapping := mapping.(map[string]interface{})
-		if mapping["type"] == "keyword" {
-			out[prefix+field] = mapping
-			continue
-		}
+		out[prefix+field] = mapping
 		if properties, ok := mapping["properties"].(map[string]interface{}); ok {
-			getFlattenedKeywords(properties, field+".", out)
+			getFlattenedFields(properties, prefix+field+".", out)
 		}
 	}
 }

@@ -43,6 +43,9 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 	var result SearchResult
 	opts = append(opts, WithCondition(result.Hits.MinHitsCondition(min)))
 	req := es.Search(index)
+	if min > 10 {
+		req = req.WithSize(min)
+	}
 	if query != nil {
 		req = req.WithQuery(query)
 	}
