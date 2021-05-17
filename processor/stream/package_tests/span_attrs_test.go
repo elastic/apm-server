@@ -86,56 +86,9 @@ func transactionContext() *tests.Set {
 	)
 }
 
-func spanKeywordExceptionKeys() *tests.Set {
-	return tests.Union(tests.NewSet(
-		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
-		"processor.event", "processor.name",
-		"context.tags", "transaction.type", "transaction.name",
-		"event.outcome",
-		tests.Group("observer"),
-
-		// metadata fields
-		tests.Group("agent"),
-		tests.Group("container"),
-		tests.Group("host"),
-		tests.Group("kubernetes"),
-		tests.Group("process"),
-		tests.Group("service"),
-		tests.Group("user"),
-		tests.Group("url"),
-		tests.Group("http"),
-		tests.Group("cloud"),
-		tests.Group("client"),
-		tests.Group("source"),
-	),
-		transactionContext(),
-	)
-}
-
 func TestSpanPayloadMatchFields(t *testing.T) {
 	spanProcSetup().PayloadAttrsMatchFields(t,
 		spanPayloadAttrsNotInFields(),
 		spanFieldsNotInPayloadAttrs())
 
-}
-
-func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
-	spanProcSetup().KeywordLimitation(
-		t,
-		spanKeywordExceptionKeys(),
-		[]tests.FieldTemplateMapping{
-			{Template: "transaction.id", Mapping: "transaction_id"},
-			{Template: "child.id", Mapping: "child_ids"},
-			{Template: "parent.id", Mapping: "parent_id"},
-			{Template: "trace.id", Mapping: "trace_id"},
-			{Template: "span.id", Mapping: "id"},
-			{Template: "span.db.link", Mapping: "context.db.link"},
-			{Template: "span.destination.service", Mapping: "context.destination.service"},
-			{Template: "span.message.", Mapping: "context.message."},
-			{Template: "span.", Mapping: ""},
-			{Template: "destination.address", Mapping: "context.destination.address"},
-			{Template: "destination.port", Mapping: "context.destination.port"},
-			{Template: "span.message.queue.name", Mapping: "context.message.queue.name"},
-		},
-	)
 }

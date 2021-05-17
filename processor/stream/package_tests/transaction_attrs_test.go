@@ -73,48 +73,8 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 	)
 }
 
-func transactionKeywordExceptionKeys() *tests.Set {
-	return tests.NewSet(
-		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
-		"processor.event", "processor.name",
-		"transaction.marks",
-		"context.tags",
-		"event.outcome",
-		tests.Group("observer"),
-		tests.Group("url"),
-		tests.Group("http"),
-		tests.Group("client"),
-		tests.Group("source"),
-		tests.Group("destination"),
-
-		// metadata fields
-		tests.Group("agent"),
-		tests.Group("container"),
-		tests.Group("host"),
-		tests.Group("kubernetes"),
-		tests.Group("process"),
-		tests.Group("service"),
-		tests.Group("user"),
-		tests.Group("span"),
-		tests.Group("cloud"),
-	)
-}
-
 func TestTransactionPayloadMatchFields(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchFields(t,
 		transactionPayloadAttrsNotInFields(),
 		transactionFieldsNotInPayloadAttrs())
-}
-
-func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
-	transactionProcSetup().KeywordLimitation(
-		t,
-		transactionKeywordExceptionKeys(),
-		[]tests.FieldTemplateMapping{
-			{Template: "parent.id", Mapping: "parent_id"},
-			{Template: "trace.id", Mapping: "trace_id"},
-			{Template: "transaction.message.", Mapping: "context.message."},
-			{Template: "transaction."},
-		},
-	)
 }

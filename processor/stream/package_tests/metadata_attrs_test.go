@@ -123,39 +123,3 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	}
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
-
-func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
-	metadataProcSetup().KeywordLimitation(
-		t,
-		tests.NewSet(
-			"data_stream.type", "data_stream.dataset", "data_stream.namespace",
-			"processor.event", "processor.name",
-			"process.args",
-			tests.Group("observer"),
-			tests.Group("event"),
-			tests.Group("http"),
-			tests.Group("url"),
-			tests.Group("context.tags"),
-			tests.Group("transaction"),
-			tests.Group("session"),
-			tests.Group("span"),
-			tests.Group("parent"),
-			tests.Group("trace"),
-			tests.Group("user_agent"),
-			tests.Group("client"),
-			tests.Group("source"),
-			tests.Group("destination"),
-		),
-		[]tests.FieldTemplateMapping{
-			{Template: "agent.", Mapping: "service.agent."},
-			{Template: "container.", Mapping: "system.container."},
-			{Template: "kubernetes.", Mapping: "system.kubernetes."},
-			{Template: "host.os.platform", Mapping: "system.platform"},
-			{Template: "host.name", Mapping: "system.configured_hostname"},
-			{Template: "host.", Mapping: "system."},
-			{Template: "user.name", Mapping: "user.username"},
-			{Template: "service.node.name", Mapping: "service.node.configured_name"},
-			//{Template: "url.", Mapping:"context.request.url."},
-		},
-	)
-}

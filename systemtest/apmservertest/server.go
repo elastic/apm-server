@@ -59,10 +59,14 @@ type Server struct {
 	// The temporary directory will be removed when the server is closed.
 	Dir string
 
-	// BeatUUID will be populated with the server's Beat UUID after the
-	// Start returns successfully. This can be used to search for documents
+	// BeatUUID will be populated with the server's Beat UUID after Start
+	// returns successfully. This can be used to search for documents
 	// corresponding to this test server instance.
 	BeatUUID string
+
+	// Version will be populated with the servers' version number after
+	// Start returns successfully.
+	Version string
 
 	// Logs provides access to the apm-server log entries.
 	Logs LogEntries
@@ -281,14 +285,28 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 		}
 	}
 
-	// First wait for the Beat UUID to be logged.
+	// First wait for the Beat UUID and server version to be logged.
 	for entry := range logs.C() {
-		const prefix = "Beat ID: "
-		if entry.Level != zapcore.InfoLevel || !strings.HasPrefix(entry.Message, prefix) {
+		if entry.Level != zapcore.InfoLevel || (entry.Message != "Beat info" && entry.Message != "Build info") {
 			continue
 		}
-		s.BeatUUID = entry.Message[len(prefix):]
-		break
+		systemInfo, ok := entry.Fields["system_info"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		for k, info := range systemInfo {
+			switch k {
+			case "beat":
+				beatInfo := info.(map[string]interface{})
+				s.BeatUUID = beatInfo["uuid"].(string)
+			case "build":
+				buildInfo := info.(map[string]interface{})
+				s.Version = buildInfo["version"].(string)
+			}
+		}
+		if s.BeatUUID != "" && s.Version != "" {
+			break
+		}
 	}
 
 	for entry := range logs.C() {

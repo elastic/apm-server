@@ -72,48 +72,8 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 	)
 }
 
-func errorKeywordExceptionKeys() *tests.Set {
-	return tests.NewSet(
-		"data_stream.type", "data_stream.dataset", "data_stream.namespace",
-		"processor.event", "processor.name",
-		"error.grouping_key", "error.grouping_name",
-		"context.tags", "transaction.name",
-		"event.outcome", // not relevant
-		"view errors", "error id icon",
-		tests.Group("url"),
-		tests.Group("http"),
-		tests.Group("destination"),
-		// metadata field
-		tests.Group("agent"),
-		tests.Group("container"),
-		tests.Group("host"),
-		tests.Group("kubernetes"),
-		tests.Group("observer"),
-		tests.Group("process"),
-		tests.Group("service"),
-		tests.Group("user"),
-		tests.Group("span"),
-		tests.Group("cloud"),
-		tests.Group("client"),
-		tests.Group("source"),
-	)
-}
-
 func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchFields(t,
 		errorPayloadAttrsNotInFields(),
 		errorFieldsNotInPayloadAttrs())
-}
-
-func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
-	errorProcSetup().KeywordLimitation(
-		t,
-		errorKeywordExceptionKeys(),
-		[]tests.FieldTemplateMapping{
-			{Template: "error."},
-			{Template: "transaction.id", Mapping: "transaction_id"},
-			{Template: "parent.id", Mapping: "parent_id"},
-			{Template: "trace.id", Mapping: "trace_id"},
-		},
-	)
 }
