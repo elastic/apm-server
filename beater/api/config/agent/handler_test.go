@@ -43,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/kibana/kibanatest"
 )
 
 type m map[string]interface{}
@@ -65,7 +65,7 @@ var (
 		respEtagHeader, respCacheControlHeader string
 	}{
 		"NotModified": {
-			kbClient: tests.MockKibana(http.StatusOK, m{
+			kbClient: kibanatest.MockKibana(http.StatusOK, m{
 				"_id": "1",
 				"_source": m{
 					"settings": m{
@@ -83,7 +83,7 @@ var (
 		},
 
 		"ModifiedWithEtag": {
-			kbClient: tests.MockKibana(http.StatusOK, m{
+			kbClient: kibanatest.MockKibana(http.StatusOK, m{
 				"_id": "1",
 				"_source": m{
 					"settings": m{
@@ -103,7 +103,7 @@ var (
 		},
 
 		"NoConfigFound": {
-			kbClient:               tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusNotFound, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			queryParams:            map[string]string{"service.name": "opbeans-python"},
 			respStatus:             http.StatusOK,
@@ -114,7 +114,7 @@ var (
 		},
 
 		"SendToKibanaFailed": {
-			kbClient:               tests.MockKibana(http.StatusBadGateway, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusBadGateway, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
@@ -124,7 +124,7 @@ var (
 		},
 
 		"NoConnection": {
-			kbClient:               tests.MockKibana(http.StatusServiceUnavailable, m{}, mockVersion, false),
+			kbClient:               kibanatest.MockKibana(http.StatusServiceUnavailable, m{}, mockVersion, false),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
@@ -133,7 +133,7 @@ var (
 		},
 
 		"InvalidVersion": {
-			kbClient: tests.MockKibana(http.StatusServiceUnavailable, m{},
+			kbClient: kibanatest.MockKibana(http.StatusServiceUnavailable, m{},
 				*common.MustNewVersion("7.2.0"), true),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
@@ -144,7 +144,7 @@ var (
 		},
 
 		"NoService": {
-			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusBadRequest,
 			respBody:               map[string]string{"error": msgInvalidQuery},
@@ -153,7 +153,7 @@ var (
 		},
 
 		"MethodNotAllowed": {
-			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodPut,
 			respStatus:             http.StatusMethodNotAllowed,
 			respCacheControlHeader: "max-age=300, must-revalidate",
@@ -162,7 +162,7 @@ var (
 		},
 
 		"Unauthorized": {
-			kbClient:               tests.MockKibana(http.StatusUnauthorized, m{"error": "Unauthorized"}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusUnauthorized, m{"error": "Unauthorized"}, mockVersion, true),
 			method:                 http.MethodGet,
 			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusServiceUnavailable,
@@ -220,7 +220,7 @@ func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 
 func TestAgentConfigHandler_PostOk(t *testing.T) {
 
-	kb := tests.MockKibana(http.StatusOK, m{
+	kb := kibanatest.MockKibana(http.StatusOK, m{
 		"_id": "1",
 		"_source": m{
 			"settings": m{
@@ -239,7 +239,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 
 func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	kb := &recordingKibanaClient{
-		Client: tests.MockKibana(http.StatusOK, m{
+		Client: kibanatest.MockKibana(http.StatusOK, m{
 			"_id": "1",
 			"_source": m{
 				"settings": m{
@@ -325,7 +325,7 @@ func TestAgentConfigRateLimit(t *testing.T) {
 }
 
 func getHandler(agent string) request.Handler {
-	kb := tests.MockKibana(http.StatusOK, m{
+	kb := kibanatest.MockKibana(http.StatusOK, m{
 		"_id": "1",
 		"_source": m{
 			"settings": m{
