@@ -1,0 +1,22 @@
+[[release-notes-head]]
+== APM Server version HEAD
+
+https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Bug fixes
+* Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+* Add metric_type and unit to field metadata of system metrics {pull}5230[5230]
+* Upgrade Go to 1.15.12 {pull}[]
+
+[float]
+==== Deprecated
