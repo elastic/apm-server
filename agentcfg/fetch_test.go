@@ -324,6 +324,35 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 				"key2": "val5",
 			},
 		},
+		{
+			query: Query{
+				Service: Service{
+					Name:        "service2",
+					Environment: "staging",
+				},
+			},
+			agentConfigs: []config.AgentConfig{
+				{
+					Service: config.Service{Name: "service1", Environment: ""},
+					Config:  map[string]string{"key1": "val1", "key2": "val2"},
+					Etag:    "abc123",
+				},
+				{
+					Service: config.Service{Name: "", Environment: "production"},
+					Config:  map[string]string{"key1": "val4", "key2": "val5"},
+					Etag:    "abc123",
+				},
+				{
+					Service: config.Service{Name: "", Environment: ""},
+					Config:  map[string]string{"key3": "val5", "key4": "val6"},
+					Etag:    "abc123",
+				},
+			},
+			expectedSettings: map[string]string{
+				"key3": "val5",
+				"key4": "val6",
+			},
+		},
 	} {
 		f := NewDirectFetcher(tc.agentConfigs)
 		result, err := f.Fetch(context.Background(), tc.query)

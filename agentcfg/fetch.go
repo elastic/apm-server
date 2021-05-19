@@ -223,7 +223,7 @@ func NewDirectFetcher(cfgs []config.AgentConfig) *DirectFetcher {
 func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 	name, env := query.Service.Name, query.Service.Environment
 	result := zeroResult()
-	var nameConf, envConf *config.AgentConfig
+	var nameConf, envConf, defaultConf *config.AgentConfig
 
 	for i, cfg := range f.cfgs {
 		if cfg.Service.Name == name && cfg.Service.Environment == env {
@@ -233,6 +233,8 @@ func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 			nameConf = &f.cfgs[i]
 		} else if cfg.Service.Name == "" && cfg.Service.Environment == env {
 			envConf = &f.cfgs[i]
+		} else if cfg.Service.Name == "" && cfg.Service.Environment == "" {
+			defaultConf = &f.cfgs[i]
 		}
 	}
 
@@ -247,6 +249,12 @@ func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 			Settings: envConf.Config,
 			Etag:     envConf.Etag,
 			Agent:    envConf.AgentName,
+		}}
+	} else if defaultConf != nil {
+		result = Result{Source{
+			Settings: defaultConf.Config,
+			Etag:     defaultConf.Etag,
+			Agent:    defaultConf.AgentName,
 		}}
 	}
 
