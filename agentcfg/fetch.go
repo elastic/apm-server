@@ -215,10 +215,12 @@ func NewDirectFetcher(cfgs []config.AgentConfig) *DirectFetcher {
 	return &DirectFetcher{cfgs}
 }
 
-// Fetch finds a matching AgentConfig based on the received Query. Order of precedence:
-// - service.name and service.environment match a AgentConfig
-// - service.name matches a AgentConfig, service.environment == ""
-// - service.environment matches a AgentConfig, service.name == ""
+// Fetch finds a matching AgentConfig based on the received Query.
+// Order of precedence:
+// - service.name and service.environment match an AgentConfig
+// - service.name matches an AgentConfig, service.environment == ""
+// - service.environment matches an AgentConfig, service.name == ""
+// - an AgentConfig without a name or environment set
 // Return an empty result if no matching result is found.
 func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
 	name, env := query.Service.Name, query.Service.Environment

@@ -275,11 +275,13 @@ apm-server:
   #---------------------------- APM Server - Agent Configuration ----------------------------
   # Directly specify agent configuration. If `agent_config` is set, agent
   # configuration under `kibana` will be ignored.
-  # Configuration precedence is as follows:
-  # - An agent_config matches both service.name and service.environment /
-  #   apm_server.default_service_environment
-  # - An agent_config matches service.name
-  # - An agent_config matches service.environment
+  # An agent's incoming configuration request will be matched to an
+  # agent_config with the following precedence:
+  # - service.name and service.environment match an agent_config
+  # - service.name matches an agent_config, service.environment == ""
+  # - service.environment matches an agent_config, service.name == ""
+  # - an agent_config without a name or environment set
+  # An empty result is is returned if no matching result is found.
   # agent_config:
   # - service.name: ten_percent
   #   service.environment: production
