@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Bug fixes
 * Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
+* OpenTelemetry: record array attributes as labels {pull}5286[5286]
 
 [float]
 ==== Intake API Changes
