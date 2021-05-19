@@ -20,6 +20,7 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
+	"os"
 	"testing"
 
 	"go.opentelemetry.io/otel/exporters/otlp"
@@ -34,6 +35,9 @@ import (
 func init() {
 	// Close default tracer, we'll create new ones.
 	apm.DefaultTracer.Close()
+
+	// Disable TLS certificate verification; not important for benchmarking.
+	os.Setenv("ELASTIC_APM_VERIFY_SERVER_CERT", "true")
 }
 
 // NewTracer returns a new Elastic APM tracer, configured
