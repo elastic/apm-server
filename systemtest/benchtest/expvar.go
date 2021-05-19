@@ -29,6 +29,8 @@ import (
 type expvar struct {
 	runtime.MemStats `json:"memstats"`
 	LibbeatStats
+	ElasticResponseStats
+	OTLPResponseStats
 
 	// UncompressedBytes holds the number of bytes of uncompressed
 	// data that the server has read from the Elastic APM events
@@ -39,6 +41,18 @@ type expvar struct {
 	// Alternatively, implement an in-memory reverse proxy that
 	// does the same.
 	UncompressedBytes int64 `json:"apm-server.decoder.uncompressed.bytes"`
+}
+
+type ElasticResponseStats struct {
+	TotalElasticResponses int64 `json:"apm-server.server.response.count"`
+	ErrorElasticResponses int64 `json:"apm-server.server.response.errors.count"`
+}
+
+type OTLPResponseStats struct {
+	TotalOTLPMetricsResponses int64 `json:"apm-server.otlp.grpc.metrics.response.count"`
+	ErrorOTLPMetricsResponses int64 `json:"apm-server.otlp.grpc.metrics.response.errors.count"`
+	TotalOTLPTracesResponses  int64 `json:"apm-server.otlp.grpc.traces.response.count"`
+	ErrorOTLPTracesResponses  int64 `json:"apm-server.otlp.grpc.traces.response.errors.count"`
 }
 
 type LibbeatStats struct {

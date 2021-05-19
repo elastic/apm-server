@@ -67,13 +67,23 @@ func runBenchmark(f func(b *testing.B)) (testing.BenchmarkResult, bool, error) {
 		}
 		ok = !b.Failed()
 	})
+	if result.Extra != nil {
+		addExpvarMetrics(result, before, after)
+	}
+	return result, ok, nil
+}
+
+func addExpvarMetrics(result testing.BenchmarkResult, before, after expvar) {
 	result.MemAllocs = after.MemStats.Mallocs - before.MemStats.Mallocs
 	result.MemBytes = after.MemStats.TotalAlloc - before.MemStats.TotalAlloc
 	result.Bytes = after.UncompressedBytes - before.UncompressedBytes
-	if result.Extra != nil {
-		result.Extra["events/sec"] = float64(after.TotalEvents-before.TotalEvents) / result.T.Seconds()
-	}
-	return result, ok, nil
+	result.Extra["events/sec"] = float64(after.TotalEvents-before.TotalEvents) / result.T.Seconds()
+
+	// Record the number of error responses returned by the server: lower is better.
+	errorResponsesAfter := after.ErrorElasticResponses + after.ErrorOTLPTracesResponses + after.ErrorOTLPMetricsResponses
+	errorResponsesBefore := before.ErrorElasticResponses + before.ErrorOTLPTracesResponses + before.ErrorOTLPMetricsResponses
+	errorResponses := errorResponsesAfter - errorResponsesBefore
+	result.Extra["error_responses/sec"] = float64(errorResponses) / result.T.Seconds()
 }
 
 func fullBenchmarkName(name string, agents int) string {

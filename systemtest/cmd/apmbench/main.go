@@ -40,8 +40,6 @@ func Benchmark1000Transactions(b *testing.B) {
 			// TracerOptions?
 			tracer.Flush(nil)
 		}
-		stats := tracer.Stats()
-		b.ReportMetric(float64(stats.Errors.SendStream)/float64(b.N), "transport_errors/op")
 	})
 }
 
@@ -57,12 +55,7 @@ func BenchmarkOTLPTraces(b *testing.B) {
 			_, span := tracer.Start(context.Background(), "name")
 			span.End()
 		}
-		if err := tracerProvider.ForceFlush(context.Background()); err != nil {
-			b.Fatal(err)
-		}
-		if err := exporter.Shutdown(context.Background()); err != nil {
-			b.Fatal(err)
-		}
+		tracerProvider.ForceFlush(context.Background())
 	})
 }
 
