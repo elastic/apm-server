@@ -41,9 +41,7 @@ func Benchmark1000Transactions(b *testing.B) {
 			tracer.Flush(nil)
 		}
 		stats := tracer.Stats()
-		if n := stats.Errors.SendStream; n > 0 {
-			b.Errorf("expected 0 transport errors, got %d", n)
-		}
+		b.ReportMetric(float64(stats.Errors.SendStream)/float64(b.N), "transport_errors/op")
 	})
 }
 
