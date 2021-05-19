@@ -51,7 +51,7 @@ type Aggregator struct {
 	stopped  chan struct{}
 
 	config              AggregatorConfig
-	metrics             aggregatorMetrics
+	metrics             *aggregatorMetrics // heap-allocated for 64-bit alignment
 	tooManyGroupsLogger *logp.Logger
 
 	mu               sync.RWMutex
@@ -118,6 +118,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
 		config:              config,
+		metrics:             &aggregatorMetrics{},
 		tooManyGroupsLogger: config.Logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
 		active:              newMetrics(config.MaxTransactionGroups),
 		inactive:            newMetrics(config.MaxTransactionGroups),
