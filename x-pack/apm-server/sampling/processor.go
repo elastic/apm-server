@@ -43,7 +43,7 @@ type Processor struct {
 	storageMu    sync.RWMutex
 	db           *badger.DB
 	storage      *eventstorage.ShardedReadWriter
-	eventMetrics eventMetrics
+	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
@@ -85,6 +85,7 @@ func NewProcessor(config Config) (*Processor, error) {
 		groups:              newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		db:                  db,
 		storage:             readWriter,
+		eventMetrics:        &eventMetrics{},
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
 	}

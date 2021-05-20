@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
@@ -42,16 +43,40 @@ func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.Re
 }
 func requestToMuxerWithHeader(cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(method, pattern, nil)
+	return requestToMuxer(cfg, requestWithHeader(r, header))
+}
+
+func requestWithHeader(r *http.Request, header map[string]string) *http.Request {
 	for k, v := range header {
 		r.Header.Set(k, v)
 	}
+	return r
+}
+
+func requestWithQueryString(r *http.Request, queryString map[string]string) *http.Request {
+	m := r.URL.Query()
+	for k, v := range queryString {
+		m.Set(k, v)
+	}
+	r.URL.RawQuery = m.Encode()
+	return r
+}
+
+func requestToMuxerWithHeaderAndQueryString(
+	cfg *config.Config,
+	pattern, method string,
+	header, queryString map[string]string,
+) (*httptest.ResponseRecorder, error) {
+	r := httptest.NewRequest(method, pattern, nil)
+	r = requestWithQueryString(r, queryString)
+	r = requestWithHeader(r, header)
 	return requestToMuxer(cfg, r)
 }
 
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor)
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +111,7 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[re
 func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
-	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor)
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg))
 	require.NoError(t, err)
 	return mux
 }
