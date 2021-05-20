@@ -203,8 +203,8 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled:      true,
 					ClientConfig: defaultKibanaConfig().ClientConfig,
 				},
-				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
-				Pipeline:    defaultAPMPipeline,
+				KibanaAgentConfig: &KibanaAgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
+				Pipeline:          defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{
 						Enabled: true,
@@ -356,9 +356,9 @@ func TestUnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana:      defaultKibanaConfig(),
-				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-				Pipeline:    defaultAPMPipeline,
+				Kibana:            defaultKibanaConfig(),
+				KibanaAgentConfig: &KibanaAgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+				Pipeline:          defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{
 						Enabled: true,
@@ -584,7 +584,7 @@ func TestAgentConfig(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		cfg, err := NewConfig(common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
 		require.NoError(t, err)
-		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
+		assert.Equal(t, time.Second*123, cfg.KibanaAgentConfig.Cache.Expiration)
 	})
 }
 
