@@ -56,11 +56,12 @@ func testInstall(t *testing.T, ext string) {
 	}
 	for _, pkg := range pkgs {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), pkg.arch), func(t *testing.T) {
-			if pkg.arch == "aarch64" || pkg.arch == "arm64" {
+			switch pkg.arch {
+			case "amd64", "x86_64":
+				checkInstall(t, pkg.path, fmt.Sprintf("Dockerfile.%s.%s.install", pkg.arch, ext))
+			default:
 				t.Skipf("skipped package install test for %s on %s", ext, pkg.arch)
-				return
 			}
-			checkInstall(t, pkg.path, fmt.Sprintf("Dockerfile.%s.%s.install", pkg.arch, ext))
 		})
 	}
 }
