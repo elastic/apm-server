@@ -228,7 +228,11 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled:      true,
 					ClientConfig: defaultKibanaConfig().ClientConfig,
 				},
+<<<<<<< HEAD
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
+=======
+				KibanaAgentConfig: &KibanaAgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 				Pipeline:          defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{
@@ -406,7 +410,11 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				Kibana:            defaultKibanaConfig(),
+<<<<<<< HEAD
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
+=======
+				KibanaAgentConfig: &KibanaAgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 				Pipeline:          defaultAPMPipeline,
 				JaegerConfig: JaegerConfig{
 					GRPC: JaegerGRPCConfig{

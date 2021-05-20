@@ -60,6 +60,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		}
 	})
 	cfg := config.DefaultConfig()
+<<<<<<< HEAD
 	ratelimitStore, err := ratelimit.NewStore(1, 1, 1) // unused, arbitrary params
 	if err != nil {
 		return nil, err
@@ -72,6 +73,9 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 		agentcfg.NewFetcher(cfg),
 		ratelimitStore,
 	)
+=======
+	mux, err := api.NewMux(beat.Info{}, cfg, nopReporter, processBatch, agentcfg.NewFetcher(cfg))
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	if err != nil {
 		return nil, err
 	}

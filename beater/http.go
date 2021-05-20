@@ -48,6 +48,7 @@ type httpServer struct {
 	grpcListener net.Listener
 }
 
+<<<<<<< HEAD
 func newHTTPServer(
 	logger *logp.Logger,
 	info beat.Info,
@@ -67,6 +68,10 @@ func newHTTPServer(
 	}
 
 	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, agentcfgFetcher, ratelimitStore)
+=======
+func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor, f agentcfg.Fetcher) (*httpServer, error) {
+	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, f)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	if err != nil {
 		return nil, err
 	}

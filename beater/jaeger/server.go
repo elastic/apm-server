@@ -83,7 +83,16 @@ func NewServer(
 		if cfg.JaegerConfig.GRPC.AuthTag != "" {
 			// By default auth is not required for Jaeger - users
 			// must explicitly specify which tag to use.
+<<<<<<< HEAD
 			agentAuth = cfg.AgentAuth
+=======
+			// TODO(axw) share auth builder with beater/api.
+			var err error
+			authBuilder, err = authorization.NewBuilder(cfg)
+			if err != nil {
+				return nil, err
+			}
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		}
 		authBuilder, err := authorization.NewBuilder(agentAuth)
 		if err != nil {
@@ -114,7 +123,19 @@ func NewServer(
 		}
 		srv.grpc.server = grpc.NewServer(grpcOptions...)
 		srv.grpc.listener = grpcListener
+<<<<<<< HEAD
 		RegisterGRPCServices(srv.grpc.server, logger, processor, fetcher)
+=======
+
+		RegisterGRPCServices(
+			srv.grpc.server,
+			authBuilder,
+			cfg.JaegerConfig.GRPC.AuthTag,
+			logger,
+			processor,
+			fetcher,
+		)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	}
 	if cfg.JaegerConfig.HTTP.Enabled {
 		// TODO(axw) should the listener respect cfg.MaxConnections?
@@ -146,7 +167,11 @@ func RegisterGRPCServices(
 	fetcher agentcfg.Fetcher,
 ) {
 	traceConsumer := &otel.Consumer{Processor: processor}
+<<<<<<< HEAD
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
+=======
+	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{auth, traceConsumer})
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
 }
 

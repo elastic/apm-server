@@ -212,7 +212,11 @@ func (tc *testGRPCSampler) setup() {
 	if tc.kibanaVersion == nil {
 		tc.kibanaVersion = common.MustNewVersion("7.7.0")
 	}
+<<<<<<< HEAD
 	client := kibanatest.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
+=======
+	client := tests.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	fetcher := agentcfg.NewKibanaFetcher(client, time.Second)
 	tc.sampler = &grpcSampler{logp.L(), fetcher}
 	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)

@@ -83,7 +83,10 @@ func NewMux(
 	report publish.Reporter,
 	batchProcessor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
+<<<<<<< HEAD
 	ratelimitStore *ratelimit.Store,
+=======
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 ) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
@@ -112,8 +115,13 @@ func NewMux(
 		{AssetSourcemapPath, builder.sourcemapHandler},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
 		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
+<<<<<<< HEAD
 		{IntakeRUMPath, builder.rumIntakeHandler(stream.RUMV2Processor)},
 		{IntakeRUMV3Path, builder.rumIntakeHandler(stream.RUMV3Processor)},
+=======
+		{IntakeRUMPath, builder.rumIntakeHandler},
+		{IntakeRUMV3Path, builder.rumV3IntakeHandler},
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		{IntakePath, builder.backendIntakeHandler},
 		// The profile endpoint is in Beta
 		{ProfilePath, builder.profileHandler},
@@ -200,13 +208,21 @@ func (r *routeBuilder) rootHandler() (request.Handler, error) {
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
+<<<<<<< HEAD
 		return agentConfigHandler(r.cfg, authHandler, r.ratelimitStore, backendMiddleware, f)
+=======
+		return agentConfigHandler(r.cfg, authHandler, backendMiddleware, f)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	}
 }
 
 func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
+<<<<<<< HEAD
 		return agentConfigHandler(r.cfg, nil, r.ratelimitStore, rumMiddleware, f)
+=======
+		return agentConfigHandler(r.cfg, nil, rumMiddleware, f)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	}
 }
 
@@ -222,6 +238,18 @@ func agentConfigHandler(
 	mw := middlewareFunc(cfg, authHandler, ratelimitStore, agent.MonitoringMap)
 	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, rumAgents)
 
+<<<<<<< HEAD
+=======
+func agentConfigHandler(
+	cfg *config.Config,
+	authHandler *authorization.Handler,
+	middlewareFunc middlewareFunc,
+	f agentcfg.Fetcher,
+) (request.Handler, error) {
+	mw := middlewareFunc(cfg, authHandler, agent.MonitoringMap)
+	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment)
+
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
 		msg := "Agent remote configuration is disabled. " +
 			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +

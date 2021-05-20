@@ -18,6 +18,9 @@
 package config
 
 import (
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
 	"net"
 	"time"
 
@@ -38,8 +41,37 @@ const (
 )
 
 var (
+<<<<<<< HEAD
 	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
 )
+=======
+	errInvalidAgentConfigServiceName   = errors.New("agent_config: either service.name or service.environment must be set")
+	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
+)
+
+type KibanaConfig struct {
+	Enabled             bool   `config:"enabled"`
+	APIKey              string `config:"api_key"`
+	kibana.ClientConfig `config:",inline"`
+}
+
+func (k *KibanaConfig) Unpack(cfg *common.Config) error {
+	type kibanaConfig KibanaConfig
+	if err := cfg.Unpack((*kibanaConfig)(k)); err != nil {
+		return err
+	}
+	k.Enabled = cfg.Enabled()
+	k.Host = strings.TrimRight(k.Host, "/")
+	return nil
+}
+
+func defaultKibanaConfig() KibanaConfig {
+	return KibanaConfig{
+		Enabled:      false,
+		ClientConfig: kibana.DefaultClientConfig(),
+	}
+}
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 
 // Config holds configuration information nested under the key `apm-server`
 type Config struct {
@@ -67,7 +99,13 @@ type Config struct {
 	Register                  RegisterConfig          `config:"register"`
 	Mode                      Mode                    `config:"mode"`
 	Kibana                    KibanaConfig            `config:"kibana"`
+<<<<<<< HEAD
 	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
+=======
+	KibanaAgentConfig         *KibanaAgentConfig      `config:"agent.config"`
+	SecretToken               string                  `config:"secret_token"`
+	APIKeyConfig              *APIKeyConfig           `config:"api_key"`
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	JaegerConfig              JaegerConfig            `config:"jaeger"`
 	Aggregation               AggregationConfig       `config:"aggregation"`
 	Sampling                  SamplingConfig          `config:"sampling"`
@@ -76,8 +114,90 @@ type Config struct {
 	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
 
 	Pipeline string
+<<<<<<< HEAD
+=======
 
 	AgentConfigs []AgentConfig `config:"agent_config"`
+}
+
+// AgentConfig defines configuration for agents.
+type AgentConfig struct {
+	Service   Service `config:"service"`
+	AgentName string  `config:"agent.name"`
+	Etag      string  `config:"etag"`
+	Config    map[string]string
+}
+
+func (s *AgentConfig) setup() error {
+	if !s.Service.isValid() {
+		return errInvalidAgentConfigServiceName
+	}
+	if s.Config == nil {
+		return errInvalidAgentConfigMissingConfig
+	}
+
+	if s.Etag == "" {
+		m, err := json.Marshal(s)
+		if err != nil {
+			return fmt.Errorf("error generating etag for %s: %v", s.Service, err)
+		}
+		s.Etag = fmt.Sprintf("%x", md5.Sum(m))
+	}
+	return nil
+}
+
+// Service defines a unique way of identifying a running agent.
+type Service struct {
+	Name        string `config:"name"`
+	Environment string `config:"environment"`
+}
+
+// String implements the Stringer interface.
+func (s *Service) String() string {
+	var name, env string
+	if s.Name != "" {
+		name = "service.name=" + s.Name
+	}
+	if s.Environment != "" {
+		env = "service.environment=" + s.Environment
+	}
+	return strings.Join([]string{name, env}, " ")
+}
+
+func (s *Service) isValid() bool {
+	return s.Name != "" || s.Environment != ""
+}
+
+// ExpvarConfig holds config information about exposing expvar
+type ExpvarConfig struct {
+	Enabled *bool  `config:"enabled"`
+	URL     string `config:"url"`
+}
+
+// PprofConfig holds config information about exposing pprof
+type PprofConfig struct {
+	Enabled          bool `config:"enabled"`
+	BlockProfileRate int  `config:"block_profile_rate"`
+	MemProfileRate   int  `config:"mem_profile_rate"`
+	MutexProfileRate int  `config:"mutex_profile_rate"`
+}
+
+// KibanaAgentConfig holds remote agent config information
+type KibanaAgentConfig struct {
+	Cache *Cache `config:"cache"`
+}
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
+
+	AgentConfigs []AgentConfig `config:"agent_config"`
+}
+
+// DefaultKibanaAgentConfig holds the default KibanaAgentConfig
+func DefaultKibanaAgentConfig() *KibanaAgentConfig {
+	return &KibanaAgentConfig{
+		Cache: &Cache{
+			Expiration: 30 * time.Second,
+		},
+	}
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
@@ -98,7 +218,11 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		}
 	}
 
+<<<<<<< HEAD
 	if err := setDeprecatedConfig(c, ucfg, logger); err != nil {
+=======
+	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		return nil, err
 	}
 
@@ -187,6 +311,7 @@ func DefaultConfig() *Config {
 			Enabled: false,
 			URL:     "/debug/vars",
 		},
+<<<<<<< HEAD
 		Pprof:               PprofConfig{Enabled: false},
 		SelfInstrumentation: defaultInstrumentationConfig(),
 		RumConfig:           defaultRum(),
@@ -201,5 +326,19 @@ func DefaultConfig() *Config {
 		DataStreams:         defaultDataStreamsConfig(),
 		AgentAuth:           defaultAgentAuth(),
 		JavaAttacherConfig:  defaultJavaAttacherConfig(),
+=======
+		Pprof:             &PprofConfig{Enabled: false},
+		RumConfig:         defaultRum(),
+		Register:          defaultRegisterConfig(true),
+		Mode:              ModeProduction,
+		Kibana:            defaultKibanaConfig(),
+		KibanaAgentConfig: DefaultKibanaAgentConfig(),
+		Pipeline:          defaultAPMPipeline,
+		APIKeyConfig:      defaultAPIKeyConfig(),
+		JaegerConfig:      defaultJaeger(),
+		Aggregation:       defaultAggregationConfig(),
+		Sampling:          defaultSamplingConfig(),
+		DataStreams:       defaultDataStreamsConfig(),
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	}
 }

@@ -77,8 +77,12 @@ func requestToMuxerWithHeaderAndQueryString(
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
+<<<<<<< HEAD
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore)
+=======
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg))
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	if err != nil {
 		return nil, err
 	}
@@ -113,8 +117,12 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[re
 func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
 	nopReporter := func(context.Context, publish.PendingReq) error { return nil }
 	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
+<<<<<<< HEAD
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg), ratelimitStore)
+=======
+	mux, err := NewMux(beat.Info{Version: "1.2.3"}, cfg, nopReporter, nopBatchProcessor, agentcfg.NewFetcher(cfg))
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	require.NoError(t, err)
 	return mux
 }

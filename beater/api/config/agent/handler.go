@@ -52,10 +52,17 @@ var (
 	registry      = monitoring.Default.NewRegistry("apm-server.acm")
 
 	errCacheControl = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
+<<<<<<< HEAD
+=======
+
+	// rumAgents keywords (new and old)
+	rumAgents = []string{"rum-js", "js-base"}
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 )
 
 type handler struct {
 	f agentcfg.Fetcher
+<<<<<<< HEAD
 
 	allowAnonymousAgents                    []string
 	cacheControl, defaultServiceEnvironment string
@@ -120,6 +127,47 @@ func (h *handler) Handle(c *request.Context) {
 	}
 	if authResult.Anonymous {
 		query.InsecureAgents = h.allowAnonymousAgents
+=======
+
+	cacheControl, defaultServiceEnvironment string
+}
+
+func NewHandler(f agentcfg.Fetcher, config *config.KibanaAgentConfig, defaultServiceEnvironment string) request.Handler {
+	if f == nil {
+		panic("fetcher must not be nil")
+	}
+	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+	h := &handler{
+		f:                         f,
+		cacheControl:              cacheControl,
+		defaultServiceEnvironment: defaultServiceEnvironment,
+	}
+
+	return h.Handle
+}
+
+// Handler implements request.Handler for managing agent central configuration
+// requests.
+func (h *handler) Handle(c *request.Context) {
+	// error handling
+	c.Header().Set(headers.CacheControl, errCacheControl)
+
+	ok := c.RateLimiter == nil || c.RateLimiter.Allow()
+	if !ok {
+		c.Result.SetDefault(request.IDResponseErrorsRateLimit)
+		c.Write()
+		return
+	}
+
+	query, queryErr := buildQuery(c)
+	if queryErr != nil {
+		extractQueryError(c, queryErr, c.AuthResult.Authorized)
+		c.Write()
+		return
+	}
+	if query.Service.Environment == "" {
+		query.Service.Environment = h.defaultServiceEnvironment
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	}
 
 	result, err := h.f.Fetch(c.Request.Context(), query)
@@ -128,7 +176,11 @@ func (h *handler) Handle(c *request.Context) {
 		if errors.As(err, &verr) {
 			body := verr.Body()
 			if strings.HasPrefix(body, agentcfg.ErrMsgKibanaVersionNotCompatible) {
+<<<<<<< HEAD
 				body = authErrMsg(c, body, agentcfg.ErrMsgKibanaVersionNotCompatible)
+=======
+				body = authErrMsg(body, agentcfg.ErrMsgKibanaVersionNotCompatible, c.AuthResult.Authorized)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 			}
 			c.Result.Set(
 				request.IDResponseErrorsServiceUnavailable,
@@ -139,17 +191,30 @@ func (h *handler) Handle(c *request.Context) {
 			)
 		} else {
 			apm.CaptureError(c.Request.Context(), err).Send()
+<<<<<<< HEAD
 			extractInternalError(c, err)
+=======
+			extractInternalError(c, err, c.AuthResult.Authorized)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		}
 		c.Write()
 		return
 	}
+<<<<<<< HEAD
 
 	// configuration successfully fetched
 	c.Header().Set(headers.CacheControl, h.cacheControl)
 	c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
 	c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
 
+=======
+
+	// configuration successfully fetched
+	c.Header().Set(headers.CacheControl, h.cacheControl)
+	c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
+	c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
+
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	if result.Source.Etag == ifNoneMatch(c) {
 		c.Result.SetDefault(request.IDResponseValidNotModified)
 	} else {

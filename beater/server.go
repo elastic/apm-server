@@ -38,7 +38,10 @@ import (
 	"github.com/elastic/apm-server/beater/interceptors"
 	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/beater/otlp"
+<<<<<<< HEAD
 	"github.com/elastic/apm-server/beater/ratelimit"
+=======
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
@@ -112,6 +115,7 @@ type server struct {
 	jaegerServer *jaeger.Server
 }
 
+<<<<<<< HEAD
 func newServer(
 	logger *logp.Logger,
 	info beat.Info,
@@ -138,6 +142,19 @@ func newServer(
 		return server{}, err
 	}
 	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, agentcfgFetchReporter)
+=======
+func newServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor) (server, error) {
+	fetcher := agentcfg.NewFetcher(cfg)
+	httpServer, err := newHTTPServer(logger, info, cfg, tracer, reporter, batchProcessor, fetcher)
+	if err != nil {
+		return server{}, err
+	}
+	grpcServer, err := newGRPCServer(logger, cfg, tracer, batchProcessor, httpServer.TLSConfig, fetcher)
+	if err != nil {
+		return server{}, err
+	}
+	jaegerServer, err := jaeger.NewServer(logger, cfg, tracer, batchProcessor, fetcher)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	if err != nil {
 		return server{}, err
 	}
@@ -157,8 +174,12 @@ func newGRPCServer(
 	tracer *apm.Tracer,
 	batchProcessor model.BatchProcessor,
 	tlsConfig *tls.Config,
+<<<<<<< HEAD
 	agentcfgFetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
+=======
+	fetcher agentcfg.Fetcher,
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 ) (*grpc.Server, error) {
 	// TODO(axw) share auth builder with beater/api.
 	authBuilder, err := authorization.NewBuilder(cfg.AgentAuth)
@@ -195,6 +216,7 @@ func newGRPCServer(
 		}
 	}
 
+<<<<<<< HEAD
 	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
 	batchProcessor = modelprocessor.Chained{
 		model.ProcessBatchFunc(rateLimitBatchProcessor),
@@ -203,6 +225,9 @@ func newGRPCServer(
 	}
 
 	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
+=======
+	jaeger.RegisterGRPCServices(srv, authBuilder, jaeger.ElasticAuthTag, logger, batchProcessor, fetcher)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
 		return nil, err
 	}

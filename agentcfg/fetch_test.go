@@ -44,14 +44,22 @@ var (
 func TestFetcher_Fetch(t *testing.T) {
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
+<<<<<<< HEAD
 		kb := kibanatest.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
+=======
+		kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		_, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
+<<<<<<< HEAD
 		kb := kibanatest.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
+=======
+		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		result, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, zeroResult(), result)

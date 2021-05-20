@@ -295,6 +295,28 @@ apm-server:
       #index_pattern: "apm-*-sourcemap*"
 
   #---------------------------- APM Server - Agent Configuration ----------------------------
+  # Directly specify agent configuration. If `agent_config` is set, agent
+  # configuration under `kibana` will be ignored.
+  # An agent's incoming configuration request will be matched to an
+  # agent_config with the following precedence:
+  # - service.name and service.environment match an agent_config
+  # - service.name matches an agent_config, service.environment == ""
+  # - service.environment matches an agent_config, service.name == ""
+  # - an agent_config without a name or environment set
+  # An empty result is is returned if no matching result is found.
+  # agent_config:
+  # - service.name: ten_percent
+  #   service.environment: production
+  #   config:
+  #     capture_body: off
+  #     capture_body: true
+  #     log_level: info
+  #     recording: true
+  #     transaction_sample_rate: 0.1
+  # - service.name: frontend
+  #   agent.name: rum-js
+  #   config:
+  #     transaction_sample_rate: 0.1
 
   # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
   # Specify cache key expiration via this setting. Default is 30 seconds.

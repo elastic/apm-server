@@ -42,7 +42,11 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
+<<<<<<< HEAD
 		cfg.AgentAuth.SecretToken = "1234"
+=======
+		cfg.SecretToken = "1234"
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		header := map[string]string{headers.Authorization: "Bearer 1234"}
 		queryString := map[string]string{"service.name": "service1"}
 		rec, err := requestToMuxerWithHeaderAndQueryString(cfg, AgentConfigPath, http.MethodGet, header, queryString)

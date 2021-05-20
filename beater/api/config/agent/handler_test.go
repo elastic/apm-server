@@ -126,6 +126,10 @@ var (
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
 			respBody:               map[string]string{"error": agentcfg.ErrMsgNoKibanaConnection},
+<<<<<<< HEAD
+=======
+			respBodyToken:          map[string]string{"error": agentcfg.ErrMsgNoKibanaConnection},
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		},
 
 		"InvalidVersion": {
@@ -135,7 +139,12 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
+<<<<<<< HEAD
 			respBody: map[string]string{"error": fmt.Sprintf("%s: min version 7.5.0, "+
+=======
+			respBody:               map[string]string{"error": agentcfg.ErrMsgKibanaVersionNotCompatible},
+			respBodyToken: map[string]string{"error": fmt.Sprintf("%s: min version 7.5.0, "+
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 				"configured version 7.2.0", agentcfg.ErrMsgKibanaVersionNotCompatible)},
 		},
 
@@ -169,6 +178,7 @@ var (
 )
 
 func TestAgentConfigHandler(t *testing.T) {
+<<<<<<< HEAD
 	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: 4 * time.Second}}
 	for _, tc := range testcases {
 		f := agentcfg.NewKibanaFetcher(tc.kbClient, cfg.Cache.Expiration)
@@ -176,6 +186,31 @@ func TestAgentConfigHandler(t *testing.T) {
 		r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 		for k, v := range tc.requestHeader {
 			r.Header.Set(k, v)
+=======
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 4 * time.Second}}
+
+	for name, tc := range testcases {
+
+		runTest := func(t *testing.T, expectedBody map[string]string, authorized bool) {
+			f := agentcfg.NewKibanaFetcher(tc.kbClient, cfg.Cache.Expiration)
+			h := NewHandler(f, &cfg, "")
+			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
+			for k, v := range tc.requestHeader {
+				r.Header.Set(k, v)
+			}
+			ctx, w := newRequestContext(r)
+			ctx.AuthResult.Authorized = authorized
+			h(ctx)
+
+			require.Equal(t, tc.respStatus, w.Code)
+			require.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
+			require.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
+			b, err := ioutil.ReadAll(w.Body)
+			require.NoError(t, err)
+			var actualBody map[string]string
+			json.Unmarshal(b, &actualBody)
+			assert.Equal(t, expectedBody, actualBody)
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		}
 		ctx, w := newRequestContext(r)
 		h(ctx)
@@ -254,9 +289,15 @@ func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
 }
 
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
+<<<<<<< HEAD
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
 	h := NewHandler(f, cfg, "", nil)
+=======
+	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
+	h := NewHandler(f, &cfg, "")
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}})))
@@ -264,7 +305,11 @@ func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 }
 
 func TestAgentConfigHandler_PostOk(t *testing.T) {
+<<<<<<< HEAD
 	kb := kibanatest.MockKibana(http.StatusOK, m{
+=======
+	kb := tests.MockKibana(http.StatusOK, m{
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 		"_id": "1",
 		"_source": m{
 			"settings": m{
@@ -273,9 +318,15 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 		},
 	}, mockVersion, true)
 
+<<<<<<< HEAD
 	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, cfg, "", nil)
+=======
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
+	h := NewHandler(f, &cfg, "")
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}})))
@@ -294,9 +345,15 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 		}, mockVersion, true),
 	}
 
+<<<<<<< HEAD
 	var cfg = config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	h := NewHandler(f, cfg, "default", nil)
+=======
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
+	h := NewHandler(f, &cfg, "default")
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node"}})))
@@ -370,9 +427,15 @@ func getHandler(agent string) request.Handler {
 			"agent_name": agent,
 		},
 	}, mockVersion, true)
+<<<<<<< HEAD
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: time.Nanosecond}}
 	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
 	return NewHandler(f, cfg, "", []string{"rum-js"})
+=======
+	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
+	return NewHandler(f, &cfg, "")
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 }
 
 func TestIfNoneMatch(t *testing.T) {
@@ -396,9 +459,15 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	kibanaCfg := config.KibanaConfig{Enabled: true, ClientConfig: libkibana.DefaultClientConfig()}
 	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
+<<<<<<< HEAD
 	cfg := config.KibanaAgentConfig{Cache: config.Cache{Expiration: 5 * time.Minute}}
 	f := agentcfg.NewKibanaFetcher(client, cfg.Cache.Expiration)
 	handler := NewHandler(f, cfg, "default", nil)
+=======
+	cfg := &config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}
+	f := agentcfg.NewKibanaFetcher(client, cfg.Cache.Expiration)
+	handler := NewHandler(f, cfg, "default")
+>>>>>>> b7468c0d (Direct agent configuration (#5177))
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
 		// When the handler is called with a context containing
 		// a transaction, the underlying Kibana query should create a span
