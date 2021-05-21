@@ -27,6 +27,7 @@ import (
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
@@ -45,8 +46,8 @@ type httpServer struct {
 	grpcListener net.Listener
 }
 
-func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor) (*httpServer, error) {
-	mux, err := api.NewMux(info, cfg, reporter, batchProcessor)
+func newHTTPServer(logger *logp.Logger, info beat.Info, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter, batchProcessor model.BatchProcessor, f agentcfg.Fetcher) (*httpServer, error) {
+	mux, err := api.NewMux(info, cfg, reporter, batchProcessor, f)
 	if err != nil {
 		return nil, err
 	}
