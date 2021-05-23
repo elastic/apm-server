@@ -113,7 +113,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 func TestSubscribeSampledTraceIDs(t *testing.T) {
 	srv, requests := newRequestResponseWriterServer(t)
-	ids, _ := newSubscriber(t, srv)
+	ids, positions, cancel := newSubscriber(t, srv)
 
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
@@ -223,6 +223,98 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	  }
 	}`)
 	assert.Equal(t, "trace_99", expectValue(t, ids))
+
+	// Wait for the position to be reported. The position is only reported
+	// between searches, so for the test we need to unblock search requests
+	// until a position is received.
+	//
+	// The returned position should be non-zero, and when used should
+	// resume subscription without returning already observed IDs.
+	var pos pubsub.SubscriberPosition
+	var gotPosition bool
+	for !gotPosition {
+		select {
+		case pos = <-positions:
+			gotPosition = true
+		case r := <-requests:
+			r.WriteStatus(500, "")
+		case <-time.After(10 * time.Second):
+			t.Fatal("timed out waiting for subscriber position")
+		}
+	}
+	assert.NotZero(t, pos)
+	cancel() // close first subscriber
+	ids, positions, cancel = newSubscriberPosition(t, srv, pos)
+	defer cancel()
+
+	// Respond initially with the same _seq_no as before, indicating there
+	// have been no new docs since the position was recorded.
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
+          "indices": {
+	    "index_name": {
+              "shards": {
+	        "0": [{
+		  "routing": {
+		    "primary": true
+		  },
+		  "seq_no": {
+		    "global_checkpoint": 99
+		  }
+		}]
+	      }
+	    }
+	  }
+	}`)
+
+	// No changes, so after the interval elapses we'll check again. Now there
+	// has been a new document written.
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
+          "indices": {
+	    "index_name": {
+              "shards": {
+	        "0": [{
+		  "routing": {
+		    "primary": true
+		  },
+		  "seq_no": {
+		    "global_checkpoint": 100
+		  }
+		}]
+	      }
+	    }
+	  }
+	}`)
+
+	// _refresh
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+
+	// _search: we respond with some results.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":100}}},{"range":{"_seq_no":{"gt":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
+          "hits": {
+	    "hits": [
+	      {
+	        "_seq_no": 100,
+		"_source": {"trace": {"id": "trace_100"}, "observer": {"id": "another_beat_id"}},
+		"sort": [100]
+	      }
+	    ]
+	  }
+	}`)
+	assert.Equal(t, "trace_100", expectValue(t, ids))
+
+	var pos2 pubsub.SubscriberPosition
+	gotPosition = false
+	for !gotPosition {
+		select {
+		case pos2 = <-positions:
+			gotPosition = true
+		case r := <-requests:
+			r.WriteStatus(500, "")
+		case <-time.After(10 * time.Second):
+			t.Fatal("timed out waiting for subscriber position")
+		}
+	}
+	assert.NotEqual(t, pos, pos2)
 }
 
 func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
@@ -251,20 +343,25 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "") // errors are not fatal
 }
 
-func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, context.CancelFunc) {
+func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
+	return newSubscriberPosition(t, srv, pubsub.SubscriberPosition{})
+}
+
+func newSubscriberPosition(t testing.TB, srv *httptest.Server, pos pubsub.SubscriberPosition) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
 	sub := newPubsub(t, srv, time.Minute, time.Millisecond)
 	ids := make(chan string)
+	positions := make(chan pubsub.SubscriberPosition)
 	ctx, cancel := context.WithCancel(context.Background())
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		return sub.SubscribeSampledTraceIDs(ctx, ids)
+		return sub.SubscribeSampledTraceIDs(ctx, pos, ids, positions)
 	})
 	cancelFunc := func() {
 		cancel()
 		g.Wait()
 	}
 	t.Cleanup(cancelFunc)
-	return ids, cancelFunc
+	return ids, positions, cancelFunc
 }
 
 func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration) *pubsub.Pubsub {
