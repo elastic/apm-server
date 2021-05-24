@@ -61,7 +61,7 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
 
-| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=ApiKey api_key"`.
+| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"authorization=ApiKey api_key"`.
 
 For information on how to format an API key, see our {apm-server-ref-v}/api-key.html[API key] docs.
 
