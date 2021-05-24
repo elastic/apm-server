@@ -209,7 +209,7 @@ func (tc *testGRPCSampler) setup() {
 		tc.kibanaVersion = common.MustNewVersion("7.7.0")
 	}
 	client := tests.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
-	fetcher := agentcfg.NewFetcher(client, time.Second)
-	tc.sampler = &grpcSampler{logp.L(), client, fetcher}
+	fetcher := agentcfg.NewKibanaFetcher(client, time.Second)
+	tc.sampler = &grpcSampler{logp.L(), fetcher}
 	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
 }
