@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 [float]
 ==== Bug fixes
 * Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
+* Fix document grouping of translated OpenTelemetry Java metrics {pull}5309[5309]
 
 [float]
 ==== Intake API Changes
