@@ -245,6 +245,9 @@ public void createOrder(HttpServletRequest request) {
 }
 ----
 
+See the https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md[Open Telemetry Metrics API]
+for more information.
+
 [[open-telemetry-elastic-verify]]
 ==== Verify OpenTelemetry metrics data
 
