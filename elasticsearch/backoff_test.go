@@ -29,7 +29,12 @@ import (
 )
 
 func TestBackoffCalled(t *testing.T) {
-	cfg := &Config{Hosts: Hosts{"localhost:9200"}}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(503)
+	}))
+	defer srv.Close()
+
+	cfg := &Config{Hosts: Hosts{srv.Listener.Addr().String()}}
 	transport, addresses, headers, err := connectionConfig(cfg)
 	assert.NoError(t, err)
 
@@ -53,11 +58,6 @@ func TestBackoffCalled(t *testing.T) {
 		backoff,
 	)
 	assert.NoError(t, err)
-
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(503)
-	}))
-	defer srv.Close()
 
 	req, err := http.NewRequest("GET", srv.URL, nil)
 	assert.NoError(t, err)

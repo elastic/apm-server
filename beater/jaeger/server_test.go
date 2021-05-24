@@ -44,6 +44,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/v7/libbeat/logp"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
@@ -364,7 +365,8 @@ func (tc *testcase) setup(t *testing.T) {
 
 	var err error
 	tc.tracer = apmtest.NewRecordingTracer()
-	tc.server, err = NewServer(logp.NewLogger("jaeger"), tc.cfg, tc.tracer.Tracer, batchProcessor)
+	f := agentcfg.NewFetcher(tc.cfg)
+	tc.server, err = NewServer(logp.NewLogger("jaeger"), tc.cfg, tc.tracer.Tracer, batchProcessor, f)
 	require.NoError(t, err)
 	if tc.server == nil {
 		return

@@ -3,6 +3,7 @@
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
 
+* <<breaking-7.13.0>>
 * <<breaking-7.12.0>>
 * <<breaking-7.11.0>>
 * <<breaking-7.10.0>>
@@ -29,7 +30,14 @@ Also see {observability-guide}/whats-new.html[What's new in Observability {minor
 
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
+// tag::714-bc[]
+// end::714-bc[]
+
+[[breaking-7.13.0]]
+=== 7.13.0 APM Breaking changes
+
 // tag::713-bc[]
+No breaking changes.
 // end::713-bc[]
 
 [[breaking-7.12.0]]
