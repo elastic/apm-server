@@ -673,7 +673,6 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		event.Type = "messaging"
 		event.Subtype = message.System
 		event.Action = message.Operation
-		// event.Name = messaging_syste + operation + to/from + queueName
 		event.Name = message.Name()
 		// TODO: This is what we want to do? Following agent messaging spec
 		// https://github.com/elastic/apm/blob/master/specs/agents/tracing-instrumentation-messaging.md
