@@ -219,12 +219,7 @@ func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 }
 
 func TestAgentConfigHandler_PostOk(t *testing.T) {
-<<<<<<< HEAD
-
-	kb := tests.MockKibana(http.StatusOK, m{
-=======
 	kb := kibanatest.MockKibana(http.StatusOK, m{
->>>>>>> cb20a978 (Move tests.MockKibanaClient to its own package (#5273))
 		"_id": "1",
 		"_source": m{
 			"settings": m{

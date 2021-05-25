@@ -43,25 +43,15 @@ var (
 func TestFetcher_Fetch(t *testing.T) {
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
-<<<<<<< HEAD
-		kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
-		_, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
-=======
 		kb := kibanatest.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
-		_, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
->>>>>>> cb20a978 (Move tests.MockKibanaClient to its own package (#5273))
+		_, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-<<<<<<< HEAD
-		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
-		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
-=======
 		kb := kibanatest.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
-		result, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
->>>>>>> cb20a978 (Move tests.MockKibanaClient to its own package (#5273))
+		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, zeroResult(), result)
 	})
