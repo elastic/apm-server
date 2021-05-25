@@ -37,7 +37,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
       steps {
@@ -46,7 +45,6 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
-            env.GO_VERSION = readFile(".go-version")
             if(env.CHANGE_TARGET){
               env.BEATS_UPDATED = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA}|grep '^_beats'|wc -l",
                 returnStdout: true)?.trim()
@@ -68,7 +66,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       when {
         beforeAgent true
@@ -78,7 +75,9 @@ pipeline {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
-          sh './script/jenkins/intake.sh'
+          withGoEnv(){
+            sh './script/jenkins/intake.sh'
+          }
         }
       }
     }
@@ -94,7 +93,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
           }
           when {
             beforeAgent true
@@ -104,7 +102,9 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              sh './script/jenkins/build.sh'
+              withGoEnv(){
+                sh './script/jenkins/build.sh'
+              }
             }
           }
         }
@@ -122,7 +122,9 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+              withGoEnv(){
+                powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+              }
             }
           }
         }
@@ -140,7 +142,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
           }
           when {
             beforeAgent true
@@ -150,7 +151,9 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              sh './script/jenkins/unit-test.sh'
+              withGoEnv(){
+                sh './script/jenkins/unit-test.sh'
+              }
             }
           }
           post {
@@ -171,7 +174,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
           }
           when {
             beforeAgent true
@@ -181,7 +183,9 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              sh './script/jenkins/linux-test.sh'
+              withGoEnv(){
+                sh './script/jenkins/linux-test.sh'
+              }
             }
           }
           post {
@@ -213,7 +217,9 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              powershell(script: '.\\script\\jenkins\\windows-test.ps1')
+              withGoEnv(){
+                powershell(script: '.\\script\\jenkins\\windows-test.ps1')
+              }
             }
           }
           post {
@@ -234,7 +240,6 @@ pipeline {
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
           }
           when {
             beforeAgent true
@@ -256,8 +261,10 @@ pipeline {
             deleteDir()
             unstash 'source'
             dir("${BASE_DIR}"){
-              sh './script/jenkins/bench.sh'
-              sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+              withGoEnv(){
+                sh './script/jenkins/bench.sh'
+                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+              }
             }
           }
         }
@@ -296,7 +303,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       when {
         beforeAgent true
@@ -312,10 +318,12 @@ pipeline {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
-          sh """#!/bin/bash
-          set -euxo pipefail
-          make docs
-          """
+          withGoEnv(){
+            sh """#!/bin/bash
+            set -euxo pipefail
+            make docs
+            """
+          }
         }
       }
       post{
@@ -333,13 +341,14 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       steps {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
-          sh './script/jenkins/sync.sh'
+          withGoEnv(){
+            sh './script/jenkins/sync.sh'
+          }
         }
       }
     }
@@ -352,7 +361,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       when {
         beforeAgent true
@@ -375,7 +383,9 @@ pipeline {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
-          sh './script/jenkins/package.sh'
+          withGoEnv(){
+            sh './script/jenkins/package.sh'
+          }
         }
       }
       post {
