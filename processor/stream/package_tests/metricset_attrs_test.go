@@ -30,7 +30,7 @@ func metricsetProcSetup() *tests.ProcessorSetup {
 		Proc: &intakeTestProcessor{
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
-		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
+		FullPayloadPath: "../../../testdata/intake-v2/metricsets.ndjson",
 		TemplatePaths: []string{
 			"../../../model/metricset/_meta/fields.yml",
 		},

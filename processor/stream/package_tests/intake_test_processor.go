@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -33,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/model/modeldecoder"
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -44,11 +44,11 @@ type intakeTestProcessor struct {
 const lrSize = 100 * 1024
 
 func (v *intakeTestProcessor) getDecoder(path string) (*decoder.NDJSONStreamDecoder, error) {
-	reader, err := loader.LoadDataAsStream(path)
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return decoder.NewNDJSONStreamDecoder(reader, lrSize), nil
+	return decoder.NewNDJSONStreamDecoder(bytes.NewReader(data), lrSize), nil
 }
 
 func (v *intakeTestProcessor) readEvents(dec *decoder.NDJSONStreamDecoder) ([]interface{}, error) {
