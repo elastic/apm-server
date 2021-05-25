@@ -193,6 +193,54 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
+		"messaging_rabbit": {
+			attrs: map[string]pdata.AttributeValue{
+				"messaging.operation":            pdata.NewAttributeValueString("receive"),
+				"messaging.system":               pdata.NewAttributeValueString("rabbitmq"),
+				"messaging.destination":          pdata.NewAttributeValueString("myQueue"),
+				"messaging.rabbitmq.routing_key": pdata.NewAttributeValueString("myKey"),
+			},
+			expected: model.Metadata{
+				Service: defaultService,
+				Message: model.Message{
+					Operation:  "receive",
+					System:     "rabbitmq",
+					RoutingKey: "myKey",
+					QueueName:  "myQueue",
+				},
+			},
+		},
+		"messaging_send": {
+			attrs: map[string]pdata.AttributeValue{
+				"messaging.operation":   pdata.NewAttributeValueString(""),
+				"messaging.system":      pdata.NewAttributeValueString("kafka"),
+				"messaging.destination": pdata.NewAttributeValueString("myQueue"),
+			},
+			expected: model.Metadata{
+				Service: defaultService,
+				Message: model.Message{
+					Operation: "send",
+					System:    "kafka",
+					QueueName: "myQueue",
+				},
+			},
+		},
+		"messaging_generic": {
+			attrs: map[string]pdata.AttributeValue{
+				"messaging.operation":   pdata.NewAttributeValueString("receive"),
+				"messaging.system":      pdata.NewAttributeValueString("kafka"),
+				"messaging.destination": pdata.NewAttributeValueString("myQueue"),
+			},
+			expected: model.Metadata{
+				Service: defaultService,
+				Message: model.Message{
+					Operation:  "receive",
+					System:     "kafka",
+					RoutingKey: "",
+					QueueName:  "myQueue",
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			meta := transformResourceMetadata(t, test.attrs)
