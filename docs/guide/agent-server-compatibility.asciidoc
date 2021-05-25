@@ -35,7 +35,7 @@ The chart below outlines the compatibility between different versions of the APM
 |`5.x` |≥ `6.6`
 
 // Ruby
-.3+|**Ruby agent**
+.4+|**Ruby agent**
 |`1.x` |`6.4`-`6.x`
 |`2.x` |≥ `6.5`
 |`3.x` |≥ `6.5`
