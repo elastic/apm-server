@@ -78,10 +78,10 @@ func init() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
 		default:
-			us := iter.ReadInt()
+			us := iter.ReadInt64()
 			s := us / 1000000
 			ns := (us - (s * 1000000)) * 1000
-			(*((*TimeMicrosUnix)(ptr))).Val = time.Unix(int64(s), int64(ns)).UTC()
+			(*((*TimeMicrosUnix)(ptr))).Val = time.Unix(s, ns).UTC()
 			(*((*TimeMicrosUnix)(ptr))).isSet = true
 		}
 	})
