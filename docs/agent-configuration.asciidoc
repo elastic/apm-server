@@ -8,6 +8,11 @@
 APM Server exposes an API endpoint that allows agents to query the server for configuration changes.
 More information on this feature is available in {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
 
+Starting with release 7.14, agent configuration can be declared directly within
+`apm-server.yml`. Requests to the endpoint are unchanged; `apm-server` responds
+directly without querying kibana for the agent configuration. Refer to the
+example in `apm-server.yml` under Agent Configuration.
+
 [[agent-config-endpoint]]
 [float]
 === Agent configuration endpoint

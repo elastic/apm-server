@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/logp"
 	"github.com/elastic/beats/v7/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
@@ -34,7 +35,6 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/stream"
@@ -67,7 +67,13 @@ const (
 )
 
 // NewMux registers apm handlers to paths building up the APM Server API.
-func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Reporter, batchProcessor model.BatchProcessor) (*http.ServeMux, error) {
+func NewMux(
+	beatInfo beat.Info,
+	beaterConfig *config.Config,
+	report publish.Reporter,
+	batchProcessor model.BatchProcessor,
+	fetcher agentcfg.Fetcher,
+) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
@@ -92,8 +98,8 @@ func NewMux(beatInfo beat.Info, beaterConfig *config.Config, report publish.Repo
 	routeMap := []route{
 		{RootPath, builder.rootHandler},
 		{AssetSourcemapPath, builder.sourcemapHandler},
-		{AgentConfigPath, builder.backendAgentConfigHandler},
-		{AgentConfigRUMPath, builder.rumAgentConfigHandler},
+		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
+		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
 		{IntakeRUMPath, builder.rumIntakeHandler},
 		{IntakeRUMV3Path, builder.rumV3IntakeHandler},
 		{IntakePath, builder.backendIntakeHandler},
@@ -167,29 +173,39 @@ func (r *routeBuilder) rootHandler() (request.Handler, error) {
 	return middleware.Wrap(h, rootMiddleware(r.cfg, r.authBuilder.ForAnyOfPrivileges(authorization.ActionAny))...)
 }
 
-func (r *routeBuilder) backendAgentConfigHandler() (request.Handler, error) {
-	authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
-	return agentConfigHandler(r.cfg, authHandler, backendMiddleware)
+func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		authHandler := r.authBuilder.ForPrivilege(authorization.PrivilegeAgentConfigRead.Action)
+		return agentConfigHandler(r.cfg, authHandler, backendMiddleware, f)
+	}
 }
 
-func (r *routeBuilder) rumAgentConfigHandler() (request.Handler, error) {
-	return agentConfigHandler(r.cfg, nil, rumMiddleware)
+func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		return agentConfigHandler(r.cfg, nil, rumMiddleware, f)
+	}
 }
 
 type middlewareFunc func(*config.Config, *authorization.Handler, map[request.ResultID]*monitoring.Int) []middleware.Middleware
 
-func agentConfigHandler(cfg *config.Config, authHandler *authorization.Handler, middlewareFunc middlewareFunc) (request.Handler, error) {
-	var client kibana.Client
-	if cfg.Kibana.Enabled {
-		client = kibana.NewConnectingClient(&cfg.Kibana)
+func agentConfigHandler(
+	cfg *config.Config,
+	authHandler *authorization.Handler,
+	middlewareFunc middlewareFunc,
+	f agentcfg.Fetcher,
+) (request.Handler, error) {
+	mw := middlewareFunc(cfg, authHandler, agent.MonitoringMap)
+	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment)
+
+	if !cfg.Kibana.Enabled && cfg.AgentConfigs == nil {
+		msg := "Agent remote configuration is disabled. " +
+			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
+			"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
+			"If you are not using remote configuration, you can safely ignore this error."
+		mw = append(mw, middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg))
 	}
-	h := agent.Handler(client, cfg.AgentConfig, cfg.DefaultServiceEnvironment)
-	msg := "Agent remote configuration is disabled. " +
-		"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
-		"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
-		"If you are not using remote configuration, you can safely ignore this error."
-	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg)
-	return middleware.Wrap(h, append(middlewareFunc(cfg, authHandler, agent.MonitoringMap), ks)...)
+
+	return middleware.Wrap(h, mw...)
 }
 
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {

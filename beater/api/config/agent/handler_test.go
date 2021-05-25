@@ -43,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/kibana/kibanatest"
 )
 
 type m map[string]interface{}
@@ -65,7 +65,7 @@ var (
 		respEtagHeader, respCacheControlHeader string
 	}{
 		"NotModified": {
-			kbClient: tests.MockKibana(http.StatusOK, m{
+			kbClient: kibanatest.MockKibana(http.StatusOK, m{
 				"_id": "1",
 				"_source": m{
 					"settings": m{
@@ -83,7 +83,7 @@ var (
 		},
 
 		"ModifiedWithEtag": {
-			kbClient: tests.MockKibana(http.StatusOK, m{
+			kbClient: kibanatest.MockKibana(http.StatusOK, m{
 				"_id": "1",
 				"_source": m{
 					"settings": m{
@@ -103,7 +103,7 @@ var (
 		},
 
 		"NoConfigFound": {
-			kbClient:               tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusNotFound, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			queryParams:            map[string]string{"service.name": "opbeans-python"},
 			respStatus:             http.StatusOK,
@@ -114,7 +114,7 @@ var (
 		},
 
 		"SendToKibanaFailed": {
-			kbClient:               tests.MockKibana(http.StatusBadGateway, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusBadGateway, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
@@ -124,27 +124,29 @@ var (
 		},
 
 		"NoConnection": {
-			kbClient:               tests.MockKibana(http.StatusServiceUnavailable, m{}, mockVersion, false),
+			kbClient:               kibanatest.MockKibana(http.StatusServiceUnavailable, m{}, mockVersion, false),
 			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               map[string]string{"error": msgNoKibanaConnection},
-			respBodyToken:          map[string]string{"error": msgNoKibanaConnection},
+			respBody:               map[string]string{"error": agentcfg.ErrMsgNoKibanaConnection},
+			respBodyToken:          map[string]string{"error": agentcfg.ErrMsgNoKibanaConnection},
 		},
 
 		"InvalidVersion": {
-			kbClient: tests.MockKibana(http.StatusServiceUnavailable, m{},
+			kbClient: kibanatest.MockKibana(http.StatusServiceUnavailable, m{},
 				*common.MustNewVersion("7.2.0"), true),
 			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               map[string]string{"error": msgKibanaVersionNotCompatible},
+			respBody:               map[string]string{"error": agentcfg.ErrMsgKibanaVersionNotCompatible},
 			respBodyToken: map[string]string{"error": fmt.Sprintf("%s: min version 7.5.0, "+
-				"configured version 7.2.0", msgKibanaVersionNotCompatible)},
+				"configured version 7.2.0", agentcfg.ErrMsgKibanaVersionNotCompatible)},
 		},
 
 		"NoService": {
-			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusBadRequest,
 			respBody:               map[string]string{"error": msgInvalidQuery},
@@ -153,7 +155,7 @@ var (
 		},
 
 		"MethodNotAllowed": {
-			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodPut,
 			respStatus:             http.StatusMethodNotAllowed,
 			respCacheControlHeader: "max-age=300, must-revalidate",
@@ -162,7 +164,7 @@ var (
 		},
 
 		"Unauthorized": {
-			kbClient:               tests.MockKibana(http.StatusUnauthorized, m{"error": "Unauthorized"}, mockVersion, true),
+			kbClient:               kibanatest.MockKibana(http.StatusUnauthorized, m{"error": "Unauthorized"}, mockVersion, true),
 			method:                 http.MethodGet,
 			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusServiceUnavailable,
@@ -176,12 +178,13 @@ var (
 )
 
 func TestAgentConfigHandler(t *testing.T) {
-	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: 4 * time.Second}}
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 4 * time.Second}}
 
 	for name, tc := range testcases {
 
 		runTest := func(t *testing.T, expectedBody map[string]string, authorized bool) {
-			h := Handler(tc.kbClient, &cfg, "")
+			f := agentcfg.NewKibanaFetcher(tc.kbClient, cfg.Cache.Expiration)
+			h := NewHandler(f, &cfg, "")
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
@@ -211,16 +214,17 @@ func TestAgentConfigHandler(t *testing.T) {
 }
 
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
-	cfg := config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	h := Handler(nil, &cfg, "")
+	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(nil, cfg.Cache.Expiration)
+	h := NewHandler(f, &cfg, "")
 
-	w := sendRequest(h, httptest.NewRequest(http.MethodGet, "/config", nil))
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
+		"service": m{"name": "opbeans-node"}})))
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
 }
 
 func TestAgentConfigHandler_PostOk(t *testing.T) {
-
-	kb := tests.MockKibana(http.StatusOK, m{
+	kb := kibanatest.MockKibana(http.StatusOK, m{
 		"_id": "1",
 		"_source": m{
 			"settings": m{
@@ -229,8 +233,9 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 		},
 	}, mockVersion, true)
 
-	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	h := Handler(kb, &cfg, "")
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
+	h := NewHandler(f, &cfg, "")
 
 	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}})))
@@ -239,7 +244,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 
 func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	kb := &recordingKibanaClient{
-		Client: tests.MockKibana(http.StatusOK, m{
+		Client: kibanatest.MockKibana(http.StatusOK, m{
 			"_id": "1",
 			"_source": m{
 				"settings": m{
@@ -249,8 +254,9 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 		}, mockVersion, true),
 	}
 
-	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	h := Handler(kb, &cfg, "default")
+	var cfg = config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
+	h := NewHandler(f, &cfg, "default")
 
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node", "environment": "specified"}})))
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{"service": m{"name": "opbeans-node"}})))
@@ -325,7 +331,7 @@ func TestAgentConfigRateLimit(t *testing.T) {
 }
 
 func getHandler(agent string) request.Handler {
-	kb := tests.MockKibana(http.StatusOK, m{
+	kb := kibanatest.MockKibana(http.StatusOK, m{
 		"_id": "1",
 		"_source": m{
 			"settings": m{
@@ -336,9 +342,9 @@ func getHandler(agent string) request.Handler {
 			"agent_name": agent,
 		},
 	}, mockVersion, true)
-
-	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
-	return Handler(kb, &cfg, "")
+	cfg := config.KibanaAgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	f := agentcfg.NewKibanaFetcher(kb, cfg.Cache.Expiration)
+	return NewHandler(f, &cfg, "")
 }
 
 func TestIfNoneMatch(t *testing.T) {
@@ -362,7 +368,9 @@ func TestAgentConfigTraceContext(t *testing.T) {
 	kibanaCfg := config.KibanaConfig{Enabled: true, ClientConfig: libkibana.DefaultClientConfig()}
 	kibanaCfg.Host = "testKibana:12345"
 	client := kibana.NewConnectingClient(&kibanaCfg)
-	handler := Handler(client, &config.AgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}, "")
+	cfg := &config.KibanaAgentConfig{Cache: &config.Cache{Expiration: 5 * time.Minute}}
+	f := agentcfg.NewKibanaFetcher(client, cfg.Cache.Expiration)
+	handler := NewHandler(f, cfg, "default")
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
 		// When the handler is called with a context containing
 		// a transaction, the underlying Kibana query should create a span
