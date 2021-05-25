@@ -30,7 +30,7 @@ func transactionProcSetup() *tests.ProcessorSetup {
 		Proc: &intakeTestProcessor{
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
-		FullPayloadPath: "../testdata/intake-v2/transactions.ndjson",
+		FullPayloadPath: "../../../testdata/intake-v2/transactions.ndjson",
 		SchemaPath:      "../../../docs/spec/v2/transaction.json",
 		TemplatePaths: []string{
 			"../../../model/transaction/_meta/fields.yml",
