@@ -38,7 +38,7 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/beatertest"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/kibana/kibanatest"
 )
 
 func TestGRPCCollector_PostSpans(t *testing.T) {
@@ -208,8 +208,14 @@ func (tc *testGRPCSampler) setup() {
 	if tc.kibanaVersion == nil {
 		tc.kibanaVersion = common.MustNewVersion("7.7.0")
 	}
+<<<<<<< HEAD
 	client := tests.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
 	fetcher := agentcfg.NewFetcher(client, time.Second)
 	tc.sampler = &grpcSampler{logp.L(), client, fetcher}
+=======
+	client := kibanatest.MockKibana(tc.kibanaCode, tc.kibanaBody, *tc.kibanaVersion, true)
+	fetcher := agentcfg.NewKibanaFetcher(client, time.Second)
+	tc.sampler = &grpcSampler{logp.L(), fetcher}
+>>>>>>> cb20a978 (Move tests.MockKibanaClient to its own package (#5273))
 	beatertest.ClearRegistry(gRPCSamplingMonitoringMap)
 }
