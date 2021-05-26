@@ -18,6 +18,9 @@
 package config
 
 import (
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -37,6 +40,11 @@ const (
 	DefaultPort = "8200"
 
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
+)
+
+var (
+	errInvalidAgentConfigServiceName   = errors.New("agent_config: either service.name or service.environment must be set")
+	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
 )
 
 type KibanaConfig struct {
@@ -82,7 +90,7 @@ type Config struct {
 	Register                  *RegisterConfig         `config:"register"`
 	Mode                      Mode                    `config:"mode"`
 	Kibana                    KibanaConfig            `config:"kibana"`
-	AgentConfig               *AgentConfig            `config:"agent.config"`
+	KibanaAgentConfig         *KibanaAgentConfig      `config:"agent.config"`
 	SecretToken               string                  `config:"secret_token"`
 	APIKeyConfig              *APIKeyConfig           `config:"api_key"`
 	JaegerConfig              JaegerConfig            `config:"jaeger"`
@@ -92,6 +100,56 @@ type Config struct {
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 
 	Pipeline string
+
+	AgentConfigs []AgentConfig `config:"agent_config"`
+}
+
+// AgentConfig defines configuration for agents.
+type AgentConfig struct {
+	Service   Service `config:"service"`
+	AgentName string  `config:"agent.name"`
+	Etag      string  `config:"etag"`
+	Config    map[string]string
+}
+
+func (s *AgentConfig) setup() error {
+	if !s.Service.isValid() {
+		return errInvalidAgentConfigServiceName
+	}
+	if s.Config == nil {
+		return errInvalidAgentConfigMissingConfig
+	}
+
+	if s.Etag == "" {
+		m, err := json.Marshal(s)
+		if err != nil {
+			return fmt.Errorf("error generating etag for %s: %v", s.Service, err)
+		}
+		s.Etag = fmt.Sprintf("%x", md5.Sum(m))
+	}
+	return nil
+}
+
+// Service defines a unique way of identifying a running agent.
+type Service struct {
+	Name        string `config:"name"`
+	Environment string `config:"environment"`
+}
+
+// String implements the Stringer interface.
+func (s *Service) String() string {
+	var name, env string
+	if s.Name != "" {
+		name = "service.name=" + s.Name
+	}
+	if s.Environment != "" {
+		env = "service.environment=" + s.Environment
+	}
+	return strings.Join([]string{name, env}, " ")
+}
+
+func (s *Service) isValid() bool {
+	return s.Name != "" || s.Environment != ""
 }
 
 // ExpvarConfig holds config information about exposing expvar
@@ -108,14 +166,23 @@ type PprofConfig struct {
 	MutexProfileRate int  `config:"mutex_profile_rate"`
 }
 
-// AgentConfig holds remote agent config information
-type AgentConfig struct {
+// KibanaAgentConfig holds remote agent config information
+type KibanaAgentConfig struct {
 	Cache *Cache `config:"cache"`
 }
 
 // Cache holds config information about cache expiration
 type Cache struct {
 	Expiration time.Duration `config:"expiration"`
+}
+
+// DefaultKibanaAgentConfig holds the default KibanaAgentConfig
+func DefaultKibanaAgentConfig() *KibanaAgentConfig {
+	return &KibanaAgentConfig{
+		Cache: &Cache{
+			Expiration: 30 * time.Second,
+		},
+	}
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
@@ -126,8 +193,14 @@ func NewConfig(ucfg *common.Config, outputESCfg *common.Config) (*Config, error)
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
-	if float64(int(c.AgentConfig.Cache.Expiration.Seconds())) != c.AgentConfig.Cache.Expiration.Seconds() {
+	if float64(int(c.KibanaAgentConfig.Cache.Expiration.Seconds())) != c.KibanaAgentConfig.Cache.Expiration.Seconds() {
 		return nil, errors.New(msgInvalidConfigAgentCfg)
+	}
+
+	for _, serviceConfig := range c.AgentConfigs {
+		if err := serviceConfig.setup(); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := c.RumConfig.setup(logger, c.DataStreams.Enabled, outputESCfg); err != nil {
@@ -197,17 +270,17 @@ func DefaultConfig() *Config {
 			Enabled: new(bool),
 			URL:     "/debug/vars",
 		},
-		Pprof:        &PprofConfig{Enabled: false},
-		RumConfig:    defaultRum(),
-		Register:     defaultRegisterConfig(true),
-		Mode:         ModeProduction,
-		Kibana:       defaultKibanaConfig(),
-		AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-		Pipeline:     defaultAPMPipeline,
-		APIKeyConfig: defaultAPIKeyConfig(),
-		JaegerConfig: defaultJaeger(),
-		Aggregation:  defaultAggregationConfig(),
-		Sampling:     defaultSamplingConfig(),
-		DataStreams:  defaultDataStreamsConfig(),
+		Pprof:             &PprofConfig{Enabled: false},
+		RumConfig:         defaultRum(),
+		Register:          defaultRegisterConfig(true),
+		Mode:              ModeProduction,
+		Kibana:            defaultKibanaConfig(),
+		KibanaAgentConfig: DefaultKibanaAgentConfig(),
+		Pipeline:          defaultAPMPipeline,
+		APIKeyConfig:      defaultAPIKeyConfig(),
+		JaegerConfig:      defaultJaeger(),
+		Aggregation:       defaultAggregationConfig(),
+		Sampling:          defaultSamplingConfig(),
+		DataStreams:       defaultDataStreamsConfig(),
 	}
 }

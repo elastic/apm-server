@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -76,7 +76,7 @@ func TestAssetHandler(t *testing.T) {
 		},
 		"valid-full-payload": {
 			sourcemapInput: func() string {
-				b, err := loader.LoadDataAsBytes("../testdata/sourcemap/bundle.js.map")
+				b, err := ioutil.ReadFile("../../../../testdata/sourcemap/bundle.js.map")
 				require.NoError(t, err)
 				return string(b)
 			}(),
