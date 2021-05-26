@@ -161,7 +161,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()); ok {
-				ms.upsert(dp.Timestamp().AsTime(), dp.LabelsMap(), sample)
+				ms.upsert(dp.Timestamp().AsTime(), toStringMapItems(dp.LabelsMap()), sample)
 			} else {
 				anyDropped = true
 			}
@@ -173,7 +173,7 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()); ok {
-				ms.upsert(dp.Timestamp().AsTime(), dp.LabelsMap(), sample)
+				ms.upsert(dp.Timestamp().AsTime(), toStringMapItems(dp.LabelsMap()), sample)
 			} else {
 				anyDropped = true
 			}

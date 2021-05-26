@@ -274,32 +274,46 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	assert.Equal(t, []*model.Metricset{{
 		Metadata:  metadata,
 		Timestamp: timestamp,
-		Samples: []model.Sample{
-			{Name: "jvm.memory.heap.used", Value: 42},
-		},
+		Samples: []model.Sample{{
+			Type:  "gauge",
+			Name:  "jvm.memory.heap.used",
+			Value: 42,
+		}},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"gc": "G1 Young Generation"},
-		Samples: []model.Sample{
-			{Name: "runtime.jvm.gc.time", Value: 9},
-			{Name: "runtime.jvm.gc.count", Value: 2},
-		},
+		Samples: []model.Sample{{
+			Type:  "counter",
+			Name:  "runtime.jvm.gc.time",
+			Value: 9,
+		}, {
+			Type:  "counter",
+			Name:  "runtime.jvm.gc.count",
+			Value: 2,
+		}},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"name": "G1 Young Generation"},
-		Samples: []model.Sample{
-			{Name: "jvm.gc.time", Value: 9},
-			{Name: "jvm.gc.count", Value: 2},
-		},
+		Samples: []model.Sample{{
+			Type:  "counter",
+			Name:  "jvm.gc.time",
+			Value: 9,
+		}, {
+			Type:  "counter",
+			Name:  "jvm.gc.count",
+			Value: 2,
+		}},
 	}, {
 		Metadata:  metadata,
 		Timestamp: timestamp,
 		Labels:    common.MapStr{"area": "heap", "type": "used"},
-		Samples: []model.Sample{
-			{Name: "runtime.jvm.memory.area", Value: 42},
-		},
+		Samples: []model.Sample{{
+			Type:  "gauge",
+			Name:  "runtime.jvm.memory.area",
+			Value: 42,
+		}},
 	}}, metricsets)
 }
 
