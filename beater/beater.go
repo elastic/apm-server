@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 	"net"
 	"regexp"
 	"runtime"
@@ -116,6 +117,9 @@ func NewCreator(args CreatorParams) beat.Creator {
 			if b.Manager != nil && b.Manager.Enabled() {
 				return nil, errors.New("data streams must be enabled when the server is managed")
 			}
+		} else if bt.config.DataStreams.Enabled && !fleetmode.Enabled() {
+			// not supported only available for development purposes
+			bt.logger.Errorf("Started apm-server with data streams enabled but no active fleet management mode was specified")
 		}
 
 		if err := bt.registerPipelineCallback(b); err != nil {
