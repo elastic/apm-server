@@ -15,9 +15,6 @@ apm:
   - pipeline:
       name: apm_error_grouping_name
       if: ctx.processor?.event == 'error'
-  - pipeline:
-      name: apm_opentelemetry_metrics
-      if: ctx.processor?.event == 'metric'
 
 apm_user_agent:
   description: Add user agent information for APM events
@@ -80,35 +77,3 @@ apm_error_grouping_name:
       field: error.grouping_name
       copy_from: error.log.message
       if: ctx.error?.log?.message != null
-
-apm_opentelemetry_metrics:
-  description: Populate Elastic APM metric fields from well-known OpenTelemetry metric counterparts
-  processors:
-  - set:
-      # Copy `runtime.jvm.memory.area` (OpenTelemetry) to `jvm.memory.{area}.{type}` (Elastic APM).
-      field: jvm.memory.{{labels.area}}.{{labels.type}}
-      copy_from: runtime.jvm.memory.area
-      if: ctx.runtime?.jvm?.memory?.area != null && ctx.labels?.area != null && ctx.labels?.type != null
-  - set:
-      # Copy `runtime.jvm.gc.collection` (OpenTelemetry) to `jvm.gc.time` (Elastic APM).
-      # Both are defined in milliseconds. This is the old name for `runtime.jvm.gc.time`.
-      field: jvm.gc.time
-      copy_from: runtime.jvm.gc.collection
-      if: ctx.runtime?.jvm?.gc?.collection != null
-  - set:
-      # Copy `runtime.jvm.gc.time` (OpenTelemetry) to `jvm.gc.time` (Elastic APM).
-      # Both are defined in milliseconds.
-      field: jvm.gc.time
-      copy_from: runtime.jvm.gc.time
-      if: ctx.runtime?.jvm?.gc?.time != null
-  - set:
-      # Copy `runtime.jvm.gc.count` (OpenTelemetry) to `jvm.gc.count` (Elastic APM).
-      field: jvm.gc.count
-      copy_from: runtime.jvm.gc.count
-      if: ctx.runtime?.jvm?.gc?.count != null
-  - set:
-      # Copy `labels.gc` (OpenTelemetry) to `labels.name` (Elastic APM), for jvm.gc.{time,count}.
-      field: labels.name
-      copy_from: labels.gc
-      override: false # don't replace existing labels.name field, if any
-      if: ctx.labels?.gc != null && ctx.runtime?.jvm?.gc != null

@@ -190,6 +190,89 @@ func TestConsumeMetrics(t *testing.T) {
 	}}, metricsets)
 }
 
+func TestConsumeMetrics_JVM(t *testing.T) {
+	metrics := pdata.NewMetrics()
+	resourceMetrics := pdata.NewResourceMetrics()
+	metrics.ResourceMetrics().Append(resourceMetrics)
+	instrumentationLibraryMetrics := pdata.NewInstrumentationLibraryMetrics()
+	resourceMetrics.InstrumentationLibraryMetrics().Append(instrumentationLibraryMetrics)
+	metricSlice := instrumentationLibraryMetrics.Metrics()
+	appendMetric := func(name string, dataType pdata.MetricDataType) pdata.Metric {
+		n := metricSlice.Len()
+		metricSlice.Resize(n + 1)
+		metric := metricSlice.At(n)
+		metric.SetName(name)
+		metric.SetDataType(dataType)
+		return metric
+	}
+
+	timestamp := time.Unix(123, 0).UTC()
+	addInt64Sum := func(name string, value int64, labels map[string]string) {
+		metric := appendMetric(name, pdata.MetricDataTypeIntSum)
+		intSum := metric.IntSum()
+		intSum.DataPoints().Resize(1)
+		intSum.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp))
+		intSum.DataPoints().At(0).SetValue(value)
+		intSum.DataPoints().At(0).LabelsMap().InitFromMap(labels)
+	}
+	addInt64Gauge := func(name string, value int64, labels map[string]string) {
+		metric := appendMetric(name, pdata.MetricDataTypeIntGauge)
+		intSum := metric.IntGauge()
+		intSum.DataPoints().Resize(1)
+		intSum.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp))
+		intSum.DataPoints().At(0).SetValue(value)
+		intSum.DataPoints().At(0).LabelsMap().InitFromMap(labels)
+	}
+	addInt64Sum("runtime.jvm.gc.time", 9, map[string]string{"gc": "G1 Young Generation"})
+	addInt64Sum("runtime.jvm.gc.count", 2, map[string]string{"gc": "G1 Young Generation"})
+	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]string{"area": "heap", "type": "used"})
+
+	metadata := model.Metadata{
+		Service: model.Service{
+			Name: "unknown",
+			Language: model.Language{
+				Name: "unknown",
+			},
+			Agent: model.Agent{
+				Name:    "otlp",
+				Version: "unknown",
+			},
+		},
+	}
+
+	metricsets, _ := transformMetrics(t, metrics)
+	assert.Equal(t, []*model.Metricset{{
+		Metadata:  metadata,
+		Timestamp: timestamp,
+		Samples: []model.Sample{
+			{Name: "jvm.memory.heap.used", Value: 42},
+		},
+	}, {
+		Metadata:  metadata,
+		Timestamp: timestamp,
+		Labels:    common.MapStr{"gc": "G1 Young Generation"},
+		Samples: []model.Sample{
+			{Name: "runtime.jvm.gc.time", Value: 9},
+			{Name: "runtime.jvm.gc.count", Value: 2},
+		},
+	}, {
+		Metadata:  metadata,
+		Timestamp: timestamp,
+		Labels:    common.MapStr{"name": "G1 Young Generation"},
+		Samples: []model.Sample{
+			{Name: "jvm.gc.time", Value: 9},
+			{Name: "jvm.gc.count", Value: 2},
+		},
+	}, {
+		Metadata:  metadata,
+		Timestamp: timestamp,
+		Labels:    common.MapStr{"area": "heap", "type": "used"},
+		Samples: []model.Sample{
+			{Name: "runtime.jvm.memory.area", Value: 42},
+		},
+	}}, metricsets)
+}
+
 func transformMetrics(t *testing.T, metrics pdata.Metrics) ([]*model.Metricset, otel.ConsumerStats) {
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
