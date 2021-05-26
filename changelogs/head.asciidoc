@@ -8,7 +8,11 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 
 [float]
 ==== Bug fixes
+* Don't auto-disable ILM due to a failure to communicate with Elasticsearch {pull}5264[5264]
 * Fix panic due to misaligned 64-bit access on 32-bit architectures {pull}5277[5277]
+* Fix document grouping of translated OpenTelemetry Java metrics {pull}5309[5309]
+* OpenTelemetry: record array attributes as labels {pull}5286[5286]
+* model/modeldecoder: fix 32-bit timestamp decoding {pull}5308[5308]
 
 [float]
 ==== Intake API Changes

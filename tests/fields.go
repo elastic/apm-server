@@ -28,8 +28,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/mapping"
-
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 // This test checks
@@ -117,7 +115,7 @@ func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields,
 }
 
 func fetchFields(t *testing.T, p TestProcessor, path string, excludedKeys *Set) *Set {
-	buf, err := loader.LoadDataAsBytes(path)
+	buf, err := ioutil.ReadFile(path)
 	require.NoError(t, err)
 	events, err := p.Process(buf)
 	require.NoError(t, err)
