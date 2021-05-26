@@ -19,13 +19,14 @@ package beater
 
 import (
 	"context"
-	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 	"net"
 	"regexp"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/elastic/beats/v7/libbeat/common/fleetmode"
 
 	"github.com/elastic/beats/v7/libbeat/kibana"
 
