@@ -90,9 +90,11 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 		float64Counter := meter.NewFloat64Counter("float64_counter")
 		float64Counter.Add(context.Background(), 1)
 
-		// This will be dropped, as we do not support consuming histograms yet.
 		int64Recorder := meter.NewInt64ValueRecorder("int64_recorder")
+		int64Recorder.Record(context.Background(), 1)
 		int64Recorder.Record(context.Background(), 123)
+		int64Recorder.Record(context.Background(), 1024)
+		int64Recorder.Record(context.Background(), 20000)
 	})
 	require.NoError(t, err)
 

@@ -125,15 +125,23 @@ func TestConsumeMetrics(t *testing.T) {
 	doubleHistogram := metric.DoubleHistogram()
 	doubleHistogram.DataPoints().Resize(1)
 	doubleHistogram.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	doubleHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 2, 3})
-	doubleHistogram.DataPoints().At(0).SetExplicitBounds([]float64{1.1, 2.2, 3.3})
+	doubleHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 1, 2, 3})
+	doubleHistogram.DataPoints().At(0).SetExplicitBounds([]float64{-1.0, 2.0, 3.5})
 
 	metric = appendMetric("int_histogram_metric", pdata.MetricDataTypeIntHistogram)
 	intHistogram := metric.IntHistogram()
 	intHistogram.DataPoints().Resize(1)
 	intHistogram.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp0))
-	intHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 2, 3})
+	intHistogram.DataPoints().At(0).SetBucketCounts([]uint64{0, 1, 2, 3})
 	intHistogram.DataPoints().At(0).SetExplicitBounds([]float64{1.0, 2.0, 3.0})
+
+	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeDoubleHistogram)
+	invalidHistogram := metric.DoubleHistogram()
+	invalidHistogram.DataPoints().Resize(1)
+	invalidHistogram.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp0))
+	invalidHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 2, 3}) // should be one more bucket count than bounds
+	invalidHistogram.DataPoints().At(0).SetExplicitBounds([]float64{1, 2, 3})
+	expectDropped++
 
 	// Summary metrics are not yet supported, and will be dropped.
 	metric = appendMetric("double_summary_metric", pdata.MetricDataTypeDoubleSummary)
@@ -165,8 +173,16 @@ func TestConsumeMetrics(t *testing.T) {
 			{Name: "int_sum_metric", Value: 9, Type: "counter"},
 			{Name: "double_sum_metric", Value: 12, Type: "counter"},
 
-			{Name: "double_histogram_metric", Type: "histogram", Counts: []int64{1, 2, 3}, Values: []float64{1.1, 2.2, 3.3}},
-			{Name: "int_histogram_metric", Type: "histogram", Counts: []int64{1, 2, 3}, Values: []float64{1, 2, 3}},
+			{
+				Name: "double_histogram_metric", Type: "histogram",
+				Counts: []int64{1, 1, 2, 3},
+				Values: []float64{-1, 0.5, 2.75, 3.5},
+			},
+			{
+				Name: "int_histogram_metric", Type: "histogram",
+				Counts: []int64{1, 2, 3},
+				Values: []float64{1.5, 2.5, 3},
+			},
 		},
 	}, {
 		Metadata:  metadata,

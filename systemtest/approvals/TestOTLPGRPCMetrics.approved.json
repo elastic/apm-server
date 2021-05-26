@@ -15,10 +15,16 @@
             "float64_counter": 1,
             "int64_recorder": {
                 "counts": [
+                    1,
+                    1,
+                    1,
                     1
                 ],
                 "values": [
-                    1000
+                    50.5,
+                    550,
+                    5500,
+                    10000
                 ]
             },
             "metricset.name": "app",
