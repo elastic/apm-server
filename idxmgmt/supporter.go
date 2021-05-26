@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	"go.uber.org/atomic"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -51,61 +50,29 @@ type supporter struct {
 	info               beat.Info
 	templateConfig     template.TemplateConfig
 	ilmConfig          ilm.Config
+	outputConfig       common.ConfigNamespace
 	unmanagedIdxConfig unmanaged.Config
-	migration          bool
-	ilmSupporters      []libilm.Supporter
-
-	st indexState
+	ilmEnabled         atomic.Bool
 }
 
-type indexState struct {
-	ilmEnabled atomic.Bool
-	isSet      atomic.Bool
-}
+type indexSelector outil.Selector
 
-type unmanagedIndexSelector outil.Selector
-
-type ilmIndexSelector struct {
-	unmanagedSel unmanagedIndexSelector
-	ilmSel       outil.Selector
-	st           *indexState
+// autoSelector is an outputs.IndexSelector that delegates to either an
+// unmanaged or ILM index selector depending on whether ILM is enabled.
+type autoSelector struct {
+	ilmEnabled *atomic.Bool
+	unmanaged  outil.Selector
+	ilm        outil.Selector
 }
 
 func newSupporter(log *logp.Logger, info beat.Info, cfg *IndexManagementConfig) (*supporter, error) {
-
-	var (
-		mode = cfg.ILM.Mode
-		st   = indexState{}
-	)
-
-	var disableILM bool
-	if cfg.Output.Name() != esKey || cfg.ILM.Mode == libilm.ModeDisabled {
-		disableILM = true
-	} else if cfg.ILM.Mode == libilm.ModeAuto {
-		// ILM is set to "auto": disable if we're using customised, unmanaged indices.
-		if cfg.unmanagedIdxCfg.Customized() {
-			disableILM = true
-		}
-	}
-	if disableILM {
-		mode = libilm.ModeDisabled
-		st.isSet.CAS(false, true)
-	}
-
-	ilmSupporters, err := ilm.MakeDefaultSupporter(log, mode, cfg.ILM)
-	if err != nil {
-		return nil, err
-	}
-
 	return &supporter{
 		log:                log,
 		info:               info,
 		templateConfig:     cfg.Template,
 		ilmConfig:          cfg.ILM,
+		outputConfig:       cfg.Output,
 		unmanagedIdxConfig: cfg.unmanagedIdxCfg,
-		migration:          false,
-		st:                 st,
-		ilmSupporters:      ilmSupporters,
 	}, nil
 }
 
@@ -118,11 +85,7 @@ func (s *supporter) Enabled() bool {
 
 // Manager instance takes only care of the setup.
 // A clientHandler is passed in, which is required for figuring out the ILM state if set to `auto`.
-func (s *supporter) Manager(
-	clientHandler libidxmgmt.ClientHandler,
-	assets libidxmgmt.Asseter,
-) libidxmgmt.Manager {
-	s.setIlmState(clientHandler)
+func (s *supporter) Manager(clientHandler libidxmgmt.ClientHandler, assets libidxmgmt.Asseter) libidxmgmt.Manager {
 	return &manager{
 		supporter:     s,
 		clientHandler: clientHandler,
@@ -134,26 +97,22 @@ func (s *supporter) Manager(
 // depending on the supporter's config an ILM instance or an unmanaged index selector instance is returned.
 // The ILM instance decides on every Select call whether or not to return ILM indices or regular ones.
 func (s *supporter) BuildSelector(_ *common.Config) (outputs.IndexSelector, error) {
-	sel, err := s.buildSelector(s.unmanagedIdxConfig.SelectorConfig())
+	unmanagedSelector, err := s.buildSelector(s.unmanagedIdxConfig.SelectorConfig())
 	if err != nil {
 		return nil, err
 	}
-	unmanagedSel := unmanagedIndexSelector(sel)
-
-	if s.st.isSet.Load() && !s.st.ilmEnabled.Load() {
-		return unmanagedSel, nil
-	}
-
-	ilmSel, err := s.buildSelector(s.ilmConfig.SelectorConfig())
+	ilmSelector, err := s.buildSelector(s.ilmConfig.SelectorConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	return &ilmIndexSelector{
-		unmanagedSel: unmanagedSel,
-		ilmSel:       ilmSel,
-		st:           &s.st,
-	}, nil
+	switch s.ilmConfig.Mode {
+	case libilm.ModeDisabled:
+		return indexSelector(unmanagedSelector), nil
+	case libilm.ModeEnabled:
+		return indexSelector(ilmSelector), nil
+	}
+	return &autoSelector{ilmEnabled: &s.ilmEnabled, unmanaged: unmanagedSelector, ilm: ilmSelector}, nil
 }
 
 func (s *supporter) buildSelector(cfg *common.Config, err error) (outil.Selector, error) {
@@ -171,47 +130,20 @@ func (s *supporter) buildSelector(cfg *common.Config, err error) (outil.Selector
 	return outil.BuildSelectorFromConfig(cfg, buildSettings)
 }
 
-func (s *supporter) setIlmState(handler libidxmgmt.ClientHandler) {
-	stSet := func() { s.st.isSet.CAS(false, true) }
-
-	if s.st.isSet.Load() {
-		return
-	}
-	if s.st.ilmEnabled.Load() {
-		stSet()
-		return
-	}
-
-	for _, ilmSupporter := range s.ilmSupporters {
-		if enabled, err := ilmSupporter.Manager(handler).CheckEnabled(); !enabled || err != nil {
-			stSet()
-			return
-		}
-	}
-
-	s.st.ilmEnabled.CAS(false, true)
-	stSet()
-}
-
-// Select either returns the index from the event's metadata or
-// decides based on the supporter's ILM state whether or not an ILM index is returned
-func (s *ilmIndexSelector) Select(evt *beat.Event) (string, error) {
+// Select returns the index from the event's metadata if specified,
+// otherwise delegating to the ILM or unmanaged indices selector.
+func (s *autoSelector) Select(evt *beat.Event) (string, error) {
 	if idx := getEventCustomIndex(evt); idx != "" {
 		return idx, nil
 	}
-	if !s.st.isSet.Load() {
-		return "", errors.New("setup not finished")
+	if s.ilmEnabled.Load() {
+		return s.ilm.Select(evt)
 	}
-
-	if s.st.ilmEnabled.Load() {
-		return s.ilmSel.Select(evt)
-	}
-	return s.unmanagedSel.Select(evt)
+	return s.unmanaged.Select(evt)
 }
 
-// Select either returns the index from the event's metadata or
-// the regular index.
-func (s unmanagedIndexSelector) Select(evt *beat.Event) (string, error) {
+// Select either returns the index from the event's metadata or the regular index.
+func (s indexSelector) Select(evt *beat.Event) (string, error) {
 	if idx := getEventCustomIndex(evt); idx != "" {
 		return idx, nil
 	}

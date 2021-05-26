@@ -22,11 +22,10 @@ import (
 	"strings"
 	"time"
 
-	libcommon "github.com/elastic/beats/v7/libbeat/common"
-
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	libcommon "github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	libilm "github.com/elastic/beats/v7/libbeat/idxmgmt/ilm"
 
@@ -69,23 +68,25 @@ type Policy struct {
 	Body map[string]interface{} `config:"policy"`
 }
 
-// NewConfig extracts given configuration and merges with default configuration
-// https://github.com/elastic/go-ucfg/issues/167 describes a bug in go-ucfg
-// that panics when trying to unpack an empty configuration for an attribute
-// of type map[string]interface{} into a variable with existing values for the map.
-// This requires some workaround in merging configured policies with default policies
-// TODO(simitt): when the bug is fixed
-// - move the validation part into a `Validate` method
-// - remove the extra handling for `defaultPolicies` and add to defaultConfig instead.
+// NewConfig extracts given configuration and merges with default configuration.
 func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
-	config := Config{Mode: libilm.ModeAuto,
-		Setup: Setup{Enabled: true, RequirePolicy: true, Mappings: defaultMappings()}}
+	config := Config{
+		Mode:  libilm.ModeAuto,
+		Setup: Setup{Enabled: true, RequirePolicy: true, Mappings: defaultMappings()},
+	}
 	if cfg != nil {
 		if err := cfg.Unpack(&config); err != nil {
 			return Config{}, err
 		}
 	}
 	if len(config.Setup.Policies) == 0 {
+		// https://github.com/elastic/go-ucfg/issues/167 describes a bug in go-ucfg
+		// that panics when trying to unpack an empty configuration for an attribute
+		// of type map[string]interface{} into a variable with existing values for the map.
+		// This requires some workaround in merging configured policies with default policies
+		// TODO(simitt): when the bug is fixed
+		// - move the validation part into a `Validate` method
+		// - remove the extra handling for `defaultPolicies` and add to defaultConfig instead.
 		config.Setup.Policies = defaultPolicies()
 	}
 	// replace variable rollover_alias parts with beat information if available
@@ -109,15 +110,14 @@ func NewConfig(info beat.Info, cfg *libcommon.Config) (Config, error) {
 }
 
 func (c *Config) SelectorConfig() (*libcommon.Config, error) {
-	var idcsCfg = libcommon.NewConfig()
-	// set fallback index for ingested events with unknown event type
-	idcsCfg.SetString("index", -1, common.FallbackIndex)
-
-	if indicesCfg, err := libcommon.NewConfigFrom(c.conditionalIndices()); err == nil {
-		idcsCfg.SetChild("indices", -1, indicesCfg)
+	indicesCfg, err := libcommon.NewConfigFrom(c.conditionalIndices())
+	if err != nil {
+		return nil, err
 	}
+	var idcsCfg = libcommon.NewConfig()
+	idcsCfg.SetString("index", -1, common.FallbackIndex)
+	idcsCfg.SetChild("indices", -1, indicesCfg)
 	return idcsCfg, nil
-
 }
 
 func (m *Mappings) Unpack(cfg *libcommon.Config) error {
@@ -173,8 +173,11 @@ func validate(c *Config) error {
 			return nil
 		}
 		if _, ok := c.Setup.Policies[m.PolicyName]; !ok {
-			return errors.Errorf("policy '%s' not configured for ILM setup, "+
-				"set `apm-server.ilm.require_policy: false` to disable verification", m.PolicyName)
+			return errors.Errorf(""+
+				"policy '%s' not configured for ILM setup, "+
+				"set `apm-server.ilm.require_policy: false` to disable verification",
+				m.PolicyName,
+			)
 		}
 	}
 	return nil
