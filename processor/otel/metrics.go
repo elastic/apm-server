@@ -36,6 +36,7 @@ package otel
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"sync/atomic"
@@ -97,7 +98,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				dp.Timestamp().AsTime(), dp.LabelsMap(),
+				dp.Timestamp().AsTime(),
+				toStringMapItems(dp.LabelsMap()),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -110,7 +112,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				dp.Timestamp().AsTime(), dp.LabelsMap(),
+				dp.Timestamp().AsTime(),
+				toStringMapItems(dp.LabelsMap()),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -123,7 +126,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				dp.Timestamp().AsTime(), dp.LabelsMap(),
+				dp.Timestamp().AsTime(),
+				toStringMapItems(dp.LabelsMap()),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -136,7 +140,8 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			ms.upsert(
-				dp.Timestamp().AsTime(), dp.LabelsMap(),
+				dp.Timestamp().AsTime(),
+				toStringMapItems(dp.LabelsMap()),
 				model.Sample{
 					Name:  metric.Name(),
 					Value: float64(dp.Value()),
@@ -169,15 +174,66 @@ type stringMapItem struct {
 	value string
 }
 
-// upsert searches for an existing metricset with the given timestamp and labels,
-// and appends the sample to it. If there is no such existing metricset, a new one
-// is created.
-func (ms *metricsets) upsert(timestamp time.Time, labelMap pdata.StringMap, sample model.Sample) {
-	labelMap.Sort()
+func toStringMapItems(labelMap pdata.StringMap) []stringMapItem {
 	labels := make([]stringMapItem, 0, labelMap.Len())
 	labelMap.ForEach(func(k, v string) {
 		labels = append(labels, stringMapItem{k, v})
 	})
+	sort.SliceStable(labels, func(i, j int) bool {
+		return labels[i].key < labels[j].key
+	})
+	return labels
+}
+
+// upsert searches for an existing metricset with the given timestamp and labels,
+// and appends the sample to it. If there is no such existing metricset, a new one
+// is created.
+func (ms *metricsets) upsert(timestamp time.Time, labels []stringMapItem, sample model.Sample) {
+	// We always record metrics as they are given. We also copy some
+	// well-known OpenTelemetry metrics to their Elastic APM equivalents.
+	ms.upsertOne(timestamp, labels, sample)
+
+	switch sample.Name {
+	case "runtime.jvm.memory.area":
+		// runtime.jvm.memory.area -> jvm.memory.{area}.{type}
+		// Copy label "gc" to "name".
+		var areaValue, typeValue string
+		for _, label := range labels {
+			switch label.key {
+			case "area":
+				areaValue = label.value
+			case "type":
+				typeValue = label.value
+			}
+		}
+		if areaValue != "" && typeValue != "" {
+			elasticapmSample := sample
+			elasticapmSample.Name = fmt.Sprintf("jvm.memory.%s.%s", areaValue, typeValue)
+			ms.upsertOne(timestamp, nil, elasticapmSample)
+		}
+	case "runtime.jvm.gc.collection":
+		// This is the old name for runtime.jvm.gc.time.
+		sample.Name = "runtime.jvm.gc.time"
+		fallthrough
+	case "runtime.jvm.gc.time", "runtime.jvm.gc.count":
+		// Chop off the "runtime." prefix, i.e. runtime.jvm.gc.time -> jvm.gc.time.
+		// OpenTelemetry and Elastic APM metrics are both defined in milliseconds.
+		elasticapmSample := sample
+		elasticapmSample.Name = sample.Name[len("runtime."):]
+
+		// Copy label "gc" to "name".
+		var elasticapmLabels []stringMapItem
+		for _, label := range labels {
+			if label.key == "gc" {
+				elasticapmLabels = []stringMapItem{{key: "name", value: label.value}}
+				break
+			}
+		}
+		ms.upsertOne(timestamp, elasticapmLabels, elasticapmSample)
+	}
+}
+
+func (ms *metricsets) upsertOne(timestamp time.Time, labels []stringMapItem, sample model.Sample) {
 	var m *model.Metricset
 	i := ms.search(timestamp, labels)
 	if i < len(*ms) && compareMetricsets((*ms)[i], timestamp, labels) == 0 {
