@@ -27,9 +27,12 @@ import (
 	logs "github.com/elastic/apm-server/log"
 )
 
+<<<<<<< HEAD
 // ErrClosed may be returned by Pubsub methods after the Close method is called.
 var ErrClosed = errors.New("pubsub closed")
 
+=======
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 var errIndexNotFound = errors.New("index not found")
 
 // Pubsub provides a means of publishing and subscribing to sampled trace IDs,
@@ -71,6 +74,14 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan str
 	if err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	return &Pubsub{
+		config:  config,
+		indexer: indexer,
+	}, nil
+}
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 
 	var closeIndexerOnce sync.Once
 	var closeIndexerErr error
@@ -121,12 +132,16 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 	ticker := time.NewTicker(p.config.SearchInterval)
 	defer ticker.Stop()
 
+<<<<<<< HEAD
 	// Only send positions on change.
 	var positionsOut chan<- SubscriberPosition
 	positionsOut = positions
 
 	// Copy pos because it may be mutated by p.searchTraceIDs.
 	pos = copyPosition(pos)
+=======
+	observedSeqnos := make(map[string]int64)
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 	for {
 		select {
 		case <-ctx.Done():
@@ -136,6 +151,7 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 			pos = copyPosition(pos)
 			positionsOut = nil
 		case <-ticker.C:
+<<<<<<< HEAD
 			changed, err := p.searchTraceIDs(ctx, traceIDs, pos.observedSeqnos)
 			if err != nil {
 				// Errors may occur due to rate limiting, or while the index is
@@ -146,6 +162,13 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 			if changed {
 				positionsOut = positions
 			}
+=======
+		}
+		if err := p.searchTraceIDs(ctx, traceIDs, observedSeqnos); err != nil {
+			// Errors may occur due to rate limiting, or while the index is
+			// still being created, so just log and continue.
+			p.config.Logger.With(logp.Error(err)).Debug("error searching for trace IDs")
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 		}
 	}
 }
@@ -159,10 +182,17 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 //
 // Immediately after observing an updated global checkpoint we will force-refresh indices to ensure all documents
 // up to the global checkpoint are visible in proceeding searches.
+<<<<<<< HEAD
 func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observedSeqnos map[string]int64) (bool, error) {
 	globalCheckpoints, err := getGlobalCheckpoints(ctx, p.config.Client, p.config.DataStream.String())
 	if err != nil {
 		return false, err
+=======
+func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observedSeqnos map[string]int64) error {
+	globalCheckpoints, err := getGlobalCheckpoints(ctx, p.config.Client, p.config.DataStream.String())
+	if err != nil {
+		return err
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 	}
 
 	// Remove old indices from the observed _seq_no map.
@@ -170,6 +200,7 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observed
 		if _, ok := globalCheckpoints[index]; !ok {
 			delete(observedSeqnos, index)
 		}
+<<<<<<< HEAD
 	}
 
 	// Force-refresh the indices with updated global checkpoints.
@@ -210,14 +241,60 @@ func (p *Pubsub) searchTraceIDs(ctx context.Context, out chan<- string, observed
 			}
 			return nil
 		})
+=======
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 	}
 	return changed, g.Wait()
+}
+
+<<<<<<< HEAD
+func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
+	if len(indices) == 0 {
+		return nil
+	}
+=======
+	// Force-refresh the indices with updated global checkpoints.
+	indices := make([]string, 0, len(globalCheckpoints))
+	for index, globalCheckpoint := range globalCheckpoints {
+		observedSeqno, ok := observedSeqnos[index]
+		if ok && globalCheckpoint <= observedSeqno {
+			delete(globalCheckpoints, index)
+			continue
+		}
+		indices = append(indices, index)
+	}
+	if err := p.refreshIndices(ctx, indices); err != nil {
+		return err
+	}
+
+	g, ctx := errgroup.WithContext(ctx)
+	for _, index := range indices {
+		globalCheckpoint := globalCheckpoints[index]
+		observedSeqno, ok := observedSeqnos[index]
+		if !ok {
+			observedSeqno = -1
+		}
+		index := index // copy for closure
+		g.Go(func() error {
+			maxSeqno, err := p.searchIndexTraceIDs(ctx, out, index, observedSeqno, globalCheckpoint)
+			if err != nil {
+				return err
+			}
+			if maxSeqno > observedSeqno {
+				observedSeqno = maxSeqno
+			}
+			observedSeqnos[index] = observedSeqno
+			return nil
+		})
+	}
+	return g.Wait()
 }
 
 func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
 	if len(indices) == 0 {
 		return nil
 	}
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 	ignoreUnavailable := true
 	resp, err := esapi.IndicesRefreshRequest{
 		Index:             indices,
@@ -287,6 +364,7 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 					Sort   []interface{}   `json:"sort"`
 				}
 			}
+<<<<<<< HEAD
 		}
 		if err := p.doSearchRequest(ctx, index, esutil.NewJSONReader(searchBody), &result); err != nil {
 			if err == errIndexNotFound {
@@ -326,6 +404,47 @@ func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Read
 		message, _ := ioutil.ReadAll(resp.Body)
 		return fmt.Errorf("search request failed: %s", message)
 	}
+=======
+		}
+		if err := p.doSearchRequest(ctx, index, esutil.NewJSONReader(searchBody), &result); err != nil {
+			if err == errIndexNotFound {
+				// Index was deleted.
+				break
+			}
+			return -1, err
+		}
+		if len(result.Hits.Hits) == 0 {
+			break
+		}
+		for _, hit := range result.Hits.Hits {
+			select {
+			case <-ctx.Done():
+				return -1, ctx.Err()
+			case out <- hit.Source.Trace.ID:
+			}
+		}
+		maxObservedSeqno = result.Hits.Hits[len(result.Hits.Hits)-1].Seqno
+	}
+	return maxObservedSeqno, nil
+}
+
+func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Reader, out interface{}) error {
+	resp, err := esapi.SearchRequest{
+		Index: []string{index},
+		Body:  body,
+	}.Do(ctx, p.config.Client)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.IsError() {
+		if resp.StatusCode == http.StatusNotFound {
+			return errIndexNotFound
+		}
+		message, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("search request failed: %s", message)
+	}
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 	return json.NewDecoder(resp.Body).Decode(out)
 }
 

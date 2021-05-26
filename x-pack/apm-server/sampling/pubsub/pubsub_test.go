@@ -49,6 +49,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 	// Publish in a separate goroutine, as it may get blocked if we don't
 	// service bulk requests.
+<<<<<<< HEAD
 	ids := make(chan string)
 	ctx, cancel := context.WithCancel(context.Background())
 	var g errgroup.Group
@@ -65,6 +66,13 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 			case ids <- id:
 			}
 			time.Sleep(10 * time.Millisecond) // sleep to force new requests
+=======
+	go func() {
+		for i := 0; i < len(ids); i += 2 {
+			err := pub.PublishSampledTraceIDs(context.Background(), ids[i], ids[i+1])
+			assert.NoError(t, err)
+			time.Sleep(10 * time.Millisecond) // sleep to force a new request
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 		}
 		return nil
 	})
@@ -77,11 +85,19 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 			t.Fatal("timed out waiting for events to be received by server")
 		case rw := <-requests:
 			require.Equal(t, fmt.Sprintf("/%s/_bulk", dataStream.String()), rw.URL.Path)
+<<<<<<< HEAD
 
 			body, err := ioutil.ReadAll(rw.Body)
 			require.NoError(t, err)
 			rw.Write("") // unblock client
 
+=======
+
+			body, err := ioutil.ReadAll(rw.Body)
+			require.NoError(t, err)
+			rw.Write("") // unblock client
+
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 			d := json.NewDecoder(bytes.NewReader(body))
 			for {
 				action := make(map[string]interface{})
@@ -125,7 +141,11 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 
 func TestSubscribeSampledTraceIDs(t *testing.T) {
 	srv, requests := newRequestResponseWriterServer(t)
+<<<<<<< HEAD
 	ids, positions, cancel := newSubscriber(t, srv)
+=======
+	ids, _ := newSubscriber(t, srv)
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
@@ -183,6 +203,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	        "_seq_no": 98,
 		"_source": {"trace": {"id": "trace_98"}, "observer": {"id": "another_beat_id"}},
 		"sort": [98]
+<<<<<<< HEAD
 	      }
 	    ]
 	  }
@@ -230,10 +251,13 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	        "_seq_no": 99,
 		"_source": {"trace": {"id": "trace_99"}, "observer": {"id": "another_beat_id"}},
 		"sort": [99]
+=======
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 	      }
 	    ]
 	  }
 	}`)
+<<<<<<< HEAD
 	assert.Equal(t, "trace_99", expectValue(t, ids))
 
 	// Wait for the position to be reported. The position is only reported
@@ -261,6 +285,21 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	// Respond initially with the same _seq_no as before, indicating there
 	// have been no new docs since the position was recorded.
+=======
+
+	assert.Equal(t, "trace_3", expectValue(t, ids))
+	assert.Equal(t, "trace_98", expectValue(t, ids))
+
+	// Again the previous _search responded non-empty, and the greatest _seq_no was not equal
+	// to the global checkpoint: _search again after _seq_no 98. This time we respond with no
+	// hits, so the subscriber goes back to sleep.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(
+		`{"hits":{"hits":[]}}`,
+	)
+	expectNone(t, ids)
+
+	// _stats: respond with the same global checkpoint as before
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
           "indices": {
 	    "index_name": {
@@ -278,6 +317,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	  }
 	}`)
 
+<<<<<<< HEAD
 	// No changes, so after the interval elapses we'll check again. Now there
 	// has been a new document written.
 	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
@@ -393,12 +433,98 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 	return sub
 }
 
+=======
+	// _refresh
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+
+	// The search now has an exclusive lower bound of the previously observed maximum _seq_no.
+	// When the global checkpoint is observed, the server stops issuing search requests and
+	// goes back to sleep.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":98}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
+          "hits": {
+	    "hits": [
+	      {
+	        "_seq_no": 99,
+		"_source": {"trace": {"id": "trace_99"}, "observer": {"id": "another_beat_id"}},
+		"sort": [99]
+	      }
+	    ]
+	  }
+	}`)
+	assert.Equal(t, "trace_99", expectValue(t, ids))
+}
+
+func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
+	srv, requests := newRequestResponseWriterServer(t)
+	newSubscriber(t, srv)
+
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
+          "indices": {
+	    "index_name": {
+              "shards": {
+	        "0": [{
+		  "routing": {
+		    "primary": true
+		  },
+		  "seq_no": {
+		    "global_checkpoint": 99
+		  }
+		}]
+	      }
+	    }
+	  }
+	}`)
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).WriteStatus(404, "")
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "")
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "") // errors are not fatal
+}
+
+func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, context.CancelFunc) {
+	sub := newPubsub(t, srv, time.Minute, time.Millisecond)
+	ids := make(chan string)
+	ctx, cancel := context.WithCancel(context.Background())
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		return sub.SubscribeSampledTraceIDs(ctx, ids)
+	})
+	cancelFunc := func() {
+		cancel()
+		g.Wait()
+	}
+	t.Cleanup(cancelFunc)
+	return ids, cancelFunc
+}
+
+func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration) *pubsub.Pubsub {
+	client, err := elasticsearch.NewClient(&elasticsearch.Config{
+		Hosts: []string{srv.Listener.Addr().String()},
+	})
+	require.NoError(t, err)
+
+	sub, err := pubsub.New(pubsub.Config{
+		Client:         client,
+		DataStream:     dataStream,
+		BeatID:         beatID,
+		FlushInterval:  flushInterval,
+		SearchInterval: searchInterval,
+	})
+	require.NoError(t, err)
+	return sub
+}
+
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *requestResponseWriter) {
 	requests := make(chan *requestResponseWriter)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rrw := &requestResponseWriter{
 			Request: r,
+<<<<<<< HEAD
 			done:    make(chan response),
+=======
+			w:       w,
+			done:    make(chan struct{}),
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 		}
 		select {
 		case <-r.Context().Done():
@@ -409,9 +535,14 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 		select {
 		case <-r.Context().Done():
 			w.WriteHeader(http.StatusRequestTimeout)
+<<<<<<< HEAD
 		case response := <-rrw.done:
 			w.WriteHeader(response.statusCode)
 			w.Write([]byte(response.body))
+=======
+			return
+		case <-rrw.done:
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 		}
 	}))
 	t.Cleanup(srv.Close)
@@ -420,12 +551,17 @@ func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *req
 
 type requestResponseWriter struct {
 	*http.Request
+<<<<<<< HEAD
 	done chan response
 }
 
 type response struct {
 	statusCode int
 	body       string
+=======
+	w    http.ResponseWriter
+	done chan struct{}
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 }
 
 func (w *requestResponseWriter) Write(body string) {
@@ -433,7 +569,13 @@ func (w *requestResponseWriter) Write(body string) {
 }
 
 func (w *requestResponseWriter) WriteStatus(statusCode int, body string) {
+<<<<<<< HEAD
 	w.done <- response{statusCode, body}
+=======
+	w.w.WriteHeader(statusCode)
+	w.w.Write([]byte(body))
+	close(w.done)
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 }
 
 func expectRequest(t testing.TB, ch <-chan *requestResponseWriter, path, body string) *requestResponseWriter {

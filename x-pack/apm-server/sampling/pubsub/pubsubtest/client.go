@@ -119,6 +119,10 @@ func (rt *channelClientRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 		}
 	}
 	if handler == nil {
+<<<<<<< HEAD
+=======
+		fmt.Println(r.URL.Path)
+>>>>>>> 94e3201a (sampling: fix pubsub implementation (#5126))
 		panic(fmt.Errorf("unhandled path %q", r.URL.Path))
 	}
 	recorder := httptest.NewRecorder()
