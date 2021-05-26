@@ -69,6 +69,7 @@ services:
       retries: 300
       interval: 1s
     environment:
+      SERVER_HOST: 0.0.0.0
       STATUS_ALLOWANONYMOUS: "true"
       ELASTICSEARCH_URL: elasticsearch:9200
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-kibana_system_user}"
