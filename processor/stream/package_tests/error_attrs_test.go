@@ -30,7 +30,7 @@ func errorProcSetup() *tests.ProcessorSetup {
 		Proc: &intakeTestProcessor{
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
-		FullPayloadPath: "../testdata/intake-v2/errors.ndjson",
+		FullPayloadPath: "../../../testdata/intake-v2/errors.ndjson",
 		TemplatePaths: []string{
 			"../../../model/error/_meta/fields.yml",
 		},

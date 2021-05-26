@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"path/filepath"
 	"testing"
@@ -38,7 +39,6 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/modelprocessor"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -57,10 +57,9 @@ func TestHandlerReadStreamError(t *testing.T) {
 		return nil
 	})
 
-	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
-	bodyReader := bytes.NewBuffer(b)
-	timeoutReader := iotest.TimeoutReader(bodyReader)
+	timeoutReader := iotest.TimeoutReader(bytes.NewReader(payload))
 
 	sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
 	actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, timeoutReader, processor)
@@ -68,6 +67,9 @@ func TestHandlerReadStreamError(t *testing.T) {
 }
 
 func TestHandlerReportingStreamError(t *testing.T) {
+	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions.ndjson")
+	require.NoError(t, err)
+
 	for _, test := range []struct {
 		name      string
 		processor model.BatchProcessor
@@ -84,13 +86,8 @@ func TestHandlerReportingStreamError(t *testing.T) {
 			}),
 		},
 	} {
-
-		b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
-		require.NoError(t, err)
-		bodyReader := bytes.NewBuffer(b)
-
 		sp := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-		actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, bodyReader, test.processor)
+		actualResult := sp.HandleStream(context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload), test.processor)
 		assertApproveResult(t, actualResult, test.name)
 	}
 }
@@ -116,9 +113,8 @@ func TestIntegrationESOutput(t *testing.T) {
 		{path: "optional-timestamps.ndjson", name: "OptionalTimestamps"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
+			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
 			require.NoError(t, err)
-			bodyReader := bytes.NewBuffer(b)
 
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
@@ -128,7 +124,7 @@ func TestIntegrationESOutput(t *testing.T) {
 			reqDecoderMeta := &model.Metadata{System: model.System{IP: net.ParseIP("192.0.0.1")}}
 
 			p := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024})
-			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bodyReader, batchProcessor)
+			actualResult := p.HandleStream(ctx, nil, reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -143,9 +139,8 @@ func TestIntegrationRum(t *testing.T) {
 		{path: "transactions_spans_rum.ndjson", name: "RumTransactions"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
+			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
 			require.NoError(t, err)
-			bodyReader := bytes.NewBuffer(b)
 
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
@@ -157,7 +152,7 @@ func TestIntegrationRum(t *testing.T) {
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
 			p := RUMV2Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, batchProcessor)
+			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -172,9 +167,8 @@ func TestRUMV3(t *testing.T) {
 		{path: "rum_events.ndjson", name: "RUMV3Events"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v3/", test.path))
+			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v3", test.path))
 			require.NoError(t, err)
-			bodyReader := bytes.NewBuffer(b)
 
 			name := fmt.Sprintf("test_approved_es_documents/testIntake%s", test.name)
 			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
@@ -186,13 +180,16 @@ func TestRUMV3(t *testing.T) {
 				Client:    model.Client{IP: net.ParseIP("192.0.0.1")}}
 
 			p := RUMV3Processor(&config.Config{MaxEventSize: 100 * 1024, RumConfig: &config.RumConfig{}})
-			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bodyReader, batchProcessor)
+			actualResult := p.HandleStream(ctx, nil, &reqDecoderMeta, bytes.NewReader(payload), batchProcessor)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
 }
 
 func TestRUMAllowedServiceNames(t *testing.T) {
+	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions_spans_rum.ndjson")
+	require.NoError(t, err)
+
 	for _, test := range []struct {
 		AllowServiceNames []string
 		ExpectedResult    *Result
@@ -218,18 +215,15 @@ func TestRUMAllowedServiceNames(t *testing.T) {
 			RumConfig:    &config.RumConfig{AllowServiceNames: test.AllowServiceNames},
 		})
 
-		b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/transactions_spans_rum.ndjson"))
-		require.NoError(t, err)
-		bodyReader := bytes.NewBuffer(b)
-
-		result := p.HandleStream(context.Background(), nil, &model.Metadata{}, bodyReader, modelprocessor.Nop{})
+		result := p.HandleStream(context.Background(), nil, &model.Metadata{}, bytes.NewReader(payload), modelprocessor.Nop{})
 		assert.Equal(t, test.ExpectedResult, result)
 	}
 }
 
 func TestRateLimiting(t *testing.T) {
-	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/ratelimit.ndjson")
+	payload, err := ioutil.ReadFile("../../testdata/intake-v2/ratelimit.ndjson")
 	require.NoError(t, err)
+
 	for _, test := range []struct {
 		name string
 		lim  *rate.Limiter
@@ -248,7 +242,7 @@ func TestRateLimiting(t *testing.T) {
 			}
 
 			actualResult := BackendProcessor(&config.Config{MaxEventSize: 100 * 1024}).HandleStream(
-				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(b), nopBatchProcessor{})
+				context.Background(), test.lim, &model.Metadata{}, bytes.NewReader(payload), nopBatchProcessor{})
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
