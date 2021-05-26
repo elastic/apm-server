@@ -19,6 +19,7 @@ package model_test
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -36,7 +37,6 @@ import (
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -67,7 +67,7 @@ func TestTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := loader.LoadDataAsBytes("../testdata/sourcemap/bundle.js.map")
+	fileBytes, err := ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)

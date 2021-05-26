@@ -20,6 +20,7 @@ package package_tests
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,6 @@ import (
 	v2 "github.com/elastic/apm-server/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 type MetadataProcessor struct {
@@ -78,16 +78,17 @@ func metadataProcSetup() *tests.ProcessorSetup {
 			// TODO: move metadata package tests into event specific tests when refactoring package tests
 			"../../../model/transaction/_meta/fields.yml",
 		},
-		FullPayloadPath: "../testdata/intake-v2/metadata.ndjson",
+		FullPayloadPath: "../../../testdata/intake-v2/metadata.ndjson",
 	}
 }
 
 func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
-	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/metadata.ndjson")
+	f, err := os.Open("../../../testdata/intake-v2/metadata.ndjson")
 	require.NoError(t, err)
+	defer f.Close()
 
 	var metadata map[string]interface{}
-	require.NoError(t, decoder.NewNDJSONStreamDecoder(payloadStream, lrSize).Decode(&metadata))
+	require.NoError(t, decoder.NewNDJSONStreamDecoder(f, lrSize).Decode(&metadata))
 
 	contextMetadata := metadata["metadata"]
 
