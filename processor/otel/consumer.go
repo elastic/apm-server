@@ -299,28 +299,7 @@ func translateTransaction(
 			// messaging.*
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
 				message.QueueName = stringval
-				isMessagingSpan = true
-			case "messaging.rabbitmq.routing_key":
-				message.RoutingKey = stringval
-				isMessagingSpan = true
-			case conventions.AttributeMessagingOperation:
-				if stringval == "" {
-					// TODO: Is this correct? Inferring that an empty string means "send", based on
-					// only `send`, `process`, and `receive` are allowed
-					// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#operation-names
-					// `messaging.operation` can only have `process` and `receive` values
-					// cf. table in section https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#apache-kafka-example
-					// and various examples
-					// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#apache-kafka-example
-					stringval = "send"
-				}
-				message.Operation = stringval
-				isMessagingSpan = true
-			case conventions.AttributeMessagingSystem:
-				message.System = stringval
-				destinationService.Resource = stringval
-				destinationService.Name = stringval
-				isMessagingSpan = true
+				isMessaging = true
 
 			// rpc.*
 			//
@@ -427,6 +406,11 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		httpScheme string = "http"
 	)
 
+	var (
+		messageSystem    string
+		messageOperation string
+	)
+
 	var http model.HTTP
 	var message model.Message
 	var db model.DB
@@ -523,9 +507,9 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
 				message.QueueName = stringval
 				isMessagingSpan = true
-			case "messaging.rabbitmq.routing_key":
-				message.RoutingKey = stringval
-				isMessagingSpan = true
+			// case "messaging.rabbitmq.routing_key":
+			// 	message.RoutingKey = stringval
+			// 	isMessagingSpan = true
 			case conventions.AttributeMessagingOperation:
 				if stringval == "" {
 					// TODO: Is this correct? Inferring that an empty string means "send", based on
@@ -537,10 +521,10 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 					// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#apache-kafka-example
 					stringval = "send"
 				}
-				message.Operation = stringval
+				messageOperation = stringval
 				isMessagingSpan = true
 			case conventions.AttributeMessagingSystem:
-				message.System = stringval
+				messageSystem = stringval
 				destinationService.Resource = stringval
 				destinationService.Name = stringval
 				isMessagingSpan = true
@@ -671,11 +655,9 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 		event.DB = &db
 	case isMessagingSpan:
 		event.Type = "messaging"
-		event.Subtype = message.System
-		event.Action = message.Operation
-		event.Name = message.Name()
-		// TODO: This is what we want to do? Following agent messaging spec
-		// https://github.com/elastic/apm/blob/master/specs/agents/tracing-instrumentation-messaging.md
+		event.Subtype = messageSystem
+		event.Action = messageOperation
+
 		if destinationService.Resource != "" && message.QueueName != "" {
 			destinationService.Resource += "/" + message.QueueName
 		}

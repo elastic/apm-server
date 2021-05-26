@@ -118,20 +118,6 @@ func translateResourceMetadata(resource pdata.Resource, out *model.Metadata) {
 		case "process.runtime.version":
 			out.Service.Runtime.Version = truncate(v.StringVal())
 
-		// messaging.*
-		case conventions.AttributeMessagingSystem:
-			out.Message.System = truncate(v.StringVal())
-		case conventions.AttributeMessagingDestination:
-			out.Message.QueueName = truncate(v.StringVal())
-		case conventions.AttributeMessagingOperation:
-			s := v.StringVal()
-			if s == "" {
-				s = "send"
-			}
-			out.Message.Operation = truncate(s)
-		case "messaging.rabbitmq.routing_key":
-			out.Message.RoutingKey = truncate(v.StringVal())
-
 		// os.*
 		case conventions.AttributeOSType:
 			out.System.Platform = strings.ToLower(truncate(v.StringVal()))

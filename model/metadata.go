@@ -29,7 +29,6 @@ type Metadata struct {
 	UserAgent UserAgent
 	Client    Client
 	Cloud     Cloud
-	Message   Message
 	Labels    common.MapStr
 }
 
@@ -44,6 +43,5 @@ func (m *Metadata) set(fields *mapStr, eventLabels common.MapStr) {
 	fields.maybeSetMapStr("container", m.System.Container.fields())
 	fields.maybeSetMapStr("kubernetes", m.System.Kubernetes.fields())
 	fields.maybeSetMapStr("cloud", m.Cloud.fields())
-	fields.maybeSetMapStr("message", m.Message.Fields())
 	maybeSetLabels(fields, m.Labels, eventLabels)
 }

@@ -18,9 +18,7 @@
 package model
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 )
@@ -31,27 +29,6 @@ type Message struct {
 	Headers   http.Header
 	AgeMillis *int
 	QueueName string
-	// TODO: Do we want to add all these keys to Message? Or should they be
-	// parsed as individual strings and added to the span in
-	// processor/otel/consumer.go?
-	RoutingKey string
-	System     string
-	Operation  string
-}
-
-// Name returns a Span name for a message following the transaction/span naming schema.
-// https://github.com/elastic/apm/blob/master/specs/agents/tracing-instrumentation-messaging.md#naming
-func (m *Message) Name() string {
-	return fmt.Sprintf("%s %s %s %s",
-		m.System, strings.ToUpper(m.Operation), m.direction(), m.QueueName,
-	)
-}
-
-func (m *Message) direction() string {
-	if m.Operation == "send" {
-		return "to"
-	}
-	return "from"
 }
 
 // Fields returns a MapStr holding the transformed message information
@@ -69,15 +46,6 @@ func (m *Message) Fields() common.MapStr {
 	fields.maybeSetString("body", m.Body)
 	if len(m.Headers) > 0 {
 		fields.set("headers", m.Headers)
-	}
-	if m.RoutingKey != "" {
-		fields.set("routing_key", m.RoutingKey)
-	}
-	if m.System != "" {
-		fields.set("system", m.System)
-	}
-	if m.Operation != "" {
-		fields.set("operation", m.Operation)
 	}
 	return common.MapStr(fields)
 }
