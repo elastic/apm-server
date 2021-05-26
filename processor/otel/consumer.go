@@ -507,9 +507,6 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 			case "message_bus.destination", conventions.AttributeMessagingDestination:
 				message.QueueName = stringval
 				isMessagingSpan = true
-			// case "messaging.rabbitmq.routing_key":
-			// 	message.RoutingKey = stringval
-			// 	isMessagingSpan = true
 			case conventions.AttributeMessagingOperation:
 				if stringval == "" {
 					// TODO: Is this correct? Inferring that an empty string means "send", based on
