@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 
 	"github.com/elastic/apm-server/kibana"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/kibana/kibanatest"
 )
 
 type m map[string]interface{}
@@ -43,21 +43,21 @@ var (
 func TestFetcher_Fetch(t *testing.T) {
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
-		kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
+		kb := kibanatest.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
 		_, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
+		kb := kibanatest.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
 		result, err := NewFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, zeroResult(), result)
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		kb := tests.MockKibana(http.StatusOK, mockDoc(0.5), mockVersion, true)
+		kb := kibanatest.MockKibana(http.StatusOK, mockDoc(0.5), mockVersion, true)
 		b, err := json.Marshal(mockDoc(0.5))
 		expectedResult, err := newResult(b, err)
 		require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestFetcher_Fetch(t *testing.T) {
 		fetch := func(f *Fetcher, kibanaSamplingRate, expectedSamplingRate float64) {
 
 			client := func(samplingRate float64) kibana.Client {
-				return tests.MockKibana(http.StatusOK, mockDoc(samplingRate), mockVersion, true)
+				return kibanatest.MockKibana(http.StatusOK, mockDoc(samplingRate), mockVersion, true)
 			}
 			f.client = client(kibanaSamplingRate)
 
