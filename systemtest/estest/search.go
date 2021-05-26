@@ -41,14 +41,19 @@ func (es *Client) ExpectDocs(t testing.TB, index string, query interface{}, opts
 func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query interface{}, opts ...RequestOption) SearchResult {
 	t.Helper()
 	var result SearchResult
-	opts = append(opts, WithCondition(result.Hits.MinHitsCondition(min)))
 	req := es.Search(index)
 	if min > 10 {
+		// Size defaults to 10. If the caller expects more than 10,
+		// return it in the search so we don't have to search again.
 		req = req.WithSize(min)
 	}
 	if query != nil {
 		req = req.WithQuery(query)
 	}
+	opts = append(opts, WithCondition(AllCondition(
+		result.Hits.MinHitsCondition(min),
+		result.Hits.TotalHitsCondition(req),
+	)))
 	if _, err := req.Do(context.Background(), &result, opts...); err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +100,13 @@ type SearchResult struct {
 }
 
 type SearchHits struct {
-	Hits []SearchHit `json:"hits"`
+	Total SearchHitsTotal `json:"total"`
+	Hits  []SearchHit     `json:"hits"`
+}
+
+type SearchHitsTotal struct {
+	Value    int    `json:"value"`
+	Relation string `json:"relation"` // "eq" or "gte"
 }
 
 // NonEmptyCondition returns a ConditionFunc which will return true if h.Hits is non-empty.
@@ -107,6 +118,20 @@ func (h *SearchHits) NonEmptyCondition() ConditionFunc {
 // is at least min.
 func (h *SearchHits) MinHitsCondition(min int) ConditionFunc {
 	return func(*esapi.Response) bool { return len(h.Hits) >= min }
+}
+
+// TotalHitsCondition returns a ConditionFunc which will return true if the number of h.Hits
+// is at least h.Total.Value. If the condition returns false, it will update req.Size to
+// accommodate the number of hits in the following search.
+func (h *SearchHits) TotalHitsCondition(req *SearchRequest) ConditionFunc {
+	return func(*esapi.Response) bool {
+		if len(h.Hits) >= h.Total.Value {
+			return true
+		}
+		size := h.Total.Value
+		req.Size = &size
+		return false
+	}
 }
 
 type SearchHit struct {
