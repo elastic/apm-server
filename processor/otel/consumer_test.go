@@ -518,6 +518,40 @@ func TestRPCSpan(t *testing.T) {
 	}, span.DestinationService)
 }
 
+func TestMessagingTransaction(t *testing.T) {
+	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
+		"messaging.destination": pdata.NewAttributeValueString("myQueue"),
+	})
+	assert.Equal(t, "messaging", tx.Type)
+	assert.Empty(t, tx.Labels)
+	assert.Equal(t, &model.Message{
+		QueueName: "myQueue",
+	}, tx.Message)
+}
+
+func TestMessagingSpan(t *testing.T) {
+	span := transformSpanWithAttributes(t, map[string]pdata.AttributeValue{
+		"messaging.system":      pdata.NewAttributeValueString("kafka"),
+		"messaging.operation":   pdata.NewAttributeValueString(""),
+		"messaging.destination": pdata.NewAttributeValueString("myTopic"),
+		"net.peer.ip":           pdata.NewAttributeValueString("10.20.30.40"),
+		"net.peer.port":         pdata.NewAttributeValueInt(123),
+	})
+	assert.Equal(t, "messaging", span.Type)
+	assert.Equal(t, "kafka", span.Subtype)
+	assert.Equal(t, "send", span.Action)
+	assert.Empty(t, span.Labels)
+	assert.Equal(t, &model.Destination{
+		Address: "10.20.30.40",
+		Port:    123,
+	}, span.Destination)
+	assert.Equal(t, &model.DestinationService{
+		Type:     "messaging",
+		Name:     "kafka",
+		Resource: "kafka/myTopic",
+	}, span.DestinationService)
+}
+
 func TestConsumer_JaegerMetadata(t *testing.T) {
 	jaegerBatch := jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{
