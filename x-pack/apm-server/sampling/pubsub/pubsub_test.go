@@ -26,45 +26,21 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
-func TestPublishSampledTraceIDs(t *testing.T) {
-	const (
-		beatID = "beat_id"
-	)
+const (
+	beatID = "beat_id"
+)
 
-	dataStream := pubsub.DataStreamConfig{
+var (
+	dataStream = pubsub.DataStreamConfig{
 		Type:      "traces",
 		Dataset:   "sampled",
 		Namespace: "testing",
 	}
+)
 
-	requests := make(chan *http.Request, 1)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var buf bytes.Buffer
-		if _, err := io.Copy(&buf, r.Body); err != nil {
-			panic(err)
-		}
-		r.Body = ioutil.NopCloser(&buf)
-
-		select {
-		case <-r.Context().Done():
-		case requests <- r:
-		}
-	}))
-	defer srv.Close()
-
-	client, err := elasticsearch.NewClient(&elasticsearch.Config{
-		Hosts: []string{srv.Listener.Addr().String()},
-	})
-	require.NoError(t, err)
-
-	pub, err := pubsub.New(pubsub.Config{
-		Client:         client,
-		DataStream:     dataStream,
-		BeatID:         beatID,
-		FlushInterval:  time.Millisecond,
-		SearchInterval: time.Minute,
-	})
-	require.NoError(t, err)
+func TestPublishSampledTraceIDs(t *testing.T) {
+	srv, requests := newRequestResponseWriterServer(t)
+	pub := newPubsub(t, srv, time.Millisecond, time.Minute)
 
 	var ids []string
 	for i := 0; i < 20; i++ {
@@ -75,7 +51,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 	// service bulk requests.
 	go func() {
 		for i := 0; i < len(ids); i += 2 {
-			err = pub.PublishSampledTraceIDs(context.Background(), ids[i], ids[i+1])
+			err := pub.PublishSampledTraceIDs(context.Background(), ids[i], ids[i+1])
 			assert.NoError(t, err)
 			time.Sleep(10 * time.Millisecond) // sleep to force a new request
 		}
@@ -87,10 +63,14 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 		select {
 		case <-deadlineTimer.C:
 			t.Fatal("timed out waiting for events to be received by server")
-		case req := <-requests:
-			require.Equal(t, fmt.Sprintf("/%s/_bulk", dataStream.String()), req.URL.Path)
+		case rw := <-requests:
+			require.Equal(t, fmt.Sprintf("/%s/_bulk", dataStream.String()), rw.URL.Path)
 
-			d := json.NewDecoder(req.Body)
+			body, err := ioutil.ReadAll(rw.Body)
+			require.NoError(t, err)
+			rw.Write("") // unblock client
+
+			d := json.NewDecoder(bytes.NewReader(body))
 			for {
 				action := make(map[string]interface{})
 				err := d.Decode(&action)
@@ -132,34 +112,162 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 }
 
 func TestSubscribeSampledTraceIDs(t *testing.T) {
-	const (
-		beatID = "beat_id"
+	srv, requests := newRequestResponseWriterServer(t)
+	ids, _ := newSubscriber(t, srv)
+
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
+          "indices": {
+	    "index_name": {
+              "shards": {
+	        "0": [{
+		  "routing": {
+		    "primary": true
+		  },
+		  "seq_no": {
+		    "global_checkpoint": 99
+		  }
+		}]
+	      }
+	    }
+	  }
+	}`)
+
+	// _refresh
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+
+	// _search: we respond with some results.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
+          "hits": {
+	    "hits": [
+	      {
+	        "_seq_no": 1,
+		"_source": {"trace": {"id": "trace_1"}, "observer": {"id": "another_beat_id"}},
+		"sort": [1]
+	      },
+	      {
+	        "_seq_no": 2,
+		"_source": {"trace": {"id": "trace_2"}, "observer": {"id": "another_beat_id"}},
+		"sort": [2]
+	      }
+	    ]
+	  }
+	}`)
+
+	assert.Equal(t, "trace_1", expectValue(t, ids))
+	assert.Equal(t, "trace_2", expectValue(t, ids))
+
+	// The previous _search responded non-empty, and the greatest _seq_no was not equal
+	// to the global checkpoint: _search again after _seq_no 2.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
+	  "pit_id": "pit_id_2",
+          "hits": {
+	    "hits": [
+	      {
+	        "_seq_no": 3,
+		"_source": {"trace": {"id": "trace_3"}, "observer": {"id": "another_beat_id"}},
+		"sort": [3]
+	      },
+	      {
+	        "_seq_no": 98,
+		"_source": {"trace": {"id": "trace_98"}, "observer": {"id": "another_beat_id"}},
+		"sort": [98]
+	      }
+	    ]
+	  }
+	}`)
+
+	assert.Equal(t, "trace_3", expectValue(t, ids))
+	assert.Equal(t, "trace_98", expectValue(t, ids))
+
+	// Again the previous _search responded non-empty, and the greatest _seq_no was not equal
+	// to the global checkpoint: _search again after _seq_no 98. This time we respond with no
+	// hits, so the subscriber goes back to sleep.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(
+		`{"hits":{"hits":[]}}`,
 	)
+	expectNone(t, ids)
 
-	dataStream := pubsub.DataStreamConfig{
-		Type:      "traces",
-		Dataset:   "sampled",
-		Namespace: "default",
+	// _stats: respond with the same global checkpoint as before
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
+          "indices": {
+	    "index_name": {
+              "shards": {
+	        "0": [{
+		  "routing": {
+		    "primary": true
+		  },
+		  "seq_no": {
+		    "global_checkpoint": 99
+		  }
+		}]
+	      }
+	    }
+	  }
+	}`)
+
+	// _refresh
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+
+	// The search now has an exclusive lower bound of the previously observed maximum _seq_no.
+	// When the global checkpoint is observed, the server stops issuing search requests and
+	// goes back to sleep.
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}},{"range":{"_seq_no":{"gt":98}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).Write(`{
+          "hits": {
+	    "hits": [
+	      {
+	        "_seq_no": 99,
+		"_source": {"trace": {"id": "trace_99"}, "observer": {"id": "another_beat_id"}},
+		"sort": [99]
+	      }
+	    ]
+	  }
+	}`)
+	assert.Equal(t, "trace_99", expectValue(t, ids))
+}
+
+func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
+	srv, requests := newRequestResponseWriterServer(t)
+	newSubscriber(t, srv)
+
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").Write(`{
+          "indices": {
+	    "index_name": {
+              "shards": {
+	        "0": [{
+		  "routing": {
+		    "primary": true
+		  },
+		  "seq_no": {
+		    "global_checkpoint": 99
+		  }
+		}]
+	      }
+	    }
+	  }
+	}`)
+	expectRequest(t, requests, "/index_name/_refresh", "").Write("")
+	expectRequest(t, requests, "/index_name/_search", `{"query":{"bool":{"filter":[{"range":{"_seq_no":{"lte":99}}}],"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`).WriteStatus(404, "")
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "")
+	expectRequest(t, requests, "/traces-sampled-testing/_stats/get", "").WriteStatus(500, "") // errors are not fatal
+}
+
+func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, context.CancelFunc) {
+	sub := newPubsub(t, srv, time.Minute, time.Millisecond)
+	ids := make(chan string)
+	ctx, cancel := context.WithCancel(context.Background())
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		return sub.SubscribeSampledTraceIDs(ctx, ids)
+	})
+	cancelFunc := func() {
+		cancel()
+		g.Wait()
 	}
+	t.Cleanup(cancelFunc)
+	return ids, cancelFunc
+}
 
-	var requests []*http.Request
-	responses := make(chan string)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var buf bytes.Buffer
-		if _, err := io.Copy(&buf, r.Body); err != nil {
-			panic(err)
-		}
-		r.Body = ioutil.NopCloser(&buf)
-		requests = append(requests, r)
-
-		select {
-		case <-r.Context().Done():
-		case resp := <-responses:
-			w.Write([]byte(resp))
-		}
-	}))
-	defer srv.Close()
-
+func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration) *pubsub.Pubsub {
 	client, err := elasticsearch.NewClient(&elasticsearch.Config{
 		Hosts: []string{srv.Listener.Addr().String()},
 	})
@@ -169,98 +277,74 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 		Client:         client,
 		DataStream:     dataStream,
 		BeatID:         beatID,
-		FlushInterval:  time.Minute,
-		SearchInterval: time.Millisecond,
+		FlushInterval:  flushInterval,
+		SearchInterval: searchInterval,
 	})
 	require.NoError(t, err)
+	return sub
+}
 
-	ids := make(chan string)
-	ctx, cancel := context.WithCancel(context.Background())
-	g, ctx := errgroup.WithContext(ctx)
-	go g.Go(func() error {
-		return sub.SubscribeSampledTraceIDs(ctx, ids)
-	})
-	defer g.Wait()
-	defer cancel()
+func newRequestResponseWriterServer(t testing.TB) (*httptest.Server, <-chan *requestResponseWriter) {
+	requests := make(chan *requestResponseWriter)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rrw := &requestResponseWriter{
+			Request: r,
+			w:       w,
+			done:    make(chan struct{}),
+		}
+		select {
+		case <-r.Context().Done():
+			w.WriteHeader(http.StatusRequestTimeout)
+			return
+		case requests <- rrw:
+		}
+		select {
+		case <-r.Context().Done():
+			w.WriteHeader(http.StatusRequestTimeout)
+			return
+		case <-rrw.done:
+		}
+	}))
+	t.Cleanup(srv.Close)
+	return srv, requests
+}
 
-	responses <- `{
-          "hits": {
-	    "hits": [
-	      {
-	        "_seq_no": 1,
-	        "_primary_term": 1,
-		"_source": {"trace": {"id": "trace_1"}, "observer": {"id": "another_beat_id"}}
-	      },
-	      {
-	        "_seq_no": 2,
-	        "_primary_term": 2,
-		"_source": {"trace": {"id": "trace_2"}, "observer": {"id": "another_beat_id"}}
-	      }
-	    ]
-	  }
-	}`
+type requestResponseWriter struct {
+	*http.Request
+	w    http.ResponseWriter
+	done chan struct{}
+}
 
-	assert.Equal(t, "trace_1", expectValue(t, ids))
-	assert.Equal(t, "trace_2", expectValue(t, ids))
+func (w *requestResponseWriter) Write(body string) {
+	w.WriteStatus(http.StatusOK, body)
+}
 
-	responses <- "nonsense" // bad response, subscriber continues
+func (w *requestResponseWriter) WriteStatus(statusCode int, body string) {
+	w.w.WriteHeader(statusCode)
+	w.w.Write([]byte(body))
+	close(w.done)
+}
 
-	// trace_2 is repeated, since we search for >= the last
-	// _seq_no, in case there's a new _primary_term.
-	responses <- `{
-          "hits": {
-	    "hits": [
-	      {
-	        "_seq_no": 2,
-	        "_primary_term": 2,
-		"_source": {"trace": {"id": "trace_2"}, "observer": {"id": "another_beat_id"}}
-	      },
-	      {
-	        "_seq_no": 2,
-	        "_primary_term": 3,
-		"_source": {"trace": {"id": "trace_2b"}, "observer": {"id": "another_beat_id"}}
-	      },
-	      {
-	        "_seq_no": 99,
-	        "_primary_term": 3,
-		"_source": {"trace": {"id": "trace_99"}, "observer": {"id": "another_beat_id"}}
-	      }
-	    ]
-	  }
-	}`
-
-	assert.Equal(t, "trace_2b", expectValue(t, ids))
-	assert.Equal(t, "trace_99", expectValue(t, ids))
-
-	responses <- `{"hits":{"hits":[]}}` // no hits
-	expectNone(t, ids)
-
-	cancel() // stop subscriber
-	srv.Close()
-
-	var bodies []string
-	for _, r := range requests {
-		assert.Equal(t, fmt.Sprintf("/%s/_search", dataStream.String()), r.URL.Path)
-
-		var buf bytes.Buffer
-		io.Copy(&buf, r.Body)
-		bodies = append(bodies, strings.TrimSpace(buf.String()))
+func expectRequest(t testing.TB, ch <-chan *requestResponseWriter, path, body string) *requestResponseWriter {
+	t.Helper()
+	select {
+	case <-time.After(10 * time.Second):
+		t.Fatalf("timed out waiting for request")
+		panic("unreachable")
+	case r, ok := <-ch:
+		if assert.True(t, ok) {
+			var buf bytes.Buffer
+			io.Copy(&buf, r.Body)
+			assert.Equal(t, path, r.URL.Path)
+			assert.Equal(t, body, strings.TrimSpace(buf.String()))
+			return r
+		}
 	}
-
-	assert.Equal(t, []string{
-		`{"query":{"bool":{"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"search_after":[-1],"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}]}`,
-
-		// Repeats because of the invalid response.
-		`{"query":{"bool":{"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"search_after":[1],"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}]}`,
-		`{"query":{"bool":{"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"search_after":[1],"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}]}`,
-
-		// Repeats because of the zero hits response.
-		`{"query":{"bool":{"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"search_after":[98],"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}]}`,
-		`{"query":{"bool":{"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"search_after":[98],"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}]}`,
-	}, bodies)
+	return nil
 }
 
 func expectValue(t testing.TB, ch <-chan string) string {
+	t.Helper()
 	select {
 	case <-time.After(10 * time.Second):
 		t.Fatalf("timed out waiting for trace ID to be sent")
@@ -272,6 +356,7 @@ func expectValue(t testing.TB, ch <-chan string) string {
 }
 
 func expectNone(t testing.TB, ch <-chan string) {
+	t.Helper()
 	select {
 	case <-time.After(500 * time.Millisecond):
 	case v := <-ch:

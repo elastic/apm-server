@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -226,6 +227,9 @@ func refreshPeriodically(t *testing.T, interval time.Duration, index ...string) 
 			case <-ticker.C:
 			}
 			if _, err := systemtest.Elasticsearch.Do(ctx, &request, nil); err != nil {
+				if errors.Is(err, context.Canceled) {
+					return nil
+				}
 				return err
 			}
 		}

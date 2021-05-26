@@ -200,6 +200,9 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 
 func recreateDataStream(tb testing.TB, client elasticsearch.Client, dataStream pubsub.DataStreamConfig) {
 	body := strings.NewReader(`{
+  "settings": {
+    "index.number_of_shards": 1
+  },
   "mappings": {
     "properties": {
       "event.ingested": {"type": "date"},
@@ -233,7 +236,7 @@ func recreateDataStream(tb testing.TB, client elasticsearch.Client, dataStream p
 		Body:  body,
 	}.Do(context.Background(), client)
 	require.NoError(tb, err)
-	assert.False(tb, resp.IsError())
+	require.False(tb, resp.IsError())
 	resp.Body.Close()
 }
 
