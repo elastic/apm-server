@@ -36,8 +36,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 	cfg, err := NewConfig(info, libcommon.MustNewConfigFrom(input))
 	require.NoError(t, err)
 
-	s, err := MakeDefaultSupporter(nil, 0, cfg)
-	require.NoError(t, err)
+	s := MakeDefaultSupporter(nil, cfg)
 	assert.Equal(t, 5, len(s))
 	var aliases []string
 	for _, sup := range s {

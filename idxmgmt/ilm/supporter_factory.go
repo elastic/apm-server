@@ -27,11 +27,7 @@ import (
 const pattern = "000001"
 
 // MakeDefaultSupporter creates the ILM supporter for APM that is passed to libbeat.
-func MakeDefaultSupporter(
-	log *logp.Logger,
-	mode libilm.Mode,
-	ilmConfig Config) ([]libilm.Supporter, error) {
-
+func MakeDefaultSupporter(log *logp.Logger, ilmConfig Config) []libilm.Supporter {
 	if log == nil {
 		log = logp.NewLogger(logs.Ilm)
 	} else {
@@ -39,12 +35,17 @@ func MakeDefaultSupporter(
 	}
 
 	var supporters []libilm.Supporter
-
 	for _, m := range ilmConfig.Setup.Mappings {
 		policy := ilmConfig.Setup.Policies[m.PolicyName]
-		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: m.Index, Pattern: pattern},
-			libilm.Policy{Name: policy.Name, Body: policy.Body}, ilmConfig.Setup.Overwrite, true)
+		supporter := libilm.NewStdSupport(
+			log,
+			ilmConfig.Mode,
+			libilm.Alias{Name: m.Index, Pattern: pattern},
+			libilm.Policy{Name: policy.Name, Body: policy.Body},
+			ilmConfig.Setup.Overwrite,
+			true, // check exists
+		)
 		supporters = append(supporters, supporter)
 	}
-	return supporters, nil
+	return supporters
 }
