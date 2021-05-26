@@ -34,18 +34,31 @@ get_go_version() {
   fi
 }
 
+# install_gvm
+# Install gvm to /usr/local/bin.
+# To read more about installing gvm in other platforms: https://github.com/andrewkroh/gvm#installation
+install_gvm() {
+  # Install gvm
+  if [ ! -f "/usr/local/bin/gvm" ]; then
+    curl -sL -o ~/bin/gvm https://github.com/andrewkroh/gvm/releases/download/v0.3.0/gvm-linux-amd64
+    chmod +x /usr/local/bin/gvm
+  fi
+
+  GVM="/usr/local/bin/gvm"
+  debug "Gvm version $(${GVM} --version)"
+}
+
 # setup_go_root "version"
 # This configures the Go version being used. It sets GOROOT and adds
-# GOROOT/bin to the PATH. It uses gimme to download the Go version if
-# it does not already exist in the ~/.gimme dir.
+# GOROOT/bin to the PATH. It uses gvm to download the Go version if
+# it does not already exist in the /usr/local/bin dir.
 setup_go_root() {
   local version=${1}
 
+  install_gvm
+
   # Setup GOROOT and add go to the PATH.
-  GIMME=${_sdir}/gimme/gimme
-  debug "Gimme version $(${GIMME} version)"
-  ${GIMME} "${version}" > /dev/null
-  source "${HOME}/.gimme/envs/go${version}.env" 2> /dev/null
+  eval "$(${GVM} ${version})"
 
   debug "$(go version)"
 }
