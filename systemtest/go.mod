@@ -11,6 +11,7 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.8.0
 	github.com/elastic/go-sysinfo v1.4.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
+	github.com/google/pprof v0.0.0-20210406223550-17a10ee72223
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/morikuni/aec v1.0.0 // indirect

@@ -30,7 +30,7 @@ func spanProcSetup() *tests.ProcessorSetup {
 		Proc: &intakeTestProcessor{
 			Processor: *stream.BackendProcessor(&config.Config{MaxEventSize: lrSize}),
 		},
-		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
+		FullPayloadPath: "../../../testdata/intake-v2/spans.ndjson",
 		SchemaPath:      "../../../docs/spec/v2/span.json",
 		TemplatePaths: []string{
 			"../../../model/span/_meta/fields.yml",

@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -37,7 +38,6 @@ import (
 	"github.com/elastic/apm-server/approvaltest"
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/beatertest"
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 func collectEvents(events <-chan beat.Event, timeout time.Duration) []beat.Event {
@@ -149,7 +149,7 @@ func TestPublishIntegration(t *testing.T) {
 			require.NoError(t, err)
 			defer apm.Stop()
 
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", tc.payload))
+			b, err := ioutil.ReadFile(filepath.Join("../testdata/intake-v2", tc.payload))
 			require.NoError(t, err)
 			docs := testPublishIntake(t, apm, events, bytes.NewReader(b))
 			approvaltest.ApproveEventDocs(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
@@ -204,11 +204,11 @@ func TestPublishIntegrationProfile(t *testing.T) {
 
 			var metadata io.Reader
 			if tc.metadata != "" {
-				b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/profile/", tc.metadata))
+				b, err := ioutil.ReadFile(filepath.Join("../testdata/profile", tc.metadata))
 				require.NoError(t, err)
 				metadata = bytes.NewReader(b)
 			}
-			profileBytes, err := loader.LoadDataAsBytes(filepath.Join("../testdata/profile/", tc.profile))
+			profileBytes, err := ioutil.ReadFile(filepath.Join("../testdata/profile", tc.profile))
 			require.NoError(t, err)
 
 			docs := testPublishProfile(t, apm, events, metadata, bytes.NewReader(profileBytes))

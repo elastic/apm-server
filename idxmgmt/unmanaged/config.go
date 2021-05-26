@@ -47,9 +47,11 @@ func (cfg *Config) SelectorConfig() (*libcommon.Config, error) {
 
 		// set default indices if not set
 		if cfg.Indices == nil {
-			if indicesCfg, err := libcommon.NewConfigFrom(conditionalIndices()); err == nil {
-				idcsCfg.SetChild("indices", -1, indicesCfg)
+			indicesCfg, err := libcommon.NewConfigFrom(conditionalIndices())
+			if err != nil {
+				return nil, err
 			}
+			idcsCfg.SetChild("indices", -1, indicesCfg)
 		}
 	}
 
