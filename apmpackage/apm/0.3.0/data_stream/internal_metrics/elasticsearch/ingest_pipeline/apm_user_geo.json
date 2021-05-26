@@ -1,0 +1,22 @@
+{
+  "description": "Add user geo information for APM events",
+  "processors": [
+    {
+      "geoip": {
+        "database_file": "GeoLite2-City.mmdb",
+        "field": "client.ip",
+        "target_field": "client.geo",
+        "ignore_missing": true,
+        "on_failure": [
+          {
+            "remove": {
+              "field": "client.ip",
+              "ignore_missing": true,
+              "ignore_failure": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "description": "Ingest pipeline for sampled trace documents",
+  "processors": [
+    {
+      "set": {
+        "field": "event.ingested",
+        "value": "{{_ingest.timestamp}}"
+      }
+    }
+  ]
+}
