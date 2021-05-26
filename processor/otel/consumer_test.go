@@ -519,6 +519,7 @@ func TestRPCSpan(t *testing.T) {
 	}, span.DestinationService)
 }
 
+<<<<<<< HEAD
 func TestMessagingTransaction(t *testing.T) {
 	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
 		"messaging.destination": pdata.NewAttributeValueString("myQueue"),
@@ -560,6 +561,8 @@ func TestMessagingSpan(t *testing.T) {
 	}, span.DestinationService)
 }
 
+=======
+>>>>>>> 1791bf8a (processor/otel: record array attributes as labels (#5286))
 func TestArrayLabels(t *testing.T) {
 	stringArray := pdata.NewAttributeValueArray()
 	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string1"))
@@ -579,6 +582,7 @@ func TestArrayLabels(t *testing.T) {
 	}, tx.Labels)
 }
 
+<<<<<<< HEAD
 func TestConsumeTracesExportTimestamp(t *testing.T) {
 	traces, otelSpans := newTracesSpans()
 
@@ -647,6 +651,8 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	assert.Equal(t, float64(spanDuration.Milliseconds()), batch.Spans[0].Duration)
 }
 
+=======
+>>>>>>> 1791bf8a (processor/otel: record array attributes as labels (#5286))
 func TestConsumer_JaegerMetadata(t *testing.T) {
 	jaegerBatch := jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{

@@ -260,12 +260,17 @@ func translateTransaction(
 
 		k := replaceDots(kDots)
 		switch v.Type() {
+<<<<<<< HEAD
 		case pdata.AttributeValueTypeArray:
+=======
+		case pdata.AttributeValueARRAY:
+>>>>>>> 1791bf8a (processor/otel: record array attributes as labels (#5286))
 			array := v.ArrayVal()
 			values := make([]interface{}, array.Len())
 			for i := range values {
 				value := array.At(i)
 				switch value.Type() {
+<<<<<<< HEAD
 				case pdata.AttributeValueTypeBool:
 					values[i] = value.BoolVal()
 				case pdata.AttributeValueTypeDouble:
@@ -273,11 +278,24 @@ func translateTransaction(
 				case pdata.AttributeValueTypeInt:
 					values[i] = value.IntVal()
 				case pdata.AttributeValueTypeString:
+=======
+				case pdata.AttributeValueBOOL:
+					values[i] = value.BoolVal()
+				case pdata.AttributeValueDOUBLE:
+					values[i] = value.DoubleVal()
+				case pdata.AttributeValueINT:
+					values[i] = value.IntVal()
+				case pdata.AttributeValueSTRING:
+>>>>>>> 1791bf8a (processor/otel: record array attributes as labels (#5286))
 					values[i] = truncate(value.StringVal())
 				}
 			}
 			labels[k] = values
+<<<<<<< HEAD
 		case pdata.AttributeValueTypeBool:
+=======
+		case pdata.AttributeValueBOOL:
+>>>>>>> 1791bf8a (processor/otel: record array attributes as labels (#5286))
 			labels[k] = v.BoolVal()
 		case pdata.AttributeValueTypeDouble:
 			labels[k] = v.DoubleVal()
