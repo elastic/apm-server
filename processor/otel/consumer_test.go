@@ -518,6 +518,25 @@ func TestRPCSpan(t *testing.T) {
 	}, span.DestinationService)
 }
 
+func TestArrayLabels(t *testing.T) {
+	stringArray := pdata.NewAttributeValueArray()
+	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string1"))
+	stringArray.ArrayVal().Append(pdata.NewAttributeValueString("string2"))
+
+	boolArray := pdata.NewAttributeValueArray()
+	boolArray.ArrayVal().Append(pdata.NewAttributeValueBool(false))
+	boolArray.ArrayVal().Append(pdata.NewAttributeValueBool(true))
+
+	tx := transformTransactionWithAttributes(t, map[string]pdata.AttributeValue{
+		"string_array": stringArray,
+		"bool_array":   boolArray,
+	})
+	assert.Equal(t, common.MapStr{
+		"bool_array":   []interface{}{false, true},
+		"string_array": []interface{}{"string1", "string2"},
+	}, tx.Labels)
+}
+
 func TestConsumer_JaegerMetadata(t *testing.T) {
 	jaegerBatch := jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{
