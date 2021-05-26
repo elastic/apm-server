@@ -28,8 +28,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
-
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 func TestRegisterPipelines(t *testing.T) {
