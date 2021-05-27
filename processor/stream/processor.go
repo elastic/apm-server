@@ -24,6 +24,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/apm-server/beater/request"
+
 	"golang.org/x/time/rate"
 
 	"go.elastic.co/apm"
@@ -296,7 +298,7 @@ func handleDecodeErr(err error, r *streamReader, result *Result) bool {
 }
 
 // HandleStream processes a stream of events
-func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, processor model.BatchProcessor) *Result {
+func (p *Processor) HandleStream(c *request.Context, ipRateLimiter *rate.Limiter, meta *model.Metadata, reader io.Reader, processor model.BatchProcessor) *Result {
 	res := &Result{}
 
 	sr := p.getStreamReader(reader)
@@ -308,11 +310,16 @@ func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limite
 		res.Add(err)
 		return res
 	}
+	if meta != nil {
+		c.ServiceName = meta.Service.Name
+	}
 
 	var allowedServiceNamesProcessor model.BatchProcessor = modelprocessor.Nop{}
 	if p.allowedServiceNames != nil {
 		allowedServiceNamesProcessor = modelprocessor.MetadataProcessorFunc(p.restrictAllowedServiceNames)
 	}
+
+	ctx := c.Request.Context()
 	requestTime := utility.RequestTime(ctx)
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")

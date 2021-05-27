@@ -47,6 +47,7 @@ type Context struct {
 	Logger          *logp.Logger
 	RateLimiter     *rate.Limiter
 	AuthResult      authorization.Result
+	ServiceName     string
 	IsRum           bool
 	Result          Result
 	RequestMetadata Metadata
@@ -75,6 +76,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.RateLimiter = nil
 	c.AuthResult = authorization.Result{}
 	c.IsRum = false
+	c.ServiceName = ""
 	c.Result.Reset()
 	c.RequestMetadata.Reset()
 

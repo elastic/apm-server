@@ -18,6 +18,7 @@
 package agentcfg
 
 import (
+	"fmt"
 	"time"
 
 	gocache "github.com/patrickmn/go-cache"
@@ -55,7 +56,8 @@ func (c *cache) fetch(query Query, fetch func() (Result, error)) (Result, error)
 	c.gocache.SetDefault(query.id(), result)
 
 	if c.logger.IsDebug() {
-		c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), query.id())
+		c.logger.Debugw(fmt.Sprintf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), query.id()),
+			"service.name", query.Service.Name)
 	}
 	return result, nil
 }

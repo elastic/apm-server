@@ -129,7 +129,7 @@ func (c *Consumer) convertSpan(
 	metadata model.Metadata,
 	out *model.Batch,
 ) {
-	logger := logp.NewLogger(logs.Otel)
+	logger := logp.NewLogger(logs.Otel).With("service.name", metadata.Service.Name)
 
 	root := otelSpan.ParentSpanID().IsEmpty()
 

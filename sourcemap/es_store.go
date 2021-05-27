@@ -109,8 +109,8 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 
 	var esSourcemap string
 	if hits > 1 {
-		logger.Warnf("%d sourcemaps found for service %s version %s and file %s, using the most recent one",
-			hits, name, version, path)
+		logger.Warnw(fmt.Sprintf("%d sourcemaps found", hits),
+			"service.name", name, "service.version", version, "file.path", path)
 	}
 	esSourcemap = esSourcemapResponse.Hits.Hits[0].Source.Sourcemap.Sourcemap
 	// until https://github.com/golang/go/issues/19858 is resolved

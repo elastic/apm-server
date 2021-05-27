@@ -110,13 +110,13 @@ func (s *grpcSampler) GetSamplingStrategy(
 		if errors.As(err, &verr) {
 			if err := checkValidationError(verr); err != nil {
 				// do not return full error details since this is part of an unprotected endpoint response
-				s.logger.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
+				s.logger.With(logp.Error(err)).With("service.name", params.ServiceName).Error("Configured Kibana client does not support agent remote configuration")
 				return nil, errors.New("agent remote configuration not supported, check server logs for more details")
 			}
 		}
 
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.logger.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
+		s.logger.With(logp.Error(err)).With("service.name", params.ServiceName).Error("No valid sampling rate fetched from Kibana.")
 		return nil, errors.New("no sampling rate available, check server logs for more details")
 	}
 

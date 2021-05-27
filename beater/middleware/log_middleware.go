@@ -47,7 +47,12 @@ func LogMiddleware() Middleware {
 				return
 			}
 			h(c)
+
 			c.Logger = c.Logger.With("event.duration", time.Since(start))
+			if c.ServiceName != "" {
+				c.Logger = c.Logger.With("service.name", c.ServiceName)
+			}
+
 			if c.MultipleWriteAttempts() {
 				c.Logger.Warn("multiple write attempts")
 			}

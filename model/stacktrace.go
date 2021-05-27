@@ -68,7 +68,7 @@ func (st *Stacktrace) transform(ctx context.Context, cfg *transform.Config, rum 
 			return
 		}
 		if _, ok := sourcemapErrorSet[errMsg]; !ok {
-			logger.Debug(errMsg)
+			logger.Debugw(errMsg, "service.name", service.Name)
 			sourcemapErrorSet[errMsg] = nil
 		}
 	})
