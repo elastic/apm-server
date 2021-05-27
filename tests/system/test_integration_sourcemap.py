@@ -57,10 +57,10 @@ class SourcemappingIntegrationTest(BaseSourcemapTest):
         assert self.log_contains(
             "Overriding sourcemap"), "A log should be written when a sourcemap is overwritten"
         self.upload_sourcemap(expected_ct=3)
-        assert self.log_contains("2 sourcemaps found for service"), \
+        assert self.log_contains("2 sourcemaps found"), \
             "the 3rd fetch should query ES and find that there are 2 sourcemaps with the same caching key"
         self.assert_no_logged_warnings(
-            ["WARN.*Overriding sourcemap", "WARN.*2 sourcemaps found for service"])
+            ["WARN.*Overriding sourcemap", "WARN.*2 sourcemaps found"])
 
     def test_backend_span(self):
         # ensure source mapping is not applied to backend events
