@@ -2,3 +2,10 @@ title: APM tail-sampled traces
 type: traces
 dataset: sampled
 ilm_policy: traces-apm.sampled-default_policy
+elasticsearch:
+  index_template:
+    settings:
+      # Create a single shard per index, so we can use
+      # global checkpoints as a way of limiting search
+      # results.
+      number_of_shards: 1

@@ -29,7 +29,7 @@
     },
     {
       "pipeline": {
-        "name": "metrics-apm.app-0.3.0-apm_opentelemetry_metrics",
+        "name": "metrics-apm.app-0.3.0-apm_metrics_dynamic_template",
         "if": "ctx.processor?.event == 'metric'"
       }
     }
