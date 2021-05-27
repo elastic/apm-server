@@ -22,6 +22,7 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"context"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -39,7 +40,6 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 func TestIntakeHandler(t *testing.T) {
@@ -187,7 +187,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	}
 
 	if tc.r == nil {
-		data, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", tc.path))
+		data, err := ioutil.ReadFile(filepath.Join("../../../testdata/intake-v2", tc.path))
 		require.NoError(t, err)
 
 		tc.r = httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
@@ -204,7 +204,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 }
 
 func compressedRequest(t *testing.T, compressionType string, compressPayload bool) *http.Request {
-	data, err := loader.LoadDataAsBytes("../testdata/intake-v2/errors.ndjson")
+	data, err := ioutil.ReadFile("../../../testdata/intake-v2/errors.ndjson")
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	if compressPayload {

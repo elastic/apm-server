@@ -222,6 +222,23 @@ func translateTransaction(
 
 		k := replaceDots(kDots)
 		switch v.Type() {
+		case pdata.AttributeValueARRAY:
+			array := v.ArrayVal()
+			values := make([]interface{}, array.Len())
+			for i := range values {
+				value := array.At(i)
+				switch value.Type() {
+				case pdata.AttributeValueBOOL:
+					values[i] = value.BoolVal()
+				case pdata.AttributeValueDOUBLE:
+					values[i] = value.DoubleVal()
+				case pdata.AttributeValueINT:
+					values[i] = value.IntVal()
+				case pdata.AttributeValueSTRING:
+					values[i] = truncate(value.StringVal())
+				}
+			}
+			labels[k] = values
 		case pdata.AttributeValueBOOL:
 			labels[k] = v.BoolVal()
 		case pdata.AttributeValueDOUBLE:
