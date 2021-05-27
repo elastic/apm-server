@@ -23,6 +23,7 @@ https://github.com/elastic/apm-server/compare/7.13\...master[View commits]
 * Support setting agent configuration from apm-server.yml {pull}5177[5177]
 * Add metric_type and unit to field metadata of system metrics {pull}5230[5230]
 * Upgrade Go to 1.15.12 {pull}[]
+* Add support for dynamic histogram metrics {pull}5239[5239]
 
 [float]
 ==== Deprecated

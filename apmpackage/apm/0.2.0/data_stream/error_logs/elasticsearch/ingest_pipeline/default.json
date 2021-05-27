@@ -26,6 +26,12 @@
         "name": "logs-apm.error-0.2.0-apm_error_grouping_name",
         "if": "ctx.processor?.event == 'error'"
       }
+    },
+    {
+      "pipeline": {
+        "name": "logs-apm.error-0.2.0-apm_metrics_dynamic_template",
+        "if": "ctx.processor?.event == 'metric'"
+      }
     }
   ]
 }
