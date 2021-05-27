@@ -536,6 +536,8 @@ func TestMessagingSpan(t *testing.T) {
 		"messaging.destination": pdata.NewAttributeValueString("myTopic"),
 		"net.peer.ip":           pdata.NewAttributeValueString("10.20.30.40"),
 		"net.peer.port":         pdata.NewAttributeValueInt(123),
+	}, func(s pdata.Span) {
+		s.SetKind(pdata.SpanKindPRODUCER)
 	})
 	assert.Equal(t, "messaging", span.Type)
 	assert.Equal(t, "kafka", span.Subtype)
@@ -1081,12 +1083,15 @@ func transformTransactionWithAttributes(t *testing.T, attrs map[string]pdata.Att
 	return events.Transactions[0]
 }
 
-func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue) *model.Span {
+func transformSpanWithAttributes(t *testing.T, attrs map[string]pdata.AttributeValue, configFns ...func(pdata.Span)) *model.Span {
 	traces, spans := newTracesSpans()
 	otelSpan := pdata.NewSpan()
 	otelSpan.SetTraceID(pdata.NewTraceID([16]byte{1}))
 	otelSpan.SetSpanID(pdata.NewSpanID([8]byte{2}))
 	otelSpan.SetParentSpanID(pdata.NewSpanID([8]byte{3}))
+	for _, fn := range configFns {
+		fn(otelSpan)
+	}
 	otelSpan.Attributes().InitFromMap(attrs)
 	spans.Spans().Append(otelSpan)
 	events := transformTraces(t, traces)

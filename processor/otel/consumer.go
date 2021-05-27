@@ -508,14 +508,7 @@ func translateSpan(span pdata.Span, metadata model.Metadata, event *model.Span) 
 				message.QueueName = stringval
 				isMessagingSpan = true
 			case conventions.AttributeMessagingOperation:
-				if stringval == "" {
-					// TODO: Is this correct? Inferring that an empty string means "send", based on
-					// only `send`, `process`, and `receive` are allowed
-					// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#operation-names
-					// `messaging.operation` can only have `process` and `receive` values
-					// cf. table in section https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#apache-kafka-example
-					// and various examples
-					// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#apache-kafka-example
+				if stringval == "" && span.Kind() == pdata.SpanKindPRODUCER {
 					stringval = "send"
 				}
 				messageOperation = stringval
