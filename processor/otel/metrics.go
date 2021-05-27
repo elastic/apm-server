@@ -214,7 +214,7 @@ func histogramSample(metricName string, bucketCounts []uint64, explicitBounds []
 	// bucket is assumed to be 0 if the upper bound of that bucket is greater than 0. In that
 	// case, the usual linear interpolation is applied within that bucket. Otherwise, the upper
 	// bound of the lowest bucket is returned for quantiles located in the lowest bucket."
-	values := make([]float64, 0, len(explicitBounds))
+	values := make([]float64, 0, len(bucketCounts))
 	counts := make([]int64, 0, len(bucketCounts))
 	for i, count := range bucketCounts {
 		if count == 0 {
