@@ -122,8 +122,13 @@ func TestConsumeMetrics(t *testing.T) {
 	doubleSum.DataPoints().At(2).SetValue(14)
 	doubleSum.DataPoints().At(2).LabelsMap().InitFromMap(map[string]string{"k2": "v"})
 
+<<<<<<< HEAD
 	metric = appendMetric("histogram_metric", pdata.MetricDataTypeHistogram)
 	doubleHistogram := metric.Histogram()
+=======
+	metric = appendMetric("double_histogram_metric", pdata.MetricDataTypeDoubleHistogram)
+	doubleHistogram := metric.DoubleHistogram()
+>>>>>>> 91645bde (Add support for dynamic histogram metrics (#5239))
 	doubleHistogram.DataPoints().Resize(1)
 	doubleHistogram.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp0))
 	doubleHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 1, 2, 3})
@@ -136,8 +141,13 @@ func TestConsumeMetrics(t *testing.T) {
 	intHistogram.DataPoints().At(0).SetBucketCounts([]uint64{0, 1, 2, 3})
 	intHistogram.DataPoints().At(0).SetExplicitBounds([]float64{1.0, 2.0, 3.0})
 
+<<<<<<< HEAD
 	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeHistogram)
 	invalidHistogram := metric.Histogram()
+=======
+	metric = appendMetric("invalid_histogram_metric", pdata.MetricDataTypeDoubleHistogram)
+	invalidHistogram := metric.DoubleHistogram()
+>>>>>>> 91645bde (Add support for dynamic histogram metrics (#5239))
 	invalidHistogram.DataPoints().Resize(1)
 	invalidHistogram.DataPoints().At(0).SetTimestamp(pdata.TimestampFromTime(timestamp0))
 	invalidHistogram.DataPoints().At(0).SetBucketCounts([]uint64{1, 2, 3}) // should be one more bucket count than bounds
@@ -145,8 +155,13 @@ func TestConsumeMetrics(t *testing.T) {
 	expectDropped++
 
 	// Summary metrics are not yet supported, and will be dropped.
+<<<<<<< HEAD
 	metric = appendMetric("double_summary_metric", pdata.MetricDataTypeSummary)
 	metric.Summary().DataPoints().Resize(1)
+=======
+	metric = appendMetric("double_summary_metric", pdata.MetricDataTypeDoubleSummary)
+	metric.DoubleSummary().DataPoints().Resize(1)
+>>>>>>> 91645bde (Add support for dynamic histogram metrics (#5239))
 	expectDropped++
 
 	metadata := model.Metadata{
@@ -175,7 +190,11 @@ func TestConsumeMetrics(t *testing.T) {
 			{Name: "double_sum_metric", Value: 12, Type: "counter"},
 
 			{
+<<<<<<< HEAD
 				Name: "histogram_metric", Type: "histogram",
+=======
+				Name: "double_histogram_metric", Type: "histogram",
+>>>>>>> 91645bde (Add support for dynamic histogram metrics (#5239))
 				Counts: []int64{1, 1, 2, 3},
 				Values: []float64{-1, 0.5, 2.75, 3.5},
 			},

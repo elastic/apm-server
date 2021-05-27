@@ -186,9 +186,15 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			}
 		}
 		return !anyDropped
+<<<<<<< HEAD
 	case pdata.MetricDataTypeHistogram:
 		anyDropped := false
 		dps := metric.Histogram().DataPoints()
+=======
+	case pdata.MetricDataTypeDoubleHistogram:
+		anyDropped := false
+		dps := metric.DoubleHistogram().DataPoints()
+>>>>>>> 91645bde (Add support for dynamic histogram metrics (#5239))
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := histogramSample(metric.Name(), dp.BucketCounts(), dp.ExplicitBounds()); ok {
@@ -198,7 +204,11 @@ func (c *Consumer) addMetric(metric pdata.Metric, ms *metricsets) bool {
 			}
 		}
 		return !anyDropped
+<<<<<<< HEAD
 	case pdata.MetricDataTypeSummary:
+=======
+	case pdata.MetricDataTypeDoubleSummary:
+>>>>>>> 91645bde (Add support for dynamic histogram metrics (#5239))
 		// TODO(axw) https://github.com/elastic/apm-server/issues/3195
 		// (Not quite the same issue, but the solution would also enable
 		// aggregate metrics, which would be appropriate for summaries.)
