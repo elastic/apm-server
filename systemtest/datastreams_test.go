@@ -20,6 +20,7 @@ package systemtest_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/elastic/apm-server/systemtest/estest"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -31,7 +32,6 @@ import (
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
-	"github.com/elastic/apm-server/systemtest/estest"
 )
 
 func TestDataStreamsEnabled(t *testing.T) {
@@ -110,6 +110,9 @@ func TestDataStreamsEnabled(t *testing.T) {
 			// There should be no warnings or errors logged.
 			for _, record := range srv.Logs.All() {
 				assert.Condition(t, func() bool {
+					if record.Level == zapcore.ErrorLevel  {
+						return assert.Equal(t, "Started apm-server with data streams enabled but no active fleet management mode was specified", record.Message)
+					}
 					return record.Level < zapcore.WarnLevel
 				}, "%s: %s", record.Level, record.Message)
 			}
